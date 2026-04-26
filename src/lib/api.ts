@@ -24,7 +24,12 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
   const json = await res.json();
 
   if (!res.ok) {
-    throw new Error(json.message || 'API request failed');
+    const err: any = new Error(
+      Array.isArray(json.message) ? json.message.join(' · ') : (json.message || 'API request failed')
+    );
+    err.status = res.status;
+    err.errors = Array.isArray(json.message) ? json.message : undefined;
+    throw err;
   }
 
   return json.data;
