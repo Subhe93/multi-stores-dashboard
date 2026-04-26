@@ -357,6 +357,7 @@ export default function CreatorStorePage() {
         api('/stores/my/store', {
           method: 'PUT', token,
           body: JSON.stringify({
+            ...(form.slug && form.slug !== store?.slug ? { slug: form.slug } : {}),
             name: primaryTrans.name || '',
             description: primaryTrans.description || '',
             logo_url: form.logo_url,
@@ -464,23 +465,23 @@ export default function CreatorStorePage() {
 
   if (!store) {
     return (
-      <div className="space-y-6 max-w-3xl">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">My Store</h1>
-          <p className="text-sm text-muted-foreground">Manage your storefront settings</p>
-        </div>
-        <Card className="shadow-none">
-          <CardContent className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="h-12 w-12 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400">
-              <Globe className="w-6 h-6" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium">No store set up yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Contact support to have your store created.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CreateStoreForm
+        token={token ?? ''}
+        onCreated={(s) => {
+          setStore(s);
+          const tc = s.theme_config ?? {};
+          const primary = s.language_config?.primary_locale ?? 'en';
+          const secondary = s.language_config?.secondary_locales ?? [];
+          setForm({
+            ...DEFAULT_FORM,
+            slug: s.slug ?? '',
+            primary_locale: primary,
+            secondary_locales: secondary.length ? secondary : [primary],
+          });
+          setTranslations({ [primary]: { ...EMPTY_TRANSLATABLE, name: s.name ?? '', description: s.description ?? '' } });
+          setActiveLocale(primary);
+        }}
+      />
     );
   }
 
@@ -561,7 +562,11 @@ export default function CreatorStorePage() {
             <div className="space-y-1.5">
               <Label className="text-xs">Slug</Label>
               <div className="flex items-center">
-                <Input className="h-8 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0" value={form.slug} disabled readOnly />
+                <Input
+                  className="h-8 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={form.slug}
+                  onChange={(e) => setField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                />
                 <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
               </div>
             </div>
@@ -733,6 +738,118 @@ export default function CreatorStorePage() {
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Create Store form (shown when creator has no store yet)
+// ---------------------------------------------------------------------------
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (store: Store) => void }) {
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [description, setDescription] = useState('');
+  const [primaryLocale, setPrimaryLocale] = useState('en');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!slugTouched) setSlug(slugify(val));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || submitting) return;
+    setError('');
+    if (!name.trim() || !slug.trim()) {
+      setError('Name and slug are required');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const created = await api<Store>('/stores', {
+        method: 'POST', token,
+        body: JSON.stringify({
+          name: name.trim(),
+          slug: slug.trim(),
+          description: description.trim() || undefined,
+          primary_locale: primaryLocale,
+          secondary_locales: [primaryLocale],
+        }),
+      });
+      onCreated(created);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to create store');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">My Store</h1>
+        <p className="text-sm text-muted-foreground">Set up your storefront to start selling</p>
+      </div>
+      <Card className="shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">Create your store</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Store Name <span className="text-red-500">*</span></Label>
+              <Input className="h-9 text-sm" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="My Store" required />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Slug <span className="text-red-500">*</span></Label>
+              <div className="flex items-center">
+                <Input
+                  className="h-9 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={slug}
+                  onChange={(e) => { setSlug(slugify(e.target.value)); setSlugTouched(true); }}
+                  placeholder="my-store"
+                  required
+                />
+                <span className="h-9 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Lowercase letters, digits and hyphens only.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Description</Label>
+              <Textarea className="text-sm resize-none" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Tell customers about your store..." />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Primary Language</Label>
+              <SearchableSelect value={primaryLocale} onChange={setPrimaryLocale} options={LOCALES} placeholder="Select language..." />
+            </div>
+
+            {error && <p className="text-xs text-red-600">{error}</p>}
+
+            <div className="pt-2">
+              <Button type="submit" size="sm" disabled={submitting}>
+                {submitting ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Creating...</> : 'Create Store'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
