@@ -10,6 +10,7 @@ import {
   Package, ClipboardList, DollarSign, Clock,
   ImageIcon, Truck, ArrowRight, CheckCircle2,
   AlertCircle, CreditCard, Settings,
+  Store as StoreIcon, BadgeCheck,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -78,6 +79,8 @@ export default function ProviderOverview() {
   const [earnings, setEarnings] = useState<any>(null);
   const [shippingProfiles, setShippingProfiles] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [stores, setStores] = useState<any[]>([]);
+  const [storesMeta, setStoresMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,12 +91,15 @@ export default function ProviderOverview() {
       api<any>('/commissions/summary', { token }).catch(() => null),
       api<any[]>('/shipping/profiles', { token }).catch(() => []),
       api<any>('/providers/me', { token }).catch(() => null),
-    ]).then(([prods, ords, earn, shipping, prov]) => {
+      api<any>('/providers/me/stores?limit=5', { token }).catch(() => ({ data: [], meta: null })),
+    ]).then(([prods, ords, earn, shipping, prov, strs]) => {
       setProducts(prods?.data || []);
       setOrders(ords?.data || []);
       setEarnings(earn);
       setShippingProfiles(Array.isArray(shipping) ? shipping : []);
       setProfile(prov);
+      setStores(strs?.data || []);
+      setStoresMeta(strs?.meta || null);
     }).finally(() => setLoading(false));
   }, [token]);
 
@@ -152,8 +158,9 @@ export default function ProviderOverview() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard title="Total Products" value={loading ? '...' : products.length} subtitle="listed" icon={<Package className="w-4 h-4" />} />
+        <StatCard title="Stores" value={loading ? '...' : (storesMeta?.total ?? stores.length)} subtitle="using your products" icon={<StoreIcon className="w-4 h-4" />} />
         <StatCard title="Active Orders" value={loading ? '...' : activeOrders.length} subtitle="in progress" icon={<ClipboardList className="w-4 h-4" />} />
         <StatCard title="Revenue" value={loading ? '...' : fmt(earnings?.total_earnings)} subtitle="all time" icon={<DollarSign className="w-4 h-4" />} />
         <StatCard
@@ -294,6 +301,45 @@ export default function ProviderOverview() {
               <div className="flex justify-between text-xs"><span className="text-muted-foreground">Total</span><span className="font-medium">{fmt(earnings?.total_earnings)}</span></div>
               <div className="flex justify-between text-xs"><span className="text-muted-foreground">This month</span><span className="font-medium">{fmt(earnings?.this_month)}</span></div>
               <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pending</span><span className="font-medium">{fmt(earnings?.pending)}</span></div>
+            </CardContent>
+          </Card>
+
+          {/* Stores using your products */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Stores using your products</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/stores')}>All</Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {stores.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">No stores yet</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {stores.slice(0, 4).map((s: any) => (
+                    <button
+                      key={s.id}
+                      onClick={() => router.push(`/provider/stores/${s.id}`)}
+                      className="w-full flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-100 transition text-left"
+                    >
+                      <div className="h-7 w-7 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
+                        {s.logo_url
+                          ? <img src={s.logo_url} alt="" className="h-full w-full object-cover" />
+                          : <StoreIcon className="w-3 h-3 text-zinc-300" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-medium truncate">{s.name}</p>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground truncate">{s.creator?.display_name}</span>
+                          {s.creator?.verified && <BadgeCheck className="w-2.5 h-2.5 text-emerald-500 shrink-0" />}
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-medium text-muted-foreground shrink-0">{s.products_using_count || 0}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

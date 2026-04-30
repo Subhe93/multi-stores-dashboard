@@ -723,29 +723,65 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
           <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Pricing</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1.5"><Label className="text-xs">Price *</Label>
-                <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                  <Input type="number" step="0.01"
-                    className={`pl-7 h-8 text-sm ${fieldErrors.basePrice ? 'border-red-400' : ''}`}
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Price *</Label>
+                <div className={`flex items-stretch rounded-lg border ${fieldErrors.basePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="h-8 text-sm border-0 rounded-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
                     value={basePrice}
                     onChange={e => { setBasePrice(e.target.value); if (fieldErrors.basePrice) setFieldErrors(p => ({ ...p, basePrice: '' })); }}
-                  /></div>
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  The selling price customers actually pay at checkout.
+                </p>
                 <FieldError msg={fieldErrors.basePrice} />
               </div>
-              <div className="space-y-1.5"><Label className="text-xs">Compare at</Label>
-                <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                  <Input type="number" step="0.01"
-                    className={`pl-7 h-8 text-sm ${fieldErrors.comparePrice ? 'border-red-400' : ''}`}
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Compare at</Label>
+                <div className={`flex items-stretch rounded-lg border ${fieldErrors.comparePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="h-8 text-sm border-0 rounded-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
                     value={comparePrice}
                     onChange={e => { setComparePrice(e.target.value); if (fieldErrors.comparePrice) setFieldErrors(p => ({ ...p, comparePrice: '' })); }}
-                  /></div>
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Original price shown crossed out next to the new one — used to display a discount.
+                  Must be greater than the price.
+                </p>
                 <FieldError msg={fieldErrors.comparePrice} />
               </div>
+
               <Separator />
-              <div className="space-y-1.5"><Label className="text-xs">Cost per item</Label>
-                <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                  <Input type="number" step="0.01" className="pl-7 h-8 text-sm" value={costPrice} onChange={e => setCostPrice(e.target.value)} /></div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Cost per item</Label>
+                <div className="flex items-stretch rounded-lg border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring/40">
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="h-8 text-sm border-0 rounded-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
+                    value={costPrice}
+                    onChange={e => setCostPrice(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  Your purchase / production cost. Used internally to calculate profit and margin —
+                  never shown to customers.
+                </p>
               </div>
             </CardContent>
           </Card>

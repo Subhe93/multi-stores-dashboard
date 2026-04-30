@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Plus, Trash2, X, ImageIcon, Pencil, Package } from 'lucide-react';
 import type { UploadedImage } from '@/lib/useImageUpload';
@@ -75,12 +76,167 @@ function ColorSwatch({ hex, dualHex, size = 16, className = '' }: { hex?: string
   );
 }
 
+const PRESET_COLORS = [
+  '#000000', '#ffffff', '#7f7f7f', '#c0c0c0',
+  '#ef4444', '#f97316', '#eab308', '#22c55e',
+  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#a16207', '#1e293b', '#dc2626', '#16a34a',
+];
+
+const HEX_RE = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i;
+
+function normalizeHex(input: string): string | null {
+  const m = input.trim().match(HEX_RE);
+  if (!m) return null;
+  let hex = m[1]!;
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return '#' + hex.toLowerCase();
+}
+
+// Shopify-style color editor popover — single click to set primary, optional second color for dual.
+function ColorEditorPopover({
+  value,
+  hex,
+  dualHex,
+  onChange,
+  children,
+}: {
+  value: string;
+  hex?: string;
+  dualHex?: [string, string];
+  onChange: (next: { hex?: string; dualHex?: [string, string] }) => void;
+  children: React.ReactNode;
+}) {
+  const isDual = !!dualHex;
+  const primary = isDual ? dualHex![0] : (hex || '#000000');
+  const secondary = isDual ? dualHex![1] : '#ffffff';
+
+  const [hexInput, setHexInput] = useState(primary);
+  const [hexInput2, setHexInput2] = useState(secondary);
+
+  useEffect(() => { setHexInput(primary); }, [primary]);
+  useEffect(() => { setHexInput2(secondary); }, [secondary]);
+
+  const setPrimary = (h: string) => {
+    if (isDual) onChange({ dualHex: [h, secondary] });
+    else onChange({ hex: h });
+  };
+  const setSecondary = (h: string) => {
+    onChange({ dualHex: [primary, h] });
+  };
+  const enableDual = () => onChange({ dualHex: [primary, '#ffffff'] });
+  const disableDual = () => onChange({ hex: primary });
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        className="rounded-full ring-1 ring-zinc-200 hover:ring-blue-400 transition shrink-0"
+        title="Edit color"
+        style={{ height: '18px' }}
+      >
+        {children}
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <ColorSwatch hex={isDual ? undefined : primary} dualHex={isDual ? [primary, secondary] : undefined} size={28} />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold truncate">{value || 'Untitled color'}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {isDual ? 'Two-tone color' : 'Solid color'}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Primary color</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value)}
+                className="w-10 h-9 rounded border border-input cursor-pointer p-0.5"
+              />
+              <Input
+                value={hexInput}
+                onChange={(e) => {
+                  setHexInput(e.target.value);
+                  const norm = normalizeHex(e.target.value);
+                  if (norm) setPrimary(norm);
+                }}
+                className="h-9 text-xs font-mono uppercase"
+                placeholder="#000000"
+                maxLength={7}
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setPrimary(c)}
+                  className="w-5 h-5 rounded-full border border-zinc-200 hover:scale-110 transition"
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              ))}
+            </div>
+          </div>
+
+          {isDual && (
+            <div className="space-y-2 pt-1 border-t">
+              <div className="flex items-center justify-between pt-2">
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Second color</Label>
+                <button
+                  type="button"
+                  onClick={disableDual}
+                  className="text-[10px] text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={secondary}
+                  onChange={(e) => setSecondary(e.target.value)}
+                  className="w-10 h-9 rounded border border-input cursor-pointer p-0.5"
+                />
+                <Input
+                  value={hexInput2}
+                  onChange={(e) => {
+                    setHexInput2(e.target.value);
+                    const norm = normalizeHex(e.target.value);
+                    if (norm) setSecondary(norm);
+                  }}
+                  className="h-9 text-xs font-mono uppercase"
+                  placeholder="#ffffff"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+          )}
+
+          {!isDual && (
+            <button
+              type="button"
+              onClick={enableDual}
+              className="w-full text-xs text-primary hover:underline flex items-center justify-center gap-1 py-1 border-t pt-2"
+            >
+              <Plus className="w-3 h-3" /> Add a second color
+            </button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage }: VariantManagerProps) {
   const { currency } = useCurrency();
   const [newValue, setNewValue] = useState<Record<number, string>>({});
-  const [newColor, setNewColor] = useState<Record<number, string>>({});
-  const [newColor2, setNewColor2] = useState<Record<number, string>>({});
-  const [dualMode, setDualMode] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Bulk edit dialogs
@@ -178,47 +334,47 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     setSelected(new Set());
   };
 
-  // Add a color value with hex
-  const addColorValue = (oi: number) => {
+  // Add a value. For color options, the new chip starts with a default solid color
+  // (#000000); the user clicks the chip's swatch to refine via the popover.
+  const addValue = (oi: number) => {
     const val = (newValue[oi] || '').trim();
     if (!val) return;
     const opt = options[oi]!;
     if (opt.values.includes(val)) return;
-
-    const hex = newColor[oi] || '#000000';
-    const hex2 = newColor2[oi] || '#ffffff';
-    const isDual = dualMode[oi] || false;
-
     const u = [...options];
-    const updated = { ...opt, values: [...opt.values, val] };
-
-    if (isDual) {
-      updated.dualColorMap = { ...(opt.dualColorMap || {}), [val]: [hex, hex2] };
-    } else {
-      updated.colorMap = { ...(opt.colorMap || {}), [val]: hex };
+    const updated: VariantOption = { ...opt, values: [...opt.values, val] };
+    if (opt.style === 'color') {
+      updated.colorMap = { ...(opt.colorMap || {}), [val]: '#000000' };
     }
-
     u[oi] = updated;
     onOptionsChange(u);
     setNewValue({ ...newValue, [oi]: '' });
-    setNewColor({ ...newColor, [oi]: '#000000' });
-    setNewColor2({ ...newColor2, [oi]: '#ffffff' });
   };
 
-  // Add a text value
-  const addValue = (oi: number) => {
-    if (options[oi]?.style === 'color') {
-      addColorValue(oi);
-      return;
-    }
-    const val = (newValue[oi] || '').trim();
-    if (!val) return;
+  // Update color (single or dual) for a specific value
+  const updateColorForValue = (
+    oi: number,
+    val: string,
+    next: { hex?: string; dualHex?: [string, string] },
+  ) => {
     const opt = options[oi]!;
-    if (opt.values.includes(val)) return;
     const u = [...options];
-    u[oi] = { ...opt, values: [...opt.values, val] };
+    const updated: VariantOption = { ...opt };
+    const colorMap = { ...(opt.colorMap || {}) };
+    const dualMap = { ...(opt.dualColorMap || {}) };
+
+    if (next.dualHex) {
+      dualMap[val] = next.dualHex;
+      delete colorMap[val];
+    } else if (next.hex) {
+      colorMap[val] = next.hex;
+      delete dualMap[val];
+    }
+
+    updated.colorMap = colorMap;
+    updated.dualColorMap = dualMap;
+    u[oi] = updated;
     onOptionsChange(u);
-    setNewValue({ ...newValue, [oi]: '' });
   };
 
   // Remove a value (and clean up color maps)
@@ -290,16 +446,41 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             <div className="flex-1 space-y-1">
               <label className="text-[10px] font-medium text-muted-foreground">Option values</label>
 
-              {/* Existing values as badges */}
+              {/* Existing values as chips */}
               <div className="flex flex-wrap items-center gap-1.5 p-1.5 min-h-8 border rounded-md bg-background">
                 {option.values.map((val, vi) => {
                   const hex = option.colorMap?.[val];
                   const dual = option.dualColorMap?.[val];
-                  const isColor = option.style === 'color' && (hex || dual);
+
+                  if (option.style === 'color') {
+                    return (
+                      <div
+                        key={vi}
+                        className="inline-flex items-center gap-1.5 pl-1 pr-0.5 py-0.5 rounded-md border border-zinc-200 bg-white text-xs"
+                      >
+                        <ColorEditorPopover
+                          value={val}
+                          hex={hex}
+                          dualHex={dual}
+                          onChange={(next) => updateColorForValue(oi, val, next)}
+                        >
+                          <ColorSwatch hex={hex} dualHex={dual} size={18} />
+                        </ColorEditorPopover>
+                        <span className="font-medium text-zinc-700">{val}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeValue(oi, vi)}
+                          className="hover:text-red-500 transition p-0.5 text-zinc-400"
+                          title="Remove"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  }
 
                   return (
                     <Badge key={vi} variant="outline" className="text-xs gap-1.5 pr-0.5 bg-blue-50 text-blue-700 border-blue-200">
-                      {isColor && <ColorSwatch hex={hex} dualHex={dual} size={14} />}
                       {val}
                       <button onClick={() => removeValue(oi, vi)}
                         className="hover:text-red-500 transition p-0.5"><X className="w-3 h-3" /></button>
@@ -307,52 +488,15 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   );
                 })}
 
-                {/* Add value input */}
-                {option.style === 'color' ? (
-                  <div className="flex items-center gap-1.5 flex-1 min-w-50">
-                    <input
-                      type="color"
-                      value={newColor[oi] || '#000000'}
-                      onChange={e => setNewColor({ ...newColor, [oi]: e.target.value })}
-                      className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5 shrink-0"
-                      title="Pick color"
-                    />
-                    {dualMode[oi] && (
-                      <input
-                        type="color"
-                        value={newColor2[oi] || '#ffffff'}
-                        onChange={e => setNewColor2({ ...newColor2, [oi]: e.target.value })}
-                        className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0.5 shrink-0"
-                        title="Pick second color"
-                      />
-                    )}
-                    <input
-                      className="flex-1 min-w-15 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-                      placeholder="Color name"
-                      value={newValue[oi] || ''}
-                      onChange={e => setNewValue({ ...newValue, [oi]: e.target.value })}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addValue(oi); } }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setDualMode({ ...dualMode, [oi]: !dualMode[oi] })}
-                      className={`text-[9px] px-1.5 py-0.5 rounded border shrink-0 transition-colors ${
-                        dualMode[oi] ? 'bg-blue-100 text-blue-700 border-blue-300' : 'text-muted-foreground border-input hover:bg-muted'
-                      }`}
-                      title="Toggle dual-color mode"
-                    >
-                      2C
-                    </button>
-                  </div>
-                ) : (
-                  <input
-                    className="flex-1 min-w-20 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-                    placeholder="Type and press Enter"
-                    value={newValue[oi] || ''}
-                    onChange={e => setNewValue({ ...newValue, [oi]: e.target.value })}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addValue(oi); } }}
-                  />
-                )}
+                {/* Add value input — same flow for color and text. Type a name and press Enter.
+                    For color values, the chip's swatch then opens a popover for hex / dual color. */}
+                <input
+                  className="flex-1 min-w-32 text-sm bg-transparent outline-none placeholder:text-muted-foreground px-1"
+                  placeholder={option.style === 'color' ? 'Add color name and press Enter' : 'Type and press Enter'}
+                  value={newValue[oi] || ''}
+                  onChange={e => setNewValue({ ...newValue, [oi]: e.target.value })}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addValue(oi); } }}
+                />
               </div>
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 mt-5 shrink-0"
@@ -467,24 +611,24 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
 
                   {/* Price */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <Input type="number" step="0.01" className="h-8 text-xs w-20" placeholder="Price"
+                    <Input type="number" step="0.01" className="h-8 text-xs w-24" placeholder="Price"
                       value={v.price || ''} onChange={e => updateVariant(v._key, 'price', parseFloat(e.target.value) || 0)} />
                     <Package className="w-3 h-3 text-zinc-300" />
                   </div>
 
                   {/* Compare at price */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <Input type="number" step="0.01" className="h-8 text-xs w-20" placeholder="Compare"
+                    <Input type="number" step="0.01" className="h-8 text-xs w-28" placeholder="Compare"
                       value={v.compare_at_price || ''} onChange={e => updateVariant(v._key, 'compare_at_price', parseFloat(e.target.value) || 0)} />
                     <Package className="w-3 h-3 text-zinc-300" />
                   </div>
 
                   {/* SKU */}
-                  <Input className="h-8 text-xs w-24 font-mono shrink-0" placeholder="SKU"
+                  <Input className="h-8 text-xs w-32 font-mono shrink-0" placeholder="SKU"
                     value={v.sku} onChange={e => updateVariant(v._key, 'sku', e.target.value)} />
 
                   {/* Stock */}
-                  <Input type="number" className="h-8 text-xs w-16 shrink-0" placeholder="Stock"
+                  <Input type="number" className="h-8 text-xs w-24 shrink-0" placeholder="Stock"
                     value={v.stock_quantity ?? ''} onChange={e => updateVariant(v._key, 'stock_quantity', e.target.value === '' ? null : parseInt(e.target.value) || 0)} />
 
                   <div className="flex-1" />

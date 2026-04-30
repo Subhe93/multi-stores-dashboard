@@ -12,6 +12,7 @@ import {
   DollarSign,
   Settings,
   CheckSquare,
+  Store as StoreIcon,
 } from 'lucide-react';
 
 const providerNav = [
@@ -20,6 +21,7 @@ const providerNav = [
     items: [
       { label: 'Overview', href: '/provider', icon: <LayoutDashboard className="w-4 h-4" /> },
       { label: 'Products', href: '/provider/products', icon: <Package className="w-4 h-4" /> },
+      { label: 'Stores', href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
       { label: 'Orders', href: '/provider/orders', icon: <ClipboardList className="w-4 h-4" /> },
       { label: 'Reviews', href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
     ],
