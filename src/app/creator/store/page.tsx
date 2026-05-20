@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useImageUpload } from '@/lib/useImageUpload';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
 
 // ---------------------------------------------------------------------------
@@ -53,12 +54,31 @@ interface StoreHeaderConfig {
   logoSize?: number;
 }
 
+// Per-page hero/banner settings. Stored under theme_config.hero and read by the
+// storefront's products listing and collection pages.
+type HeroHeight = 'sm' | 'md' | 'lg';
+
+interface HeroPageConfig {
+  enabled: boolean;
+  image_url: string;
+  height: HeroHeight;
+  overlay: number;
+  show_count: boolean;
+  text_color: string;
+}
+
+interface StoreHeroConfig {
+  products?: Partial<HeroPageConfig>;
+  collections?: Partial<HeroPageConfig>;
+}
+
 interface StoreThemeConfig {
   primaryColor?: string;
   secondaryColor?: string;
   fontFamily?: string;
   typography?: StoreTypography;
   header?: StoreHeaderConfig;
+  hero?: StoreHeroConfig;
   templateId?: string;
   socials?: { instagram?: string; facebook?: string; twitter?: string; tiktok?: string; youtube?: string };
   contact?: { email?: string; phone?: string; whatsapp?: string; address?: string };
@@ -132,6 +152,15 @@ const PLATFORM_DOMAIN_SUFFIX = (() => {
 
 const EMPTY_TRANSLATABLE: TranslatableFields = { name: '', description: '', metaTitle: '', metaDescription: '' };
 
+// Hero defaults mirror the storefront's fallbacks: visible, gradient background
+// (no image), product count shown, white text. Collection height defaults taller.
+const DEFAULT_HERO_PRODUCTS: HeroPageConfig = {
+  enabled: true, image_url: '', height: 'md', overlay: 10, show_count: true, text_color: '#ffffff',
+};
+const DEFAULT_HERO_COLLECTIONS: HeroPageConfig = {
+  enabled: true, image_url: '', height: 'lg', overlay: 45, show_count: true, text_color: '#ffffff',
+};
+
 function storeUrl(slug: string): string {
   const u = new URL(WEB_ORIGIN);
   return `${u.protocol}//${slug}.${u.host}`;
@@ -154,6 +183,10 @@ const DEFAULT_FORM = {
   typography: { ...DEFAULT_TYPOGRAPHY },
   showStoreName: true,
   logoSize: 32,
+  hero: {
+    products: { ...DEFAULT_HERO_PRODUCTS },
+    collections: { ...DEFAULT_HERO_COLLECTIONS },
+  },
   templateId: 'default',
   socials: { instagram: '', facebook: '', twitter: '', tiktok: '', youtube: '' },
   contact: { email: '', phone: '', whatsapp: '', address: '' },
@@ -184,6 +217,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 
 export default function CreatorStorePage() {
   const { token } = useAuth();
+  const { pickAndUpload, uploading: heroUploading } = useImageUpload(token);
 
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
@@ -238,6 +272,10 @@ export default function CreatorStorePage() {
           },
           showStoreName: hdr.showStoreName !== false,
           logoSize: typeof hdr.logoSize === 'number' && hdr.logoSize > 0 ? hdr.logoSize : 32,
+          hero: {
+            products: { ...DEFAULT_HERO_PRODUCTS, ...(tc.hero?.products ?? {}) },
+            collections: { ...DEFAULT_HERO_COLLECTIONS, ...(tc.hero?.collections ?? {}) },
+          },
           templateId: tc.templateId ?? 'default',
           socials: {
             instagram: tc.socials?.instagram ?? '', facebook: tc.socials?.facebook ?? '',
@@ -282,6 +320,16 @@ export default function CreatorStorePage() {
 
   const setNested = <G extends 'socials' | 'contact', K extends keyof (typeof DEFAULT_FORM)[G]>(group: G, key: K, value: string) =>
     setForm((prev) => ({ ...prev, [group]: { ...prev[group], [key]: value } }));
+
+  const setHero = <K extends keyof HeroPageConfig>(
+    page: 'products' | 'collections',
+    key: K,
+    value: HeroPageConfig[K],
+  ) =>
+    setForm((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, [page]: { ...prev.hero[page], [key]: value } },
+    }));
 
   const setTransField = (locale: string, field: keyof TranslatableFields, value: string) => {
     setTranslations(prev => ({
@@ -341,6 +389,20 @@ export default function CreatorStorePage() {
     // Use primary locale translation for top-level store fields
     const primaryTrans = translations[form.primary_locale] || EMPTY_TRANSLATABLE;
 
+    // Theme colors, fonts, typography, header and template are owned by the
+    // builder's Design tab (it persists colors to theme_customizations and
+    // strips brand fields from theme_config). This page must NOT re-write those
+    // fields, or it would re-inject stale/default colors and override the
+    // builder. So we preserve the latest theme_config and overlay only the
+    // fields this page actually owns: socials, contact, SEO, translations, hero.
+    // Re-fetch first so design changes made in the builder after this page
+    // loaded aren't clobbered.
+    let baseThemeConfig: Record<string, unknown> = (store?.theme_config as Record<string, unknown>) || {};
+    try {
+      const fresh = await api<Store>('/stores/my/store', { token });
+      if (fresh?.theme_config) baseThemeConfig = fresh.theme_config as Record<string, unknown>;
+    } catch { /* fall back to the config loaded at mount */ }
+
     try {
       await Promise.all([
         api('/stores/my/store', {
@@ -359,15 +421,8 @@ export default function CreatorStorePage() {
           method: 'PUT', token,
           body: JSON.stringify({
             theme_config: {
-              primaryColor: form.primaryColor,
-              secondaryColor: form.secondaryColor,
-              fontFamily: form.fontFamily,
-              typography: form.typography,
-              header: {
-                showStoreName: form.showStoreName,
-                logoSize: form.logoSize,
-              },
-              templateId: form.templateId,
+              ...baseThemeConfig,
+              hero: form.hero,
               socials: form.socials,
               contact: form.contact,
               seo: {
@@ -445,6 +500,111 @@ export default function CreatorStorePage() {
 
   // Current locale's translatable data
   const trans = translations[activeLocale] || EMPTY_TRANSLATABLE;
+
+  // ---------------------------------------------------------------------------
+  // Hero / page banner fields (per page: products listing & collection page)
+  // ---------------------------------------------------------------------------
+
+  const HeroFields = ({
+    page,
+    title,
+    subtitle,
+  }: {
+    page: 'products' | 'collections';
+    title: string;
+    subtitle: string;
+  }) => {
+    const cfg = form.hero[page] as HeroPageConfig;
+    return (
+      <div className="space-y-4 rounded-lg border p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">{title}</p>
+            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+          </div>
+          <Toggle checked={cfg.enabled} onChange={(v) => setHero(page, 'enabled', v)} />
+        </div>
+
+        {cfg.enabled && (
+          <div className="space-y-4 pt-1">
+            {/* Background image */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">
+                Background image{' '}
+                {page === 'collections' && (
+                  <span className="text-muted-foreground">(fallback — the collection's own image takes priority)</span>
+                )}
+              </Label>
+              {cfg.image_url ? (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cfg.image_url} alt="" className="h-16 w-28 rounded-md border object-cover" />
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" disabled={heroUploading}
+                      onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
+                      {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} Replace
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive"
+                      onClick={() => setHero(page, 'image_url', '')}>
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" disabled={heroUploading}
+                  onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
+                  {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} Upload image
+                </Button>
+              )}
+              <p className="text-[11px] text-muted-foreground">Leave empty to use the brand color gradient.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Height */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Height</Label>
+                <SearchableSelect
+                  value={cfg.height}
+                  onChange={(v) => setHero(page, 'height', (v as HeroHeight) || 'md')}
+                  options={[
+                    { value: 'sm', label: 'Small' },
+                    { value: 'md', label: 'Medium' },
+                    { value: 'lg', label: 'Large' },
+                  ]}
+                />
+              </div>
+              {/* Text color */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">Text color</Label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={cfg.text_color}
+                    onChange={(e) => setHero(page, 'text_color', e.target.value)}
+                    className="h-8 w-10 rounded border border-zinc-200 bg-white p-0.5 cursor-pointer" />
+                  <Input className="h-8 text-sm font-mono" value={cfg.text_color}
+                    onChange={(e) => setHero(page, 'text_color', e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            {/* Overlay (only meaningful with a background image) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Image overlay — {cfg.overlay}%</Label>
+              <input type="range" min={0} max={80} value={cfg.overlay}
+                onChange={(e) => setHero(page, 'overlay', Number(e.target.value))}
+                className="w-full accent-zinc-900" />
+              <p className="text-[11px] text-muted-foreground">Darkens the background image so text stays readable.</p>
+            </div>
+
+            {/* Show count */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm">Show product count</p>
+              <Toggle checked={cfg.show_count} onChange={(v) => setHero(page, 'show_count', v)} />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // ---------------------------------------------------------------------------
   // Render
@@ -623,6 +783,28 @@ export default function CreatorStorePage() {
               ))}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Page Banners (Hero) ───────────────────────────────── */}
+      <Card className="shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">Page Banners</CardTitle>
+          <p className="text-[11px] text-muted-foreground">
+            Control the hero banner shown at the top of your Products and Collection pages.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <HeroFields
+            page="products"
+            title="Products page"
+            subtitle="The banner above your full product catalog."
+          />
+          <HeroFields
+            page="collections"
+            title="Collection pages"
+            subtitle="The banner shown on each collection's page."
+          />
         </CardContent>
       </Card>
 
