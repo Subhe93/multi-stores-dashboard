@@ -16,6 +16,9 @@ interface LivePreviewProps {
   // Page type drives which preview chrome to load — PRODUCT_TEMPLATE needs the
   // storefront to fetch a sample product so magic sections render with data.
   pageType?: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'HEADER' | 'FOOTER';
+  // Creator's navigation menus — forwarded so header/footer sections resolve a
+  // selected menu key to its items in the preview (kept fresh from the dashboard).
+  menus?: unknown[];
   onSectionClicked?: (sectionId: string) => void;
 }
 
@@ -39,6 +42,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     sections,
     primaryLocale,
     pageType,
+    menus,
     onSectionClicked,
   },
   ref,
@@ -61,10 +65,11 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         sections,
         locale: storeLocale,
         primaryLocale,
+        menus,
       },
       '*',
     );
-  }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale]);
+  }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale, menus]);
 
   // Listen for PREVIEW_READY (initial) and SECTION_CLICKED (click-to-edit).
   useEffect(() => {
@@ -82,6 +87,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
             sections,
             locale: storeLocale,
             primaryLocale,
+            menus,
           },
           '*',
         );

@@ -44,6 +44,23 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 // avoiding a request per keystroke.
 const AUTOSAVE_DEBOUNCE_MS = 600;
 
+// Navigation menu shape forwarded to the preview (mirrors the storefront's
+// NavMenu so chrome sections resolve a selected menu key to its items).
+interface BuilderMenuItem {
+  id: string;
+  parent_id?: string | null;
+  label: string;
+  label_i18n?: Record<string, string>;
+  url: string;
+  open_in_new_tab?: boolean;
+}
+interface BuilderMenu {
+  id: string;
+  key: string;
+  name: string;
+  items: BuilderMenuItem[];
+}
+
 export function BuilderLayout({ page, initialSections, allPages, store }: BuilderLayoutProps) {
   const { token } = useAuth();
   const previewRef = useRef<LivePreviewHandle>(null);
@@ -78,6 +95,17 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   // a version restore via reloadFromServer below).
   const [pageSeo, setPageSeo] = useState<Record<string, unknown>>(page.seo || {});
   const [pageTranslations, setPageTranslations] = useState(page.translations);
+
+  // Creator's navigation menus, forwarded to the preview so chrome sections
+  // (header/footer) resolve a selected menu live — even one created this
+  // session — instead of falling back to inline links.
+  const [menus, setMenus] = useState<BuilderMenu[]>([]);
+  useEffect(() => {
+    if (!token) return;
+    api<BuilderMenu[]>('/menus/mine', { token })
+      .then((list) => setMenus(Array.isArray(list) ? list : []))
+      .catch(() => {});
+  }, [token]);
 
   const selected = useMemo(
     () => sections.find((s) => s.id === selectedId) ?? null,
@@ -477,6 +505,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               sections={sections}
               primaryLocale={store.language_config.primary_locale}
               pageType={page.type}
+              menus={menus}
               onSectionClicked={handlePreviewSectionClicked}
             />
           ) : (
