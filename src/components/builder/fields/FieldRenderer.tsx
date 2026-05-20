@@ -2,6 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Camera, Loader2, Trash2, Plus, HelpCircle, ChevronDown, GripVertical, ImageIcon, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -766,6 +783,24 @@ function RepeaterField({
   apiBase: string;
 }) {
   const ar = locale === 'ar';
+  // Drag-to-reorder via dnd-kit (same setup as the section rail). Items carry
+  // no stable id, so we use positional ids ("0".."n") and arrayMove by index —
+  // the grip in each item header is the drag handle.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const ids = items.map((_, i) => String(i));
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = Number(active.id);
+    const newIndex = Number(over.id);
+    if (Number.isNaN(oldIndex) || Number.isNaN(newIndex)) return;
+    onChange(arrayMove(items, oldIndex, newIndex));
+  }
+
   return (
     <div className="space-y-2">
       {items.length === 0 && (
@@ -775,27 +810,32 @@ function RepeaterField({
           </p>
         </div>
       )}
-      {items.map((item, i) => (
-        <RepeaterItem
-          key={i}
-          index={i}
-          item={item}
-          fields={fields}
-          locale={locale}
-          token={token}
-          apiBase={apiBase}
-          onChangeItem={(next) => {
-            const list = items.slice();
-            list[i] = next;
-            onChange(list);
-          }}
-          onDelete={() => {
-            const list = items.slice();
-            list.splice(i, 1);
-            onChange(list);
-          }}
-        />
-      ))}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          {items.map((item, i) => (
+            <RepeaterItem
+              key={i}
+              id={String(i)}
+              index={i}
+              item={item}
+              fields={fields}
+              locale={locale}
+              token={token}
+              apiBase={apiBase}
+              onChangeItem={(next) => {
+                const list = items.slice();
+                list[i] = next;
+                onChange(list);
+              }}
+              onDelete={() => {
+                const list = items.slice();
+                list.splice(i, 1);
+                onChange(list);
+              }}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
       <Button
         type="button"
         variant="outline"
@@ -811,6 +851,7 @@ function RepeaterField({
 }
 
 function RepeaterItem({
+  id,
   index,
   item,
   fields,
@@ -820,6 +861,7 @@ function RepeaterItem({
   onChangeItem,
   onDelete,
 }: {
+  id: string;
   index: number;
   item: Record<string, unknown>;
   fields: FieldDefinition[];
@@ -831,6 +873,8 @@ function RepeaterItem({
 }) {
   const [open, setOpen] = useState(index === 0);
   const ar = locale === 'ar';
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
 
   // Derive a title preview from the first text-ish field in the item.
   const firstText = fields.find((f) => ['text', 'textarea', 'richtext'].includes(f.type));
@@ -838,9 +882,24 @@ function RepeaterItem({
   const titleText = preview || `${ar ? 'عنصر' : 'Item'} ${index + 1}`;
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white overflow-hidden">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'rounded-lg border border-zinc-200 bg-white overflow-hidden',
+        isDragging && 'opacity-60 shadow-lg relative z-10',
+      )}
+    >
       <div className="flex items-center gap-1 px-2 py-1.5 bg-zinc-50/60 border-b border-zinc-200/70">
-        <GripVertical className="size-3.5 text-zinc-300 shrink-0" />
+        <button
+          type="button"
+          className="px-0.5 text-zinc-300 hover:text-zinc-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
+          aria-label={ar ? 'إعادة الترتيب' : 'Reorder'}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-3.5" />
+        </button>
         <button
           type="button"
           onClick={() => setOpen((p) => !p)}
