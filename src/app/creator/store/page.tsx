@@ -505,15 +505,14 @@ export default function CreatorStorePage() {
   // Hero / page banner fields (per page: products listing & collection page)
   // ---------------------------------------------------------------------------
 
-  const HeroFields = ({
-    page,
-    title,
-    subtitle,
-  }: {
-    page: 'products' | 'collections';
-    title: string;
-    subtitle: string;
-  }) => {
+  // Rendered as a plain function call (not <HeroFields/>) so it stays part of
+  // this component's render tree — using it as a JSX element would remount it on
+  // every keystroke and drop focus from the inputs.
+  const renderHeroFields = (
+    page: 'products' | 'collections',
+    title: string,
+    subtitle: string,
+  ) => {
     const cfg = form.hero[page] as HeroPageConfig;
     return (
       <div className="space-y-4 rounded-lg border p-4">
@@ -795,16 +794,16 @@ export default function CreatorStorePage() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <HeroFields
-            page="products"
-            title="Products page"
-            subtitle="The banner above your full product catalog."
-          />
-          <HeroFields
-            page="collections"
-            title="Collection pages"
-            subtitle="The banner shown on each collection's page."
-          />
+          {renderHeroFields(
+            'products',
+            'Products page',
+            'The banner above your full product catalog.',
+          )}
+          {renderHeroFields(
+            'collections',
+            'Collection pages',
+            "The banner shown on each collection's page.",
+          )}
         </CardContent>
       </Card>
 
