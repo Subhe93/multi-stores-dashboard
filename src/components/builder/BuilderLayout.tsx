@@ -11,6 +11,7 @@ import { SectionInspector } from './SectionInspector';
 import { SectionList } from './SectionList';
 import { PublishBar } from './PublishBar';
 import { ThemePanel, type ThemeCustomizations } from './ThemePanel';
+import type { ThemeTokenCustomizations } from './ThemeCustomizer';
 import type { StorePageSummary } from './PageSwitcher';
 import type { BuilderPage, SectionInstance } from './types';
 
@@ -21,7 +22,10 @@ interface BuilderLayoutProps {
   store: {
     slug: string;
     theme_key: string;
+    // Token-shape overrides merged onto the theme (drives the live preview).
     theme_customizations: Record<string, unknown>;
+    // Legacy flat config (brand override colors, per-element typography, header).
+    theme_config: Record<string, unknown>;
     logo_url: string;
     favicon_url: string;
     language_config: {
@@ -58,8 +62,14 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   // Store-level theme state — lifted so the live preview can react to
   // edits made in ThemePanel without a page reload.
   const [themeKey, setThemeKey] = useState(store.theme_key);
-  const [themeCustomizations, setThemeCustomizations] = useState<ThemeCustomizations>(
-    (store.theme_customizations as ThemeCustomizations) || {},
+  const [themeCustomizations, setThemeCustomizations] = useState<ThemeTokenCustomizations>(
+    (store.theme_customizations as ThemeTokenCustomizations) || {},
+  );
+  // Legacy flat config edited by the ThemePanel groups (header / brand override
+  // / per-element typography). Kept separate from the token customizations so
+  // each persists to its own column without cross-contamination.
+  const [themeConfig, setThemeConfig] = useState<ThemeCustomizations>(
+    (store.theme_config as ThemeCustomizations) || {},
   );
   const [logoUrl, setLogoUrl] = useState(store.logo_url || '');
   const [faviconUrl, setFaviconUrl] = useState(store.favicon_url || '');
@@ -321,15 +331,47 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const applyThemeTemplate = useCallback(
     async (newKey: string) => {
       if (!token) return;
+      // Applying a theme installs it as a fresh preset: the API clears token
+      // overrides and strips brand fields from theme_config so the theme's
+      // colours/fonts take effect. Mirror that locally so the live preview and
+      // the design panel reset to the theme's defaults.
       await api('/stores/my/theme-selection', {
         method: 'PUT',
         token,
-        body: JSON.stringify({ theme_key: newKey }),
+        body: JSON.stringify({ theme_key: newKey, reset_customizations: true }),
       });
       setThemeKey(newKey);
+      setThemeCustomizations({});
+      // Mirror the API's brand strip so the design panel resets too.
+      setThemeConfig((prev) => {
+        const next = { ...prev } as Record<string, unknown>;
+        delete next.primaryColor;
+        delete next.secondaryColor;
+        delete next.fontFamily;
+        delete next.typography;
+        return next as ThemeCustomizations;
+      });
     },
     [token],
   );
+
+  // Persist the token-shape theme customizations (colors / fonts) edited via
+  // the ThemeCustomizer popup. theme_key is omitted so only overrides change.
+  const saveThemeTokens = useCallback(
+    async (tokens: ThemeTokenCustomizations) => {
+      if (!token) return;
+      await api('/stores/my/theme-selection', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ theme_customizations: tokens }),
+      });
+    },
+    [token],
+  );
+
+  // The store is "customized" when it carries token overrides (e.g. from an
+  // imported template). Drives the "Custom" card in the theme picker.
+  const isThemeCustomized = Object.keys(themeCustomizations || {}).length > 0;
 
   // ── Click-in-preview to select section ──────────────────
 
@@ -399,16 +441,20 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
                 apiBase={API_BASE}
                 primaryLocale={store.language_config.primary_locale}
                 themeKey={themeKey}
-                customizations={themeCustomizations}
+                customizations={themeConfig}
                 logoUrl={logoUrl}
                 faviconUrl={faviconUrl}
                 onLocalChange={({ customizations, logoUrl: nextLogo, faviconUrl: nextFavicon }) => {
-                  setThemeCustomizations(customizations);
+                  setThemeConfig(customizations);
                   setLogoUrl(nextLogo);
                   setFaviconUrl(nextFavicon);
                 }}
                 onSaveCustomizations={saveThemeCustomizations}
                 onApplyTheme={applyThemeTemplate}
+                isCustomized={isThemeCustomized}
+                themeTokens={themeCustomizations}
+                onTokensChange={setThemeCustomizations}
+                onTokensSave={saveThemeTokens}
               />
             )}
           </div>

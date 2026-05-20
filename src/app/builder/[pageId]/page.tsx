@@ -189,7 +189,13 @@ function BuilderInner() {
       store={{
         slug: store.slug,
         theme_key: store.theme_key || 'minimal',
-        theme_customizations: store.theme_config || store.theme_customizations || {},
+        // Token-shape overrides (colors / fonts) that the preview merges onto
+        // the theme's tokens. This is what an imported template populates — must
+        // NOT fall back to theme_config (legacy flat shape), or the preview
+        // ignores the template's palette and shows the bare theme.
+        theme_customizations: store.theme_customizations || {},
+        // Legacy flat config (header / brand override / per-element typography).
+        theme_config: store.theme_config || {},
         logo_url: store.logo_url || '',
         favicon_url: store.favicon_url || '',
         language_config: {

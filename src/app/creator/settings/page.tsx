@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, Trash2, User as UserIcon } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Trash2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -54,6 +54,10 @@ export default function CreatorSettingsPage() {
   // Store state
   const [store, setStore] = useState<StoreInfo | null>(null);
   const [storeLoading, setStoreLoading] = useState(true);
+
+  // Manual storefront cache flush
+  const [flushing, setFlushing] = useState(false);
+  const [flushMsg, setFlushMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -115,6 +119,20 @@ export default function CreatorSettingsPage() {
       setAvatarUrl(result.url);
     } else {
       setProfileMsg({ type: 'error', text: 'Avatar upload failed. Please try again.' });
+    }
+  };
+
+  const handleFlushCache = async () => {
+    if (!token || flushing) return;
+    setFlushing(true);
+    setFlushMsg(null);
+    try {
+      await api('/stores/my/cache/flush', { method: 'POST', token });
+      setFlushMsg({ type: 'success', text: 'Storefront cache cleared. Changes appear within seconds.' });
+    } catch (err: any) {
+      setFlushMsg({ type: 'error', text: err?.message || 'Failed to clear cache. Please try again.' });
+    } finally {
+      setFlushing(false);
     }
   };
 
@@ -333,7 +351,44 @@ export default function CreatorSettingsPage() {
                   <ExternalLink className="size-3.5" />
                 </Button>
               </div>
-            ) : (
+            ) : null}
+
+            {/* Manual cache flush — published changes normally refresh
+                automatically; this forces an immediate refresh. */}
+            {store && (
+              <div className="mt-4 flex items-center justify-between border-t pt-3">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Storefront cache</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Clear it to force your latest changes to appear right away.
+                  </p>
+                  {flushMsg && (
+                    <p
+                      className={`text-[11px] ${
+                        flushMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {flushMsg.text}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleFlushCache}
+                  disabled={flushing}
+                >
+                  {flushing ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3.5" />
+                  )}
+                  Clear Cache
+                </Button>
+              </div>
+            )}
+
+            {!storeLoading && !store && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">

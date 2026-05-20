@@ -779,6 +779,44 @@ function ProductPagePreview(props: PreviewProps) {
   );
 }
 
+function EmbedCodePreview(props: PreviewProps) {
+  // A code window: title-bar dots + monospace-like lines with angle brackets.
+  return (
+    <Frame {...props}>
+      <rect x="20" y="18" width="160" height="84" rx="6" fill="white" stroke={BORDER} />
+      <rect x="20" y="18" width="160" height="16" rx="6" fill={SURFACE} />
+      <circle cx="30" cy="26" r="2.5" fill="#f87171" />
+      <circle cx="39" cy="26" r="2.5" fill="#fbbf24" />
+      <circle cx="48" cy="26" r="2.5" fill="#34d399" />
+      <Bar x="30" y="44" w="10" c={PRIMARY} />
+      <Bar x="44" y="44" w="70" c={TEXT} />
+      <Bar x="38" y="56" w="60" c={TEXT} />
+      <Bar x="38" y="66" w="80" c={PRIMARY} />
+      <Bar x="38" y="76" w="46" c={TEXT} />
+      <Bar x="30" y="88" w="14" c={PRIMARY} />
+    </Frame>
+  );
+}
+
+function MapPreview(props: PreviewProps) {
+  // A map plane with roads + a pin and a small info card overlay.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="200" height="120" fill="#e8edf2" />
+      <path d="M0 40 L200 70" stroke="#cbd5e1" strokeWidth="6" fill="none" />
+      <path d="M60 0 L90 120" stroke="#cbd5e1" strokeWidth="5" fill="none" />
+      <path d="M140 0 L120 120" stroke="#dbe2ea" strokeWidth="4" fill="none" />
+      <rect x="18" y="78" width="70" height="30" rx="5" fill="white" stroke={BORDER} />
+      <Bar x="26" y="86" w="40" h="3" c={ACCENT} />
+      <Bar x="26" y="94" w="52" />
+      <Bar x="26" y="100" w="34" />
+      {/* Pin */}
+      <path d="M132 44 c0 -10 -16 -10 -16 0 c0 8 8 16 8 16 c0 0 8 -8 8 -16 z" fill={PRIMARY} />
+      <circle cx="124" cy="44" r="3" fill="white" />
+    </Frame>
+  );
+}
+
 // ── Generic fallback ────────────────────────────────────────
 
 function AuroraHeroPreview(props: PreviewProps) {
@@ -877,6 +915,8 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'countdown': CountdownPreview,
   'video': VideoPreview,
   'spacer': SpacerPreview,
+  'embed-code': EmbedCodePreview,
+  'map': MapPreview,
   'layout-columns': LayoutColumnsPreview,
   'collection-products': CollectionProductsPreview,
   'newsletter-signup': NewsletterSignupPreview,

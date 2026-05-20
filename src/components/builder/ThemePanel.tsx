@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ThemeSwitcher } from '@/components/creator/ThemeSwitcher';
+import { ThemeCustomizer, type ThemeTokenCustomizations } from './ThemeCustomizer';
 import { findTheme } from '@/lib/themes-catalog';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +57,14 @@ interface ThemePanelProps {
   onSaveCustomizations: (customizations: ThemeCustomizations, branding: { logo_url: string; favicon_url: string }) => Promise<void>;
   /** Apply a different template (separate API). */
   onApplyTheme: (themeKey: string) => Promise<void>;
+  /** True when the store carries theme overrides (e.g. an imported template). */
+  isCustomized?: boolean;
+  /** Token-shape theme overrides (colors / fonts) edited via the Customize popup. */
+  themeTokens: ThemeTokenCustomizations;
+  /** Live-preview callback for token edits. */
+  onTokensChange: (next: ThemeTokenCustomizations) => void;
+  /** Persist callback for token edits (PUT theme-selection). */
+  onTokensSave: (next: ThemeTokenCustomizations) => Promise<void>;
 }
 
 const FONT_OPTIONS = [
@@ -91,6 +100,10 @@ export function ThemePanel({
   onLocalChange,
   onSaveCustomizations,
   onApplyTheme,
+  isCustomized = false,
+  themeTokens,
+  onTokensChange,
+  onTokensSave,
 }: ThemePanelProps) {
   const ar = primaryLocale === 'ar';
 
@@ -242,14 +255,22 @@ export function ThemePanel({
               <span className="size-3 rounded-full ring-1 ring-zinc-200" style={{ background: t.swatch.accent }} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[11.5px] font-medium text-zinc-900 truncate">
-                {t.label[primaryLocale] || t.label.en}
+              <div className="text-[11.5px] font-medium text-zinc-900 truncate flex items-center gap-1.5">
+                {isCustomized ? (ar ? 'مخصّص' : 'Custom') : (t.label[primaryLocale] || t.label.en)}
+                {isCustomized && (
+                  <span className="text-[8.5px] uppercase tracking-wide px-1 py-px rounded bg-indigo-50 text-indigo-600 font-bold shrink-0">
+                    {ar ? 'تيمبليت' : 'Template'}
+                  </span>
+                )}
               </div>
-              <div className="text-[9.5px] text-zinc-500 truncate">{t.fontHeading}</div>
+              <div className="text-[9.5px] text-zinc-500 truncate">
+                {isCustomized ? (ar ? `مبني على ${t.label[primaryLocale] || t.label.en}` : `Based on ${t.label.en}`) : t.fontHeading}
+              </div>
             </div>
             <ThemeSwitcher
               currentThemeKey={themeKey}
               locale={primaryLocale}
+              isCustomized={isCustomized}
               onApply={handleApplyTemplate}
               trigger={
                 <Button size="sm" variant="outline" className="h-7 text-[11px] shrink-0">
@@ -258,10 +279,32 @@ export function ThemePanel({
               }
             />
           </div>
+
+          {/* Full token-level editor for the theme's palette + fonts (previews live). */}
+          <ThemeCustomizer
+            locale={primaryLocale}
+            value={themeTokens}
+            onChange={onTokensChange}
+            onSave={onTokensSave}
+            trigger={
+              <Button size="sm" variant="outline" className="w-full h-8 text-[11px] mt-2 gap-1.5">
+                <Palette className="size-3.5" />
+                {ar ? 'تخصيص الثيم (ألوان وخطوط)' : 'Customize theme (colors & fonts)'}
+              </Button>
+            }
+          />
         </Group>
 
-        {/* ── Brand colors ──────────────────────────────── */}
-        <Group title={ar ? 'الألوان' : 'Colors'}>
+        {/* ── Brand override (advanced) ─────────────────── */}
+        {/* The theme palette is edited via "Customize theme" above (previews
+            live). These are optional hard overrides for the storefront brand
+            colour, kept for advanced use. */}
+        <Group title={ar ? 'تجاوز لون العلامة (متقدّم)' : 'Brand override (advanced)'} defaultOpen={false}>
+          <p className="text-[10px] text-zinc-400 leading-snug mb-1">
+            {ar
+              ? 'اترك هذه فارغة لاستخدام ألوان الثيم. املأها فقط لفرض لون علامة محدّد.'
+              : 'Leave empty to use the theme colors. Fill only to force a specific brand color.'}
+          </p>
           <ColorRow
             label={ar ? 'الأساسي' : 'Primary'}
             value={c.primaryColor || ''}
