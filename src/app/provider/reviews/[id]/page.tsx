@@ -20,6 +20,27 @@ function resolveUrl(url?: string | null): string {
   return `${API_BASE}${url}`;
 }
 
+type BundleDiscountType = 'ITEM' | 'PERCENTAGE' | 'FIXED';
+
+interface BundleOfferData {
+  id: string;
+  quantity: number;
+  discount_type: BundleDiscountType;
+  discount_value: number | string;
+  external_ref?: string | null;
+  translations: { locale: string; title: string; label?: string | null; sticker_text?: string | null }[];
+}
+
+interface AttachedBundle {
+  bundle_id: string;
+  bundle: {
+    id: string;
+    status: 'ACTIVE' | 'DISABLED';
+    translations: { locale: string; name: string }[];
+    offers: BundleOfferData[];
+  };
+}
+
 interface CustomProductDetail {
   id: string;
   status: string;
@@ -47,6 +68,7 @@ interface CustomProductDetail {
     custom_price: number | null;
     variant: { options: Record<string, string> };
   }[];
+  bundles?: AttachedBundle[];
 }
 
 export default function ReviewDetailPage() {
@@ -62,6 +84,14 @@ export default function ReviewDetailPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [primaryLocale, setPrimaryLocale] = useState('en');
+
+  useEffect(() => {
+    if (!token) return;
+    api<{ primary_locale: string }>('/translations/overview', { token })
+      .then((res) => setPrimaryLocale(res?.primary_locale || 'en'))
+      .catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     if (!token || !id) return;
@@ -109,6 +139,35 @@ export default function ReviewDetailPage() {
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
   if (!item) return <p className="text-center py-12 text-muted-foreground text-sm">{error || 'Custom product not found'}</p>;
+
+  const formatDiscount = (offer: BundleOfferData): string => {
+    const v = Number(offer.discount_value);
+    switch (offer.discount_type) {
+      case 'PERCENTAGE':
+        return `${v}% off`;
+      case 'FIXED':
+        return `${fmt(v)} off`;
+      case 'ITEM':
+        return `${v} free`;
+    }
+  };
+
+  const computedTotals = (offer: BundleOfferData) => {
+    const unit = Number(item.final_price) || Number(item.product.base_price) || 0;
+    const v = Number(offer.discount_value);
+    let original = unit * offer.quantity;
+    let final = original;
+    if (offer.discount_type === 'PERCENTAGE') {
+      final = original * (1 - v / 100);
+    } else if (offer.discount_type === 'FIXED') {
+      final = Math.max(0, original - v);
+    } else if (offer.discount_type === 'ITEM') {
+      // Customer pays for `quantity` units, gets `v` extra free.
+      original = unit * (offer.quantity + v);
+      final = unit * offer.quantity;
+    }
+    return { original, final };
+  };
 
   const title = item.translations?.find((t) => t.locale === 'en')?.title
     || item.translations?.[0]?.title || 'Untitled';
@@ -177,14 +236,17 @@ export default function ReviewDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Description */}
+          {/* Description (rich text from Tiptap editor) */}
           {description && (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm whitespace-pre-wrap text-muted-foreground">{description}</p>
+                <div
+                  className="prose prose-sm max-w-none text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
               </CardContent>
             </Card>
           )}
@@ -280,6 +342,79 @@ export default function ReviewDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Attached Bundles */}
+          {item.bundles && item.bundles.length > 0 && (
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">
+                  Bundles{' '}
+                  <span className="font-normal text-muted-foreground">
+                    ({item.bundles.length})
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {item.bundles.map((b) => {
+                  const name =
+                    b.bundle.translations.find((t) => t.locale === primaryLocale)?.name ||
+                    b.bundle.translations[0]?.name ||
+                    'Untitled bundle';
+                  return (
+                    <div key={b.bundle_id} className="rounded-lg border p-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium">{name}</span>
+                        {b.bundle.status === 'DISABLED' && (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
+                          >
+                            Disabled
+                          </Badge>
+                        )}
+                      </div>
+                      <ul className="space-y-1.5">
+                        {b.bundle.offers.map((offer) => {
+                          const t =
+                            offer.translations.find((tr) => tr.locale === primaryLocale) ||
+                            offer.translations[0];
+                          const totals = computedTotals(offer);
+                          return (
+                            <li
+                              key={offer.id}
+                              className="flex items-center justify-between gap-3 text-xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate font-medium">
+                                  {t?.title || `Offer (qty ${offer.quantity})`}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  Qty {offer.quantity} · {formatDiscount(offer)}
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <span className="font-semibold tabular-nums">
+                                  {fmt(totals.final.toFixed(2))}
+                                </span>
+                                {totals.original > totals.final && (
+                                  <span className="ml-2 text-muted-foreground line-through tabular-nums">
+                                    {fmt(totals.original.toFixed(2))}
+                                  </span>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
+                <p className="text-[10px] text-muted-foreground">
+                  Totals computed against the creator&apos;s final price for this product.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Actions */}
           {isPending && (

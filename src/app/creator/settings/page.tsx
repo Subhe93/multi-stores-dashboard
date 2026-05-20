@@ -1,14 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, Trash2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useImageUpload } from '@/lib/useImageUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+function resolveAvatarUrl(url?: string | null): string {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_BASE}${url}`;
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,6 +41,8 @@ interface StoreInfo {
 export default function CreatorSettingsPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const { upload, uploading } = useImageUpload(token ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // User profile state
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -80,37 +90,31 @@ export default function CreatorSettingsPage() {
     setProfileSaving(true);
     setProfileMsg(null);
 
-    let hasError = false;
-
-    // Save display name
     try {
-      await api('/creators/my/profile', {
+      await api('/creators/me', {
         method: 'PUT',
         token,
-        body: JSON.stringify({ display_name: displayName }),
+        body: JSON.stringify({
+          display_name: displayName,
+          avatar_url: avatarUrl || '',
+        }),
       });
-    } catch (err: any) {
-      console.error('Failed to save display name:', err);
-      hasError = true;
-    }
-
-    // Save avatar url
-    try {
-      await api('/auth/me', {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ avatar_url: avatarUrl }),
-      });
-    } catch (err: any) {
-      // Gracefully handle if endpoint doesn't exist
-      console.warn('avatar_url save failed (may not be supported):', err?.message);
-    }
-
-    setProfileSaving(false);
-    if (hasError) {
-      setProfileMsg({ type: 'error', text: 'Some settings could not be saved. Please try again.' });
-    } else {
       setProfileMsg({ type: 'success', text: 'Profile saved successfully.' });
+    } catch (err: any) {
+      console.error('Failed to save profile:', err);
+      setProfileMsg({ type: 'error', text: err?.message || 'Failed to save profile. Please try again.' });
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleAvatarFile = async (file: File) => {
+    setProfileMsg(null);
+    const result = await upload(file, 'avatars');
+    if (result?.url) {
+      setAvatarUrl(result.url);
+    } else {
+      setProfileMsg({ type: 'error', text: 'Avatar upload failed. Please try again.' });
     }
   };
 
@@ -191,15 +195,80 @@ export default function CreatorSettingsPage() {
                 />
               </div>
 
-              {/* Avatar URL */}
+              {/* Avatar */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Avatar URL</Label>
-                <Input
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://example.com/avatar.jpg"
-                  className="h-8"
-                />
+                <Label className="text-xs">Avatar</Label>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-zinc-200 bg-zinc-50 transition hover:border-zinc-400 disabled:opacity-50"
+                    aria-label="Upload avatar"
+                  >
+                    {uploading ? (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Loader2 className="size-5 animate-spin text-zinc-400" />
+                      </div>
+                    ) : avatarUrl ? (
+                      <>
+                        <img
+                          src={resolveAvatarUrl(avatarUrl)}
+                          alt="Avatar preview"
+                          className="h-full w-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/40">
+                          <Camera className="size-5 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-zinc-400">
+                        <UserIcon className="size-6" />
+                        <span className="text-[9px]">Upload</span>
+                      </div>
+                    )}
+                  </button>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                      >
+                        <Camera className="size-3.5" />
+                        {avatarUrl ? 'Change' : 'Upload'}
+                      </Button>
+                      {avatarUrl && !uploading && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setAvatarUrl('')}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="size-3.5" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      JPG, PNG, or WebP. Square images work best.
+                    </p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleAvatarFile(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Feedback */}

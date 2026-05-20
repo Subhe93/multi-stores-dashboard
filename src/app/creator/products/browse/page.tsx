@@ -68,7 +68,11 @@ export default function BrowseProviderCatalogPage() {
       if (!token) return;
       setLoading(true);
       try {
-        const params = new URLSearchParams({ page: String(pageNum), limit: '18' });
+        const params = new URLSearchParams({
+          page: String(pageNum),
+          limit: '18',
+          owner_type: 'provider',
+        });
         if (searchTerm) params.set('search', searchTerm);
         if (categoryId) params.set('category_id', categoryId);
         const res = await api<{ data: Product[]; meta: Meta }>(`/products?${params.toString()}`, { token });

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle, Languages, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
@@ -47,6 +47,44 @@ export default function FaqManager({
   const [activeLocale, setActiveLocale] = useState(primaryLocale);
   const [formData, setFormData] = useState<Record<string, { question: string; answer: string }>>({});
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [translatingLocale, setTranslatingLocale] = useState('');
+
+  const handleTranslateTo = async (targetLocale: string) => {
+    const sourceQuestion = formData[primaryLocale]?.question || '';
+    const sourceAnswer = formData[primaryLocale]?.answer || '';
+    if (!sourceQuestion.trim() || translatingLocale) return;
+    setTranslatingLocale(targetLocale);
+    try {
+      const tasks: Promise<{ translated: string }>[] = [
+        api<{ translated: string }>('/translations/translate-text', {
+          method: 'POST',
+          token: token ?? undefined,
+          body: JSON.stringify({ text: sourceQuestion, source_locale: primaryLocale, target_locale: targetLocale }),
+        }),
+      ];
+      if (sourceAnswer.trim()) {
+        tasks.push(
+          api<{ translated: string }>('/translations/translate-text', {
+            method: 'POST',
+            token: token ?? undefined,
+            body: JSON.stringify({ text: sourceAnswer, source_locale: primaryLocale, target_locale: targetLocale }),
+          }),
+        );
+      }
+      const [qRes, aRes] = await Promise.all(tasks);
+      setFormData((prev) => ({
+        ...prev,
+        [targetLocale]: {
+          question: qRes?.translated || prev[targetLocale]?.question || '',
+          answer: aRes?.translated || prev[targetLocale]?.answer || '',
+        },
+      }));
+    } catch {
+      // silent
+    } finally {
+      setTranslatingLocale('');
+    }
+  };
 
   const openAdd = () => {
     setEditIndex(null);
@@ -213,6 +251,27 @@ export default function FaqManager({
           )}
 
           <div className="space-y-3 py-2">
+            {/* Auto-translate from primary locale */}
+            {activeLocale !== primaryLocale && (
+              <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
+                <span className="text-xs text-muted-foreground truncate">
+                  Auto-translate from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleTranslateTo(activeLocale)}
+                  disabled={!!translatingLocale || !formData[primaryLocale]?.question?.trim()}
+                  className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                >
+                  {translatingLocale === activeLocale ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
+                  ) : (
+                    <><Languages className="w-3 h-3" /> Auto-translate</>
+                  )}
+                </button>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">
                 Question {activeLocale === primaryLocale && <span className="text-red-500">*</span>}

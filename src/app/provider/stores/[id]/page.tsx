@@ -13,6 +13,13 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+function resolveUrl(url?: string | null): string {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_BASE}${url}`;
+}
+
 interface StaticPage {
   id: string;
   type: string;
@@ -24,10 +31,16 @@ interface StaticPage {
 interface CustomProductUsing {
   id: string;
   status: string;
+  pricing_type: 'SINGLE' | 'MARGIN' | 'PER_VARIANT';
   final_price: string;
+  margin_amount: string | null;
   created_at: string;
   translations: { locale: string; title: string }[];
   mockup_images: { url: string }[];
+  selected_variants?: {
+    custom_price: string | null;
+    variant: { price_adjustment: string };
+  }[];
   product: {
     id: string;
     base_price: string;
@@ -119,6 +132,37 @@ export default function ProviderStoreDetails() {
   const primaryTitle = (translations: { locale: string; title: string }[], primaryLocale = 'en') =>
     translations.find(t => t.locale === primaryLocale)?.title || translations[0]?.title || 'Untitled';
 
+  // Compute the displayed price per pricing strategy. Falls back to base_price
+  // when the strategy-specific value is unset, so we never show a stale "0" or "—".
+  const displayPrice = (cp: CustomProductUsing): string => {
+    const base = Number(cp.product.base_price) || 0;
+
+    if (cp.pricing_type === 'MARGIN') {
+      const margin = Number(cp.margin_amount) || 0;
+      return fmt(base + margin);
+    }
+
+    if (cp.pricing_type === 'PER_VARIANT') {
+      // Each selected variant uses its custom_price; if null, fall back to
+      // base_price + the underlying variant's price_adjustment.
+      const prices = (cp.selected_variants || [])
+        .map(v => {
+          const custom = Number(v.custom_price);
+          if (Number.isFinite(custom) && custom > 0) return custom;
+          return base + (Number(v.variant?.price_adjustment) || 0);
+        })
+        .filter(n => Number.isFinite(n) && n > 0);
+      if (prices.length === 0) return fmt(base);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      return min === max ? fmt(min) : `${fmt(min)} – ${fmt(max)}`;
+    }
+
+    // SINGLE — if creator hasn't set a price yet, show the base price instead of "$0.00".
+    const final = Number(cp.final_price) || 0;
+    return fmt(final > 0 ? final : base);
+  };
+
   const primaryLocale = store.language_config?.primary_locale || 'en';
   const storeUrl = store.custom_domain
     ? `https://${store.custom_domain}`
@@ -146,14 +190,14 @@ export default function ProviderStoreDetails() {
       <Card className="shadow-none overflow-hidden">
         {store.creator.cover_url && (
           <div className="h-32 bg-zinc-100 overflow-hidden">
-            <img src={store.creator.cover_url} alt="" className="w-full h-full object-cover" />
+            <img src={resolveUrl(store.creator.cover_url)} alt="" className="w-full h-full object-cover" />
           </div>
         )}
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="h-16 w-16 rounded-lg bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
               {store.logo_url
-                ? <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
+                ? <img src={resolveUrl(store.logo_url)} alt="" className="h-full w-full object-cover" />
                 : <StoreIcon className="w-7 h-7 text-zinc-300" />}
             </div>
             <div className="flex-1 min-w-0">
@@ -172,7 +216,10 @@ export default function ProviderStoreDetails() {
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">/{store.slug}</p>
               {store.description && (
-                <p className="text-sm text-muted-foreground mt-2">{store.description}</p>
+                <div
+                  className="prose prose-sm max-w-none text-muted-foreground mt-2"
+                  dangerouslySetInnerHTML={{ __html: store.description }}
+                />
               )}
             </div>
           </div>
@@ -208,7 +255,7 @@ export default function ProviderStoreDetails() {
                         className="w-full flex items-center gap-3 py-2 px-2 rounded hover:bg-zinc-50 transition text-left"
                       >
                         <div className="h-10 w-10 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
-                          {img ? <img src={img} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}
+                          {img ? <img src={resolveUrl(img)} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{title}</p>
@@ -217,7 +264,7 @@ export default function ProviderStoreDetails() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs font-medium">{fmt(cp.final_price)}</span>
+                          <span className="text-xs font-medium tabular-nums">{displayPrice(cp)}</span>
                           <Badge variant="outline" className={`text-[9px] ${STATUS_COLORS[cp.status] || ''}`}>
                             {cp.status}
                           </Badge>
@@ -274,7 +321,7 @@ export default function ProviderStoreDetails() {
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-full bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                   {store.creator.avatar_url
-                    ? <img src={store.creator.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ? <img src={resolveUrl(store.creator.avatar_url)} alt="" className="h-full w-full object-cover" />
                     : <ImageIcon className="w-4 h-4 text-zinc-300" />}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -17,14 +17,14 @@ const LOCALE_LABELS: Record<string, string> = {
 const RTL_LOCALES = ['ar'];
 
 const TEMPLATE_OPTIONS = [
-  { value: 'custom', label: 'Custom Page', description: 'Blank page — build with Page Builder' },
-  { value: 'about', label: 'About Page', description: 'Tell customers about you and your brand' },
-  { value: 'faq', label: 'FAQ', description: 'Frequently asked questions' },
-  { value: 'contact', label: 'Contact', description: 'Contact information' },
-  { value: 'shipping', label: 'Shipping Policy', description: 'Shipping terms and delivery info' },
-  { value: 'returns', label: 'Return Policy', description: 'Returns and refund policy' },
-  { value: 'privacy', label: 'Privacy Policy', description: 'Privacy and data policy' },
-  { value: 'terms', label: 'Terms & Conditions', description: 'Terms of service' },
+  { value: 'CUSTOM', label: 'Custom Page', description: 'Blank page — build with Page Builder' },
+  { value: 'ABOUT', label: 'About Page', description: 'Tell customers about you and your brand' },
+  { value: 'FAQ', label: 'FAQ', description: 'Frequently asked questions' },
+  { value: 'CONTACT', label: 'Contact', description: 'Contact information' },
+  { value: 'SHIPPING_POLICY', label: 'Shipping Policy', description: 'Shipping terms and delivery info' },
+  { value: 'RETURN_POLICY', label: 'Return Policy', description: 'Returns and refund policy' },
+  { value: 'PRIVACY_POLICY', label: 'Privacy Policy', description: 'Privacy and data policy' },
+  { value: 'TERMS', label: 'Terms & Conditions', description: 'Terms of service' },
 ];
 
 type LocaleTranslation = { title: string };
@@ -34,7 +34,7 @@ export default function NewPage() {
   const { token } = useAuth();
 
   const [storeId, setStoreId] = useState<string | null>(null);
-  const [templateType, setTemplateType] = useState('custom');
+  const [templateType, setTemplateType] = useState('CUSTOM');
   const [slug, setSlug] = useState('');
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -110,15 +110,20 @@ export default function NewPage() {
         .filter(([, t]) => t.title.trim())
         .map(([locale, t]) => ({ locale, title: t.title }));
 
-      await api(`/stores/${storeId}/pages`, {
+      const created = await api<{ id: string }>(`/stores/${storeId}/pages`, {
         method: 'POST', token: token ?? undefined,
         body: JSON.stringify({
           slug,
-          template_type: templateType,
-          is_published: isPublished,
+          type: templateType,
           translations: translationsPayload,
         }),
       });
+      if (isPublished && created?.id) {
+        await api(`/pages/${created.id}`, {
+          method: 'PUT', token: token ?? undefined,
+          body: JSON.stringify({ status: 'PUBLISHED' }),
+        });
+      }
       router.push('/creator/pages');
     } catch (err: any) {
       setError(err?.message || 'Failed to create page');

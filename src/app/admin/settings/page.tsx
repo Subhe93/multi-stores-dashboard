@@ -11,6 +11,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { clearCurrencyCache } from '@/lib/useCurrency';
+import { CURRENCIES } from '@/lib/currencies';
 
 interface PlatformConfig {
   commission_type: string;
@@ -24,17 +25,6 @@ interface PlatformConfig {
   require_provider_approval: boolean;
   require_creator_approval: boolean;
 }
-
-const CURRENCIES = [
-  { value: 'EUR', label: 'EUR ({currency})', description: 'Euro' },
-  { value: 'USD', label: 'USD ($)', description: 'US Dollar' },
-  { value: 'GBP', label: 'GBP (£)', description: 'British Pound' },
-  { value: 'TRY', label: 'TRY (₺)', description: 'Turkish Lira' },
-  { value: 'SAR', label: 'SAR (﷼)', description: 'Saudi Riyal' },
-  { value: 'AED', label: 'AED (د.إ)', description: 'UAE Dirham' },
-  { value: 'KWD', label: 'KWD (د.ك)', description: 'Kuwaiti Dinar' },
-  { value: 'QAR', label: 'QAR (ر.ق)', description: 'Qatari Riyal' },
-];
 
 const LOCALES = [
   { value: 'en', label: 'English', description: 'English (en)' },

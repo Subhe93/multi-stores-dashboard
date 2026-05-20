@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, FileText, Trash2, Pencil, Store } from 'lucide-react';
+import { Plus, FileText, Trash2, Pencil, Store, Wand2, Loader2, Package, LayoutPanelTop, Columns } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
@@ -54,6 +54,72 @@ export default function CreatorPagesPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<StorePage | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [openingHomeBuilder, setOpeningHomeBuilder] = useState(false);
+  const [openingTemplateBuilder, setOpeningTemplateBuilder] = useState(false);
+  const [openingHeaderBuilder, setOpeningHeaderBuilder] = useState(false);
+  const [openingFooterBuilder, setOpeningFooterBuilder] = useState(false);
+
+  const openHomeBuilder = async () => {
+    if (!token || openingHomeBuilder) return;
+    setOpeningHomeBuilder(true);
+    try {
+      const home = await api<{ id: string }>('/v2/pages/mine/home/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${home.id}`);
+    } catch (err) {
+      console.error('Failed to open home builder:', err);
+      setOpeningHomeBuilder(false);
+    }
+  };
+
+  const openProductTemplateBuilder = async () => {
+    if (!token || openingTemplateBuilder) return;
+    setOpeningTemplateBuilder(true);
+    try {
+      const template = await api<{ id: string }>('/v2/pages/mine/product-template/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${template.id}`);
+    } catch (err) {
+      console.error('Failed to open product template builder:', err);
+      setOpeningTemplateBuilder(false);
+    }
+  };
+
+  // Same pattern as openHomeBuilder — provision the singleton on demand then
+  // navigate the builder to it. Idempotent on the API side.
+  const openHeaderBuilder = async () => {
+    if (!token || openingHeaderBuilder) return;
+    setOpeningHeaderBuilder(true);
+    try {
+      const header = await api<{ id: string }>('/v2/pages/mine/header/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${header.id}`);
+    } catch (err) {
+      console.error('Failed to open header builder:', err);
+      setOpeningHeaderBuilder(false);
+    }
+  };
+
+  const openFooterBuilder = async () => {
+    if (!token || openingFooterBuilder) return;
+    setOpeningFooterBuilder(true);
+    try {
+      const footer = await api<{ id: string }>('/v2/pages/mine/footer/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${footer.id}`);
+    } catch (err) {
+      console.error('Failed to open footer builder:', err);
+      setOpeningFooterBuilder(false);
+    }
+  };
 
   useEffect(() => {
     if (!token) return;
@@ -149,7 +215,7 @@ export default function CreatorPagesPage() {
           <Button
             size="icon-sm"
             variant="ghost"
-            onClick={() => router.push(`/creator/pages/${item.id}`)}
+            onClick={() => router.push(`/builder/${item.id}`)}
           >
             <Pencil className="size-3.5" />
           </Button>
@@ -209,6 +275,132 @@ export default function CreatorPagesPage() {
           <Plus className="size-4" />
           New Page
         </Button>
+      </div>
+
+      {/* Builder callouts — Home, Product template, Header, Footer.
+          Each provisions its singleton page on demand and opens the builder. */}
+      <div className="grid gap-3 md:grid-cols-2">
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <Wand2 className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Home page builder</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Design your storefront home with drag-and-drop sections.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" onClick={openHomeBuilder} disabled={openingHomeBuilder} className="shrink-0">
+              {openingHomeBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Opening…
+                </>
+              ) : (
+                'Open builder'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <Package className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Product page template</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Customize the layout used for every product page.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openProductTemplateBuilder}
+              disabled={openingTemplateBuilder}
+              className="shrink-0"
+            >
+              {openingTemplateBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Opening…
+                </>
+              ) : (
+                'Edit template'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <LayoutPanelTop className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Header (site-wide)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Logo, navigation, search, cart — rendered on every storefront page.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openHeaderBuilder}
+              disabled={openingHeaderBuilder}
+              className="shrink-0"
+            >
+              {openingHeaderBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Opening…
+                </>
+              ) : (
+                'Edit header'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <Columns className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Footer (site-wide)</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Columns of links, copyright bar — rendered below every page.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openFooterBuilder}
+              disabled={openingFooterBuilder}
+              className="shrink-0"
+            >
+              {openingFooterBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Opening…
+                </>
+              ) : (
+                'Edit footer'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Table */}

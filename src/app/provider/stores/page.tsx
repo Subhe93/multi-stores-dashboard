@@ -10,6 +10,13 @@ import { Store as StoreIcon, ImageIcon, ExternalLink, Search, Package2, BadgeChe
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+function resolveUrl(url?: string | null): string {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_BASE}${url}`;
+}
+
 interface ProviderStore {
   id: string;
   slug: string;
@@ -127,7 +134,7 @@ export default function ProviderStores() {
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-md bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                           {store.logo_url
-                            ? <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
+                            ? <img src={resolveUrl(store.logo_url)} alt="" className="h-full w-full object-cover" />
                             : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}
                         </div>
                         <div>

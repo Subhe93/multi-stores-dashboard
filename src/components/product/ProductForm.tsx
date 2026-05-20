@@ -14,6 +14,8 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { VariantManager, type VariantOption, type GeneratedVariant } from './VariantManager';
 import { CustomFieldManager, type CustomField } from './CustomFieldManager';
 import FaqManager, { type Faq } from './FaqManager';
+import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
+import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
 import { TagInput } from '@/components/common/TagInput';
@@ -55,7 +57,8 @@ type LocaleTranslation = { title: string; description: string };
 
 export function ProductForm({ mode, productId, backUrl, postCreateUrl }: ProductFormProps) {
   const { currency } = useCurrency();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const isCreator = user?.role === 'CREATOR';
   const router = useRouter();
 
   // ── UI state ──────────────────────────────────────────────
@@ -100,6 +103,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [variants, setVariants] = useState<GeneratedVariant[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [bundleIds, setBundleIds] = useState<string[]>([]);
+  const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
   const [shippingProfiles, setShippingProfiles] = useState<{ id: string; name: string; is_default: boolean }[]>([]);
   const [shippingProfileId, setShippingProfileId] = useState('');
 
@@ -185,6 +190,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setImages((p.images || []).filter((img: any) => !img.variant_id));
       setCustomFields(p.custom_fields || []);
       setFaqs(p.faqs || []);
+      setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
+      // Pre-fill creator collections. API returns links of the shape
+      // { creator_category_id, creator_category: {...} }; either field works.
+      setCreatorCategoryIds(
+        (p.creator_categories || [])
+          .map((link: any) => link?.creator_category?.id || link?.creator_category_id)
+          .filter((id: any): id is string => typeof id === 'string'),
+      );
       setShippingProfileId(p.shipping_profile_id || '');
 
       // Populate translations for all configured locales
@@ -335,6 +348,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         translations: translationsPayload,
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
         tags: tags.length > 0 ? tags : [],
+        ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds } : {}),
       };
 
       let pid = productId;
@@ -392,6 +406,27 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               body: JSON.stringify({ url: v.image_url, sort_order: 999, is_featured: false, variant_id: variantId || undefined }),
             });
           }
+        }
+      }
+
+      // Persist custom fields + FAQs that were accumulated locally during create.
+      // In edit mode these write through their own managers immediately, so we
+      // skip them here to avoid duplicates.
+      if (pid && mode === 'create') {
+        for (let i = 0; i < customFields.length; i++) {
+          const { id: _tempId, sort_order: _so, ...rest } = customFields[i]!;
+          await api(`/products/${pid}/custom-fields`, {
+            method: 'POST', token,
+            body: JSON.stringify({ ...rest, sort_order: i }),
+          });
+        }
+        for (let i = 0; i < faqs.length; i++) {
+          const faq = faqs[i]!;
+          if (faq.id) continue;
+          await api(`/products/${pid}/faqs`, {
+            method: 'POST', token,
+            body: JSON.stringify({ sort_order: i, translations: faq.translations }),
+          });
         }
       }
 
@@ -679,6 +714,23 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </CardContent>
           </Card>
 
+          {/* Bundles — creator-only. Creator-owned products have no provider
+              cost, so the picker shows no "below cost" warnings here. */}
+          {isCreator && (
+            <Card className="shadow-none">
+              <CardContent className="pt-5">
+                <BundlePicker
+                  value={bundleIds}
+                  onChange={setBundleIds}
+                  productPricing={{
+                    unitPrice: parseFloat(basePrice) || 0,
+                    providerBasePrice: 0,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Product Type</CardTitle></CardHeader>
             <CardContent className="space-y-2">
@@ -838,6 +890,26 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <TagInput tags={tags} onChange={setTags} placeholder="Type tag and press Enter" />
             </CardContent>
           </Card>
+
+          {/* Collections — creator-only; groups this product into the creator's
+              own store collections (Shopify-style). */}
+          {isCreator && (
+            <Card className="shadow-none">
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Collections</CardTitle></CardHeader>
+              <CardContent>
+                <div>
+                  <Label className="text-xs">Collections</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Add this product to one or more of your store collections.
+                  </p>
+                  <CollectionsMultiSelect
+                    value={creatorCategoryIds}
+                    onChange={setCreatorCategoryIds}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

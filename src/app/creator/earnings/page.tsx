@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,68 +16,147 @@ interface CommissionSummary {
   total_earnings: number;
   this_month: number;
   pending: number;
+  total_orders?: number;
+}
+
+interface OrderCommission {
+  creator_amount: number | string;
+  provider_amount: number | string;
+  platform_amount: number | string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  currency?: string;
 }
 
 interface Order {
-  id: string | number;
+  id: string;
   order_number: string;
-  total: number;
+  subtotal: number | string;
+  total: number | string;
   status: string;
   created_at: string;
-  commission?: number;
+  commission?: OrderCommission | null;
+}
+
+interface OrdersMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 interface OrdersResponse {
   data: Order[];
-  meta: { total: number };
+  meta: OrdersMeta;
 }
+
+const PAGE_SIZE = 20;
+
+const commissionStatusStyles: Record<OrderCommission['status'], string> = {
+  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+  PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  FAILED: 'bg-red-50 text-red-700 border-red-200',
+};
 
 export default function CreatorEarnings() {
   const { token } = useAuth();
+  const { fmt } = useCurrency();
 
   const [summary, setSummary] = useState<CommissionSummary | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [meta, setMeta] = useState<OrdersMeta | null>(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const { fmt } = useCurrency();
 
   useEffect(() => {
     if (!token) return;
+    api<CommissionSummary>('/commissions/summary', { token })
+      .then(setSummary)
+      .catch(console.error);
+  }, [token]);
 
-    Promise.all([
-      api<CommissionSummary>('/commissions/summary', { token }),
-      api<OrdersResponse>('/orders?limit=20', { token }),
-    ])
-      .then(([comm, ord]) => {
-        setSummary(comm);
-        setOrders(Array.isArray(ord?.data) ? ord.data : []);
+  useEffect(() => {
+    if (!token) return;
+    setLoading(true);
+    api<OrdersResponse>(`/orders?page=${page}&limit=${PAGE_SIZE}`, { token })
+      .then((res) => {
+        setOrders(Array.isArray(res?.data) ? res.data : []);
+        setMeta(res?.meta ?? null);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, page]);
 
   const COMMISSION_COLUMNS = [
     {
       key: 'order_number',
       label: 'Order',
       render: (item: Order) => (
-        <span className="font-medium">#{item.order_number}</span>
+        <Link
+          href={`/creator/orders/${item.id}`}
+          className="font-mono font-medium text-primary hover:underline"
+        >
+          #{item.order_number}
+        </Link>
       ),
     },
     {
-      key: 'total',
-      label: 'Total',
-      render: (item: Order) => fmt(Number(item.total ?? 0)),
+      key: 'subtotal',
+      label: 'Subtotal',
+      render: (item: Order) => (
+        <span className="text-muted-foreground tabular-nums">
+          {fmt(Number(item.subtotal ?? 0))}
+        </span>
+      ),
     },
     {
       key: 'commission',
       label: 'Your Share',
-      render: (item: Order) =>
-        item.commission != null ? fmt(Number(item.commission)) : '—',
+      render: (item: Order) => {
+        const amount = item.commission?.creator_amount;
+        if (amount == null) {
+          return <span className="text-muted-foreground">—</span>;
+        }
+        return (
+          <span className="font-semibold text-emerald-700 tabular-nums">
+            {fmt(Number(amount))}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'commission_status',
+      label: 'Status',
+      render: (item: Order) => {
+        const status = item.commission?.status;
+        if (!status) {
+          return (
+            <Badge
+              variant="outline"
+              className="text-[10px] font-semibold bg-zinc-50 text-zinc-600 border-zinc-200"
+            >
+              N/A
+            </Badge>
+          );
+        }
+        return (
+          <Badge
+            variant="outline"
+            className={`text-[10px] font-semibold ${commissionStatusStyles[status]}`}
+          >
+            {status}
+          </Badge>
+        );
+      },
     },
     {
       key: 'created_at',
       label: 'Date',
-      render: (item: Order) => new Date(item.created_at).toLocaleDateString(),
+      render: (item: Order) => (
+        <span className="text-muted-foreground">
+          {new Date(item.created_at).toLocaleDateString()}
+        </span>
+      ),
     },
   ];
 
@@ -91,18 +171,23 @@ export default function CreatorEarnings() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Earnings"
-          value={loading ? '...' : fmt(Number(summary?.total_earnings ?? 0))}
+          value={summary == null ? '...' : fmt(Number(summary.total_earnings ?? 0))}
+          subtitle={
+            summary?.total_orders != null
+              ? `${summary.total_orders} ${summary.total_orders === 1 ? 'order' : 'orders'}`
+              : undefined
+          }
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
           title="This Month"
-          value={loading ? '...' : fmt(Number(summary?.this_month ?? 0))}
+          value={summary == null ? '...' : fmt(Number(summary.this_month ?? 0))}
           trend="up"
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <StatCard
           title="Pending"
-          value={loading ? '...' : fmt(Number(summary?.pending ?? 0))}
+          value={summary == null ? '...' : fmt(Number(summary.pending ?? 0))}
           icon={<Clock className="w-4 h-4" />}
         />
         <StatCard
@@ -121,8 +206,10 @@ export default function CreatorEarnings() {
         <CardContent className="p-0">
           <DataTable
             columns={COMMISSION_COLUMNS}
-            data={orders}
-            emptyMessage="No earnings yet"
+            data={loading ? [] : orders}
+            emptyMessage={loading ? 'Loading…' : 'No earnings yet'}
+            pagination={meta ?? undefined}
+            onPageChange={setPage}
           />
         </CardContent>
       </Card>

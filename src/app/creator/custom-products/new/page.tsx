@@ -28,6 +28,9 @@ import PricingStrategySelector from '@/components/creator/PricingStrategySelecto
 import CustomFieldRenderer from '@/components/creator/CustomFieldRenderer';
 import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
+import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
+import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
 import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
@@ -59,12 +62,20 @@ interface ProductCustomField {
   validation_rules?: any;
   translations: any[];
 }
+interface VariantOptionConfig {
+  name: string;
+  style: 'text' | 'color' | 'image';
+  values: string[];
+  colorMap?: Record<string, string>;
+  dualColorMap?: Record<string, [string, string]>;
+}
 interface Product {
   id: string;
   translations: ProductTranslation[];
   base_price: number;
   images: ProductImage[];
   variants?: ProductVariant[];
+  variant_option_config?: VariantOptionConfig[];
   custom_fields?: ProductCustomField[];
   faqs?: { sort_order: number; translations: { locale: string; question: string; answer: string }[] }[];
   provider?: { id: string; company_name: string };
@@ -73,6 +84,53 @@ interface Product {
 type ImportMode = 'AS_IS' | 'CUSTOMIZE';
 type PricingType = 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
 type LocaleTranslation = { title: string; description: string; slug: string };
+
+// ── Error helpers ────────────────────────────────────────
+// The backend uses class-validator with whitelist + forbidNonWhitelisted, which
+// returns terse messages like "translations.0.property id should not exist" and
+// "final_price must be a positive number". Map them to friendlier guidance.
+
+const FRIENDLY_ERROR_PATTERNS: { pattern: RegExp; message: string; stepKey?: string }[] = [
+  { pattern: /property\s+\w+\s+should not exist/i, message: 'Internal data issue while saving FAQs. Please refresh and try again.', stepKey: 'faqs' },
+  { pattern: /translations.*should not be empty|translations.*must be an array/i, message: 'Add at least one product title before saving.', stepKey: 'details' },
+  { pattern: /(title|slug).*should not be empty/i, message: 'Title and slug are required for the primary language.', stepKey: 'details' },
+  { pattern: /final_price.*positive/i, message: 'The final price must be a positive number.', stepKey: 'pricing' },
+  { pattern: /margin_amount.*positive/i, message: 'The margin amount must be a positive number.', stepKey: 'pricing' },
+  { pattern: /selected_variants.*not be empty/i, message: 'Select at least one variant for this product.', stepKey: 'variants' },
+  { pattern: /custom_price.*positive/i, message: 'Each variant price must be a positive number.', stepKey: 'pricing' },
+  { pattern: /question.*should not be empty/i, message: 'Each FAQ needs a question in at least one language.', stepKey: 'faqs' },
+  { pattern: /import_mode/i, message: 'Please choose an import mode (As-is or Customize).', stepKey: 'mode' },
+  // Bundle economics violations are already user-readable from the backend; keep
+  // the full message and point the user back to the pricing/bundle section.
+  { pattern: /below provider cost/i, message: '', stepKey: 'pricing' },
+];
+
+function formatSubmitError(err: any): string {
+  const raw: string[] = Array.isArray(err?.errors)
+    ? err.errors
+    : err?.message
+    ? [err.message]
+    : [];
+  if (raw.length === 0) return 'Failed to create custom product. Please try again.';
+
+  const friendly = new Set<string>();
+  for (const msg of raw) {
+    const match = FRIENDLY_ERROR_PATTERNS.find((p) => p.pattern.test(msg));
+    // An empty `message` means: pass the original through unchanged (used for
+    // already-friendly backend messages like the bundle economics violation).
+    friendly.add(match ? (match.message || msg) : msg);
+  }
+  return Array.from(friendly).join(' • ');
+}
+
+function stepKeyFromError(err: any): string | null {
+  const raw: string[] = Array.isArray(err?.errors) ? err.errors : err?.message ? [err.message] : [];
+  for (const msg of raw) {
+    const match = FRIENDLY_ERROR_PATTERNS.find((p) => p.pattern.test(msg));
+    if (match?.stepKey) return match.stepKey;
+  }
+  return null;
+}
 
 // ── Component ────────────────────────────────────────────
 
@@ -105,6 +163,12 @@ export default function NewCustomProductPage() {
 
   // FAQs (local draft — saved after custom product is created)
   const [faqDrafts, setFaqDrafts] = useState<Faq[]>([]);
+  const [bundleIds, setBundleIds] = useState<string[]>([]);
+  const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
+
+  // Slug availability check — debounced, primary-locale only.
+  type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
+  const [slugStatus, setSlugStatus] = useState<SlugStatus>('idle');
 
   // Language
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -162,17 +226,46 @@ export default function NewCustomProductPage() {
       .catch(console.error);
   }, [token, productSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Debounced slug availability check against the backend. We only check the
+  // primary-locale slug — secondary translations don't drive the storefront URL.
+  useEffect(() => {
+    if (!token) return;
+    const slug = (translations[primaryLocale]?.slug || '').trim();
+    if (!slug) {
+      setSlugStatus('idle');
+      return;
+    }
+    setSlugStatus('checking');
+    const handle = setTimeout(async () => {
+      try {
+        const res = await api<{ available: boolean }>(
+          `/custom-products/check-slug?slug=${encodeURIComponent(slug)}`,
+          { token },
+        );
+        setSlugStatus(res?.available ? 'available' : 'taken');
+      } catch {
+        setSlugStatus('idle');
+      }
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [token, translations, primaryLocale]);
+
   const fetchProductDetails = async (productId: string) => {
     if (!token) return;
     try {
       const details = await api<Product>(`/products/${productId}/import-details`, { token });
       setProductDetails(details);
-      // Pre-populate FAQ drafts from base product (strip id — these become new custom product FAQs)
+      // Pre-populate FAQ drafts from base product. Only keep whitelisted fields —
+      // backend DTO rejects extras like id/faq_id from the source records.
       if (details.faqs && details.faqs.length > 0) {
         setFaqDrafts(
           details.faqs.map((f, i) => ({
             sort_order: i,
-            translations: f.translations.map((t) => ({ ...t })),
+            translations: f.translations.map((t) => ({
+              locale: t.locale,
+              question: t.question,
+              answer: t.answer,
+            })),
           })),
         );
       } else {
@@ -257,10 +350,11 @@ export default function NewCustomProductPage() {
   const hasVariants = (productDetails?.variants?.length ?? 0) > 0;
 
   const getSteps = () => {
-    const steps: { key: string; title: string }[] = [
-      { key: 'product', title: 'Choose Product' },
-      { key: 'mode', title: 'Import Mode' },
-    ];
+    const steps: { key: string; title: string }[] = [];
+    if (!preselectedProductId) {
+      steps.push({ key: 'product', title: 'Choose Product' });
+    }
+    steps.push({ key: 'mode', title: 'Import Mode' });
     if (importMode === 'CUSTOMIZE') {
       if (hasVariants) steps.push({ key: 'variants', title: 'Select Variants' });
       if (hasCustomFields) steps.push({ key: 'fields', title: 'Custom Fields' });
@@ -298,7 +392,7 @@ export default function NewCustomProductPage() {
           return variantIdsForPricing.length > 0 && variantIdsForPricing.every((id) => variantPrices[id] && !isNaN(parseFloat(variantPrices[id])));
         }
         return false;
-      case 'details':  return !!(translations[primaryLocale]?.title?.trim() && translations[primaryLocale]?.slug?.trim());
+      case 'details':  return !!(translations[primaryLocale]?.title?.trim() && translations[primaryLocale]?.slug?.trim()) && slugStatus !== 'taken' && slugStatus !== 'checking';
       case 'faqs':     return true;
       default:         return false;
     }
@@ -362,10 +456,19 @@ export default function NewCustomProductPage() {
         body.mockup_image_urls = sorted;
       }
 
+      if (bundleIds.length > 0) {
+        body.bundle_ids = bundleIds;
+      }
+
+      if (creatorCategoryIds.length > 0) {
+        body.creator_category_ids = creatorCategoryIds;
+      }
+
       // Create custom product
       const created = await api<{ id: string }>('/custom-products', { method: 'POST', token, body: JSON.stringify(body) });
 
-      // Save FAQ drafts to the new custom product
+      // Save FAQ drafts to the new custom product. Sanitize translations to only
+      // whitelisted fields — backend rejects any extras.
       if (faqDrafts.length > 0 && created?.id) {
         await Promise.all(
           faqDrafts
@@ -374,7 +477,16 @@ export default function NewCustomProductPage() {
               api(`/custom-products/${created.id}/faqs`, {
                 method: 'POST',
                 token,
-                body: JSON.stringify({ sort_order: i, translations: f.translations }),
+                body: JSON.stringify({
+                  sort_order: i,
+                  translations: f.translations
+                    .filter((t) => t.question.trim())
+                    .map((t) => ({
+                      locale: t.locale,
+                      question: t.question,
+                      answer: t.answer || '',
+                    })),
+                }),
               }),
             ),
         );
@@ -383,8 +495,12 @@ export default function NewCustomProductPage() {
       // Redirect to edit page so the creator can submit for review or finalize details
       router.push(created?.id ? `/creator/custom-products/${created.id}` : '/creator/custom-products');
     } catch (err: any) {
-      const message = err?.message || 'Failed to create custom product. Please try again.';
-      setSubmitError(message);
+      setSubmitError(formatSubmitError(err));
+      const targetKey = stepKeyFromError(err);
+      if (targetKey) {
+        const idx = steps.findIndex((s) => s.key === targetKey);
+        if (idx >= 0) setCurrentStep(idx + 1);
+      }
     } finally {
       setSaving(false);
     }
@@ -411,10 +527,36 @@ export default function NewCustomProductPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">New Custom Product</h1>
           <p className="text-sm text-muted-foreground">
-            Choose a base product, set import mode, then configure pricing and details.
+            {preselectedProductId
+              ? 'Set import mode, then configure pricing and details.'
+              : 'Choose a base product, set import mode, then configure pricing and details.'}
           </p>
         </div>
       </div>
+
+      {/* Preselected base product banner */}
+      {preselectedProductId && selectedProduct && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border bg-zinc-50">
+          <div className="w-10 h-10 rounded overflow-hidden border bg-white flex items-center justify-center shrink-0">
+            {getPrimaryImage(selectedProduct) ? (
+              <img src={getPrimaryImage(selectedProduct)!} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <Package className="w-4 h-4 text-zinc-400" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-muted-foreground">Base product</p>
+            <p className="text-sm font-medium truncate">
+              {selectedProduct.translations.find((t) => t.locale === 'en')?.title ??
+                selectedProduct.translations[0]?.title ??
+                '—'}
+            </p>
+          </div>
+          <span className="text-xs text-muted-foreground shrink-0">
+            {fmt(selectedProduct.base_price)}
+          </span>
+        </div>
+      )}
 
       {/* Step indicator */}
       <div className="flex items-center gap-1 flex-wrap">
@@ -506,7 +648,14 @@ export default function NewCustomProductPage() {
 
           {/* ── Step: Import Mode ── */}
           {currentStepDef?.key === 'mode' && (
-            <ImportModeSelector value={importMode} onChange={handleImportModeChange} />
+            productDetails ? (
+              <ImportModeSelector value={importMode} onChange={handleImportModeChange} />
+            ) : (
+              <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Loading product…
+              </div>
+            )
           )}
 
           {/* ── Step: Select Variants ── */}
@@ -547,40 +696,13 @@ export default function NewCustomProductPage() {
               }
               selectedVariants={selectedVariantsForPricing}
               basePrice={basePrice}
+              variantOptionConfig={productDetails?.variant_option_config}
             />
           )}
 
           {/* ── Step: Product Details ── */}
           {currentStepDef?.key === 'details' && (
             <>
-              {/* Copy from original */}
-              {productDetails && (
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <span className="text-xs text-blue-700">
-                    Copy title & description from the original product
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
-                    onClick={() => {
-                      allLocales.forEach((locale) => {
-                        const origTrans = productDetails.translations.find((t) => t.locale === locale);
-                        if (origTrans) {
-                          setTransField(locale, 'title', origTrans.title || '');
-                          if (origTrans.description) setTransField(locale, 'description', origTrans.description);
-                        }
-                      });
-                      const primaryTrans = productDetails.translations.find((t) => t.locale === primaryLocale);
-                      if (primaryTrans?.title) setTransField(primaryLocale, 'slug', generateSlug(primaryTrans.title));
-                    }}
-                  >
-                    Copy from original
-                  </Button>
-                </div>
-              )}
-
               {/* Images — upload + select from base product */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -733,6 +855,36 @@ export default function NewCustomProductPage() {
                 </div>
               )}
 
+              {/* Copy title & description from the original product —
+                  positioned right above Title so the creator notices it
+                  exactly when filling in title/description. */}
+              {productDetails && (
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-xs text-blue-700">
+                    Copy title & description from the original product
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
+                    onClick={() => {
+                      allLocales.forEach((locale) => {
+                        const origTrans = productDetails.translations.find((t) => t.locale === locale);
+                        if (origTrans) {
+                          setTransField(locale, 'title', origTrans.title || '');
+                          if (origTrans.description) setTransField(locale, 'description', origTrans.description);
+                        }
+                      });
+                      const primaryTrans = productDetails.translations.find((t) => t.locale === primaryLocale);
+                      if (primaryTrans?.title) setTransField(primaryLocale, 'slug', generateSlug(primaryTrans.title));
+                    }}
+                  >
+                    Copy from original
+                  </Button>
+                </div>
+              )}
+
               {/* Title */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">
@@ -756,7 +908,9 @@ export default function NewCustomProductPage() {
                       placeholder="my-custom-product"
                       value={translations[primaryLocale]?.slug || ''}
                       onChange={(e) => setTransField(primaryLocale, 'slug', generateSlug(e.target.value))}
-                      className="h-8 text-sm font-mono"
+                      className={`h-8 text-sm font-mono ${
+                        slugStatus === 'taken' ? 'border-red-400 focus-visible:ring-red-400' : ''
+                      }`}
                     />
                     <Button
                       type="button"
@@ -769,6 +923,35 @@ export default function NewCustomProductPage() {
                       <RefreshCw className="w-3.5 h-3.5" />
                     </Button>
                   </div>
+                  {slugStatus === 'checking' && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Checking availability…
+                    </p>
+                  )}
+                  {slugStatus === 'available' && (
+                    <p className="text-[11px] text-emerald-600 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Slug is available
+                    </p>
+                  )}
+                  {slugStatus === 'taken' && (
+                    <p className="text-[11px] text-red-600">
+                      This slug is already used by one of your products. Pick a different one.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Collections — let the creator add this product to one or more of their collections */}
+              {activeLocale === primaryLocale && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Collections</Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Add this product to one or more of your store collections.
+                  </p>
+                  <CollectionsMultiSelect
+                    value={creatorCategoryIds}
+                    onChange={setCreatorCategoryIds}
+                  />
                 </div>
               )}
 
@@ -805,6 +988,36 @@ export default function NewCustomProductPage() {
                 locales={allLocales}
                 primaryLocale={primaryLocale}
               />
+
+              <div className="mt-6 border-t pt-4">
+                <BundlePicker
+                  value={bundleIds}
+                  onChange={setBundleIds}
+                  productPricing={
+                    selectedProduct
+                      ? computeProductPricingForBundleCheck({
+                          pricingType,
+                          baseProviderPrice: Number(selectedProduct.base_price),
+                          hasProvider: Boolean(selectedProduct.provider?.id),
+                          finalPrice: parseFloat(finalPrice) || 0,
+                          marginAmount: parseFloat(marginAmount) || 0,
+                          selectedVariants: selectedVariantsForPricing.map(
+                            (v) => ({
+                              id: v.id,
+                              price_adjustment: Number(v.price_adjustment) || 0,
+                            }),
+                          ),
+                          variantCustomPrices: Object.fromEntries(
+                            Object.entries(variantPrices).map(([k, v]) => [
+                              k,
+                              parseFloat(v) || 0,
+                            ]),
+                          ),
+                        })
+                      : undefined
+                  }
+                />
+              </div>
             </div>
           )}
 
@@ -814,7 +1027,16 @@ export default function NewCustomProductPage() {
       {/* Error message */}
       {submitError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          {submitError}
+          <p className="font-medium mb-1">We couldn't save the product. Please review:</p>
+          {submitError.includes(' • ') ? (
+            <ul className="list-disc pl-5 space-y-0.5">
+              {submitError.split(' • ').map((m, i) => (
+                <li key={i}>{m}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>{submitError}</p>
+          )}
         </div>
       )}
 

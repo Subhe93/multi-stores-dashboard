@@ -24,13 +24,49 @@ const statusColors: Record<string, string> = {
   CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
   PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   MANUFACTURING: 'bg-purple-50 text-purple-700 border-purple-200',
+  QUALITY_CHECK: 'bg-orange-50 text-orange-700 border-orange-200',
   SHIPPED: 'bg-sky-50 text-sky-700 border-sky-200',
   DELIVERED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  RETURNED: 'bg-rose-50 text-rose-700 border-rose-200',
   CANCELLED: 'bg-red-50 text-red-700 border-red-200',
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
 
-const statusFlow = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'SHIPPED', 'DELIVERED'];
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  PROCESSING: 'Processing',
+  MANUFACTURING: 'Manufacturing',
+  QUALITY_CHECK: 'Quality Check',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  RETURNED: 'Returned',
+  CANCELLED: 'Cancelled',
+  REFUNDED: 'Refunded',
+};
+
+const statusFlow = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
+
+// FulfillmentStatus is a smaller enum; map onto statusFlow so we can compare progress.
+const FULFILLMENT_TO_FLOW: Record<string, string> = {
+  PENDING:       'PENDING',
+  PROCESSING:    'PROCESSING',
+  MANUFACTURING: 'MANUFACTURING',
+  SHIPPED:       'SHIPPED',
+  DELIVERED:     'DELIVERED',
+};
+
+// If the order has advanced past the item's recorded fulfillment_status (legacy orders
+// from before the API cascade fix), display the order status instead.
+function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): string {
+  if (['CANCELLED', 'REFUNDED', 'RETURNED'].includes(orderStatus)) return orderStatus;
+  if (!itemStatus) return orderStatus;
+  const orderIdx = statusFlow.indexOf(orderStatus);
+  const mapped = FULFILLMENT_TO_FLOW[itemStatus] ?? itemStatus;
+  const itemIdx = statusFlow.indexOf(mapped);
+  if (orderIdx === -1 || itemIdx === -1) return itemStatus;
+  return orderIdx > itemIdx ? orderStatus : itemStatus;
+}
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +111,7 @@ export default function OrderDetailPage() {
             <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
           </div>
         </div>
-        <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{order.status}</Badge>
+        <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{STATUS_LABELS[order.status] || order.status}</Badge>
       </div>
 
       {/* Status actions */}
@@ -84,7 +120,7 @@ export default function OrderDetailPage() {
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Update Status</CardTitle></CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
             {statusFlow.slice(currentIdx + 1).map(s => (
-              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{s}</Button>
+              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{STATUS_LABELS[s] || s}</Button>
             ))}
             <Separator orientation="vertical" className="h-7" />
             <Button variant="outline" size="sm" className="text-xs text-red-600" onClick={() => handleStatusUpdate('CANCELLED')}>Cancel</Button>
@@ -129,9 +165,14 @@ export default function OrderDetailPage() {
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-sm font-medium leading-snug">{title}</p>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.fulfillment_status] || 'bg-zinc-100 text-zinc-600'}`}>
-                              {item.fulfillment_status ?? '—'}
-                            </Badge>
+                            {(() => {
+                              const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
+                              return (
+                                <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[itemStatus] || 'bg-zinc-100 text-zinc-600'}`}>
+                                  {STATUS_LABELS[itemStatus] || itemStatus}
+                                </Badge>
+                              );
+                            })()}
                             <Badge variant="outline" className="text-[9px]">{item.fulfiller_type}</Badge>
                           </div>
                         </div>
@@ -234,7 +275,7 @@ export default function OrderDetailPage() {
                 <div key={entry.id} className="flex items-start gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium">{entry.status}</p>
+                    <p className="text-sm font-medium">{STATUS_LABELS[entry.status] || entry.status}</p>
                     <p className="text-[10px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
                   </div>
                 </div>

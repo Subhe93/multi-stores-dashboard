@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Clock, Package } from 'lucide-react';
+import { ArrowLeft, Clock, Package, Info, Tag } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
@@ -24,18 +24,50 @@ const statusColors: Record<string, string> = {
   CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
   PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   MANUFACTURING: 'bg-purple-50 text-purple-700 border-purple-200',
+  QUALITY_CHECK: 'bg-orange-50 text-orange-700 border-orange-200',
   SHIPPED: 'bg-sky-50 text-sky-700 border-sky-200',
   DELIVERED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  RETURNED: 'bg-rose-50 text-rose-700 border-rose-200',
   CANCELLED: 'bg-red-50 text-red-700 border-red-200',
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
 
-const itemStatusColors: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
-  PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  FULFILLED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  CANCELLED: 'bg-red-50 text-red-700 border-red-200',
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  PROCESSING: 'Processing',
+  MANUFACTURING: 'Manufacturing',
+  QUALITY_CHECK: 'Quality Check',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  RETURNED: 'Returned',
+  CANCELLED: 'Cancelled',
+  REFUNDED: 'Refunded',
 };
+
+// Order lifecycle flow; QUALITY_CHECK is an optional middle step.
+const STATUS_FLOW = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
+
+// FulfillmentStatus is a smaller enum (no CONFIRMED/QC). Map onto STATUS_FLOW for comparison.
+const FULFILLMENT_TO_FLOW: Record<string, string> = {
+  PENDING:       'PENDING',
+  PROCESSING:    'PROCESSING',
+  MANUFACTURING: 'MANUFACTURING',
+  SHIPPED:       'SHIPPED',
+  DELIVERED:     'DELIVERED',
+};
+
+// If the order has progressed past the item's recorded fulfillment_status (legacy orders
+// from before the API cascade fix), display the order status so the badge isn't stale.
+function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): string {
+  if (['CANCELLED', 'REFUNDED', 'RETURNED'].includes(orderStatus)) return orderStatus;
+  if (!itemStatus) return orderStatus;
+  const orderIdx = STATUS_FLOW.indexOf(orderStatus);
+  const mapped = FULFILLMENT_TO_FLOW[itemStatus] ?? itemStatus;
+  const itemIdx = STATUS_FLOW.indexOf(mapped);
+  if (orderIdx === -1 || itemIdx === -1) return itemStatus;
+  return orderIdx > itemIdx ? orderStatus : itemStatus;
+}
 
 const STATUS_OPTIONS = [
   { value: 'CONFIRMED', label: 'Confirmed' },
@@ -48,7 +80,7 @@ const STATUS_OPTIONS = [
 
 export default function CreatorOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
   const [order, setOrder] = useState<any>(null);
@@ -56,6 +88,14 @@ export default function CreatorOrderDetailPage() {
   const [nextStatus, setNextStatus] = useState('');
   const [statusNotes, setStatusNotes] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [primaryLocale, setPrimaryLocale] = useState('en');
+
+  useEffect(() => {
+    if (!token) return;
+    api<{ primary_locale: string }>('/translations/overview', { token })
+      .then((res) => setPrimaryLocale(res?.primary_locale || 'en'))
+      .catch(() => {});
+  }, [token]);
 
   const fetchOrder = () => {
     if (!token || !id) return;
@@ -115,6 +155,17 @@ export default function CreatorOrderDetailPage() {
       )
     : Number(order.commission?.creator_amount ?? 0);
 
+  // Mirror the API rule: a creator can change OrderStatus only when EVERY
+  // item is fulfilled by them. Provider-fulfilled items are managed by the
+  // provider — show a notice instead of the form for those orders.
+  const creatorId = user?.creator?.id as string | undefined;
+  const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
+  const canUpdateStatus =
+    !!creatorId &&
+    items.length > 0 &&
+    items.every((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId);
+  const hasProviderItems = items.some((it) => it.fulfiller_type === 'PROVIDER');
+
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
@@ -140,7 +191,7 @@ export default function CreatorOrderDetailPage() {
           variant="outline"
           className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
         >
-          {order.status}
+          {STATUS_LABELS[order.status] || order.status}
         </Badge>
       </div>
 
@@ -157,19 +208,26 @@ export default function CreatorOrderDetailPage() {
               <div className="divide-y">
                 {order.items?.length > 0 ? (
                   order.items.map((item: any) => {
-                    // Title: custom product → base product → fallback
+                    // Title chain: custom product's own title → custom product's
+                    // base product title → direct product → variant's product
+                    // (when the order item references only a variant) → fallback.
                     const title =
                       item.custom_product?.translations?.find((t: any) => t.locale === 'en')?.title ??
                       item.custom_product?.translations?.[0]?.title ??
+                      item.custom_product?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.custom_product?.product?.translations?.[0]?.title ??
                       item.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
                       item.product?.translations?.[0]?.title ??
+                      item.variant?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.variant?.product?.translations?.[0]?.title ??
                       '—';
 
-                    // Image: custom product mockup → base product image
+                    // Image: custom product mockup → base product → variant's product.
                     const imgUrl =
                       item.custom_product?.mockup_images?.[0]?.url ??
                       item.custom_product?.product?.images?.[0]?.url ??
-                      item.product?.images?.[0]?.url;
+                      item.product?.images?.[0]?.url ??
+                      item.variant?.product?.images?.[0]?.url;
 
                     // Variant options
                     const variantOpts = item.variant?.options as Record<string, string> | undefined;
@@ -192,6 +250,20 @@ export default function CreatorOrderDetailPage() {
                       }
                     }
 
+                    const bundleOffer = item.bundle_offer ?? null;
+                    const bundleTr =
+                      bundleOffer?.translations?.find((tr: any) => tr.locale === primaryLocale) ??
+                      bundleOffer?.translations?.[0];
+                    const bundleNameTr =
+                      bundleOffer?.bundle?.translations?.find((tr: any) => tr.locale === primaryLocale) ??
+                      bundleOffer?.bundle?.translations?.[0];
+                    const unitPrice = Number(item.unit_price ?? 0);
+                    const originalUnitPrice =
+                      item.original_unit_price != null ? Number(item.original_unit_price) : null;
+                    const lineTotal = Number(item.total_price ?? unitPrice * item.quantity);
+                    const originalLineTotal =
+                      originalUnitPrice !== null ? originalUnitPrice * item.quantity : null;
+
                     return (
                       <div key={item.id} className="py-3 space-y-2">
                         <div className="flex items-start gap-3">
@@ -208,14 +280,19 @@ export default function CreatorOrderDetailPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <p className="text-sm font-medium leading-snug">{title}</p>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] font-semibold shrink-0 ${
-                                  itemStatusColors[item.fulfillment_status] ?? 'bg-zinc-100 text-zinc-600'
-                                }`}
-                              >
-                                {item.fulfillment_status ?? '—'}
-                              </Badge>
+                              {(() => {
+                                const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
+                                return (
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] font-semibold shrink-0 ${
+                                      statusColors[itemStatus] ?? 'bg-zinc-100 text-zinc-600'
+                                    }`}
+                                  >
+                                    {STATUS_LABELS[itemStatus] || itemStatus}
+                                  </Badge>
+                                );
+                              })()}
                             </div>
 
                             {/* Variant */}
@@ -223,13 +300,39 @@ export default function CreatorOrderDetailPage() {
                               <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>
                             )}
 
+                            {/* Bundle badge */}
+                            {bundleOffer && (
+                              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                                <Tag className="w-3 h-3" />
+                                <span>
+                                  {bundleNameTr?.name ? `${bundleNameTr.name} · ` : ''}
+                                  {bundleTr?.title || `Buy ${bundleOffer.quantity}`}
+                                  {bundleTr?.label ? ` · ${bundleTr.label}` : ''}
+                                </span>
+                              </div>
+                            )}
+
                             {/* Qty & Price */}
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                               <span>Qty: {item.quantity}</span>
                               <span>·</span>
-                              <span>{fmt(Number(item.unit_price))} each</span>
-                              <span className="ml-auto font-semibold text-foreground text-sm">
-                                {fmt(Number(item.total_price || item.unit_price * item.quantity))}
+                              <span className="flex items-center gap-1">
+                                {fmt(unitPrice)} each
+                                {originalUnitPrice !== null && originalUnitPrice > unitPrice && (
+                                  <span className="line-through text-muted-foreground/70 tabular-nums">
+                                    {fmt(originalUnitPrice)}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="ml-auto flex flex-col items-end">
+                                <span className="font-semibold text-foreground text-sm">
+                                  {fmt(lineTotal)}
+                                </span>
+                                {originalLineTotal !== null && originalLineTotal > lineTotal && (
+                                  <span className="text-[10px] line-through text-muted-foreground/70 tabular-nums">
+                                    {fmt(originalLineTotal)}
+                                  </span>
+                                )}
                               </span>
                             </div>
                           </div>
@@ -296,7 +399,7 @@ export default function CreatorOrderDetailPage() {
                     <div key={entry.id ?? idx} className="flex items-start gap-3">
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium">{entry.status}</p>
+                        <p className="text-sm font-medium">{STATUS_LABELS[entry.status] || entry.status}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {entry.created_at
                             ? new Date(entry.created_at).toLocaleString()
@@ -326,42 +429,66 @@ export default function CreatorOrderDetailPage() {
 
         {/* Right column (sidebar) */}
         <div className="space-y-4">
-          {/* Status update */}
-          <Card className="shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Update Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Badge
-                variant="outline"
-                className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
-              >
-                {order.status}
-              </Badge>
-              <SearchableSelect
-                options={STATUS_OPTIONS}
-                value={nextStatus}
-                onChange={setNextStatus}
-                placeholder="Select new status…"
-                searchPlaceholder="Search statuses…"
-              />
-              <input
-                type="text"
-                placeholder="Notes (optional)"
-                value={statusNotes}
-                onChange={(e) => setStatusNotes(e.target.value)}
-                className="w-full h-8 px-3 text-sm rounded-md border border-input bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={handleStatusUpdate}
-                disabled={!nextStatus || updatingStatus}
-              >
-                {updatingStatus ? 'Updating…' : 'Update Status'}
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Status — editable only when the order is entirely creator-fulfilled */}
+          {canUpdateStatus ? (
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Update Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
+                >
+                  {order.status}
+                </Badge>
+                <SearchableSelect
+                  options={STATUS_OPTIONS}
+                  value={nextStatus}
+                  onChange={setNextStatus}
+                  placeholder="Select new status…"
+                  searchPlaceholder="Search statuses…"
+                />
+                <input
+                  type="text"
+                  placeholder="Notes (optional)"
+                  value={statusNotes}
+                  onChange={(e) => setStatusNotes(e.target.value)}
+                  className="w-full h-8 px-3 text-sm rounded-md border border-input bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={handleStatusUpdate}
+                  disabled={!nextStatus || updatingStatus}
+                >
+                  {updatingStatus ? 'Updating…' : 'Update Status'}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="shadow-none border-blue-100 bg-blue-50/40">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Info className="w-4 h-4 text-blue-600" />
+                  Order Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
+                >
+                  {order.status}
+                </Badge>
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  {hasProviderItems
+                    ? 'This order contains provider-fulfilled items. The provider will manage shipping and status updates.'
+                    : 'You don\'t fulfill items in this order, so its status is managed elsewhere.'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Customer */}
           <Card className="shadow-none">

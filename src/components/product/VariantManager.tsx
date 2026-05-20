@@ -246,6 +246,16 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
   const [bulkCompareVal, setBulkCompareVal] = useState('');
   const [bulkStockVal, setBulkStockVal] = useState('');
 
+  // Quick-action dialogs (Shopify-style: apply to ALL variants without selection)
+  const [showSamePriceAll, setShowSamePriceAll] = useState(false);
+  const [samePriceVal, setSamePriceVal] = useState('');
+  const [sameCompareVal, setSameCompareVal] = useState('');
+
+  const [showPricePerOption, setShowPricePerOption] = useState(false);
+  const [pricePerOption, setPricePerOption] = useState<string>('');
+  const [pricePerValueMap, setPricePerValueMap] = useState<Record<string, string>>({});
+  const [comparePerValueMap, setComparePerValueMap] = useState<Record<string, string>>({});
+
   const combinations = useMemo(() => generateCombinations(options), [options]);
 
   const allFilterValues = useMemo(() => {
@@ -333,6 +343,65 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     onVariantsChange(variants.filter(v => !selected.has(v._key)));
     setSelected(new Set());
   };
+
+  // Apply one price (and optional compare-at) to every variant — Shopify's
+  // "set the same price for all" shortcut. No selection required.
+  const applySamePriceAll = () => {
+    const price = samePriceVal ? parseFloat(samePriceVal) : NaN;
+    if (isNaN(price)) return;
+    const compare = sameCompareVal ? parseFloat(sameCompareVal) : null;
+    onVariantsChange(variants.map(v => ({
+      ...v,
+      price,
+      compare_at_price: compare !== null && !isNaN(compare) ? compare : v.compare_at_price,
+    })));
+    setShowSamePriceAll(false);
+    setSamePriceVal('');
+    setSameCompareVal('');
+  };
+
+  // Open the per-option dialog with sensible defaults: pre-fill each value's
+  // price from the first matching variant so the user sees the current state.
+  const openPricePerOption = () => {
+    const firstOption = optionNames[0] || '';
+    setPricePerOption(firstOption);
+    setPricePerValueMap({});
+    setComparePerValueMap({});
+    setShowPricePerOption(true);
+  };
+
+  // Apply per-option pricing: every variant whose options[selectedOption]
+  // matches a key in the map gets that price. Variants without a price
+  // entered for their value are left untouched.
+  const applyPricePerOption = () => {
+    if (!pricePerOption) return;
+    onVariantsChange(variants.map(v => {
+      const matchValue = v.options[pricePerOption];
+      if (!matchValue) return v;
+      const priceStr = pricePerValueMap[matchValue];
+      const compareStr = comparePerValueMap[matchValue];
+      const next = { ...v };
+      if (priceStr && !isNaN(parseFloat(priceStr))) next.price = parseFloat(priceStr);
+      if (compareStr && !isNaN(parseFloat(compareStr))) next.compare_at_price = parseFloat(compareStr);
+      return next;
+    }));
+    setShowPricePerOption(false);
+  };
+
+  // Pricing status: are all variants priced the same, or do prices vary?
+  const pricingStatus = useMemo(() => {
+    if (variants.length === 0) return null;
+    const prices = variants.map(v => Number(v.price) || 0);
+    const first = prices[0];
+    const allSame = prices.every(p => p === first);
+    return { allSame, sharedPrice: allSame ? first : null };
+  }, [variants]);
+
+  // Values of the option currently chosen in the per-option dialog
+  const selectedOptionValues = useMemo(() => {
+    const opt = options.find(o => o.name === pricePerOption);
+    return opt?.values || [];
+  }, [options, pricePerOption]);
 
   // Add a value. For color options, the new chip starts with a default solid color
   // (#000000); the user clicks the chip's swatch to refine via the popover.
@@ -569,6 +638,62 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
               )}
             </div>
 
+            {/* Shopify-style quick actions — apply pricing across variants
+                without needing to select rows first. */}
+            {variants.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    setSamePriceVal('');
+                    setSameCompareVal('');
+                    setShowSamePriceAll(true);
+                  }}
+                >
+                  <Pencil className="w-3 h-3 mr-1" /> Same price for all
+                </Button>
+
+                {optionNames.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={openPricePerOption}
+                  >
+                    <Pencil className="w-3 h-3 mr-1" /> Set price per option
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Pricing status indicator — quick read on whether all variants
+                share a single price or vary across the table. */}
+            {pricingStatus && variants.length > 0 && (
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs border ${
+                  pricingStatus.allSame
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    : 'bg-amber-50 text-amber-800 border-amber-200'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${pricingStatus.allSame ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                {pricingStatus.allSame ? (
+                  <>
+                    All variants share the same price
+                    <span className="font-semibold ml-0.5">
+                      ({currency} {(pricingStatus.sharedPrice ?? 0).toFixed(2)})
+                    </span>
+                  </>
+                ) : (
+                  'Prices vary across variants'
+                )}
+              </div>
+            )}
+
             {/* Variant Rows */}
             <div className="border rounded-lg divide-y">
               {variants.map(v => (
@@ -652,13 +777,13 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             <div className="space-y-1.5">
               <Label className="text-xs">Price</Label>
               <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-7 h-9 text-sm" placeholder="Leave empty to keep current"
+                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder="Leave empty to keep current"
                   value={bulkPriceVal} onChange={e => setBulkPriceVal(e.target.value)} /></div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Compare at price</Label>
               <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-7 h-9 text-sm" placeholder="Leave empty to keep current"
+                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder="Leave empty to keep current"
                   value={bulkCompareVal} onChange={e => setBulkCompareVal(e.target.value)} /></div>
             </div>
           </div>
@@ -683,6 +808,128 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowBulkStock(false)}>Cancel</Button>
             <Button size="sm" onClick={applyBulkStock}>Apply</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Same price for all — Shopify-style one-click pricing across all variants */}
+      <Dialog open={showSamePriceAll} onOpenChange={setShowSamePriceAll}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Same price for all variants</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-muted-foreground">
+              Sets the same price on every variant ({variants.length} total).
+            </p>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Price</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  className="pl-14 h-9 text-sm"
+                  placeholder="0.00"
+                  value={samePriceVal}
+                  onChange={e => setSamePriceVal(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Compare at price <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  className="pl-14 h-9 text-sm"
+                  placeholder="Leave empty to keep current"
+                  value={sameCompareVal}
+                  onChange={e => setSameCompareVal(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowSamePriceAll(false)}>Cancel</Button>
+            <Button size="sm" onClick={applySamePriceAll} disabled={!samePriceVal || isNaN(parseFloat(samePriceVal))}>
+              Apply to all {variants.length}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set price per option — group pricing by an option's values
+          (e.g. set one price per Size, applied to every Color of that Size). */}
+      <Dialog open={showPricePerOption} onOpenChange={setShowPricePerOption}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set price per option</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-xs text-muted-foreground">
+              Pick one option (e.g. Size). Every variant with the same value gets the same price.
+            </p>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Pricing depends on</Label>
+              <select
+                className="w-full h-9 text-sm border rounded-md px-3 bg-background"
+                value={pricePerOption}
+                onChange={e => {
+                  setPricePerOption(e.target.value);
+                  setPricePerValueMap({});
+                  setComparePerValueMap({});
+                }}
+              >
+                {optionNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+
+            {selectedOptionValues.length > 0 && (
+              <div className="space-y-2 max-h-64 overflow-y-auto -mx-1 px-1">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-[10px] text-muted-foreground uppercase tracking-wide pb-1 border-b">
+                  <span>{pricePerOption}</span>
+                  <span className="w-24 text-right">Price</span>
+                  <span className="w-24 text-right">Compare</span>
+                </div>
+                {selectedOptionValues.map(val => (
+                  <div key={val} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+                    <span className="text-xs font-medium truncate">{val}</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="h-8 text-xs w-24"
+                      placeholder="0.00"
+                      value={pricePerValueMap[val] || ''}
+                      onChange={e => setPricePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="h-8 text-xs w-24"
+                      placeholder="—"
+                      value={comparePerValueMap[val] || ''}
+                      onChange={e => setComparePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowPricePerOption(false)}>Cancel</Button>
+            <Button
+              size="sm"
+              onClick={applyPricePerOption}
+              disabled={!pricePerOption || Object.values(pricePerValueMap).every(v => !v || isNaN(parseFloat(v)))}
+            >
+              Apply
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

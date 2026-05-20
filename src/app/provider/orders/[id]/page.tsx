@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   ArrowLeft, Clock, Truck, CheckCircle2,
-  XCircle, FileImage, ExternalLink, Package,
+  XCircle, FileImage, ExternalLink, Package, Info,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -55,9 +55,32 @@ const STATUS_LABELS: Record<string, string> = {
 // Standard flow — Quality Check is optional but tracked
 const STATUS_FLOW = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
 
+// Per-item FulfillmentStatus is a subset; map onto STATUS_FLOW so we can compare progress.
+const FULFILLMENT_TO_FLOW: Record<string, string> = {
+  PENDING:       'PENDING',
+  PROCESSING:    'PROCESSING',
+  MANUFACTURING: 'MANUFACTURING',
+  SHIPPED:       'SHIPPED',
+  DELIVERED:     'DELIVERED',
+};
+
+// If the order has already progressed past the item's recorded fulfillment_status
+// (e.g. legacy orders that pre-date the cascade fix), display the order status instead
+// so the badge doesn't lie. Terminal states like CANCELLED/REFUNDED/RETURNED bypass
+// the flow and always win.
+function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): string {
+  if (['CANCELLED', 'REFUNDED', 'RETURNED'].includes(orderStatus)) return orderStatus;
+  if (!itemStatus) return orderStatus;
+  const orderIdx = STATUS_FLOW.indexOf(orderStatus);
+  const mapped = FULFILLMENT_TO_FLOW[itemStatus] ?? itemStatus;
+  const itemIdx = STATUS_FLOW.indexOf(mapped);
+  if (orderIdx === -1 || itemIdx === -1) return itemStatus;
+  return orderIdx > itemIdx ? orderStatus : itemStatus;
+}
+
 export default function ProviderOrderDetail() {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { fmt } = useCurrency();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -119,6 +142,17 @@ export default function ProviderOrderDetail() {
   const isTerminal = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'].includes(order.status);
   const isQualityCheck = order.status === 'QUALITY_CHECK';
 
+  // Mirror the API rule: a provider can change OrderStatus only when EVERY
+  // item in the order is fulfilled by them. Mixed orders (with creator-only
+  // items) cannot be advanced from this dashboard.
+  const providerId = user?.provider?.id as string | undefined;
+  const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
+  const canUpdateStatus =
+    !!providerId &&
+    items.length > 0 &&
+    items.every((it) => it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId);
+  const hasCreatorItems = items.some((it) => it.fulfiller_type === 'CREATOR');
+
   // Collect all design/image files from custom field values
   const designFiles: { label: string; url: string; itemTitle: string }[] = [];
   order.items?.forEach((item: any) => {
@@ -153,8 +187,27 @@ export default function ProviderOrderDetail() {
         </Badge>
       </div>
 
+      {/* Notice for orders that include creator-fulfilled items — provider
+          cannot advance the overall status of those. */}
+      {!canUpdateStatus && (
+        <Card className="shadow-none border-blue-100 bg-blue-50/40">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+              <Info className="w-4 h-4" /> Order Status Managed Elsewhere
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-blue-700">
+              {hasCreatorItems
+                ? 'This order contains creator-fulfilled items. The creator manages shipping and status updates for them.'
+                : 'You don\'t fulfill items in this order, so its status is managed elsewhere.'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quality Check special actions */}
-      {isQualityCheck && (
+      {canUpdateStatus && isQualityCheck && (
         <Card className="shadow-none border-orange-200 bg-orange-50/40">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-orange-800 flex items-center gap-2">
@@ -187,7 +240,7 @@ export default function ProviderOrderDetail() {
       )}
 
       {/* Standard fulfillment actions */}
-      {!isTerminal && !isQualityCheck && (
+      {canUpdateStatus && !isTerminal && !isQualityCheck && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">Update Fulfillment</CardTitle>
@@ -262,12 +315,17 @@ export default function ProviderOrderDetail() {
                 const title =
                   item.custom_product?.translations?.find((t: any) => t.locale === 'en')?.title ??
                   item.custom_product?.translations?.[0]?.title ??
+                  item.custom_product?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.custom_product?.product?.translations?.[0]?.title ??
                   item.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
-                  item.product?.translations?.[0]?.title ?? '—';
+                  item.product?.translations?.[0]?.title ??
+                  item.variant?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.variant?.product?.translations?.[0]?.title ?? '—';
                 const imgUrl =
                   item.custom_product?.mockup_images?.[0]?.url ??
                   item.custom_product?.product?.images?.[0]?.url ??
-                  item.product?.images?.[0]?.url;
+                  item.product?.images?.[0]?.url ??
+                  item.variant?.product?.images?.[0]?.url;
                 const variantOpts = item.variant?.options as Record<string, string> | undefined;
                 const variantLabel = variantOpts
                   ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
@@ -288,11 +346,16 @@ export default function ProviderOrderDetail() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-sm font-medium leading-snug">{title}</p>
-                          <Badge variant="outline" className={`text-[10px] font-semibold shrink-0 ${
-                            STATUS_COLORS[item.fulfillment_status] || 'bg-zinc-100 text-zinc-600'
-                          }`}>
-                            {item.fulfillment_status ?? '—'}
-                          </Badge>
+                          {(() => {
+                            const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
+                            return (
+                              <Badge variant="outline" className={`text-[10px] font-semibold shrink-0 ${
+                                STATUS_COLORS[itemStatus] || 'bg-zinc-100 text-zinc-600'
+                              }`}>
+                                {STATUS_LABELS[itemStatus] || itemStatus}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">

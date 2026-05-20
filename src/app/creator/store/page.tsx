@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,15 +13,16 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import {
   ExternalLink,
-  Globe,
-  Camera,
   Loader2,
   Link2,
   Languages,
   Check,
+  Palette,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -32,10 +34,32 @@ interface StoreLanguageConfig {
   auto_translate: boolean;
 }
 
+interface TypographyStyle {
+  fontFamily?: string;
+  color?: string;
+  fontSize?: number;
+}
+
+interface StoreTypography {
+  heading?: TypographyStyle;
+  body?: TypographyStyle;
+  button?: TypographyStyle;
+  link?: TypographyStyle;
+  header?: TypographyStyle;
+}
+
+interface StoreHeaderConfig {
+  showStoreName?: boolean;
+  logoSize?: number;
+}
+
 interface StoreThemeConfig {
   primaryColor?: string;
   secondaryColor?: string;
   fontFamily?: string;
+  typography?: StoreTypography;
+  header?: StoreHeaderConfig;
+  templateId?: string;
   socials?: { instagram?: string; facebook?: string; twitter?: string; tiktok?: string; youtube?: string };
   contact?: { email?: string; phone?: string; whatsapp?: string; address?: string };
   seo?: { metaTitle?: string; metaDescription?: string };
@@ -51,6 +75,8 @@ interface Store {
   favicon_url: string;
   custom_domain: string;
   is_active: boolean;
+  theme_key?: string;
+  theme_customizations?: Record<string, unknown>;
   language_config: StoreLanguageConfig | null;
   theme_config: StoreThemeConfig | null;
 }
@@ -81,21 +107,30 @@ const LOCALE_LABELS: Record<string, string> = {
 
 const RTL_LOCALES = ['ar'];
 
-const FONT_OPTIONS = [
-  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Playfair Display', 'Lato', 'Open Sans',
-];
+// Typography defaults are stored as part of `theme_config` and edited in the
+// builder's Design panel; this page still ships them through the form state so
+// concurrent saves here don't wipe the values, but the editor UI lives elsewhere.
+const DEFAULT_TYPOGRAPHY: StoreTypography = {
+  heading: { fontFamily: '', color: '', fontSize: undefined },
+  body:    { fontFamily: '', color: '', fontSize: undefined },
+  button:  { fontFamily: '', color: '', fontSize: undefined },
+  link:    { fontFamily: '', color: '', fontSize: undefined },
+  header:  { fontFamily: '', color: '', fontSize: undefined },
+};
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const SERVER_ORIGIN = API_BASE.replace(/\/api$/, '');
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
-const EMPTY_TRANSLATABLE: TranslatableFields = { name: '', description: '', metaTitle: '', metaDescription: '' };
+// Hostname suffix shown next to the store slug input, derived from the web
+// origin so dev shows ".localhost:3003" and prod shows the real platform host.
+const PLATFORM_DOMAIN_SUFFIX = (() => {
+  try {
+    return `.${new URL(WEB_ORIGIN).host}`;
+  } catch {
+    return '.localhost:3003';
+  }
+})();
 
-function resolveImageUrl(url: string): string {
-  if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `${SERVER_ORIGIN}${url}`;
-}
+const EMPTY_TRANSLATABLE: TranslatableFields = { name: '', description: '', metaTitle: '', metaDescription: '' };
 
 function storeUrl(slug: string): string {
   const u = new URL(WEB_ORIGIN);
@@ -112,9 +147,14 @@ const DEFAULT_FORM = {
   favicon_url: '',
   custom_domain: '',
   is_active: true,
+  theme_key: DEFAULT_THEME_KEY,
   primaryColor: '#2563eb',
   secondaryColor: '#1e40af',
   fontFamily: 'Inter',
+  typography: { ...DEFAULT_TYPOGRAPHY },
+  showStoreName: true,
+  logoSize: 32,
+  templateId: 'default',
   socials: { instagram: '', facebook: '', twitter: '', tiktok: '', youtube: '' },
   contact: { email: '', phone: '', whatsapp: '', address: '' },
   primary_locale: 'en',
@@ -135,71 +175,6 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
     </button>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Image upload zone
-// ---------------------------------------------------------------------------
-
-interface ImageUploadZoneProps {
-  imageUrl: string;
-  onUrlChange: (url: string) => void;
-  token: string;
-  folder: string;
-  previewSize: number;
-  label: string;
-}
-
-function ImageUploadZone({ imageUrl, onUrlChange, token, folder, previewSize, label }: ImageUploadZoneProps) {
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const uploadFile = async (file: File) => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch(`${API_BASE}/uploads?folder=${folder}`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
-      });
-      if (!res.ok) throw new Error('Upload failed');
-      const json = await res.json();
-      onUrlChange(json.data?.url || json.url);
-    } catch (err) { console.error('Image upload error:', err); }
-    finally { setUploading(false); }
-  };
-
-  return (
-    <div className="space-y-2">
-      <div
-        className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer transition-colors ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50'}`}
-        style={{ width: previewSize + 32, height: previewSize + 32 }}
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) uploadFile(f); }}
-      >
-        {uploading ? (
-          <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />
-        ) : imageUrl ? (
-          <img src={resolveImageUrl(imageUrl)} alt={label} width={previewSize} height={previewSize} className="object-cover rounded-md" style={{ width: previewSize, height: previewSize }} />
-        ) : (
-          <div className="flex flex-col items-center gap-1 text-zinc-400">
-            <Camera className="w-5 h-5" />
-            <span className="text-[10px] leading-tight text-center px-1">{label}</span>
-          </div>
-        )}
-        {imageUrl && !uploading && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/0 hover:bg-black/20 transition-colors">
-            <Camera className="w-4 h-4 text-white opacity-0 hover:opacity-100 transition-opacity" />
-          </div>
-        )}
-      </div>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
-      <Input className="h-7 text-xs" value={imageUrl} onChange={(e) => onUrlChange(e.target.value)} placeholder="or paste URL..." />
-    </div>
   );
 }
 
@@ -241,15 +216,29 @@ export default function CreatorStorePage() {
         const secondary = s.language_config?.secondary_locales ?? [];
         const all = [primary, ...secondary.filter(l => l !== primary)];
 
+        const typo = tc.typography ?? {};
+        const hdr = tc.header ?? {};
+
         setForm({
           slug: s.slug ?? '',
           logo_url: s.logo_url ?? '',
           favicon_url: s.favicon_url ?? '',
           custom_domain: s.custom_domain ?? '',
           is_active: s.is_active ?? true,
+          theme_key: s.theme_key ?? DEFAULT_THEME_KEY,
           primaryColor: tc.primaryColor ?? '#2563eb',
           secondaryColor: tc.secondaryColor ?? '#1e40af',
           fontFamily: tc.fontFamily ?? 'Inter',
+          typography: {
+            heading: { fontFamily: typo.heading?.fontFamily ?? '', color: typo.heading?.color ?? '', fontSize: typo.heading?.fontSize },
+            body:    { fontFamily: typo.body?.fontFamily    ?? '', color: typo.body?.color    ?? '', fontSize: typo.body?.fontSize },
+            button:  { fontFamily: typo.button?.fontFamily  ?? '', color: typo.button?.color  ?? '', fontSize: typo.button?.fontSize },
+            link:    { fontFamily: typo.link?.fontFamily    ?? '', color: typo.link?.color    ?? '', fontSize: typo.link?.fontSize },
+            header:  { fontFamily: typo.header?.fontFamily  ?? '', color: typo.header?.color  ?? '', fontSize: typo.header?.fontSize },
+          },
+          showStoreName: hdr.showStoreName !== false,
+          logoSize: typeof hdr.logoSize === 'number' && hdr.logoSize > 0 ? hdr.logoSize : 32,
+          templateId: tc.templateId ?? 'default',
           socials: {
             instagram: tc.socials?.instagram ?? '', facebook: tc.socials?.facebook ?? '',
             twitter: tc.socials?.twitter ?? '', tiktok: tc.socials?.tiktok ?? '', youtube: tc.socials?.youtube ?? '',
@@ -373,6 +362,12 @@ export default function CreatorStorePage() {
               primaryColor: form.primaryColor,
               secondaryColor: form.secondaryColor,
               fontFamily: form.fontFamily,
+              typography: form.typography,
+              header: {
+                showStoreName: form.showStoreName,
+                logoSize: form.logoSize,
+              },
+              templateId: form.templateId,
               socials: form.socials,
               contact: form.contact,
               seo: {
@@ -501,42 +496,29 @@ export default function CreatorStorePage() {
         </a>
       </div>
 
-      {/* ── Branding ─────────────────────────────────────────── */}
-      <Card className="shadow-none">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Branding</CardTitle></CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-wrap gap-8">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Logo</Label>
-              <ImageUploadZone imageUrl={form.logo_url} onUrlChange={(url) => setField('logo_url', url)} token={token ?? ''} folder="logos" previewSize={80} label="Upload logo" />
+      {/* ── Design moved to Builder ──────────────────────────── */}
+      <Card className="shadow-none border-indigo-200 bg-gradient-to-br from-indigo-50/60 to-white">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="size-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shrink-0">
+              <Palette className="size-5 text-white" />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Favicon</Label>
-              <ImageUploadZone imageUrl={form.favicon_url} onUrlChange={(url) => setField('favicon_url', url)} token={token ?? ''} folder="favicons" previewSize={32} label="Upload favicon" />
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-zinc-900">
+                Theme, colors & typography are now in the Builder
+              </h3>
+              <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
+                Templates, brand colors, fonts, per-element typography, header layout, logo
+                and favicon all live alongside your pages — open any page in the builder and
+                switch to the <strong>Design</strong> tab in the left panel.
+              </p>
             </div>
-          </div>
-          <Separator />
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Primary Color</Label>
-              <div className="flex items-center gap-2">
-                <input type="color" value={form.primaryColor} onChange={(e) => setField('primaryColor', e.target.value)} className="h-8 w-10 cursor-pointer rounded border border-zinc-200 bg-white p-0.5" />
-                <Input className="h-8 text-sm font-mono" value={form.primaryColor} onChange={(e) => setField('primaryColor', e.target.value)} placeholder="#2563eb" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Secondary Color</Label>
-              <div className="flex items-center gap-2">
-                <input type="color" value={form.secondaryColor} onChange={(e) => setField('secondaryColor', e.target.value)} className="h-8 w-10 cursor-pointer rounded border border-zinc-200 bg-white p-0.5" />
-                <Input className="h-8 text-sm font-mono" value={form.secondaryColor} onChange={(e) => setField('secondaryColor', e.target.value)} placeholder="#1e40af" />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Font Family</Label>
-            <select value={form.fontFamily} onChange={(e) => setField('fontFamily', e.target.value)} className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300">
-              {FONT_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
+            <Link href="/creator/pages">
+              <Button size="sm" className="shrink-0">
+                Open Builder
+                <ArrowRight className="size-3.5 ms-1.5" />
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -567,7 +549,7 @@ export default function CreatorStorePage() {
                   value={form.slug}
                   onChange={(e) => setField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 />
-                <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
+                <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
               </div>
             </div>
           </div>
@@ -825,7 +807,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
                   placeholder="my-store"
                   required
                 />
-                <span className="h-9 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
+                <span className="h-9 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
               </div>
               <p className="text-[11px] text-muted-foreground">Lowercase letters, digits and hyphens only.</p>
             </div>

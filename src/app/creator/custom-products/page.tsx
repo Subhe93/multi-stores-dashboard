@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Layers, Plus, ImageIcon } from 'lucide-react';
+import { Layers, Plus, ImageIcon, Copy } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
@@ -24,45 +24,46 @@ function resolveUrl(url?: string): string | undefined {
   return url.startsWith('http') ? url : `${API_BASE}${url}`;
 }
 
-interface CustomProductTranslation {
+interface Translation {
   locale: string;
   title: string;
-  slug: string;
-}
-
-interface ProductTranslation {
-  locale: string;
-  title: string;
-}
-
-interface DesignTranslation {
-  locale: string;
-  title: string;
+  slug?: string;
 }
 
 interface CustomProduct {
   id: string;
   product_id: string;
-  design_id?: string;
   import_mode: 'AS_IS' | 'CUSTOMIZE';
   pricing_type: 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
   final_price: number;
   margin_amount?: number;
   status: 'DRAFT' | 'PENDING_REVIEW' | 'REJECTED' | 'PUBLISHED' | 'ARCHIVED';
   rejection_reason?: string;
-  translations: CustomProductTranslation[];
+  created_at?: string;
+  translations: Translation[];
   mockup_images?: { url: string }[];
   selected_variants?: { id: string; variant_id: string }[];
   product: {
-    translations: ProductTranslation[];
+    translations: Translation[];
     base_price: number;
     images?: { url: string }[];
     variants?: { id: string }[];
   };
-  design?: {
-    translations: DesignTranslation[];
-  };
 }
+
+interface OwnProduct {
+  id: string;
+  base_price: number;
+  status: 'DRAFT' | 'PENDING_REVIEW' | 'REJECTED' | 'PUBLISHED' | 'ARCHIVED';
+  created_at?: string;
+  translations: Translation[];
+  images?: { url: string }[];
+  variants?: { id: string }[];
+}
+
+type Row =
+  | ({ kind: 'custom' } & CustomProduct)
+  | ({ kind: 'own' } & OwnProduct);
 
 const statusColors: Record<string, string> = {
   PUBLISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -80,23 +81,43 @@ const statusLabels: Record<string, string> = {
   ARCHIVED: 'Archived',
 };
 
+function pickTitle(translations?: Translation[]): Translation | undefined {
+  if (!translations?.length) return undefined;
+  return translations.find((t) => t.locale === 'en') ?? translations[0];
+}
+
 export default function CustomProductsPage() {
   const { fmt } = useCurrency();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<CustomProduct[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [customItems, setCustomItems] = useState<CustomProduct[]>([]);
+  const [ownItems, setOwnItems] = useState<OwnProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<CustomProduct | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
-  const fetchItems = async (page = 1) => {
+  const creatorId = user?.creator?.id;
+
+  const fetchItems = async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api<any>(`/custom-products?page=${page}&limit=20`, { token });
-      setItems(res?.data || []);
-      setMeta(res?.meta || null);
+      const customReq = api<{ data: CustomProduct[] }>(
+        '/custom-products?limit=100',
+        { token },
+      ).catch(() => ({ data: [] as CustomProduct[] }));
+
+      const ownReq = creatorId
+        ? api<{ data: OwnProduct[] }>(
+            `/products?creator_id=${creatorId}&limit=100`,
+            { token },
+          ).catch(() => ({ data: [] as OwnProduct[] }))
+        : Promise.resolve({ data: [] as OwnProduct[] });
+
+      const [customRes, ownRes] = await Promise.all([customReq, ownReq]);
+      setCustomItems(customRes?.data || []);
+      setOwnItems(ownRes?.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -106,13 +127,30 @@ export default function CustomProductsPage() {
 
   useEffect(() => {
     fetchItems();
-  }, [token]);
+  }, [token, creatorId]);
+
+  const rows = useMemo<Row[]>(() => {
+    const merged: Row[] = [
+      ...customItems.map((c) => ({ kind: 'custom' as const, ...c })),
+      ...ownItems.map((o) => ({ kind: 'own' as const, ...o })),
+    ];
+    merged.sort((a, b) => {
+      const ta = a.created_at ? Date.parse(a.created_at) : 0;
+      const tb = b.created_at ? Date.parse(b.created_at) : 0;
+      return tb - ta;
+    });
+    return merged;
+  }, [customItems, ownItems]);
 
   const handleDelete = async () => {
     if (!token || !deleteTarget) return;
     setDeleting(true);
     try {
-      await api(`/custom-products/${deleteTarget.id}`, { method: 'DELETE', token });
+      const path =
+        deleteTarget.kind === 'custom'
+          ? `/custom-products/${deleteTarget.id}`
+          : `/products/${deleteTarget.id}`;
+      await api(path, { method: 'DELETE', token });
       setDeleteTarget(null);
       fetchItems();
     } catch (err) {
@@ -122,13 +160,52 @@ export default function CustomProductsPage() {
     }
   };
 
+  const handleDuplicate = async (row: Row) => {
+    if (!token || duplicatingId) return;
+    setDuplicatingId(row.id);
+    try {
+      const path =
+        row.kind === 'custom'
+          ? `/custom-products/${row.id}/duplicate`
+          : `/products/${row.id}/duplicate`;
+      const created = await api<{ id: string }>(path, { method: 'POST', token });
+      if (created?.id) {
+        const dest =
+          row.kind === 'custom'
+            ? `/creator/custom-products/${created.id}`
+            : `/creator/products/own/${created.id}`;
+        router.push(dest);
+      }
+    } catch (err) {
+      console.error('Duplicate failed:', err);
+      alert('Failed to duplicate product. Please try again.');
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
+  const goEdit = (row: Row) => {
+    const dest =
+      row.kind === 'custom'
+        ? `/creator/custom-products/${row.id}`
+        : `/creator/products/own/${row.id}`;
+    router.push(dest);
+  };
+
   const columns = [
     {
       key: 'title',
       label: 'Product',
-      render: (item: CustomProduct) => {
-        const t = item.translations.find((x) => x.locale === 'en') ?? item.translations[0];
-        const imgUrl = resolveUrl(item.mockup_images?.[0]?.url || item.product?.images?.[0]?.url);
+      render: (item: Row) => {
+        let t: Translation | undefined;
+        let imgUrl: string | undefined;
+        if (item.kind === 'custom') {
+          t = pickTitle(item.translations);
+          imgUrl = resolveUrl(item.mockup_images?.[0]?.url || item.product?.images?.[0]?.url);
+        } else {
+          t = pickTitle(item.translations);
+          imgUrl = resolveUrl(item.images?.[0]?.url);
+        }
         return (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg border bg-zinc-50 overflow-hidden shrink-0 flex items-center justify-center">
@@ -140,40 +217,61 @@ export default function CustomProductsPage() {
             </div>
             <div>
               <p className="font-medium text-sm">{t?.title ?? '—'}</p>
-              <p className="text-[10px] font-mono text-muted-foreground">{t?.slug ?? '—'}</p>
+              {t?.slug && (
+                <p className="text-[10px] font-mono text-muted-foreground">{t.slug}</p>
+              )}
             </div>
           </div>
         );
       },
     },
     {
-      key: 'base_product',
-      label: 'Base Product',
-      render: (item: CustomProduct) => {
-        const t = item.product?.translations?.find((x) => x.locale === 'en');
+      key: 'source',
+      label: 'Source',
+      render: (item: Row) => {
+        if (item.kind === 'own') {
+          return <span className="text-sm text-muted-foreground">Your own product</span>;
+        }
+        const t = pickTitle(item.product?.translations);
         return <span className="text-sm">{t?.title ?? '—'}</span>;
       },
     },
     {
-      key: 'import_mode',
+      key: 'mode',
       label: 'Mode',
-      render: (item: CustomProduct) => (
-        <Badge
-          variant="outline"
-          className={`text-[10px] font-semibold ${
-            item.import_mode === 'AS_IS'
-              ? 'bg-blue-50 text-blue-700 border-blue-200'
-              : 'bg-purple-50 text-purple-700 border-purple-200'
-          }`}
-        >
-          {item.import_mode === 'AS_IS' ? 'As-is' : 'Custom'}
-        </Badge>
-      ),
+      render: (item: Row) => {
+        if (item.kind === 'own') {
+          return (
+            <Badge
+              variant="outline"
+              className="text-[10px] font-semibold bg-purple-50 text-purple-700 border-purple-200"
+            >
+              Own
+            </Badge>
+          );
+        }
+        return (
+          <Badge
+            variant="outline"
+            className={`text-[10px] font-semibold ${
+              item.import_mode === 'AS_IS'
+                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+            }`}
+          >
+            {item.import_mode === 'AS_IS' ? 'As-is' : 'Custom'}
+          </Badge>
+        );
+      },
     },
     {
       key: 'variants',
       label: 'Variants',
-      render: (item: CustomProduct) => {
+      render: (item: Row) => {
+        if (item.kind === 'own') {
+          const total = item.variants?.length ?? 0;
+          return <span className="text-xs text-muted-foreground">{total}</span>;
+        }
         const selected = item.selected_variants?.length ?? 0;
         const total = item.product?.variants?.length ?? 0;
         return (
@@ -184,23 +282,12 @@ export default function CustomProductsPage() {
       },
     },
     {
-      key: 'design',
-      label: 'Design',
-      render: (item: CustomProduct) => {
-        const t = item.design?.translations?.find((x) => x.locale === 'en');
-        return t ? (
-          <span className="text-sm">{t.title}</span>
-        ) : (
-          <Badge variant="outline" className="text-[10px] bg-zinc-100 text-zinc-600 border-zinc-200">
-            No design
-          </Badge>
-        );
-      },
-    },
-    {
       key: 'pricing',
       label: 'Pricing',
-      render: (item: CustomProduct) => {
+      render: (item: Row) => {
+        if (item.kind === 'own') {
+          return <span className="text-sm font-medium">{fmt(item.base_price)}</span>;
+        }
         if (item.pricing_type === 'SINGLE') {
           return <span className="text-sm font-medium">{fmt(item.final_price)}</span>;
         }
@@ -212,19 +299,17 @@ export default function CustomProductsPage() {
             </span>
           );
         }
-        return (
-          <span className="text-xs text-muted-foreground">Per-variant</span>
-        );
+        return <span className="text-xs text-muted-foreground">Per-variant</span>;
       },
     },
     {
       key: 'status',
       label: 'Status',
-      render: (item: CustomProduct) => (
+      render: (item: Row) => (
         <Badge
           variant="outline"
           className={`text-[10px] font-semibold ${statusColors[item.status] ?? ''}`}
-          title={(item as any).rejection_reason || undefined}
+          title={item.kind === 'custom' ? item.rejection_reason || undefined : undefined}
         >
           {statusLabels[item.status] ?? item.status}
         </Badge>
@@ -233,15 +318,25 @@ export default function CustomProductsPage() {
     {
       key: 'actions',
       label: '',
-      render: (item: CustomProduct) => (
+      render: (item: Row) => (
         <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
             className="h-7 text-xs"
-            onClick={() => router.push(`/creator/custom-products/${item.id}`)}
+            onClick={() => goEdit(item)}
           >
             Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            title="Duplicate"
+            disabled={duplicatingId === item.id}
+            onClick={() => handleDuplicate(item)}
+          >
+            <Copy className="w-3.5 h-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -261,14 +356,24 @@ export default function CustomProductsPage() {
       <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center">
         <Layers className="w-6 h-6 text-zinc-400" />
       </div>
-      <p className="text-sm font-medium">No custom products yet</p>
+      <p className="text-sm font-medium">No products yet</p>
       <p className="text-xs text-muted-foreground text-center max-w-xs">
-        Combine provider products with your designs and set your own price to start selling.
+        Customize a provider product or add one of your own to start selling.
       </p>
-      <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
-        <Plus className="w-3.5 h-3.5 mr-1.5" />
-        Create Custom Product
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
+          <Plus className="w-3.5 h-3.5 mr-1.5" />
+          Customize Provider Product
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => router.push('/creator/products/own/new')}
+        >
+          <Plus className="w-3.5 h-3.5 mr-1.5" />
+          Add Own Product
+        </Button>
+      </div>
     </div>
   );
 
@@ -276,24 +381,34 @@ export default function CustomProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Custom Products</h1>
-          <p className="text-sm text-muted-foreground">Products you&apos;ve customized with your designs</p>
+          <h1 className="text-xl font-semibold tracking-tight">My Products</h1>
+          <p className="text-sm text-muted-foreground">
+            Provider products you&apos;ve customized and your own products
+          </p>
         </div>
-        <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          New Custom Product
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => router.push('/creator/products/own/new')}
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Own Product
+          </Button>
+          <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Custom Product
+          </Button>
+        </div>
       </div>
 
-      {!loading && items.length === 0 ? (
+      {!loading && rows.length === 0 ? (
         emptyState
       ) : (
         <DataTable
           columns={columns}
-          data={items}
-          emptyMessage={loading ? 'Loading...' : 'No custom products yet'}
-          pagination={meta}
-          onPageChange={(p) => fetchItems(p)}
+          data={rows}
+          emptyMessage={loading ? 'Loading...' : 'No products yet'}
         />
       )}
 
@@ -301,11 +416,13 @@ export default function CustomProductsPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Custom Product</DialogTitle>
+            <DialogTitle>
+              Delete {deleteTarget?.kind === 'own' ? 'Product' : 'Custom Product'}
+            </DialogTitle>
             <DialogDescription>
               Are you sure you want to delete{' '}
               <span className="font-medium">
-                {deleteTarget?.translations.find((x) => x.locale === 'en')?.title ?? 'this product'}
+                {pickTitle(deleteTarget?.translations)?.title ?? 'this product'}
               </span>
               ? This action cannot be undone.
             </DialogDescription>

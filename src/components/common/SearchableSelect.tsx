@@ -29,7 +29,12 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPos, setDropdownPos] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    maxHeight: 280,
+  });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selected = options.find((o) => o.value === value);
@@ -40,14 +45,31 @@ export function SearchableSelect({
   );
 
   useEffect(() => {
-    if (open && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPos({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
-    }
+    if (!open) return;
+    const compute = () => {
+      const el = buttonRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const margin = 8;
+      const desired = 280;
+      const spaceBelow = window.innerHeight - rect.bottom - margin;
+      const spaceAbove = rect.top - margin;
+      const placeBelow = spaceBelow >= Math.min(desired, 180) || spaceBelow >= spaceAbove;
+      const maxHeight = Math.max(160, Math.min(desired, placeBelow ? spaceBelow : spaceAbove));
+      const top = placeBelow ? rect.bottom + 4 : Math.max(margin, rect.top - 4 - maxHeight);
+      const left = Math.min(
+        Math.max(margin, rect.left),
+        Math.max(margin, window.innerWidth - rect.width - margin),
+      );
+      setDropdownPos({ top, left, width: rect.width, maxHeight });
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, true);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute, true);
+    };
   }, [open]);
 
   // Close on outside click
@@ -77,11 +99,16 @@ export function SearchableSelect({
 
       {open && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed z-[9999] rounded-md border bg-popover shadow-lg"
-          style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+          className="fixed z-[9999] flex flex-col overflow-hidden rounded-md border bg-popover shadow-lg"
+          style={{
+            top: dropdownPos.top,
+            left: dropdownPos.left,
+            width: dropdownPos.width,
+            maxHeight: dropdownPos.maxHeight,
+          }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="p-2 border-b">
+          <div className="p-2 border-b shrink-0">
             <input
               type="text"
               placeholder={searchPlaceholder}
@@ -91,7 +118,7 @@ export function SearchableSelect({
               autoFocus
             />
           </div>
-          <div className="max-h-[220px] overflow-y-auto p-1">
+          <div className="flex-1 min-h-0 overflow-y-auto p-1">
             {filtered.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">No results</p>
             ) : (

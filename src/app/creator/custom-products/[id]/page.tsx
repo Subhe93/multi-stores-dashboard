@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star } from 'lucide-react';
+import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -19,6 +19,9 @@ import PricingStrategySelector from '@/components/creator/PricingStrategySelecto
 import CustomFieldRenderer from '@/components/creator/CustomFieldRenderer';
 import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
+import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
+import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
 import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
@@ -63,6 +66,8 @@ interface CustomProduct {
   translations: { locale: string; title: string; description?: string; slug: string }[];
   selected_variants?: { id: string; variant_id: string; custom_price?: number; variant: ProductVariant }[];
   field_values?: { id: string; custom_field_id: string; value?: string; file_url?: string }[];
+  bundles?: { bundle_id: string }[];
+  creator_categories?: { creator_category_id: string; creator_category?: { id: string } }[];
   product: {
     id: string;
     base_price: number;
@@ -110,6 +115,7 @@ export default function EditCustomProduct() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
 
@@ -138,6 +144,16 @@ export default function EditCustomProduct() {
   // FAQs
   const [faqs, setFaqs] = useState<Faq[]>([]);
 
+  // Bundles attached to this custom product
+  const [bundleIds, setBundleIds] = useState<string[]>([]);
+
+  // Creator collections attached to this custom product
+  const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
+
+  // Slug availability check — debounced, primary-locale only.
+  type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
+  const [slugStatus, setSlugStatus] = useState<SlugStatus>('idle');
+
   // Other
   const [status, setStatus] = useState('DRAFT');
 
@@ -163,6 +179,12 @@ export default function EditCustomProduct() {
 
       setProduct(productRes);
       setStatus(productRes.status);
+      setBundleIds((productRes.bundles ?? []).map((b) => b.bundle_id));
+      setCreatorCategoryIds(
+        (productRes.creator_categories ?? [])
+          .map((link) => link.creator_category?.id || link.creator_category_id)
+          .filter((id): id is string => typeof id === 'string'),
+      );
 
       // Pricing
       setPricingType(productRes.pricing_type || 'SINGLE');
@@ -214,6 +236,31 @@ export default function EditCustomProduct() {
     fetchAll();
   }, [fetchAll]);
 
+  // Debounced slug availability check. We only check the primary-locale slug —
+  // secondary translations don't drive the storefront URL. Exclude this product
+  // from the conflict check so its own current slug doesn't show as "taken".
+  useEffect(() => {
+    if (!token || !id) return;
+    const slug = (translations[primaryLocale]?.slug || '').trim();
+    if (!slug) {
+      setSlugStatus('idle');
+      return;
+    }
+    setSlugStatus('checking');
+    const handle = setTimeout(async () => {
+      try {
+        const res = await api<{ available: boolean }>(
+          `/custom-products/check-slug?slug=${encodeURIComponent(slug)}&exclude_id=${encodeURIComponent(id)}`,
+          { token },
+        );
+        setSlugStatus(res?.available ? 'available' : 'taken');
+      } catch {
+        setSlugStatus('idle');
+      }
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [token, id, translations, primaryLocale]);
+
   const handleTranslateTo = async (targetLocale: string) => {
     const sourceTitle = translations[primaryLocale]?.title || '';
     if (!sourceTitle.trim() || translatingLocale) return;
@@ -235,6 +282,7 @@ export default function EditCustomProduct() {
   const handleSave = async () => {
     if (!token || !product) return;
     setSaving(true);
+    setSaveError('');
     try {
       const translationsPayload = Object.entries(translations)
         .filter(([, t]) => t.title.trim())
@@ -290,12 +338,18 @@ export default function EditCustomProduct() {
         : selectedImageUrls;
       body.mockup_image_urls = sorted;
 
+      body.bundle_ids = bundleIds;
+      body.creator_category_ids = creatorCategoryIds;
+
       await api(`/custom-products/${id}`, { method: 'PUT', token, body: JSON.stringify(body) });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       fetchAll();
+      return true;
     } catch (err) {
-      console.error(err);
+      const e = err as { message?: string };
+      setSaveError(e?.message || 'Failed to save changes');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -303,14 +357,17 @@ export default function EditCustomProduct() {
 
   const handleSubmitForReview = async () => {
     if (!token) return;
+    setSaveError('');
+    // Save first to persist any pending edits; bail out if save failed.
+    const ok = await handleSave();
+    if (!ok) return;
     setSaving(true);
     try {
-      // Save first to persist any pending edits, then submit
-      await handleSave();
       await api(`/custom-products/${id}/submit`, { method: 'POST', token });
       fetchAll();
     } catch (err) {
-      console.error(err);
+      const e = err as { message?: string };
+      setSaveError(e?.message || 'Failed to submit for review');
     } finally {
       setSaving(false);
     }
@@ -639,10 +696,27 @@ export default function EditCustomProduct() {
             <div className="space-y-1.5">
               <Label className="text-xs">Slug *</Label>
               <Input
-                className="h-8 text-sm font-mono"
+                className={`h-8 text-sm font-mono ${
+                  slugStatus === 'taken' ? 'border-red-400 focus-visible:ring-red-400' : ''
+                }`}
                 value={translations[primaryLocale]?.slug || ''}
                 onChange={(e) => setTransField(primaryLocale, 'slug', e.target.value)}
               />
+              {slugStatus === 'checking' && (
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Checking availability…
+                </p>
+              )}
+              {slugStatus === 'available' && (
+                <p className="text-[11px] text-emerald-600 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Slug is available
+                </p>
+              )}
+              {slugStatus === 'taken' && (
+                <p className="text-[11px] text-red-600">
+                  This slug is already used by one of your products. Pick a different one.
+                </p>
+              )}
             </div>
           )}
 
@@ -747,6 +821,8 @@ export default function EditCustomProduct() {
               onClick={handleSave}
               disabled={
                 saving ||
+                slugStatus === 'checking' ||
+                slugStatus === 'taken' ||
                 (!translations[primaryLocale]?.title?.trim() &&
                   !product.translations.find((t) => t.locale === primaryLocale)?.title?.trim())
               }
@@ -756,6 +832,21 @@ export default function EditCustomProduct() {
             {saved && (
               <p className="text-xs text-emerald-600 font-medium text-center">Saved!</p>
             )}
+            {saveError && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 space-y-1">
+                <div className="flex items-start gap-1.5">
+                  <AlertCircle className="size-3.5 shrink-0 mt-0.5" />
+                  <p className="font-medium leading-relaxed">{saveError}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSaveError('')}
+                  className="text-[10px] text-red-500 hover:underline pl-5"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -764,6 +855,53 @@ export default function EditCustomProduct() {
             >
               <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Collections */}
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">Collections</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-[11px] text-muted-foreground mb-2">
+              Add this product to one or more of your store collections.
+            </p>
+            <CollectionsMultiSelect
+              value={creatorCategoryIds}
+              onChange={setCreatorCategoryIds}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Bundles */}
+        <Card className="shadow-none">
+          <CardContent className="pt-5">
+            <BundlePicker
+              value={bundleIds}
+              onChange={setBundleIds}
+              productPricing={
+                product
+                  ? computeProductPricingForBundleCheck({
+                      pricingType,
+                      baseProviderPrice: Number(product.product.base_price),
+                      hasProvider: Boolean(product.product.provider_id),
+                      finalPrice: parseFloat(finalPrice) || 0,
+                      marginAmount: parseFloat(marginAmount) || 0,
+                      selectedVariants: selectedVariantsForPricing.map((v) => ({
+                        id: v.id,
+                        price_adjustment: Number(v.price_adjustment) || 0,
+                      })),
+                      variantCustomPrices: Object.fromEntries(
+                        Object.entries(variantPrices).map(([k, v]) => [
+                          k,
+                          parseFloat(v) || 0,
+                        ]),
+                      ),
+                    })
+                  : undefined
+              }
+            />
           </CardContent>
         </Card>
 
