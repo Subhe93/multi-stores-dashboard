@@ -289,6 +289,13 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     setPageStatus('PUBLISHED');
   }, [token, page.id, flushAutosave]);
 
+  // Manually clear the storefront cache. Publishing already triggers this on
+  // the server, but the button lets creators force a refresh on demand.
+  const flushCache = useCallback(async () => {
+    if (!token) return;
+    await api('/stores/my/cache/flush', { method: 'POST', token });
+  }, [token]);
+
   // Full reload — pulls everything fresh from the server and drops any unsent
   // local edits. Used after a destructive op (version restore) where the
   // server snapshot is authoritative and pending edits would be invalid.
@@ -439,6 +446,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         onPublish={publishPage}
         onRestored={reloadFromServer}
         onSeoSaved={reloadPageMeta}
+        onFlushCache={flushCache}
       />
 
       <div className="flex-1 grid grid-cols-[280px_1fr_360px] min-h-0">

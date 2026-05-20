@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { VersionsDialog } from './VersionsDialog';
@@ -28,6 +28,8 @@ interface PublishBarProps {
   onPublish: () => Promise<void>;
   onRestored: () => Promise<void> | void;
   onSeoSaved: () => Promise<void> | void;
+  // Manually clear the storefront cache so the latest publish shows immediately.
+  onFlushCache?: () => Promise<void>;
 }
 
 export function PublishBar({
@@ -47,9 +49,12 @@ export function PublishBar({
   onPublish,
   onRestored,
   onSeoSaved,
+  onFlushCache,
 }: PublishBarProps) {
   const [publishing, setPublishing] = useState(false);
   const [justPublished, setJustPublished] = useState(false);
+  const [flushing, setFlushing] = useState(false);
+  const [justFlushed, setJustFlushed] = useState(false);
 
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b bg-white">
@@ -91,6 +96,34 @@ export function PublishBar({
           onSaved={onSeoSaved}
         />
         <VersionsDialog pageId={pageId} onRestored={onRestored} />
+        {onFlushCache && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={flushing}
+            onClick={async () => {
+              setFlushing(true);
+              setJustFlushed(false);
+              try {
+                await onFlushCache();
+                setJustFlushed(true);
+                setTimeout(() => setJustFlushed(false), 2500);
+              } finally {
+                setFlushing(false);
+              }
+            }}
+            title="Clear the storefront cache to show your latest changes immediately"
+          >
+            {flushing ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : justFlushed ? (
+              <Check className="w-3.5 h-3.5 mr-1.5" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            {justFlushed ? 'Cleared' : 'Clear Cache'}
+          </Button>
+        )}
         {storeUrl && (
           <a href={storeUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">

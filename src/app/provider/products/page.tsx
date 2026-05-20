@@ -40,7 +40,7 @@ export default function ProviderProducts() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (status) params.set('status', status);
-      const res = await api<any>(`/products?${params}`, { token });
+      const res = await api<any>(`/products/mine?${params}`, { token });
       setProducts(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }

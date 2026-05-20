@@ -86,7 +86,7 @@ export default function ProviderOverview() {
   useEffect(() => {
     if (!token) return;
     Promise.all([
-      api<any>('/products?limit=5', { token }).catch(() => ({ data: [] })),
+      api<any>('/products/mine?limit=5', { token }).catch(() => ({ data: [] })),
       api<any>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
       api<any>('/commissions/summary', { token }).catch(() => null),
       api<any[]>('/shipping/profiles', { token }).catch(() => []),

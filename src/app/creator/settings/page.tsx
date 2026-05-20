@@ -34,6 +34,7 @@ interface StoreInfo {
   name: string;
   slug: string;
   is_active: boolean;
+  cache_enabled: boolean;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -58,6 +59,9 @@ export default function CreatorSettingsPage() {
   // Manual storefront cache flush
   const [flushing, setFlushing] = useState(false);
   const [flushMsg, setFlushMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Storefront caching on/off toggle
+  const [cacheSaving, setCacheSaving] = useState(false);
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -133,6 +137,27 @@ export default function CreatorSettingsPage() {
       setFlushMsg({ type: 'error', text: err?.message || 'Failed to clear cache. Please try again.' });
     } finally {
       setFlushing(false);
+    }
+  };
+
+  const handleToggleCache = async () => {
+    if (!token || !store || cacheSaving) return;
+    const next = !store.cache_enabled;
+    setCacheSaving(true);
+    setFlushMsg(null);
+    // Optimistic update — revert on failure.
+    setStore({ ...store, cache_enabled: next });
+    try {
+      await api('/stores/my/store', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ cache_enabled: next }),
+      });
+    } catch (err: any) {
+      setStore({ ...store, cache_enabled: !next });
+      setFlushMsg({ type: 'error', text: err?.message || 'Failed to update caching.' });
+    } finally {
+      setCacheSaving(false);
     }
   };
 
@@ -353,38 +378,67 @@ export default function CreatorSettingsPage() {
               </div>
             ) : null}
 
-            {/* Manual cache flush — published changes normally refresh
-                automatically; this forces an immediate refresh. */}
+            {/* Storefront caching controls — toggle caching on/off and, while
+                on, force an immediate refresh. */}
             {store && (
-              <div className="mt-4 flex items-center justify-between border-t pt-3">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-medium">Storefront cache</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Clear it to force your latest changes to appear right away.
-                  </p>
-                  {flushMsg && (
-                    <p
-                      className={`text-[11px] ${
-                        flushMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
-                      }`}
-                    >
-                      {flushMsg.text}
+              <div className="mt-4 space-y-3 border-t pt-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-medium">Storefront caching</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {store.cache_enabled
+                        ? 'On — faster store. Published changes refresh automatically.'
+                        : 'Off — store is always fresh, but slightly slower.'}
                     </p>
-                  )}
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={store.cache_enabled}
+                    onClick={handleToggleCache}
+                    disabled={cacheSaving}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                      store.cache_enabled ? 'bg-emerald-500' : 'bg-zinc-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
+                        store.cache_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleFlushCache}
-                  disabled={flushing}
-                >
-                  {flushing ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="size-3.5" />
-                  )}
-                  Clear Cache
-                </Button>
+
+                {store.cache_enabled && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] text-muted-foreground">
+                      Force your latest changes to appear right away.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleFlushCache}
+                      disabled={flushing}
+                    >
+                      {flushing ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="size-3.5" />
+                      )}
+                      Clear Cache
+                    </Button>
+                  </div>
+                )}
+
+                {flushMsg && (
+                  <p
+                    className={`text-[11px] ${
+                      flushMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                    }`}
+                  >
+                    {flushMsg.text}
+                  </p>
+                )}
               </div>
             )}
 
