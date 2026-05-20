@@ -781,6 +781,65 @@ function ProductPagePreview(props: PreviewProps) {
 
 // ── Generic fallback ────────────────────────────────────────
 
+function AuroraHeroPreview(props: PreviewProps) {
+  // Dark full-bleed panel with soft coloured blobs behind a heading + button.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="200" height="120" fill="#0b1020" />
+      <circle cx="55" cy="45" r="34" fill="#6366f1" opacity="0.55" />
+      <circle cx="140" cy="40" r="30" fill="#ec4899" opacity="0.5" />
+      <circle cx="100" cy="95" r="28" fill="#06b6d4" opacity="0.5" />
+      <Bar x="58" y="50" w="84" h="7" c="white" r={2} />
+      <Bar x="72" y="64" w="56" c="#cbd5e1" />
+      <rect x="80" y="78" width="40" height="13" rx="6" fill="white" />
+    </Frame>
+  );
+}
+
+function BentoGridPreview(props: PreviewProps) {
+  // Asymmetric tiles: one large, a wide, and small squares.
+  return (
+    <Frame {...props}>
+      <rect x="18" y="18" width="74" height="84" rx="6" fill={SURFACE} stroke={BORDER} />
+      <rect x="98" y="18" width="38" height="40" rx="6" fill={PRIMARY} opacity="0.15" />
+      <rect x="142" y="18" width="40" height="40" rx="6" fill={SURFACE} stroke={BORDER} />
+      <rect x="98" y="62" width="84" height="40" rx="6" fill={SURFACE} stroke={BORDER} />
+      <Bar x="26" y="86" w="48" h="5" c={TEXT} />
+    </Frame>
+  );
+}
+
+function AnimatedFeaturesPreview(props: PreviewProps) {
+  // Row of circular line-icons (drawn) with a title + line beneath each.
+  return (
+    <Frame {...props}>
+      {[0, 1, 2, 3].map((i) => (
+        <g key={i}>
+          <circle cx={36 + i * 44} cy="40" r="13" fill="none" stroke={PRIMARY} strokeWidth="2" strokeDasharray="60" strokeDashoffset={i % 2 ? 18 : 0} />
+          <path d={`M${30 + i * 44} 40 l4 4 l8 -8`} fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <Bar x={24 + i * 44} y="62" w="24" h="3" c={TEXT} />
+          <Bar x={26 + i * 44} y="70" w="20" c="#a1a1aa" />
+        </g>
+      ))}
+    </Frame>
+  );
+}
+
+function MarqueeTextPreview(props: PreviewProps) {
+  // Big bold word repeated, clipped at the edges, with star separators.
+  return (
+    <Frame {...props}>
+      <text x="6" y="70" fontSize="34" fontWeight="800" fill={TEXT}>
+        SALE
+      </text>
+      <text x="92" y="66" fontSize="16" fill={ACCENT}>✦</text>
+      <text x="112" y="70" fontSize="34" fontWeight="800" fill={TEXT}>
+        SAL
+      </text>
+    </Frame>
+  );
+}
+
 function GenericPreview(props: PreviewProps) {
   return (
     <Frame {...props}>
@@ -796,6 +855,10 @@ function GenericPreview(props: PreviewProps) {
 const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'hero-banner': HeroBannerPreview,
   'hero-slider': HeroSliderPreview,
+  'aurora-hero': AuroraHeroPreview,
+  'bento-grid': BentoGridPreview,
+  'animated-features': AnimatedFeaturesPreview,
+  'marquee-text': MarqueeTextPreview,
   'rich-text': RichTextPreview,
   'image-gallery': ImageGalleryPreview,
   'gallery-slider': GallerySliderPreview,
