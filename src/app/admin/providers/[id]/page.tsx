@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 
 export default function ProviderDetailPage() {
+  const t = useTranslations('admin');
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const [provider, setProvider] = useState<any>(null);
@@ -33,7 +35,7 @@ export default function ProviderDetailPage() {
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  if (!provider) return <p className="text-center py-12 text-muted-foreground">Provider not found</p>;
+  if (!provider) return <p className="text-center py-12 text-muted-foreground">{t('providerNotFound')}</p>;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -48,14 +50,14 @@ export default function ProviderDetailPage() {
           </div>
         </div>
         {provider.verified
-          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" />Verified</Badge>
-          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
+          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" />{t('verified')}</Badge>
+          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>
         }
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Card className="shadow-none">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Company Info</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('companyInfo')}</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-muted-foreground" />{provider.user?.email}</div>
             <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground" />{provider.country}</div>
@@ -65,12 +67,12 @@ export default function ProviderDetailPage() {
         </Card>
 
         <Card className="shadow-none">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Actions</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('actions')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {!provider.verified && (
-              <Button size="sm" className="w-full" onClick={handleVerify}>Verify Provider</Button>
+              <Button size="sm" className="w-full" onClick={handleVerify}>{t('verifyProvider')}</Button>
             )}
-            <p className="text-[10px] text-muted-foreground">Joined {new Date(provider.created_at).toLocaleDateString()}</p>
+            <p className="text-[10px] text-muted-foreground">{t('joinedDate', { date: new Date(provider.created_at).toLocaleDateString() })}</p>
           </CardContent>
         </Card>
       </div>

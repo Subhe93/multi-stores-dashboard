@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface AITranslateButtonProps {
   entityType: string;
@@ -18,6 +19,7 @@ export function AITranslateButton({
   onTranslated,
 }: AITranslateButtonProps) {
   const [loading, setLoading] = useState(false);
+  const t = useTranslations('components');
 
   const handleTranslate = async () => {
     setLoading(true);
@@ -53,12 +55,12 @@ export function AITranslateButton({
       {loading ? (
         <>
           <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-          Translating...
+          {t('translating')}
         </>
       ) : (
         <>
           <span>AI</span>
-          Translate to {targetLocale.toUpperCase()}
+          {t('translateTo', { locale: targetLocale.toUpperCase() })}
         </>
       )}
     </button>

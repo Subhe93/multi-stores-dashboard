@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Camera, Loader2, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -52,6 +53,7 @@ export function SeoDialog({
   activeLocale,
   onSaved,
 }: SeoDialogProps) {
+  const t = useTranslations();
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -117,7 +119,7 @@ export function SeoDialog({
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) throw new Error(t('builder.uploadFailed'));
     const json = await res.json();
     return (json.data?.url || json.url) as string;
   }
@@ -150,7 +152,7 @@ export function SeoDialog({
       await onSaved();
       setOpen(false);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to save');
+      setError(e instanceof Error ? e.message : t('builder.failedToSave'));
     } finally {
       setSaving(false);
     }
@@ -160,17 +162,17 @@ export function SeoDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm" title="SEO settings">
+          <Button variant="outline" size="sm" title={t('builder.seoSettings')}>
             <Search className="w-3.5 h-3.5" />
-            SEO
+            {t('builder.seo')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>SEO &amp; sharing</DialogTitle>
+          <DialogTitle>{t('builder.seoAndSharing')}</DialogTitle>
           <DialogDescription>
-            Tune how this {pageType.toLowerCase()} page appears in search results and when shared.
+            {t('builder.seoDesc', { pageType: pageType.toLowerCase() })}
           </DialogDescription>
         </DialogHeader>
 
@@ -179,7 +181,7 @@ export function SeoDialog({
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                Meta ({editLocale})
+                {t('builder.meta')} ({editLocale})
               </Label>
               {allLocales.length > 1 && (
                 <div className="flex gap-1">
@@ -202,20 +204,20 @@ export function SeoDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Meta title</Label>
+              <Label className="text-xs">{t('builder.metaTitle')}</Label>
               <Input
                 value={current.meta_title || ''}
                 onChange={(e) => patchTranslation({ meta_title: e.target.value })}
                 maxLength={70}
-                placeholder={current.title || 'Page title for search results'}
+                placeholder={current.title || t('builder.metaTitlePlaceholder')}
               />
               <p className="text-[10px] text-muted-foreground">
-                {(current.meta_title || '').length}/70 — falls back to the page title.
+                {t('builder.metaTitleHint', { count: (current.meta_title || '').length })}
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Meta description</Label>
+              <Label className="text-xs">{t('builder.metaDescription')}</Label>
               <Textarea
                 rows={3}
                 value={current.meta_description || ''}
@@ -231,11 +233,11 @@ export function SeoDialog({
           {/* Sharing */}
           <section className="space-y-3 border-t pt-5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Sharing
+              {t('builder.sharing')}
             </Label>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Open Graph image</Label>
+              <Label className="text-xs">{t('builder.ogImage')}</Label>
               <div className="flex items-start gap-3">
                 <label
                   className="relative flex items-center justify-center w-24 h-16 border-2 border-dashed border-zinc-200 rounded-md cursor-pointer hover:border-zinc-300 hover:bg-zinc-50 overflow-hidden shrink-0"
@@ -270,17 +272,17 @@ export function SeoDialog({
                     className="h-8 text-xs"
                     value={seo.og_image}
                     onChange={(e) => setSeo((prev) => ({ ...prev, og_image: e.target.value }))}
-                    placeholder="/uploads/page-seo/... or https://"
+                    placeholder={t('builder.ogImagePlaceholder')}
                   />
                   <p className="text-[10px] text-muted-foreground">
-                    Used by Facebook, LinkedIn and Twitter when this page is shared. Recommended 1200×630.
+                    {t('builder.ogImageHint')}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Twitter card style</Label>
+              <Label className="text-xs">{t('builder.twitterCardStyle')}</Label>
               <select
                 value={seo.twitter_card}
                 onChange={(e) => setSeo((prev) => ({ ...prev, twitter_card: e.target.value }))}
@@ -298,11 +300,11 @@ export function SeoDialog({
           {/* Indexing */}
           <section className="space-y-3 border-t pt-5">
             <Label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Indexing
+              {t('builder.indexing')}
             </Label>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Robots directive</Label>
+              <Label className="text-xs">{t('builder.robotsDirective')}</Label>
               <select
                 value={seo.robots}
                 onChange={(e) => setSeo((prev) => ({ ...prev, robots: e.target.value }))}
@@ -315,16 +317,16 @@ export function SeoDialog({
                 ))}
               </select>
               <p className="text-[10px] text-muted-foreground">
-                Use noindex for thank-you or private campaign pages.
+                {t('builder.robotsHint')}
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Canonical URL override</Label>
+              <Label className="text-xs">{t('builder.canonicalOverride')}</Label>
               <Input
                 value={seo.canonical}
                 onChange={(e) => setSeo((prev) => ({ ...prev, canonical: e.target.value }))}
-                placeholder="/store/your-slug/p/eid-sale  (leave blank to auto-generate)"
+                placeholder={t('builder.canonicalPlaceholder')}
               />
             </div>
           </section>
@@ -334,16 +336,16 @@ export function SeoDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Saving…
+                {t('builder.savingEllipsis')}
               </>
             ) : (
-              'Save SEO'
+              t('builder.saveSeo')
             )}
           </Button>
         </DialogFooter>

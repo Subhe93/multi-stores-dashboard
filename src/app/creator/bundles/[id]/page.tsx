@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -12,6 +13,7 @@ export default function EditBundlePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { token } = useAuth();
+  const t = useTranslations('creator');
   const [bundle, setBundle] = useState<Bundle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,7 +26,7 @@ export default function EditBundlePage() {
         if (!cancelled) setBundle(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message || 'Failed to load bundle');
+        if (!cancelled) setError(err?.message || t('bundles.failedLoad'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -45,13 +47,13 @@ export default function EditBundlePage() {
   if (error || !bundle) {
     return (
       <div className="space-y-3 py-10 text-center">
-        <p className="text-sm text-destructive">{error || 'Bundle not found.'}</p>
+        <p className="text-sm text-destructive">{error || t('bundles.notFound')}</p>
         <button
           type="button"
           onClick={() => router.push('/creator/bundles')}
           className="text-xs text-primary hover:underline"
         >
-          Back to bundles
+          {t('bundles.backToBundles')}
         </button>
       </div>
     );

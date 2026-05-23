@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ChevronsUpDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,9 +25,12 @@ export function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = 'Select...',
-  searchPlaceholder = 'Search...',
+  placeholder,
+  searchPlaceholder,
 }: SearchableSelectProps) {
+  const t = useTranslations('common');
+  const placeholderText = placeholder ?? t('select');
+  const searchPlaceholderText = searchPlaceholder ?? t('searchEllipsis');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [dropdownPos, setDropdownPos] = useState({
@@ -93,7 +97,7 @@ export function SearchableSelect({
         onClick={() => setOpen(!open)}
         className="w-full justify-between h-9 text-sm font-normal"
       >
-        {selected ? selected.label : <span className="text-muted-foreground">{placeholder}</span>}
+        {selected ? selected.label : <span className="text-muted-foreground">{placeholderText}</span>}
         <ChevronsUpDown className="w-3.5 h-3.5 opacity-50" />
       </Button>
 
@@ -111,7 +115,7 @@ export function SearchableSelect({
           <div className="p-2 border-b shrink-0">
             <input
               type="text"
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholderText}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full px-2 py-1.5 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
@@ -120,7 +124,7 @@ export function SearchableSelect({
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-1">
             {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">No results</p>
+              <p className="text-xs text-muted-foreground text-center py-4">{t('noResults')}</p>
             ) : (
               filtered.map((option) => (
                 <button
@@ -132,7 +136,7 @@ export function SearchableSelect({
                     setSearch('');
                   }}
                   className={cn(
-                    'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-left hover:bg-muted transition',
+                    'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-start hover:bg-muted transition',
                     value === option.value && 'bg-muted',
                   )}
                 >

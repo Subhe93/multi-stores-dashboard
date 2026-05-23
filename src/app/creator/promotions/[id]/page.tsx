@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Percent,
   DollarSign,
@@ -57,33 +58,39 @@ interface Promotion {
 
 // ─── Type options (display only) ─────────────────────────────────────────────
 
-const TYPE_OPTIONS: {
+type Translator = ReturnType<typeof useTranslations>;
+
+function typeOptions(t: Translator): {
   type: PromotionType;
   icon: React.ElementType;
   label: string;
   desc: string;
-}[] = [
-  { type: 'PERCENTAGE', icon: Percent, label: 'Percentage Off', desc: '% discount on total' },
-  { type: 'FIXED_AMOUNT', icon: DollarSign, label: 'Fixed Amount', desc: 'Fixed amount off the total' },
-  { type: 'BUY_X_GET_Y', icon: Gift, label: 'Buy X Get Y', desc: 'Free item with purchase' },
-  { type: 'BUNDLE', icon: Package, label: 'Bundle Deal', desc: 'Products together cheaper' },
-  { type: 'QUANTITY_DISCOUNT', icon: TrendingDown, label: 'Quantity Discount', desc: 'More items = better price' },
-  { type: 'FREE_SHIPPING', icon: Truck, label: 'Free Shipping', desc: 'Free delivery' },
-  { type: 'COUPON', icon: Tag, label: 'Coupon Code', desc: 'Shareable discount code' },
-  { type: 'FLASH_SALE', icon: Zap, label: 'Flash Sale', desc: 'Time-limited discount' },
-];
+}[] {
+  return [
+    { type: 'PERCENTAGE', icon: Percent, label: t('promotionForm.typePercentageLabel'), desc: t('promotionForm.typePercentageDesc') },
+    { type: 'FIXED_AMOUNT', icon: DollarSign, label: t('promotionForm.typeFixedLabel'), desc: t('promotionForm.typeFixedDesc') },
+    { type: 'BUY_X_GET_Y', icon: Gift, label: t('promotionForm.typeBuyXGetYLabel'), desc: t('promotionForm.typeBuyXGetYDesc') },
+    { type: 'BUNDLE', icon: Package, label: t('promotionForm.typeBundleLabel'), desc: t('promotionForm.typeBundleDesc') },
+    { type: 'QUANTITY_DISCOUNT', icon: TrendingDown, label: t('promotionForm.typeQtyLabel'), desc: t('promotionForm.typeQtyDesc') },
+    { type: 'FREE_SHIPPING', icon: Truck, label: t('promotionForm.typeFreeShippingLabel'), desc: t('promotionForm.typeFreeShippingDesc') },
+    { type: 'COUPON', icon: Tag, label: t('promotionForm.typeCouponLabel'), desc: t('promotionForm.typeCouponDesc') },
+    { type: 'FLASH_SALE', icon: Zap, label: t('promotionForm.typeFlashLabel'), desc: t('promotionForm.typeFlashDesc') },
+  ];
+}
 
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active', description: 'Promotion is live and usable' },
-  { value: 'DISABLED', label: 'Disabled', description: 'Temporarily paused' },
-];
+function statusOptions(t: Translator) {
+  return [
+    { value: 'ACTIVE', label: t('promotionForm.statusActiveLabel'), description: t('promotionForm.statusActiveDesc') },
+    { value: 'DISABLED', label: t('promotionForm.statusDisabledLabel'), description: t('promotionForm.statusDisabledDesc') },
+  ];
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function valueLabel(type: PromotionType, cur: string): string {
-  if (type === 'PERCENTAGE') return 'Discount (%)';
-  if (type === 'FIXED_AMOUNT') return `Discount (${cur})`;
-  return 'Discount Value';
+function valueLabel(type: PromotionType, cur: string, t: Translator): string {
+  if (type === 'PERCENTAGE') return t('promotionForm.discountPercent');
+  if (type === 'FIXED_AMOUNT') return t('promotionForm.discountCurrency', { currency: cur });
+  return t('promotionForm.discountValue');
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -93,6 +100,10 @@ export default function EditPromotionPage() {
   const { token } = useAuth();
   const router = useRouter();
   const { currency } = useCurrency();
+  const tt = useTranslations('creator');
+  const tc = useTranslations('common');
+  const TYPE_OPTIONS = typeOptions(tt);
+  const STATUS_OPTIONS = statusOptions(tt);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,7 +134,7 @@ export default function EditPromotionPage() {
         const list = (res?.data || []).map((p: any) => ({
           id: p.id,
           title: p.translations?.find((t: any) => t.locale === 'en')?.title
-            || p.translations?.[0]?.title || p.product?.translations?.[0]?.title || 'Untitled',
+            || p.translations?.[0]?.title || p.product?.translations?.[0]?.title || tt('promotionForm.untitled'),
         }));
         setProducts(list);
       })
@@ -153,7 +164,7 @@ export default function EditPromotionPage() {
       const conds = promo.conditions as any;
       if (conds?.product_ids?.length) setSelectedProductIds(conds.product_ids);
     } catch {
-      setError('Failed to load promotion');
+      setError(tt('promotionForm.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -167,7 +178,7 @@ export default function EditPromotionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleEn.trim()) {
-      setError('Title (English) is required.');
+      setError(tt('promotionForm.titleRequired'));
       return;
     }
     if (!token) return;
@@ -203,7 +214,7 @@ export default function EditPromotionPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err?.message || 'Failed to update promotion.');
+      setError(err?.message || tt('promotionForm.failedUpdate'));
     } finally {
       setSaving(false);
     }
@@ -222,7 +233,7 @@ export default function EditPromotionPage() {
       <div className="space-y-4 py-12 text-center">
         <p className="text-sm text-destructive">{error}</p>
         <Button variant="outline" size="sm" onClick={() => router.push('/creator/promotions')}>
-          Back to Promotions
+          {tt('promotionForm.backToPromotions')}
         </Button>
       </div>
     );
@@ -236,11 +247,11 @@ export default function EditPromotionPage() {
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold tracking-tight">Edit Promotion</h1>
-          <p className="text-sm text-muted-foreground">Update this promotion's settings</p>
+          <h1 className="text-xl font-semibold tracking-tight">{tt('promotionForm.editTitle')}</h1>
+          <p className="text-sm text-muted-foreground">{tt('promotionForm.editSubtitle')}</p>
         </div>
         {saved && (
-          <span className="text-xs text-emerald-600 font-medium">Saved successfully!</span>
+          <span className="text-xs text-emerald-600 font-medium">{tt('promotionForm.savedSuccess')}</span>
         )}
       </div>
 
@@ -257,8 +268,8 @@ export default function EditPromotionPage() {
         <Card className="shadow-none">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Promotion Type</CardTitle>
-              <Badge variant="secondary" className="text-[10px]">Cannot be changed</Badge>
+              <CardTitle className="text-sm font-semibold">{tt('promotionForm.promotionType')}</CardTitle>
+              <Badge variant="secondary" className="text-[10px]">{tt('promotionForm.cannotBeChanged')}</Badge>
             </div>
           </CardHeader>
           <CardContent>
@@ -292,26 +303,28 @@ export default function EditPromotionPage() {
         {type && (
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Promotion Details</CardTitle>
+              <CardTitle className="text-sm font-semibold">{tt('promotionForm.promotionDetails')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {/* Status */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Status</Label>
+                  <Label className="text-xs">{tc('status')}</Label>
                   <SearchableSelect
                     value={status}
                     onChange={(v) => setStatus(v as PromotionStatus)}
-                    placeholder="Select status..."
+                    placeholder={tt('promotionForm.selectStatus')}
                     options={STATUS_OPTIONS}
                   />
                 </div>
 
                 {/* Usage info */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Usage</Label>
+                  <Label className="text-xs">{tt('promotionForm.usage')}</Label>
                   <div className="flex items-center h-8 px-3 rounded-md border bg-muted/50 text-sm text-muted-foreground">
-                    Used {usageCount}{usageLimit ? ` / ${usageLimit}` : ''} times
+                    {usageLimit
+                      ? tt('promotionForm.usedCountLimit', { count: usageCount, limit: usageLimit })
+                      : tt('promotionForm.usedCount', { count: usageCount })}
                   </div>
                 </div>
               </div>
@@ -319,7 +332,7 @@ export default function EditPromotionPage() {
               {/* Value */}
               {showValueField && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">{valueLabel(type, currency)}</Label>
+                  <Label className="text-xs">{valueLabel(type, currency, tt)}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -335,24 +348,24 @@ export default function EditPromotionPage() {
               {/* Coupon code (read-only) */}
               {couponCode && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Coupon Code</Label>
+                  <Label className="text-xs">{tt('promotionForm.couponCode')}</Label>
                   <div className="flex items-center h-8 px-3 rounded-md border bg-muted/50 font-mono text-sm tracking-widest">
                     {couponCode}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">Coupon code cannot be changed after creation.</p>
+                  <p className="text-[10px] text-muted-foreground">{tt('promotionForm.couponLocked')}</p>
                 </div>
               )}
 
               {/* Usage limit */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Usage Limit</Label>
+                <Label className="text-xs">{tt('promotionForm.usageLimit')}</Label>
                 <Input
                   type="number"
                   min="1"
                   step="1"
                   value={usageLimit}
                   onChange={(e) => setUsageLimit(e.target.value)}
-                  placeholder="Unlimited"
+                  placeholder={tt('promotionForm.unlimited')}
                   className="h-8"
                 />
               </div>
@@ -360,20 +373,20 @@ export default function EditPromotionPage() {
               {/* Date range */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Starts At</Label>
+                  <Label className="text-xs">{tt('promotionForm.startsAt')}</Label>
                   <div className="flex items-center h-8 px-3 rounded-md border bg-muted/50 text-sm text-muted-foreground">
                     {startsAt || '—'}
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Expires At</Label>
+                  <Label className="text-xs">{tt('promotionForm.expiresAt')}</Label>
                   <Input
                     type="date"
                     value={expiresAt}
                     onChange={(e) => setExpiresAt(e.target.value)}
                     className="h-8"
                   />
-                  <p className="text-[10px] text-muted-foreground">Leave blank for no expiry.</p>
+                  <p className="text-[10px] text-muted-foreground">{tt('promotionForm.leaveBlankNoExpiry')}</p>
                 </div>
               </div>
             </CardContent>
@@ -384,11 +397,11 @@ export default function EditPromotionPage() {
         {type && products.length > 0 && (
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Apply to Products</CardTitle>
+              <CardTitle className="text-sm font-semibold">{tt('promotionForm.applyToProducts')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-[10px] text-muted-foreground">
-                Select specific products this promotion applies to. Leave empty to apply to all products.
+                {tt('promotionForm.applyToProductsDesc')}
               </p>
               <div className="max-h-48 overflow-y-auto space-y-1 rounded-md border p-2">
                 {products.map((p) => {
@@ -418,14 +431,14 @@ export default function EditPromotionPage() {
               {selectedProductIds.length > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">
-                    {selectedProductIds.length} product{selectedProductIds.length > 1 ? 's' : ''} selected
+                    {tt('promotionForm.productsSelected', { count: selectedProductIds.length })}
                   </span>
                   <button
                     type="button"
                     onClick={() => setSelectedProductIds([])}
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
-                    Clear all
+                    {tt('promotionForm.clearAll')}
                   </button>
                 </div>
               )}
@@ -436,27 +449,27 @@ export default function EditPromotionPage() {
         {/* Details */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Details</CardTitle>
+            <CardTitle className="text-sm font-semibold">{tt('promotionForm.details')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs">
-                Title (English) <span className="text-destructive">*</span>
+                {tt('promotionForm.titleEnglish')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
-                placeholder="e.g. Summer Sale 20% Off"
+                placeholder={tt('promotionForm.titlePlaceholder')}
                 className="h-8"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Description (optional)</Label>
+              <Label className="text-xs">{tt('promotionForm.descriptionOptional')}</Label>
               <RichTextEditor
                 content={descEn}
                 onChange={setDescEn}
-                placeholder="Brief description of this promotion..."
+                placeholder={tt('promotionForm.descriptionPlaceholder')}
               />
             </div>
           </CardContent>
@@ -470,10 +483,10 @@ export default function EditPromotionPage() {
             onClick={() => router.push('/creator/promotions')}
             disabled={saving}
           >
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? tc('saving') : tt('promotionForm.saveChanges')}
           </Button>
         </div>
       </form>

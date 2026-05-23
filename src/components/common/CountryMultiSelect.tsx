@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { ChevronsUpDown, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -113,14 +114,15 @@ export const COUNTRIES: Country[] = [
   { code: 'NZ', name: 'New Zealand',        region: 'Oceania' },
 ];
 
-// Region presets for quick selection
-const REGION_PRESETS: { label: string; region: string }[] = [
-  { label: 'Gulf (GCC)', region: 'Gulf' },
-  { label: 'Arab World', region: 'Arab World' },
-  { label: 'Europe', region: 'Europe' },
-  { label: 'North America', region: 'North America' },
-  { label: 'East Asia', region: 'East Asia' },
-  { label: 'Southeast Asia', region: 'Southeast Asia' },
+// Region presets for quick selection. Labels are resolved via the translator
+// at render time using `labelKey` so they localize with the dashboard UI.
+const REGION_PRESETS: { labelKey: string; region: string }[] = [
+  { labelKey: 'regionGulfGcc', region: 'Gulf' },
+  { labelKey: 'regionArabWorld', region: 'Arab World' },
+  { labelKey: 'regionEurope', region: 'Europe' },
+  { labelKey: 'regionNorthAmerica', region: 'North America' },
+  { labelKey: 'regionEastAsia', region: 'East Asia' },
+  { labelKey: 'regionSoutheastAsia', region: 'Southeast Asia' },
 ];
 
 // Group countries by region
@@ -139,7 +141,9 @@ interface CountryMultiSelectProps {
   placeholder?: string;
 }
 
-export function CountryMultiSelect({ value, onChange, placeholder = 'Select countries...' }: CountryMultiSelectProps) {
+export function CountryMultiSelect({ value, onChange, placeholder }: CountryMultiSelectProps) {
+  const t = useTranslations('components');
+  const resolvedPlaceholder = placeholder ?? t('selectCountries');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
@@ -211,7 +215,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
         )}
       >
         {selected.length === 0 ? (
-          <span className="text-muted-foreground text-sm px-1">{placeholder}</span>
+          <span className="text-muted-foreground text-sm px-1">{resolvedPlaceholder}</span>
         ) : (
           selected.map(c => (
             <span
@@ -222,7 +226,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
               <span>{c.code}</span>
               <button
                 type="button"
-                className="ml-0.5 text-zinc-400 hover:text-zinc-700"
+                className="ms-0.5 text-zinc-400 hover:text-zinc-700"
                 onClick={e => { e.stopPropagation(); toggle(c.code); }}
               >
                 <X className="w-2.5 h-2.5" />
@@ -230,7 +234,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
             </span>
           ))
         )}
-        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 ml-auto shrink-0" />
+        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 ms-auto shrink-0" />
       </div>
 
       {/* Dropdown portal */}
@@ -245,7 +249,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
             <input
               autoFocus
               type="text"
-              placeholder="Search countries or regions..."
+              placeholder={t('searchCountriesOrRegions')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full px-2 py-1.5 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
@@ -270,7 +274,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
                         : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400',
                     )}
                   >
-                    {rp.label}
+                    {t(rp.labelKey)}
                   </button>
                 );
               })}
@@ -280,7 +284,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
           {/* Country list grouped by region */}
           <div className="max-h-[280px] overflow-y-auto">
             {sortedRegions.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-6">No countries found</p>
+              <p className="text-xs text-muted-foreground text-center py-6">{t('noCountriesFound')}</p>
             ) : (
               sortedRegions.map(region => (
                 <div key={region}>
@@ -295,7 +299,7 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
                         type="button"
                         onClick={() => toggle(c.code)}
                         className={cn(
-                          'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left transition',
+                          'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-start transition',
                           isSelected ? 'bg-zinc-100' : 'hover:bg-zinc-50',
                         )}
                       >
@@ -314,13 +318,13 @@ export function CountryMultiSelect({ value, onChange, placeholder = 'Select coun
           {/* Footer */}
           {value.length > 0 && (
             <div className="px-3 py-2 border-t flex items-center justify-between bg-zinc-50/70">
-              <span className="text-[11px] text-muted-foreground">{value.length} countr{value.length === 1 ? 'y' : 'ies'} selected</span>
+              <span className="text-[11px] text-muted-foreground">{t('countriesSelectedCount', { count: value.length })}</span>
               <button
                 type="button"
                 onClick={() => onChange([])}
                 className="text-[11px] text-red-500 hover:underline"
               >
-                Clear all
+                {t('clearAll')}
               </button>
             </div>
           )}

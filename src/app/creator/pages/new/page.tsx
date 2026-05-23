@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,19 +13,21 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
-const TEMPLATE_OPTIONS = [
-  { value: 'CUSTOM', label: 'Custom Page', description: 'Blank page — build with Page Builder' },
-  { value: 'ABOUT', label: 'About Page', description: 'Tell customers about you and your brand' },
-  { value: 'FAQ', label: 'FAQ', description: 'Frequently asked questions' },
-  { value: 'CONTACT', label: 'Contact', description: 'Contact information' },
-  { value: 'SHIPPING_POLICY', label: 'Shipping Policy', description: 'Shipping terms and delivery info' },
-  { value: 'RETURN_POLICY', label: 'Return Policy', description: 'Returns and refund policy' },
-  { value: 'PRIVACY_POLICY', label: 'Privacy Policy', description: 'Privacy and data policy' },
-  { value: 'TERMS', label: 'Terms & Conditions', description: 'Terms of service' },
+type Translator = ReturnType<typeof useTranslations>;
+
+const buildTemplateOptions = (t: Translator) => [
+  { value: 'CUSTOM', label: t('newPage.templateCustom'), description: t('newPage.templateCustomDesc') },
+  { value: 'ABOUT', label: t('newPage.templateAbout'), description: t('newPage.templateAboutDesc') },
+  { value: 'FAQ', label: t('newPage.templateFaq'), description: t('newPage.templateFaqDesc') },
+  { value: 'CONTACT', label: t('newPage.templateContact'), description: t('newPage.templateContactDesc') },
+  { value: 'SHIPPING_POLICY', label: t('newPage.templateShipping'), description: t('newPage.templateShippingDesc') },
+  { value: 'RETURN_POLICY', label: t('newPage.templateReturn'), description: t('newPage.templateReturnDesc') },
+  { value: 'PRIVACY_POLICY', label: t('newPage.templatePrivacy'), description: t('newPage.templatePrivacyDesc') },
+  { value: 'TERMS', label: t('newPage.templateTerms'), description: t('newPage.templateTermsDesc') },
 ];
 
 type LocaleTranslation = { title: string };
@@ -32,6 +35,9 @@ type LocaleTranslation = { title: string };
 export default function NewPage() {
   const router = useRouter();
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
+  const TEMPLATE_OPTIONS = buildTemplateOptions(t);
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [templateType, setTemplateType] = useState('CUSTOM');
@@ -101,8 +107,8 @@ export default function NewPage() {
   const handleSave = async () => {
     if (!token || !storeId) return;
     const primaryTitle = translations[primaryLocale]?.title?.trim() || '';
-    if (!primaryTitle) { setError('Title is required'); return; }
-    if (!slug.trim()) { setError('Slug is required'); return; }
+    if (!primaryTitle) { setError(t('newPage.titleRequired')); return; }
+    if (!slug.trim()) { setError(t('newPage.slugRequired')); return; }
     setSaving(true);
     setError('');
     try {
@@ -126,7 +132,7 @@ export default function NewPage() {
       }
       router.push('/creator/pages');
     } catch (err: any) {
-      setError(err?.message || 'Failed to create page');
+      setError(err?.message || t('newPage.failedCreate'));
     } finally {
       setSaving(false);
     }
@@ -136,12 +142,12 @@ export default function NewPage() {
     return (
       <div className="space-y-4 max-w-2xl">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
         </Button>
         <Card className="shadow-none">
           <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground mb-3">You need to set up your store first.</p>
-            <Button size="sm" onClick={() => router.push('/creator/store')}>Set Up Store</Button>
+            <p className="text-sm text-muted-foreground mb-3">{t('newPage.setUpStoreFirst')}</p>
+            <Button size="sm" onClick={() => router.push('/creator/store')}>{t('newPage.setUpStore')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -156,27 +162,27 @@ export default function NewPage() {
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
         </Button>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">New Page</h1>
-          <p className="text-sm text-muted-foreground">Create a static page for your store</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('newPage.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('newPage.subtitle')}</p>
         </div>
       </div>
 
       {/* Page type */}
       <Card className="shadow-none">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Page Type</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('newPage.pageType')}</CardTitle></CardHeader>
         <CardContent>
           <SearchableSelect value={templateType} onChange={setTemplateType}
-            placeholder="Select template..." options={TEMPLATE_OPTIONS} />
+            placeholder={t('newPage.selectTemplate')} options={TEMPLATE_OPTIONS} />
         </CardContent>
       </Card>
 
       {/* Page details with language tabs */}
       <Card className="shadow-none">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Page Details</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('newPage.pageDetails')}</CardTitle>
         </CardHeader>
 
         {/* Language tabs */}
@@ -193,7 +199,7 @@ export default function NewPage() {
                 >
                   {LOCALE_LABELS[locale] || locale.toUpperCase()}
                   {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">(primary)</span>}
+                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('newPage.primaryParen')}</span>}
                 </button>
               );
             })}
@@ -205,7 +211,7 @@ export default function NewPage() {
           {activeLocale !== primaryLocale && (
             <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
               <span className="text-xs text-muted-foreground">
-                Auto-translate from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                {t('newPage.autoTranslateFrom')} <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                 {primaryTitle ? `: "${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '…' : ''}"` : ''}
               </span>
               <button type="button" onClick={() => handleTranslateTo(activeLocale)}
@@ -213,8 +219,8 @@ export default function NewPage() {
                 className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
               >
                 {translatingLocale === activeLocale
-                  ? <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
-                  : <><Languages className="w-3 h-3" /> Auto-translate</>}
+                  ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('newPage.translating')}</>
+                  : <><Languages className="w-3 h-3" /> {t('newPage.autoTranslate')}</>}
               </button>
             </div>
           )}
@@ -222,12 +228,12 @@ export default function NewPage() {
           {/* Title */}
           <div className="space-y-1.5">
             <Label className="text-xs">
-              Title {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+              {t('newPage.titleLabel')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
             </Label>
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
-              placeholder={activeLocale === primaryLocale ? 'About Us' : `Title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+              placeholder={activeLocale === primaryLocale ? t('newPage.titlePlaceholder') : t('newPage.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
               value={translations[activeLocale]?.title || ''}
               onChange={e => {
                 if (activeLocale === primaryLocale) {
@@ -241,7 +247,7 @@ export default function NewPage() {
 
           {/* Slug (always shown) */}
           <div className="space-y-1.5">
-            <Label className="text-xs">Slug (URL) *</Label>
+            <Label className="text-xs">{t('newPage.slugLabel')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">/</span>
               <Input className="h-8 text-sm font-mono flex-1" placeholder="about-us"
@@ -252,14 +258,14 @@ export default function NewPage() {
           {/* Publish toggle */}
           <label className="flex items-center justify-between py-1 cursor-pointer">
             <div>
-              <p className="text-sm font-medium">Publish immediately</p>
-              <p className="text-xs text-muted-foreground">Make this page visible in your store</p>
+              <p className="text-sm font-medium">{t('newPage.publishImmediately')}</p>
+              <p className="text-xs text-muted-foreground">{t('newPage.publishImmediatelyDesc')}</p>
             </div>
             <button type="button" role="switch" aria-checked={isPublished}
               onClick={() => setIsPublished(!isPublished)}
               className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${isPublished ? 'bg-zinc-900' : 'bg-zinc-200'}`}
             >
-              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isPublished ? 'translate-x-4' : 'translate-x-0'}`} />
+              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isPublished ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'}`} />
             </button>
           </label>
         </CardContent>
@@ -268,10 +274,10 @@ export default function NewPage() {
       {error && <p className="text-xs text-red-600">{error}</p>}
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>Cancel</Button>
+        <Button variant="outline" size="sm" onClick={() => router.back()}>{tc('cancel')}</Button>
         <Button size="sm" onClick={handleSave}
           disabled={saving || !translations[primaryLocale]?.title?.trim() || !slug}>
-          {saving ? 'Creating...' : 'Create Page'}
+          {saving ? t('newPage.creating') : t('newPage.createPage')}
         </Button>
       </div>
     </div>

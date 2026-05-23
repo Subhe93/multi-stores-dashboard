@@ -11,6 +11,7 @@ import { Plus, Package, Pencil, Trash2, ImageIcon, CheckSquare2, Copy } from 'lu
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT:      'bg-zinc-100 text-zinc-600',
@@ -20,10 +21,19 @@ const STATUS_COLORS: Record<string, string> = {
 
 const TABS = ['All', 'Draft', 'Published', 'Archived'];
 
+const TAB_LABEL_KEYS: Record<string, string> = {
+  All:       'tabAll',
+  Draft:     'tabDraft',
+  Published: 'tabPublished',
+  Archived:  'tabArchived',
+};
+
 export default function ProviderProducts() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [products, setProducts] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +85,7 @@ export default function ProviderProducts() {
       if (created?.id) router.push(`/provider/products/${created.id}`);
     } catch (err) {
       console.error('Duplicate failed:', err);
-      alert('Failed to duplicate product. Please try again.');
+      alert(t('duplicateFailed'));
     } finally {
       setDuplicatingId(null);
     }
@@ -128,11 +138,11 @@ export default function ProviderProducts() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Products</h1>
-            <p className="text-sm text-muted-foreground">Manage your product catalog</p>
+            <h1 className="text-xl font-semibold tracking-tight">{t('products')}</h1>
+            <p className="text-sm text-muted-foreground">{t('manageCatalog')}</p>
           </div>
           <Link href="/provider/products/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            <Plus className="w-4 h-4" /> Add Product
+            <Plus className="w-4 h-4" /> {t('addProduct')}
           </Link>
         </div>
         <Card className="shadow-none">
@@ -140,10 +150,10 @@ export default function ProviderProducts() {
             <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center mb-4">
               <Package className="w-6 h-6 text-zinc-400" />
             </div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">No products yet</p>
-            <p className="text-xs text-muted-foreground mb-4">Get started by adding your first product</p>
+            <p className="text-sm font-medium text-muted-foreground mb-1">{t('noProductsYet')}</p>
+            <p className="text-xs text-muted-foreground mb-4">{t('getStartedProduct')}</p>
             <Link href="/provider/products/new" className="inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-muted">
-              Add your first product
+              {t('addFirstProduct')}
             </Link>
           </CardContent>
         </Card>
@@ -155,11 +165,11 @@ export default function ProviderProducts() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Products</h1>
-          <p className="text-sm text-muted-foreground">Manage your product catalog</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('products')}</h1>
+          <p className="text-sm text-muted-foreground">{t('manageCatalog')}</p>
         </div>
         <Link href="/provider/products/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> Add Product
+          <Plus className="w-4 h-4" /> {t('addProduct')}
         </Link>
       </div>
 
@@ -168,7 +178,7 @@ export default function ProviderProducts() {
         <div className="flex gap-1.5">
           {TABS.map(tab => (
             <Button key={tab} variant={activeTab === tab ? 'default' : 'ghost'} size="sm" className="h-8 text-xs"
-              onClick={() => handleTab(tab)}>{tab}</Button>
+              onClick={() => handleTab(tab)}>{t(TAB_LABEL_KEYS[tab])}</Button>
           ))}
         </div>
 
@@ -176,14 +186,14 @@ export default function ProviderProducts() {
         {selected.size > 0 && (
           <div className="flex items-center gap-2 bg-zinc-900 text-white rounded-lg px-3 py-1.5">
             <CheckSquare2 className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium">{selected.size} selected</span>
+            <span className="text-xs font-medium">{t('countSelected', { count: selected.size })}</span>
             <div className="w-px h-4 bg-white/20 mx-1" />
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('publish')}>Publish</Button>
+              onClick={() => setBulkAction('publish')}>{t('publish')}</Button>
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('archive')}>Archive</Button>
+              onClick={() => setBulkAction('archive')}>{t('archive')}</Button>
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-red-300 hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('delete')}>Delete</Button>
+              onClick={() => setBulkAction('delete')}>{t('delete')}</Button>
             <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white/50 hover:bg-white/10 px-2"
               onClick={() => setSelected(new Set())}>✕</Button>
           </div>
@@ -205,20 +215,20 @@ export default function ProviderProducts() {
                     onChange={toggleAll}
                   />
                 </th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Product</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Type</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Price</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Variants</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Status</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Created</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colProduct')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colType')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colPrice')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colVariants')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
                 <th className="w-16 px-3 py-2.5" />
               </tr>
             </thead>
             <tbody className="divide-y">
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-12 text-sm text-muted-foreground">Loading...</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-sm text-muted-foreground">{tc('loading')}</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-sm text-muted-foreground">No products found</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-sm text-muted-foreground">{t('noProductsFound')}</td></tr>
               ) : (
                 products.map(item => {
                   const imgUrl = getFeaturedImage(item);
@@ -254,7 +264,7 @@ export default function ProviderProducts() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            title="Edit"
+                            title={tc('edit')}
                             onClick={() => router.push(`/provider/products/${item.id}`)}
                           >
                             <Pencil className="w-3.5 h-3.5" />
@@ -263,7 +273,7 @@ export default function ProviderProducts() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            title="Duplicate"
+                            title={t('duplicate')}
                             disabled={duplicatingId === item.id}
                             onClick={() => handleDuplicate(item.id)}
                           >
@@ -273,7 +283,7 @@ export default function ProviderProducts() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-red-400 hover:text-red-600"
-                            title="Delete"
+                            title={tc('delete')}
                             onClick={() => setDeleteTarget(item)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -291,11 +301,11 @@ export default function ProviderProducts() {
         {/* Pagination */}
         {meta && meta.totalPages > 1 && (
           <div className="flex items-center justify-between border-t px-4 py-2">
-            <span className="text-xs text-muted-foreground">{meta.total} products</span>
+            <span className="text-xs text-muted-foreground">{t('countProducts', { count: meta.total })}</span>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => fetchProducts(meta.page - 1)}>Prev</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => fetchProducts(meta.page - 1)}>{t('prev')}</Button>
               <span className="text-xs px-2 py-1">{meta.page} / {meta.totalPages}</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => fetchProducts(meta.page + 1)}>Next</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => fetchProducts(meta.page + 1)}>{tc('next')}</Button>
             </div>
           </div>
         )}
@@ -304,14 +314,14 @@ export default function ProviderProducts() {
       {/* Single Delete Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Delete Product</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('deleteProduct')}</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Delete <strong>"{deleteTarget?.translations?.[0]?.title || 'this product'}"</strong>?
-            This will permanently remove all variants, images, and custom fields.
+            <strong>{t('deleteProductConfirm', { name: deleteTarget?.translations?.[0]?.title || t('thisProduct') })}</strong>{' '}
+            {t('deleteProductWarning')}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>{tc('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete}>{tc('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -321,23 +331,25 @@ export default function ProviderProducts() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {bulkAction === 'delete' ? 'Delete Products' : bulkAction === 'publish' ? 'Publish Products' : 'Archive Products'}
+              {bulkAction === 'delete' ? t('bulkDeleteTitle') : bulkAction === 'publish' ? t('bulkPublishTitle') : t('bulkArchiveTitle')}
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             {bulkAction === 'delete'
-              ? `Permanently delete ${selected.size} selected product${selected.size > 1 ? 's' : ''}? This cannot be undone.`
-              : `${bulkAction === 'publish' ? 'Publish' : 'Archive'} ${selected.size} selected product${selected.size > 1 ? 's' : ''}?`}
+              ? t('bulkDeleteConfirm', { count: selected.size })
+              : bulkAction === 'publish'
+                ? t('bulkPublishConfirm', { count: selected.size })
+                : t('bulkArchiveConfirm', { count: selected.size })}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setBulkAction(null)} disabled={bulkWorking}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkAction(null)} disabled={bulkWorking}>{tc('cancel')}</Button>
             <Button
               variant={bulkAction === 'delete' ? 'destructive' : 'default'}
               size="sm"
               onClick={handleBulkConfirm}
               disabled={bulkWorking}
             >
-              {bulkWorking ? 'Working...' : 'Confirm'}
+              {bulkWorking ? t('working') : tc('confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

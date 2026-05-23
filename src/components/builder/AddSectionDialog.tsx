@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,6 +49,7 @@ function isAvailableForPageType(
 }
 
 export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogProps) {
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<SectionSchema['category'] | 'all'>('all');
   const [adding, setAdding] = useState(false);
@@ -69,14 +71,14 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
   // Hide a category tab entirely if no visible section uses it.
   const usedCategories = new Set<SectionSchema['category']>(visible.map((s) => s.category));
   const allCategories: { id: SectionSchema['category'] | 'all'; label: string }[] = [
-    { id: 'all', label: 'All' },
-    { id: 'showcase', label: 'Showcase' },
-    { id: 'content', label: 'Content' },
-    { id: 'commerce', label: 'Commerce' },
-    { id: 'social', label: 'Social' },
-    { id: 'layout', label: 'Layout' },
-    { id: 'header', label: 'Header' },
-    { id: 'footer', label: 'Footer' },
+    { id: 'all', label: t('builder.catAll') },
+    { id: 'showcase', label: t('builder.catShowcase') },
+    { id: 'content', label: t('builder.catContent') },
+    { id: 'commerce', label: t('builder.catCommerce') },
+    { id: 'social', label: t('builder.catSocial') },
+    { id: 'layout', label: t('builder.catLayout') },
+    { id: 'header', label: t('builder.catHeader') },
+    { id: 'footer', label: t('builder.catFooter') },
   ];
   const categories = allCategories.filter(
     (c) => c.id === 'all' || usedCategories.has(c.id),
@@ -90,15 +92,15 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
         render={
           <Button variant="outline" size="sm" className="w-full justify-start">
             <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add section
+            {t('builder.addSection')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Add a section</DialogTitle>
+          <DialogTitle>{t('builder.addASection')}</DialogTitle>
           <DialogDescription>
-            Pick a section type to add to this page. The preview shows the rough layout.
+            {t('builder.addSectionDesc')}
           </DialogDescription>
         </DialogHeader>
 

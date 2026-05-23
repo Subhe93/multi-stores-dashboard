@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
   Package,
@@ -15,29 +16,30 @@ import {
   Store as StoreIcon,
 } from 'lucide-react';
 
-const providerNav = [
-  {
-    title: 'Main',
-    items: [
-      { label: 'Overview', href: '/provider', icon: <LayoutDashboard className="w-4 h-4" /> },
-      { label: 'Products', href: '/provider/products', icon: <Package className="w-4 h-4" /> },
-      { label: 'Stores', href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
-      { label: 'Orders', href: '/provider/orders', icon: <ClipboardList className="w-4 h-4" /> },
-      { label: 'Reviews', href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
-    ],
-  },
-  {
-    title: 'Manage',
-    items: [
-      { label: 'Shipping', href: '/provider/shipping', icon: <Truck className="w-4 h-4" /> },
-      { label: 'Earnings', href: '/provider/earnings', icon: <DollarSign className="w-4 h-4" /> },
-      { label: 'Settings', href: '/provider/settings', icon: <Settings className="w-4 h-4" /> },
-    ],
-  },
-];
-
 export default function ProviderLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const t = useTranslations('nav');
+
+  const providerNav = [
+    {
+      title: t('main'),
+      items: [
+        { label: t('overview'), href: '/provider', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { label: t('products'), href: '/provider/products', icon: <Package className="w-4 h-4" /> },
+        { label: t('stores'), href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
+        { label: t('orders'), href: '/provider/orders', icon: <ClipboardList className="w-4 h-4" /> },
+        { label: t('reviews'), href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
+      ],
+    },
+    {
+      title: t('manage'),
+      items: [
+        { label: t('shipping'), href: '/provider/shipping', icon: <Truck className="w-4 h-4" /> },
+        { label: t('earnings'), href: '/provider/earnings', icon: <DollarSign className="w-4 h-4" /> },
+        { label: t('settings'), href: '/provider/settings', icon: <Settings className="w-4 h-4" /> },
+      ],
+    },
+  ];
 
   return (
     <ProtectedRoute allowedRoles={['PROVIDER']}>
@@ -45,7 +47,8 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
         <AppSidebar
           groups={providerNav}
           title="Multi-Stores"
-          subtitle="Provider Dashboard"
+          subtitle={t('providerDashboard')}
+          role="Provider"
           userLabel={user?.provider?.company_name || user?.email || 'Provider'}
           onLogout={logout}
         />

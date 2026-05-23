@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Upload,
   Trash2,
@@ -40,6 +41,7 @@ const LOCALE_LABELS: Record<string, string> = {
   tr: 'Türkçe',
   de: 'Deutsch',
   fr: 'Français',
+  sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -166,6 +168,7 @@ function resolveUrl(url: string): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function CategoryForm({ mode, initialId }: CategoryFormProps) {
+  const t = useTranslations();
   const router = useRouter();
   const { token, user } = useAuth();
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
@@ -300,7 +303,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         });
       })
       .catch((err) => {
-        setSubmitError(err?.message || 'Failed to load collection');
+        setSubmitError(err?.message || t('category.failedToLoad'));
       })
       .finally(() => setLoading(false));
 
@@ -367,17 +370,17 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
   // ── Validation ─────────────────────────────────────────────────────────────
 
   const nameError = useMemo(() => {
-    const hasAny = Object.values(translations).some((t) => t.name.trim());
-    return hasAny ? '' : 'Name is required for at least one language.';
-  }, [translations]);
+    const hasAny = Object.values(translations).some((tr) => tr.name.trim());
+    return hasAny ? '' : t('category.errNameRequired');
+  }, [translations, t]);
 
   const slugError = useMemo(() => {
-    if (!slug.trim()) return 'URL handle is required.';
+    if (!slug.trim()) return t('category.errHandleRequired');
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      return 'Use lowercase letters, numbers and dashes only.';
+      return t('category.errHandleFormat');
     }
     return '';
-  }, [slug]);
+  }, [slug, t]);
 
   const canSave = !nameError && !slugError;
 
@@ -385,18 +388,18 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
   const summaryCount: { value: number | null; note: string } = useMemo(() => {
     if (matchRule === 'MANUAL') {
-      return { value: productIds.length, note: 'manually added' };
+      return { value: productIds.length, note: t('category.noteManuallyAdded') };
     }
     // TAGS: in edit mode show the resolved count, otherwise let the user know
     // it will be computed server-side after saving.
     if (mode === 'edit' && resolvedCount !== null) {
-      return { value: resolvedCount, note: 'matched by tags' };
+      return { value: resolvedCount, note: t('category.noteMatchedByTags') };
     }
     return {
       value: null,
-      note: 'Saving will compute matching products.',
+      note: t('category.noteWillCompute'),
     };
-  }, [matchRule, productIds.length, mode, resolvedCount]);
+  }, [matchRule, productIds.length, mode, resolvedCount, t]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -504,7 +507,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
       setSubmitError(
         Array.isArray(err?.errors)
           ? err.errors.join(' • ')
-          : err?.message || 'Failed to save collection.',
+          : err?.message || t('category.failedToSave'),
       );
     } finally {
       setSaving(false);
@@ -534,10 +537,10 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">
-              {mode === 'create' ? 'New Collection' : 'Edit Collection'}
+              {mode === 'create' ? t('category.newCollection') : t('category.editCollection')}
             </h1>
             <p className="text-xs text-muted-foreground">
-              Group products into a shoppable collection for your storefront.
+              {t('category.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -547,7 +550,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               onClick={() => router.push('/creator/categories')}
               disabled={saving}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               size="sm"
@@ -557,12 +560,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               {saving ? (
                 <>
                   <Loader2 className="size-3.5 mr-1 animate-spin" />
-                  Saving…
+                  {t('category.saving')}
                 </>
               ) : mode === 'create' ? (
-                'Create Collection'
+                t('category.createCollection')
               ) : (
-                'Save Changes'
+                t('category.saveChanges')
               )}
             </Button>
           </div>
@@ -608,7 +611,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               {/* Name */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">
-                  Name{' '}
+                  {t('common.name')}{' '}
                   {activeLocale === primaryLocale && (
                     <span className="text-red-500">*</span>
                   )}
@@ -618,8 +621,8 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   className="h-9 text-sm"
                   placeholder={
                     activeLocale === primaryLocale
-                      ? 'e.g. Summer Essentials'
-                      : `Name in ${LOCALE_LABELS[activeLocale] || activeLocale}…`
+                      ? t('category.namePlaceholder')
+                      : t('category.nameInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
                   }
                   value={translations[activeLocale]?.name || ''}
                   onChange={(e) =>
@@ -633,13 +636,13 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Description</Label>
+                <Label className="text-xs font-medium">{t('common.description')}</Label>
                 <RichTextEditor
                   content={translations[activeLocale]?.description || ''}
                   onChange={(val) =>
                     setTransField(activeLocale, 'description', val)
                   }
-                  placeholder="Describe this collection…"
+                  placeholder={t('category.describePlaceholder')}
                 />
               </div>
             </CardContent>
@@ -648,7 +651,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           {/* Thumbnail */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Thumbnail</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('category.thumbnail')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               {thumbnailUrl ? (
@@ -656,7 +659,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   <div className="relative h-32 w-32 overflow-hidden rounded-lg border bg-zinc-50">
                     <img
                       src={resolveUrl(thumbnailUrl)}
-                      alt="Thumbnail"
+                      alt={t('category.thumbnail')}
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -673,7 +676,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                       ) : (
                         <Upload className="size-3.5 mr-1" />
                       )}
-                      Replace
+                      {t('category.replace')}
                     </Button>
                     <Button
                       type="button"
@@ -683,7 +686,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                       onClick={() => setThumbnailUrl(null)}
                     >
                       <Trash2 className="size-3.5 mr-1" />
-                      Remove
+                      {t('common.remove')}
                     </Button>
                   </div>
                 </div>
@@ -710,11 +713,11 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   <div>
                     <p className="text-sm font-medium">
                       {imageUploading
-                        ? 'Uploading…'
-                        : 'Drop an image or click to upload'}
+                        ? t('category.uploading')
+                        : t('category.dropOrClick')}
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      Used as the collection cover image on your storefront.
+                      {t('category.thumbnailHint')}
                     </p>
                   </div>
                 </div>
@@ -725,7 +728,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           {/* URL handle */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">URL handle</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('category.urlHandle')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-1.5">
               <div className="flex items-stretch overflow-hidden rounded-md border focus-within:ring-2 focus-within:ring-ring">
@@ -752,7 +755,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           <Card className="shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
-                Parent collection
+                {t('category.parentCollection')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-1.5">
@@ -762,8 +765,8 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                     options={parentOptions}
                     value={parentId ?? ''}
                     onChange={(v) => setParentId(v || null)}
-                    placeholder="None (top-level)"
-                    searchPlaceholder="Search collections…"
+                    placeholder={t('category.noneTopLevel')}
+                    searchPlaceholder={t('category.searchCollections')}
                   />
                 </div>
                 {parentId && (
@@ -773,12 +776,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                     size="sm"
                     onClick={() => setParentId(null)}
                   >
-                    Clear
+                    {t('category.clear')}
                   </Button>
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Optional. Nest this collection inside another.
+                {t('category.parentHint')}
               </p>
             </CardContent>
           </Card>
@@ -786,7 +789,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           {/* Filter section */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Filter</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('category.filter')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
               {/* Radio: TAGS */}
@@ -808,18 +811,17 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   <div className="flex items-center gap-2">
                     <Tag className="size-3.5 text-zinc-500" />
                     <span className="text-sm font-medium">
-                      Include products with specific tags
+                      {t('category.includeByTags')}
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Any of your products tagged with one of these tags will
-                    automatically appear in this collection.
+                    {t('category.includeByTagsHint')}
                   </p>
                   {matchRule === 'TAGS' && (
                     <TagInput
                       tags={matchTags}
                       onChange={setMatchTags}
-                      placeholder="Add a tag and press Enter"
+                      placeholder={t('category.addTagPlaceholder')}
                     />
                   )}
                 </div>
@@ -844,18 +846,18 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   <div className="flex items-center gap-2">
                     <Package className="size-3.5 text-zinc-500" />
                     <span className="text-sm font-medium">
-                      Manually add products
+                      {t('category.manuallyAdd')}
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Pick exactly which products belong in this collection.
+                    {t('category.manuallyAddHint')}
                   </p>
                   {matchRule === 'MANUAL' && (
                     <ProductMultiSelect
                       options={productOptions}
                       value={productIds}
                       onChange={setProductIds}
-                      placeholder="Search and pick products…"
+                      placeholder={t('category.searchAndPickProducts')}
                     />
                   )}
                 </div>
@@ -870,12 +872,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
                 <FolderTree className="size-3.5" />
-                Summary
+                {t('category.summary')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3 text-xs">
               <div>
-                <p className="text-muted-foreground">Match rule</p>
+                <p className="text-muted-foreground">{t('category.matchRule')}</p>
                 <Badge
                   variant="outline"
                   className={
@@ -884,12 +886,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                       : 'bg-blue-50 text-blue-700 border-blue-200 mt-1'
                   }
                 >
-                  {matchRule === 'MANUAL' ? 'Manual' : 'By tags'}
+                  {matchRule === 'MANUAL' ? t('category.manual') : t('category.byTags')}
                 </Badge>
               </div>
 
               <div>
-                <p className="text-muted-foreground">Products in this collection</p>
+                <p className="text-muted-foreground">{t('category.productsInCollection')}</p>
                 {summaryCount.value !== null ? (
                   <p className="text-base font-semibold mt-0.5">
                     {summaryCount.value}{' '}
@@ -905,7 +907,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               </div>
 
               <div>
-                <p className="text-muted-foreground">Status</p>
+                <p className="text-muted-foreground">{t('common.status')}</p>
                 <label className="mt-1 inline-flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -913,7 +915,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                     onChange={(e) => setIsActive(e.target.checked)}
                   />
                   <span className="text-sm">
-                    {isActive ? 'Active' : 'Inactive'}
+                    {isActive ? t('category.active') : t('category.inactive')}
                   </span>
                 </label>
               </div>
@@ -924,9 +926,9 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           {hasMultipleLocales && activeLocale !== primaryLocale && (
             <div className="rounded-lg border border-dashed bg-zinc-50/60 p-3 text-[11px] text-muted-foreground">
               <Languages className="inline size-3 mr-1" />
-              Fill in the name in{' '}
+              {t('category.fillNameIn')}{' '}
               <strong>{LOCALE_LABELS[activeLocale] || activeLocale}</strong>{' '}
-              to translate this collection for that audience.
+              {t('category.toTranslate')}
             </div>
           )}
         </aside>
@@ -935,7 +937,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
       {/* Submission error */}
       {submitError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          <p className="font-medium mb-1">We couldn't save the collection:</p>
+          <p className="font-medium mb-1">{t('category.couldNotSave')}</p>
           {submitError.includes(' • ') ? (
             <ul className="list-disc pl-5 space-y-0.5">
               {submitError.split(' • ').map((m, i) => (

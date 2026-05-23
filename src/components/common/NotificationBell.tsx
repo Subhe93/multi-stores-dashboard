@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Bell, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 interface Notification {
   id: string;
@@ -40,21 +43,22 @@ function notificationHref(role: string, n: Notification): string | null {
   }
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: Translator): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('justNow');
+  if (mins < 60) return t('minutesAgo', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('hoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t('daysAgo', { count: days });
   return new Date(iso).toLocaleDateString();
 }
 
 export function NotificationBell({ role }: { role: string }) {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('notifications');
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -127,22 +131,22 @@ export function NotificationBell({ role }: { role: string }) {
       <button
         type="button"
         onClick={handleToggle}
-        aria-label="Notifications"
+        aria-label={t('title')}
         className="relative flex items-center justify-center w-9 h-9 rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
       >
         <Bell className="w-4 h-4" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-red-500 text-white px-1 leading-none">
+          <span className="absolute -top-0.5 -inset-e-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-red-500 text-white px-1 leading-none">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl border border-zinc-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute inset-e-0 top-full mt-2 w-80 bg-white rounded-xl border border-zinc-200 shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-150">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-            <p className="text-sm font-semibold">Notifications</p>
+            <p className="text-sm font-semibold">{t('title')}</p>
             {unread > 0 && (
               <button
                 type="button"
@@ -151,7 +155,7 @@ export function NotificationBell({ role }: { role: string }) {
                 className="text-xs text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-1"
               >
                 <Check className="w-3 h-3" />
-                Mark all as read
+                {t('markAllRead')}
               </button>
             )}
           </div>
@@ -160,7 +164,7 @@ export function NotificationBell({ role }: { role: string }) {
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
               <div className="px-4 py-12 text-center text-xs text-zinc-400">
-                No notifications yet
+                {t('empty')}
               </div>
             ) : (
               items.map((n) => (
@@ -168,7 +172,7 @@ export function NotificationBell({ role }: { role: string }) {
                   key={n.id}
                   type="button"
                   onClick={() => handleClickItem(n)}
-                  className={`w-full flex items-start gap-3 px-4 py-3 border-b border-zinc-50 last:border-b-0 hover:bg-zinc-50 transition-colors text-left ${
+                  className={`w-full flex items-start gap-3 px-4 py-3 border-b border-zinc-50 last:border-b-0 hover:bg-zinc-50 transition-colors text-start ${
                     !n.is_read ? 'bg-blue-50/40' : ''
                   }`}
                 >
@@ -180,7 +184,7 @@ export function NotificationBell({ role }: { role: string }) {
                       {n.title}
                     </p>
                     <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2">{n.body}</p>
-                    <p className="text-[10px] text-zinc-400 mt-1">{timeAgo(n.created_at)}</p>
+                    <p className="text-[10px] text-zinc-400 mt-1">{timeAgo(n.created_at, t)}</p>
                   </div>
                 </button>
               ))

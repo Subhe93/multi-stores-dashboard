@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Plus, Trash2, X, ImageIcon, Pencil, Package } from 'lucide-react';
 import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 export interface VariantOption {
   name: string;
@@ -100,12 +103,14 @@ function ColorEditorPopover({
   dualHex,
   onChange,
   children,
+  t,
 }: {
   value: string;
   hex?: string;
   dualHex?: [string, string];
   onChange: (next: { hex?: string; dualHex?: [string, string] }) => void;
   children: React.ReactNode;
+  t: Translator;
 }) {
   const isDual = !!dualHex;
   const primary = isDual ? dualHex![0] : (hex || '#000000');
@@ -131,7 +136,7 @@ function ColorEditorPopover({
     <Popover>
       <PopoverTrigger
         className="rounded-full ring-1 ring-zinc-200 hover:ring-blue-400 transition shrink-0"
-        title="Edit color"
+        title={t('variant.editColor')}
         style={{ height: '18px' }}
       >
         {children}
@@ -141,16 +146,16 @@ function ColorEditorPopover({
           <div className="flex items-center gap-2">
             <ColorSwatch hex={isDual ? undefined : primary} dualHex={isDual ? [primary, secondary] : undefined} size={28} />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold truncate">{value || 'Untitled color'}</p>
+              <p className="text-xs font-semibold truncate">{value || t('variant.untitledColor')}</p>
               <p className="text-[10px] text-muted-foreground">
-                {isDual ? 'Two-tone color' : 'Solid color'}
+                {isDual ? t('variant.twoToneColor') : t('variant.solidColor')}
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Primary color</Label>
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t('variant.primaryColor')}</Label>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -188,13 +193,13 @@ function ColorEditorPopover({
           {isDual && (
             <div className="space-y-2 pt-1 border-t">
               <div className="flex items-center justify-between pt-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Second color</Label>
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t('variant.secondColor')}</Label>
                 <button
                   type="button"
                   onClick={disableDual}
                   className="text-[10px] text-red-600 hover:underline"
                 >
-                  Remove
+                  {t('common.remove')}
                 </button>
               </div>
               <div className="flex items-center gap-2">
@@ -225,7 +230,7 @@ function ColorEditorPopover({
               onClick={enableDual}
               className="w-full text-xs text-primary hover:underline flex items-center justify-center gap-1 py-1 border-t pt-2"
             >
-              <Plus className="w-3 h-3" /> Add a second color
+              <Plus className="w-3 h-3" /> {t('variant.addSecondColor')}
             </button>
           )}
         </div>
@@ -235,6 +240,7 @@ function ColorEditorPopover({
 }
 
 export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage }: VariantManagerProps) {
+  const t = useTranslations();
   const { currency } = useCurrency();
   const [newValue, setNewValue] = useState<Record<number, string>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -339,7 +345,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
   };
 
   const deleteSelected = () => {
-    if (!confirm(`Delete ${selected.size} variant(s)?`)) return;
+    if (!confirm(t('variant.confirmDeleteSelected', { count: selected.size }))) return;
     onVariantsChange(variants.filter(v => !selected.has(v._key)));
     setSelected(new Set());
   };
@@ -484,12 +490,12 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-semibold">Variants</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('variant.variants')}</CardTitle>
             {variants.length > 0 && <Badge variant="secondary" className="text-[10px]">{variants.length}</Badge>}
           </div>
           <Button variant="ghost" size="sm" className="h-7 text-xs text-primary"
             onClick={() => onOptionsChange([...options, { name: '', style: 'text', values: [] }])}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> Add new option
+            <Plus className="w-3.5 h-3.5 mr-1" /> {t('variant.addNewOption')}
           </Button>
         </div>
       </CardHeader>
@@ -499,21 +505,21 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
         {options.map((option, oi) => (
           <div key={oi} className="flex items-start gap-3 pb-4 border-b last:border-0">
             <div className="w-32 shrink-0 space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground">Option name</label>
-              <Input className="h-8 text-sm" placeholder="Color"
+              <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionName')}</label>
+              <Input className="h-8 text-sm" placeholder={t('variant.optionNamePlaceholder')}
                 value={option.name} onChange={e => { const u = [...options]; u[oi] = { ...u[oi]!, name: e.target.value }; onOptionsChange(u); }} />
             </div>
             <div className="w-24 shrink-0 space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground">Option style</label>
+              <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionStyle')}</label>
               <select className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm"
                 value={option.style} onChange={e => { const u = [...options]; u[oi] = { ...u[oi]!, style: e.target.value as any }; onOptionsChange(u); }}>
-                <option value="text">Text</option>
-                <option value="color">Color</option>
-                <option value="image">Image</option>
+                <option value="text">{t('variant.styleText')}</option>
+                <option value="color">{t('variant.styleColor')}</option>
+                <option value="image">{t('variant.styleImage')}</option>
               </select>
             </div>
             <div className="flex-1 space-y-1">
-              <label className="text-[10px] font-medium text-muted-foreground">Option values</label>
+              <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionValues')}</label>
 
               {/* Existing values as chips */}
               <div className="flex flex-wrap items-center gap-1.5 p-1.5 min-h-8 border rounded-md bg-background">
@@ -532,6 +538,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                           hex={hex}
                           dualHex={dual}
                           onChange={(next) => updateColorForValue(oi, val, next)}
+                          t={t}
                         >
                           <ColorSwatch hex={hex} dualHex={dual} size={18} />
                         </ColorEditorPopover>
@@ -540,7 +547,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                           type="button"
                           onClick={() => removeValue(oi, vi)}
                           className="hover:text-red-500 transition p-0.5 text-zinc-400"
-                          title="Remove"
+                          title={t('common.remove')}
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -561,7 +568,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     For color values, the chip's swatch then opens a popover for hex / dual color. */}
                 <input
                   className="flex-1 min-w-32 text-sm bg-transparent outline-none placeholder:text-muted-foreground px-1"
-                  placeholder={option.style === 'color' ? 'Add color name and press Enter' : 'Type and press Enter'}
+                  placeholder={option.style === 'color' ? t('variant.addColorPlaceholder') : t('variant.addValuePlaceholder')}
                   value={newValue[oi] || ''}
                   onChange={e => setNewValue({ ...newValue, [oi]: e.target.value })}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addValue(oi); } }}
@@ -577,7 +584,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
 
         {options.length === 0 && (
           <div className="text-center py-8 text-sm text-muted-foreground">
-            No options yet. Click "+ Add new option" to create Size, Color, etc.
+            {t('variant.noOptions')}
           </div>
         )}
 
@@ -586,9 +593,9 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           <div className="pt-2">
             {/* Quick filter bar */}
             <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-              <span className="text-xs font-medium text-muted-foreground mr-1">Select</span>
-              <button onClick={selectAll} className="text-xs text-primary hover:underline font-medium">All</button>
-              <button onClick={selectNone} className="text-xs text-primary hover:underline font-medium">None</button>
+              <span className="text-xs font-medium text-muted-foreground mr-1">{t('variant.select')}</span>
+              <button onClick={selectAll} className="text-xs text-primary hover:underline font-medium">{t('variant.all')}</button>
+              <button onClick={selectNone} className="text-xs text-primary hover:underline font-medium">{t('variant.none')}</button>
               {allFilterValues.map((fv, i) => (
                 <button key={i} onClick={() => selectByValue(fv.optionName, fv.value)}
                   className="text-xs text-primary hover:underline font-medium flex items-center gap-1">
@@ -611,7 +618,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   checked={selected.size === variants.length && variants.length > 0}
                   onChange={() => selected.size === variants.length ? selectNone() : selectAll()} />
                 <span className="text-xs font-medium text-muted-foreground">
-                  {selected.size > 0 ? `${selected.size} Variant${selected.size > 1 ? 's' : ''} Selected` : `${variants.length} variants`}
+                  {selected.size > 0 ? t('variant.selectedCount', { count: selected.size }) : t('variant.variantsCount', { count: variants.length })}
                 </span>
               </label>
 
@@ -620,19 +627,19 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   <div className="h-4 w-px bg-zinc-200" />
                   <button onClick={() => { setBulkPriceVal(''); setBulkCompareVal(''); setShowBulkPrice(true); }}
                     className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition">
-                    <Pencil className="w-3 h-3" /> Edit price
+                    <Pencil className="w-3 h-3" /> {t('variant.editPrice')}
                   </button>
                   <button onClick={() => { setBulkStockVal(''); setShowBulkStock(true); }}
                     className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition">
-                    <Pencil className="w-3 h-3" /> Edit stock
+                    <Pencil className="w-3 h-3" /> {t('variant.editStock')}
                   </button>
                   <button onClick={applyBulkImage}
                     className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition">
-                    <ImageIcon className="w-3 h-3" /> Add image
+                    <ImageIcon className="w-3 h-3" /> {t('variant.addImage')}
                   </button>
                   <button onClick={deleteSelected}
                     className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition">
-                    <Trash2 className="w-3 h-3" /> Delete
+                    <Trash2 className="w-3 h-3" /> {t('common.delete')}
                   </button>
                 </>
               )}
@@ -653,7 +660,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     setShowSamePriceAll(true);
                   }}
                 >
-                  <Pencil className="w-3 h-3 mr-1" /> Same price for all
+                  <Pencil className="w-3 h-3 mr-1" /> {t('variant.samePriceForAll')}
                 </Button>
 
                 {optionNames.length > 0 && (
@@ -664,7 +671,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     className="h-7 text-xs"
                     onClick={openPricePerOption}
                   >
-                    <Pencil className="w-3 h-3 mr-1" /> Set price per option
+                    <Pencil className="w-3 h-3 mr-1" /> {t('variant.setPricePerOption')}
                   </Button>
                 )}
               </div>
@@ -683,13 +690,13 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                 <span className={`w-1.5 h-1.5 rounded-full ${pricingStatus.allSame ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                 {pricingStatus.allSame ? (
                   <>
-                    All variants share the same price
+                    {t('variant.allSamePrice')}
                     <span className="font-semibold ml-0.5">
                       ({currency} {(pricingStatus.sharedPrice ?? 0).toFixed(2)})
                     </span>
                   </>
                 ) : (
-                  'Prices vary across variants'
+                  t('variant.pricesVary')
                 )}
               </div>
             )}
@@ -736,24 +743,24 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
 
                   {/* Price */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <Input type="number" step="0.01" className="h-8 text-xs w-24" placeholder="Price"
+                    <Input type="number" step="0.01" className="h-8 text-xs w-24" placeholder={t('variant.price')}
                       value={v.price || ''} onChange={e => updateVariant(v._key, 'price', parseFloat(e.target.value) || 0)} />
                     <Package className="w-3 h-3 text-zinc-300" />
                   </div>
 
                   {/* Compare at price */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <Input type="number" step="0.01" className="h-8 text-xs w-28" placeholder="Compare"
+                    <Input type="number" step="0.01" className="h-8 text-xs w-28" placeholder={t('variant.compare')}
                       value={v.compare_at_price || ''} onChange={e => updateVariant(v._key, 'compare_at_price', parseFloat(e.target.value) || 0)} />
                     <Package className="w-3 h-3 text-zinc-300" />
                   </div>
 
                   {/* SKU */}
-                  <Input className="h-8 text-xs w-32 font-mono shrink-0" placeholder="SKU"
+                  <Input className="h-8 text-xs w-32 font-mono shrink-0" placeholder={t('variant.sku')}
                     value={v.sku} onChange={e => updateVariant(v._key, 'sku', e.target.value)} />
 
                   {/* Stock */}
-                  <Input type="number" className="h-8 text-xs w-24 shrink-0" placeholder="Stock"
+                  <Input type="number" className="h-8 text-xs w-24 shrink-0" placeholder={t('variant.stock')}
                     value={v.stock_quantity ?? ''} onChange={e => updateVariant(v._key, 'stock_quantity', e.target.value === '' ? null : parseInt(e.target.value) || 0)} />
 
                   <div className="flex-1" />
@@ -772,24 +779,24 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       {/* Bulk Edit Price Dialog */}
       <Dialog open={showBulkPrice} onOpenChange={setShowBulkPrice}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Edit Price — {selected.size} variant{selected.size > 1 ? 's' : ''}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('variant.editPriceTitle', { count: selected.size })}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Price</Label>
+              <Label className="text-xs">{t('variant.price')}</Label>
               <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder="Leave empty to keep current"
+                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
                   value={bulkPriceVal} onChange={e => setBulkPriceVal(e.target.value)} /></div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Compare at price</Label>
+              <Label className="text-xs">{t('variant.compareAtPrice')}</Label>
               <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder="Leave empty to keep current"
+                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
                   value={bulkCompareVal} onChange={e => setBulkCompareVal(e.target.value)} /></div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowBulkPrice(false)}>Cancel</Button>
-            <Button size="sm" onClick={applyBulkPrice}>Apply</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowBulkPrice(false)}>{t('common.cancel')}</Button>
+            <Button size="sm" onClick={applyBulkPrice}>{t('variant.apply')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -797,17 +804,17 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       {/* Bulk Edit Stock Dialog */}
       <Dialog open={showBulkStock} onOpenChange={setShowBulkStock}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Edit Stock — {selected.size} variant{selected.size > 1 ? 's' : ''}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('variant.editStockTitle', { count: selected.size })}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Stock Quantity</Label>
-              <Input type="number" className="h-9 text-sm" placeholder="Set stock for selected variants"
+              <Label className="text-xs">{t('variant.stockQuantity')}</Label>
+              <Input type="number" className="h-9 text-sm" placeholder={t('variant.setStockPlaceholder')}
                 value={bulkStockVal} onChange={e => setBulkStockVal(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowBulkStock(false)}>Cancel</Button>
-            <Button size="sm" onClick={applyBulkStock}>Apply</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowBulkStock(false)}>{t('common.cancel')}</Button>
+            <Button size="sm" onClick={applyBulkStock}>{t('variant.apply')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -816,14 +823,14 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       <Dialog open={showSamePriceAll} onOpenChange={setShowSamePriceAll}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Same price for all variants</DialogTitle>
+            <DialogTitle>{t('variant.samePriceTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-xs text-muted-foreground">
-              Sets the same price on every variant ({variants.length} total).
+              {t('variant.samePriceDesc', { count: variants.length })}
             </p>
             <div className="space-y-1.5">
-              <Label className="text-xs">Price</Label>
+              <Label className="text-xs">{t('variant.price')}</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
                 <Input
@@ -838,14 +845,14 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Compare at price <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label className="text-xs">{t('variant.compareAtPrice')} <span className="text-muted-foreground font-normal">{t('variant.optional')}</span></Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
                 <Input
                   type="number"
                   step="0.01"
                   className="pl-14 h-9 text-sm"
-                  placeholder="Leave empty to keep current"
+                  placeholder={t('variant.leaveEmptyKeep')}
                   value={sameCompareVal}
                   onChange={e => setSameCompareVal(e.target.value)}
                 />
@@ -853,9 +860,9 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowSamePriceAll(false)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowSamePriceAll(false)}>{t('common.cancel')}</Button>
             <Button size="sm" onClick={applySamePriceAll} disabled={!samePriceVal || isNaN(parseFloat(samePriceVal))}>
-              Apply to all {variants.length}
+              {t('variant.applyToAll', { count: variants.length })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -866,15 +873,15 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       <Dialog open={showPricePerOption} onOpenChange={setShowPricePerOption}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Set price per option</DialogTitle>
+            <DialogTitle>{t('variant.setPricePerOption')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-xs text-muted-foreground">
-              Pick one option (e.g. Size). Every variant with the same value gets the same price.
+              {t('variant.pricePerOptionDesc')}
             </p>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Pricing depends on</Label>
+              <Label className="text-xs">{t('variant.pricingDependsOn')}</Label>
               <select
                 className="w-full h-9 text-sm border rounded-md px-3 bg-background"
                 value={pricePerOption}
@@ -894,8 +901,8 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
               <div className="space-y-2 max-h-64 overflow-y-auto -mx-1 px-1">
                 <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-[10px] text-muted-foreground uppercase tracking-wide pb-1 border-b">
                   <span>{pricePerOption}</span>
-                  <span className="w-24 text-right">Price</span>
-                  <span className="w-24 text-right">Compare</span>
+                  <span className="w-24 text-right">{t('variant.price')}</span>
+                  <span className="w-24 text-right">{t('variant.compare')}</span>
                 </div>
                 {selectedOptionValues.map(val => (
                   <div key={val} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
@@ -922,13 +929,13 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowPricePerOption(false)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowPricePerOption(false)}>{t('common.cancel')}</Button>
             <Button
               size="sm"
               onClick={applyPricePerOption}
               disabled={!pricePerOption || Object.values(pricePerValueMap).every(v => !v || isNaN(parseFloat(v)))}
             >
-              Apply
+              {t('variant.apply')}
             </Button>
           </DialogFooter>
         </DialogContent>

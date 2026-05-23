@@ -9,6 +9,7 @@
 // and through `onSave` (debounced by the parent) to persist to the API.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Camera, ChevronDown, Loader2, Palette, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,12 +76,14 @@ const FONT_SELECT_OPTIONS = FONT_OPTIONS.map((f) => ({ value: f, label: f }));
 
 type TypographyKey = 'heading' | 'body' | 'button' | 'link' | 'header';
 
-const TYPOGRAPHY_FIELDS: { key: TypographyKey; label: { en: string; ar: string }; hint: string }[] = [
-  { key: 'heading', label: { en: 'Headings', ar: 'العناوين' }, hint: 'h1 / h2 / h3' },
-  { key: 'body', label: { en: 'Paragraphs', ar: 'الفقرات' }, hint: 'p / li / span' },
-  { key: 'button', label: { en: 'Buttons', ar: 'الأزرار' }, hint: 'button labels' },
-  { key: 'link', label: { en: 'Links', ar: 'الروابط' }, hint: 'a tags' },
-  { key: 'header', label: { en: 'Header bar', ar: 'الهيدر' }, hint: 'top nav' },
+// Per-element typography rows. `labelKey` resolves to a translated chrome label
+// via the builder namespace; `hint` stays an illustrative CSS-selector literal.
+const TYPOGRAPHY_FIELDS: { key: TypographyKey; labelKey: string; hint: string }[] = [
+  { key: 'heading', labelKey: 'typoHeadings', hint: 'h1 / h2 / h3' },
+  { key: 'body', labelKey: 'typoParagraphs', hint: 'p / li / span' },
+  { key: 'button', labelKey: 'typoButtons', hint: 'button labels' },
+  { key: 'link', labelKey: 'typoLinks', hint: 'a tags' },
+  { key: 'header', labelKey: 'typoHeaderBar', hint: 'top nav' },
 ];
 
 // Debounce window for autosave. Long enough to coalesce a flurry of slider
@@ -105,7 +108,11 @@ export function ThemePanel({
   onTokensChange,
   onTokensSave,
 }: ThemePanelProps) {
-  const ar = primaryLocale === 'ar';
+  // `primaryLocale` is the store-content locale — it still drives the theme's
+  // own display name (theme label) and is forwarded to ThemeSwitcher /
+  // ThemeCustomizer. The panel's own chrome is translated via `tb` (dashboard
+  // UI locale).
+  const tb = useTranslations('builder');
 
   // Controlled component: values live on the parent, we read them as props.
   // The only local UI state is the transient "Saved" tick. Mirroring props
@@ -229,17 +236,17 @@ export function ThemePanel({
           </div>
           <div className="min-w-0">
             <div className="text-[12.5px] font-semibold text-zinc-900 leading-tight">
-              {ar ? 'تصميم المتجر' : 'Store design'}
+              {tb('storeDesign')}
             </div>
             <div className="text-[10px] text-zinc-500 leading-tight">
-              {ar ? 'يطبق على كل الصفحات' : 'Applies to every page'}
+              {tb('appliesEveryPage')}
             </div>
           </div>
         </div>
         {savedTick && (
           <span className="text-[10px] font-medium text-emerald-600 inline-flex items-center gap-1 shrink-0">
             <span className="size-1.5 rounded-full bg-emerald-500" />
-            {ar ? 'محفوظ' : 'Saved'}
+            {tb('saved')}
           </span>
         )}
       </header>
@@ -247,7 +254,7 @@ export function ThemePanel({
       {/* ── Body ──────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto inspector-scroll p-3 space-y-3">
         {/* ── Template picker ───────────────────────────── */}
-        <Group title={ar ? 'القالب' : 'Template'}>
+        <Group title={tb('template')}>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <span className="size-3 rounded-full ring-1 ring-zinc-200" style={{ background: t.swatch.primary }} />
@@ -256,15 +263,15 @@ export function ThemePanel({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[11.5px] font-medium text-zinc-900 truncate flex items-center gap-1.5">
-                {isCustomized ? (ar ? 'مخصّص' : 'Custom') : (t.label[primaryLocale] || t.label.en)}
+                {isCustomized ? tb('custom') : (t.label[primaryLocale] || t.label.en)}
                 {isCustomized && (
                   <span className="text-[8.5px] uppercase tracking-wide px-1 py-px rounded bg-indigo-50 text-indigo-600 font-bold shrink-0">
-                    {ar ? 'تيمبليت' : 'Template'}
+                    {tb('templateBadge')}
                   </span>
                 )}
               </div>
               <div className="text-[9.5px] text-zinc-500 truncate">
-                {isCustomized ? (ar ? `مبني على ${t.label[primaryLocale] || t.label.en}` : `Based on ${t.label.en}`) : t.fontHeading}
+                {isCustomized ? tb('basedOn', { name: t.label[primaryLocale] || t.label.en }) : t.fontHeading}
               </div>
             </div>
             <ThemeSwitcher
@@ -274,7 +281,7 @@ export function ThemePanel({
               onApply={handleApplyTemplate}
               trigger={
                 <Button size="sm" variant="outline" className="h-7 text-[11px] shrink-0">
-                  {ar ? 'تغيير' : 'Change'}
+                  {tb('change')}
                 </Button>
               }
             />
@@ -289,7 +296,7 @@ export function ThemePanel({
             trigger={
               <Button size="sm" variant="outline" className="w-full h-8 text-[11px] mt-2 gap-1.5">
                 <Palette className="size-3.5" />
-                {ar ? 'تخصيص الثيم (ألوان وخطوط)' : 'Customize theme (colors & fonts)'}
+                {tb('customizeThemeColorsFonts')}
               </Button>
             }
           />
@@ -299,20 +306,18 @@ export function ThemePanel({
         {/* The theme palette is edited via "Customize theme" above (previews
             live). These are optional hard overrides for the storefront brand
             colour, kept for advanced use. */}
-        <Group title={ar ? 'تجاوز لون العلامة (متقدّم)' : 'Brand override (advanced)'} defaultOpen={false}>
+        <Group title={tb('brandOverride')} defaultOpen={false}>
           <p className="text-[10px] text-zinc-400 leading-snug mb-1">
-            {ar
-              ? 'اترك هذه فارغة لاستخدام ألوان الثيم. املأها فقط لفرض لون علامة محدّد.'
-              : 'Leave empty to use the theme colors. Fill only to force a specific brand color.'}
+            {tb('brandOverrideHint')}
           </p>
           <ColorRow
-            label={ar ? 'الأساسي' : 'Primary'}
+            label={tb('primary')}
             value={c.primaryColor || ''}
             placeholder="#2563eb"
             onChange={(v) => set({ primaryColor: v })}
           />
           <ColorRow
-            label={ar ? 'الثانوي' : 'Secondary'}
+            label={tb('secondary')}
             value={c.secondaryColor || ''}
             placeholder="#1e40af"
             onChange={(v) => set({ secondaryColor: v })}
@@ -320,24 +325,22 @@ export function ThemePanel({
         </Group>
 
         {/* ── Default font ──────────────────────────────── */}
-        <Group title={ar ? 'الخط الافتراضي' : 'Default font'}>
+        <Group title={tb('defaultFont')}>
           <SearchableSelect
             value={c.fontFamily || ''}
             onChange={(v) => set({ fontFamily: v })}
             options={FONT_SELECT_OPTIONS}
-            placeholder={ar ? 'اختر خط…' : 'Select font…'}
+            placeholder={tb('selectFont')}
           />
           <p className="text-[10px] text-zinc-400 leading-snug mt-1.5">
-            {ar
-              ? 'يُستخدم حين لا يكون لعنصر معيّن خط مخصّص أدناه.'
-              : 'Used when no per-element font is set below.'}
+            {tb('defaultFontHint')}
           </p>
         </Group>
 
         {/* ── Per-element typography ────────────────────── */}
-        <Group title={ar ? 'الخطوط لكل عنصر' : 'Typography'} defaultOpen={false}>
+        <Group title={tb('typography')} defaultOpen={false}>
           <div className="space-y-3">
-            {TYPOGRAPHY_FIELDS.map(({ key, label, hint }) => {
+            {TYPOGRAPHY_FIELDS.map(({ key, labelKey, hint }) => {
               const value = c.typography?.[key] || {};
               const previewFont = value.fontFamily || c.fontFamily || 'inherit';
               const previewColor = value.color || '#111827';
@@ -347,7 +350,7 @@ export function ThemePanel({
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-[11.5px] font-medium text-zinc-800">
-                        {label[ar ? 'ar' : 'en']}
+                        {tb(labelKey)}
                       </div>
                       <div className="text-[9.5px] text-zinc-400">{hint}</div>
                     </div>
@@ -361,14 +364,14 @@ export function ThemePanel({
                   <SearchableSelect
                     value={value.fontFamily || ''}
                     onChange={(v) => setTypo(key, 'fontFamily', v)}
-                    options={[{ value: '', label: ar ? 'وراثة الخط الافتراضي' : 'Inherit default' }, ...FONT_SELECT_OPTIONS]}
-                    placeholder={ar ? 'وراثة' : 'Inherit'}
+                    options={[{ value: '', label: tb('inheritDefault') }, ...FONT_SELECT_OPTIONS]}
+                    placeholder={tb('inherit')}
                   />
                   <div className="grid grid-cols-[1fr_auto] gap-1.5">
                     <ColorRow
                       label=""
                       value={value.color || ''}
-                      placeholder={ar ? 'وراثة' : 'inherit'}
+                      placeholder={tb('inheritLower')}
                       onChange={(v) => setTypo(key, 'color', v)}
                       compact
                     />
@@ -393,7 +396,7 @@ export function ThemePanel({
                           type="button"
                           onClick={() => setTypo(key, 'fontSize', undefined)}
                           className="text-zinc-400 hover:text-zinc-900"
-                          title={ar ? 'مسح' : 'Clear'}
+                          title={tb('clear')}
                         >
                           <X className="size-3" />
                         </button>
@@ -407,10 +410,10 @@ export function ThemePanel({
         </Group>
 
         {/* ── Header layout ─────────────────────────────── */}
-        <Group title={ar ? 'الهيدر' : 'Header'}>
+        <Group title={tb('header')}>
           <div className="flex items-center justify-between min-h-9">
             <span className="text-[11.5px] font-medium text-zinc-700">
-              {ar ? 'إظهار اسم المتجر' : 'Show store name'}
+              {tb('showStoreName')}
             </span>
             <Switch
               checked={c.header?.showStoreName !== false}
@@ -420,7 +423,7 @@ export function ThemePanel({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label className="text-[11.5px] font-medium text-zinc-700">
-                {ar ? 'حجم الشعار' : 'Logo size'}
+                {tb('logoSize')}
               </Label>
               <span className="text-[10.5px] font-mono text-zinc-500">{c.header?.logoSize ?? 32}px</span>
             </div>
@@ -450,7 +453,7 @@ export function ThemePanel({
         </Group>
 
         {/* ── Logo & Favicon ────────────────────────────── */}
-        <Group title={ar ? 'الشعار والـ Favicon' : 'Logo & favicon'} defaultOpen={false}>
+        <Group title={tb('logoAndFavicon')} defaultOpen={false}>
           <div className="grid grid-cols-2 gap-2">
             <ImageUpload
               token={token}
@@ -458,7 +461,7 @@ export function ThemePanel({
               folder="logos"
               url={logo}
               onChange={setLogoUrl}
-              label={ar ? 'الشعار' : 'Logo'}
+              label={tb('logo')}
             />
             <ImageUpload
               token={token}
@@ -466,7 +469,7 @@ export function ThemePanel({
               folder="favicons"
               url={favicon}
               onChange={setFaviconUrl}
-              label={ar ? 'Favicon' : 'Favicon'}
+              label={tb('favicon')}
               square
             />
           </div>
@@ -512,7 +515,7 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       <span
         className={cn(
           'inline-block size-4 rounded-full bg-white shadow transition-transform',
-          checked ? 'translate-x-4.5 rtl:-translate-x-4.5' : 'translate-x-0.5',
+          checked ? 'translate-x-4.5 rtl:-translate-x-4.5' : 'translate-x-0.5 rtl:-translate-x-0.5',
         )}
       />
     </button>
@@ -532,6 +535,7 @@ function ColorRow({
   onChange: (v: string) => void;
   compact?: boolean;
 }) {
+  const tb = useTranslations('builder');
   return (
     <div className={compact ? 'flex items-center gap-1.5' : 'flex items-center justify-between gap-2'}>
       {label && (
@@ -555,7 +559,7 @@ function ColorRow({
             type="button"
             onClick={() => onChange('')}
             className="text-zinc-400 hover:text-zinc-900 shrink-0"
-            title="Clear"
+            title={tb('clear')}
           >
             <X className="size-3" />
           </button>
@@ -582,6 +586,8 @@ function ImageUpload({
   label: string;
   square?: boolean;
 }) {
+  const tb = useTranslations('builder');
+  const tc = useTranslations('common');
   const [uploading, setUploading] = useState(false);
   const resolved = url.startsWith('http') ? url : url ? `${apiBase.replace(/\/api$/, '')}${url}` : '';
 
@@ -621,7 +627,7 @@ function ImageUpload({
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-zinc-400">
             <Camera className="size-4" />
-            <span className="text-[10px] font-medium">Upload</span>
+            <span className="text-[10px] font-medium">{tb('upload')}</span>
           </div>
         )}
         <input
@@ -640,7 +646,7 @@ function ImageUpload({
           onClick={() => onChange('')}
           className="text-[10px] text-zinc-500 hover:text-red-600 inline-flex items-center gap-1"
         >
-          <X className="size-3" /> Remove
+          <X className="size-3" /> {tc('remove')}
         </button>
       )}
     </div>

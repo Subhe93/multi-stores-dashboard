@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +28,7 @@ import { useCurrency } from '@/lib/useCurrency';
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -80,17 +81,19 @@ interface CustomProduct {
   };
 }
 
+type Translator = ReturnType<typeof useTranslations>;
+
 // Status options shown in the dropdown — provider-base products require review,
 // so PUBLISHED isn't directly selectable; creators use the Submit for Review button.
-const STATUS_OPTIONS_FREE = [
-  { value: 'DRAFT', label: 'Draft', description: 'Not visible in your store' },
-  { value: 'PUBLISHED', label: 'Published', description: 'Visible and available to buy' },
-  { value: 'ARCHIVED', label: 'Archived', description: 'Hidden, no longer for sale' },
+const buildStatusOptionsFree = (t: Translator) => [
+  { value: 'DRAFT', label: t('editCustomProduct.statusDraft'), description: t('editCustomProduct.statusDraftDesc') },
+  { value: 'PUBLISHED', label: t('editCustomProduct.statusPublished'), description: t('editCustomProduct.statusPublishedDesc') },
+  { value: 'ARCHIVED', label: t('editCustomProduct.statusArchived'), description: t('editCustomProduct.statusArchivedDesc') },
 ];
 
-const STATUS_OPTIONS_REVIEW = [
-  { value: 'DRAFT', label: 'Draft', description: 'Not visible in your store' },
-  { value: 'ARCHIVED', label: 'Archived', description: 'Hidden, no longer for sale' },
+const buildStatusOptionsReview = (t: Translator) => [
+  { value: 'DRAFT', label: t('editCustomProduct.statusDraft'), description: t('editCustomProduct.statusDraftDesc') },
+  { value: 'ARCHIVED', label: t('editCustomProduct.statusArchived'), description: t('editCustomProduct.statusArchivedDesc') },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -109,6 +112,8 @@ export default function EditCustomProduct() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
   const [product, setProduct] = useState<CustomProduct | null>(null);
@@ -219,8 +224,8 @@ export default function EditCustomProduct() {
       // Translations
       const merged: Record<string, LocaleTranslation> = {};
       all.forEach((l) => { merged[l] = { title: '', description: '', slug: '' }; });
-      (productRes.translations || []).forEach((t) => {
-        merged[t.locale] = { title: t.title || '', description: t.description || '', slug: t.slug || '' };
+      (productRes.translations || []).forEach((tr) => {
+        merged[tr.locale] = { title: tr.title || '', description: tr.description || '', slug: tr.slug || '' };
       });
       setTranslations(merged);
 
@@ -285,12 +290,12 @@ export default function EditCustomProduct() {
     setSaveError('');
     try {
       const translationsPayload = Object.entries(translations)
-        .filter(([, t]) => t.title.trim())
-        .map(([locale, t]) => ({
+        .filter(([, tr]) => tr.title.trim())
+        .map(([locale, tr]) => ({
           locale,
-          title: t.title,
-          description: t.description || undefined,
-          slug: t.slug || t.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100),
+          title: tr.title,
+          description: tr.description || undefined,
+          slug: tr.slug || tr.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100),
         }));
 
       const body: any = {
@@ -348,7 +353,7 @@ export default function EditCustomProduct() {
       return true;
     } catch (err) {
       const e = err as { message?: string };
-      setSaveError(e?.message || 'Failed to save changes');
+      setSaveError(e?.message || t('editCustomProduct.failedSave'));
       return false;
     } finally {
       setSaving(false);
@@ -367,7 +372,7 @@ export default function EditCustomProduct() {
       fetchAll();
     } catch (err) {
       const e = err as { message?: string };
-      setSaveError(e?.message || 'Failed to submit for review');
+      setSaveError(e?.message || t('editCustomProduct.failedSubmit'));
     } finally {
       setSaving(false);
     }
@@ -379,15 +384,15 @@ export default function EditCustomProduct() {
     router.push('/creator/custom-products');
   };
 
-  if (loading) return <p className="text-sm text-muted-foreground p-6">Loading...</p>;
-  if (!product) return <p className="text-sm text-muted-foreground p-6">Product not found.</p>;
+  if (loading) return <p className="text-sm text-muted-foreground p-6">{tc('loading')}</p>;
+  if (!product) return <p className="text-sm text-muted-foreground p-6">{t('editCustomProduct.notFound')}</p>;
 
   // Does the base product belong to a provider? If so → review workflow applies.
   const requiresReview = !!product.product.provider_id;
   const canSubmitForReview = requiresReview && (status === 'DRAFT' || status === 'REJECTED' || product.status === 'REJECTED');
 
   const basePrice = Number(product.product.base_price);
-  const providerName = product.product.translations.find((t) => t.locale === 'en')?.title || '—';
+  const providerName = product.product.translations.find((tr) => tr.locale === 'en')?.title || '—';
   const hasMultipleLocales = allLocales.length > 1;
   const isRtl = RTL_LOCALES.includes(activeLocale);
   const primaryTitle = translations[primaryLocale]?.title || '';
@@ -399,11 +404,11 @@ export default function EditCustomProduct() {
     <div className="space-y-6 max-w-6xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold tracking-tight">Edit Custom Product</h1>
-          <p className="text-sm text-muted-foreground">Update pricing and details</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('editCustomProduct.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('editCustomProduct.subtitle')}</p>
         </div>
         <Badge
           variant="outline"
@@ -413,10 +418,10 @@ export default function EditCustomProduct() {
               : 'bg-purple-50 text-purple-700 border-purple-200'
           }`}
         >
-          {product.import_mode === 'AS_IS' ? 'Imported as-is' : 'Customized'}
+          {product.import_mode === 'AS_IS' ? t('editCustomProduct.importedAsIs') : t('editCustomProduct.customized')}
         </Badge>
         <Badge variant="secondary" className={`text-[10px] font-semibold ${STATUS_COLORS[status] || ''}`}>
-          {status}
+          {t(`editCustomProduct.status_${status}`)}
         </Badge>
       </div>
 
@@ -431,10 +436,10 @@ export default function EditCustomProduct() {
         <CardContent className="py-3 flex items-center gap-3">
           <Package className="w-4 h-4 text-muted-foreground shrink-0" />
           <div>
-            <p className="text-xs text-muted-foreground">Provider Product</p>
+            <p className="text-xs text-muted-foreground">{t('editCustomProduct.providerProduct')}</p>
             <p className="text-sm font-medium">{providerName}</p>
           </div>
-          <Badge variant="secondary" className="ml-auto text-[10px]">Base: {fmt(basePrice)}</Badge>
+          <Badge variant="secondary" className="ml-auto text-[10px]">{t('editCustomProduct.basePrice', { price: fmt(basePrice) })}</Badge>
         </CardContent>
       </Card>
 
@@ -442,7 +447,7 @@ export default function EditCustomProduct() {
       {product.import_mode === 'CUSTOMIZE' && allVariants.length > 0 && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Selected Variants</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('editCustomProduct.selectedVariants')}</CardTitle>
           </CardHeader>
           <CardContent>
             <VariantSelector
@@ -459,7 +464,7 @@ export default function EditCustomProduct() {
       {hasCustomFields && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Custom Fields</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('editCustomProduct.customFields')}</CardTitle>
           </CardHeader>
           <CardContent>
             <CustomFieldRenderer
@@ -481,9 +486,9 @@ export default function EditCustomProduct() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">
-                Images
+                {t('editCustomProduct.images')}
                 <span className="text-muted-foreground font-normal ml-1 text-xs">
-                  ({selectedImageUrls.length} selected)
+                  {t('editCustomProduct.selectedCount', { count: selectedImageUrls.length })}
                 </span>
               </CardTitle>
               <div className="flex items-center gap-2">
@@ -502,7 +507,7 @@ export default function EditCustomProduct() {
                   }}
                 >
                   {imageUploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
-                  Upload
+                  {t('editCustomProduct.upload')}
                 </Button>
               </div>
             </div>
@@ -510,7 +515,7 @@ export default function EditCustomProduct() {
           <CardContent>
             {selectedImageUrls.length === 0 ? (
               <div className="text-center py-6 text-sm text-muted-foreground">
-                No images yet. Upload or select from the base product below.
+                {t('editCustomProduct.noImagesYet')}
               </div>
             ) : (
               <div className="grid grid-cols-5 gap-2">
@@ -531,7 +536,7 @@ export default function EditCustomProduct() {
                             type="button"
                             onClick={() => setFeaturedImageUrl(url)}
                             className="p-1.5 bg-white rounded-full shadow text-amber-600 hover:text-amber-700"
-                            title="Set as featured"
+                            title={t('editCustomProduct.setAsFeatured')}
                           >
                             <Star className="w-3 h-3" />
                           </button>
@@ -546,7 +551,7 @@ export default function EditCustomProduct() {
                             }
                           }}
                           className="p-1.5 bg-white rounded-full shadow text-red-500 hover:text-red-600"
-                          title="Remove"
+                          title={tc('remove')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -560,7 +565,7 @@ export default function EditCustomProduct() {
             {/* Select from base product */}
             {(product.product.images as any[])?.length > 0 && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Select from base product</p>
+                <p className="text-xs font-medium text-muted-foreground mb-2">{t('editCustomProduct.selectFromBase')}</p>
                 <div className="grid grid-cols-6 gap-1.5">
                   {(product.product.images as any[]).map((img: any, i: number) => {
                     const imgUrl = resolveUrl(img.url);
@@ -604,7 +609,7 @@ export default function EditCustomProduct() {
       {/* Pricing */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Pricing</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('editCustomProduct.pricing')}</CardTitle>
         </CardHeader>
         <CardContent>
           <PricingStrategySelector
@@ -627,7 +632,7 @@ export default function EditCustomProduct() {
       {/* Details — with language tabs */}
       <Card className="shadow-none">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Details</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('editCustomProduct.details')}</CardTitle>
         </CardHeader>
 
         {hasMultipleLocales && (
@@ -646,7 +651,7 @@ export default function EditCustomProduct() {
                 >
                   {LOCALE_LABELS[locale] || locale.toUpperCase()}
                   {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">(primary)</span>}
+                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('editCustomProduct.primaryParen')}</span>}
                 </button>
               );
             })}
@@ -657,7 +662,7 @@ export default function EditCustomProduct() {
           {activeLocale !== primaryLocale && (
             <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
               <span className="text-xs text-muted-foreground">
-                Auto-translate from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                {t('editCustomProduct.autoTranslateFrom')} <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                 {primaryTitle ? `: "${primaryTitle.substring(0, 35)}${primaryTitle.length > 35 ? '…' : ''}"` : ''}
               </span>
               <button
@@ -667,9 +672,9 @@ export default function EditCustomProduct() {
                 className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
               >
                 {translatingLocale === activeLocale ? (
-                  <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
+                  <><Loader2 className="w-3 h-3 animate-spin" /> {t('editCustomProduct.translating')}</>
                 ) : (
-                  <><Languages className="w-3 h-3" /> Auto-translate</>
+                  <><Languages className="w-3 h-3" /> {t('editCustomProduct.autoTranslate')}</>
                 )}
               </button>
             </div>
@@ -677,15 +682,15 @@ export default function EditCustomProduct() {
 
           <div className="space-y-1.5">
             <Label className="text-xs">
-              Title {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+              {t('editCustomProduct.titleLabel')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
             </Label>
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
               placeholder={
                 activeLocale === primaryLocale
-                  ? 'Product title...'
-                  : `Title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`
+                  ? t('editCustomProduct.titlePlaceholder')
+                  : t('editCustomProduct.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
               }
               value={translations[activeLocale]?.title || ''}
               onChange={(e) => setTransField(activeLocale, 'title', e.target.value)}
@@ -694,7 +699,7 @@ export default function EditCustomProduct() {
 
           {activeLocale === primaryLocale && (
             <div className="space-y-1.5">
-              <Label className="text-xs">Slug *</Label>
+              <Label className="text-xs">{t('editCustomProduct.slugLabel')}</Label>
               <Input
                 className={`h-8 text-sm font-mono ${
                   slugStatus === 'taken' ? 'border-red-400 focus-visible:ring-red-400' : ''
@@ -704,28 +709,28 @@ export default function EditCustomProduct() {
               />
               {slugStatus === 'checking' && (
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Checking availability…
+                  <Loader2 className="w-3 h-3 animate-spin" /> {t('editCustomProduct.checkingAvailability')}
                 </p>
               )}
               {slugStatus === 'available' && (
                 <p className="text-[11px] text-emerald-600 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Slug is available
+                  <Check className="w-3 h-3" /> {t('editCustomProduct.slugAvailable')}
                 </p>
               )}
               {slugStatus === 'taken' && (
                 <p className="text-[11px] text-red-600">
-                  This slug is already used by one of your products. Pick a different one.
+                  {t('editCustomProduct.slugTaken')}
                 </p>
               )}
             </div>
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Description</Label>
+            <Label className="text-xs">{t('editCustomProduct.descriptionLabel')}</Label>
             <RichTextEditor
               content={translations[activeLocale]?.description || ''}
               onChange={(val) => setTransField(activeLocale, 'description', val)}
-              placeholder="Describe your custom product..."
+              placeholder={t('editCustomProduct.descriptionPlaceholder')}
             />
           </div>
         </CardContent>
@@ -734,7 +739,7 @@ export default function EditCustomProduct() {
       {/* FAQs */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">FAQ</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('editCustomProduct.faq')}</CardTitle>
         </CardHeader>
         <CardContent>
           <FaqManager
@@ -758,42 +763,42 @@ export default function EditCustomProduct() {
         {/* Status & Review */}
         <Card className="shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Status & Review</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('editCustomProduct.statusReview')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {product.status === 'PENDING_REVIEW' && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
-                <p className="font-semibold">Pending provider review</p>
-                <p className="mt-0.5">Awaiting approval from the provider. You'll be notified once reviewed.</p>
+                <p className="font-semibold">{t('editCustomProduct.pendingReviewTitle')}</p>
+                <p className="mt-0.5">{t('editCustomProduct.pendingReviewDesc')}</p>
               </div>
             )}
             {product.status === 'REJECTED' && product.rejection_reason && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-700">
-                <p className="font-semibold">Provider requested changes</p>
+                <p className="font-semibold">{t('editCustomProduct.changesRequestedTitle')}</p>
                 <p className="mt-0.5 whitespace-pre-wrap">{product.rejection_reason}</p>
                 <p className="mt-1.5 text-[10px] text-red-600">
-                  Edit the product and click "Submit for Review" to resubmit.
+                  {t('editCustomProduct.changesRequestedHint')}
                 </p>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Status</Label>
+              <Label className="text-xs">{t('editCustomProduct.statusLabel')}</Label>
               {product.status === 'PENDING_REVIEW' ? (
                 <div className="h-9 px-3 flex items-center rounded-md border bg-zinc-50 text-sm text-zinc-600">
-                  Pending Review (locked)
+                  {t('editCustomProduct.pendingReviewLocked')}
                 </div>
               ) : (
                 <SearchableSelect
                   value={status}
                   onChange={setStatus}
-                  placeholder="Select status..."
-                  options={requiresReview ? STATUS_OPTIONS_REVIEW : STATUS_OPTIONS_FREE}
+                  placeholder={t('editCustomProduct.selectStatus')}
+                  options={requiresReview ? buildStatusOptionsReview(t) : buildStatusOptionsFree(t)}
                 />
               )}
               {requiresReview && (
                 <p className="text-[10px] text-muted-foreground">
-                  This product needs provider approval before publishing.
+                  {t('editCustomProduct.needsApprovalHint')}
                 </p>
               )}
             </div>
@@ -806,7 +811,7 @@ export default function EditCustomProduct() {
                 onClick={handleSubmitForReview}
                 disabled={saving}
               >
-                {saving ? 'Submitting...' : product.status === 'REJECTED' ? 'Resubmit for Review' : 'Submit for Review'}
+                {saving ? t('editCustomProduct.submitting') : product.status === 'REJECTED' ? t('editCustomProduct.resubmitForReview') : t('editCustomProduct.submitForReview')}
               </Button>
             )}
           </CardContent>
@@ -824,13 +829,13 @@ export default function EditCustomProduct() {
                 slugStatus === 'checking' ||
                 slugStatus === 'taken' ||
                 (!translations[primaryLocale]?.title?.trim() &&
-                  !product.translations.find((t) => t.locale === primaryLocale)?.title?.trim())
+                  !product.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim())
               }
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? tc('saving') : t('editCustomProduct.saveChanges')}
             </Button>
             {saved && (
-              <p className="text-xs text-emerald-600 font-medium text-center">Saved!</p>
+              <p className="text-xs text-emerald-600 font-medium text-center">{t('editCustomProduct.savedExclaim')}</p>
             )}
             {saveError && (
               <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 space-y-1">
@@ -843,7 +848,7 @@ export default function EditCustomProduct() {
                   onClick={() => setSaveError('')}
                   className="text-[10px] text-red-500 hover:underline pl-5"
                 >
-                  Dismiss
+                  {t('editCustomProduct.dismiss')}
                 </button>
               </div>
             )}
@@ -853,7 +858,7 @@ export default function EditCustomProduct() {
               className="w-full text-red-500 border-red-200 hover:bg-red-50"
               onClick={() => setDeleteConfirm(true)}
             >
-              <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
+              <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {tc('delete')}
             </Button>
           </CardContent>
         </Card>
@@ -861,11 +866,11 @@ export default function EditCustomProduct() {
         {/* Collections */}
         <Card className="shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Collections</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('editCustomProduct.collections')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-[11px] text-muted-foreground mb-2">
-              Add this product to one or more of your store collections.
+              {t('editCustomProduct.collectionsDesc')}
             </p>
             <CollectionsMultiSelect
               value={creatorCategoryIds}
@@ -915,14 +920,14 @@ export default function EditCustomProduct() {
       <Dialog open={deleteConfirm} onOpenChange={setDeleteConfirm}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Custom Product</DialogTitle>
+            <DialogTitle>{t('editCustomProduct.deleteTitle')}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-2">
-            This will permanently remove this custom product from your store.
+            {t('editCustomProduct.deleteConfirm')}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>{tc('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete}>{tc('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

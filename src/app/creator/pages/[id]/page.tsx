@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +15,7 @@ import { api } from '@/lib/api';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -33,6 +34,8 @@ export default function EditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const [page, setPage] = useState<StorePage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -172,8 +175,8 @@ export default function EditPage() {
     router.push('/creator/pages');
   };
 
-  if (loading) return <p className="text-sm text-muted-foreground p-6">Loading...</p>;
-  if (!page) return <p className="text-sm text-muted-foreground p-6">Page not found.</p>;
+  if (loading) return <p className="text-sm text-muted-foreground p-6">{tc('loading')}</p>;
+  if (!page) return <p className="text-sm text-muted-foreground p-6">{t('editPage.notFound')}</p>;
 
   const isPublished = status === 'PUBLISHED';
   const hasMultipleLocales = allLocales.length > 1;
@@ -184,44 +187,44 @@ export default function EditPage() {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold tracking-tight">Edit Page</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('editPage.title')}</h1>
           <p className="text-muted-foreground font-mono text-xs">/{page.slug}</p>
         </div>
         <Badge variant="secondary" className={`text-[10px] ${isPublished ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}>
-          {isPublished ? 'Published' : 'Draft'}
+          {isPublished ? t('editPage.published') : t('editPage.draft')}
         </Badge>
       </div>
 
       {/* Page metadata */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Page Settings</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('editPage.pageSettings')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs">Slug (URL)</Label>
+            <Label className="text-xs">{t('editPage.slugLabel')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">/</span>
               <Input className="h-8 text-sm font-mono flex-1" value={slug} onChange={e => setSlug(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Template Type</Label>
+            <Label className="text-xs">{t('editPage.templateType')}</Label>
             <Input className="h-8 text-sm" value={page.type || page.template_type || ''} disabled />
           </div>
           <label className="flex items-center justify-between py-1 cursor-pointer">
             <div>
-              <p className="text-sm font-medium">Published</p>
-              <p className="text-xs text-muted-foreground">Visible to store visitors</p>
+              <p className="text-sm font-medium">{t('editPage.published')}</p>
+              <p className="text-xs text-muted-foreground">{t('editPage.visibleToVisitors')}</p>
             </div>
             <button type="button" role="switch" aria-checked={isPublished}
               onClick={() => setStatus(isPublished ? 'DRAFT' : 'PUBLISHED')}
               className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${isPublished ? 'bg-zinc-900' : 'bg-zinc-200'}`}
             >
-              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isPublished ? 'translate-x-4' : 'translate-x-0'}`} />
+              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isPublished ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'}`} />
             </button>
           </label>
         </CardContent>
@@ -230,7 +233,7 @@ export default function EditPage() {
       {/* Content card with language tabs */}
       <Card className="shadow-none">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Page Content</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('editPage.pageContent')}</CardTitle>
         </CardHeader>
 
         {/* Language tabs */}
@@ -247,7 +250,7 @@ export default function EditPage() {
                 >
                   {LOCALE_LABELS[locale] || locale.toUpperCase()}
                   {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">(primary)</span>}
+                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('editPage.primaryParen')}</span>}
                 </button>
               );
             })}
@@ -259,7 +262,7 @@ export default function EditPage() {
           {activeLocale !== primaryLocale && (
             <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
               <span className="text-xs text-muted-foreground">
-                Auto-translate title from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                {t('editPage.autoTranslateTitleFrom')} <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                 {primaryTitle ? `: "${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '…' : ''}"` : ''}
               </span>
               <button type="button" onClick={() => handleTranslateTo(activeLocale)}
@@ -267,8 +270,8 @@ export default function EditPage() {
                 className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
               >
                 {translatingLocale === activeLocale
-                  ? <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
-                  : <><Languages className="w-3 h-3" /> Auto-translate</>}
+                  ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('editPage.translating')}</>
+                  : <><Languages className="w-3 h-3" /> {t('editPage.autoTranslate')}</>}
               </button>
             </div>
           )}
@@ -276,12 +279,12 @@ export default function EditPage() {
           {/* Title */}
           <div className="space-y-1.5">
             <Label className="text-xs">
-              Title {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+              {t('editPage.titleLabel')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
             </Label>
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
-              placeholder={activeLocale === primaryLocale ? 'About Us' : `Title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+              placeholder={activeLocale === primaryLocale ? t('editPage.titlePlaceholder') : t('editPage.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
               value={translations[activeLocale]?.title || ''}
               onChange={e => setTransField(activeLocale, 'title', e.target.value)}
             />
@@ -290,7 +293,7 @@ export default function EditPage() {
           {/* Content editor */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">Content</Label>
+              <Label className="text-xs">{t('editPage.contentLabel')}</Label>
               {activeLocale !== primaryLocale && (
                 <button
                   type="button"
@@ -299,8 +302,8 @@ export default function EditPage() {
                   className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {translatingContent
-                    ? <><Loader2 className="w-3 h-3 animate-spin" /> Translating content...</>
-                    : <><Languages className="w-3 h-3" /> Translate Content</>}
+                    ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('editPage.translatingContent')}</>
+                    : <><Languages className="w-3 h-3" /> {t('editPage.translateContent')}</>}
                 </button>
               )}
             </div>
@@ -310,8 +313,8 @@ export default function EditPage() {
                 onChange={val => setTransField(activeLocale, 'content', val)}
                 placeholder={
                   activeLocale === primaryLocale
-                    ? 'Write your page content...'
-                    : `Content in ${LOCALE_LABELS[activeLocale] || activeLocale}...`
+                    ? t('editPage.contentPlaceholder')
+                    : t('editPage.contentInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
                 }
               />
             </div>
@@ -322,26 +325,26 @@ export default function EditPage() {
       <div className="flex items-center justify-between">
         <Button variant="outline" size="sm" className="text-red-500 border-red-200 hover:bg-red-50"
           onClick={() => setDeleteConfirm(true)}>
-          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete Page
+          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('editPage.deletePage')}
         </Button>
         <div className="flex items-center gap-3">
-          {saved && <span className="text-xs text-emerald-600 font-medium">Saved!</span>}
+          {saved && <span className="text-xs text-emerald-600 font-medium">{t('editPage.savedExclaim')}</span>}
           <Button size="sm" onClick={handleSave}
             disabled={saving || !translations[primaryLocale]?.title?.trim() || !slug}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? tc('saving') : t('editPage.saveChanges')}
           </Button>
         </div>
       </div>
 
       <Dialog open={deleteConfirm} onOpenChange={setDeleteConfirm}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Delete Page</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('editPage.deletePage')}</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground py-2">
-            This will permanently delete "{primaryTitle}" from your store.
+            {t('editPage.deleteConfirm', { title: primaryTitle })}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>{tc('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete}>{tc('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

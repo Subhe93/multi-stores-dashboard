@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Package, Palette } from 'lucide-react';
 
 type ImportMode = 'AS_IS' | 'CUSTOMIZE';
@@ -9,22 +10,22 @@ interface ImportModeSelectorProps {
   onChange: (mode: ImportMode) => void;
 }
 
-const modes = [
-  {
-    key: 'AS_IS' as ImportMode,
-    icon: Package,
-    title: 'Import as-is',
-    description: 'Import the product with all its variants, images, and details. You only set pricing.',
-  },
-  {
-    key: 'CUSTOMIZE' as ImportMode,
-    icon: Palette,
-    title: 'Customize',
-    description: 'Select specific variants, fill custom fields, and edit title, description & images.',
-  },
-];
-
 export default function ImportModeSelector({ value, onChange }: ImportModeSelectorProps) {
+  const t = useTranslations('components');
+  const modes = [
+    {
+      key: 'AS_IS' as ImportMode,
+      icon: Package,
+      title: t('importAsIsTitle'),
+      description: t('importAsIsDesc'),
+    },
+    {
+      key: 'CUSTOMIZE' as ImportMode,
+      icon: Palette,
+      title: t('importCustomizeTitle'),
+      description: t('importCustomizeDesc'),
+    },
+  ];
   return (
     <div className="grid grid-cols-2 gap-3">
       {modes.map(({ key, icon: Icon, title, description }) => {

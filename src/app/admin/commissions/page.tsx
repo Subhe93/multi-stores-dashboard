@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +74,7 @@ const STATUS_TABS: Array<{ label: string; value: CommissionRow['status'] | 'ALL'
 ];
 
 export default function AdminCommissions() {
+  const t = useTranslations('admin');
   const router = useRouter();
   const { fmt } = useCurrency();
   const { token } = useAuth();
@@ -114,6 +116,11 @@ export default function AdminCommissions() {
       .finally(() => setListLoading(false));
   }, [token, page, statusFilter, search]);
 
+  const tabLabels: Record<string, string> = {
+    ALL: t('tabAll'), PENDING: t('statusPending'), PROCESSING: t('statusProcessing'),
+    COMPLETED: t('statusCompleted'), FAILED: t('statusFailed'),
+  };
+
   const monthTrend = useMemo(() => {
     if (!summary || summary.platform_earnings === 0) return null;
     const pct = (summary.platform_this_month / summary.platform_earnings) * 100;
@@ -123,19 +130,19 @@ export default function AdminCommissions() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Commissions</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('commissions')}</h1>
         <p className="text-sm text-muted-foreground">
-          Full earnings breakdown across platform, providers, and creators
+          {t('commissionsSubtitle')}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Platform Earnings"
+          title={t('platformEarnings')}
           value={summaryLoading ? '...' : fmt(summary?.platform_earnings)}
           subtitle={
             summary
-              ? `${fmt(summary.platform_this_month)} this month`
+              ? t('amountThisMonth', { amount: fmt(summary.platform_this_month) })
               : undefined
           }
           trend="up"
@@ -143,48 +150,48 @@ export default function AdminCommissions() {
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
-          title="Provider Payouts"
+          title={t('providerPayouts')}
           value={summaryLoading ? '...' : fmt(summary?.provider_earnings)}
           subtitle={
             summary
-              ? `${fmt(summary.provider_this_month)} this month`
+              ? t('amountThisMonth', { amount: fmt(summary.provider_this_month) })
               : undefined
           }
           icon={<Truck className="w-4 h-4" />}
         />
         <StatCard
-          title="Creator Payouts"
+          title={t('creatorPayouts')}
           value={summaryLoading ? '...' : fmt(summary?.creator_earnings)}
           subtitle={
             summary
-              ? `${fmt(summary.creator_this_month)} this month`
+              ? t('amountThisMonth', { amount: fmt(summary.creator_this_month) })
               : undefined
           }
           icon={<Sparkles className="w-4 h-4" />}
         />
         <StatCard
-          title="Total Revenue"
+          title={t('totalRevenue')}
           value={summaryLoading ? '...' : fmt(summary?.total_revenue)}
-          subtitle={`${summary?.total_orders ?? 0} orders`}
+          subtitle={t('ordersCount', { count: summary?.total_orders ?? 0 })}
           icon={<TrendingUp className="w-4 h-4" />}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Pending Platform"
+          title={t('pendingPlatform')}
           value={summaryLoading ? '...' : fmt(summary?.pending_platform)}
-          subtitle="not yet released"
+          subtitle={t('notYetReleased')}
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
-          title="Paid Platform"
+          title={t('paidPlatform')}
           value={summaryLoading ? '...' : fmt(summary?.paid_platform)}
-          subtitle="completed orders"
+          subtitle={t('completedOrders')}
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
-          title="Orders With Commission"
+          title={t('ordersWithCommission')}
           value={summaryLoading ? '...' : summary?.total_orders ?? 0}
           icon={<ShoppingCart className="w-4 h-4" />}
         />
@@ -202,7 +209,7 @@ export default function AdminCommissions() {
               setPage(1);
             }}
           >
-            {tab.label}
+            {tabLabels[tab.value] ?? tab.label}
           </Button>
         ))}
       </div>
@@ -211,7 +218,7 @@ export default function AdminCommissions() {
         columns={[
           {
             key: 'order_number',
-            label: 'Order',
+            label: t('order'),
             render: (item: CommissionRow) => (
               <button
                 onClick={() => router.push(`/admin/orders/${item.order_id}`)}
@@ -223,7 +230,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'created_at',
-            label: 'Date',
+            label: t('date'),
             render: (item: CommissionRow) => (
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {new Date(item.created_at).toLocaleDateString()}
@@ -232,7 +239,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'customer',
-            label: 'Customer',
+            label: t('customer'),
             render: (item: CommissionRow) => (
               <div className="flex flex-col">
                 <span className="text-sm">{item.customer?.name || '—'}</span>
@@ -246,7 +253,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'store',
-            label: 'Store / Creator',
+            label: t('storeCreator'),
             render: (item: CommissionRow) => (
               <div className="flex flex-col">
                 {item.store ? (
@@ -255,7 +262,7 @@ export default function AdminCommissions() {
                     {item.store.name}
                   </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">No store</span>
+                  <span className="text-xs text-muted-foreground">{t('noStore')}</span>
                 )}
                 {item.creator && (
                   <span className="text-[11px] text-muted-foreground">
@@ -267,7 +274,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'providers',
-            label: 'Providers',
+            label: t('providers'),
             render: (item: CommissionRow) =>
               item.providers.length === 0 ? (
                 <span className="text-xs text-muted-foreground">—</span>
@@ -292,7 +299,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'order_total',
-            label: 'Order Total',
+            label: t('orderTotal'),
             className: 'text-right',
             render: (item: CommissionRow) => (
               <span className="text-sm font-medium text-right block">
@@ -302,7 +309,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'platform_amount',
-            label: 'Platform',
+            label: t('platform'),
             className: 'text-right',
             render: (item: CommissionRow) => (
               <span className="text-sm font-semibold text-emerald-700 text-right block">
@@ -312,7 +319,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'provider_amount',
-            label: 'Provider',
+            label: t('provider'),
             className: 'text-right',
             render: (item: CommissionRow) => (
               <span className="text-sm text-blue-700 text-right block">
@@ -322,7 +329,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'creator_amount',
-            label: 'Creator',
+            label: t('creator'),
             className: 'text-right',
             render: (item: CommissionRow) => (
               <span className="text-sm text-purple-700 text-right block">
@@ -332,7 +339,7 @@ export default function AdminCommissions() {
           },
           {
             key: 'status',
-            label: 'Status',
+            label: t('status'),
             render: (item: CommissionRow) => (
               <Badge
                 variant="outline"
@@ -344,14 +351,14 @@ export default function AdminCommissions() {
           },
         ]}
         data={rows}
-        searchPlaceholder="Search order # or customer..."
+        searchPlaceholder={t('searchOrderOrCustomer')}
         onSearch={(q) => {
           setSearch(q);
           setPage(1);
         }}
         pagination={meta || undefined}
         onPageChange={(p) => setPage(p)}
-        emptyMessage={listLoading ? 'Loading...' : 'No commissions yet'}
+        emptyMessage={listLoading ? t('loading') : t('noCommissionsYet')}
       />
     </div>
   );

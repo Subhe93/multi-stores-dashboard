@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useApiError } from '@/lib/useApiError';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const apiError = useApiError();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +23,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(apiError(err));
     } finally {
       setLoading(false);
     }

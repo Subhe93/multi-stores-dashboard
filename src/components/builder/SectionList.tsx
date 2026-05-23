@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, GripVertical } from 'lucide-react';
 import { findSectionSchema, labelOf } from '@/lib/section-schemas';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ export function SectionList({
   onAdd,
   onToggleHidden,
 }: SectionListProps) {
+  const t = useTranslations();
   const sensors = useSensors(
     // 5px activation threshold so a click on a row still fires `onSelect` —
     // without it dnd-kit would swallow the click as a drag start.
@@ -68,14 +70,14 @@ export function SectionList({
     <div className="h-full flex flex-col">
       <div className="p-3 border-b">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-          Sections
+          {t('builder.sections')}
         </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {sections.length === 0 ? (
           <p className="text-[11px] text-zinc-400 text-center px-3 py-8">
-            No sections yet. Add one to get started.
+            {t('builder.noSections')}
           </p>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -118,6 +120,7 @@ function SectionRow({
   onSelect: () => void;
   onToggleHidden: () => void;
 }) {
+  const t = useTranslations();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
   });
@@ -155,7 +158,7 @@ function SectionRow({
         className="px-1 py-2 text-zinc-300 hover:text-zinc-500 cursor-grab active:cursor-grabbing"
         {...attributes}
         {...listeners}
-        aria-label="Reorder"
+        aria-label={t('builder.reorder')}
       >
         <GripVertical className="w-3.5 h-3.5" />
       </button>
@@ -179,7 +182,7 @@ function SectionRow({
         type="button"
         onClick={onToggleHidden}
         className="p-1.5 text-zinc-300 hover:text-zinc-700 opacity-0 group-hover:opacity-100 transition"
-        aria-label={section.is_hidden ? 'Show' : 'Hide'}
+        aria-label={section.is_hidden ? t('builder.show') : t('builder.hide')}
       >
         {section.is_hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
       </button>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link2, Link2Off, Monitor, RotateCcw, Smartphone, Tablet } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -169,61 +170,59 @@ function resolveSideAt(
 
 export function StylePanel({ value, onChange, locale, token, apiBase }: StylePanelProps) {
   const v = value || {};
-  const ar = locale === 'ar';
+  // `locale` is the store-content locale (kept on props for nested fields like
+  // ImageField); the StylePanel's own chrome is translated via the dashboard UI
+  // locale through `tt`. The `t` object below is a flat label bag threaded into
+  // sub-components as `labels`.
+  const tt = useTranslations('builder');
   const [device, setDevice] = useState<Breakpoint>('desktop');
 
   const t = {
-    layout: ar ? 'التخطيط' : 'Layout',
-    background: ar ? 'الخلفية' : 'Background',
-    spacing: ar ? 'المسافات' : 'Spacing',
-    animation: ar ? 'الحركة' : 'Animation',
-    visibility: ar ? 'الظهور' : 'Visibility',
-    width: ar ? 'العرض' : 'Width',
-    radius: ar ? 'الزوايا' : 'Corner radius',
-    textColor: ar ? 'لون النص' : 'Text color',
-    customColor: ar ? 'لون مخصص' : 'Custom color',
-    padding: ar ? 'الحشو الداخلي (Padding)' : 'Padding',
-    margin: ar ? 'الهامش الخارجي (Margin)' : 'Margin',
-    reset: ar ? 'استعادة' : 'Reset',
-    full: ar ? 'كامل' : 'Full bleed',
-    container: ar ? 'الحاوية' : 'Container',
-    narrow: ar ? 'ضيّق' : 'Narrow',
-    none: ar ? 'بدون' : 'None',
-    transparent: ar ? 'شفاف' : 'Transparent',
-    surface: ar ? 'سطح الثيم' : 'Theme surface',
-    primary: ar ? 'الأساسي' : 'Primary',
-    accent: ar ? 'التمييز' : 'Accent',
-    custom: ar ? 'مخصص' : 'Custom',
-    image: ar ? 'صورة' : 'Image',
-    backgroundImage: ar ? 'صورة الخلفية' : 'Background image',
-    overlayColor: ar ? 'لون الطبقة' : 'Overlay color',
-    overlayOpacity: ar ? 'شفافية الطبقة' : 'Overlay opacity',
-    imageAllDevices: ar
-      ? 'الصورة والطبقة تنطبق على كل الأجهزة.'
-      : 'Image and overlay apply to all devices.',
-    noAnimation: ar ? 'بدون' : 'None',
-    fadeIn: ar ? 'تلاشٍ' : 'Fade in',
-    fadeUp: ar ? 'تلاشٍ + صعود' : 'Fade up',
-    inheritText: ar ? 'من الثيم' : 'From theme',
-    desktop: ar ? 'سطح المكتب' : 'Desktop',
-    tablet: ar ? 'تابلت' : 'Tablet',
-    mobile: ar ? 'جوال' : 'Mobile',
-    inherits: ar ? 'موروث من' : 'Inherits from',
-    clearForDevice: ar ? 'إزالة لهذا الجهاز' : 'Clear for this device',
-    hideOn: ar ? 'إخفاء على' : 'Hide on',
-    hideHint: ar
-      ? 'يُخفي السكشن تماماً على الأجهزة المحددة.'
-      : 'Section is removed from view on the selected devices.',
-    responsiveHint: ar
-      ? 'حرر كل جهاز على حدة. الأصغر يرث من الأكبر.'
-      : 'Edit each device independently. Smaller inherits from larger.',
-    link: ar ? 'ربط الجهات' : 'Link sides',
-    unlink: ar ? 'فك الربط' : 'Unlink sides',
-    sideTop: ar ? 'أعلى' : 'Top',
-    sideRight: ar ? 'يمين' : 'Right',
-    sideBottom: ar ? 'أسفل' : 'Bottom',
-    sideLeft: ar ? 'يسار' : 'Left',
-    presets: ar ? 'تعبئة سريعة' : 'Quick fill',
+    layout: tt('styleLayout'),
+    background: tt('styleBackground'),
+    spacing: tt('styleSpacing'),
+    animation: tt('styleAnimation'),
+    visibility: tt('styleVisibility'),
+    width: tt('styleWidth'),
+    radius: tt('styleRadius'),
+    textColor: tt('styleTextColor'),
+    customColor: tt('styleCustomColor'),
+    padding: tt('stylePadding'),
+    margin: tt('styleMargin'),
+    reset: tt('styleReset'),
+    full: tt('styleWidthFull'),
+    container: tt('styleWidthContainer'),
+    narrow: tt('styleWidthNarrow'),
+    none: tt('styleNone'),
+    transparent: tt('styleBgTransparent'),
+    surface: tt('styleBgSurface'),
+    primary: tt('styleBgPrimary'),
+    accent: tt('styleBgAccent'),
+    custom: tt('styleBgCustom'),
+    image: tt('styleBgImage'),
+    backgroundImage: tt('styleBackgroundImage'),
+    overlayColor: tt('styleOverlayColor'),
+    overlayOpacity: tt('styleOverlayOpacity'),
+    imageAllDevices: tt('styleImageAllDevices'),
+    noAnimation: tt('styleNone'),
+    fadeIn: tt('styleFadeIn'),
+    fadeUp: tt('styleFadeUp'),
+    inheritText: tt('styleFromTheme'),
+    desktop: tt('styleDesktop'),
+    tablet: tt('styleTablet'),
+    mobile: tt('styleMobile'),
+    inherits: tt('styleInheritsFrom'),
+    clearForDevice: tt('styleClearForDevice'),
+    hideOn: tt('styleHideOn'),
+    hideHint: tt('styleHideHint'),
+    responsiveHint: tt('styleResponsiveHint'),
+    link: tt('styleLinkSides'),
+    unlink: tt('styleUnlinkSides'),
+    sideTop: tt('styleSideTop'),
+    sideRight: tt('styleSideRight'),
+    sideBottom: tt('styleSideBottom'),
+    sideLeft: tt('styleSideLeft'),
+    presets: tt('styleQuickFill'),
   };
 
   // Generic responsive setter — writes to the active breakpoint. We accept

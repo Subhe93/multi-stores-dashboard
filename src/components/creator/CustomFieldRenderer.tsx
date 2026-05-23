@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2, ImageIcon } from 'lucide-react';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 interface CustomFieldTranslation {
   locale: string;
@@ -42,12 +45,15 @@ export default function CustomFieldRenderer({
   locale = 'en',
   token,
 }: CustomFieldRendererProps) {
+  const t = useTranslations('components');
+  const tc = useTranslations('common');
+
   if (!fields || fields.length === 0) return null;
 
   return (
     <div className="space-y-4">
       {fields.map((field) => {
-        const translation = field.translations?.find((t) => t.locale === locale) ||
+        const translation = field.translations?.find((tr) => tr.locale === locale) ||
           field.translations?.[0];
         const label = translation?.label || field.name;
         const placeholder = translation?.placeholder || field.placeholder || '';
@@ -60,7 +66,7 @@ export default function CustomFieldRenderer({
               {field.is_required && <span className="text-red-500 ml-0.5">*</span>}
             </Label>
 
-            {renderField(field, fieldValue, placeholder, onChange, translation, token)}
+            {renderField(field, fieldValue, placeholder, onChange, translation, token, t, tc)}
           </div>
         );
       })}
@@ -73,8 +79,10 @@ function renderField(
   fieldValue: { value?: string; file_url?: string },
   placeholder: string,
   onChange: (fieldId: string, data: { value?: string; file_url?: string }) => void,
-  translation?: CustomFieldTranslation,
-  token?: string | null,
+  translation: CustomFieldTranslation | undefined,
+  token: string | null | undefined,
+  t: Translator,
+  tc: Translator,
 ) {
   const handleChange = (value: string) => onChange(field.id, { ...fieldValue, value });
 
@@ -122,7 +130,7 @@ function renderField(
           onChange={(e) => handleChange(e.target.value)}
           className="h-8 w-full rounded-md border border-input bg-background px-3 text-sm"
         >
-          <option value="">{placeholder || 'Select...'}</option>
+          <option value="">{placeholder || tc('select')}</option>
           {options.map((opt: string) => (
             <option key={opt} value={opt}>
               {optionLabels[opt] || opt}
@@ -177,7 +185,7 @@ function renderField(
       return (
         <Input
           type="text"
-          placeholder={placeholder || 'Font name...'}
+          placeholder={placeholder || t('fontNamePlaceholder')}
           value={fieldValue.value || ''}
           onChange={(e) => handleChange(e.target.value)}
           className="h-8 text-sm"
@@ -209,6 +217,8 @@ function FileUploadField({
   onChange: (fieldId: string, data: { value?: string; file_url?: string }) => void;
   token?: string | null;
 }) {
+  const t = useTranslations('components');
+  const tc = useTranslations('common');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const isImage = field.type === 'IMAGE' || field.type === 'MULTI_IMAGE';
@@ -229,11 +239,11 @@ function FileUploadField({
       });
       const json = await res.json();
       const url = json?.data?.url;
-      if (!url) throw new Error(json?.message || 'Upload failed');
+      if (!url) throw new Error(json?.message || t('uploadFailed'));
       const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
       onChange(field.id, { ...fieldValue, file_url: fullUrl });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : t('uploadFailed'));
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -259,7 +269,7 @@ function FileUploadField({
                 type="button"
                 onClick={handleRemove}
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity shadow-sm"
-                title="Remove"
+                title={tc('remove')}
               >
                 <X className="w-3 h-3" />
               </button>
@@ -268,7 +278,7 @@ function FileUploadField({
             <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-md border border-zinc-200 bg-zinc-50 text-xs text-zinc-700 truncate">
               <ImageIcon className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
               <a href={fieldValue.file_url} target="_blank" rel="noreferrer" className="truncate hover:underline">
-                {fieldValue.file_url.split('/').pop() || 'File'}
+                {fieldValue.file_url.split('/').pop() || t('file')}
               </a>
               <button
                 type="button"
@@ -298,12 +308,12 @@ function FileUploadField({
         {uploading ? (
           <>
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>Uploading...</span>
+            <span>{t('uploading')}</span>
           </>
         ) : (
           <>
             <Upload className="w-3.5 h-3.5" />
-            <span>{isImage ? 'Upload image' : 'Upload file'}</span>
+            <span>{isImage ? t('uploadImage') : t('uploadFile')}</span>
           </>
         )}
       </label>

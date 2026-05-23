@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Layers, Loader2, Palette } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -549,29 +550,31 @@ function ModeSwitch({
 }: {
   mode: LeftMode;
   onChange: (m: LeftMode) => void;
+  // Store-content primary locale — kept on the props for callers; the tab
+  // labels themselves are dashboard chrome translated via next-intl.
   primaryLocale: string;
 }) {
-  const ar = primaryLocale === 'ar';
+  const t = useTranslations('builder');
   const tabs: { id: LeftMode; label: string; Icon: typeof Layers }[] = [
-    { id: 'sections', label: ar ? 'الأقسام' : 'Sections', Icon: Layers },
-    { id: 'theme', label: ar ? 'التصميم' : 'Design', Icon: Palette },
+    { id: 'sections', label: t('sections'), Icon: Layers },
+    { id: 'theme', label: t('design'), Icon: Palette },
   ];
   return (
     <div className="flex items-stretch border-b border-zinc-200/80 bg-white shrink-0 relative">
-      {tabs.map((t) => {
-        const isActive = mode === t.id;
+      {tabs.map((tab) => {
+        const isActive = mode === tab.id;
         return (
           <button
-            key={t.id}
+            key={tab.id}
             type="button"
-            onClick={() => onChange(t.id)}
+            onClick={() => onChange(tab.id)}
             className={cn(
               'flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11.5px] font-semibold transition-colors',
               isActive ? 'text-indigo-600' : 'text-zinc-500 hover:text-zinc-900',
             )}
           >
-            <t.Icon className={cn('size-3.5 transition', isActive && 'scale-110')} />
-            {t.label}
+            <tab.Icon className={cn('size-3.5 transition', isActive && 'scale-110')} />
+            {tab.label}
             {isActive && <span className="absolute bottom-0 inset-x-2 h-0.5 rounded-t bg-indigo-600" />}
           </button>
         );

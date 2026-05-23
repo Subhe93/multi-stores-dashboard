@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ function storeUrl(slug: string): string {
 }
 
 export default function CreatorDetailPage() {
+  const t = useTranslations('admin');
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const [creator, setCreator] = useState<any>(null);
@@ -81,16 +83,16 @@ export default function CreatorDetailPage() {
       });
       setStore(updated);
       setSlug(updated.slug);
-      setSlugMsg({ kind: 'ok', text: 'Slug updated' });
+      setSlugMsg({ kind: 'ok', text: t('slugUpdated') });
     } catch (err: any) {
-      setSlugMsg({ kind: 'err', text: err?.message || 'Failed to update slug' });
+      setSlugMsg({ kind: 'err', text: err?.message || t('failedToUpdateSlug') });
     } finally {
       setSavingSlug(false);
     }
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  if (!creator) return <p className="text-center py-12 text-muted-foreground">Creator not found</p>;
+  if (!creator) return <p className="text-center py-12 text-muted-foreground">{t('creatorNotFound')}</p>;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -105,65 +107,65 @@ export default function CreatorDetailPage() {
           </div>
         </div>
         {creator.verified
-          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" />Verified</Badge>
-          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
+          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" />{t('verified')}</Badge>
+          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>
         }
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Card className="shadow-none">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Creator Info</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('creatorInfo')}</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-muted-foreground" />{creator.user?.email}</div>
             {creator.phone && <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-muted-foreground" />{creator.phone}</div>}
-            {creator.bio && <div><p className="text-xs text-muted-foreground font-medium mb-1">Bio</p><p className="text-muted-foreground">{creator.bio}</p></div>}
+            {creator.bio && <div><p className="text-xs text-muted-foreground font-medium mb-1">{t('bio')}</p><p className="text-muted-foreground">{creator.bio}</p></div>}
           </CardContent>
         </Card>
 
         <Card className="shadow-none">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Actions</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('actions')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {!creator.verified && (
-              <Button size="sm" className="w-full" onClick={handleVerify}>Verify Creator</Button>
+              <Button size="sm" className="w-full" onClick={handleVerify}>{t('verifyCreator')}</Button>
             )}
-            <p className="text-[10px] text-muted-foreground">Joined {new Date(creator.created_at).toLocaleDateString()}</p>
+            <p className="text-[10px] text-muted-foreground">{t('joinedDate', { date: new Date(creator.created_at).toLocaleDateString() })}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="shadow-none">
         <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-sm font-semibold">Store</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('store')}</CardTitle>
           {store && (
             <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm" className="h-7 text-[11px]">
-                <ExternalLink className="w-3 h-3 mr-1" /> Visit
+                <ExternalLink className="w-3 h-3 mr-1" /> {t('visit')}
               </Button>
             </a>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
           {!store ? (
-            <p className="text-sm text-muted-foreground">This creator hasn't set up a store yet.</p>
+            <p className="text-sm text-muted-foreground">{t('creatorNoStoreYet')}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Store Name</Label>
+                  <Label className="text-xs">{t('storeName')}</Label>
                   <Input className="h-8 text-sm" value={store.name} disabled readOnly />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Status</Label>
+                  <Label className="text-xs">{t('status')}</Label>
                   <div className="h-8 flex items-center">
                     {store.is_active
-                      ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Active</Badge>
-                      : <Badge variant="outline" className="text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200">Inactive</Badge>}
+                      ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">{t('active')}</Badge>
+                      : <Badge variant="outline" className="text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200">{t('inactive')}</Badge>}
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Slug</Label>
+                <Label className="text-xs">{t('slug')}</Label>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center flex-1">
                     <Input
@@ -180,13 +182,13 @@ export default function CreatorDetailPage() {
                     onClick={handleSaveSlug}
                     disabled={savingSlug || !slug.trim() || slug.trim() === store.slug}
                   >
-                    {savingSlug ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Saving</> : 'Save'}
+                    {savingSlug ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {t('saving')}</> : t('save')}
                   </Button>
                 </div>
                 {slugMsg && (
                   <p className={`text-[11px] ${slugMsg.kind === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>{slugMsg.text}</p>
                 )}
-                <p className="text-[11px] text-muted-foreground">Lowercase letters, digits and hyphens only.</p>
+                <p className="text-[11px] text-muted-foreground">{t('slugHint')}</p>
               </div>
             </>
           )}

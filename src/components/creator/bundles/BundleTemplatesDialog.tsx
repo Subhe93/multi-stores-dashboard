@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ const ICONS: Record<string, React.ElementType> = {
 };
 
 export function BundleTemplatesDialog({ open, onOpenChange, onPick }: Props) {
+  const t = useTranslations();
   const { token } = useAuth();
   const [templates, setTemplates] = useState<BundleTemplate[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,9 +56,9 @@ export function BundleTemplatesDialog({ open, onOpenChange, onPick }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Load from template</DialogTitle>
+          <DialogTitle>{t('bundle.loadFromTemplate')}</DialogTitle>
           <DialogDescription>
-            Pick a bundle template to get started. You can edit every offer afterwards.
+            {t('bundle.templatesDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,8 +91,8 @@ export function BundleTemplatesDialog({ open, onOpenChange, onPick }: Props) {
                   </div>
                   <div className="text-[11px] text-muted-foreground">
                     {tpl.offers.length === 0
-                      ? 'Start blank'
-                      : `${tpl.offers.length} pre-filled offer${tpl.offers.length === 1 ? '' : 's'}`}
+                      ? t('bundle.startBlank')
+                      : t('bundle.preFilledOffers', { count: tpl.offers.length })}
                   </div>
                 </button>
               );
@@ -100,7 +102,7 @@ export function BundleTemplatesDialog({ open, onOpenChange, onPick }: Props) {
 
         <div className="flex justify-end pt-2">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            Close
+            {t('common.close')}
           </Button>
         </div>
       </DialogContent>

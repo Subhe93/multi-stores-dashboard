@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ const LOCALE_LABELS: Record<string, string> = {
   tr: 'Türkçe',
   de: 'Deutsch',
   fr: 'Français',
+  sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -56,6 +58,7 @@ interface ProductFormProps {
 type LocaleTranslation = { title: string; description: string };
 
 export function ProductForm({ mode, productId, backUrl, postCreateUrl }: ProductFormProps) {
+  const t = useTranslations();
   const { currency } = useCurrency();
   const { token, user } = useAuth();
   const isCreator = user?.role === 'CREATOR';
@@ -282,22 +285,22 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Validation ────────────────────────────────────────────
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!primaryTitle.trim()) errs.title = 'Title is required';
-    if (!categoryId)          errs.categoryId = 'Category is required';
+    if (!primaryTitle.trim()) errs.title = t('product.errTitleRequired');
+    if (!categoryId)          errs.categoryId = t('product.errCategoryRequired');
     if (!basePrice || parseFloat(basePrice) <= 0)
-                              errs.basePrice = 'Price must be greater than 0';
+                              errs.basePrice = t('product.errPricePositive');
     if (productType === 'CUSTOMIZABLE' && !customizationType)
-                              errs.customizationType = 'Select a customization method';
+                              errs.customizationType = t('product.errSelectCustomization');
     if (comparePrice && parseFloat(comparePrice) <= parseFloat(basePrice || '0'))
-                              errs.comparePrice = 'Compare-at price must be higher than price';
+                              errs.comparePrice = t('product.errComparePrice');
     categoryAttrs.filter(a => a.is_required).forEach(a => {
       const val = attrValues[a.id];
       if (val === '' || val == null || val === false)
-        errs[`attr_${a.id}`] = `${a.translations?.find((t: any) => t.locale === 'en')?.label || a.name} is required`;
+        errs[`attr_${a.id}`] = t('product.errFieldRequired', { field: a.translations?.find((tr: any) => tr.locale === 'en')?.label || a.name });
     });
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) {
-      setError('Please fix the errors below before saving.');
+      setError(t('product.fixErrorsBeforeSaving'));
       setTimeout(() => document.querySelector('[data-field-error]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
       return false;
     }
@@ -433,12 +436,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       if (mode === 'create') {
         router.push(postCreateUrl ? `${postCreateUrl}/${pid}` : `/provider/products/${pid}`);
       } else {
-        setSaved('Product saved!');
+        setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
       }
     } catch (err: any) {
       if (Array.isArray(err.errors)) setError(err.errors.join(' · '));
-      else setError(err.message || 'Failed to save');
+      else setError(err.message || t('product.failedToSave'));
     } finally {
       setSaving(false);
     }
@@ -467,7 +470,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   };
 
   const handleDeleteCustomField = async (fid: string) => {
-    if (!window.confirm('Delete this custom field? This cannot be undone.')) return;
+    if (!window.confirm(t('customField.confirmDelete'))) return;
     if (token && !fid.startsWith('temp-')) {
       await api(`/custom-fields/${fid}`, { method: 'DELETE', token });
     }
@@ -492,17 +495,17 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <h1 className="text-xl font-semibold tracking-tight">
-            {mode === 'create' ? 'Add Product' : primaryTitle || 'Edit Product'}
+            {mode === 'create' ? t('product.addProduct') : primaryTitle || t('product.editProduct')}
           </h1>
         </div>
         <div className="flex items-center gap-2">
           {saved && <span className="text-xs text-emerald-600 font-medium">{saved}</span>}
-          <Button variant="outline" size="sm" onClick={() => router.push(backUrl)}>Discard</Button>
+          <Button variant="outline" size="sm" onClick={() => router.push(backUrl)}>{t('product.discard')}</Button>
           <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving}>
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} Save Draft
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} {t('product.saveDraft')}
           </Button>
           <Button size="sm" onClick={() => handleSave(true)} disabled={saving}>
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} Publish
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} {t('product.publish')}
           </Button>
         </div>
       </div>
@@ -549,7 +552,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               {activeLocale !== primaryLocale && (
                 <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
                   <span className="text-xs text-muted-foreground">
-                    Auto-translate from{' '}
+                    {t('product.autoTranslateFrom')}{' '}
                     <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                     {primaryTitle ? `: "${primaryTitle.substring(0, 40)}${primaryTitle.length > 40 ? '…' : ''}"` : ''}
                   </span>
@@ -560,8 +563,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
                   >
                     {translatingLocale === activeLocale
-                      ? <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
-                      : <><Languages className="w-3 h-3" /> Auto-translate</>}
+                      ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('product.translating')}</>
+                      : <><Languages className="w-3 h-3" /> {t('product.autoTranslate')}</>}
                   </button>
                 </div>
               )}
@@ -569,14 +572,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               {/* Title field */}
               <div className="space-y-1.5">
                 <Label className="text-xs">
-                  Title {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+                  {t('product.title')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
                 </Label>
                 <Input
                   dir={isRtl ? 'rtl' : 'ltr'}
                   placeholder={
                     activeLocale === primaryLocale
-                      ? 'Premium Cotton T-Shirt'
-                      : `Title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`
+                      ? t('product.titlePlaceholder')
+                      : t('product.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
                   }
                   value={translations[activeLocale]?.title || ''}
                   onChange={e => {
@@ -591,8 +594,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
               {/* Description field */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Description</Label>
+                <Label className="text-xs">{t('common.description')}</Label>
                 <RichTextEditor
+                  dir={isRtl ? 'rtl' : 'ltr'}
                   content={translations[activeLocale]?.description || ''}
                   onChange={val => setTransField(activeLocale, 'description', val)}
                 />
@@ -623,14 +627,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">
-                  Specifications
-                  <Badge variant="secondary" className="ml-2 text-[10px]">{categoryAttrs.length} fields</Badge>
+                  {t('product.specifications')}
+                  <Badge variant="secondary" className="ml-2 text-[10px]">{t('product.fieldsCount', { count: categoryAttrs.length })}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   {categoryAttrs.map((attr: any) => {
-                    const label = attr.translations?.find((t: any) => t.locale === 'en')?.label || attr.name;
+                    const label = attr.translations?.find((tr: any) => tr.locale === 'en')?.label || attr.name;
                     const errKey = `attr_${attr.id}`;
                     const clearErr = () => { if (fieldErrors[errKey]) setFieldErrors(p => ({ ...p, [errKey]: '' })); };
                     return (
@@ -641,13 +645,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                             <input type="checkbox" className="rounded accent-primary"
                               checked={!!attrValues[attr.id]}
                               onChange={e => { setAttrValues({ ...attrValues, [attr.id]: e.target.checked }); clearErr(); }} />
-                            <span className="text-xs">Yes</span>
+                            <span className="text-xs">{t('common.yes')}</span>
                           </label>
                         ) : attr.type === 'SELECT' && Array.isArray(attr.options) ? (
                           <SearchableSelect
                             value={attrValues[attr.id] || ''}
                             onChange={v => { setAttrValues({ ...attrValues, [attr.id]: v }); clearErr(); }}
-                            placeholder={`Select ${label}...`}
+                            placeholder={t('product.selectField', { field: label })}
                             options={attr.options.map((o: string) => ({ value: o, label: o }))}
                           />
                         ) : (
@@ -690,13 +694,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
           {/* SEO (primary locale only) */}
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">SEO</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.seo')}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="space-y-1.5"><Label className="text-xs">Page title</Label><Input className="h-8 text-sm" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label className="text-xs">Meta description</Label>
+              <div className="space-y-1.5"><Label className="text-xs">{t('product.pageTitle')}</Label><Input className="h-8 text-sm" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('product.metaDescription')}</Label>
                 <textarea rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs" value={metaDesc} onChange={e => setMetaDesc(e.target.value)} />
               </div>
-              <div className="space-y-1.5"><Label className="text-xs">URL slug</Label><Input className="h-8 text-sm font-mono" value={slug} onChange={e => setSlug(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('product.urlSlug')}</Label><Input className="h-8 text-sm font-mono" value={slug} onChange={e => setSlug(e.target.value)} /></div>
             </CardContent>
           </Card>
         </div>
@@ -704,12 +708,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         {/* RIGHT COLUMN */}
         <div className="space-y-5">
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Status</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('common.status')}</CardTitle></CardHeader>
             <CardContent>
               <SearchableSelect value={status} onChange={setStatus} options={[
-                { value: 'DRAFT', label: 'Draft', description: 'Not visible' },
-                { value: 'PUBLISHED', label: 'Published', description: 'Live in store' },
-                { value: 'ARCHIVED', label: 'Archived', description: 'Hidden' },
+                { value: 'DRAFT', label: t('product.statusDraft'), description: t('product.statusDraftDesc') },
+                { value: 'PUBLISHED', label: t('product.statusPublished'), description: t('product.statusPublishedDesc') },
+                { value: 'ARCHIVED', label: t('product.statusArchived'), description: t('product.statusArchivedDesc') },
               ]} />
             </CardContent>
           </Card>
@@ -732,26 +736,26 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           )}
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Product Type</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.productType')}</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               <label className="flex items-center gap-2.5 p-2.5 border rounded-lg cursor-pointer hover:bg-zinc-50 transition has-checked:border-primary has-checked:bg-primary/5">
                 <input type="radio" name="pt" value="TRADITIONAL" checked={productType === 'TRADITIONAL'} onChange={() => setProductType('TRADITIONAL')} className="accent-primary" />
-                <div><p className="text-xs font-medium">Traditional</p><p className="text-[10px] text-muted-foreground">Sold as-is</p></div>
+                <div><p className="text-xs font-medium">{t('product.traditional')}</p><p className="text-[10px] text-muted-foreground">{t('product.traditionalDesc')}</p></div>
               </label>
               <label className="flex items-center gap-2.5 p-2.5 border rounded-lg cursor-pointer hover:bg-zinc-50 transition has-checked:border-primary has-checked:bg-primary/5">
                 <input type="radio" name="pt" value="CUSTOMIZABLE" checked={productType === 'CUSTOMIZABLE'} onChange={() => setProductType('CUSTOMIZABLE')} className="accent-primary" />
-                <div><p className="text-xs font-medium">Customizable</p><p className="text-[10px] text-muted-foreground">Print, engrave, etc.</p></div>
+                <div><p className="text-xs font-medium">{t('product.customizable')}</p><p className="text-[10px] text-muted-foreground">{t('product.customizableDesc')}</p></div>
               </label>
               {productType === 'CUSTOMIZABLE' && (
                 <>
                   <SearchableSelect
                     value={customizationType}
                     onChange={v => { setCustomizationType(v); if (fieldErrors.customizationType) setFieldErrors(p => ({ ...p, customizationType: '' })); }}
-                    placeholder="Method..."
+                    placeholder={t('product.method')}
                     options={[
-                      { value: 'PRINT', label: 'Print' }, { value: 'ENGRAVE', label: 'Engrave' },
-                      { value: 'PRINT_3D', label: '3D Print' }, { value: 'EMBROIDERY', label: 'Embroidery' },
-                      { value: 'HANDMADE', label: 'Handmade' }, { value: 'OTHER', label: 'Other' },
+                      { value: 'PRINT', label: t('product.custPrint') }, { value: 'ENGRAVE', label: t('product.custEngrave') },
+                      { value: 'PRINT_3D', label: t('product.cust3dPrint') }, { value: 'EMBROIDERY', label: t('product.custEmbroidery') },
+                      { value: 'HANDMADE', label: t('product.custHandmade') }, { value: 'OTHER', label: t('product.custOther') },
                     ]}
                   />
                   <FieldError msg={fieldErrors.customizationType} />
@@ -761,12 +765,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Category</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.category')}</CardTitle></CardHeader>
             <CardContent>
               <SearchableSelect
                 value={categoryId}
                 onChange={v => { setCategoryId(v); if (fieldErrors.categoryId) setFieldErrors(p => ({ ...p, categoryId: '' })); }}
-                placeholder="Select..." searchPlaceholder="Search..."
+                placeholder={t('common.select')} searchPlaceholder={t('common.searchEllipsis')}
                 options={categories}
               />
               <FieldError msg={fieldErrors.categoryId} />
@@ -774,10 +778,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Pricing</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.pricing')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Price *</Label>
+                <Label className="text-xs">{t('product.priceRequired')}</Label>
                 <div className={`flex items-stretch rounded-lg border ${fieldErrors.basePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
                   <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
@@ -790,13 +794,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-snug">
-                  The selling price customers actually pay at checkout.
+                  {t('product.priceHelp')}
                 </p>
                 <FieldError msg={fieldErrors.basePrice} />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Compare at</Label>
+                <Label className="text-xs">{t('product.compareAt')}</Label>
                 <div className={`flex items-stretch rounded-lg border ${fieldErrors.comparePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
                   <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
@@ -809,8 +813,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-snug">
-                  Original price shown crossed out next to the new one — used to display a discount.
-                  Must be greater than the price.
+                  {t('product.compareAtHelp')}
                 </p>
                 <FieldError msg={fieldErrors.comparePrice} />
               </div>
@@ -818,7 +821,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <Separator />
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Cost per item</Label>
+                <Label className="text-xs">{t('product.costPerItem')}</Label>
                 <div className="flex items-stretch rounded-lg border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring/40">
                   <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
@@ -831,63 +834,62 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-snug">
-                  Your purchase / production cost. Used internally to calculate profit and margin —
-                  never shown to customers.
+                  {t('product.costPerItemHelp')}
                 </p>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Inventory</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.inventory')}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="rounded accent-primary" checked={trackInventory} onChange={e => setTrackInventory(e.target.checked)} />
-                <span className="text-xs font-medium">Track inventory</span>
+                <span className="text-xs font-medium">{t('product.trackInventory')}</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label className="text-xs">SKU</Label><Input className="h-8 text-sm font-mono" value={sku} onChange={e => setSku(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label className="text-xs">Quantity</Label><Input type="number" className="h-8 text-sm" value={stockQty} onChange={e => setStockQty(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t('product.sku')}</Label><Input className="h-8 text-sm font-mono" value={sku} onChange={e => setSku(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t('product.quantity')}</Label><Input type="number" className="h-8 text-sm" value={stockQty} onChange={e => setStockQty(e.target.value)} /></div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Shipping</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.shipping')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Shipping Profile</Label>
+                <Label className="text-xs">{t('product.shippingProfile')}</Label>
                 <SearchableSelect
                   value={shippingProfileId}
                   onChange={setShippingProfileId}
                   options={[
-                    { value: '', label: 'Use default profile' },
+                    { value: '', label: t('product.useDefaultProfile') },
                     ...shippingProfiles.map(p => ({
                       value: p.id,
-                      label: `${p.name}${p.is_default ? ' (Default)' : ''}`,
+                      label: `${p.name}${p.is_default ? ` ${t('product.defaultSuffix')}` : ''}`,
                     })),
                   ]}
-                  placeholder="Select shipping profile..."
+                  placeholder={t('product.selectShippingProfile')}
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  Manage profiles in{' '}
+                  {t('product.manageProfilesIn')}{' '}
                   <Link href="/provider/shipping" className="text-primary hover:underline">
-                    Shipping Settings
+                    {t('product.shippingSettings')}
                   </Link>
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label className="text-xs">Weight</Label><Input type="number" step="0.01" className="h-8 text-sm" value={weight} onChange={e => setWeight(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label className="text-xs">Unit</Label>
+                <div className="space-y-1.5"><Label className="text-xs">{t('product.weight')}</Label><Input type="number" step="0.01" className="h-8 text-sm" value={weight} onChange={e => setWeight(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label className="text-xs">{t('product.unit')}</Label>
                   <SearchableSelect value={weightUnit} onChange={setWeightUnit} options={[{ value: 'kg', label: 'kg' }, { value: 'g', label: 'g' }, { value: 'lb', label: 'lb' }]} /></div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Tags</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.tags')}</CardTitle></CardHeader>
             <CardContent>
-              <TagInput tags={tags} onChange={setTags} placeholder="Type tag and press Enter" />
+              <TagInput tags={tags} onChange={setTags} placeholder={t('product.tagsPlaceholder')} />
             </CardContent>
           </Card>
 
@@ -895,12 +897,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               own store collections (Shopify-style). */}
           {isCreator && (
             <Card className="shadow-none">
-              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Collections</CardTitle></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.collections')}</CardTitle></CardHeader>
               <CardContent>
                 <div>
-                  <Label className="text-xs">Collections</Label>
+                  <Label className="text-xs">{t('product.collections')}</Label>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Add this product to one or more of your store collections.
+                    {t('product.collectionsHelp')}
                   </p>
                   <CollectionsMultiSelect
                     value={creatorCategoryIds}

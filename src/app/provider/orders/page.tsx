@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
@@ -36,10 +37,26 @@ const TABS: { label: string; statuses: string[] | null }[] = [
   { label: 'Cancelled',      statuses: ['CANCELLED', 'REFUNDED'] },
 ];
 
+// Maps each tab's internal label to its translation key (display only)
+const TAB_LABEL_KEYS: Record<string, string> = {
+  All:           'tabAll',
+  Pending:       'orderStatus.pending',
+  Confirmed:     'orderStatus.confirmed',
+  Processing:    'orderStatus.processing',
+  Manufacturing: 'orderStatus.manufacturing',
+  'Quality Check': 'orderStatus.qualityCheck',
+  Shipped:       'orderStatus.shipped',
+  Delivered:     'orderStatus.delivered',
+  Returned:      'orderStatus.returned',
+  Cancelled:     'orderStatus.cancelled',
+};
+
 export default function ProviderOrders() {
   const { fmt } = useCurrency();
   const { token, user } = useAuth();
   const router = useRouter();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [orders, setOrders] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,8 +87,8 @@ export default function ProviderOrders() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Orders</h1>
-        <p className="text-sm text-muted-foreground">Manage incoming orders and fulfillment</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('orders')}</h1>
+        <p className="text-sm text-muted-foreground">{t('ordersSubtitle')}</p>
       </div>
 
       {/* Status tabs */}
@@ -89,7 +106,7 @@ export default function ProviderOrders() {
               className="h-8 text-xs gap-1.5"
               onClick={() => setActiveTab(tab.label)}
             >
-              {tab.label}
+              {t(TAB_LABEL_KEYS[tab.label])}
               {count > 0 && tab.label !== 'All' && (
                 <span className={`text-[9px] rounded-full px-1.5 py-0.5 font-semibold ${
                   isActive ? 'bg-white/20 text-white' : 'bg-zinc-100 text-zinc-600'
@@ -106,7 +123,7 @@ export default function ProviderOrders() {
         columns={[
           {
             key: 'order_number',
-            label: 'Order',
+            label: t('csvOrder'),
             sortable: true,
             render: (item: any) => (
               <button
@@ -119,7 +136,7 @@ export default function ProviderOrders() {
           },
           {
             key: 'customer',
-            label: 'Customer',
+            label: t('customer'),
             render: (item: any) => (
               <span className="text-sm">
                 {item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}
@@ -128,14 +145,14 @@ export default function ProviderOrders() {
           },
           {
             key: 'items',
-            label: 'Items',
+            label: t('items'),
             render: (item: any) => (
-              <span className="text-xs text-muted-foreground">{item.items?.length || 0} item{item.items?.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-muted-foreground">{t('itemCount', { count: item.items?.length || 0 })}</span>
             ),
           },
           {
             key: 'total',
-            label: 'Total',
+            label: t('total'),
             sortable: true,
             render: (item: any) => (
               <span className="text-sm font-medium">{fmt(item.total)}</span>
@@ -143,7 +160,7 @@ export default function ProviderOrders() {
           },
           {
             key: 'status',
-            label: 'Status',
+            label: t('colStatus'),
             sortable: true,
             render: (item: any) => (
               <Badge variant="outline" className={`text-[10px] font-semibold ${STATUS_COLORS[item.status] || ''}`}>
@@ -153,7 +170,7 @@ export default function ProviderOrders() {
           },
           {
             key: 'created_at',
-            label: 'Date',
+            label: t('csvDate'),
             sortable: true,
             render: (item: any) => (
               <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
@@ -169,7 +186,7 @@ export default function ProviderOrders() {
                 className="h-6 text-[10px]"
                 onClick={() => router.push(`/provider/orders/${item.id}`)}
               >
-                View
+                {t('view')}
               </Button>
             ),
           },
@@ -177,7 +194,7 @@ export default function ProviderOrders() {
         data={filtered}
         pagination={meta}
         onPageChange={p => fetchOrders(p)}
-        emptyMessage={loading ? 'Loading...' : 'No orders'}
+        emptyMessage={loading ? tc('loading') : t('noOrders')}
       />
     </div>
   );

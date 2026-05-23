@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,18 +33,22 @@ const statusColors: Record<string, string> = {
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  PROCESSING: 'Processing',
-  MANUFACTURING: 'Manufacturing',
-  QUALITY_CHECK: 'Quality Check',
-  SHIPPED: 'Shipped',
-  DELIVERED: 'Delivered',
-  RETURNED: 'Returned',
-  CANCELLED: 'Cancelled',
-  REFUNDED: 'Refunded',
-};
+type Translator = ReturnType<typeof useTranslations>;
+
+function statusLabels(t: Translator): Record<string, string> {
+  return {
+    PENDING: t('orderStatus.PENDING'),
+    CONFIRMED: t('orderStatus.CONFIRMED'),
+    PROCESSING: t('orderStatus.PROCESSING'),
+    MANUFACTURING: t('orderStatus.MANUFACTURING'),
+    QUALITY_CHECK: t('orderStatus.QUALITY_CHECK'),
+    SHIPPED: t('orderStatus.SHIPPED'),
+    DELIVERED: t('orderStatus.DELIVERED'),
+    RETURNED: t('orderStatus.RETURNED'),
+    CANCELLED: t('orderStatus.CANCELLED'),
+    REFUNDED: t('orderStatus.REFUNDED'),
+  };
+}
 
 // Order lifecycle flow; QUALITY_CHECK is an optional middle step.
 const STATUS_FLOW = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
@@ -69,20 +74,26 @@ function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): s
   return orderIdx > itemIdx ? orderStatus : itemStatus;
 }
 
-const STATUS_OPTIONS = [
-  { value: 'CONFIRMED', label: 'Confirmed' },
-  { value: 'PROCESSING', label: 'Processing' },
-  { value: 'MANUFACTURING', label: 'Manufacturing' },
-  { value: 'SHIPPED', label: 'Shipped' },
-  { value: 'DELIVERED', label: 'Delivered' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-];
+function statusOptions(t: Translator) {
+  return [
+    { value: 'CONFIRMED', label: t('orderStatus.CONFIRMED') },
+    { value: 'PROCESSING', label: t('orderStatus.PROCESSING') },
+    { value: 'MANUFACTURING', label: t('orderStatus.MANUFACTURING') },
+    { value: 'SHIPPED', label: t('orderStatus.SHIPPED') },
+    { value: 'DELIVERED', label: t('orderStatus.DELIVERED') },
+    { value: 'CANCELLED', label: t('orderStatus.CANCELLED') },
+  ];
+}
 
 export default function CreatorOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
+  const t = useTranslations('creator');
+  const tp = useTranslations('payments');
+  const STATUS_LABELS = statusLabels(t);
+  const STATUS_OPTIONS = statusOptions(t);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [nextStatus, setNextStatus] = useState('');
@@ -143,7 +154,7 @@ export default function CreatorOrderDetailPage() {
 
   if (!order) {
     return (
-      <p className="text-center py-12 text-muted-foreground text-sm">Order not found</p>
+      <p className="text-center py-12 text-muted-foreground text-sm">{t('orderDetail.notFound')}</p>
     );
   }
 
@@ -155,15 +166,14 @@ export default function CreatorOrderDetailPage() {
       )
     : Number(order.commission?.creator_amount ?? 0);
 
-  // Mirror the API rule: a creator can change OrderStatus only when EVERY
-  // item is fulfilled by them. Provider-fulfilled items are managed by the
-  // provider — show a notice instead of the form for those orders.
+  // A creator can advance the order when they fulfill ANY of its items — the
+  // status update applies only to their own items, and the overall order status
+  // is re-derived (slowest item wins). Provider items are advanced by the provider.
   const creatorId = user?.creator?.id as string | undefined;
   const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
   const canUpdateStatus =
     !!creatorId &&
-    items.length > 0 &&
-    items.every((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId);
+    items.some((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId);
   const hasProviderItems = items.some((it) => it.fulfiller_type === 'PROVIDER');
 
   return (
@@ -202,7 +212,7 @@ export default function CreatorOrderDetailPage() {
           {/* Order items */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Order Items</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('orderDetail.orderItems')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="divide-y">
@@ -245,7 +255,7 @@ export default function CreatorOrderDetailPage() {
                           fv.custom_field?.name ?? '—';
                         fieldValues.push({
                           label,
-                          value: fv.value || (fv.file_url ? 'File uploaded' : '—'),
+                          value: fv.value || (fv.file_url ? t('orderDetail.fileUploaded') : '—'),
                         });
                       }
                     }
@@ -306,7 +316,7 @@ export default function CreatorOrderDetailPage() {
                                 <Tag className="w-3 h-3" />
                                 <span>
                                   {bundleNameTr?.name ? `${bundleNameTr.name} · ` : ''}
-                                  {bundleTr?.title || `Buy ${bundleOffer.quantity}`}
+                                  {bundleTr?.title || t('orderDetail.buyQuantity', { count: bundleOffer.quantity })}
                                   {bundleTr?.label ? ` · ${bundleTr.label}` : ''}
                                 </span>
                               </div>
@@ -314,10 +324,10 @@ export default function CreatorOrderDetailPage() {
 
                             {/* Qty & Price */}
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              <span>Qty: {item.quantity}</span>
+                              <span>{t('orderDetail.qty', { count: item.quantity })}</span>
                               <span>·</span>
                               <span className="flex items-center gap-1">
-                                {fmt(unitPrice)} each
+                                {t('orderDetail.each', { price: fmt(unitPrice) })}
                                 {originalUnitPrice !== null && originalUnitPrice > unitPrice && (
                                   <span className="line-through text-muted-foreground/70 tabular-nums">
                                     {fmt(originalUnitPrice)}
@@ -351,36 +361,36 @@ export default function CreatorOrderDetailPage() {
 
                         {/* Design notes */}
                         {item.design_notes && (
-                          <p className="ml-17 text-xs text-muted-foreground italic">Note: {item.design_notes}</p>
+                          <p className="ml-17 text-xs text-muted-foreground italic">{t('orderDetail.note')}: {item.design_notes}</p>
                         )}
                       </div>
                     );
                   })
                 ) : (
-                  <p className="text-center text-sm text-muted-foreground py-8">No items</p>
+                  <p className="text-center text-sm text-muted-foreground py-8">{t('orderDetail.noItems')}</p>
                 )}
               </div>
               <Separator className="my-3" />
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span>
+                  <span>{t('orderDetail.subtotal')}</span>
                   <span>{fmt(Number(order.subtotal ?? order.total))}</span>
                 </div>
                 {Number(order.shipping_cost ?? 0) > 0 && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Shipping</span>
+                    <span>{t('orderDetail.shipping')}</span>
                     <span>{fmt(Number(order.shipping_cost))}</span>
                   </div>
                 )}
                 {Number(order.discount_amount ?? 0) > 0 && (
                   <div className="flex justify-between text-emerald-600">
-                    <span>Discount</span>
+                    <span>{t('orderDetail.discount')}</span>
                     <span>-{fmt(Number(order.discount_amount))}</span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between font-semibold text-base pt-1">
-                  <span>Total</span>
+                  <span>{t('orderDetail.total')}</span>
                   <span>{fmt(Number(order.total))}</span>
                 </div>
               </div>
@@ -390,7 +400,7 @@ export default function CreatorOrderDetailPage() {
           {/* Timeline */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Timeline</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('orderDetail.timeline')}</CardTitle>
             </CardHeader>
             <CardContent>
               {order.timeline?.length > 0 ? (
@@ -416,7 +426,7 @@ export default function CreatorOrderDetailPage() {
                 <div className="flex items-start gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium">Order created</p>
+                    <p className="text-sm font-medium">{t('orderDetail.orderCreated')}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}
                     </p>
@@ -433,7 +443,7 @@ export default function CreatorOrderDetailPage() {
           {canUpdateStatus ? (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Update Status</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t('orderDetail.updateStatus')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Badge
@@ -446,12 +456,12 @@ export default function CreatorOrderDetailPage() {
                   options={STATUS_OPTIONS}
                   value={nextStatus}
                   onChange={setNextStatus}
-                  placeholder="Select new status…"
-                  searchPlaceholder="Search statuses…"
+                  placeholder={t('orderDetail.selectNewStatus')}
+                  searchPlaceholder={t('orderDetail.searchStatuses')}
                 />
                 <input
                   type="text"
-                  placeholder="Notes (optional)"
+                  placeholder={t('orderDetail.notesOptional')}
                   value={statusNotes}
                   onChange={(e) => setStatusNotes(e.target.value)}
                   className="w-full h-8 px-3 text-sm rounded-md border border-input bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -462,7 +472,7 @@ export default function CreatorOrderDetailPage() {
                   onClick={handleStatusUpdate}
                   disabled={!nextStatus || updatingStatus}
                 >
-                  {updatingStatus ? 'Updating…' : 'Update Status'}
+                  {updatingStatus ? t('orderDetail.updating') : t('orderDetail.updateStatus')}
                 </Button>
               </CardContent>
             </Card>
@@ -471,7 +481,7 @@ export default function CreatorOrderDetailPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Info className="w-4 h-4 text-blue-600" />
-                  Order Status
+                  {t('orderDetail.orderStatus')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -483,8 +493,8 @@ export default function CreatorOrderDetailPage() {
                 </Badge>
                 <p className="text-xs text-blue-700 leading-relaxed">
                   {hasProviderItems
-                    ? 'This order contains provider-fulfilled items. The provider will manage shipping and status updates.'
-                    : 'You don\'t fulfill items in this order, so its status is managed elsewhere.'}
+                    ? t('orderDetail.providerFulfilledNotice')
+                    : t('orderDetail.notFulfilledNotice')}
                 </p>
               </CardContent>
             </Card>
@@ -493,7 +503,7 @@ export default function CreatorOrderDetailPage() {
           {/* Customer */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Customer</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('orderDetail.customer')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-1">
               <p className="font-medium">
@@ -506,7 +516,7 @@ export default function CreatorOrderDetailPage() {
           {/* Address */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Shipping Address</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('orderDetail.shippingAddress')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               {order.address ? (
@@ -524,7 +534,7 @@ export default function CreatorOrderDetailPage() {
                   <p>{order.address.country ?? order.address.country_code ?? '—'}</p>
                 </>
               ) : (
-                <p className="text-muted-foreground">No address on file</p>
+                <p className="text-muted-foreground">{t('orderDetail.noAddress')}</p>
               )}
             </CardContent>
           </Card>
@@ -532,15 +542,34 @@ export default function CreatorOrderDetailPage() {
           {/* Commission / Earnings */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Your Earnings</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('orderDetail.yourEarnings')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs">
               <p className="text-2xl font-semibold text-emerald-700">
                 {fmt(totalEarnings)}
               </p>
               <p className="text-muted-foreground mt-1">
-                Creator commission for this order
+                {t('orderDetail.creatorCommission')}
               </p>
+              {(() => {
+                const myPayout = Array.isArray(order.payouts) ? order.payouts[0] : null;
+                return (
+                  <div className="mt-3 space-y-1 border-t pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{tp('yourPayout')}</span>
+                      {myPayout ? (
+                        <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                          {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
+                          {order.payment_status === 'paid' ? tp('statusPending') : tp('statusAwaiting')}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>

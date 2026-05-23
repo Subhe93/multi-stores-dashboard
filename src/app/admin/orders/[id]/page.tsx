@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -68,10 +69,32 @@ function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): s
   return orderIdx > itemIdx ? orderStatus : itemStatus;
 }
 
+// Map a backend payment_status string to a localized label + badge style.
+function paymentStatusInfo(
+  status: string | null | undefined,
+  tp: (k: string) => string,
+): { label: string; cls: string } {
+  switch (status) {
+    case 'paid':
+      return { label: tp('statusPaid'), cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    case 'failed':
+      return { label: tp('statusFailed'), cls: 'bg-red-50 text-red-700 border-red-200' };
+    case 'awaiting_payment':
+      return { label: tp('statusAwaiting'), cls: 'bg-amber-50 text-amber-700 border-amber-200' };
+    default:
+      return { label: tp('statusPending'), cls: 'bg-zinc-100 text-zinc-600 border-zinc-200' };
+  }
+}
+
 export default function OrderDetailPage() {
+  const t = useTranslations('admin');
+  const tp = useTranslations('payments');
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const { fmt } = useCurrency();
+
+  const statusLabel = (status: string) =>
+    STATUS_LABELS[status] ? t(`orderStatus_${status}` as any) : status;
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -85,6 +108,20 @@ export default function OrderDetailPage() {
 
   useEffect(() => { fetchOrder(); }, [token, id]);
 
+  const [verifying, setVerifying] = useState(false);
+  const handleVerifyPayment = async () => {
+    if (!token || verifying) return;
+    setVerifying(true);
+    try {
+      await api(`/payments/admin/orders/${id}/reconcile`, { method: 'POST', token });
+      fetchOrder();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const handleStatusUpdate = async (status: string) => {
     if (!token) return;
     await api(`/orders/${id}/status`, {
@@ -95,7 +132,7 @@ export default function OrderDetailPage() {
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  if (!order) return <p className="text-center py-12 text-muted-foreground">Order not found</p>;
+  if (!order) return <p className="text-center py-12 text-muted-foreground">{t('orderNotFound')}</p>;
 
   const currentIdx = statusFlow.indexOf(order.status);
 
@@ -111,19 +148,19 @@ export default function OrderDetailPage() {
             <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
           </div>
         </div>
-        <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{STATUS_LABELS[order.status] || order.status}</Badge>
+        <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{statusLabel(order.status)}</Badge>
       </div>
 
       {/* Status actions */}
       {!['DELIVERED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
         <Card className="shadow-none">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Update Status</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('updateStatus')}</CardTitle></CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
             {statusFlow.slice(currentIdx + 1).map(s => (
-              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{STATUS_LABELS[s] || s}</Button>
+              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{statusLabel(s)}</Button>
             ))}
             <Separator orientation="vertical" className="h-7" />
-            <Button variant="outline" size="sm" className="text-xs text-red-600" onClick={() => handleStatusUpdate('CANCELLED')}>Cancel</Button>
+            <Button variant="outline" size="sm" className="text-xs text-red-600" onClick={() => handleStatusUpdate('CANCELLED')}>{t('cancel')}</Button>
           </CardContent>
         </Card>
       )}
@@ -131,7 +168,7 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-3 gap-4">
         {/* Order Summary */}
         <Card className="shadow-none col-span-2">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Items</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('items')}</CardTitle></CardHeader>
           <CardContent>
             <div className="divide-y">
               {order.items?.map((item: any) => {
@@ -169,7 +206,7 @@ export default function OrderDetailPage() {
                               const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
                               return (
                                 <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[itemStatus] || 'bg-zinc-100 text-zinc-600'}`}>
-                                  {STATUS_LABELS[itemStatus] || itemStatus}
+                                  {statusLabel(itemStatus)}
                                 </Badge>
                               );
                             })()}
@@ -178,9 +215,9 @@ export default function OrderDetailPage() {
                         </div>
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span>Qty: {item.quantity}</span>
+                          <span>{t('qtyLabel', { qty: item.quantity })}</span>
                           <span>·</span>
-                          <span>{fmt(Number(item.unit_price))} each</span>
+                          <span>{t('eachPrice', { price: fmt(Number(item.unit_price)) })}</span>
                           <span className="ml-auto font-semibold text-foreground text-sm">
                             {fmt(Number(item.total_price))}
                           </span>
@@ -205,7 +242,7 @@ export default function OrderDetailPage() {
                         {fileFields.map((fv: any) => (
                           <a key={fv.id} href={fv.file_url} target="_blank" rel="noreferrer"
                             className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
-                            title={fv.custom_field?.translations?.[0]?.label || 'File'}>
+                            title={fv.custom_field?.translations?.[0]?.label || t('file')}>
                             <img src={fv.file_url} alt="" className="w-full h-full object-contain p-0.5" />
                           </a>
                         ))}
@@ -213,7 +250,7 @@ export default function OrderDetailPage() {
                     )}
 
                     {item.design_notes && (
-                      <p className="ml-17 text-xs text-muted-foreground italic">Note: {item.design_notes}</p>
+                      <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
                     )}
                   </div>
                 );
@@ -222,11 +259,11 @@ export default function OrderDetailPage() {
 
             <Separator className="my-3" />
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Subtotal</span><span>{fmt(Number(order.subtotal))}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Shipping</span><span>{fmt(Number(order.shipping_cost))}</span></div>
-              {Number(order.discount_amount) > 0 && <div className="flex justify-between text-xs text-emerald-600"><span>Discount</span><span>-{fmt(Number(order.discount_amount))}</span></div>}
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('subtotal')}</span><span>{fmt(Number(order.subtotal))}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('shipping')}</span><span>{fmt(Number(order.shipping_cost))}</span></div>
+              {Number(order.discount_amount) > 0 && <div className="flex justify-between text-xs text-emerald-600"><span>{t('discount')}</span><span>-{fmt(Number(order.discount_amount))}</span></div>}
               <Separator />
-              <div className="flex justify-between font-semibold"><span>Total</span><span>{fmt(Number(order.total))}</span></div>
+              <div className="flex justify-between font-semibold"><span>{t('total')}</span><span>{fmt(Number(order.total))}</span></div>
             </div>
           </CardContent>
         </Card>
@@ -234,7 +271,7 @@ export default function OrderDetailPage() {
         {/* Side info */}
         <div className="space-y-4">
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Customer</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('customer')}</CardTitle></CardHeader>
             <CardContent className="text-xs space-y-1">
               <p className="font-medium">{order.customer?.first_name} {order.customer?.last_name}</p>
               <p className="text-muted-foreground">{order.customer?.phone || '—'}</p>
@@ -242,7 +279,7 @@ export default function OrderDetailPage() {
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Shipping Address</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('shippingAddress')}</CardTitle></CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
               <p>{order.address?.line1}</p>
@@ -254,11 +291,73 @@ export default function OrderDetailPage() {
 
           {order.commission && (
             <Card className="shadow-none">
-              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Commission Split</CardTitle></CardHeader>
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('commissionSplit')}</CardTitle></CardHeader>
               <CardContent className="text-xs space-y-1">
-                <div className="flex justify-between"><span className="text-muted-foreground">Provider</span><span>{fmt(Number(order.commission.provider_amount))}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Platform</span><span className="font-medium">{fmt(Number(order.commission.platform_amount))}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Creator</span><span>{fmt(Number(order.commission.creator_amount))}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t('provider')}</span><span>{fmt(Number(order.commission.provider_amount))}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t('platform')}</span><span className="font-medium">{fmt(Number(order.commission.platform_amount))}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t('creator')}</span><span>{fmt(Number(order.commission.creator_amount))}</span></div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Payment details */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold">{tp('payment')}</CardTitle>
+                {(() => {
+                  const info = paymentStatusInfo(order.payment_status, tp);
+                  return <Badge variant="outline" className={`text-[10px] font-semibold ${info.cls}`}>{info.label}</Badge>;
+                })()}
+              </div>
+            </CardHeader>
+            <CardContent className="text-xs space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">{tp('payment')}</span><span className="uppercase">{order.payment_method}</span></div>
+              {order.card_brand && (
+                <div className="flex justify-between"><span className="text-muted-foreground">{tp('card')}</span><span className="capitalize">{order.card_brand} •••• {order.card_last4}</span></div>
+              )}
+              {order.paid_at && (
+                <div className="flex justify-between"><span className="text-muted-foreground">{tp('paidAt')}</span><span>{new Date(order.paid_at).toLocaleString()}</span></div>
+              )}
+              {order.payment_failure_message && (
+                <div className="text-red-600">{tp('failureReason')}: {order.payment_failure_message}</div>
+              )}
+              {order.receipt_url && (
+                <a href={order.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline pt-1">
+                  {tp('viewReceipt')} <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+              {order.payment_method === 'STRIPE' &&
+                (order.payment_status !== 'paid' ||
+                  order.payouts?.some((p: any) => p.status !== 'paid')) && (
+                  <Button variant="outline" size="sm" className="w-full mt-2 text-xs" onClick={handleVerifyPayment} disabled={verifying}>
+                    {verifying ? '…' : tp('verifyPayment')}
+                  </Button>
+                )}
+            </CardContent>
+          </Card>
+
+          {/* Payouts ledger */}
+          {order.payouts?.length > 0 && (
+            <Card className="shadow-none">
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{tp('payouts')}</CardTitle></CardHeader>
+              <CardContent className="text-xs space-y-2">
+                {order.payouts.map((p: any) => (
+                  <div key={p.id} className="space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{p.recipient_type === 'PROVIDER' ? tp('provider') : tp('creator')}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{fmt(Number(p.amount))}</span>
+                        <Badge variant="outline" className={`text-[9px] ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                          {p.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                        </Badge>
+                      </span>
+                    </div>
+                    {p.status !== 'paid' && p.error && (
+                      <p className="text-[10px] text-red-600 leading-snug">{p.error}</p>
+                    )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}
@@ -267,7 +366,7 @@ export default function OrderDetailPage() {
 
       {/* Timeline */}
       <Card className="shadow-none">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Timeline</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('timeline')}</CardTitle></CardHeader>
         <CardContent>
           {order.timeline?.length > 0 ? (
             <div className="space-y-3">
@@ -275,14 +374,14 @@ export default function OrderDetailPage() {
                 <div key={entry.id} className="flex items-start gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium">{STATUS_LABELS[entry.status] || entry.status}</p>
+                    <p className="text-sm font-medium">{statusLabel(entry.status)}</p>
                     <p className="text-[10px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground py-4 text-center">No timeline entries</p>
+            <p className="text-sm text-muted-foreground py-4 text-center">{t('noTimelineEntries')}</p>
           )}
         </CardContent>
       </Card>

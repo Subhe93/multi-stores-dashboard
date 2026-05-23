@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ const typeColors: Record<string, string> = {
 const emptyForm = { name: '', type: 'TEXT', unit: '', group_name: '', is_required: false, label_en: '', label_ar: '', options: '' };
 
 export default function AdminAttributes() {
+  const t = useTranslations('admin');
   const { token } = useAuth();
   const [templates, setTemplates] = useState<AttributeTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,107 +117,107 @@ export default function AdminAttributes() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Attribute Templates</h1>
-          <p className="text-sm text-muted-foreground">Define product specifications for categories</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('attributeTemplates')}</h1>
+          <p className="text-sm text-muted-foreground">{t('attributeTemplatesSubtitle')}</p>
         </div>
         <Button size="sm" onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-1.5" /> Add Template
+          <Plus className="w-4 h-4 mr-1.5" /> {t('addTemplate')}
         </Button>
       </div>
 
       <DataTable
         columns={[
-          { key: 'name', label: 'Name', sortable: true, render: (item: AttributeTemplate) => (
+          { key: 'name', label: t('name'), sortable: true, render: (item: AttributeTemplate) => (
             <div>
               <p className="text-sm font-medium font-mono">{item.name}</p>
               <p className="text-[10px] text-muted-foreground">{item.translations.find(t => t.locale === 'en')?.label}</p>
             </div>
           )},
-          { key: 'type', label: 'Type', sortable: true, render: (item: AttributeTemplate) => (
+          { key: 'type', label: t('type'), sortable: true, render: (item: AttributeTemplate) => (
             <Badge variant="secondary" className={`text-[10px] font-semibold ${typeColors[item.type] || ''}`}>{item.type}</Badge>
           )},
-          { key: 'unit', label: 'Unit', render: (item: AttributeTemplate) => (
+          { key: 'unit', label: t('unit'), render: (item: AttributeTemplate) => (
             <span className="text-xs text-muted-foreground">{item.unit || '—'}</span>
           )},
-          { key: 'group_name', label: 'Group', sortable: true, render: (item: AttributeTemplate) => (
+          { key: 'group_name', label: t('group'), sortable: true, render: (item: AttributeTemplate) => (
             <span className="text-xs">{item.group_name || '—'}</span>
           )},
-          { key: 'is_required', label: 'Required', render: (item: AttributeTemplate) => (
-            item.is_required ? <Badge className="text-[10px]">Yes</Badge> : <span className="text-xs text-muted-foreground">No</span>
+          { key: 'is_required', label: t('required'), render: (item: AttributeTemplate) => (
+            item.is_required ? <Badge className="text-[10px]">{t('yes')}</Badge> : <span className="text-xs text-muted-foreground">{t('no')}</span>
           )},
           { key: 'actions', label: '', render: (item: AttributeTemplate) => (
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => openEdit(item)}>Edit</Button>
-              <Button variant="ghost" size="sm" className="h-6 text-[10px] text-red-500" onClick={() => setDeleteConfirm(item.id)}>Delete</Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => openEdit(item)}>{t('edit')}</Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px] text-red-500" onClick={() => setDeleteConfirm(item.id)}>{t('delete')}</Button>
             </div>
           )},
         ]}
         data={templates}
-        emptyMessage={loading ? 'Loading...' : 'No attribute templates'}
+        emptyMessage={loading ? t('loading') : t('noAttributeTemplates')}
       />
 
       {/* Create/Edit Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit' : 'Create'} Attribute Template</DialogTitle>
+            <DialogTitle>{editingId ? t('editAttributeTemplate') : t('createAttributeTemplate')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Internal Name *</Label>
+                <Label className="text-xs">{t('internalName')} *</Label>
                 <Input className="h-8 text-sm" placeholder="fabric_type" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Type *</Label>
+                <Label className="text-xs">{t('type')} *</Label>
                 <SearchableSelect
                   value={form.type}
                   onChange={(v) => setForm({ ...form, type: v })}
-                  placeholder="Select type..."
+                  placeholder={t('selectType')}
                   options={[
-                    { value: 'TEXT', label: 'Text', description: 'Short text input' },
-                    { value: 'NUMBER', label: 'Number', description: 'Numeric value' },
-                    { value: 'SELECT', label: 'Select', description: 'Single choice dropdown' },
-                    { value: 'MULTI_SELECT', label: 'Multi Select', description: 'Multiple choices' },
-                    { value: 'BOOLEAN', label: 'Boolean', description: 'Yes/No toggle' },
-                    { value: 'COLOR', label: 'Color', description: 'Color picker' },
-                    { value: 'DIMENSIONS', label: 'Dimensions', description: 'Width x Height' },
+                    { value: 'TEXT', label: t('typeText'), description: t('typeTextDesc') },
+                    { value: 'NUMBER', label: t('typeNumber'), description: t('typeNumberDesc') },
+                    { value: 'SELECT', label: t('typeSelect'), description: t('typeSelectDesc') },
+                    { value: 'MULTI_SELECT', label: t('typeMultiSelect'), description: t('typeMultiSelectDesc') },
+                    { value: 'BOOLEAN', label: t('typeBoolean'), description: t('typeBooleanDesc') },
+                    { value: 'COLOR', label: t('typeColor'), description: t('typeColorDesc') },
+                    { value: 'DIMENSIONS', label: t('typeDimensions'), description: t('typeDimensionsDesc') },
                   ]}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Unit</Label>
-                <Input className="h-8 text-sm" placeholder="cm, kg..." value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} />
+                <Label className="text-xs">{t('unit')}</Label>
+                <Input className="h-8 text-sm" placeholder={t('unitPlaceholder')} value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Group</Label>
-                <Input className="h-8 text-sm" placeholder="material..." value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} />
+                <Label className="text-xs">{t('group')}</Label>
+                <Input className="h-8 text-sm" placeholder={t('groupPlaceholder')} value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">English Label *</Label>
-                <Input className="h-8 text-sm" placeholder="Fabric Type" value={form.label_en} onChange={e => setForm({ ...form, label_en: e.target.value })} />
+                <Label className="text-xs">{t('englishLabel')} *</Label>
+                <Input className="h-8 text-sm" placeholder={t('englishLabelPlaceholder')} value={form.label_en} onChange={e => setForm({ ...form, label_en: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Arabic Label</Label>
+                <Label className="text-xs">{t('arabicLabel')}</Label>
                 <Input className="h-8 text-sm" dir="rtl" placeholder="نوع القماش" value={form.label_ar} onChange={e => setForm({ ...form, label_ar: e.target.value })} />
               </div>
             </div>
             {(form.type === 'SELECT' || form.type === 'MULTI_SELECT') && (
               <div className="space-y-1.5">
-                <Label className="text-xs">Options (comma separated)</Label>
+                <Label className="text-xs">{t('optionsCommaSeparated')}</Label>
                 <Input className="h-8 text-sm" placeholder="cotton, polyester, blend" value={form.options} onChange={e => setForm({ ...form, options: e.target.value })} />
               </div>
             )}
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" className="rounded accent-primary" checked={form.is_required} onChange={e => setForm({ ...form, is_required: e.target.checked })} />
-              <span className="text-xs font-medium">Required field</span>
+              <span className="text-xs font-medium">{t('requiredField')}</span>
             </label>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : editingId ? 'Save Changes' : 'Create'}</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>{t('cancel')}</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving}>{saving ? t('saving') : editingId ? t('saveChanges') : t('create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -224,15 +226,14 @@ export default function AdminAttributes() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Attribute Template</DialogTitle>
+            <DialogTitle>{t('deleteAttributeTemplate')}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-2">
-            Are you sure you want to delete this attribute template? This action cannot be undone.
-            Products using this attribute will lose their values.
+            {t('deleteAttributeTemplateConfirm')}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>Delete</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>{t('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>{t('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

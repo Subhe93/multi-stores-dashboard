@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Store as StoreIcon, ImageIcon, ExternalLink, Search, Package2, BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useTranslations } from 'next-intl';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -38,6 +39,8 @@ interface ProviderStore {
 export default function ProviderStores() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [stores, setStores] = useState<ProviderStore[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,17 +71,17 @@ export default function ProviderStores() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Stores using your products</h1>
-          <p className="text-sm text-muted-foreground">Creators who imported your products into their stores</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('storesUsingYourProducts')}</h1>
+          <p className="text-sm text-muted-foreground">{t('storesSubtitle')}</p>
         </div>
         <Card className="shadow-none">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center mb-4">
               <StoreIcon className="w-6 h-6 text-zinc-400" />
             </div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">No stores yet</p>
+            <p className="text-sm font-medium text-muted-foreground mb-1">{t('noStoresYet')}</p>
             <p className="text-xs text-muted-foreground text-center max-w-xs">
-              Once a creator imports one of your products into their store, it will appear here.
+              {t('noStoresHint')}
             </p>
           </CardContent>
         </Card>
@@ -89,16 +92,16 @@ export default function ProviderStores() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Stores using your products</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('storesUsingYourProducts')}</h1>
         <p className="text-sm text-muted-foreground">
-          {meta?.total ?? 0} store{(meta?.total ?? 0) === 1 ? '' : 's'} importing products from you
+          {t('storesImportingCount', { count: meta?.total ?? 0 })}
         </p>
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
         <Input
-          placeholder="Search by store, creator, or slug..."
+          placeholder={t('searchStoresPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-8 h-9 text-sm"
@@ -110,19 +113,19 @@ export default function ProviderStores() {
           <table className="w-full text-sm">
             <thead className="border-b bg-zinc-50/50">
               <tr>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Store</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Creator</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Your products</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Status</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">Created</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStore')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreator')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colYourProducts')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
+                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
                 <th className="w-16 px-3 py-2.5" />
               </tr>
             </thead>
             <tbody className="divide-y">
               {loading ? (
-                <tr><td colSpan={6} className="text-center py-12 text-sm text-muted-foreground">Loading...</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-sm text-muted-foreground">{tc('loading')}</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-sm text-muted-foreground">No stores match your search</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-sm text-muted-foreground">{t('noStoresMatch')}</td></tr>
               ) : (
                 filtered.map(store => (
                   <tr
@@ -147,7 +150,7 @@ export default function ProviderStores() {
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs">{store.creator.display_name}</span>
                         {store.creator.verified && (
-                          <BadgeCheck className="w-3 h-3 text-emerald-500" aria-label="Verified" />
+                          <BadgeCheck className="w-3 h-3 text-emerald-500" aria-label={t('verified')} />
                         )}
                       </div>
                     </td>
@@ -166,7 +169,7 @@ export default function ProviderStores() {
                             : 'bg-zinc-100 text-zinc-500 border-zinc-200'
                         }`}
                       >
-                        {store.is_active ? 'Active' : 'Inactive'}
+                        {store.is_active ? t('active') : t('inactive')}
                       </Badge>
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
@@ -182,7 +185,7 @@ export default function ProviderStores() {
                           router.push(`/provider/stores/${store.id}`);
                         }}
                       >
-                        View <ExternalLink className="w-3 h-3 ml-1" />
+                        {t('view')} <ExternalLink className="w-3 h-3 ml-1" />
                       </Button>
                     </td>
                   </tr>
@@ -194,11 +197,11 @@ export default function ProviderStores() {
 
         {meta && meta.totalPages > 1 && (
           <div className="flex items-center justify-between border-t px-4 py-2">
-            <span className="text-xs text-muted-foreground">{meta.total} stores</span>
+            <span className="text-xs text-muted-foreground">{t('countStores', { count: meta.total })}</span>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => fetchStores(meta.page - 1)}>Prev</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => fetchStores(meta.page - 1)}>{t('prev')}</Button>
               <span className="text-xs px-2 py-1">{meta.page} / {meta.totalPages}</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => fetchStores(meta.page + 1)}>Next</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => fetchStores(meta.page + 1)}>{tc('next')}</Button>
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const TABS: { label: string; status?: ProductStatus }[] = [
 ];
 
 export default function AdminProducts() {
+  const t = useTranslations('admin');
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -94,12 +96,19 @@ export default function AdminProducts() {
   const getNextStatus = (current: ProductStatus): ProductStatus =>
     current === 'PUBLISHED' ? 'ARCHIVED' : 'PUBLISHED';
 
+  const tabLabel = (tab: { label: string; status?: ProductStatus }) => {
+    if (!tab.status) return t('tabAll');
+    if (tab.status === 'PUBLISHED') return t('statusPublished');
+    if (tab.status === 'DRAFT') return t('statusDraft');
+    return t('statusArchived');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">All Products</h1>
-          <p className="text-sm text-muted-foreground">Monitor and manage platform-wide products</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('allProducts')}</h1>
+          <p className="text-sm text-muted-foreground">{t('allProductsSubtitle')}</p>
         </div>
       </div>
 
@@ -112,7 +121,7 @@ export default function AdminProducts() {
             className="h-8 text-xs"
             onClick={() => setActiveTab(i)}
           >
-            {tab.label}
+            {tabLabel(tab)}
           </Button>
         ))}
       </div>
@@ -120,7 +129,7 @@ export default function AdminProducts() {
       <DataTable
         columns={[
           {
-            key: 'name', label: 'Product', render: (item: AdminProduct) => (
+            key: 'name', label: t('product'), render: (item: AdminProduct) => (
               <div className="flex items-center gap-2.5">
                 {item.images?.[0]?.url ? (
                   <img
@@ -141,29 +150,29 @@ export default function AdminProducts() {
             ),
           },
           {
-            key: 'provider', label: 'Provider', render: (item: AdminProduct) => (
+            key: 'provider', label: t('provider'), render: (item: AdminProduct) => (
               <span className="text-sm">{item.provider?.company_name || '—'}</span>
             ),
           },
           {
-            key: 'category', label: 'Category', render: (item: AdminProduct) => (
+            key: 'category', label: t('category'), render: (item: AdminProduct) => (
               <span className="text-xs text-muted-foreground">{getCategoryName(item)}</span>
             ),
           },
           {
-            key: 'base_price', label: 'Base Price', sortable: true, render: (item: AdminProduct) => (
+            key: 'base_price', label: t('basePrice'), sortable: true, render: (item: AdminProduct) => (
               <span className="text-sm font-medium">{fmt(item.base_price)}</span>
             ),
           },
           {
-            key: 'status', label: 'Status', render: (item: AdminProduct) => (
+            key: 'status', label: t('status'), render: (item: AdminProduct) => (
               <Badge variant="secondary" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>
                 {item.status}
               </Badge>
             ),
           },
           {
-            key: 'created_at', label: 'Added', sortable: true, render: (item: AdminProduct) => (
+            key: 'created_at', label: t('added'), sortable: true, render: (item: AdminProduct) => (
               <span className="text-xs text-muted-foreground">
                 {new Date(item.created_at).toLocaleDateString()}
               </span>
@@ -177,7 +186,7 @@ export default function AdminProducts() {
                 className="h-6 text-[10px]"
                 onClick={() => setToggleTarget(item)}
               >
-                {item.status === 'PUBLISHED' ? 'Archive' : 'Publish'}
+                {item.status === 'PUBLISHED' ? t('archive') : t('publish')}
               </Button>
             ),
           },
@@ -185,7 +194,7 @@ export default function AdminProducts() {
         data={products}
         pagination={meta}
         onPageChange={(p) => fetchProducts(p)}
-        emptyMessage={loading ? 'Loading...' : 'No products found'}
+        emptyMessage={loading ? t('loading') : t('noProductsFound')}
       />
 
       {/* Status toggle confirmation */}
@@ -193,23 +202,23 @@ export default function AdminProducts() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {toggleTarget?.status === 'PUBLISHED' ? 'Archive' : 'Publish'} Product
+              {toggleTarget?.status === 'PUBLISHED' ? t('archiveProduct') : t('publishProduct')}
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-2">
             {toggleTarget?.status === 'PUBLISHED'
-              ? `Archiving "${getName(toggleTarget)}" will hide it from all Creator stores and the marketplace.`
-              : `Publishing "${getName(toggleTarget)}" will make it available for Creators and the marketplace.`}
+              ? t('archiveProductConfirm', { name: getName(toggleTarget) })
+              : t('publishProductConfirm', { name: getName(toggleTarget) })}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setToggleTarget(null)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setToggleTarget(null)}>{t('cancel')}</Button>
             <Button
               size="sm"
               variant={toggleTarget?.status === 'PUBLISHED' ? 'destructive' : 'default'}
               onClick={() => toggleTarget && handleToggleStatus(toggleTarget, getNextStatus(toggleTarget.status))}
               disabled={saving}
             >
-              {saving ? 'Saving...' : toggleTarget?.status === 'PUBLISHED' ? 'Archive' : 'Publish'}
+              {saving ? t('saving') : toggleTarget?.status === 'PUBLISHED' ? t('archive') : t('publish')}
             </Button>
           </DialogFooter>
         </DialogContent>

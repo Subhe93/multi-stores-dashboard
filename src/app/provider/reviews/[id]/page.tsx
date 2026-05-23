@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -76,6 +77,8 @@ export default function ReviewDetailPage() {
   const { token } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
 
   const [item, setItem] = useState<CustomProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +101,7 @@ export default function ReviewDetailPage() {
     setLoading(true);
     api<CustomProductDetail>(`/custom-products/${id}`, { token })
       .then(setItem)
-      .catch((err) => setError(err?.message || 'Failed to load'))
+      .catch((err) => setError(err?.message || t('failedToLoad')))
       .finally(() => setLoading(false));
   }, [token, id]);
 
@@ -108,10 +111,10 @@ export default function ReviewDetailPage() {
     setError('');
     try {
       await api(`/custom-products/${id}/approve`, { method: 'POST', token });
-      setSuccess('Approved successfully');
+      setSuccess(t('approvedSuccessfully'));
       setTimeout(() => router.push('/provider/reviews'), 1000);
     } catch (err: any) {
-      setError(err?.message || 'Failed to approve');
+      setError(err?.message || t('failedToApprove'));
     } finally {
       setActionLoading(false);
     }
@@ -128,27 +131,27 @@ export default function ReviewDetailPage() {
         body: JSON.stringify({ reason: rejectReason.trim() }),
       });
       setShowRejectDialog(false);
-      setSuccess('Rejected with feedback sent to creator');
+      setSuccess(t('rejectedWithFeedback'));
       setTimeout(() => router.push('/provider/reviews'), 1000);
     } catch (err: any) {
-      setError(err?.message || 'Failed to reject');
+      setError(err?.message || t('failedToReject'));
     } finally {
       setActionLoading(false);
     }
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
-  if (!item) return <p className="text-center py-12 text-muted-foreground text-sm">{error || 'Custom product not found'}</p>;
+  if (!item) return <p className="text-center py-12 text-muted-foreground text-sm">{error || t('customProductNotFound')}</p>;
 
   const formatDiscount = (offer: BundleOfferData): string => {
     const v = Number(offer.discount_value);
     switch (offer.discount_type) {
       case 'PERCENTAGE':
-        return `${v}% off`;
+        return t('discountPercentOff', { value: v });
       case 'FIXED':
-        return `${fmt(v)} off`;
+        return t('discountAmountOff', { amount: fmt(v) });
       case 'ITEM':
-        return `${v} free`;
+        return t('discountItemsFree', { value: v });
     }
   };
 
@@ -169,8 +172,8 @@ export default function ReviewDetailPage() {
     return { original, final };
   };
 
-  const title = item.translations?.find((t) => t.locale === 'en')?.title
-    || item.translations?.[0]?.title || 'Untitled';
+  const title = item.translations?.find((tr) => tr.locale === 'en')?.title
+    || item.translations?.[0]?.title || t('untitled');
   const description = item.translations?.find((t) => t.locale === 'en')?.description
     || item.translations?.[0]?.description;
   const baseTitle = item.product.translations?.find((t) => t.locale === 'en')?.title
@@ -188,7 +191,7 @@ export default function ReviewDetailPage() {
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">
-            by {item.creator.display_name} · Base: {baseTitle || '—'}
+            {t('byCreatorAndBase', { name: item.creator.display_name, base: baseTitle || '—' })}
           </p>
         </div>
         <Badge variant="outline" className="text-xs">{item.status}</Badge>
@@ -211,7 +214,7 @@ export default function ReviewDetailPage() {
           {/* Mockup images */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Mockup Images</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('mockupImages')}</CardTitle>
             </CardHeader>
             <CardContent>
               {item.mockup_images.length === 0 ? (
@@ -228,7 +231,7 @@ export default function ReviewDetailPage() {
                       rel="noreferrer"
                       className="block aspect-square rounded-lg overflow-hidden border bg-zinc-50 hover:opacity-90 transition"
                     >
-                      <img src={resolveUrl(img.url)} alt={`Mockup ${i + 1}`} className="w-full h-full object-cover" />
+                      <img src={resolveUrl(img.url)} alt={t('mockupAlt', { index: i + 1 })} className="w-full h-full object-cover" />
                     </a>
                   ))}
                 </div>
@@ -240,7 +243,7 @@ export default function ReviewDetailPage() {
           {description && (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Description</CardTitle>
+                <CardTitle className="text-sm font-semibold">{tc('description')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div
@@ -255,12 +258,12 @@ export default function ReviewDetailPage() {
           {item.field_values.length > 0 && (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Creator-Filled Fields</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t('creatorFilledFields')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {item.field_values.map((fv) => {
-                    const label = fv.custom_field?.translations?.find((t) => t.locale === 'en')?.label
+                    const label = fv.custom_field?.translations?.find((tr) => tr.locale === 'en')?.label
                       || fv.custom_field?.translations?.[0]?.label
                       || fv.custom_field?.name
                       || fv.custom_field_id;
@@ -285,7 +288,7 @@ export default function ReviewDetailPage() {
                               className="inline-flex items-center gap-2 px-3 py-2 rounded-md border bg-zinc-50 text-xs hover:bg-zinc-100 transition"
                             >
                               <FileImage className="w-3.5 h-3.5" />
-                              {fv.file_url.split('/').pop() || 'File'}
+                              {fv.file_url.split('/').pop() || t('file')}
                             </a>
                           )
                         ) : (
@@ -305,26 +308,26 @@ export default function ReviewDetailPage() {
           {/* Pricing */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Pricing</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('pricing')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Strategy</span>
+                <span className="text-muted-foreground">{t('strategy')}</span>
                 <span className="font-medium">{item.pricing_type}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Your base price</span>
+                <span className="text-muted-foreground">{t('yourBasePrice')}</span>
                 <span>{fmt(item.product.base_price)}</span>
               </div>
               {item.pricing_type === 'SINGLE' && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Final price</span>
+                  <span className="text-muted-foreground">{t('finalPrice')}</span>
                   <span className="font-semibold">{fmt(item.final_price)}</span>
                 </div>
               )}
               {item.pricing_type === 'MARGIN' && item.margin_amount != null && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Margin</span>
+                  <span className="text-muted-foreground">{t('margin')}</span>
                   <span className="font-semibold">+{fmt(item.margin_amount)}</span>
                 </div>
               )}
@@ -348,7 +351,7 @@ export default function ReviewDetailPage() {
             <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">
-                  Bundles{' '}
+                  {t('bundles')}{' '}
                   <span className="font-normal text-muted-foreground">
                     ({item.bundles.length})
                   </span>
@@ -357,9 +360,9 @@ export default function ReviewDetailPage() {
               <CardContent className="space-y-3">
                 {item.bundles.map((b) => {
                   const name =
-                    b.bundle.translations.find((t) => t.locale === primaryLocale)?.name ||
+                    b.bundle.translations.find((tr) => tr.locale === primaryLocale)?.name ||
                     b.bundle.translations[0]?.name ||
-                    'Untitled bundle';
+                    t('untitledBundle');
                   return (
                     <div key={b.bundle_id} className="rounded-lg border p-3">
                       <div className="mb-2 flex items-center justify-between">
@@ -369,13 +372,13 @@ export default function ReviewDetailPage() {
                             variant="outline"
                             className="border-amber-200 bg-amber-50 text-[10px] text-amber-700"
                           >
-                            Disabled
+                            {t('disabled')}
                           </Badge>
                         )}
                       </div>
                       <ul className="space-y-1.5">
                         {b.bundle.offers.map((offer) => {
-                          const t =
+                          const offerTr =
                             offer.translations.find((tr) => tr.locale === primaryLocale) ||
                             offer.translations[0];
                           const totals = computedTotals(offer);
@@ -386,10 +389,10 @@ export default function ReviewDetailPage() {
                             >
                               <div className="min-w-0 flex-1">
                                 <p className="truncate font-medium">
-                                  {t?.title || `Offer (qty ${offer.quantity})`}
+                                  {offerTr?.title || t('offerQty', { quantity: offer.quantity })}
                                 </p>
                                 <p className="text-muted-foreground">
-                                  Qty {offer.quantity} · {formatDiscount(offer)}
+                                  {t('qtyAndDiscount', { quantity: offer.quantity, discount: formatDiscount(offer) })}
                                 </p>
                               </div>
                               <div className="shrink-0 text-right">
@@ -410,7 +413,7 @@ export default function ReviewDetailPage() {
                   );
                 })}
                 <p className="text-[10px] text-muted-foreground">
-                  Totals computed against the creator&apos;s final price for this product.
+                  {t('totalsComputedNote')}
                 </p>
               </CardContent>
             </Card>
@@ -420,7 +423,7 @@ export default function ReviewDetailPage() {
           {isPending && (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Decision</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t('decision')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button
@@ -429,7 +432,7 @@ export default function ReviewDetailPage() {
                   disabled={actionLoading}
                 >
                   <Check className="w-4 h-4 mr-1.5" />
-                  Approve & Publish
+                  {t('approveAndPublish')}
                 </Button>
                 <Button
                   variant="outline"
@@ -438,7 +441,7 @@ export default function ReviewDetailPage() {
                   disabled={actionLoading}
                 >
                   <X className="w-4 h-4 mr-1.5" />
-                  Reject with reason
+                  {t('rejectWithReason')}
                 </Button>
               </CardContent>
             </Card>
@@ -450,31 +453,31 @@ export default function ReviewDetailPage() {
       <Dialog open={showRejectDialog} onOpenChange={(v) => { if (!v) setShowRejectDialog(false); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reject custom product</DialogTitle>
+            <DialogTitle>{t('rejectCustomProduct')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 py-2">
-            <Label className="text-xs">Reason for rejection *</Label>
+            <Label className="text-xs">{t('reasonForRejection')}</Label>
             <Textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="e.g. The image you uploaded uses copyrighted artwork without permission..."
+              placeholder={t('rejectionReasonPlaceholder')}
               rows={4}
               className="text-sm"
             />
             <p className="text-[10px] text-muted-foreground">
-              The creator will see this message and can revise the product.
+              {t('rejectionNote')}
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)} disabled={actionLoading}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
               disabled={actionLoading || !rejectReason.trim()}
             >
-              {actionLoading ? 'Rejecting...' : 'Send rejection'}
+              {actionLoading ? t('rejecting') : t('sendRejection')}
             </Button>
           </DialogFooter>
         </DialogContent>

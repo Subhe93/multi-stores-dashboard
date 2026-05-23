@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Layers, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -44,6 +45,8 @@ function formatDate(dateStr?: string): string {
 export default function CreatorBundlesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const tt = useTranslations('creator');
+  const tc = useTranslations('common');
 
   interface ListMeta {
     total: number;
@@ -146,7 +149,7 @@ export default function CreatorBundlesPage() {
       setDeleteTarget(null);
     } catch (err) {
       const e = err as { message?: string };
-      setDeleteError(e?.message || 'Failed to delete bundle');
+      setDeleteError(e?.message || tt('bundles.failedDelete'));
     } finally {
       setDeleting(false);
     }
@@ -166,7 +169,7 @@ export default function CreatorBundlesPage() {
       fetchBundles(meta?.page || 1);
     } catch (err) {
       const e = err as { message?: string };
-      setDeleteError(e?.message || 'Failed to disable bundle');
+      setDeleteError(e?.message || tt('bundles.failedDisable'));
     } finally {
       setDeleting(false);
     }
@@ -175,30 +178,30 @@ export default function CreatorBundlesPage() {
   const columns = [
     {
       key: 'name',
-      label: 'Name',
+      label: tc('name'),
       render: (item: Bundle) => (
         <span className="text-sm font-medium">
-          {pickTranslation(item.translations, primaryLocale)?.name || 'Untitled'}
+          {pickTranslation(item.translations, primaryLocale)?.name || tt('bundles.untitled')}
         </span>
       ),
     },
     {
       key: 'offers',
-      label: 'Offers',
+      label: tt('bundles.colOffers'),
       render: (item: Bundle) => (
         <span className="text-sm tabular-nums">{item.offers.length}</span>
       ),
     },
     {
       key: 'products',
-      label: 'Products',
+      label: tt('bundles.colProducts'),
       render: (item: Bundle) => (
         <span className="text-sm tabular-nums">{item.products.length}</span>
       ),
     },
     {
       key: 'updated_at',
-      label: 'Updated',
+      label: tt('bundles.colUpdated'),
       render: (item: Bundle) => (
         <span className="text-sm text-muted-foreground">
           {formatDate(item.updated_at)}
@@ -207,13 +210,13 @@ export default function CreatorBundlesPage() {
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: Bundle) => (
         <button
           type="button"
           onClick={() => toggleStatus(item)}
           className={`inline-flex h-5 cursor-pointer items-center rounded-full border px-2 text-[10px] font-medium transition hover:opacity-70 ${statusBadgeClass(item.status)}`}
-          title={`Click to ${item.status === 'ACTIVE' ? 'disable' : 'activate'}`}
+          title={item.status === 'ACTIVE' ? tt('bundles.clickToDisable') : tt('bundles.clickToActivate')}
         >
           {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
         </button>
@@ -228,7 +231,7 @@ export default function CreatorBundlesPage() {
             size="icon-sm"
             variant="ghost"
             onClick={() => router.push(`/creator/bundles/${item.id}`)}
-            title="Edit"
+            title={tc('edit')}
           >
             <Pencil className="size-3.5" />
           </Button>
@@ -237,7 +240,7 @@ export default function CreatorBundlesPage() {
             variant="ghost"
             className="text-destructive hover:text-destructive"
             onClick={() => setDeleteTarget(item)}
-            title="Delete"
+            title={tc('delete')}
           >
             <Trash2 className="size-3.5" />
           </Button>
@@ -250,20 +253,20 @@ export default function CreatorBundlesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Bundles</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{tt('bundles.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Build quantity-tier upsell offers and attach them to products.
+            {tt('bundles.subtitle')}
           </p>
         </div>
         <Button size="sm" onClick={() => router.push('/creator/bundles/new')}>
-          <Plus className="size-4" /> Create bundle
+          <Plus className="size-4" /> {tt('bundles.createBundle')}
         </Button>
       </div>
 
       <DataTable
         columns={columns}
         data={bundles}
-        searchPlaceholder="Search bundles…"
+        searchPlaceholder={tt('bundles.searchPlaceholder')}
         onSearch={setSearchQuery}
         emptyMessage=""
         pagination={meta ?? undefined}
@@ -275,16 +278,16 @@ export default function CreatorBundlesPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
             <Layers className="size-6" />
           </div>
-          <p className="text-sm font-medium">No bundles yet</p>
+          <p className="text-sm font-medium">{tt('bundles.emptyTitle')}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Create your first bundle to start running quantity-tier offers.
+            {tt('bundles.emptyDesc')}
           </p>
           <Button
             size="sm"
             className="mt-4"
             onClick={() => router.push('/creator/bundles/new')}
           >
-            <Plus className="size-4" /> Create bundle
+            <Plus className="size-4" /> {tt('bundles.createBundle')}
           </Button>
         </div>
       )}
@@ -300,16 +303,16 @@ export default function CreatorBundlesPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete bundle</DialogTitle>
+            <DialogTitle>{tt('bundles.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
+              {tt('bundles.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
                 {deleteTarget
                   ? pickTranslation(deleteTarget.translations, primaryLocale)?.name ||
-                    'this bundle'
+                    tt('bundles.thisBundle')
                   : ''}
               </span>
-              ? Offers, translations, and product attachments will be removed.
+              {tt('bundles.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           {deleteError && (
@@ -323,7 +326,7 @@ export default function CreatorBundlesPage() {
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             {deleteError && deleteTarget?.status === 'ACTIVE' && (
               <Button
@@ -331,11 +334,11 @@ export default function CreatorBundlesPage() {
                 onClick={handleDisableInstead}
                 disabled={deleting}
               >
-                {deleting ? 'Disabling…' : 'Disable instead'}
+                {deleting ? tt('bundles.disabling') : tt('bundles.disableInstead')}
               </Button>
             )}
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? tt('bundles.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -347,30 +350,24 @@ export default function CreatorBundlesPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Disable bundle</DialogTitle>
+            <DialogTitle>{tt('bundles.disableTitle')}</DialogTitle>
             <DialogDescription>
               <span className="font-medium text-foreground">
                 {disableTarget
                   ? pickTranslation(disableTarget.translations, primaryLocale)?.name ||
-                    'this bundle'
+                    tt('bundles.thisBundle')
                   : ''}
               </span>{' '}
-              is currently attached to{' '}
+              {tt('bundles.attachedToPrefix')}{' '}
               <span className="font-medium text-foreground">
-                {disableTarget
-                  ? (disableTarget.products?.length || 0) +
-                    (disableTarget.custom_products?.length || 0)
-                  : 0}{' '}
-                product
-                {(disableTarget
-                  ? (disableTarget.products?.length || 0) +
-                    (disableTarget.custom_products?.length || 0)
-                  : 0) === 1
-                  ? ''
-                  : 's'}
+                {tt('bundles.productCount', {
+                  count: disableTarget
+                    ? (disableTarget.products?.length || 0) +
+                      (disableTarget.custom_products?.length || 0)
+                    : 0,
+                })}
               </span>
-              . Disabling will hide it from the storefront immediately and clear
-              it from any customer carts that still reference it.
+              {tt('bundles.disableWarningSuffix')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
@@ -379,14 +376,14 @@ export default function CreatorBundlesPage() {
               onClick={() => setDisableTarget(null)}
               disabled={disabling}
             >
-              Keep active
+              {tt('bundles.keepActive')}
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDisable}
               disabled={disabling}
             >
-              {disabling ? 'Disabling…' : 'Disable bundle'}
+              {disabling ? tt('bundles.disabling') : tt('bundles.disableBundle')}
             </Button>
           </DialogFooter>
         </DialogContent>

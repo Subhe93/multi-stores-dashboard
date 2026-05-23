@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
@@ -29,18 +30,25 @@ const STATUS_COLORS: Record<string, string> = {
   REFUNDED:       'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING:        'Pending',
-  CONFIRMED:      'Confirmed',
-  PROCESSING:     'Processing',
-  MANUFACTURING:  'Manufacturing',
-  QUALITY_CHECK:  'Quality Check',
-  SHIPPED:        'Shipped',
-  DELIVERED:      'Delivered',
-  RETURNED:       'Returned',
-  CANCELLED:      'Cancelled',
-  REFUNDED:       'Refunded',
+type Translator = ReturnType<typeof useTranslations>;
+
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING:        'orderStatus.pending',
+  CONFIRMED:      'orderStatus.confirmed',
+  PROCESSING:     'orderStatus.processing',
+  MANUFACTURING:  'orderStatus.manufacturing',
+  QUALITY_CHECK:  'orderStatus.qualityCheck',
+  SHIPPED:        'orderStatus.shipped',
+  DELIVERED:      'orderStatus.delivered',
+  RETURNED:       'orderStatus.returned',
+  CANCELLED:      'orderStatus.cancelled',
+  REFUNDED:       'orderStatus.refunded',
 };
+
+function statusLabel(t: Translator, status: string): string {
+  const key = STATUS_LABEL_KEYS[status];
+  return key ? t(key) : status;
+}
 
 function countByStatus(orders: any[]): Record<string, number> {
   const counts: Record<string, number> = {};
@@ -74,6 +82,7 @@ export default function ProviderOverview() {
   const { token } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
+  const t = useTranslations('provider');
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<any>(null);
@@ -115,16 +124,16 @@ export default function ProviderOverview() {
   const hasStripe = !!profile?.stripe_account_id;
   const setupDone = hasProducts && hasShipping && hasStripe;
   const setupSteps = [
-    { done: hasProducts, label: 'Add your first product', action: () => router.push('/provider/products/new'), icon: Package },
-    { done: hasShipping, label: 'Set up shipping zones', action: () => router.push('/provider/shipping'), icon: Truck },
-    { done: hasStripe,   label: 'Connect Stripe account', action: () => router.push('/provider/settings'), icon: CreditCard },
+    { done: hasProducts, label: t('setupAddProduct'), action: () => router.push('/provider/products/new'), icon: Package },
+    { done: hasShipping, label: t('setupShipping'), action: () => router.push('/provider/shipping'), icon: Truck },
+    { done: hasStripe,   label: t('setupStripe'), action: () => router.push('/provider/settings'), icon: CreditCard },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
-        <p className="text-sm text-muted-foreground">Your store at a glance</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('overviewTitle')}</h1>
+        <p className="text-sm text-muted-foreground">{t('overviewSubtitle')}</p>
       </div>
 
       {/* Setup checklist — shown until all steps are done */}
@@ -132,7 +141,7 @@ export default function ProviderOverview() {
         <Card className="shadow-none border-blue-200 bg-blue-50/40">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Complete your setup
+              <Settings className="w-4 h-4" /> {t('completeSetup')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -148,7 +157,7 @@ export default function ProviderOverview() {
                 </div>
                 {!step.done && (
                   <Button variant="outline" size="sm" className="h-6 text-[10px] border-blue-200 text-blue-700" onClick={step.action}>
-                    Set up
+                    {t('setUp')}
                   </Button>
                 )}
               </div>
@@ -159,12 +168,12 @@ export default function ProviderOverview() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard title="Total Products" value={loading ? '...' : products.length} subtitle="listed" icon={<Package className="w-4 h-4" />} />
-        <StatCard title="Stores" value={loading ? '...' : (storesMeta?.total ?? stores.length)} subtitle="using your products" icon={<StoreIcon className="w-4 h-4" />} />
-        <StatCard title="Active Orders" value={loading ? '...' : activeOrders.length} subtitle="in progress" icon={<ClipboardList className="w-4 h-4" />} />
-        <StatCard title="Revenue" value={loading ? '...' : fmt(earnings?.total_earnings)} subtitle="all time" icon={<DollarSign className="w-4 h-4" />} />
+        <StatCard title={t('totalProducts')} value={loading ? '...' : products.length} subtitle={t('listed')} icon={<Package className="w-4 h-4" />} />
+        <StatCard title={t('stores')} value={loading ? '...' : (storesMeta?.total ?? stores.length)} subtitle={t('usingYourProducts')} icon={<StoreIcon className="w-4 h-4" />} />
+        <StatCard title={t('activeOrders')} value={loading ? '...' : activeOrders.length} subtitle={t('inProgress')} icon={<ClipboardList className="w-4 h-4" />} />
+        <StatCard title={t('revenue')} value={loading ? '...' : fmt(earnings?.total_earnings)} subtitle={t('allTime')} icon={<DollarSign className="w-4 h-4" />} />
         <StatCard
-          title="This Month"
+          title={t('thisMonth')}
           value={loading ? '...' : fmt(earnings?.this_month)}
           trend={trend.direction === 'flat' ? undefined : trend.direction}
           trendValue={trend.value}
@@ -179,11 +188,11 @@ export default function ProviderOverview() {
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-600" />
               <span className="text-sm font-medium text-amber-800">
-                {needsAction.length} order{needsAction.length > 1 ? 's' : ''} need{needsAction.length === 1 ? 's' : ''} your attention
+                {t('ordersNeedAttention', { count: needsAction.length })}
               </span>
             </div>
             <Button variant="outline" size="sm" className="h-7 text-xs border-amber-300 text-amber-700" onClick={() => router.push('/provider/orders')}>
-              View Orders <ArrowRight className="w-3 h-3 ml-1" />
+              {t('viewOrders')} <ArrowRight className="w-3 h-3 ml-1" />
             </Button>
           </CardContent>
         </Card>
@@ -194,13 +203,13 @@ export default function ProviderOverview() {
         <Card className="shadow-none lg:col-span-2">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Recent Orders</CardTitle>
-              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/orders')}>View all</Button>
+              <CardTitle className="text-sm font-semibold">{t('recentOrders')}</CardTitle>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/orders')}>{t('viewAll')}</Button>
             </div>
           </CardHeader>
           <CardContent>
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No orders yet</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">{t('noOrdersYet')}</p>
             ) : (
               <div className="space-y-1">
                 {recentOrders.map((o: any) => (
@@ -216,7 +225,7 @@ export default function ProviderOverview() {
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium">{fmt(o.total)}</span>
                       <Badge variant="outline" className={`text-[9px] ${STATUS_COLORS[o.status] || ''}`}>
-                        {STATUS_LABELS[o.status] || o.status}
+                        {statusLabel(t, o.status)}
                       </Badge>
                     </div>
                   </button>
@@ -231,13 +240,13 @@ export default function ProviderOverview() {
           <Card className="shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Orders by Status</CardTitle>
-                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/orders')}>All</Button>
+                <CardTitle className="text-sm font-semibold">{t('ordersByStatus')}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/orders')}>{t('all')}</Button>
               </div>
             </CardHeader>
             <CardContent>
               {Object.keys(statusCounts).length === 0 ? (
-                <p className="text-xs text-muted-foreground py-3 text-center">No orders yet</p>
+                <p className="text-xs text-muted-foreground py-3 text-center">{t('noOrdersYet')}</p>
               ) : (
                 <div className="space-y-1.5">
                   {(Object.entries(statusCounts) as [string, number][])
@@ -245,7 +254,7 @@ export default function ProviderOverview() {
                     .map(([status, count]) => (
                       <div key={status} className="flex items-center justify-between text-xs">
                         <Badge variant="outline" className={`text-[9px] ${STATUS_COLORS[status] || ''}`}>
-                          {STATUS_LABELS[status] || status}
+                          {statusLabel(t, status)}
                         </Badge>
                         <span className="font-semibold">{count}</span>
                       </div>
@@ -259,13 +268,13 @@ export default function ProviderOverview() {
           <Card className="shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Products</CardTitle>
-                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/products')}>All</Button>
+                <CardTitle className="text-sm font-semibold">{t('products')}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/products')}>{t('all')}</Button>
               </div>
             </CardHeader>
             <CardContent>
               {products.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">No products yet</p>
+                <p className="text-xs text-muted-foreground py-4 text-center">{t('noProductsYet')}</p>
               ) : (
                 <div className="space-y-1.5">
                   {products.slice(0, 4).map((p: any) => {
@@ -279,7 +288,7 @@ export default function ProviderOverview() {
                         <div className="h-7 w-7 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                           {img ? <img src={img} className="h-full w-full object-cover" /> : <ImageIcon className="w-3 h-3 text-zinc-300" />}
                         </div>
-                        <p className="text-[11px] font-medium truncate flex-1">{p.translations?.[0]?.title || 'Untitled'}</p>
+                        <p className="text-[11px] font-medium truncate flex-1">{p.translations?.[0]?.title || t('untitled')}</p>
                         <span className="text-[10px] font-medium shrink-0">{fmt(p.base_price)}</span>
                       </button>
                     );
@@ -293,14 +302,14 @@ export default function ProviderOverview() {
           <Card className="shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Earnings</CardTitle>
-                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/earnings')}>Details</Button>
+                <CardTitle className="text-sm font-semibold">{t('earnings')}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/earnings')}>{t('details')}</Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Total</span><span className="font-medium">{fmt(earnings?.total_earnings)}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">This month</span><span className="font-medium">{fmt(earnings?.this_month)}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Pending</span><span className="font-medium">{fmt(earnings?.pending)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('total')}</span><span className="font-medium">{fmt(earnings?.total_earnings)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('thisMonthLower')}</span><span className="font-medium">{fmt(earnings?.this_month)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('pending')}</span><span className="font-medium">{fmt(earnings?.pending)}</span></div>
             </CardContent>
           </Card>
 
@@ -308,13 +317,13 @@ export default function ProviderOverview() {
           <Card className="shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Stores using your products</CardTitle>
-                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/stores')}>All</Button>
+                <CardTitle className="text-sm font-semibold">{t('storesUsingYourProducts')}</CardTitle>
+                <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/provider/stores')}>{t('all')}</Button>
               </div>
             </CardHeader>
             <CardContent>
               {stores.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">No stores yet</p>
+                <p className="text-xs text-muted-foreground py-4 text-center">{t('noStoresYet')}</p>
               ) : (
                 <div className="space-y-1.5">
                   {stores.slice(0, 4).map((s: any) => (

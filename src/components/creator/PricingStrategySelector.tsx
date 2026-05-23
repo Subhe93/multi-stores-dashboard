@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DollarSign, Layers, TrendingUp, Check, Package } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/lib/useCurrency';
 
 type PricingType = 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
@@ -88,27 +89,6 @@ interface PricingStrategySelectorProps {
   variantOptionConfig?: VariantOptionConfig[];
 }
 
-const strategies = [
-  {
-    key: 'SINGLE' as PricingType,
-    icon: DollarSign,
-    title: 'Single Price',
-    description: 'One price for all variants',
-  },
-  {
-    key: 'PER_VARIANT' as PricingType,
-    icon: Layers,
-    title: 'Per-Variant',
-    description: 'Different price per variant',
-  },
-  {
-    key: 'MARGIN' as PricingType,
-    icon: TrendingUp,
-    title: 'Fixed Margin',
-    description: 'Markup on base price',
-  },
-];
-
 export default function PricingStrategySelector({
   pricingType,
   onPricingTypeChange,
@@ -123,6 +103,27 @@ export default function PricingStrategySelector({
   variantOptionConfig,
 }: PricingStrategySelectorProps) {
   const { fmt, currency } = useCurrency();
+  const t = useTranslations('components');
+  const strategies = [
+    {
+      key: 'SINGLE' as PricingType,
+      icon: DollarSign,
+      title: t('pricingSingleTitle'),
+      description: t('pricingSingleDesc'),
+    },
+    {
+      key: 'PER_VARIANT' as PricingType,
+      icon: Layers,
+      title: t('pricingPerVariantTitle'),
+      description: t('pricingPerVariantDesc'),
+    },
+    {
+      key: 'MARGIN' as PricingType,
+      icon: TrendingUp,
+      title: t('pricingMarginTitle'),
+      description: t('pricingMarginDesc'),
+    },
+  ];
   const activeStrategy = strategies.find((s) => s.key === pricingType);
 
   // Build a lookup: optionName → config (so we can resolve a value like "2C"
@@ -152,17 +153,17 @@ export default function PricingStrategySelector({
           <Package className="w-4 h-4 text-zinc-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-muted-foreground">Provider base price (your cost)</p>
+          <p className="text-[11px] text-muted-foreground">{t('providerBasePrice')}</p>
           <p className="text-sm font-semibold text-zinc-900">{fmt(basePrice)}</p>
         </div>
         <p className="text-[10px] text-muted-foreground text-right shrink-0">
-          Choose how to price<br />for your customers
+          {t('chooseHowToPrice')}
         </p>
       </div>
 
       {/* Strategy radio cards */}
       <div>
-        <Label className="text-xs font-medium block mb-2">Pricing method</Label>
+        <Label className="text-xs font-medium block mb-2">{t('pricingMethod')}</Label>
         <div className="grid grid-cols-3 gap-2">
           {strategies.map(({ key, icon: Icon, title, description }) => {
             const selected = pricingType === key;
@@ -202,10 +203,10 @@ export default function PricingStrategySelector({
           <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 border-b">
             <ActiveIcon className="w-3.5 h-3.5 text-zinc-900" />
             <p className="text-xs font-semibold flex-1">
-              Using <span className="text-zinc-900">{activeStrategy.title}</span>
+              {t('usingStrategy', { strategy: activeStrategy.title })}
             </p>
             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-              <Check className="w-2.5 h-2.5" /> Active
+              <Check className="w-2.5 h-2.5" /> {t('active')}
             </span>
           </div>
 
@@ -213,7 +214,7 @@ export default function PricingStrategySelector({
             {/* Single price input */}
             {pricingType === 'SINGLE' && (
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Final Price ({currency})</Label>
+                <Label className="text-xs font-medium">{t('finalPriceCurrency', { currency })}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -232,7 +233,7 @@ export default function PricingStrategySelector({
             {/* Margin input */}
             {pricingType === 'MARGIN' && (
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Profit Margin ({currency})</Label>
+                <Label className="text-xs font-medium">{t('profitMarginCurrency', { currency })}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -244,7 +245,7 @@ export default function PricingStrategySelector({
                 />
                 {marginAmount && (
                   <p className="text-xs text-muted-foreground">
-                    Base {fmt(basePrice)} + Margin {fmt(parseFloat(marginAmount || '0'))} ={' '}
+                    {t('basePlusMargin', { base: fmt(basePrice), margin: fmt(parseFloat(marginAmount || '0')) })}{' '}
                     <span className="font-semibold text-zinc-900">{fmt(finalMarginPrice)}</span>
                   </p>
                 )}
@@ -254,10 +255,10 @@ export default function PricingStrategySelector({
             {/* Per-variant pricing table */}
             {pricingType === 'PER_VARIANT' && (
               <div className="space-y-2">
-                <Label className="text-xs font-medium">Set a price for each variant</Label>
+                <Label className="text-xs font-medium">{t('setPricePerVariant')}</Label>
                 {selectedVariants.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-3 text-center bg-zinc-50 rounded">
-                    No variants selected. Go back and select variants first.
+                    {t('noVariantsSelectedGoBack')}
                   </p>
                 ) : (
                   <div className="rounded-md border divide-y max-h-72 overflow-y-auto">
@@ -339,7 +340,7 @@ export default function PricingStrategySelector({
                               </p>
                             )}
                             <p className="text-[10px] text-muted-foreground">
-                              Cost: {fmt(variantBase)}
+                              {t('costLabel', { price: fmt(variantBase) })}
                             </p>
                           </div>
 
@@ -366,7 +367,7 @@ export default function PricingStrategySelector({
             (pricingType === 'PER_VARIANT' && variantPriceValues.length > 0) ? (
               <div className="flex items-center justify-between px-3 py-2 rounded-md bg-emerald-50 border border-emerald-200">
                 <span className="text-[11px] text-emerald-800 font-medium">
-                  Customer will see
+                  {t('customerWillSee')}
                 </span>
                 <span className="text-sm font-bold text-emerald-900">
                   {pricingType === 'SINGLE' && fmt(finalSinglePrice)}
@@ -388,13 +389,14 @@ export default function PricingStrategySelector({
 
 function ProfitIndicator({ basePrice, sellPrice }: { basePrice: number; sellPrice: number }) {
   const { fmt } = useCurrency();
+  const t = useTranslations('components');
   const profit = sellPrice - basePrice;
   if (isNaN(profit)) return null;
   return (
     <div className="flex items-center gap-4 text-xs">
-      <span className="text-muted-foreground">Base cost: {fmt(basePrice)}</span>
+      <span className="text-muted-foreground">{t('baseCostLabel', { price: fmt(basePrice) })}</span>
       <span className={`font-medium ${profit >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-        Profit: {profit >= 0 ? '+' : '-'}{fmt(Math.abs(profit))}
+        {t('profitLabel', { sign: profit >= 0 ? '+' : '-', amount: fmt(Math.abs(profit)) })}
       </span>
     </div>
   );

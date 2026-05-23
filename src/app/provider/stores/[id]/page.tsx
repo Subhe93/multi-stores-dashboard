@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -74,15 +75,15 @@ interface StoreDetails {
   custom_products_using: CustomProductUsing[];
 }
 
-const PAGE_TYPE_LABELS: Record<string, string> = {
-  ABOUT: 'About',
-  CONTACT: 'Contact',
-  PRIVACY_POLICY: 'Privacy Policy',
-  TERMS: 'Terms',
-  SHIPPING_POLICY: 'Shipping Policy',
-  RETURN_POLICY: 'Return Policy',
-  FAQ: 'FAQ',
-  CUSTOM: 'Custom',
+const PAGE_TYPE_LABEL_KEYS: Record<string, string> = {
+  ABOUT: 'pageTypeAbout',
+  CONTACT: 'pageTypeContact',
+  PRIVACY_POLICY: 'pageTypePrivacy',
+  TERMS: 'pageTypeTerms',
+  SHIPPING_POLICY: 'pageTypeShippingPolicy',
+  RETURN_POLICY: 'pageTypeReturnPolicy',
+  FAQ: 'pageTypeFaq',
+  CUSTOM: 'pageTypeCustom',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -98,6 +99,8 @@ export default function ProviderStoreDetails() {
   const { token } = useAuth();
   const { fmt } = useCurrency();
   const router = useRouter();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [store, setStore] = useState<StoreDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,23 +109,23 @@ export default function ProviderStoreDetails() {
     if (!token || !id) return;
     api<StoreDetails>(`/providers/me/stores/${id}`, { token })
       .then(setStore)
-      .catch((e) => setError(e.message || 'Failed to load store'))
+      .catch((e) => setError(e.message || t('failedToLoadStore')))
       .finally(() => setLoading(false));
   }, [token, id]);
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading...</p>;
+    return <p className="text-sm text-muted-foreground">{tc('loading')}</p>;
   }
 
   if (error || !store) {
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => router.push('/provider/stores')}>
-          <ArrowLeft className="w-3 h-3 mr-1" /> Back
+          <ArrowLeft className="w-3 h-3 mr-1" /> {tc('back')}
         </Button>
         <Card className="shadow-none">
           <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">{error || 'Store not found'}</p>
+            <p className="text-sm text-muted-foreground">{error || t('storeNotFound')}</p>
           </CardContent>
         </Card>
       </div>
@@ -130,7 +133,7 @@ export default function ProviderStoreDetails() {
   }
 
   const primaryTitle = (translations: { locale: string; title: string }[], primaryLocale = 'en') =>
-    translations.find(t => t.locale === primaryLocale)?.title || translations[0]?.title || 'Untitled';
+    translations.find(tr => tr.locale === primaryLocale)?.title || translations[0]?.title || t('untitled');
 
   // Compute the displayed price per pricing strategy. Falls back to base_price
   // when the strategy-specific value is unset, so we never show a stale "0" or "—".
@@ -172,7 +175,7 @@ export default function ProviderStoreDetails() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => router.push('/provider/stores')}>
-          <ArrowLeft className="w-3 h-3 mr-1" /> Back to stores
+          <ArrowLeft className="w-3 h-3 mr-1" /> {t('backToStores')}
         </Button>
         {storeUrl && (
           <a
@@ -181,7 +184,7 @@ export default function ProviderStoreDetails() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted"
           >
-            Visit store <ExternalLink className="w-3 h-3" />
+            {t('visitStore')} <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>
@@ -211,7 +214,7 @@ export default function ProviderStoreDetails() {
                       : 'bg-zinc-100 text-zinc-500 border-zinc-200'
                   }`}
                 >
-                  {store.is_active ? 'Active' : 'Inactive'}
+                  {store.is_active ? t('active') : t('inactive')}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">/{store.slug}</p>
@@ -233,7 +236,7 @@ export default function ProviderStoreDetails() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Package2 className="w-4 h-4" />
-                Your products in this store
+                {t('yourProductsInStore')}
                 <Badge variant="secondary" className="text-[10px] ml-1">
                   {store.custom_products_using.length}
                 </Badge>
@@ -241,7 +244,7 @@ export default function ProviderStoreDetails() {
             </CardHeader>
             <CardContent>
               {store.custom_products_using.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">No products yet</p>
+                <p className="text-xs text-muted-foreground py-4 text-center">{t('noProductsYet')}</p>
               ) : (
                 <div className="space-y-1">
                   {store.custom_products_using.map(cp => {
@@ -260,7 +263,7 @@ export default function ProviderStoreDetails() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{title}</p>
                           <p className="text-[10px] text-muted-foreground truncate">
-                            Based on: {baseTitle}
+                            {t('basedOn', { title: baseTitle })}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -282,18 +285,18 @@ export default function ProviderStoreDetails() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                Public pages
+                {t('publicPages')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {store.static_pages.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-4 text-center">No published pages</p>
+                <p className="text-xs text-muted-foreground py-4 text-center">{t('noPublishedPages')}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {store.static_pages.map(p => {
-                    const title = p.translations.find(t => t.locale === primaryLocale)?.title
+                    const title = p.translations.find(tr => tr.locale === primaryLocale)?.title
                       || p.translations[0]?.title
-                      || PAGE_TYPE_LABELS[p.type]
+                      || (PAGE_TYPE_LABEL_KEYS[p.type] ? t(PAGE_TYPE_LABEL_KEYS[p.type]) : undefined)
                       || p.type;
                     return (
                       <div key={p.id} className="flex items-center gap-2 py-1.5 px-2 rounded border bg-zinc-50/40">
@@ -315,7 +318,7 @@ export default function ProviderStoreDetails() {
           {/* Creator card */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Creator</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('creator')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-3">
@@ -342,21 +345,21 @@ export default function ProviderStoreDetails() {
           {/* Info card */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Store info</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('storeInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5">
               <div className="flex items-start gap-2 text-xs">
                 <Globe className="w-3.5 h-3.5 text-muted-foreground mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-muted-foreground">Domain</p>
-                  <p className="font-medium truncate">{store.custom_domain || `${store.slug} (subdomain)`}</p>
+                  <p className="text-muted-foreground">{t('domain')}</p>
+                  <p className="font-medium truncate">{store.custom_domain || t('slugSubdomain', { slug: store.slug })}</p>
                 </div>
               </div>
               {store.language_config && (
                 <div className="flex items-start gap-2 text-xs">
                   <Languages className="w-3.5 h-3.5 text-muted-foreground mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-muted-foreground">Languages</p>
+                    <p className="text-muted-foreground">{t('languages')}</p>
                     <p className="font-medium">
                       {store.language_config.primary_locale.toUpperCase()}
                       {store.language_config.secondary_locales.length > 0 &&
@@ -368,7 +371,7 @@ export default function ProviderStoreDetails() {
               <div className="flex items-start gap-2 text-xs">
                 <Calendar className="w-3.5 h-3.5 text-muted-foreground mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-muted-foreground">Created</p>
+                  <p className="text-muted-foreground">{t('created')}</p>
                   <p className="font-medium">{new Date(store.created_at).toLocaleDateString()}</p>
                 </div>
               </div>

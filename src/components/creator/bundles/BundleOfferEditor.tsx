@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash2, Languages, Loader2, GripVertical } from 'lucide-react';
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import {
-  DISCOUNT_TYPE_OPTIONS,
+  getDiscountTypeOptions,
   LOCALE_LABELS,
   RTL_LOCALES,
   type BundleOffer,
@@ -46,6 +47,8 @@ export function BundleOfferEditor({
   onChange,
   onRemove,
 }: Props) {
+  const t = useTranslations();
+  const discountTypeOptions = getDiscountTypeOptions(t);
   const { token } = useAuth();
   const [activeLocale, setActiveLocale] = useState(primaryLocale);
   const [translatingLocale, setTranslatingLocale] = useState('');
@@ -148,19 +151,19 @@ export function BundleOfferEditor({
             {...attributes}
             {...listeners}
             className="cursor-grab touch-none rounded p-1 text-muted-foreground transition hover:bg-zinc-100 active:cursor-grabbing"
-            aria-label="Drag to reorder"
+            aria-label={t('bundle.dragToReorder')}
           >
             <GripVertical className="size-4" />
           </button>
           <span className="text-sm font-semibold">
-            Bundle offer {String(index + 1).padStart(2, '0')}
+            {t('bundle.bundleOfferNum', { num: String(index + 1).padStart(2, '0') })}
           </span>
         </div>
         <button
           type="button"
           onClick={onRemove}
           className="rounded p-1 text-muted-foreground transition hover:bg-red-50 hover:text-red-500"
-          aria-label="Remove offer"
+          aria-label={t('bundle.removeOffer')}
         >
           <Trash2 className="size-4" />
         </button>
@@ -191,7 +194,7 @@ export function BundleOfferEditor({
       {activeLocale !== primaryLocale && (
         <div className="mb-3 flex items-center justify-between rounded-lg border border-dashed bg-zinc-50 p-2.5">
           <span className="text-xs text-muted-foreground">
-            Auto-translate from{' '}
+            {t('bundle.autoTranslateFrom')}{' '}
             <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
           </span>
           <button
@@ -202,11 +205,11 @@ export function BundleOfferEditor({
           >
             {translatingLocale === activeLocale ? (
               <>
-                <Loader2 className="size-3 animate-spin" /> Translating…
+                <Loader2 className="size-3 animate-spin" /> {t('bundle.translating')}
               </>
             ) : (
               <>
-                <Languages className="size-3" /> Auto-translate
+                <Languages className="size-3" /> {t('bundle.autoTranslate')}
               </>
             )}
           </button>
@@ -216,14 +219,14 @@ export function BundleOfferEditor({
       <div className="space-y-3" dir={dir}>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">
-            Offer title
+            {t('bundle.offerTitle')}
             {activeLocale === primaryLocale && (
               <span className="text-red-500"> *</span>
             )}
           </Label>
           <Input
             className="h-9 text-sm"
-            placeholder="e.g. Buy 2 get 1 free"
+            placeholder={t('bundle.offerTitlePlaceholder')}
             value={translation.title}
             onChange={(e) => setTranslationField('title', e.target.value)}
           />
@@ -231,7 +234,7 @@ export function BundleOfferEditor({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" dir="ltr">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Quantity</Label>
+            <Label className="text-xs font-medium">{t('bundle.quantity')}</Label>
             <Input
               type="number"
               min={1}
@@ -243,7 +246,7 @@ export function BundleOfferEditor({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Discount type</Label>
+            <Label className="text-xs font-medium">{t('bundle.discountType')}</Label>
             <select
               className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               value={offer.discount_type}
@@ -254,7 +257,7 @@ export function BundleOfferEditor({
                 })
               }
             >
-              {DISCOUNT_TYPE_OPTIONS.map((opt) => (
+              {discountTypeOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -262,7 +265,7 @@ export function BundleOfferEditor({
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Discount value</Label>
+            <Label className="text-xs font-medium">{t('bundle.discountValue')}</Label>
             <Input
               type="number"
               min={0}
@@ -280,29 +283,29 @@ export function BundleOfferEditor({
         </div>
 
         <p className="text-[10px] text-muted-foreground">
-          {DISCOUNT_TYPE_OPTIONS.find((o) => o.value === offer.discount_type)?.help}
+          {discountTypeOptions.find((o) => o.value === offer.discount_type)?.help}
         </p>
 
         <div dir={dir} className="space-y-1.5">
-          <Label className="text-xs font-medium">Offer label</Label>
+          <Label className="text-xs font-medium">{t('bundle.offerLabel')}</Label>
           <Input
             className="h-9 text-sm"
-            placeholder="e.g. free"
+            placeholder={t('bundle.offerLabelPlaceholder')}
             value={translation.label ?? ''}
             onChange={(e) => setTranslationField('label', e.target.value)}
           />
         </div>
 
         <div dir={dir} className="space-y-1.5">
-          <Label className="text-xs font-medium">Sticker text</Label>
+          <Label className="text-xs font-medium">{t('bundle.stickerText')}</Label>
           <Input
             className="h-9 text-sm"
-            placeholder="e.g. Best deal"
+            placeholder={t('bundle.stickerTextPlaceholder')}
             value={translation.sticker_text ?? ''}
             onChange={(e) => setTranslationField('sticker_text', e.target.value)}
           />
           <p className="text-[10px] text-muted-foreground">
-            Edit colors in the page builder.
+            {t('bundle.editColorsHint')}
           </p>
         </div>
       </div>

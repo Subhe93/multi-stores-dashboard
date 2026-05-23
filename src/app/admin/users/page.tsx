@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
@@ -46,23 +47,29 @@ const statusColors: Record<string, string> = {
   BANNED: 'bg-red-100 text-red-800 border-red-300',
 };
 
-const ROLE_OPTIONS = [
-  { value: 'CUSTOMER', label: 'Customer', description: 'Buyer / shopper account' },
-  { value: 'PROVIDER', label: 'Provider', description: 'Supplier / vendor account' },
-  { value: 'CREATOR', label: 'Creator', description: 'Storefront / content creator' },
-  { value: 'ADMIN', label: 'Admin', description: 'Full platform access' },
-];
-
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'SUSPENDED', label: 'Suspended' },
-  { value: 'BANNED', label: 'Banned' },
-];
-
 export default function AdminUsers() {
+  const t = useTranslations('admin');
   const { token } = useAuth();
   const router = useRouter();
+
+  const roleOptions = [
+    { value: 'CUSTOMER', label: t('roleCustomer'), description: t('roleCustomerDesc') },
+    { value: 'PROVIDER', label: t('roleProvider'), description: t('roleProviderDesc') },
+    { value: 'CREATOR', label: t('roleCreator'), description: t('roleCreatorDesc') },
+    { value: 'ADMIN', label: t('roleAdmin'), description: t('roleAdminDesc') },
+  ];
+
+  const statusOptions = [
+    { value: 'ACTIVE', label: t('statusActive') },
+    { value: 'PENDING', label: t('statusPending') },
+    { value: 'SUSPENDED', label: t('statusSuspended') },
+    { value: 'BANNED', label: t('statusBanned') },
+  ];
+
+  const filterLabels: Record<string, string> = {
+    All: t('tabAll'), Providers: t('providers'), Creators: t('creators'),
+    Customers: t('customers'), Admins: t('admins'), Pending: t('statusPending'),
+  };
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -130,10 +137,10 @@ export default function AdminUsers() {
     if (!token) return;
     try {
       await api(`/admin/users/${userId}/status`, { method: 'PUT', token, body: JSON.stringify({ status: newStatus }) });
-      flashSuccess('Status updated');
+      flashSuccess(t('statusUpdated'));
       fetchUsers(page);
     } catch (err: any) {
-      setError(err?.message || 'Failed to update status');
+      setError(err?.message || t('failedToUpdateStatus'));
     }
   };
 
@@ -158,11 +165,11 @@ export default function AdminUsers() {
     if (!token) return;
     setError('');
     if (!form.email.trim() || !form.password) {
-      setError('Email and password are required');
+      setError(t('emailPasswordRequired'));
       return;
     }
     if (form.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('passwordMin8'));
       return;
     }
     setCreating(true);
@@ -192,10 +199,10 @@ export default function AdminUsers() {
       });
       setShowCreate(false);
       resetForm();
-      flashSuccess('User created');
+      flashSuccess(t('userCreated'));
       fetchUsers(1);
     } catch (err: any) {
-      setError(err?.message || 'Failed to create user');
+      setError(err?.message || t('failedToCreateUser'));
     } finally {
       setCreating(false);
     }
@@ -206,11 +213,11 @@ export default function AdminUsers() {
     setDeleting(true);
     try {
       await api(`/admin/users/${deleteTarget.id}`, { method: 'DELETE', token });
-      flashSuccess('User deleted');
+      flashSuccess(t('userDeleted'));
       setDeleteTarget(null);
       fetchUsers(page);
     } catch (err: any) {
-      setError(err?.message || 'Failed to delete user');
+      setError(err?.message || t('failedToDeleteUser'));
     } finally {
       setDeleting(false);
     }
@@ -227,11 +234,11 @@ export default function AdminUsers() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Users</h1>
-          <p className="text-sm text-muted-foreground">Manage platform users</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('users')}</h1>
+          <p className="text-sm text-muted-foreground">{t('usersSubtitle')}</p>
         </div>
         <Button size="sm" className="h-8 text-xs" onClick={() => { resetForm(); setShowCreate(true); }}>
-          <Plus className="w-3.5 h-3.5 mr-1.5" /> New User
+          <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('newUser')}
         </Button>
       </div>
 
@@ -243,42 +250,42 @@ export default function AdminUsers() {
       <div className="flex gap-1.5 flex-wrap">
         {['All', 'Providers', 'Creators', 'Customers', 'Admins', 'Pending'].map((tab) => (
           <Button key={tab} variant={activeFilter === tab ? 'default' : 'ghost'} size="sm" className="h-8 text-xs"
-            onClick={() => handleFilter(tab)}>{tab}</Button>
+            onClick={() => handleFilter(tab)}>{filterLabels[tab] ?? tab}</Button>
         ))}
       </div>
 
       <DataTable
         columns={[
-          { key: 'name', label: 'Name', sortable: true, render: (item: User) => (
+          { key: 'name', label: t('name'), sortable: true, render: (item: User) => (
             <button onClick={() => router.push(`/admin/users/${item.id}`)} className="text-left hover:underline">
               <p className="text-sm font-medium">{getName(item)}</p>
               <p className="text-[10px] text-muted-foreground">{item.email}</p>
             </button>
           )},
-          { key: 'role', label: 'Role', sortable: true, render: (item: User) => (
+          { key: 'role', label: t('role'), sortable: true, render: (item: User) => (
             <Badge variant="outline" className={`text-[10px] font-semibold ${roleColors[item.role] || ''}`}>{item.role}</Badge>
           )},
-          { key: 'status', label: 'Status', sortable: true, render: (item: User) => (
+          { key: 'status', label: t('status'), sortable: true, render: (item: User) => (
             <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{item.status}</Badge>
           )},
-          { key: 'created_at', label: 'Joined', sortable: true, render: (item: User) => (
+          { key: 'created_at', label: t('joined'), sortable: true, render: (item: User) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
           )},
           { key: 'actions', label: '', render: (item: User) => (
             <div className="flex gap-1 justify-end">
               {item.status === 'ACTIVE' && item.role !== 'ADMIN' && (
-                <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => handleStatusChange(item.id, 'SUSPENDED')}>Suspend</Button>
+                <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => handleStatusChange(item.id, 'SUSPENDED')}>{t('suspend')}</Button>
               )}
               {item.status === 'SUSPENDED' && (
-                <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => handleStatusChange(item.id, 'ACTIVE')}>Reactivate</Button>
+                <Button variant="outline" size="sm" className="h-6 text-[10px]" onClick={() => handleStatusChange(item.id, 'ACTIVE')}>{t('reactivate')}</Button>
               )}
-              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/users/${item.id}`)}>Edit</Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/users/${item.id}`)}>{t('edit')}</Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                 onClick={() => setDeleteTarget(item)}
-                title="Delete user"
+                title={t('deleteUser')}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>
@@ -288,18 +295,18 @@ export default function AdminUsers() {
         data={users}
         pagination={meta}
         onPageChange={(p) => fetchUsers(p)}
-        searchPlaceholder="Search by email..."
+        searchPlaceholder={t('searchByEmail')}
         onSearch={(q) => fetchUsers(1, undefined, undefined, q)}
-        emptyMessage={loading ? 'Loading...' : 'No users found'}
+        emptyMessage={loading ? t('loading') : t('noUsersFound')}
       />
 
       {/* Create User Dialog */}
       <Dialog open={showCreate} onOpenChange={(o) => { setShowCreate(o); if (!o) resetForm(); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>{t('createNewUser')}</DialogTitle>
             <DialogDescription>
-              Create any type of account. The new user can sign in immediately if status is <strong>Active</strong>.
+              {t.rich('createUserDescription', { strong: (chunks) => <strong>{chunks}</strong> })}
             </DialogDescription>
           </DialogHeader>
 
@@ -310,7 +317,7 @@ export default function AdminUsers() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Email *</Label>
+                <Label className="text-xs">{t('email')} *</Label>
                 <Input
                   type="email"
                   className="h-9 text-sm"
@@ -320,34 +327,34 @@ export default function AdminUsers() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Password * (min 8)</Label>
+                <Label className="text-xs">{t('passwordMin8Label')}</Label>
                 <Input
                   type="password"
                   className="h-9 text-sm"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Strong password"
+                  placeholder={t('strongPassword')}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Role *</Label>
+                <Label className="text-xs">{t('role')} *</Label>
                 <SearchableSelect
-                  options={ROLE_OPTIONS}
+                  options={roleOptions}
                   value={form.role}
                   onChange={(v) => setForm({ ...form, role: v })}
-                  placeholder="Select role"
+                  placeholder={t('selectRole')}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Status</Label>
+                <Label className="text-xs">{t('status')}</Label>
                 <SearchableSelect
-                  options={STATUS_OPTIONS}
+                  options={statusOptions}
                   value={form.status}
                   onChange={(v) => setForm({ ...form, status: v })}
-                  placeholder="Select status"
+                  placeholder={t('selectStatus')}
                 />
               </div>
             </div>
@@ -356,21 +363,21 @@ export default function AdminUsers() {
 
             {form.role === 'CUSTOMER' && (
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground">Customer profile</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t('customerProfile')}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">First Name</Label>
+                    <Label className="text-xs">{t('firstName')}</Label>
                     <Input className="h-9 text-sm" value={form.first_name}
                       onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Last Name</Label>
+                    <Label className="text-xs">{t('lastName')}</Label>
                     <Input className="h-9 text-sm" value={form.last_name}
                       onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Phone</Label>
+                  <Label className="text-xs">{t('phone')}</Label>
                   <Input className="h-9 text-sm" value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
@@ -379,22 +386,22 @@ export default function AdminUsers() {
 
             {form.role === 'PROVIDER' && (
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground">Provider profile</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t('providerProfile')}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Company Name</Label>
+                    <Label className="text-xs">{t('companyName')}</Label>
                     <Input className="h-9 text-sm" value={form.company_name}
                       onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Country (ISO)</Label>
+                    <Label className="text-xs">{t('countryIso')}</Label>
                     <Input className="h-9 text-sm" value={form.country}
                       onChange={(e) => setForm({ ...form, country: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Phone</Label>
+                    <Label className="text-xs">{t('phone')}</Label>
                     <Input className="h-9 text-sm" value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                   </div>
@@ -404,7 +411,7 @@ export default function AdminUsers() {
                       checked={form.verified}
                       onChange={(e) => setForm({ ...form, verified: e.target.checked })}
                     />
-                    Mark as verified
+                    {t('markAsVerified')}
                   </label>
                 </div>
               </div>
@@ -412,15 +419,15 @@ export default function AdminUsers() {
 
             {form.role === 'CREATOR' && (
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground">Creator profile</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t('creatorProfile')}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Display Name</Label>
+                    <Label className="text-xs">{t('displayName')}</Label>
                     <Input className="h-9 text-sm" value={form.display_name}
                       onChange={(e) => setForm({ ...form, display_name: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Phone</Label>
+                    <Label className="text-xs">{t('phone')}</Label>
                     <Input className="h-9 text-sm" value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                   </div>
@@ -431,7 +438,7 @@ export default function AdminUsers() {
                     checked={form.verified}
                     onChange={(e) => setForm({ ...form, verified: e.target.checked })}
                   />
-                  Mark as verified
+                  {t('markAsVerified')}
                 </label>
               </div>
             )}
@@ -439,17 +446,17 @@ export default function AdminUsers() {
             {form.role === 'ADMIN' && (
               <div className="bg-amber-50 text-amber-700 text-xs p-3 rounded-lg border border-amber-200 flex gap-2">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>Admin users have full platform access. Create only when necessary.</span>
+                <span>{t('adminAccessWarning')}</span>
               </div>
             )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => { setShowCreate(false); resetForm(); }}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button size="sm" onClick={handleCreate} disabled={creating}>
-              {creating ? 'Creating...' : 'Create User'}
+              {creating ? t('creating') : t('createUser')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -460,25 +467,24 @@ export default function AdminUsers() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600" /> Delete User
+              <AlertTriangle className="w-4 h-4 text-red-600" /> {t('deleteUser')}
             </DialogTitle>
             <DialogDescription>
-              This permanently removes <strong>{deleteTarget?.email}</strong> and all related data
-              (profile, addresses, sessions). This action cannot be undone.
+              {t.rich('deleteUserDescription', { email: deleteTarget?.email ?? '', strong: (chunks) => <strong>{chunks}</strong> })}
             </DialogDescription>
           </DialogHeader>
           {error && (
             <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200">{error}</div>
           )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>{t('cancel')}</Button>
             <Button
               size="sm"
               className="bg-red-600 hover:bg-red-700"
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? 'Deleting...' : 'Delete permanently'}
+              {deleting ? t('deleting') : t('deletePermanently')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +30,7 @@ interface FaqManagerProps {
 }
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 
 export default function FaqManager({
@@ -41,6 +42,7 @@ export default function FaqManager({
   createUrl,
   faqBaseUrl,
 }: FaqManagerProps) {
+  const t = useTranslations();
   const { token } = useAuth();
   const [showDialog, setShowDialog] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -154,9 +156,9 @@ export default function FaqManager({
   };
 
   const primaryQ = (faq: Faq) =>
-    faq.translations.find((t) => t.locale === primaryLocale)?.question ||
+    faq.translations.find((tr) => tr.locale === primaryLocale)?.question ||
     faq.translations[0]?.question ||
-    'Untitled';
+    t('faq.untitled');
 
   const primaryA = (faq: Faq) =>
     faq.translations.find((t) => t.locale === primaryLocale)?.answer ||
@@ -168,17 +170,17 @@ export default function FaqManager({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <HelpCircle className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-semibold">FAQ</span>
+          <span className="text-sm font-semibold">{t('faq.title')}</span>
           <span className="text-xs text-muted-foreground">({faqs.length})</span>
         </div>
         <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openAdd}>
-          <Plus className="w-3 h-3 mr-1" /> Add FAQ
+          <Plus className="w-3 h-3 mr-1" /> {t('faq.addFaq')}
         </Button>
       </div>
 
       {faqs.length === 0 ? (
         <p className="text-xs text-muted-foreground py-4 text-center">
-          No FAQs yet. Add frequently asked questions about this product.
+          {t('faq.empty')}
         </p>
       ) : (
         <div className="rounded-md border divide-y">
@@ -226,7 +228,7 @@ export default function FaqManager({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editIndex !== null ? 'Edit FAQ' : 'Add FAQ'}</DialogTitle>
+            <DialogTitle>{editIndex !== null ? t('faq.editFaq') : t('faq.addFaq')}</DialogTitle>
           </DialogHeader>
 
           {/* Language tabs */}
@@ -255,7 +257,7 @@ export default function FaqManager({
             {activeLocale !== primaryLocale && (
               <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
                 <span className="text-xs text-muted-foreground truncate">
-                  Auto-translate from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                  {t('faq.autoTranslateFrom')} <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                 </span>
                 <button
                   type="button"
@@ -264,9 +266,9 @@ export default function FaqManager({
                   className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
                 >
                   {translatingLocale === activeLocale ? (
-                    <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
+                    <><Loader2 className="w-3 h-3 animate-spin" /> {t('faq.translating')}</>
                   ) : (
-                    <><Languages className="w-3 h-3" /> Auto-translate</>
+                    <><Languages className="w-3 h-3" /> {t('faq.autoTranslate')}</>
                   )}
                 </button>
               </div>
@@ -274,11 +276,11 @@ export default function FaqManager({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">
-                Question {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+                {t('faq.question')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
               </Label>
               <Input
                 className="h-8 text-sm"
-                placeholder="e.g. What is the return policy?"
+                placeholder={t('faq.questionPlaceholder')}
                 value={formData[activeLocale]?.question || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -290,12 +292,12 @@ export default function FaqManager({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">
-                Answer {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+                {t('faq.answer')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
               </Label>
               <Textarea
                 rows={4}
                 className="text-sm resize-none"
-                placeholder="Write the answer..."
+                placeholder={t('faq.answerPlaceholder')}
                 value={formData[activeLocale]?.answer || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -309,14 +311,14 @@ export default function FaqManager({
 
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowDialog(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               size="sm"
               onClick={handleSave}
               disabled={!formData[primaryLocale]?.question?.trim()}
             >
-              {editIndex !== null ? 'Update' : 'Add'}
+              {editIndex !== null ? t('faq.update') : t('common.add')}
             </Button>
           </DialogFooter>
         </DialogContent>

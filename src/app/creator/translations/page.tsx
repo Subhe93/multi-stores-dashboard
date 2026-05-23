@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,14 +32,18 @@ interface Overview {
 // Constants
 // ──────────────────────────────────────────────────────────
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 
-const ENTITY_LABELS: Record<string, string> = {
-  products: 'Products',
-  custom_products: 'Custom Products',
-  pages: 'Pages',
-};
+type Translator = ReturnType<typeof useTranslations>;
+
+function entityLabels(t: Translator): Record<string, string> {
+  return {
+    products: t('translations.entityProducts'),
+    custom_products: t('translations.entityCustomProducts'),
+    pages: t('translations.entityPages'),
+  };
+}
 
 // ──────────────────────────────────────────────────────────
 // Stat card
@@ -56,6 +61,7 @@ function StatCard({
   onTranslateAll: () => void;
   translating: boolean;
 }) {
+  const t = useTranslations('creator');
   const pct = total === 0 ? 100 : Math.round((done / total) * 100);
   const allDone = done === total;
 
@@ -86,12 +92,12 @@ function StatCard({
           onClick={onTranslateAll}
           disabled={translating}
         >
-          {translating ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Translate All'}
+          {translating ? <Loader2 className="w-3 h-3 animate-spin" /> : t('translations.translateAll')}
         </Button>
       )}
       {allDone && total > 0 && (
         <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1 shrink-0">
-          <Check className="w-3 h-3" /> Done
+          <Check className="w-3 h-3" /> {t('translations.done')}
         </span>
       )}
     </div>
@@ -116,6 +122,7 @@ function EntityTable({
 }) {
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
   const { token } = useAuth();
+  const t = useTranslations('creator');
 
   const handleTranslate = async (entity: TranslationEntity) => {
     if (!token) return;
@@ -142,7 +149,7 @@ function EntityTable({
   if (entities.length === 0) {
     return (
       <p className="text-xs text-muted-foreground text-center py-6">
-        No items in this section.
+        {t('translations.noItemsInSection')}
       </p>
     );
   }
@@ -174,7 +181,7 @@ function EntityTable({
                 className="text-[10px] text-emerald-700 border-emerald-200 bg-emerald-50 shrink-0"
               >
                 <Check className="w-2.5 h-2.5 mr-1" />
-                Translated
+                {t('translations.translated')}
               </Badge>
             ) : (
               <Badge
@@ -182,7 +189,7 @@ function EntityTable({
                 className="text-[10px] text-zinc-400 border-zinc-200 shrink-0"
               >
                 <X className="w-2.5 h-2.5 mr-1" />
-                Missing
+                {t('translations.missing')}
               </Badge>
             )}
 
@@ -193,11 +200,11 @@ function EntityTable({
               className="flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             >
               {isTranslating ? (
-                <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
+                <><Loader2 className="w-3 h-3 animate-spin" /> {t('translations.translating')}</>
               ) : isDone ? (
-                <><RefreshCw className="w-3 h-3" /> Re-translate</>
+                <><RefreshCw className="w-3 h-3" /> {t('translations.retranslate')}</>
               ) : (
-                <><Languages className="w-3 h-3" /> Translate</>
+                <><Languages className="w-3 h-3" /> {t('translations.translate')}</>
               )}
             </button>
           </div>
@@ -212,6 +219,8 @@ function EntityTable({
 // ──────────────────────────────────────────────────────────
 export default function TranslationsPage() {
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const ENTITY_LABELS = entityLabels(t);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeLocale, setActiveLocale] = useState<string>('');
@@ -300,8 +309,8 @@ export default function TranslationsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
         <Globe className="w-10 h-10 text-zinc-300" />
-        <p className="text-sm font-medium">No store found</p>
-        <p className="text-xs text-muted-foreground">Set up your store first to manage translations.</p>
+        <p className="text-sm font-medium">{t('translations.noStoreFound')}</p>
+        <p className="text-xs text-muted-foreground">{t('translations.noStoreDesc')}</p>
       </div>
     );
   }
@@ -312,13 +321,13 @@ export default function TranslationsPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center max-w-sm mx-auto">
         <Languages className="w-10 h-10 text-zinc-300" />
-        <p className="text-sm font-medium">No secondary languages configured</p>
+        <p className="text-sm font-medium">{t('translations.noSecondaryTitle')}</p>
         <p className="text-xs text-muted-foreground">
-          Go to{' '}
+          {t('translations.noSecondaryPrefix')}{' '}
           <a href="/creator/store" className="text-primary underline">
-            My Store → Languages
+            {t('translations.noSecondaryLink')}
           </a>{' '}
-          and add Arabic, Turkish, or German to enable translations.
+          {t('translations.noSecondarySuffix')}
         </p>
       </div>
     );
@@ -347,14 +356,14 @@ export default function TranslationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Translations</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('translations.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage content translations for all languages in your store
+            {t('translations.subtitle')}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchOverview} className="gap-1.5">
           <RefreshCw className="w-3.5 h-3.5" />
-          Refresh
+          {t('translations.refresh')}
         </Button>
       </div>
 
@@ -410,7 +419,7 @@ export default function TranslationsPage() {
                 {LOCALE_LABELS[activeLocale] || activeLocale}
               </span>
               <span className="text-xs text-muted-foreground">
-                {totalDone} of {totalItems} items translated
+                {t('translations.itemsTranslated', { done: totalDone, total: totalItems })}
               </span>
             </div>
             {!allDone && (
@@ -421,9 +430,9 @@ export default function TranslationsPage() {
                 disabled={!!bulkTranslating[`all-${activeLocale}`]}
               >
                 {bulkTranslating[`all-${activeLocale}`] ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Translating everything...</>
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t('translations.translatingEverything')}</>
                 ) : (
-                  <><Languages className="w-3.5 h-3.5" /> Translate Everything</>
+                  <><Languages className="w-3.5 h-3.5" /> {t('translations.translateEverything')}</>
                 )}
               </Button>
             )}
@@ -456,7 +465,7 @@ export default function TranslationsPage() {
                     {ENTITY_LABELS[section.key] || section.key}
                   </CardTitle>
                   <span className="text-xs text-muted-foreground">
-                    {getStats(section.entities).done}/{section.entities.length} translated
+                    {t('translations.countTranslated', { done: getStats(section.entities).done, total: section.entities.length })}
                   </span>
                 </div>
               </CardHeader>

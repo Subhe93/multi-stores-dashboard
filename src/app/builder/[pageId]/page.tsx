@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowRight, Loader2, Wand2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -73,6 +74,7 @@ export default function BuilderPageRoute() {
 }
 
 function BuilderInner() {
+  const t = useTranslations('builder');
   const { token } = useAuth();
   const params = useParams<{ pageId: string }>();
   const pageId = params?.pageId;
@@ -123,7 +125,7 @@ function BuilderInner() {
         }
       } catch (err) {
         const e = err as Error;
-        setError(e.message || 'Failed to load page');
+        setError(e.message || t('failedToLoadPage'));
       } finally {
         setLoading(false);
       }
@@ -141,7 +143,7 @@ function BuilderInner() {
   if (error || !store) {
     return (
       <div className="h-screen flex items-center justify-center text-sm text-red-500">
-        {error || 'Page not found'}
+        {error || t('pageNotFound')}
       </div>
     );
   }
@@ -160,7 +162,7 @@ function BuilderInner() {
   if (!page) {
     return (
       <div className="h-screen flex items-center justify-center text-sm text-red-500">
-        Page not found
+        {t('pageNotFound')}
       </div>
     );
   }
@@ -231,6 +233,8 @@ function MigrationPrompt({
   legacy: LegacyPageResponse;
   primaryLocale: string;
 }) {
+  const t = useTranslations('builder');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -373,7 +377,7 @@ function MigrationPrompt({
       router.replace(`/builder/${created.id}`);
     } catch (err) {
       const e = err as Error;
-      setError(e.message || 'Upgrade failed');
+      setError(e.message || t('upgradeFailed'));
       setRunning(false);
     }
   }
@@ -386,27 +390,24 @@ function MigrationPrompt({
             <Wand2 className="size-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-base font-semibold text-zinc-900">Upgrade this page to the builder</h1>
+            <h1 className="text-base font-semibold text-zinc-900">{t('upgradeTitle')}</h1>
             <p className="text-[12.5px] text-zinc-500 leading-relaxed mt-1">
-              <span className="font-medium text-zinc-700">"{primaryTitle}"</span> uses the old
-              rich-text editor. Upgrade it to design with drag-and-drop sections — just like the
-              home page. Your existing title and content will be preserved as a rich-text section
-              that you can keep, edit, or replace.
+              <span className="font-medium text-zinc-700">"{primaryTitle}"</span> {t('upgradeDescription')}
             </p>
           </div>
         </div>
 
         <div className="rounded-lg bg-zinc-50/70 border border-zinc-200/80 p-3 text-[11.5px] text-zinc-600 space-y-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-zinc-400 font-mono shrink-0 w-12">type</span>
+            <span className="text-zinc-400 font-mono shrink-0 w-12">{t('migrationType')}</span>
             <span className="font-medium">{legacy.type.toLowerCase().replace(/_/g, ' ')}</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-zinc-400 font-mono shrink-0 w-12">slug</span>
+            <span className="text-zinc-400 font-mono shrink-0 w-12">{t('migrationSlug')}</span>
             <span className="font-mono">/{legacy.slug}</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-zinc-400 font-mono shrink-0 w-12">locales</span>
+            <span className="text-zinc-400 font-mono shrink-0 w-12">{t('migrationLocales')}</span>
             <span className="font-mono">{legacy.translations.map((t) => t.locale).join(', ') || '—'}</span>
           </div>
         </div>
@@ -419,17 +420,17 @@ function MigrationPrompt({
 
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => router.push('/creator/pages')} disabled={running}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button size="sm" onClick={upgrade} disabled={running}>
             {running ? (
               <>
                 <Loader2 className="size-3.5 me-1.5 animate-spin" />
-                Upgrading…
+                {t('upgrading')}
               </>
             ) : (
               <>
-                Upgrade to builder
+                {t('upgradeToBuilder')}
                 <ArrowRight className="size-3.5 ms-1.5" />
               </>
             )}

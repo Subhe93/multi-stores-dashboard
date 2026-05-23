@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, FileText, Trash2, Pencil, Store, Wand2, Loader2, Package, LayoutPanelTop, Columns } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -38,8 +39,10 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function getEnTitle(translations: { locale: string; title: string }[]): string {
-  return translations.find((t) => t.locale === 'en')?.title || translations[0]?.title || 'Untitled';
+type Translator = ReturnType<typeof useTranslations>;
+
+function getEnTitle(translations: { locale: string; title: string }[], t: Translator): string {
+  return translations.find((tr) => tr.locale === 'en')?.title || translations[0]?.title || t('storePages.untitled');
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -47,6 +50,8 @@ function getEnTitle(translations: { locale: string; title: string }[]): string {
 export default function CreatorPagesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeError, setStoreError] = useState(false);
@@ -165,44 +170,44 @@ export default function CreatorPagesPage() {
   const columns = [
     {
       key: 'title',
-      label: 'Title',
+      label: t('storePages.colTitle'),
       render: (item: StorePage) => (
-        <span className="text-sm font-medium">{getEnTitle(item.translations)}</span>
+        <span className="text-sm font-medium">{getEnTitle(item.translations, t)}</span>
       ),
     },
     {
       key: 'slug',
-      label: 'Slug',
+      label: t('storePages.colSlug'),
       render: (item: StorePage) => (
         <span className="font-mono text-[10px] text-muted-foreground">/{item.slug}</span>
       ),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: StorePage) =>
         item.status === 'PUBLISHED' ? (
           <span className="inline-flex h-5 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
-            Published
+            {t('storePages.published')}
           </span>
         ) : (
           <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
-            Draft
+            {t('storePages.draft')}
           </span>
         ),
     },
     {
       key: 'type',
-      label: 'Type',
+      label: t('storePages.colType'),
       render: (item: StorePage) => (
         <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 text-[10px] font-medium text-zinc-600">
-          {item.type?.toLowerCase().replace(/_/g, ' ') || 'custom'}
+          {item.type?.toLowerCase().replace(/_/g, ' ') || t('storePages.typeCustom')}
         </span>
       ),
     },
     {
       key: 'created_at',
-      label: 'Date',
+      label: t('storePages.colDate'),
       render: (item: StorePage) => (
         <span className="text-xs text-muted-foreground">{formatDate(item.created_at)}</span>
       ),
@@ -237,23 +242,23 @@ export default function CreatorPagesPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight">Store Pages</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('storePages.title')}</h1>
         </div>
         <Card className="shadow-none">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
               <Store className="size-6" />
             </div>
-            <p className="text-sm font-medium">Store not set up</p>
+            <p className="text-sm font-medium">{t('storePages.storeNotSetUp')}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              You need to create your store before adding pages.
+              {t('storePages.storeNotSetUpDesc')}
             </p>
             <Button
               size="sm"
               className="mt-4"
               onClick={() => router.push('/creator/store')}
             >
-              Set Up Store
+              {t('storePages.setUpStore')}
             </Button>
           </CardContent>
         </Card>
@@ -266,14 +271,14 @@ export default function CreatorPagesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Store Pages</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('storePages.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your store's static pages
+            {t('storePages.subtitle')}
           </p>
         </div>
         <Button size="sm" onClick={() => router.push('/creator/pages/new')}>
           <Plus className="size-4" />
-          New Page
+          {t('storePages.newPage')}
         </Button>
       </div>
 
@@ -287,9 +292,9 @@ export default function CreatorPagesPage() {
                 <Wand2 className="size-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium">Home page builder</p>
+                <p className="text-sm font-medium">{t('storePages.homeBuilder')}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Design your storefront home with drag-and-drop sections.
+                  {t('storePages.homeBuilderDesc')}
                 </p>
               </div>
             </div>
@@ -297,10 +302,10 @@ export default function CreatorPagesPage() {
               {openingHomeBuilder ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Opening…
+                  {t('storePages.opening')}
                 </>
               ) : (
-                'Open builder'
+                t('storePages.openBuilder')
               )}
             </Button>
           </CardContent>
@@ -313,9 +318,9 @@ export default function CreatorPagesPage() {
                 <Package className="size-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium">Product page template</p>
+                <p className="text-sm font-medium">{t('storePages.productTemplate')}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Customize the layout used for every product page.
+                  {t('storePages.productTemplateDesc')}
                 </p>
               </div>
             </div>
@@ -329,10 +334,10 @@ export default function CreatorPagesPage() {
               {openingTemplateBuilder ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Opening…
+                  {t('storePages.opening')}
                 </>
               ) : (
-                'Edit template'
+                t('storePages.editTemplate')
               )}
             </Button>
           </CardContent>
@@ -345,9 +350,9 @@ export default function CreatorPagesPage() {
                 <LayoutPanelTop className="size-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium">Header (site-wide)</p>
+                <p className="text-sm font-medium">{t('storePages.header')}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Logo, navigation, search, cart — rendered on every storefront page.
+                  {t('storePages.headerDesc')}
                 </p>
               </div>
             </div>
@@ -361,10 +366,10 @@ export default function CreatorPagesPage() {
               {openingHeaderBuilder ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Opening…
+                  {t('storePages.opening')}
                 </>
               ) : (
-                'Edit header'
+                t('storePages.editHeader')
               )}
             </Button>
           </CardContent>
@@ -377,9 +382,9 @@ export default function CreatorPagesPage() {
                 <Columns className="size-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium">Footer (site-wide)</p>
+                <p className="text-sm font-medium">{t('storePages.footer')}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Columns of links, copyright bar — rendered below every page.
+                  {t('storePages.footerDesc')}
                 </p>
               </div>
             </div>
@@ -393,10 +398,10 @@ export default function CreatorPagesPage() {
               {openingFooterBuilder ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Opening…
+                  {t('storePages.opening')}
                 </>
               ) : (
-                'Edit footer'
+                t('storePages.editFooter')
               )}
             </Button>
           </CardContent>
@@ -407,7 +412,7 @@ export default function CreatorPagesPage() {
       <DataTable
         columns={columns}
         data={pages}
-        searchPlaceholder="Search pages…"
+        searchPlaceholder={t('storePages.searchPlaceholder')}
         emptyMessage=""
       />
 
@@ -417,9 +422,9 @@ export default function CreatorPagesPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
             <FileText className="size-6" />
           </div>
-          <p className="text-sm font-medium">No pages yet</p>
+          <p className="text-sm font-medium">{t('storePages.emptyTitle')}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Create your first page to add content to your store.
+            {t('storePages.emptyDesc')}
           </p>
           <Button
             size="sm"
@@ -427,7 +432,7 @@ export default function CreatorPagesPage() {
             onClick={() => router.push('/creator/pages/new')}
           >
             <Plus className="size-4" />
-            Create First Page
+            {t('storePages.createFirstPage')}
           </Button>
         </div>
       )}
@@ -436,21 +441,21 @@ export default function CreatorPagesPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Page</DialogTitle>
+            <DialogTitle>{t('storePages.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
+              {t('storePages.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
-                {deleteTarget ? getEnTitle(deleteTarget.translations) : ''}
+                {deleteTarget ? getEnTitle(deleteTarget.translations, t) : ''}
               </span>
-              ? This action cannot be undone.
+              {t('storePages.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? t('storePages.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

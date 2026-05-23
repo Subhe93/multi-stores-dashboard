@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ import {
   Check,
   Palette,
   ArrowRight,
+  Copy,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -119,10 +121,11 @@ const LOCALES = [
   { value: 'tr', label: 'Türkçe' },
   { value: 'de', label: 'Deutsch' },
   { value: 'fr', label: 'Français' },
+  { value: 'sv', label: 'Svenska' },
 ];
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 
 const RTL_LOCALES = ['ar'];
@@ -149,6 +152,29 @@ const PLATFORM_DOMAIN_SUFFIX = (() => {
     return '.localhost:3003';
   }
 })();
+
+// CNAME target the creator must point their domain to. Strips the port — DNS
+// records can't contain one — so dev shows "localhost" (useless but harmless)
+// and prod shows the real platform host like "iwings-digital.com".
+const PLATFORM_CNAME_TARGET = PLATFORM_DOMAIN_SUFFIX
+  .replace(/^\./, '')
+  .replace(/:\d+$/, '');
+
+// Naive zone parser: for "shop.merchant.com" returns { zone: "merchant.com",
+// name: "shop" }; for "merchant.com" returns { zone: "merchant.com", name: "@" }.
+// Doesn't handle multi-part TLDs like ".co.uk" — those rare cases just show
+// slightly off guidance; the creator can adjust on their DNS side.
+function parseDomainZone(domain: string): { zone: string; name: string; isApex: boolean } | null {
+  const trimmed = domain.trim().toLowerCase();
+  if (!trimmed || !trimmed.includes('.')) return null;
+  const parts = trimmed.split('.');
+  if (parts.length === 2) {
+    return { zone: trimmed, name: '@', isApex: true };
+  }
+  const zone = parts.slice(-2).join('.');
+  const name = parts.slice(0, -2).join('.');
+  return { zone, name, isApex: false };
+}
 
 const EMPTY_TRANSLATABLE: TranslatableFields = { name: '', description: '', metaTitle: '', metaDescription: '' };
 
@@ -206,8 +232,94 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none ${checked ? 'bg-zinc-900' : 'bg-zinc-200'}`}
     >
-      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
+      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0'}`} />
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Custom domain DNS instructions panel
+// ---------------------------------------------------------------------------
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard may be unavailable (insecure context); silently no-op.
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] text-zinc-600 hover:bg-zinc-50 transition-colors"
+      aria-label={label}
+    >
+      {copied ? (
+        <>
+          <Check className="h-3 w-3 text-emerald-600" />
+          <span className="text-emerald-600">{label}</span>
+        </>
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+    </button>
+  );
+}
+
+function DnsRow({ label, value }: { label: string; value: string }) {
+  const t = useTranslations('creator');
+  return (
+    <div className="flex items-center justify-between gap-2 px-3 py-2 even:bg-zinc-50/60">
+      <span className="text-[11px] uppercase tracking-wide text-muted-foreground min-w-[60px]">
+        {label}
+      </span>
+      <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+        <code className="font-mono text-xs text-zinc-800 truncate" dir="ltr">
+          {value}
+        </code>
+        <CopyButton value={value} label={t('myStore.copied')} />
+      </div>
+    </div>
+  );
+}
+
+function CustomDomainInstructions({ domain }: { domain: string }) {
+  const t = useTranslations('creator');
+  const parsed = parseDomainZone(domain);
+  if (!parsed) return null;
+
+  return (
+    <div className="rounded-md border border-zinc-200 bg-white overflow-hidden">
+      <div className="px-3 py-2 border-b border-zinc-200 bg-zinc-50/80">
+        <p className="text-xs font-semibold text-zinc-900">{t('myStore.dnsGuideTitle')}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          {t('myStore.dnsGuideIntro', { zone: parsed.zone })}
+        </p>
+      </div>
+      <div className="divide-y divide-zinc-100">
+        <DnsRow label={t('myStore.dnsType')} value="CNAME" />
+        <DnsRow label={t('myStore.dnsName')} value={parsed.name} />
+        <DnsRow label={t('myStore.dnsValue')} value={PLATFORM_CNAME_TARGET} />
+      </div>
+      <div className="px-3 py-2 space-y-1.5 bg-zinc-50/40 border-t border-zinc-100">
+        {parsed.isApex && (
+          <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-relaxed">
+            {t('myStore.dnsApexNote')}
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          {t('myStore.dnsCloudflareNote')}
+        </p>
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          {t('myStore.dnsPropagationNote')}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -217,6 +329,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 
 export default function CreatorStorePage() {
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tcom = useTranslations('common');
   const { pickAndUpload, uploading: heroUploading } = useImageUpload(token);
 
   const [store, setStore] = useState<Store | null>(null);
@@ -468,7 +582,7 @@ export default function CreatorStorePage() {
             >
               {LOCALE_LABELS[locale] || locale.toUpperCase()}
               {!isPrimary && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-              {isPrimary && <span className="text-[9px] text-zinc-400">(primary)</span>}
+              {isPrimary && <span className="text-[9px] text-zinc-400">{t('myStore.primaryParen')}</span>}
             </button>
           );
         })}
@@ -483,7 +597,7 @@ export default function CreatorStorePage() {
     return (
       <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
         <span className="text-xs text-muted-foreground">
-          Auto-translate from <strong>{LOCALE_LABELS[form.primary_locale] || form.primary_locale}</strong>
+          {t('myStore.autoTranslateFrom')} <strong>{LOCALE_LABELS[form.primary_locale] || form.primary_locale}</strong>
           {primaryName ? `: "${primaryName.substring(0, 35)}${primaryName.length > 35 ? '…' : ''}"` : ''}
         </span>
         <button type="button" onClick={() => handleTranslateTo(activeLocale)}
@@ -491,8 +605,8 @@ export default function CreatorStorePage() {
           className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
         >
           {translatingLocale === activeLocale
-            ? <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
-            : <><Languages className="w-3 h-3" /> Auto-translate</>}
+            ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('myStore.translating')}</>
+            : <><Languages className="w-3 h-3" /> {t('myStore.autoTranslate')}</>}
         </button>
       </div>
     );
@@ -529,9 +643,9 @@ export default function CreatorStorePage() {
             {/* Background image */}
             <div className="space-y-1.5">
               <Label className="text-xs">
-                Background image{' '}
+                {t('myStore.backgroundImage')}{' '}
                 {page === 'collections' && (
-                  <span className="text-muted-foreground">(fallback — the collection's own image takes priority)</span>
+                  <span className="text-muted-foreground">{t('myStore.backgroundImageFallback')}</span>
                 )}
               </Label>
               {cfg.image_url ? (
@@ -541,40 +655,40 @@ export default function CreatorStorePage() {
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" size="sm" disabled={heroUploading}
                       onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
-                      {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} Replace
+                      {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} {t('myStore.replace')}
                     </Button>
                     <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive"
                       onClick={() => setHero(page, 'image_url', '')}>
-                      Remove
+                      {tcom('remove')}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <Button type="button" variant="outline" size="sm" disabled={heroUploading}
                   onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
-                  {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} Upload image
+                  {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} {t('myStore.uploadImage')}
                 </Button>
               )}
-              <p className="text-[11px] text-muted-foreground">Leave empty to use the brand color gradient.</p>
+              <p className="text-[11px] text-muted-foreground">{t('myStore.leaveEmptyGradient')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Height */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Height</Label>
+                <Label className="text-xs">{t('myStore.height')}</Label>
                 <SearchableSelect
                   value={cfg.height}
                   onChange={(v) => setHero(page, 'height', (v as HeroHeight) || 'md')}
                   options={[
-                    { value: 'sm', label: 'Small' },
-                    { value: 'md', label: 'Medium' },
-                    { value: 'lg', label: 'Large' },
+                    { value: 'sm', label: t('myStore.heightSmall') },
+                    { value: 'md', label: t('myStore.heightMedium') },
+                    { value: 'lg', label: t('myStore.heightLarge') },
                   ]}
                 />
               </div>
               {/* Text color */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Text color</Label>
+                <Label className="text-xs">{t('myStore.textColor')}</Label>
                 <div className="flex items-center gap-2">
                   <input type="color" value={cfg.text_color}
                     onChange={(e) => setHero(page, 'text_color', e.target.value)}
@@ -587,16 +701,16 @@ export default function CreatorStorePage() {
 
             {/* Overlay (only meaningful with a background image) */}
             <div className="space-y-1.5">
-              <Label className="text-xs">Image overlay — {cfg.overlay}%</Label>
+              <Label className="text-xs">{t('myStore.imageOverlay', { percent: cfg.overlay })}</Label>
               <input type="range" min={0} max={80} value={cfg.overlay}
                 onChange={(e) => setHero(page, 'overlay', Number(e.target.value))}
                 className="w-full accent-zinc-900" />
-              <p className="text-[11px] text-muted-foreground">Darkens the background image so text stays readable.</p>
+              <p className="text-[11px] text-muted-foreground">{t('myStore.overlayHint')}</p>
             </div>
 
             {/* Show count */}
             <div className="flex items-center justify-between">
-              <p className="text-sm">Show product count</p>
+              <p className="text-sm">{t('myStore.showProductCount')}</p>
               <Toggle checked={cfg.show_count} onChange={(v) => setHero(page, 'show_count', v)} />
             </div>
           </div>
@@ -645,12 +759,12 @@ export default function CreatorStorePage() {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">My Store</h1>
-          <p className="text-sm text-muted-foreground">Manage your storefront settings</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('myStore.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('myStore.subtitle')}</p>
         </div>
         <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
           <Button variant="outline" size="sm">
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Visit Store
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> {t('myStore.visitStore')}
           </Button>
         </a>
       </div>
@@ -664,17 +778,15 @@ export default function CreatorStorePage() {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-semibold text-zinc-900">
-                Theme, colors & typography are now in the Builder
+                {t('myStore.designMovedTitle')}
               </h3>
               <p className="text-[11.5px] text-muted-foreground mt-1 leading-relaxed">
-                Templates, brand colors, fonts, per-element typography, header layout, logo
-                and favicon all live alongside your pages — open any page in the builder and
-                switch to the <strong>Design</strong> tab in the left panel.
+                {t('myStore.designMovedDesc')}
               </p>
             </div>
             <Link href="/creator/pages">
               <Button size="sm" className="shrink-0">
-                Open Builder
+                {t('myStore.openBuilder')}
                 <ArrowRight className="size-3.5 ms-1.5" />
               </Button>
             </Link>
@@ -684,24 +796,24 @@ export default function CreatorStorePage() {
 
       {/* ── Store Information (translatable) ──────────────────── */}
       <Card className="shadow-none">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Store Information</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">{t('myStore.storeInformation')}</CardTitle></CardHeader>
         <LanguageTabs />
         <CardContent className="space-y-4 pt-4">
           <TranslateBanner />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Store Name {activeLocale === form.primary_locale && <span className="text-red-500">*</span>}</Label>
+              <Label className="text-xs">{t('myStore.storeName')} {activeLocale === form.primary_locale && <span className="text-red-500">*</span>}</Label>
               <Input
                 dir={isRtl ? 'rtl' : 'ltr'}
                 className="h-8 text-sm"
                 value={trans.name}
                 onChange={(e) => setTransField(activeLocale, 'name', e.target.value)}
-                placeholder={activeLocale === form.primary_locale ? 'My Store' : `Store name in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+                placeholder={activeLocale === form.primary_locale ? t('myStore.storeNamePlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Slug</Label>
+              <Label className="text-xs">{t('myStore.slug')}</Label>
               <div className="flex items-center">
                 <Input
                   className="h-8 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -714,26 +826,32 @@ export default function CreatorStorePage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Description</Label>
+            <Label className="text-xs">{tcom('description')}</Label>
             <RichTextEditor
               content={trans.description}
               onChange={(val) => setTransField(activeLocale, 'description', val)}
-              placeholder={activeLocale === form.primary_locale ? 'Tell customers about your store...' : `Description in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+              placeholder={activeLocale === form.primary_locale ? t('myStore.descriptionPlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
             />
           </div>
 
           {/* Non-translatable fields only on primary tab */}
           {activeLocale === form.primary_locale && (
             <>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Custom Domain</Label>
-                <Input className="h-8 text-sm" value={form.custom_domain} onChange={(e) => setField('custom_domain', e.target.value)} placeholder="yourdomain.com (optional)" />
+              <div className="space-y-2">
+                <Label className="text-xs">{t('myStore.customDomain')}</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={form.custom_domain}
+                  onChange={(e) => setField('custom_domain', e.target.value.trim().toLowerCase())}
+                  placeholder={t('myStore.customDomainPlaceholder')}
+                />
+                {form.custom_domain && <CustomDomainInstructions domain={form.custom_domain} />}
               </div>
               <Separator />
               <div className="flex items-center justify-between py-1">
                 <div>
-                  <p className="text-sm font-medium">Store Active</p>
-                  <p className="text-[11px] text-muted-foreground">Customers can browse and purchase from your store</p>
+                  <p className="text-sm font-medium">{t('myStore.storeActive')}</p>
+                  <p className="text-[11px] text-muted-foreground">{t('myStore.storeActiveDesc')}</p>
                 </div>
                 <Toggle checked={form.is_active} onChange={(v) => setField('is_active', v)} />
               </div>
@@ -744,29 +862,29 @@ export default function CreatorStorePage() {
 
       {/* ── Contact & Social ──────────────────────────────────── */}
       <Card className="shadow-none">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Contact & Social</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('myStore.contactSocial')}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Email</Label>
+              <Label className="text-xs">{t('myStore.email')}</Label>
               <Input className="h-8 text-sm" type="email" value={form.contact.email} onChange={(e) => setNested('contact', 'email', e.target.value)} placeholder="hello@yourstore.com" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Phone</Label>
+              <Label className="text-xs">{t('myStore.phone')}</Label>
               <Input className="h-8 text-sm" type="tel" value={form.contact.phone} onChange={(e) => setNested('contact', 'phone', e.target.value)} placeholder="+1 555 000 0000" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">WhatsApp</Label>
+              <Label className="text-xs">{t('myStore.whatsapp')}</Label>
               <Input className="h-8 text-sm" value={form.contact.whatsapp} onChange={(e) => setNested('contact', 'whatsapp', e.target.value)} placeholder="+1 555 000 0000" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Address</Label>
-              <Textarea className="text-sm resize-none" rows={2} value={form.contact.address} onChange={(e) => setNested('contact', 'address', e.target.value)} placeholder="123 Main St, City, Country" />
+              <Label className="text-xs">{t('myStore.address')}</Label>
+              <Textarea className="text-sm resize-none" rows={2} value={form.contact.address} onChange={(e) => setNested('contact', 'address', e.target.value)} placeholder={t('myStore.addressPlaceholder')} />
             </div>
           </div>
           <Separator />
           <div className="space-y-2">
-            <Label className="text-xs">Social Links</Label>
+            <Label className="text-xs">{t('myStore.socialLinks')}</Label>
             <div className="space-y-2">
               {([
                 { key: 'instagram', label: 'Instagram', placeholder: 'instagram.com/yourstore' },
@@ -788,31 +906,31 @@ export default function CreatorStorePage() {
       {/* ── Page Banners (Hero) ───────────────────────────────── */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Page Banners</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('myStore.pageBanners')}</CardTitle>
           <p className="text-[11px] text-muted-foreground">
-            Control the hero banner shown at the top of your Products and Collection pages.
+            {t('myStore.pageBannersDesc')}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {renderHeroFields(
             'products',
-            'Products page',
-            'The banner above your full product catalog.',
+            t('myStore.productsPage'),
+            t('myStore.productsPageDesc'),
           )}
           {renderHeroFields(
             'collections',
-            'Collection pages',
-            "The banner shown on each collection's page.",
+            t('myStore.collectionPages'),
+            t('myStore.collectionPagesDesc'),
           )}
         </CardContent>
       </Card>
 
       {/* ── Languages ─────────────────────────────────────────── */}
       <Card className="shadow-none">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Languages</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('myStore.languages')}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs">Primary Language</Label>
+            <Label className="text-xs">{t('myStore.primaryLanguage')}</Label>
             <SearchableSelect
               value={form.primary_locale}
               onChange={(v) => {
@@ -823,12 +941,12 @@ export default function CreatorStorePage() {
                 setTranslations(prev => prev[v] ? prev : { ...prev, [v]: { ...EMPTY_TRANSLATABLE } });
                 setActiveLocale(v);
               }}
-              placeholder="Select language..."
+              placeholder={t('myStore.selectLanguage')}
               options={LOCALES}
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Secondary Languages</Label>
+            <Label className="text-xs">{t('myStore.secondaryLanguages')}</Label>
             <div className="flex flex-wrap gap-2">
               {LOCALES.map((locale) => {
                 const isSelected = form.secondary_locales.includes(locale.value);
@@ -840,7 +958,7 @@ export default function CreatorStorePage() {
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition-colors ${isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'} ${isPrimary ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                   >
                     {locale.label}
-                    {isPrimary && <Badge variant="secondary" className="ml-1 text-[9px] px-1 py-0 h-auto">primary</Badge>}
+                    {isPrimary && <Badge variant="secondary" className="ml-1 text-[9px] px-1 py-0 h-auto">{t('myStore.primary')}</Badge>}
                   </button>
                 );
               })}
@@ -849,8 +967,8 @@ export default function CreatorStorePage() {
           <Separator />
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm font-medium">Auto-translate with AI</p>
-              <p className="text-[11px] text-muted-foreground">Automatically translate your content into secondary languages</p>
+              <p className="text-sm font-medium">{t('myStore.autoTranslateAI')}</p>
+              <p className="text-[11px] text-muted-foreground">{t('myStore.autoTranslateAIDesc')}</p>
             </div>
             <Toggle checked={form.auto_translate} onChange={(v) => setField('auto_translate', v)} />
           </div>
@@ -859,29 +977,29 @@ export default function CreatorStorePage() {
 
       {/* ── SEO (translatable) ────────────────────────────────── */}
       <Card className="shadow-none">
-        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">SEO</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">{t('myStore.seo')}</CardTitle></CardHeader>
         <LanguageTabs />
         <CardContent className="space-y-4 pt-4">
           {activeLocale !== form.primary_locale && <TranslateBanner />}
-          <p className="text-xs text-muted-foreground">Used in search engine results</p>
+          <p className="text-xs text-muted-foreground">{t('myStore.seoHint')}</p>
           <div className="space-y-1.5">
-            <Label className="text-xs">Meta Title</Label>
+            <Label className="text-xs">{t('myStore.metaTitle')}</Label>
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
               value={trans.metaTitle}
               onChange={(e) => setTransField(activeLocale, 'metaTitle', e.target.value)}
-              placeholder={activeLocale === form.primary_locale ? 'My Store — Best Products Online' : `Meta title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+              placeholder={activeLocale === form.primary_locale ? t('myStore.metaTitlePlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Meta Description</Label>
+            <Label className="text-xs">{t('myStore.metaDescription')}</Label>
             <Textarea
               dir={isRtl ? 'rtl' : 'ltr'}
               className="text-sm resize-none" rows={2}
               value={trans.metaDescription}
               onChange={(e) => setTransField(activeLocale, 'metaDescription', e.target.value)}
-              placeholder={activeLocale === form.primary_locale ? 'Shop the best products at unbeatable prices...' : `Meta description in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+              placeholder={activeLocale === form.primary_locale ? t('myStore.metaDescriptionPlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
             />
           </div>
         </CardContent>
@@ -891,13 +1009,13 @@ export default function CreatorStorePage() {
       <div className="flex items-center justify-between pb-8">
         <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
           <Button variant="ghost" size="sm" type="button">
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Visit Store
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> {t('myStore.visitStore')}
           </Button>
         </a>
         <div className="flex items-center gap-3">
-          {saved && <span className="text-xs text-emerald-600 font-medium">Saved!</span>}
+          {saved && <span className="text-xs text-emerald-600 font-medium">{t('myStore.savedExclaim')}</span>}
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Saving...</> : 'Save Settings'}
+            {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {tcom('saving')}</> : t('myStore.saveSettings')}
           </Button>
         </div>
       </div>
@@ -920,6 +1038,8 @@ function slugify(input: string): string {
 }
 
 function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (store: Store) => void }) {
+  const t = useTranslations('creator');
+  const tcom = useTranslations('common');
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -938,7 +1058,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
     if (!token || submitting) return;
     setError('');
     if (!name.trim() || !slug.trim()) {
-      setError('Name and slug are required');
+      setError(t('myStore.nameSlugRequired'));
       return;
     }
     setSubmitting(true);
@@ -955,7 +1075,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
       });
       onCreated(created);
     } catch (err: any) {
-      setError(err?.message || 'Failed to create store');
+      setError(err?.message || t('myStore.failedCreateStore'));
     } finally {
       setSubmitting(false);
     }
@@ -964,22 +1084,22 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">My Store</h1>
-        <p className="text-sm text-muted-foreground">Set up your storefront to start selling</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('myStore.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('myStore.setUpToSell')}</p>
       </div>
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Create your store</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('myStore.createYourStore')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Store Name <span className="text-red-500">*</span></Label>
-              <Input className="h-9 text-sm" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder="My Store" required />
+              <Label className="text-xs">{t('myStore.storeName')} <span className="text-red-500">*</span></Label>
+              <Input className="h-9 text-sm" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder={t('myStore.storeNamePlaceholder')} required />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Slug <span className="text-red-500">*</span></Label>
+              <Label className="text-xs">{t('myStore.slug')} <span className="text-red-500">*</span></Label>
               <div className="flex items-center">
                 <Input
                   className="h-9 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -990,24 +1110,24 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
                 />
                 <span className="h-9 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
               </div>
-              <p className="text-[11px] text-muted-foreground">Lowercase letters, digits and hyphens only.</p>
+              <p className="text-[11px] text-muted-foreground">{t('myStore.slugHint')}</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Description</Label>
-              <Textarea className="text-sm resize-none" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Tell customers about your store..." />
+              <Label className="text-xs">{tcom('description')}</Label>
+              <Textarea className="text-sm resize-none" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('myStore.descriptionPlaceholder')} />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Primary Language</Label>
-              <SearchableSelect value={primaryLocale} onChange={setPrimaryLocale} options={LOCALES} placeholder="Select language..." />
+              <Label className="text-xs">{t('myStore.primaryLanguage')}</Label>
+              <SearchableSelect value={primaryLocale} onChange={setPrimaryLocale} options={LOCALES} placeholder={t('myStore.selectLanguage')} />
             </div>
 
             {error && <p className="text-xs text-red-600">{error}</p>}
 
             <div className="pt-2">
               <Button type="submit" size="sm" disabled={submitting}>
-                {submitting ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Creating...</> : 'Create Store'}
+                {submitting ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {t('myStore.creating')}</> : t('myStore.createStore')}
               </Button>
             </div>
           </form>

@@ -1,9 +1,12 @@
 'use client';
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loader2, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEVICE_WIDTHS, type DevicePreset, type SectionInstance } from './types';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 interface LivePreviewProps {
   webOrigin: string;
@@ -26,11 +29,13 @@ export interface LivePreviewHandle {
   scrollToSection: (sectionId: string) => void;
 }
 
-const DEVICES: { key: DevicePreset; label: string; Icon: typeof Monitor }[] = [
-  { key: 'mobile', label: 'Mobile', Icon: Smartphone },
-  { key: 'tablet', label: 'Tablet', Icon: Tablet },
-  { key: 'desktop', label: 'Desktop', Icon: Monitor },
-];
+function buildDevices(t: Translator): { key: DevicePreset; label: string; Icon: typeof Monitor }[] {
+  return [
+    { key: 'mobile', label: t('deviceMobile'), Icon: Smartphone },
+    { key: 'tablet', label: t('deviceTablet'), Icon: Tablet },
+    { key: 'desktop', label: t('deviceDesktop'), Icon: Monitor },
+  ];
+}
 
 export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(function LivePreview(
   {
@@ -47,6 +52,8 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
   },
   ref,
 ) {
+  const t = useTranslations('builder');
+  const DEVICES = buildDevices(t);
   const [device, setDevice] = useState<DevicePreset>('desktop');
   const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -146,7 +153,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
           <iframe
             ref={iframeRef}
             src={previewUrl}
-            title="Storefront preview"
+            title={t('storefrontPreview')}
             className="w-full h-full border-0 block"
             // No sandbox here — same-origin scripts need free run to render the
             // storefront. Restrict in prod once a separate preview origin is set up.

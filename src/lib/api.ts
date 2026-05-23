@@ -29,6 +29,9 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
     );
     err.status = res.status;
     err.errors = Array.isArray(json.message) ? json.message : undefined;
+    // Stable machine-readable error code (when the API provides one). The UI can
+    // translate `errors.<code>`, falling back to the English `message` above.
+    err.code = typeof json.code === 'string' ? json.code : undefined;
     throw err;
   }
 

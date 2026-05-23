@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { BlockPalette } from './BlockPalette';
 
 interface Block {
@@ -17,6 +18,7 @@ interface PageBuilderEditorProps {
 }
 
 export function PageBuilderEditor({ pageId, initialBlocks = [] }: PageBuilderEditorProps) {
+  const t = useTranslations('components');
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
 
   const addBlock = (type: string) => {
@@ -53,8 +55,8 @@ export function PageBuilderEditor({ pageId, initialBlocks = [] }: PageBuilderEdi
       <div className="col-span-2 space-y-3">
         {blocks.length === 0 ? (
           <div className="bg-white rounded-xl border p-12 text-center">
-            <p className="text-gray-400 mb-2">No blocks yet</p>
-            <p className="text-sm text-gray-400">Add blocks from the palette on the right</p>
+            <p className="text-gray-400 mb-2">{t('noBlocksYet')}</p>
+            <p className="text-sm text-gray-400">{t('addBlocksFromPalette')}</p>
           </div>
         ) : (
           blocks.map((block, idx) => (
@@ -64,7 +66,7 @@ export function PageBuilderEditor({ pageId, initialBlocks = [] }: PageBuilderEdi
                   <span className="text-xs font-bold uppercase bg-gray-100 text-gray-600 px-2 py-1 rounded">
                     {block.type}
                   </span>
-                  <span className="text-xs text-gray-400">Block {idx + 1}</span>
+                  <span className="text-xs text-gray-400">{t('blockNumber', { number: idx + 1 })}</span>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                   <button
@@ -92,7 +94,7 @@ export function PageBuilderEditor({ pageId, initialBlocks = [] }: PageBuilderEdi
 
               {/* Block content editor placeholder */}
               <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-500">
-                Edit {block.type.toLowerCase()} content here...
+                {t('editBlockContent', { type: block.type.toLowerCase() })}
               </div>
             </div>
           ))
@@ -104,7 +106,7 @@ export function PageBuilderEditor({ pageId, initialBlocks = [] }: PageBuilderEdi
         <BlockPalette onAddBlock={addBlock} />
 
         <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-          Save Page
+          {t('savePage')}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   ExternalLink,
   Loader2,
@@ -60,6 +61,8 @@ function titleOf(translations: { locale: string; title?: string | null }[], prim
 export default function LandingPagesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const [loading, setLoading] = useState(true);
   const [pages, setPages] = useState<PageRow[]>([]);
   const [store, setStore] = useState<StoreLite | null>(null);
@@ -104,35 +107,35 @@ export default function LandingPagesPage() {
   const columns = [
     {
       key: 'title',
-      label: 'Title',
+      label: t('landingPages.colTitle'),
       render: (item: PageRow) => (
         <span className="text-sm font-medium">{titleOf(item.translations, primaryLocale, item.slug || '—')}</span>
       ),
     },
     {
       key: 'slug',
-      label: 'URL',
+      label: t('landingPages.colUrl'),
       render: (item: PageRow) => (
         <span className="font-mono text-[10px] text-muted-foreground">/p/{item.slug}</span>
       ),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: PageRow) =>
         item.status === 'PUBLISHED' ? (
           <span className="inline-flex h-5 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
-            Published
+            {t('landingPages.published')}
           </span>
         ) : (
           <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
-            Draft
+            {t('landingPages.draft')}
           </span>
         ),
     },
     {
       key: 'created_at',
-      label: 'Created',
+      label: t('landingPages.colCreated'),
       render: (item: PageRow) => (
         <span className="text-xs text-muted-foreground">{formatDate(item.created_at)}</span>
       ),
@@ -148,7 +151,7 @@ export default function LandingPagesPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button size="icon-sm" variant="ghost" title="Open published page">
+              <Button size="icon-sm" variant="ghost" title={t('landingPages.openPublished')}>
                 <ExternalLink className="size-3.5" />
               </Button>
             </a>
@@ -156,7 +159,7 @@ export default function LandingPagesPage() {
           <Button
             size="icon-sm"
             variant="ghost"
-            title="Open in builder"
+            title={t('landingPages.openInBuilder')}
             onClick={() => router.push(`/builder/${item.id}`)}
           >
             <Wand2 className="size-3.5" />
@@ -165,7 +168,7 @@ export default function LandingPagesPage() {
             size="icon-sm"
             variant="ghost"
             className="text-destructive hover:text-destructive"
-            title="Delete"
+            title={tc('delete')}
             onClick={() => setDeleteTarget(item)}
           >
             <Trash2 className="size-3.5" />
@@ -179,9 +182,9 @@ export default function LandingPagesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Landing Pages</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('landingPages.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Custom URL pages for campaigns and promotions. Each gets its own builder.
+            {t('landingPages.subtitle')}
           </p>
         </div>
         <CreateLandingDialog
@@ -204,39 +207,38 @@ export default function LandingPagesPage() {
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
               <Sparkles className="size-6" />
             </div>
-            <p className="text-sm font-medium">No landing pages yet</p>
+            <p className="text-sm font-medium">{t('landingPages.emptyTitle')}</p>
             <p className="mt-1 text-xs text-muted-foreground max-w-md">
-              Create a landing page for a campaign, product launch, or seasonal promotion.
-              Each one gets a unique URL and its own builder canvas.
+              {t('landingPages.emptyDesc')}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <DataTable columns={columns} data={landings} searchPlaceholder="Search landing pages…" emptyMessage="" />
+        <DataTable columns={columns} data={landings} searchPlaceholder={t('landingPages.searchPlaceholder')} emptyMessage="" />
       )}
 
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete landing page</DialogTitle>
+            <DialogTitle>{t('landingPages.deleteTitle')}</DialogTitle>
             <DialogDescription>
               {deleteTarget && (
                 <>
-                  Delete{' '}
+                  {t('landingPages.deleteConfirmPrefix')}{' '}
                   <span className="font-medium text-foreground">
                     {titleOf(deleteTarget.translations, primaryLocale, deleteTarget.slug || '')}
                   </span>
-                  ? Published versions will be removed too.
+                  {t('landingPages.deleteConfirmSuffix')}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? t('landingPages.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -257,6 +259,8 @@ function CreateLandingDialog({
   onCreated: (page: PageRow) => void;
 }) {
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -283,8 +287,8 @@ function CreateLandingDialog({
 
   const slugError = (() => {
     if (!slug) return null;
-    if (!SLUG_REGEX.test(slug)) return 'Use lowercase letters, digits, and hyphens only.';
-    if (existingSlugs.includes(slug)) return 'A landing page with this URL already exists.';
+    if (!SLUG_REGEX.test(slug)) return t('landingPages.slugInvalid');
+    if (existingSlugs.includes(slug)) return t('landingPages.slugExists');
     return null;
   })();
 
@@ -310,7 +314,7 @@ function CreateLandingDialog({
       setSlug('');
       setSlugDirty(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create landing page');
+      setError(err instanceof Error ? err.message : t('landingPages.failedCreate'));
     } finally {
       setCreating(false);
     }
@@ -322,31 +326,31 @@ function CreateLandingDialog({
         render={
           <Button size="sm">
             <Plus className="size-3.5" />
-            New landing page
+            {t('landingPages.newLandingPage')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New landing page</DialogTitle>
+          <DialogTitle>{t('landingPages.newLandingPage')}</DialogTitle>
           <DialogDescription>
-            Pick a title and URL. You can edit the design after.
+            {t('landingPages.newDialogDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="lp-title" className="text-xs">Title ({primaryLocale})</Label>
+            <Label htmlFor="lp-title" className="text-xs">{t('landingPages.titleLabel', { locale: primaryLocale })}</Label>
             <Input
               id="lp-title"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              placeholder="Eid sale 2026"
+              placeholder={t('landingPages.titlePlaceholder')}
               autoFocus
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="lp-slug" className="text-xs">URL</Label>
+            <Label htmlFor="lp-slug" className="text-xs">{t('landingPages.urlLabel')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground font-mono">/p/</span>
               <Input
@@ -367,16 +371,16 @@ function CreateLandingDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={creating}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button onClick={handleCreate} disabled={!canSubmit}>
             {creating ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
-                Creating…
+                {t('landingPages.creating')}
               </>
             ) : (
-              'Create & open builder'
+              t('landingPages.createAndOpen')
             )}
           </Button>
         </DialogFooter>

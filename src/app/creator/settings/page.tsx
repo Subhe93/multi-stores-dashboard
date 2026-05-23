@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Trash2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -37,11 +38,20 @@ interface StoreInfo {
   cache_enabled: boolean;
 }
 
+interface StripeConnectStatus {
+  connected: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  onboarding_completed: boolean;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreatorSettingsPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const { upload, uploading } = useImageUpload(token ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +72,12 @@ export default function CreatorSettingsPage() {
 
   // Storefront caching on/off toggle
   const [cacheSaving, setCacheSaving] = useState(false);
+
+  // Stripe Connect (payout account) state
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(true);
+  const [stripeConnecting, setStripeConnecting] = useState(false);
+  const [stripeError, setStripeError] = useState('');
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -107,10 +123,10 @@ export default function CreatorSettingsPage() {
           avatar_url: avatarUrl || '',
         }),
       });
-      setProfileMsg({ type: 'success', text: 'Profile saved successfully.' });
+      setProfileMsg({ type: 'success', text: t('settings.profileSaved') });
     } catch (err: any) {
       console.error('Failed to save profile:', err);
-      setProfileMsg({ type: 'error', text: err?.message || 'Failed to save profile. Please try again.' });
+      setProfileMsg({ type: 'error', text: err?.message || t('settings.profileSaveFailed') });
     } finally {
       setProfileSaving(false);
     }
@@ -122,7 +138,7 @@ export default function CreatorSettingsPage() {
     if (result?.url) {
       setAvatarUrl(result.url);
     } else {
-      setProfileMsg({ type: 'error', text: 'Avatar upload failed. Please try again.' });
+      setProfileMsg({ type: 'error', text: t('settings.avatarUploadFailed') });
     }
   };
 
@@ -132,9 +148,9 @@ export default function CreatorSettingsPage() {
     setFlushMsg(null);
     try {
       await api('/stores/my/cache/flush', { method: 'POST', token });
-      setFlushMsg({ type: 'success', text: 'Storefront cache cleared. Changes appear within seconds.' });
+      setFlushMsg({ type: 'success', text: t('settings.cacheCleared') });
     } catch (err: any) {
-      setFlushMsg({ type: 'error', text: err?.message || 'Failed to clear cache. Please try again.' });
+      setFlushMsg({ type: 'error', text: err?.message || t('settings.cacheClearFailed') });
     } finally {
       setFlushing(false);
     }
@@ -155,9 +171,32 @@ export default function CreatorSettingsPage() {
       });
     } catch (err: any) {
       setStore({ ...store, cache_enabled: !next });
-      setFlushMsg({ type: 'error', text: err?.message || 'Failed to update caching.' });
+      setFlushMsg({ type: 'error', text: err?.message || t('settings.cachingUpdateFailed') });
     } finally {
       setCacheSaving(false);
+    }
+  };
+
+  // Load Stripe Connect status (and refresh after returning from onboarding).
+  useEffect(() => {
+    if (!token) return;
+    setStripeLoading(true);
+    api<StripeConnectStatus>('/payments/connect/status', { token })
+      .then((s) => setStripeStatus(s))
+      .catch(() => setStripeStatus(null))
+      .finally(() => setStripeLoading(false));
+  }, [token]);
+
+  const handleConnectStripe = async () => {
+    if (!token || stripeConnecting) return;
+    setStripeConnecting(true);
+    setStripeError('');
+    try {
+      const { url } = await api<{ url: string }>('/payments/connect/onboarding-link', { token });
+      window.location.href = url;
+    } catch (err: any) {
+      setStripeError(err?.message || t('settings.stripeConnectError'));
+      setStripeConnecting(false);
     }
   };
 
@@ -166,15 +205,15 @@ export default function CreatorSettingsPage() {
     setPasswordMsg(null);
 
     if (!newPassword || !currentPassword) {
-      setPasswordMsg({ type: 'error', text: 'Please fill in all password fields.' });
+      setPasswordMsg({ type: 'error', text: t('settings.passwordFillAll') });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
+      setPasswordMsg({ type: 'error', text: t('settings.passwordMismatch') });
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordMsg({ type: 'error', text: 'New password must be at least 8 characters.' });
+      setPasswordMsg({ type: 'error', text: t('settings.passwordTooShort') });
       return;
     }
     if (!token) return;
@@ -192,9 +231,9 @@ export default function CreatorSettingsPage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setPasswordMsg({ type: 'success', text: 'Password changed successfully.' });
+      setPasswordMsg({ type: 'success', text: t('settings.passwordChanged') });
     } catch (err: any) {
-      setPasswordMsg({ type: 'error', text: err?.message || 'Failed to change password.' });
+      setPasswordMsg({ type: 'error', text: err?.message || t('settings.passwordChangeFailed') });
     } finally {
       setPasswordSaving(false);
     }
@@ -204,50 +243,50 @@ export default function CreatorSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Account Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your creator account and preferences</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('settings.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <div className="max-w-2xl space-y-4">
         {/* Account Info card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Account Info</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('settings.accountInfo')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSaveProfile} className="space-y-4">
               {/* Email (read-only) */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Email</Label>
+                <Label className="text-xs">{t('settings.email')}</Label>
                 <Input
                   value={user?.email || ''}
                   disabled
                   className="h-8"
-                  placeholder="Loading…"
+                  placeholder={tc('loading')}
                 />
               </div>
 
               {/* Display Name */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Display Name</Label>
+                <Label className="text-xs">{t('settings.displayName')}</Label>
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your display name"
+                  placeholder={t('settings.displayNamePlaceholder')}
                   className="h-8"
                 />
               </div>
 
               {/* Avatar */}
               <div className="space-y-1.5">
-                <Label className="text-xs">Avatar</Label>
+                <Label className="text-xs">{t('settings.avatar')}</Label>
                 <div className="flex items-center gap-4">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                     className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-zinc-200 bg-zinc-50 transition hover:border-zinc-400 disabled:opacity-50"
-                    aria-label="Upload avatar"
+                    aria-label={t('settings.uploadAvatar')}
                   >
                     {uploading ? (
                       <div className="flex h-full w-full items-center justify-center">
@@ -257,7 +296,7 @@ export default function CreatorSettingsPage() {
                       <>
                         <img
                           src={resolveAvatarUrl(avatarUrl)}
-                          alt="Avatar preview"
+                          alt={t('settings.avatarPreview')}
                           className="h-full w-full object-cover"
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/40">
@@ -267,7 +306,7 @@ export default function CreatorSettingsPage() {
                     ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-zinc-400">
                         <UserIcon className="size-6" />
-                        <span className="text-[9px]">Upload</span>
+                        <span className="text-[9px]">{t('settings.upload')}</span>
                       </div>
                     )}
                   </button>
@@ -281,7 +320,7 @@ export default function CreatorSettingsPage() {
                         disabled={uploading}
                       >
                         <Camera className="size-3.5" />
-                        {avatarUrl ? 'Change' : 'Upload'}
+                        {avatarUrl ? t('settings.change') : t('settings.upload')}
                       </Button>
                       {avatarUrl && !uploading && (
                         <Button
@@ -292,12 +331,12 @@ export default function CreatorSettingsPage() {
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="size-3.5" />
-                          Remove
+                          {tc('remove')}
                         </Button>
                       )}
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                      JPG, PNG, or WebP. Square images work best.
+                      {t('settings.avatarHint')}
                     </p>
                   </div>
                   <input
@@ -334,7 +373,7 @@ export default function CreatorSettingsPage() {
 
               <div className="flex justify-end">
                 <Button type="submit" size="sm" disabled={profileSaving || !user}>
-                  {profileSaving ? 'Saving…' : 'Save Profile'}
+                  {profileSaving ? tc('saving') : t('settings.saveProfile')}
                 </Button>
               </div>
             </form>
@@ -344,7 +383,7 @@ export default function CreatorSettingsPage() {
         {/* Store Status card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Store Status</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('settings.storeStatus')}</CardTitle>
           </CardHeader>
           <CardContent>
             {storeLoading ? (
@@ -364,7 +403,7 @@ export default function CreatorSettingsPage() {
                         : 'border-zinc-200 bg-zinc-100 text-zinc-600'
                     }`}
                   >
-                    {store.is_active ? 'Active' : 'Inactive'}
+                    {store.is_active ? t('settings.active') : t('settings.inactive')}
                   </span>
                 </div>
                 <Button
@@ -372,7 +411,7 @@ export default function CreatorSettingsPage() {
                   variant="outline"
                   onClick={() => router.push('/creator/store')}
                 >
-                  Manage Store
+                  {t('settings.manageStore')}
                   <ExternalLink className="size-3.5" />
                 </Button>
               </div>
@@ -384,11 +423,11 @@ export default function CreatorSettingsPage() {
               <div className="mt-4 space-y-3 border-t pt-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <p className="text-sm font-medium">Storefront caching</p>
+                    <p className="text-sm font-medium">{t('settings.storefrontCaching')}</p>
                     <p className="text-[11px] text-muted-foreground">
                       {store.cache_enabled
-                        ? 'On — faster store. Published changes refresh automatically.'
-                        : 'Off — store is always fresh, but slightly slower.'}
+                        ? t('settings.cachingOn')
+                        : t('settings.cachingOff')}
                     </p>
                   </div>
                   <button
@@ -403,7 +442,7 @@ export default function CreatorSettingsPage() {
                   >
                     <span
                       className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
-                        store.cache_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                        store.cache_enabled ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
                       }`}
                     />
                   </button>
@@ -412,7 +451,7 @@ export default function CreatorSettingsPage() {
                 {store.cache_enabled && (
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] text-muted-foreground">
-                      Force your latest changes to appear right away.
+                      {t('settings.forceRefreshHint')}
                     </p>
                     <Button
                       size="sm"
@@ -425,7 +464,7 @@ export default function CreatorSettingsPage() {
                       ) : (
                         <RefreshCw className="size-3.5" />
                       )}
-                      Clear Cache
+                      {t('settings.clearCache')}
                     </Button>
                   </div>
                 )}
@@ -446,14 +485,14 @@ export default function CreatorSettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
-                    Store not created
+                    {t('settings.storeNotCreated')}
                   </span>
                   <p className="text-xs text-muted-foreground">
-                    Set up your store to start selling
+                    {t('settings.setUpToSell')}
                   </p>
                 </div>
                 <Button size="sm" onClick={() => router.push('/creator/store')}>
-                  Set Up Store
+                  {t('settings.setUpStore')}
                 </Button>
               </div>
             )}
@@ -463,64 +502,88 @@ export default function CreatorSettingsPage() {
         {/* Stripe Connect card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Stripe Connect</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('settings.stripeConnect')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
-                  Not Connected
-                </span>
-                <p className="text-[11px] text-muted-foreground">
-                  Connect your Stripe account to receive payouts
-                </p>
+            {stripeLoading ? (
+              <div className="space-y-2">
+                <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
+                <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <Button size="sm" disabled>
-                  Connect Stripe
-                </Button>
-                <p className="text-[10px] text-muted-foreground">Coming soon</p>
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  {stripeStatus?.payouts_enabled ? (
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
+                      <CheckCircle2 className="size-3" />
+                      {t('settings.payoutsEnabled')}
+                    </span>
+                  ) : stripeStatus?.connected ? (
+                    <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
+                      {t('settings.onboardingPending')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
+                      {t('settings.notConnected')}
+                    </span>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('settings.stripeConnectDesc')}
+                  </p>
+                  {stripeError && <p className="text-[11px] text-destructive">{stripeError}</p>}
+                </div>
+                {!stripeStatus?.payouts_enabled && (
+                  <Button size="sm" onClick={handleConnectStripe} disabled={stripeConnecting}>
+                    {stripeConnecting ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : stripeStatus?.connected ? (
+                      t('settings.completeStripeSetup')
+                    ) : (
+                      t('settings.connectStripe')
+                    )}
+                  </Button>
+                )}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Change Password card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Change Password</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('settings.changePassword')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Current Password</Label>
+                <Label className="text-xs">{t('settings.currentPassword')}</Label>
                 <Input
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
+                  placeholder={t('settings.currentPasswordPlaceholder')}
                   className="h-8"
                   autoComplete="current-password"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">New Password</Label>
+                <Label className="text-xs">{t('settings.newPassword')}</Label>
                 <Input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder={t('settings.newPasswordPlaceholder')}
                   className="h-8"
                   autoComplete="new-password"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Confirm New Password</Label>
+                <Label className="text-xs">{t('settings.confirmNewPassword')}</Label>
                 <Input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder={t('settings.confirmPasswordPlaceholder')}
                   className="h-8"
                   autoComplete="new-password"
                 />
@@ -546,7 +609,7 @@ export default function CreatorSettingsPage() {
 
               <div className="flex justify-end">
                 <Button type="submit" size="sm" disabled={passwordSaving}>
-                  {passwordSaving ? 'Changing…' : 'Change Password'}
+                  {passwordSaving ? t('settings.changing') : t('settings.changePassword')}
                 </Button>
               </div>
             </form>

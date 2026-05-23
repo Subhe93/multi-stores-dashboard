@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   AlertCircle,
   Plus,
@@ -44,6 +45,8 @@ import {
   type BundleTemplate,
   type BundleTranslation,
 } from './types';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 // dnd-kit needs a string id per item that survives reorders.
 // Offers from the API have a real id; new offers get a temporary local id.
@@ -105,37 +108,38 @@ function templateToOffers(tpl: BundleTemplate, primary: string): OfferWithKey[] 
   }));
 }
 
-function friendlyError(err: unknown): { message: string; firstField?: string } {
-  if (!err || typeof err !== 'object') return { message: 'Something went wrong. Please try again.' };
+function friendlyError(err: unknown, t: Translator): { message: string; firstField?: string } {
+  if (!err || typeof err !== 'object') return { message: t('bundle.genericError') };
   const e = err as { message?: string; errors?: string[] };
   const errors = e.errors ?? [];
   const first = errors[0];
   if (first) {
     const m = first.toLowerCase();
     if (m.includes('translations') && m.includes('name')) {
-      return { message: 'Bundle name is required.', firstField: 'bundle-name' };
+      return { message: t('bundle.errNameRequired'), firstField: 'bundle-name' };
     }
     if (m.includes('offers') && m.includes('arrayminsize')) {
-      return { message: 'Add at least one offer to the bundle.', firstField: 'offers' };
+      return { message: t('bundle.errAtLeastOneOffer'), firstField: 'offers' };
     }
     if (m.includes('offers') && m.includes('title')) {
-      return { message: 'Each offer needs a title in the primary language.', firstField: 'offers' };
+      return { message: t('bundle.errOfferTitle'), firstField: 'offers' };
     }
     if (m.includes('quantity')) {
-      return { message: 'Quantity must be at least 1.', firstField: 'offers' };
+      return { message: t('bundle.errQuantityMin'), firstField: 'offers' };
     }
     if (m.includes('discount_value')) {
-      return { message: 'Discount value cannot be negative.', firstField: 'offers' };
+      return { message: t('bundle.errDiscountNegative'), firstField: 'offers' };
     }
     if (m.includes('below provider cost')) {
       return { message: first, firstField: 'offers' };
     }
     return { message: first };
   }
-  return { message: e.message || 'Something went wrong. Please try again.' };
+  return { message: e.message || t('bundle.genericError') };
 }
 
 export function BundleForm({ mode, initial }: Props) {
+  const t = useTranslations();
   const { token, user } = useAuth();
   const router = useRouter();
 
@@ -259,7 +263,7 @@ export function BundleForm({ mode, initial }: Props) {
       .then(([customRes, ownRes]) => {
         if (cancelled) return;
         const custom: ProductOption[] = (customRes?.data || []).map((p) => {
-          const t =
+          const tr0 =
             p.translations?.find((tr) => tr.locale === primaryLocale) ||
             p.translations?.[0] ||
             p.product?.translations?.find((tr) => tr.locale === primaryLocale) ||
@@ -283,7 +287,7 @@ export function BundleForm({ mode, initial }: Props) {
           }
           return {
             id: `cp:${p.id}`,
-            name: `${t?.title || 'Untitled product'} · custom`,
+            name: `${tr0?.title || t('bundle.untitledProduct')} · ${t('bundle.customSuffix')}`,
             thumbnail:
               p.mockup_images?.[0]?.url ||
               p.product?.images?.[0]?.url ||
@@ -293,7 +297,7 @@ export function BundleForm({ mode, initial }: Props) {
           };
         });
         const own: ProductOption[] = (ownRes?.data || []).map((p) => {
-          const t =
+          const tr0 =
             p.translations?.find((tr) => tr.locale === primaryLocale) ||
             p.translations?.[0];
           const featured =
@@ -302,7 +306,7 @@ export function BundleForm({ mode, initial }: Props) {
             null;
           return {
             id: `p:${p.id}`,
-            name: `${t?.title || 'Untitled product'} · own`,
+            name: `${tr0?.title || t('bundle.untitledProduct')} · ${t('bundle.ownSuffix')}`,
             thumbnail: featured,
             unitPrice: Number(p.base_price ?? 0),
             pricingType: 'SINGLE',
@@ -350,45 +354,45 @@ export function BundleForm({ mode, initial }: Props) {
     if (!primaryName) {
       return {
         ok: false,
-        message: 'Bundle name is required.',
+        message: t('bundle.errNameRequired'),
         field: 'bundle-name',
       };
     }
     if (offers.length === 0) {
       return {
         ok: false,
-        message: 'Add at least one offer to the bundle.',
+        message: t('bundle.errAtLeastOneOffer'),
         field: 'offers',
       };
     }
     for (let i = 0; i < offers.length; i++) {
       const offer = offers[i];
-      const primaryTitle = offer.translations.find((t) => t.locale === primaryLocale)?.title?.trim();
+      const primaryTitle = offer.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim();
       if (!primaryTitle) {
         return {
           ok: false,
-          message: `Offer ${i + 1} needs a title in the primary language.`,
+          message: t('bundle.errOfferNumTitle', { num: i + 1 }),
           field: 'offers',
         };
       }
       if (!Number.isFinite(offer.quantity) || offer.quantity < 1) {
         return {
           ok: false,
-          message: `Offer ${i + 1}: quantity must be at least 1.`,
+          message: t('bundle.errOfferNumQuantity', { num: i + 1 }),
           field: 'offers',
         };
       }
       if (!Number.isFinite(offer.discount_value) || offer.discount_value < 0) {
         return {
           ok: false,
-          message: `Offer ${i + 1}: discount value cannot be negative.`,
+          message: t('bundle.errOfferNumDiscount', { num: i + 1 }),
           field: 'offers',
         };
       }
       if (offer.discount_type === 'PERCENTAGE' && offer.discount_value > 100) {
         return {
           ok: false,
-          message: `Offer ${i + 1}: percentage discount cannot exceed 100.`,
+          message: t('bundle.errOfferNumPercentage', { num: i + 1 }),
           field: 'offers',
         };
       }
@@ -447,7 +451,7 @@ export function BundleForm({ mode, initial }: Props) {
     setErrorField('');
     const v = validate();
     if (!v.ok) {
-      setError(v.message || 'Please fix the highlighted fields.');
+      setError(v.message || t('bundle.fixHighlighted'));
       setErrorField(v.field || '');
       if (v.field) focusField(v.field);
       return;
@@ -472,7 +476,7 @@ export function BundleForm({ mode, initial }: Props) {
       }
       router.push('/creator/bundles');
     } catch (err) {
-      const f = friendlyError(err);
+      const f = friendlyError(err, t);
       setError(f.message);
       setErrorField(f.firstField || '');
       if (f.firstField) focusField(f.firstField);
@@ -550,16 +554,16 @@ export function BundleForm({ mode, initial }: Props) {
           variant="ghost"
           size="icon-sm"
           onClick={() => router.push('/creator/bundles')}
-          aria-label="Back to bundles"
+          aria-label={t('bundle.backToBundles')}
         >
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">
-            {mode === 'create' ? 'Create bundle' : 'Edit bundle'}
+            {mode === 'create' ? t('bundle.createBundle') : t('bundle.editBundle')}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Group quantity-tier offers and attach them to one or more products.
+            {t('bundle.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -568,18 +572,18 @@ export function BundleForm({ mode, initial }: Props) {
             value={status}
             onChange={(e) => setStatus(e.target.value as BundleStatus)}
           >
-            <option value="ACTIVE">Active</option>
-            <option value="DISABLED">Disabled</option>
+            <option value="ACTIVE">{t('bundle.statusActive')}</option>
+            <option value="DISABLED">{t('bundle.statusDisabled')}</option>
           </select>
           <Button type="submit" size="sm" disabled={saving}>
             {saving ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> Saving…
+                <Loader2 className="size-4 animate-spin" /> {t('bundle.saving')}
               </>
             ) : mode === 'create' ? (
-              'Create bundle'
+              t('bundle.createBundle')
             ) : (
-              'Save changes'
+              t('bundle.saveChanges')
             )}
           </Button>
         </div>
@@ -597,7 +601,7 @@ export function BundleForm({ mode, initial }: Props) {
           <div ref={nameAnchorRef}>
           <Card className={`shadow-none ${errorField === 'bundle-name' ? 'ring-destructive/60' : ''}`}>
             <CardHeader>
-              <CardTitle className="text-sm">Bundle name</CardTitle>
+              <CardTitle className="text-sm">{t('bundle.bundleName')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {showSecondaryLocales && (
@@ -625,7 +629,7 @@ export function BundleForm({ mode, initial }: Props) {
               {activeNameLocale !== primaryLocale && (
                 <div className="flex items-center justify-between rounded-lg border border-dashed bg-zinc-50 p-2.5">
                   <span className="text-xs text-muted-foreground">
-                    Auto-translate from{' '}
+                    {t('bundle.autoTranslateFrom')}{' '}
                     <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                   </span>
                   <button
@@ -636,11 +640,11 @@ export function BundleForm({ mode, initial }: Props) {
                   >
                     {translatingName === activeNameLocale ? (
                       <>
-                        <Loader2 className="size-3 animate-spin" /> Translating…
+                        <Loader2 className="size-3 animate-spin" /> {t('bundle.translating')}
                       </>
                     ) : (
                       <>
-                        <Languages className="size-3" /> Auto-translate
+                        <Languages className="size-3" /> {t('bundle.autoTranslate')}
                       </>
                     )}
                   </button>
@@ -649,14 +653,14 @@ export function BundleForm({ mode, initial }: Props) {
 
               <div dir={nameDir} className="space-y-1.5">
                 <Label className="text-xs font-medium">
-                  Bundle name
+                  {t('bundle.bundleName')}
                   {activeNameLocale === primaryLocale && (
                     <span className="text-red-500"> *</span>
                   )}
                 </Label>
                 <Input
                   className="h-9 text-sm"
-                  placeholder="e.g. Bundle A"
+                  placeholder={t('bundle.bundleNamePlaceholder')}
                   value={nameTranslations[activeNameLocale] || ''}
                   onChange={(e) =>
                     setNameTranslations((prev) => ({
@@ -666,7 +670,7 @@ export function BundleForm({ mode, initial }: Props) {
                   }
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Give your bundle a name so you can recognize it when you want to attach it to a product.
+                  {t('bundle.bundleNameHint')}
                 </p>
               </div>
             </CardContent>
@@ -676,7 +680,7 @@ export function BundleForm({ mode, initial }: Props) {
           <div ref={offersAnchorRef} className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">
-                Offers
+                {t('bundle.offers')}
                 <span className="ml-2 text-xs font-normal text-muted-foreground">
                   ({offers.length})
                 </span>
@@ -686,7 +690,7 @@ export function BundleForm({ mode, initial }: Props) {
                 onClick={() => setShowTemplates(true)}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                Load from template
+                {t('bundle.loadFromTemplate')}
               </button>
             </div>
 
@@ -721,13 +725,13 @@ export function BundleForm({ mode, initial }: Props) {
               onClick={addOffer}
               className="w-full"
             >
-              <Plus className="size-4" /> Add another offer
+              <Plus className="size-4" /> {t('bundle.addAnotherOffer')}
             </Button>
           </div>
 
           <Card className="shadow-none">
             <CardHeader>
-              <CardTitle className="text-sm">Attached products</CardTitle>
+              <CardTitle className="text-sm">{t('bundle.attachedProducts')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <ProductMultiSelect
@@ -737,7 +741,7 @@ export function BundleForm({ mode, initial }: Props) {
                 loading={productsLoading}
               />
               <p className="text-[11px] text-muted-foreground">
-                The bundle will appear on the storefront pages of the selected products. Leave empty to keep it inactive on storefront.
+                {t('bundle.attachedProductsHint')}
               </p>
             </CardContent>
           </Card>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,10 @@ interface AttrTemplate {
   translations: { locale: string; label: string }[];
 }
 
+type Translator = ReturnType<typeof useTranslations>;
+
 export default function AdminCategories() {
+  const t = useTranslations('admin');
   const { token } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<AttrTemplate[]>([]);
@@ -133,7 +137,7 @@ export default function AdminCategories() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!token || !confirm('Delete this category and all its children?')) return;
+    if (!token || !confirm(t('deleteCategoryConfirm'))) return;
     await api(`/categories/${id}`, { method: 'DELETE', token });
     fetchAll();
   };
@@ -166,22 +170,22 @@ export default function AdminCategories() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Categories</h1>
-          <p className="text-sm text-muted-foreground">Manage product categories and attribute templates</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('categories')}</h1>
+          <p className="text-sm text-muted-foreground">{t('categoriesSubtitle')}</p>
         </div>
         <Button size="sm" onClick={() => { resetForm(); setShowCreate(true); }}>
-          <Plus className="w-4 h-4 mr-1.5" /> Add Category
+          <Plus className="w-4 h-4 mr-1.5" /> {t('addCategory')}
         </Button>
       </div>
 
       <Card className="shadow-none">
         <CardContent className="pt-2 pb-2">
           {loading ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Loading...</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t('loading')}</p>
           ) : categories.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No categories yet</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t('noCategoriesYet')}</p>
           ) : (
-            <div>{categories.map(cat => <CatRow key={cat.id} cat={cat} level={0} onEdit={openEdit} onDelete={handleDelete} onLink={openLink} />)}</div>
+            <div>{categories.map(cat => <CatRow key={cat.id} cat={cat} level={0} onEdit={openEdit} onDelete={handleDelete} onLink={openLink} t={t} />)}</div>
           )}
         </CardContent>
       </Card>
@@ -189,49 +193,49 @@ export default function AdminCategories() {
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Create Category</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('createCategory')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Slug *</Label>
+                <Label className="text-xs">{t('slug')} *</Label>
                 <Input className="h-8 text-sm" placeholder="printed-shirts" value={formSlug} onChange={e => setFormSlug(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Icon</Label>
-                <Input className="h-8 text-sm" placeholder="shirt, tree, gem..." value={formIcon} onChange={e => setFormIcon(e.target.value)} />
+                <Label className="text-xs">{t('icon')}</Label>
+                <Input className="h-8 text-sm" placeholder={t('iconPlaceholder')} value={formIcon} onChange={e => setFormIcon(e.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Parent Category</Label>
+              <Label className="text-xs">{t('parentCategory')}</Label>
               <SearchableSelect
                 value={formParentId}
                 onChange={setFormParentId}
-                placeholder="None (root category)"
-                searchPlaceholder="Search categories..."
+                placeholder={t('noneRootCategory')}
+                searchPlaceholder={t('searchCategories')}
                 options={[
-                  { value: '', label: 'None (root category)', description: 'Top-level category' },
+                  { value: '', label: t('noneRootCategory'), description: t('topLevelCategory') },
                   ...flatCategories(categories).map(c => ({ value: c.id, label: c.label })),
                 ]}
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Name (English) *</Label>
+                <Label className="text-xs">{t('nameEnglish')} *</Label>
                 <Input className="h-8 text-sm" value={formNameEn} onChange={e => setFormNameEn(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Name (Arabic)</Label>
+                <Label className="text-xs">{t('nameArabic')}</Label>
                 <Input className="h-8 text-sm" dir="rtl" value={formNameAr} onChange={e => setFormNameAr(e.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Description (English)</Label>
+              <Label className="text-xs">{t('descriptionEnglish')}</Label>
               <Input className="h-8 text-sm" value={formDescEn} onChange={e => setFormDescEn(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleCreate} disabled={saving}>{saving ? 'Creating...' : 'Create'}</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowCreate(false)}>{t('cancel')}</Button>
+            <Button size="sm" onClick={handleCreate} disabled={saving}>{saving ? t('creating') : t('create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -239,36 +243,36 @@ export default function AdminCategories() {
       {/* Edit Dialog */}
       <Dialog open={!!editingCat} onOpenChange={() => setEditingCat(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Edit Category</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('editCategory')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Slug</Label>
+                <Label className="text-xs">{t('slug')}</Label>
                 <Input className="h-8 text-sm" value={formSlug} onChange={e => setFormSlug(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Icon</Label>
+                <Label className="text-xs">{t('icon')}</Label>
                 <Input className="h-8 text-sm" value={formIcon} onChange={e => setFormIcon(e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Name (English)</Label>
+                <Label className="text-xs">{t('nameEnglish')}</Label>
                 <Input className="h-8 text-sm" value={formNameEn} onChange={e => setFormNameEn(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Name (Arabic)</Label>
+                <Label className="text-xs">{t('nameArabic')}</Label>
                 <Input className="h-8 text-sm" dir="rtl" value={formNameAr} onChange={e => setFormNameAr(e.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Description</Label>
+              <Label className="text-xs">{t('description')}</Label>
               <Input className="h-8 text-sm" value={formDescEn} onChange={e => setFormDescEn(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setEditingCat(null)}>Cancel</Button>
-            <Button size="sm" onClick={handleUpdate} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+            <Button variant="outline" size="sm" onClick={() => setEditingCat(null)}>{t('cancel')}</Button>
+            <Button size="sm" onClick={handleUpdate} disabled={saving}>{saving ? t('saving') : t('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -277,12 +281,12 @@ export default function AdminCategories() {
       <Dialog open={!!linkingCat} onOpenChange={() => setLinkingCat(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Link Attributes — {linkingCat?.translations.find(t => t.locale === 'en')?.name}</DialogTitle>
+            <DialogTitle>{t('linkAttributesTitle', { name: linkingCat?.translations.find(tr => tr.locale === 'en')?.name ?? '' })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 max-h-[400px] overflow-y-auto py-2">
             {allTemplates.map(tmpl => {
               const checked = linkedIds.includes(tmpl.id);
-              const label = tmpl.translations.find(t => t.locale === 'en')?.label || tmpl.name;
+              const label = tmpl.translations.find(tr => tr.locale === 'en')?.label || tmpl.name;
               return (
                 <label key={tmpl.id} className={`flex items-center gap-3 p-2.5 border rounded-lg cursor-pointer transition ${checked ? 'border-primary bg-primary/5' : 'hover:bg-zinc-50'}`}>
                   <input type="checkbox" className="rounded accent-primary" checked={checked}
@@ -294,11 +298,11 @@ export default function AdminCategories() {
                 </label>
               );
             })}
-            {allTemplates.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No attribute templates. Create some first.</p>}
+            {allTemplates.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{t('noAttributeTemplatesCreateFirst')}</p>}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setLinkingCat(null)}>Cancel</Button>
-            <Button size="sm" onClick={handleSaveLinks} disabled={saving}>{saving ? 'Saving...' : `Save (${linkedIds.length} selected)`}</Button>
+            <Button variant="outline" size="sm" onClick={() => setLinkingCat(null)}>{t('cancel')}</Button>
+            <Button size="sm" onClick={handleSaveLinks} disabled={saving}>{saving ? t('saving') : t('saveSelected', { count: linkedIds.length })}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -307,12 +311,13 @@ export default function AdminCategories() {
 }
 
 // Category row component
-function CatRow({ cat, level, onEdit, onDelete, onLink }: {
+function CatRow({ cat, level, onEdit, onDelete, onLink, t }: {
   cat: Category; level: number;
   onEdit: (c: Category) => void; onDelete: (id: string) => void; onLink: (c: Category) => void;
+  t: Translator;
 }) {
   const [expanded, setExpanded] = useState(true);
-  const name = cat.translations.find(t => t.locale === 'en')?.name || cat.slug;
+  const name = cat.translations.find(tr => tr.locale === 'en')?.name || cat.slug;
   const hasChildren = cat.children && cat.children.length > 0;
 
   return (
@@ -327,22 +332,22 @@ function CatRow({ cat, level, onEdit, onDelete, onLink }: {
           <FolderTree className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">{name}</span>
           <Badge variant="outline" className="text-[9px] font-mono">/{cat.slug}</Badge>
-          {hasChildren && <Badge variant="secondary" className="text-[9px]">{cat.children.length} sub</Badge>}
+          {hasChildren && <Badge variant="secondary" className="text-[9px]">{t('subCount', { count: cat.children.length })}</Badge>}
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-          <Button variant="ghost" size="icon" className="h-6 w-6" title="Link attributes" onClick={() => onLink(cat)}>
+          <Button variant="ghost" size="icon" className="h-6 w-6" title={t('linkAttributes')} onClick={() => onLink(cat)}>
             <Link2 className="w-3 h-3" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6" title="Edit" onClick={() => onEdit(cat)}>
+          <Button variant="ghost" size="icon" className="h-6 w-6" title={t('edit')} onClick={() => onEdit(cat)}>
             <Pencil className="w-3 h-3" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" title="Delete" onClick={() => onDelete(cat.id)}>
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" title={t('delete')} onClick={() => onDelete(cat.id)}>
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
       </div>
       {expanded && hasChildren && cat.children.map(child => (
-        <CatRow key={child.id} cat={child} level={level + 1} onEdit={onEdit} onDelete={onDelete} onLink={onLink} />
+        <CatRow key={child.id} cat={child} level={level + 1} onEdit={onEdit} onDelete={onDelete} onLink={onLink} t={t} />
       ))}
     </div>
   );

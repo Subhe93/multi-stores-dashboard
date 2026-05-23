@@ -52,15 +52,22 @@ export const LOCALE_LABELS: Record<string, string> = {
   tr: 'Türkçe',
   de: 'Deutsch',
   fr: 'Français',
+  sv: 'Svenska',
 };
 
 export const RTL_LOCALES = new Set(['ar']);
 
-export const DISCOUNT_TYPE_OPTIONS: { value: BundleDiscountType; label: string; help: string }[] = [
-  { value: 'ITEM', label: 'Item', help: 'Number of free units (e.g. buy 2 get 1)' },
-  { value: 'PERCENTAGE', label: 'Percentage', help: '% off the bundle total' },
-  { value: 'FIXED', label: 'Fixed', help: 'Flat amount off the bundle total' },
-];
+type Translator = (key: string) => string;
+
+export function getDiscountTypeOptions(
+  t: Translator,
+): { value: BundleDiscountType; label: string; help: string }[] {
+  return [
+    { value: 'ITEM', label: t('bundle.discountItem'), help: t('bundle.discountItemHelp') },
+    { value: 'PERCENTAGE', label: t('bundle.discountPercentage'), help: t('bundle.discountPercentageHelp') },
+    { value: 'FIXED', label: t('bundle.discountFixed'), help: t('bundle.discountFixedHelp') },
+  ];
+}
 
 export function pickTranslation<T extends { locale: string }>(
   list: T[],

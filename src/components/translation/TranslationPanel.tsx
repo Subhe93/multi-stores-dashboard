@@ -19,6 +19,7 @@ const localeNames: Record<string, string> = {
   tr: 'Türkçe',
   de: 'Deutsch',
   fr: 'Français',
+  sv: 'Svenska',
 };
 
 export function TranslationPanel({

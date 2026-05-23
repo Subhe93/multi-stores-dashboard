@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ShoppingBag, Package, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -45,6 +46,7 @@ export default function CreatorProductsPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
 
   const [products, setProducts] = useState<CustomProduct[]>([]);
   const [meta, setMeta] = useState<{ total: number } | null>(null);
@@ -69,9 +71,9 @@ export default function CreatorProductsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Products</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('products.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Browse provider products or add your own to your store
+          {t('products.subtitle')}
         </p>
       </div>
 
@@ -84,18 +86,18 @@ export default function CreatorProductsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                 <ShoppingBag className="size-4" />
               </div>
-              Browse Provider Products
+              {t('products.browseProviderProducts')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Choose from providers, add your design, sell at your price.
+              {t('products.browseProviderDesc')}
             </p>
             <Button
               size="sm"
               onClick={() => router.push('/creator/products/browse')}
             >
-              Browse Catalog
+              {t('products.browseCatalog')}
               <ArrowRight className="size-3.5" />
             </Button>
           </CardContent>
@@ -108,19 +110,19 @@ export default function CreatorProductsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
                 <Package className="size-4" />
               </div>
-              Add Own Product
+              {t('products.addOwnProduct')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Sell your own products directly — you are also the provider.
+              {t('products.addOwnDesc')}
             </p>
             <Button
               size="sm"
               variant="outline"
               onClick={() => router.push('/creator/products/own/new')}
             >
-              Add Product
+              {t('products.addProduct')}
             </Button>
           </CardContent>
         </Card>
@@ -130,7 +132,7 @@ export default function CreatorProductsPage() {
       <Card className="shadow-none">
         <CardHeader className="border-b pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">My Store Products</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('products.myStoreProducts')}</CardTitle>
             {showViewAll && (
               <Button
                 variant="ghost"
@@ -138,7 +140,7 @@ export default function CreatorProductsPage() {
                 className="text-xs"
                 onClick={() => router.push('/creator/custom-products')}
               >
-                View All
+                {t('products.viewAll')}
                 <ExternalLink className="size-3" />
               </Button>
             )}
@@ -157,9 +159,9 @@ export default function CreatorProductsPage() {
           ) : displayProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Package className="mb-2 size-8 text-zinc-300" />
-              <p className="text-sm text-muted-foreground">No products in your store yet.</p>
+              <p className="text-sm text-muted-foreground">{t('products.noProductsYet')}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Browse provider products or add your own.
+                {t('products.noProductsHint')}
               </p>
             </div>
           ) : (
@@ -178,7 +180,7 @@ export default function CreatorProductsPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{title}</p>
                       {baseName && (
-                        <p className="text-[11px] text-muted-foreground">Base: {baseName}</p>
+                        <p className="text-[11px] text-muted-foreground">{t('products.base')}: {baseName}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -190,14 +192,14 @@ export default function CreatorProductsPage() {
                       >
                         {product.status
                           ? product.status.charAt(0) + product.status.slice(1).toLowerCase()
-                          : 'Draft'}
+                          : t('products.draft')}
                       </span>
                       <Button
                         size="xs"
                         variant="ghost"
                         onClick={() => router.push(`/creator/custom-products/${product.id}`)}
                       >
-                        Edit
+                        {t('products.edit')}
                       </Button>
                     </div>
                   </div>

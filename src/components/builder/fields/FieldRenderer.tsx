@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 import {
   DndContext,
@@ -49,6 +50,7 @@ const INLINE_TYPES = new Set(['boolean', 'select', 'color', 'number', 'menuPicke
  * align in a tidy column while text-heavy controls get full width.
  */
 export function FieldRenderer({ field, value, onChange, locale, token, apiBase }: FieldRendererProps) {
+  const tc = useTranslations('common');
   const label = labelOf(field.label, locale);
   const description = field.description ? labelOf(field.description, locale) : undefined;
   const inline = INLINE_TYPES.has(field.type);
@@ -128,7 +130,7 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
                 value: o.value,
                 label: labelOf(o.label, locale),
               }))}
-              placeholder="Select…"
+              placeholder={tc('select')}
             />
           </div>
         );
@@ -272,7 +274,7 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       <span
         className={cn(
           'inline-block size-4 rounded-full bg-white shadow transition-transform',
-          checked ? 'translate-x-4.5 rtl:-translate-x-4.5' : 'translate-x-0.5',
+          checked ? 'translate-x-4.5 rtl:-translate-x-4.5' : 'translate-x-0.5 rtl:-translate-x-0.5',
         )}
       />
     </button>
@@ -287,6 +289,7 @@ const COLOR_SWATCHES = [
 ];
 
 function ColorControl({ value, onChange }: { value: string; onChange: (v: unknown) => void }) {
+  const t = useTranslations('builder');
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -377,7 +380,7 @@ function ColorControl({ value, onChange }: { value: string; onChange: (v: unknow
           />
           <div>
             <div className="text-[9.5px] uppercase tracking-wider text-zinc-400 font-semibold mb-1.5">
-              Swatches
+              {t('swatches')}
             </div>
             <div className="grid grid-cols-5 gap-1.5">
               {COLOR_SWATCHES.map((c) => (
@@ -404,7 +407,7 @@ function ColorControl({ value, onChange }: { value: string; onChange: (v: unknow
               className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 hover:text-red-600 py-1 rounded transition"
             >
               <X className="size-3" />
-              Clear
+              {t('clear')}
             </button>
           )}
         </div>,
@@ -448,7 +451,10 @@ function MenuPicker({
   token: string;
   locale: string;
 }) {
-  const ar = locale === 'ar';
+  // `locale` is the store-content locale (kept on props for callers); the
+  // picker's own chrome is translated via the dashboard UI locale.
+  void locale;
+  const t = useTranslations('builder');
   const [menus, setMenus] = useState<MenuOption[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -471,7 +477,7 @@ function MenuPicker({
     return (
       <div className="h-9 inline-flex items-center gap-1.5 px-2 text-[11.5px] text-zinc-400">
         <Loader2 className="size-3.5 animate-spin" />
-        {ar ? 'تحميل القوائم…' : 'Loading menus…'}
+        {t('loadingMenus')}
       </div>
     );
   }
@@ -487,7 +493,7 @@ function MenuPicker({
         className="h-9 inline-flex items-center gap-1.5 px-2.5 rounded-md border border-dashed border-zinc-300 text-[11.5px] text-zinc-500 hover:border-indigo-400 hover:text-indigo-600 transition"
       >
         <Plus className="size-3.5" />
-        {ar ? 'أنشئ قائمة أولاً' : 'Create a menu first'}
+        {t('createMenuFirst')}
       </a>
     );
   }
@@ -495,7 +501,7 @@ function MenuPicker({
   // Value is the menu KEY (stable across renames-free edits). "None" clears it
   // so the section falls back to its inline links.
   const options = [
-    { value: '', label: ar ? '— بدون (روابط مباشرة) —' : '— None (inline links) —' },
+    { value: '', label: t('menuNone') },
     ...menus.map((m) => ({ value: m.key, label: `${m.name}  ·  ${m.key}` })),
   ];
 
@@ -504,7 +510,7 @@ function MenuPicker({
       value={value}
       onChange={(v) => onChange(v)}
       options={options}
-      placeholder={ar ? 'اختر قائمة…' : 'Select a menu…'}
+      placeholder={t('selectMenu')}
     />
   );
 }
@@ -575,7 +581,9 @@ function CollectionPicker({
   token: string;
   locale: string;
 }) {
-  const ar = locale === 'ar';
+  // `locale` drives the category NAME shown (store-content locale). The
+  // picker's own chrome is translated via the dashboard UI locale.
+  const t = useTranslations('builder');
   const [options, setOptions] = useState<CategoryOption[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -598,7 +606,7 @@ function CollectionPicker({
     return (
       <div className="h-9 inline-flex items-center gap-1.5 px-2 text-[11.5px] text-zinc-400">
         <Loader2 className="size-3.5 animate-spin" />
-        {ar ? 'تحميل الفئات…' : 'Loading categories…'}
+        {t('loadingCategories')}
       </div>
     );
   }
@@ -614,7 +622,7 @@ function CollectionPicker({
         className="h-9 inline-flex items-center gap-1.5 px-2.5 rounded-md border border-dashed border-zinc-300 text-[11.5px] text-zinc-500 hover:border-indigo-400 hover:text-indigo-600 transition"
       >
         <Plus className="size-3.5" />
-        {ar ? 'أنشئ فئة أولاً' : 'Create a category first'}
+        {t('createCategoryFirst')}
       </a>
     );
   }
@@ -622,7 +630,7 @@ function CollectionPicker({
   // Value is the category SLUG (the storefront's `creator_category` filter
   // resolves it). "None" clears it so the section shows its empty prompt.
   const selectOptions = [
-    { value: '', label: ar ? '— بدون فئة —' : '— No category —' },
+    { value: '', label: t('categoryNone') },
     ...options.map((o) => ({
       value: o.slug,
       // Indent nested categories with leading spaces so the hierarchy reads.
@@ -635,7 +643,7 @@ function CollectionPicker({
       value={value}
       onChange={(v) => onChange(v)}
       options={selectOptions}
-      placeholder={ar ? 'اختر فئة…' : 'Select a category…'}
+      placeholder={t('selectCategory')}
     />
   );
 }
@@ -655,9 +663,13 @@ export function ImageField({
   apiBase: string;
   locale: string;
 }) {
+  // `locale` is the store-content locale (kept on props for callers); chrome
+  // text is translated via the dashboard UI locale.
+  void locale;
+  const t = useTranslations('builder');
+  const tc = useTranslations('common');
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const ar = locale === 'ar';
   const resolved = value.startsWith('http')
     ? value
     : value
@@ -711,7 +723,7 @@ export function ImageField({
             <div className="absolute inset-0 bg-zinc-900/0 group-hover:bg-zinc-900/40 transition flex items-center justify-center">
               <span className="opacity-0 group-hover:opacity-100 transition text-white text-[11px] font-semibold inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/70 backdrop-blur">
                 <Camera className="size-3.5" />
-                {ar ? 'تغيير الصورة' : 'Replace image'}
+                {t('replaceImage')}
               </span>
             </div>
           </div>
@@ -725,9 +737,9 @@ export function ImageField({
                   <ImageIcon className="size-4 text-zinc-400" />
                 </div>
                 <span className="text-[11.5px] font-medium text-zinc-600">
-                  {ar ? 'انقر أو اسحب صورة هنا' : 'Click or drop an image'}
+                  {t('clickOrDropImage')}
                 </span>
-                <span className="text-[10px] text-zinc-400">PNG, JPG, WebP</span>
+                <span className="text-[10px] text-zinc-400">{t('imageFormats')}</span>
               </>
             )}
           </div>
@@ -748,14 +760,14 @@ export function ImageField({
           className="h-7 text-[11px] flex-1"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={ar ? 'أو ألصق رابط الصورة' : 'or paste image URL'}
+          placeholder={t('orPasteImageUrl')}
         />
         {value && (
           <button
             type="button"
             onClick={() => onChange('')}
             className="size-7 inline-flex items-center justify-center rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
-            title={ar ? 'إزالة' : 'Remove'}
+            title={tc('remove')}
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -782,7 +794,9 @@ function RepeaterField({
   token: string;
   apiBase: string;
 }) {
-  const ar = locale === 'ar';
+  // `locale` is the store-content locale, threaded down to nested fields; the
+  // repeater's own chrome is translated via the dashboard UI locale.
+  const t = useTranslations('builder');
   // Drag-to-reorder via dnd-kit (same setup as the section rail). Items carry
   // no stable id, so we use positional ids ("0".."n") and arrayMove by index —
   // the grip in each item header is the drag handle.
@@ -806,7 +820,7 @@ function RepeaterField({
       {items.length === 0 && (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/40 px-3 py-4 text-center">
           <p className="text-[11px] text-zinc-500">
-            {ar ? 'لا توجد عناصر بعد' : 'No items yet'}
+            {t('noItemsYet')}
           </p>
         </div>
       )}
@@ -844,7 +858,7 @@ function RepeaterField({
         className="w-full h-9 border-dashed border-zinc-300 text-zinc-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/40 transition"
       >
         <Plus className="size-3.5 me-1.5" />
-        {ar ? 'إضافة عنصر' : 'Add item'}
+        {t('addItem')}
       </Button>
     </div>
   );
@@ -872,14 +886,17 @@ function RepeaterItem({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(index === 0);
-  const ar = locale === 'ar';
+  // `locale` is threaded to nested fields (store-content); chrome uses the
+  // dashboard UI locale.
+  const t = useTranslations('builder');
+  const tc = useTranslations('common');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition };
 
   // Derive a title preview from the first text-ish field in the item.
   const firstText = fields.find((f) => ['text', 'textarea', 'richtext'].includes(f.type));
   const preview = firstText ? String(item[firstText.key] ?? '').trim() : '';
-  const titleText = preview || `${ar ? 'عنصر' : 'Item'} ${index + 1}`;
+  const titleText = preview || t('itemN', { n: index + 1 });
 
   return (
     <div
@@ -894,7 +911,7 @@ function RepeaterItem({
         <button
           type="button"
           className="px-0.5 text-zinc-300 hover:text-zinc-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
-          aria-label={ar ? 'إعادة الترتيب' : 'Reorder'}
+          aria-label={t('reorder')}
           {...attributes}
           {...listeners}
         >
@@ -916,7 +933,7 @@ function RepeaterItem({
           type="button"
           onClick={onDelete}
           className="size-6 inline-flex items-center justify-center rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
-          title={ar ? 'حذف' : 'Delete'}
+          title={tc('delete')}
         >
           <Trash2 className="size-3.5" />
         </button>

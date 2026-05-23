@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Check, ChevronsUpDown, X, FolderTree, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,7 +32,7 @@ interface FlatOption {
  * fall back to the first available translation, then the slug.
  */
 function getName(node: CollectionNode): string {
-  const en = node.translations?.find((t) => t.locale === 'en')?.name;
+  const en = node.translations?.find((tr) => tr.locale === 'en')?.name;
   if (en) return en;
   const first = node.translations?.[0]?.name;
   return first || node.slug;
@@ -56,11 +57,18 @@ function flatten(nodes: CollectionNode[], prefix = ''): FlatOption[] {
 
 export function CollectionsMultiSelect({ value, onChange }: Props) {
   const { token } = useAuth();
+  const t = useTranslations('components');
   const [options, setOptions] = useState<FlatOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+  const [pos, setPos] = useState<{
+    left: number;
+    width: number;
+    top?: number;
+    bottom?: number;
+    maxListHeight: number;
+  }>({ left: 0, width: 0, maxListHeight: 280 });
   const triggerRef = useRef<HTMLDivElement>(null);
 
   // Fetch creator collections on mount.
@@ -85,10 +93,38 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
     : options;
 
   useEffect(() => {
-    if (open && triggerRef.current) {
-      const r = triggerRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 360) });
-    }
+    if (!open) return;
+    const compute = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const margin = 8;
+      // Approx height of the fixed search box + footer; the rest is the list.
+      const chrome = 90;
+      const width = Math.max(r.width, 360);
+      const spaceBelow = window.innerHeight - r.bottom - margin;
+      const spaceAbove = r.top - margin;
+      // Open upward only when there isn't enough room below but there is above.
+      const placeBelow = spaceBelow >= 220 || spaceBelow >= spaceAbove;
+      const avail = placeBelow ? spaceBelow : spaceAbove;
+      const maxListHeight = Math.max(120, Math.min(280, avail - chrome));
+      const left = Math.min(
+        Math.max(margin, r.left),
+        Math.max(margin, window.innerWidth - width - margin),
+      );
+      if (placeBelow) {
+        setPos({ top: r.bottom + 4, bottom: undefined, left, width, maxListHeight });
+      } else {
+        setPos({ top: undefined, bottom: window.innerHeight - r.top + 4, left, width, maxListHeight });
+      }
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, true);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute, true);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -112,17 +148,19 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
       <div className="rounded-md border border-dashed bg-zinc-50/60 p-4 text-center">
         <FolderTree className="mx-auto mb-2 size-5 text-zinc-400" />
         <p className="text-xs text-muted-foreground mb-3">
-          No collections yet — create one in{' '}
-          <Link href="/creator/categories" className="text-primary hover:underline font-medium">
-            Collections
-          </Link>
-          .
+          {t.rich('noCollectionsYetCreate', {
+            link: (chunks) => (
+              <Link href="/creator/categories" className="text-primary hover:underline font-medium">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
         <Link
           href="/creator/categories/new"
           className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-zinc-100"
         >
-          <Plus className="size-3" /> New collection
+          <Plus className="size-3" /> {t('newCollection')}
         </Link>
       </div>
     );
@@ -143,7 +181,7 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
       >
         {selected.length === 0 ? (
           <span className="px-1 text-sm text-muted-foreground">
-            {loading ? 'Loading collections…' : 'Add to collections…'}
+            {loading ? t('loadingCollections') : t('addToCollections')}
           </span>
         ) : (
           selected.map((c) => (
@@ -155,46 +193,46 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
               <span className="max-w-[220px] truncate">{c.label}</span>
               <button
                 type="button"
-                className="ml-0.5 text-zinc-400 hover:text-zinc-700"
+                className="ms-0.5 text-zinc-400 hover:text-zinc-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggle(c.id);
                 }}
-                aria-label={`Remove ${c.label}`}
+                aria-label={t('removeNamed', { name: c.label })}
               >
                 <X className="size-2.5" />
               </button>
             </span>
           ))
         )}
-        <ChevronsUpDown className="ml-auto size-3.5 shrink-0 opacity-40" />
+        <ChevronsUpDown className="ms-auto size-3.5 shrink-0 opacity-40" />
       </div>
 
       {open && typeof document !== 'undefined' &&
         createPortal(
           <div
             className="fixed z-[9999] overflow-hidden rounded-lg border bg-popover shadow-xl"
-            style={{ top: pos.top, left: pos.left, width: pos.width }}
+            style={{ top: pos.top, bottom: pos.bottom, left: pos.left, width: pos.width }}
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="border-b p-2">
               <input
                 autoFocus
                 type="text"
-                placeholder="Search collections…"
+                placeholder={t('searchCollections')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
-            <div className="max-h-[280px] overflow-y-auto">
+            <div className="overflow-y-auto" style={{ maxHeight: pos.maxListHeight }}>
               {loading ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">
-                  Loading…
+                  {t('loadingEllipsis')}
                 </p>
               ) : filtered.length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">
-                  No collections found
+                  {t('noCollectionsFound')}
                 </p>
               ) : (
                 filtered.map((c) => {
@@ -205,7 +243,7 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
                       type="button"
                       onClick={() => toggle(c.id)}
                       className={cn(
-                        'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition',
+                        'flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm transition',
                         isSel ? 'bg-zinc-100' : 'hover:bg-zinc-50',
                       )}
                     >
@@ -227,7 +265,7 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
                 href="/creator/categories/new"
                 className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
               >
-                <Plus className="size-3" /> New collection
+                <Plus className="size-3" /> {t('newCollection')}
               </Link>
               {value.length > 0 && (
                 <button
@@ -235,7 +273,7 @@ export function CollectionsMultiSelect({ value, onChange }: Props) {
                   onClick={() => onChange([])}
                   className="text-[11px] text-red-500 hover:underline"
                 >
-                  Clear all
+                  {t('clearAll')}
                 </button>
               )}
             </div>

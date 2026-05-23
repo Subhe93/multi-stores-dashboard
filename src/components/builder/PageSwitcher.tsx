@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Check,
   ChevronDown,
@@ -88,41 +89,19 @@ const TYPE_ICON: Record<string, typeof Home> = {
   FOOTER: Columns,
 };
 
-const TYPE_LABEL_EN: Record<string, string> = {
-  HOME: 'Home',
-  STATIC: 'Static page',
-  LANDING: 'Landing',
-  PRODUCT_TEMPLATE: 'Product template',
-  ABOUT: 'About',
-  CONTACT: 'Contact',
-  PRIVACY_POLICY: 'Privacy policy',
-  TERMS: 'Terms',
-  SHIPPING_POLICY: 'Shipping policy',
-  RETURN_POLICY: 'Return policy',
-  CUSTOM: 'Custom',
-  HEADER: 'Header',
-  FOOTER: 'Footer',
-};
+type Translator = ReturnType<typeof useTranslations>;
 
-const TYPE_LABEL_AR: Record<string, string> = {
-  HOME: 'الرئيسية',
-  STATIC: 'صفحة ثابتة',
-  LANDING: 'صفحة هبوط',
-  PRODUCT_TEMPLATE: 'قالب منتج',
-  ABOUT: 'من نحن',
-  CONTACT: 'تواصل معنا',
-  PRIVACY_POLICY: 'سياسة الخصوصية',
-  TERMS: 'الشروط والأحكام',
-  SHIPPING_POLICY: 'سياسة الشحن',
-  RETURN_POLICY: 'سياسة الإرجاع',
-  CUSTOM: 'مخصصة',
-  HEADER: 'الهيدر',
-  FOOTER: 'الفوتر',
-};
+// Page-type identifiers that have a translated chrome label. Anything outside
+// this set falls back to a humanized form of the raw type key.
+const KNOWN_PAGE_TYPES = new Set([
+  'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'ABOUT', 'CONTACT',
+  'PRIVACY_POLICY', 'TERMS', 'SHIPPING_POLICY', 'RETURN_POLICY',
+  'CUSTOM', 'HEADER', 'FOOTER',
+]);
 
-function labelOfType(type: string, ar: boolean): string {
+function labelOfType(type: string, t: Translator): string {
   const k = type.toUpperCase();
-  return (ar ? TYPE_LABEL_AR[k] : TYPE_LABEL_EN[k]) || type.toLowerCase().replace(/_/g, ' ');
+  return KNOWN_PAGE_TYPES.has(k) ? t(`pageType.${k}`) : type.toLowerCase().replace(/_/g, ' ');
 }
 
 function titleOf(p: StorePageSummary, locale: string, primaryLocale: string): string {
@@ -143,10 +122,10 @@ export function PageSwitcher({
   primaryLocale,
   pages,
 }: PageSwitcherProps) {
+  const t = useTranslations('builder');
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const ar = locale === 'ar';
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click / Escape.
@@ -174,8 +153,8 @@ export function PageSwitcher({
     const q = query.trim().toLowerCase();
     const matches = pages.filter((p) => {
       if (!q) return true;
-      const t = titleOf(p, locale, primaryLocale).toLowerCase();
-      return t.includes(q) || p.slug.toLowerCase().includes(q);
+      const title = titleOf(p, locale, primaryLocale).toLowerCase();
+      return title.includes(q) || p.slug.toLowerCase().includes(q);
     });
     return matches.slice().sort((a, b) => {
       const ia = TYPE_SORT.indexOf(a.type.toUpperCase());
@@ -204,7 +183,7 @@ export function PageSwitcher({
         </div>
         <div className="min-w-0 text-start">
           <div className="text-[9.5px] uppercase tracking-wide text-zinc-400 leading-none">
-            {ar ? TYPE_LABEL_AR[currentPageType] || currentPageType : TYPE_LABEL_EN[currentPageType] || currentPageType}
+            {labelOfType(currentPageType, t)}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="text-[13px] font-semibold text-zinc-900 leading-tight truncate max-w-50">
@@ -218,7 +197,7 @@ export function PageSwitcher({
                   : 'bg-zinc-200/70 text-zinc-600',
               )}
             >
-              {currentStatus === 'PUBLISHED' ? (ar ? 'منشور' : 'Published') : (ar ? 'مسودة' : 'Draft')}
+              {currentStatus === 'PUBLISHED' ? t('published') : t('draft')}
             </span>
           </div>
         </div>
@@ -238,7 +217,7 @@ export function PageSwitcher({
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={ar ? 'بحث في الصفحات…' : 'Search pages…'}
+                placeholder={t('searchPages')}
                 className="w-full h-8 ps-7 pe-2 text-[12px] rounded-md bg-white border border-zinc-200 outline-none focus:border-indigo-400 focus:ring-3 focus:ring-indigo-100"
               />
             </div>
@@ -248,7 +227,7 @@ export function PageSwitcher({
           <div className="max-h-96 overflow-y-auto py-1">
             {filtered.length === 0 ? (
               <div className="px-3 py-6 text-center text-[11.5px] text-zinc-500">
-                {ar ? 'لا توجد نتائج' : 'No matching pages'}
+                {t('noMatchingPages')}
               </div>
             ) : (
               filtered.map((p) => {
@@ -281,11 +260,11 @@ export function PageSwitcher({
                         {title}
                       </div>
                       <div className="text-[10px] text-zinc-400 font-mono truncate leading-tight">
-                        {labelOfType(p.type, ar)} · /{p.slug || (p.type.toUpperCase() === 'HOME' ? '' : '—')}
+                        {labelOfType(p.type, t)} · /{p.slug || (p.type.toUpperCase() === 'HOME' ? '' : '—')}
                       </div>
                     </div>
                     {p.status === 'PUBLISHED' && (
-                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" title="Published" />
+                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" title={t('published')} />
                     )}
                     {isCurrent && <Check className="size-3.5 text-indigo-600 shrink-0" />}
                   </button>
@@ -304,7 +283,7 @@ export function PageSwitcher({
             className="w-full flex items-center gap-2 px-3 py-2 border-t border-zinc-200/80 bg-zinc-50/60 hover:bg-zinc-100 text-[11.5px] font-medium text-zinc-700 transition"
           >
             <Plus className="size-3.5 text-zinc-500" />
-            {ar ? 'إدارة الصفحات…' : 'Manage pages…'}
+            {t('managePages')}
           </button>
         </div>
       )}

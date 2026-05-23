@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   FolderTree,
@@ -88,6 +89,8 @@ function resolveUrl(url: string): string {
 export default function CreatorCategoriesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +154,7 @@ export default function CreatorCategoriesPage() {
     },
     {
       key: 'name',
-      label: 'Name',
+      label: tc('name'),
       render: (item: FlatRow) => (
         <div className="flex flex-col">
           <span
@@ -168,7 +171,7 @@ export default function CreatorCategoriesPage() {
     },
     {
       key: 'match_rule',
-      label: 'Match Rule',
+      label: t('collections.colMatchRule'),
       render: (item: FlatRow) =>
         item.match_rule === 'TAGS' ? (
           <Badge
@@ -176,7 +179,7 @@ export default function CreatorCategoriesPage() {
             className="bg-blue-50 text-blue-700 border-blue-200"
           >
             <Tag className="size-2.5 mr-0.5" />
-            By tags
+            {t('collections.byTags')}
           </Badge>
         ) : (
           <Badge
@@ -184,17 +187,17 @@ export default function CreatorCategoriesPage() {
             className="bg-zinc-100 text-zinc-700 border-zinc-200"
           >
             <Package className="size-2.5 mr-0.5" />
-            Manual
+            {t('collections.manual')}
           </Badge>
         ),
     },
     {
       key: 'products',
-      label: 'Products',
+      label: t('collections.colProducts'),
       render: (item: FlatRow) =>
         item.match_rule === 'TAGS' ? (
           <span className="text-sm text-muted-foreground">
-            by tags ({item.match_tags?.length || 0})
+            {t('collections.byTagsCount', { count: item.match_tags?.length || 0 })}
           </span>
         ) : (
           <span className="text-sm tabular-nums">
@@ -204,21 +207,21 @@ export default function CreatorCategoriesPage() {
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: FlatRow) =>
         item.is_active ? (
           <Badge
             variant="outline"
             className="bg-emerald-50 text-emerald-700 border-emerald-200"
           >
-            Active
+            {t('collections.active')}
           </Badge>
         ) : (
           <Badge
             variant="outline"
             className="bg-zinc-100 text-zinc-600 border-zinc-200"
           >
-            Inactive
+            {t('collections.inactive')}
           </Badge>
         ),
     },
@@ -231,7 +234,7 @@ export default function CreatorCategoriesPage() {
             size="icon-sm"
             variant="ghost"
             onClick={() => router.push(`/creator/categories/${item.id}`)}
-            title="Edit"
+            title={tc('edit')}
           >
             <Pencil className="size-3.5" />
           </Button>
@@ -253,14 +256,14 @@ export default function CreatorCategoriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Collections</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('collections.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Group your products into shoppable collections for your storefront.
+            {t('collections.subtitle')}
           </p>
         </div>
         <Button size="sm" onClick={() => router.push('/creator/categories/new')}>
           <Plus className="size-4" />
-          New Collection
+          {t('collections.newCollection')}
         </Button>
       </div>
 
@@ -268,7 +271,7 @@ export default function CreatorCategoriesPage() {
       <DataTable
         columns={columns}
         data={rows}
-        searchPlaceholder="Search collections…"
+        searchPlaceholder={t('collections.searchPlaceholder')}
         emptyMessage=""
       />
 
@@ -278,10 +281,9 @@ export default function CreatorCategoriesPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
             <FolderTree className="size-6" />
           </div>
-          <p className="text-sm font-medium">No collections yet</p>
+          <p className="text-sm font-medium">{t('collections.emptyTitle')}</p>
           <p className="mt-1 text-xs text-muted-foreground max-w-sm">
-            Collections let you group products together so customers can browse
-            them on your storefront.
+            {t('collections.emptyDesc')}
           </p>
           <Button
             size="sm"
@@ -289,7 +291,7 @@ export default function CreatorCategoriesPage() {
             onClick={() => router.push('/creator/categories/new')}
           >
             <Plus className="size-4" />
-            Create your first collection
+            {t('collections.createFirst')}
           </Button>
         </div>
       )}
@@ -301,14 +303,13 @@ export default function CreatorCategoriesPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Collection</DialogTitle>
+            <DialogTitle>{t('collections.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
+              {t('collections.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
                 {deleteTarget ? getDisplayName(deleteTarget) : ''}
               </span>
-              ? This won't delete the products inside — they'll just leave the
-              collection.
+              {t('collections.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -317,14 +318,14 @@ export default function CreatorCategoriesPage() {
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? t('collections.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

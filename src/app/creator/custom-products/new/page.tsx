@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ import { useCurrency } from '@/lib/useCurrency';
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -90,32 +91,37 @@ type LocaleTranslation = { title: string; description: string; slug: string };
 // returns terse messages like "translations.0.property id should not exist" and
 // "final_price must be a positive number". Map them to friendlier guidance.
 
-const FRIENDLY_ERROR_PATTERNS: { pattern: RegExp; message: string; stepKey?: string }[] = [
-  { pattern: /property\s+\w+\s+should not exist/i, message: 'Internal data issue while saving FAQs. Please refresh and try again.', stepKey: 'faqs' },
-  { pattern: /translations.*should not be empty|translations.*must be an array/i, message: 'Add at least one product title before saving.', stepKey: 'details' },
-  { pattern: /(title|slug).*should not be empty/i, message: 'Title and slug are required for the primary language.', stepKey: 'details' },
-  { pattern: /final_price.*positive/i, message: 'The final price must be a positive number.', stepKey: 'pricing' },
-  { pattern: /margin_amount.*positive/i, message: 'The margin amount must be a positive number.', stepKey: 'pricing' },
-  { pattern: /selected_variants.*not be empty/i, message: 'Select at least one variant for this product.', stepKey: 'variants' },
-  { pattern: /custom_price.*positive/i, message: 'Each variant price must be a positive number.', stepKey: 'pricing' },
-  { pattern: /question.*should not be empty/i, message: 'Each FAQ needs a question in at least one language.', stepKey: 'faqs' },
-  { pattern: /import_mode/i, message: 'Please choose an import mode (As-is or Customize).', stepKey: 'mode' },
-  // Bundle economics violations are already user-readable from the backend; keep
-  // the full message and point the user back to the pricing/bundle section.
-  { pattern: /below provider cost/i, message: '', stepKey: 'pricing' },
-];
+type Translator = ReturnType<typeof useTranslations>;
 
-function formatSubmitError(err: any): string {
+function friendlyErrorPatterns(t: Translator): { pattern: RegExp; message: string; stepKey?: string }[] {
+  return [
+    { pattern: /property\s+\w+\s+should not exist/i, message: t('customProductForm.errFaqData'), stepKey: 'faqs' },
+    { pattern: /translations.*should not be empty|translations.*must be an array/i, message: t('customProductForm.errTitleEmpty'), stepKey: 'details' },
+    { pattern: /(title|slug).*should not be empty/i, message: t('customProductForm.errTitleSlugRequired'), stepKey: 'details' },
+    { pattern: /final_price.*positive/i, message: t('customProductForm.errFinalPrice'), stepKey: 'pricing' },
+    { pattern: /margin_amount.*positive/i, message: t('customProductForm.errMargin'), stepKey: 'pricing' },
+    { pattern: /selected_variants.*not be empty/i, message: t('customProductForm.errSelectVariant'), stepKey: 'variants' },
+    { pattern: /custom_price.*positive/i, message: t('customProductForm.errVariantPrice'), stepKey: 'pricing' },
+    { pattern: /question.*should not be empty/i, message: t('customProductForm.errFaqQuestion'), stepKey: 'faqs' },
+    { pattern: /import_mode/i, message: t('customProductForm.errImportMode'), stepKey: 'mode' },
+    // Bundle economics violations are already user-readable from the backend; keep
+    // the full message and point the user back to the pricing/bundle section.
+    { pattern: /below provider cost/i, message: '', stepKey: 'pricing' },
+  ];
+}
+
+function formatSubmitError(err: any, t: Translator): string {
   const raw: string[] = Array.isArray(err?.errors)
     ? err.errors
     : err?.message
     ? [err.message]
     : [];
-  if (raw.length === 0) return 'Failed to create custom product. Please try again.';
+  if (raw.length === 0) return t('customProductForm.failedCreate');
 
+  const patterns = friendlyErrorPatterns(t);
   const friendly = new Set<string>();
   for (const msg of raw) {
-    const match = FRIENDLY_ERROR_PATTERNS.find((p) => p.pattern.test(msg));
+    const match = patterns.find((p) => p.pattern.test(msg));
     // An empty `message` means: pass the original through unchanged (used for
     // already-friendly backend messages like the bundle economics violation).
     friendly.add(match ? (match.message || msg) : msg);
@@ -123,10 +129,11 @@ function formatSubmitError(err: any): string {
   return Array.from(friendly).join(' • ');
 }
 
-function stepKeyFromError(err: any): string | null {
+function stepKeyFromError(err: any, t: Translator): string | null {
   const raw: string[] = Array.isArray(err?.errors) ? err.errors : err?.message ? [err.message] : [];
+  const patterns = friendlyErrorPatterns(t);
   for (const msg of raw) {
-    const match = FRIENDLY_ERROR_PATTERNS.find((p) => p.pattern.test(msg));
+    const match = patterns.find((p) => p.pattern.test(msg));
     if (match?.stepKey) return match.stepKey;
   }
   return null;
@@ -138,6 +145,8 @@ export default function NewCustomProductPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const searchParams = useSearchParams();
   const preselectedProductId = searchParams.get('product_id');
 
@@ -261,10 +270,10 @@ export default function NewCustomProductPage() {
         setFaqDrafts(
           details.faqs.map((f, i) => ({
             sort_order: i,
-            translations: f.translations.map((t) => ({
-              locale: t.locale,
-              question: t.question,
-              answer: t.answer,
+            translations: f.translations.map((tr) => ({
+              locale: tr.locale,
+              question: tr.question,
+              answer: tr.answer,
             })),
           })),
         );
@@ -352,16 +361,16 @@ export default function NewCustomProductPage() {
   const getSteps = () => {
     const steps: { key: string; title: string }[] = [];
     if (!preselectedProductId) {
-      steps.push({ key: 'product', title: 'Choose Product' });
+      steps.push({ key: 'product', title: t('customProductForm.stepChooseProduct') });
     }
-    steps.push({ key: 'mode', title: 'Import Mode' });
+    steps.push({ key: 'mode', title: t('customProductForm.stepImportMode') });
     if (importMode === 'CUSTOMIZE') {
-      if (hasVariants) steps.push({ key: 'variants', title: 'Select Variants' });
-      if (hasCustomFields) steps.push({ key: 'fields', title: 'Custom Fields' });
+      if (hasVariants) steps.push({ key: 'variants', title: t('customProductForm.stepSelectVariants') });
+      if (hasCustomFields) steps.push({ key: 'fields', title: t('customProductForm.stepCustomFields') });
     }
-    steps.push({ key: 'pricing', title: 'Pricing' });
-    steps.push({ key: 'details', title: 'Product Details' });
-    steps.push({ key: 'faqs', title: 'FAQ' });
+    steps.push({ key: 'pricing', title: t('customProductForm.stepPricing') });
+    steps.push({ key: 'details', title: t('customProductForm.stepProductDetails') });
+    steps.push({ key: 'faqs', title: t('customProductForm.stepFaq') });
     return steps;
   };
 
@@ -409,12 +418,12 @@ export default function NewCustomProductPage() {
     setSubmitError('');
     try {
       const translationsPayload = Object.entries(translations)
-        .filter(([, t]) => t.title.trim())
-        .map(([locale, t]) => ({
+        .filter(([, tr]) => tr.title.trim())
+        .map(([locale, tr]) => ({
           locale,
-          title: t.title,
-          description: t.description || undefined,
-          slug: t.slug || generateSlug(t.title).substring(0, 100),
+          title: tr.title,
+          description: tr.description || undefined,
+          slug: tr.slug || generateSlug(tr.title).substring(0, 100),
         }));
 
       const body: any = {
@@ -472,7 +481,7 @@ export default function NewCustomProductPage() {
       if (faqDrafts.length > 0 && created?.id) {
         await Promise.all(
           faqDrafts
-            .filter((f) => f.translations.some((t) => t.question.trim()))
+            .filter((f) => f.translations.some((tr) => tr.question.trim()))
             .map((f, i) =>
               api(`/custom-products/${created.id}/faqs`, {
                 method: 'POST',
@@ -480,11 +489,11 @@ export default function NewCustomProductPage() {
                 body: JSON.stringify({
                   sort_order: i,
                   translations: f.translations
-                    .filter((t) => t.question.trim())
-                    .map((t) => ({
-                      locale: t.locale,
-                      question: t.question,
-                      answer: t.answer || '',
+                    .filter((tr) => tr.question.trim())
+                    .map((tr) => ({
+                      locale: tr.locale,
+                      question: tr.question,
+                      answer: tr.answer || '',
                     })),
                 }),
               }),
@@ -495,8 +504,8 @@ export default function NewCustomProductPage() {
       // Redirect to edit page so the creator can submit for review or finalize details
       router.push(created?.id ? `/creator/custom-products/${created.id}` : '/creator/custom-products');
     } catch (err: any) {
-      setSubmitError(formatSubmitError(err));
-      const targetKey = stepKeyFromError(err);
+      setSubmitError(formatSubmitError(err, t));
+      const targetKey = stepKeyFromError(err, t);
       if (targetKey) {
         const idx = steps.findIndex((s) => s.key === targetKey);
         if (idx >= 0) setCurrentStep(idx + 1);
@@ -525,11 +534,11 @@ export default function NewCustomProductPage() {
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">New Custom Product</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('customProductForm.newTitle')}</h1>
           <p className="text-sm text-muted-foreground">
             {preselectedProductId
-              ? 'Set import mode, then configure pricing and details.'
-              : 'Choose a base product, set import mode, then configure pricing and details.'}
+              ? t('customProductForm.subtitlePreselected')
+              : t('customProductForm.subtitle')}
           </p>
         </div>
       </div>
@@ -545,9 +554,9 @@ export default function NewCustomProductPage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-muted-foreground">Base product</p>
+            <p className="text-[11px] text-muted-foreground">{t('customProductForm.baseProduct')}</p>
             <p className="text-sm font-medium truncate">
-              {selectedProduct.translations.find((t) => t.locale === 'en')?.title ??
+              {selectedProduct.translations.find((tr) => tr.locale === 'en')?.title ??
                 selectedProduct.translations[0]?.title ??
                 '—'}
             </p>
@@ -598,18 +607,18 @@ export default function NewCustomProductPage() {
           {currentStepDef?.key === 'product' && (
             <>
               <Input
-                placeholder="Search products…"
+                placeholder={t('customProductForm.searchProducts')}
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 className="h-8 text-sm"
               />
               <div className="max-h-64 overflow-y-auto rounded-md border divide-y">
                 {filteredProducts.length === 0 ? (
-                  <p className="py-6 text-xs text-muted-foreground text-center">No products found</p>
+                  <p className="py-6 text-xs text-muted-foreground text-center">{t('customProductForm.noProducts')}</p>
                 ) : (
                   filteredProducts.map((product) => {
                     const name =
-                      product.translations.find((t) => t.locale === 'en')?.title ??
+                      product.translations.find((tr) => tr.locale === 'en')?.title ??
                       product.translations[0]?.title ?? '—';
                     const img = getPrimaryImage(product);
                     const isSelected = selectedProduct?.id === product.id;
@@ -653,7 +662,7 @@ export default function NewCustomProductPage() {
             ) : (
               <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Loading product…
+                {t('customProductForm.loadingProduct')}
               </div>
             )
           )}
@@ -707,8 +716,8 @@ export default function NewCustomProductPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium">
-                    Images
-                    <span className="text-muted-foreground font-normal ml-1">({selectedImageUrls.length} selected)</span>
+                    {t('customProductForm.images')}
+                    <span className="text-muted-foreground font-normal ml-1">{t('customProductForm.selectedCount', { count: selectedImageUrls.length })}</span>
                   </Label>
                   <Button
                     type="button"
@@ -726,7 +735,7 @@ export default function NewCustomProductPage() {
                     }}
                   >
                     {imageUploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
-                    Upload
+                    {t('customProductForm.upload')}
                   </Button>
                 </div>
 
@@ -747,7 +756,7 @@ export default function NewCustomProductPage() {
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
                             {!isFeatured && (
                               <button type="button" onClick={() => setFeaturedImageUrl(url)}
-                                className="p-1.5 bg-white rounded-full shadow text-amber-600 hover:text-amber-700" title="Set as featured">
+                                className="p-1.5 bg-white rounded-full shadow text-amber-600 hover:text-amber-700" title={t('customProductForm.setAsFeatured')}>
                                 <Star className="w-3 h-3" />
                               </button>
                             )}
@@ -757,7 +766,7 @@ export default function NewCustomProductPage() {
                                 const remaining = selectedImageUrls.filter((u) => u !== url);
                                 setFeaturedImageUrl(remaining[0] || null);
                               }
-                            }} className="p-1.5 bg-white rounded-full shadow text-red-500 hover:text-red-600" title="Remove">
+                            }} className="p-1.5 bg-white rounded-full shadow text-red-500 hover:text-red-600" title={tc('remove')}>
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
@@ -770,7 +779,7 @@ export default function NewCustomProductPage() {
                 {/* Select from base product */}
                 {productDetails?.images && productDetails.images.length > 0 && (
                   <div className="pt-2 border-t">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Select from base product</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">{t('customProductForm.selectFromBase')}</p>
                     <div className="grid grid-cols-5 gap-1.5">
                       {productDetails.images.map((img, i) => {
                         const imgUrl = img.url.startsWith('http') ? img.url : `${API_BASE}${img.url}`;
@@ -826,7 +835,7 @@ export default function NewCustomProductPage() {
                       >
                         {LOCALE_LABELS[locale] || locale.toUpperCase()}
                         {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                        {locale === primaryLocale && <span className="text-[9px] text-zinc-400">(primary)</span>}
+                        {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('customProductForm.primaryParen')}</span>}
                       </button>
                     );
                   })}
@@ -837,7 +846,7 @@ export default function NewCustomProductPage() {
               {activeLocale !== primaryLocale && (
                 <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
                   <span className="text-xs text-muted-foreground">
-                    Auto-translate from <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
+                    {t('customProductForm.autoTranslateFrom')} <strong>{LOCALE_LABELS[primaryLocale] || primaryLocale}</strong>
                     {primaryTitle ? `: "${primaryTitle.substring(0, 35)}${primaryTitle.length > 35 ? '…' : ''}"` : ''}
                   </span>
                   <button
@@ -847,9 +856,9 @@ export default function NewCustomProductPage() {
                     className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
                   >
                     {translatingLocale === activeLocale ? (
-                      <><Loader2 className="w-3 h-3 animate-spin" /> Translating...</>
+                      <><Loader2 className="w-3 h-3 animate-spin" /> {t('customProductForm.translating')}</>
                     ) : (
-                      <><Languages className="w-3 h-3" /> Auto-translate</>
+                      <><Languages className="w-3 h-3" /> {t('customProductForm.autoTranslate')}</>
                     )}
                   </button>
                 </div>
@@ -861,7 +870,7 @@ export default function NewCustomProductPage() {
               {productDetails && (
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <span className="text-xs text-blue-700">
-                    Copy title & description from the original product
+                    {t('customProductForm.copyFromOriginalDesc')}
                   </span>
                   <Button
                     type="button"
@@ -870,17 +879,17 @@ export default function NewCustomProductPage() {
                     className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
                     onClick={() => {
                       allLocales.forEach((locale) => {
-                        const origTrans = productDetails.translations.find((t) => t.locale === locale);
+                        const origTrans = productDetails.translations.find((tr) => tr.locale === locale);
                         if (origTrans) {
                           setTransField(locale, 'title', origTrans.title || '');
                           if (origTrans.description) setTransField(locale, 'description', origTrans.description);
                         }
                       });
-                      const primaryTrans = productDetails.translations.find((t) => t.locale === primaryLocale);
+                      const primaryTrans = productDetails.translations.find((tr) => tr.locale === primaryLocale);
                       if (primaryTrans?.title) setTransField(primaryLocale, 'slug', generateSlug(primaryTrans.title));
                     }}
                   >
-                    Copy from original
+                    {t('customProductForm.copyFromOriginal')}
                   </Button>
                 </div>
               )}
@@ -888,12 +897,12 @@ export default function NewCustomProductPage() {
               {/* Title */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">
-                  Title {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
+                  {t('customProductForm.titleLabel')} {activeLocale === primaryLocale && <span className="text-red-500">*</span>}
                 </Label>
                 <Input
                   dir={isRtl ? 'rtl' : 'ltr'}
                   className="h-8 text-sm"
-                  placeholder={activeLocale === primaryLocale ? 'Product title...' : `Title in ${LOCALE_LABELS[activeLocale] || activeLocale}...`}
+                  placeholder={activeLocale === primaryLocale ? t('customProductForm.titlePlaceholder') : t('customProductForm.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
                   value={translations[activeLocale]?.title || ''}
                   onChange={(e) => handleTitleChange(e.target.value)}
                 />
@@ -902,7 +911,7 @@ export default function NewCustomProductPage() {
               {/* Slug */}
               {activeLocale === primaryLocale && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Slug <span className="text-red-500">*</span></Label>
+                  <Label className="text-xs font-medium">{t('customProductForm.slugLabel')} <span className="text-red-500">*</span></Label>
                   <div className="flex gap-2">
                     <Input
                       placeholder="my-custom-product"
@@ -918,24 +927,24 @@ export default function NewCustomProductPage() {
                       size="icon"
                       className="h-8 w-8 shrink-0"
                       onClick={() => setTransField(primaryLocale, 'slug', generateSlug(translations[primaryLocale]?.title || ''))}
-                      title="Regenerate slug from title"
+                      title={t('customProductForm.regenerateSlug')}
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                   {slugStatus === 'checking' && (
                     <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Checking availability…
+                      <Loader2 className="w-3 h-3 animate-spin" /> {t('customProductForm.checkingAvailability')}
                     </p>
                   )}
                   {slugStatus === 'available' && (
                     <p className="text-[11px] text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Slug is available
+                      <Check className="w-3 h-3" /> {t('customProductForm.slugAvailable')}
                     </p>
                   )}
                   {slugStatus === 'taken' && (
                     <p className="text-[11px] text-red-600">
-                      This slug is already used by one of your products. Pick a different one.
+                      {t('customProductForm.slugTaken')}
                     </p>
                   )}
                 </div>
@@ -944,9 +953,9 @@ export default function NewCustomProductPage() {
               {/* Collections — let the creator add this product to one or more of their collections */}
               {activeLocale === primaryLocale && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Collections</Label>
+                  <Label className="text-xs font-medium">{t('customProductForm.collections')}</Label>
                   <p className="text-[11px] text-muted-foreground">
-                    Add this product to one or more of your store collections.
+                    {t('customProductForm.collectionsDesc')}
                   </p>
                   <CollectionsMultiSelect
                     value={creatorCategoryIds}
@@ -957,11 +966,11 @@ export default function NewCustomProductPage() {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Description</Label>
+                <Label className="text-xs font-medium">{t('customProductForm.descriptionLabel')}</Label>
                 <RichTextEditor
                   content={translations[activeLocale]?.description || ''}
                   onChange={(val) => setTransField(activeLocale, 'description', val)}
-                  placeholder="Describe your custom product..."
+                  placeholder={t('customProductForm.descriptionPlaceholder')}
                 />
               </div>
             </>
@@ -972,13 +981,13 @@ export default function NewCustomProductPage() {
             <div className="space-y-3">
               {faqDrafts.length === 0 && (
                 <p className="text-xs text-muted-foreground pb-1">
-                  No FAQs from the base product. You can add your own below.
+                  {t('customProductForm.noFaqsFromBase')}
                 </p>
               )}
               {faqDrafts.length > 0 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-700">
-                    {faqDrafts.length} FAQ(s) copied from the base product. You can edit, translate, or delete them.
+                    {t('customProductForm.faqsCopiedFromBase', { count: faqDrafts.length })}
                   </p>
                 </div>
               )}
@@ -1027,7 +1036,7 @@ export default function NewCustomProductPage() {
       {/* Error message */}
       {submitError && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          <p className="font-medium mb-1">We couldn't save the product. Please review:</p>
+          <p className="font-medium mb-1">{t('customProductForm.couldNotSave')}</p>
           {submitError.includes(' • ') ? (
             <ul className="list-disc pl-5 space-y-0.5">
               {submitError.split(' • ').map((m, i) => (
@@ -1044,16 +1053,16 @@ export default function NewCustomProductPage() {
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={goBack} disabled={currentStep === 1 || saving}>
           <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-          Back
+          {tc('back')}
         </Button>
         <div className="flex items-center gap-2">
           {isLastStep ? (
             <Button size="sm" onClick={handleSubmit} disabled={saving || !canGoNext()}>
-              {saving ? 'Creating…' : 'Create Custom Product'}
+              {saving ? t('customProductForm.creating') : t('customProductForm.createCustomProduct')}
             </Button>
           ) : (
             <Button size="sm" onClick={goNext} disabled={!canGoNext()}>
-              Next
+              {tc('next')}
               <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           )}

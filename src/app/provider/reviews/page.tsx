@@ -6,6 +6,7 @@ import { CheckSquare, Clock, Package } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -34,6 +35,8 @@ interface PendingCustomProduct {
 export default function ProviderReviewsPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [items, setItems] = useState<PendingCustomProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,22 +61,22 @@ export default function ProviderReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Custom Product Reviews</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('customProductReviews')}</h1>
         <p className="text-sm text-muted-foreground">
-          Review and approve custom products created by creators using your products
+          {t('customProductReviewsSubtitle')}
         </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground py-12 text-center">Loading...</p>
+        <p className="text-sm text-muted-foreground py-12 text-center">{tc('loading')}</p>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
             <CheckSquare className="size-6" />
           </div>
-          <p className="text-sm font-medium">No pending reviews</p>
+          <p className="text-sm font-medium">{t('noPendingReviews')}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            All custom products are up to date
+            {t('allCustomProductsUpToDate')}
           </p>
         </div>
       ) : (
@@ -81,7 +84,7 @@ export default function ProviderReviewsPage() {
           {items.map((item) => {
             const title = item.translations?.find((t) => t.locale === 'en')?.title
               || item.translations?.[0]?.title
-              || 'Untitled';
+              || t('untitled');
             const baseTitle = item.product.translations?.find((t) => t.locale === 'en')?.title
               || item.product.translations?.[0]?.title;
             const imgUrl = item.mockup_images?.[0]?.url || item.product.images?.[0]?.url;
@@ -108,16 +111,16 @@ export default function ProviderReviewsPage() {
                   </div>
                   <p className="text-sm font-semibold truncate">{title}</p>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    by {item.creator.display_name}
+                    {t('byCreator', { name: item.creator.display_name })}
                   </p>
                   {baseTitle && (
                     <p className="text-[10px] text-muted-foreground truncate mt-1">
-                      Base: {baseTitle}
+                      {t('baseLabel', { title: baseTitle })}
                     </p>
                   )}
                   <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    Submitted {formatDate(item.submitted_at)}
+                    {t('submittedDate', { date: formatDate(item.submitted_at) })}
                   </div>
                 </CardContent>
               </Card>

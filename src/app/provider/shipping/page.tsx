@@ -12,6 +12,9 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 function getCountryName(code: string): string {
   return COUNTRIES.find(c => c.code === code)?.name ?? code;
@@ -42,54 +45,55 @@ function zoneFormFields(
   zoneDaysMin: string, setZoneDaysMin: (v: string) => void,
   zoneDaysMax: string, setZoneDaysMax: (v: string) => void,
   currency: string,
+  t: Translator,
 ) {
   return (
     <div className="space-y-4 py-2">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label className="text-xs">Zone Name *</Label>
+          <Label className="text-xs">{t('zoneName')}</Label>
           <Input
             className="h-8 text-sm"
-            placeholder="e.g. Gulf Countries"
+            placeholder={t('zoneNamePlaceholder')}
             value={zoneName}
             onChange={e => setZoneName(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Estimated Delivery</Label>
+          <Label className="text-xs">{t('estimatedDelivery')}</Label>
           <div className="flex gap-1.5 items-center">
-            <Input type="number" min="1" className="h-8 text-sm" placeholder="Min" value={zoneDaysMin} onChange={e => setZoneDaysMin(e.target.value)} />
-            <span className="text-xs text-muted-foreground shrink-0">to</span>
-            <Input type="number" min="1" className="h-8 text-sm" placeholder="Max" value={zoneDaysMax} onChange={e => setZoneDaysMax(e.target.value)} />
-            <span className="text-xs text-muted-foreground shrink-0">days</span>
+            <Input type="number" min="1" className="h-8 text-sm" placeholder={t('min')} value={zoneDaysMin} onChange={e => setZoneDaysMin(e.target.value)} />
+            <span className="text-xs text-muted-foreground shrink-0">{t('to')}</span>
+            <Input type="number" min="1" className="h-8 text-sm" placeholder={t('max')} value={zoneDaysMax} onChange={e => setZoneDaysMax(e.target.value)} />
+            <span className="text-xs text-muted-foreground shrink-0">{t('days')}</span>
           </div>
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs">Countries *</Label>
+        <Label className="text-xs">{t('countries')}</Label>
         <CountryMultiSelect
           value={zoneCountries}
           onChange={setZoneCountries}
-          placeholder="Select countries for this zone..."
+          placeholder={t('selectCountriesPlaceholder')}
         />
         {zoneCountries.length > 0 && (
-          <p className="text-[10px] text-muted-foreground">{zoneCountries.length} countr{zoneCountries.length === 1 ? 'y' : 'ies'} selected</p>
+          <p className="text-[10px] text-muted-foreground">{t('countriesSelected', { count: zoneCountries.length })}</p>
         )}
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
-          <Label className="text-xs">Base Shipping Cost ({currency}) *</Label>
+          <Label className="text-xs">{t('baseShippingCost', { currency })}</Label>
           <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder="0.00" value={zoneBaseCost} onChange={e => setZoneBaseCost(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Per Additional Item ({currency})</Label>
+          <Label className="text-xs">{t('perAdditionalItem', { currency })}</Label>
           <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder="0.00" value={zonePerItem} onChange={e => setZonePerItem(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Free Shipping Above ({currency})</Label>
-          <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder="optional" value={zoneFreeThreshold} onChange={e => setZoneFreeThreshold(e.target.value)} />
+          <Label className="text-xs">{t('freeShippingAbove', { currency })}</Label>
+          <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder={t('optional')} value={zoneFreeThreshold} onChange={e => setZoneFreeThreshold(e.target.value)} />
         </div>
       </div>
     </div>
@@ -105,6 +109,8 @@ interface ConfirmState {
 export default function ProviderShipping() {
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -255,25 +261,25 @@ export default function ProviderShipping() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Shipping</h1>
-          <p className="text-sm text-muted-foreground">Manage shipping profiles and rates by country</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('shipping')}</h1>
+          <p className="text-sm text-muted-foreground">{t('shippingSubtitle')}</p>
         </div>
         <Button size="sm" onClick={() => setShowAddProfile(true)}>
-          <Plus className="w-4 h-4 mr-1.5" /> New Profile
+          <Plus className="w-4 h-4 mr-1.5" /> {t('newProfile')}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
+        <p className="text-sm text-muted-foreground text-center py-8">{tc('loading')}</p>
       ) : profiles.length === 0 ? (
         <Card className="shadow-none">
           <CardContent className="flex flex-col items-center py-16">
             <Truck className="w-8 h-8 text-zinc-300 mb-3" />
-            <p className="text-sm font-medium mb-1">No shipping profiles yet</p>
+            <p className="text-sm font-medium mb-1">{t('noShippingProfiles')}</p>
             <p className="text-xs text-muted-foreground mb-4 text-center max-w-xs">
-              Create a shipping profile and add zones to start delivering to your customers.
+              {t('noShippingProfilesHint')}
             </p>
-            <Button size="sm" onClick={() => setShowAddProfile(true)}>Create Shipping Profile</Button>
+            <Button size="sm" onClick={() => setShowAddProfile(true)}>{t('createShippingProfile')}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -287,11 +293,11 @@ export default function ProviderShipping() {
                   <CardTitle className="text-sm font-semibold">{profile.name}</CardTitle>
                   {profile.is_default && (
                     <Badge variant="secondary" className="text-[10px] gap-1">
-                      <Star className="w-2.5 h-2.5" /> Default
+                      <Star className="w-2.5 h-2.5" /> {t('default')}
                     </Badge>
                   )}
                   <Badge variant="outline" className="text-[10px]">
-                    {profile.zones?.length || 0} zone{profile.zones?.length !== 1 ? 's' : ''}
+                    {t('zoneCount', { count: profile.zones?.length || 0 })}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -303,7 +309,7 @@ export default function ProviderShipping() {
                       disabled={settingDefault === profile.id}
                       onClick={() => handleSetDefault(profile.id)}
                     >
-                      {settingDefault === profile.id ? 'Saving...' : 'Set default'}
+                      {settingDefault === profile.id ? tc('saving') : t('setDefault')}
                     </Button>
                   )}
                   <Button
@@ -312,7 +318,7 @@ export default function ProviderShipping() {
                     className="h-7 text-xs"
                     onClick={() => { resetZoneForm(); setShowAddZone(profile.id); }}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> Add Zone
+                    <Plus className="w-3 h-3 mr-1" /> {t('addZone')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -329,7 +335,7 @@ export default function ProviderShipping() {
               {!profile.zones?.length ? (
                 <div className="border border-dashed rounded-lg py-6 text-center">
                   <Globe className="w-5 h-5 text-zinc-300 mx-auto mb-1.5" />
-                  <p className="text-xs text-muted-foreground">No zones yet. Add a zone to ship to specific countries.</p>
+                  <p className="text-xs text-muted-foreground">{t('noZonesYet')}</p>
                 </div>
               ) : (
                 profile.zones.map((zone: any) => {
@@ -344,7 +350,7 @@ export default function ProviderShipping() {
                           <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="text-sm font-medium">{zone.name}</span>
                           <span className="text-[10px] text-muted-foreground">
-                            {codes.length} countr{codes.length === 1 ? 'y' : 'ies'}
+                            {t('countryCount', { count: codes.length })}
                           </span>
                         </div>
                         <div className="flex gap-0.5">
@@ -369,7 +375,7 @@ export default function ProviderShipping() {
                           return (
                             <span
                               key={code}
-                              title={isDupe ? `⚠️ ${getCountryName(code)} — also in another zone` : getCountryName(code)}
+                              title={isDupe ? t('countryDuplicateTooltip', { country: getCountryName(code) }) : getCountryName(code)}
                               className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] border ${
                                 isDupe
                                   ? 'bg-amber-50 border-amber-300 text-amber-800'
@@ -384,7 +390,7 @@ export default function ProviderShipping() {
                         })}
                         {codes.length > 12 && (
                           <span className="inline-flex items-center bg-zinc-100 border border-zinc-200 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                            +{codes.length - 12} more
+                            {t('moreCount', { count: codes.length - 12 })}
                           </span>
                         )}
                       </div>
@@ -392,27 +398,27 @@ export default function ProviderShipping() {
                       {codes.some(c => duplicates.has(c)) && (
                         <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
                           <AlertTriangle className="w-3 h-3 shrink-0" />
-                          Some countries in this zone overlap with another zone. The first matching zone will be used.
+                          {t('zoneOverlapWarning')}
                         </div>
                       )}
 
                       {/* Rates */}
                       <div className="grid grid-cols-4 gap-3 text-xs pt-2 border-t border-dashed">
                         <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">Base cost</p>
+                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('baseCost')}</p>
                           <p className="font-semibold">{fmt(zone.base_cost)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">Per extra item</p>
+                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('perExtraItem')}</p>
                           <p className="font-semibold">{fmt(zone.per_item_cost)}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">Free shipping above</p>
+                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('freeShippingAboveShort')}</p>
                           <p className="font-semibold">{zone.free_threshold ? `${fmt(Number(zone.free_threshold))}` : '—'}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">Est. delivery</p>
-                          <p className="font-semibold">{zone.estimated_days_min}–{zone.estimated_days_max} days</p>
+                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('estDelivery')}</p>
+                          <p className="font-semibold">{t('daysRange', { min: zone.estimated_days_min, max: zone.estimated_days_max })}</p>
                         </div>
                       </div>
                     </div>
@@ -428,13 +434,13 @@ export default function ProviderShipping() {
       {/* ── Add Profile Dialog ── */}
       <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>New Shipping Profile</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('newShippingProfile')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Profile Name *</Label>
+              <Label className="text-xs">{t('profileName')}</Label>
               <Input
                 className="h-9 text-sm"
-                placeholder="e.g. Standard Shipping, Express"
+                placeholder={t('profileNamePlaceholder')}
                 value={profileName}
                 onChange={e => setProfileName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAddProfile()}
@@ -442,9 +448,9 @@ export default function ProviderShipping() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); }}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); }}>{tc('cancel')}</Button>
             <Button size="sm" onClick={handleAddProfile} disabled={saving || !profileName}>
-              {saving ? 'Creating...' : 'Create Profile'}
+              {saving ? t('creating') : t('createProfile')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -453,7 +459,7 @@ export default function ProviderShipping() {
       {/* ── Add Zone Dialog ── */}
       <Dialog open={!!showAddZone} onOpenChange={v => { if (!v) { setShowAddZone(null); resetZoneForm(); } }}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Add Shipping Zone</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('addShippingZone')}</DialogTitle></DialogHeader>
           {zoneFormFields(
             zoneName, setZoneName,
             zoneCountries, setZoneCountries,
@@ -463,15 +469,16 @@ export default function ProviderShipping() {
             zoneDaysMin, setZoneDaysMin,
             zoneDaysMax, setZoneDaysMax,
             currency,
+            t,
           )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => { setShowAddZone(null); resetZoneForm(); }}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowAddZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleAddZone}
               disabled={saving || !zoneName || zoneCountries.length === 0 || !zoneBaseCost}
             >
-              {saving ? 'Adding...' : 'Add Zone'}
+              {saving ? t('adding') : t('addZone')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -480,7 +487,7 @@ export default function ProviderShipping() {
       {/* ── Edit Zone Dialog ── */}
       <Dialog open={!!editingZone} onOpenChange={v => { if (!v) { setEditingZone(null); resetZoneForm(); } }}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Edit Zone — {editingZone?.name}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name })}</DialogTitle></DialogHeader>
           {zoneFormFields(
             zoneName, setZoneName,
             zoneCountries, setZoneCountries,
@@ -490,15 +497,16 @@ export default function ProviderShipping() {
             zoneDaysMin, setZoneDaysMin,
             zoneDaysMax, setZoneDaysMax,
             currency,
+            t,
           )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => { setEditingZone(null); resetZoneForm(); }}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => { setEditingZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleUpdateZone}
               disabled={saving || !zoneName || zoneCountries.length === 0}
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? tc('saving') : t('saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -509,20 +517,20 @@ export default function ProviderShipping() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              Delete {confirm?.type === 'profile' ? 'Profile' : 'Zone'}
+              {confirm?.type === 'profile' ? t('deleteProfile') : t('deleteZone')}
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-1">
-            Are you sure you want to delete <span className="font-medium text-foreground">"{confirm?.name}"</span>?
+            {t('deleteConfirmName', { name: confirm?.name ?? '' })}
             {confirm?.type === 'profile' && (
-              <span className="block mt-1 text-red-600 text-xs">This will also delete all shipping zones inside this profile.</span>
+              <span className="block mt-1 text-red-600 text-xs">{t('deleteProfileWarning')}</span>
             )}
-            {' '}This action cannot be undone.
+            {' '}{t('actionCannotBeUndone')}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setConfirm(null)} disabled={deleting}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setConfirm(null)} disabled={deleting}>{tc('cancel')}</Button>
             <Button variant="destructive" size="sm" onClick={handleConfirmDelete} disabled={deleting}>
-              {deleting ? 'Deleting...' : 'Delete'}
+              {deleting ? t('deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { History, Loader2, RotateCcw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -37,6 +38,7 @@ function formatDateTime(s: string) {
 }
 
 export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
+  const t = useTranslations();
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,18 +57,14 @@ export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
 
   async function restore(id: string) {
     if (!token || restoringId) return;
-    if (
-      !confirm(
-        'Restore this version? Your current draft will be replaced. The live published page stays up until you publish again.',
-      )
-    ) return;
+    if (!confirm(t('builder.confirmRestore'))) return;
     setRestoringId(id);
     try {
       await api(`/v2/pages/${pageId}/versions/${id}/restore`, { method: 'POST', token });
       await onRestored();
       setOpen(false);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to restore');
+      setError(e instanceof Error ? e.message : t('builder.failedToRestore'));
     } finally {
       setRestoringId(null);
     }
@@ -76,17 +74,17 @@ export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm" title="Version history">
+          <Button variant="outline" size="sm" title={t('builder.versionHistory')}>
             <History className="w-3.5 h-3.5" />
-            History
+            {t('builder.history')}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Version history</DialogTitle>
+          <DialogTitle>{t('builder.versionHistory')}</DialogTitle>
           <DialogDescription>
-            Every publish creates a new version. Restore one to roll the draft back to its state.
+            {t('builder.versionHistoryDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -96,7 +94,7 @@ export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
           </div>
         ) : versions.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-6">
-            No versions yet. Publish the page to capture the first one.
+            {t('builder.noVersions')}
           </p>
         ) : (
           <ul className="divide-y -mx-6 px-6 max-h-[360px] overflow-y-auto">
@@ -105,18 +103,18 @@ export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium truncate">
-                      {v.label || (v.published_at ? `Published version` : 'Draft snapshot')}
+                      {v.label || (v.published_at ? t('builder.publishedVersion') : t('builder.draftSnapshot'))}
                     </span>
                     {i === 0 && v.published_at && (
                       <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
-                        Current
+                        {t('builder.current')}
                       </span>
                     )}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     {v.published_at
-                      ? `Published ${formatDateTime(v.published_at)}`
-                      : `Saved ${formatDateTime(v.created_at)}`}
+                      ? t('builder.publishedAt', { date: formatDateTime(v.published_at) })
+                      : t('builder.savedAt', { date: formatDateTime(v.created_at) })}
                   </p>
                 </div>
                 <Button
@@ -128,12 +126,12 @@ export function VersionsDialog({ pageId, onRestored }: VersionsDialogProps) {
                   {restoringId === v.id ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Restoring…
+                      {t('builder.restoring')}
                     </>
                   ) : (
                     <>
                       <RotateCcw className="w-3.5 h-3.5" />
-                      Restore
+                      {t('builder.restore')}
                     </>
                   )}
                 </Button>

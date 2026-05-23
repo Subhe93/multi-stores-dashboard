@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,7 @@ const emptyForm = {
 };
 
 export default function AdminShipping() {
+  const t = useTranslations('admin');
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
   const [zones, setZones] = useState<ShippingZone[]>([]);
@@ -131,28 +133,28 @@ export default function AdminShipping() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Global Shipping Zones</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{t('globalShippingZones')}</h1>
           <p className="text-sm text-muted-foreground">
-            Define platform-wide shipping zones. Providers and Creators can set product-level overrides.
+            {t('globalShippingZonesSubtitle')}
           </p>
         </div>
         <Button size="sm" onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-1.5" /> Add Zone
+          <Plus className="w-4 h-4 mr-1.5" /> {t('addZone')}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground py-12 text-center">Loading...</p>
+        <p className="text-sm text-muted-foreground py-12 text-center">{t('loading')}</p>
       ) : zones.length === 0 ? (
         <Card className="shadow-none">
           <CardContent className="py-16 text-center">
             <Globe className="w-8 h-8 mx-auto text-zinc-300 mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">No shipping zones defined</p>
+            <p className="text-sm font-medium text-muted-foreground">{t('noShippingZonesDefined')}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Create global zones that Providers and Creators can use as defaults.
+              {t('noShippingZonesHint')}
             </p>
             <Button size="sm" className="mt-4" onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-1.5" /> Add First Zone
+              <Plus className="w-4 h-4 mr-1.5" /> {t('addFirstZone')}
             </Button>
           </CardContent>
         </Card>
@@ -166,8 +168,8 @@ export default function AdminShipping() {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-sm font-semibold">{zone.name}</span>
                       {zone.is_active
-                        ? <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700">Active</Badge>
-                        : <Badge variant="secondary" className="text-[10px] bg-zinc-100 text-zinc-500">Inactive</Badge>}
+                        ? <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700">{t('active')}</Badge>
+                        : <Badge variant="secondary" className="text-[10px] bg-zinc-100 text-zinc-500">{t('inactive')}</Badge>}
                     </div>
 
                     {/* Countries */}
@@ -180,19 +182,19 @@ export default function AdminShipping() {
                       ))}
                       {zone.countries.length > 12 && (
                         <span className="text-[11px] text-muted-foreground px-1.5 py-0.5">
-                          +{zone.countries.length - 12} more
+                          {t('countMore', { count: zone.countries.length - 12 })}
                         </span>
                       )}
                     </div>
 
                     {/* Pricing */}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Base: <strong className="text-foreground">{fmt(zone.base_cost)}</strong></span>
-                      <span>Per item: <strong className="text-foreground">{fmt(zone.per_item_cost)}</strong></span>
+                      <span>{t('base')}: <strong className="text-foreground">{fmt(zone.base_cost)}</strong></span>
+                      <span>{t('perItem')}: <strong className="text-foreground">{fmt(zone.per_item_cost)}</strong></span>
                       {zone.free_threshold != null && (
-                        <span>Free above: <strong className="text-foreground">{fmt(zone.free_threshold)}</strong></span>
+                        <span>{t('freeAbove')}: <strong className="text-foreground">{fmt(zone.free_threshold)}</strong></span>
                       )}
-                      <span>Delivery: <strong className="text-foreground">{zone.estimated_days_min}–{zone.estimated_days_max} days</strong></span>
+                      <span>{t('delivery')}: <strong className="text-foreground">{t('daysRange', { min: zone.estimated_days_min, max: zone.estimated_days_max })}</strong></span>
                     </div>
                   </div>
 
@@ -203,7 +205,7 @@ export default function AdminShipping() {
                       className="h-7 text-[11px]"
                       onClick={() => handleToggleActive(zone)}
                     >
-                      {zone.is_active ? 'Disable' : 'Enable'}
+                      {zone.is_active ? t('disable') : t('enable')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -233,31 +235,31 @@ export default function AdminShipping() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit' : 'Create'} Shipping Zone</DialogTitle>
+            <DialogTitle>{editingId ? t('editShippingZone') : t('createShippingZone')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Zone Name *</Label>
+              <Label className="text-xs">{t('zoneName')} *</Label>
               <Input
                 className="h-8 text-sm"
-                placeholder="Gulf Region, Europe, Worldwide..."
+                placeholder={t('zoneNamePlaceholder')}
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Countries * ({form.countries.length} selected)</Label>
+              <Label className="text-xs">{t('countriesSelected', { count: form.countries.length })}</Label>
               <CountryMultiSelect
                 value={form.countries}
                 onChange={countries => setForm({ ...form, countries })}
-                placeholder="Select countries for this zone..."
+                placeholder={t('selectCountriesForZone')}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Base Cost ({currency})</Label>
+                <Label className="text-xs">{t('baseCost', { currency })}</Label>
                 <Input
                   className="h-8 text-sm"
                   type="number"
@@ -268,7 +270,7 @@ export default function AdminShipping() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Per Item Cost ({currency})</Label>
+                <Label className="text-xs">{t('perItemCost', { currency })}</Label>
                 <Input
                   className="h-8 text-sm"
                   type="number"
@@ -282,18 +284,18 @@ export default function AdminShipping() {
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Free Shipping Threshold ({currency})</Label>
+                <Label className="text-xs">{t('freeShippingThreshold', { currency })}</Label>
                 <Input
                   className="h-8 text-sm"
                   type="number"
                   step="0.01"
-                  placeholder="Leave blank to disable"
+                  placeholder={t('leaveBlankToDisable')}
                   value={form.free_threshold}
                   onChange={e => setForm({ ...form, free_threshold: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Est. Days (Min)</Label>
+                <Label className="text-xs">{t('estDaysMin')}</Label>
                 <Input
                   className="h-8 text-sm"
                   type="number"
@@ -303,7 +305,7 @@ export default function AdminShipping() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Est. Days (Max)</Label>
+                <Label className="text-xs">{t('estDaysMax')}</Label>
                 <Input
                   className="h-8 text-sm"
                   type="number"
@@ -315,13 +317,13 @@ export default function AdminShipping() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>{t('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleSave}
               disabled={saving || !form.name || form.countries.length === 0}
             >
-              {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Create Zone'}
+              {saving ? t('saving') : editingId ? t('saveChanges') : t('createZone')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -331,15 +333,15 @@ export default function AdminShipping() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Shipping Zone</DialogTitle>
+            <DialogTitle>{t('deleteShippingZone')}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-2">
-            This will remove the zone from the platform. Providers and Creators who were using this zone as a reference will not be affected — their own shipping profiles remain intact.
+            {t('deleteShippingZoneConfirm')}
           </p>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(null)}>{t('cancel')}</Button>
             <Button variant="destructive" size="sm" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
-              Delete Zone
+              {t('deleteZone')}
             </Button>
           </DialogFooter>
         </DialogContent>

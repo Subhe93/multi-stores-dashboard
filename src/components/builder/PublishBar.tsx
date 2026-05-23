@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Check, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LocaleSwitcher } from './LocaleSwitcher';
@@ -51,6 +52,7 @@ export function PublishBar({
   onSeoSaved,
   onFlushCache,
 }: PublishBarProps) {
+  const t = useTranslations();
   const [publishing, setPublishing] = useState(false);
   const [justPublished, setJustPublished] = useState(false);
   const [flushing, setFlushing] = useState(false);
@@ -63,7 +65,7 @@ export function PublishBar({
           type="button"
           onClick={onBack}
           className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 shrink-0"
-          aria-label="Back"
+          aria-label={t('common.back')}
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
@@ -112,7 +114,7 @@ export function PublishBar({
                 setFlushing(false);
               }
             }}
-            title="Clear the storefront cache to show your latest changes immediately"
+            title={t('builder.clearCacheTooltip')}
           >
             {flushing ? (
               <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -121,14 +123,14 @@ export function PublishBar({
             ) : (
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             )}
-            {justFlushed ? 'Cleared' : 'Clear Cache'}
+            {justFlushed ? t('builder.cleared') : t('builder.clearCache')}
           </Button>
         )}
         {storeUrl && (
           <a href={storeUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">
               <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-              View
+              {t('builder.view')}
             </Button>
           </a>
         )}
@@ -150,15 +152,15 @@ export function PublishBar({
           {publishing ? (
             <>
               <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-              Publishing…
+              {t('builder.publishing')}
             </>
           ) : justPublished ? (
             <>
               <Check className="w-3.5 h-3.5 mr-1.5" />
-              Published
+              {t('builder.published')}
             </>
           ) : (
-            'Publish'
+            t('builder.publish')
           )}
         </Button>
       </div>

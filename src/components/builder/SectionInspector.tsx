@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy } from 'lucide-react';
 import { findSectionSchema, labelOf } from '@/lib/section-schemas';
 import { cn } from '@/lib/utils';
@@ -40,12 +41,13 @@ export function SectionInspector({
   onDelete,
   onToggleHidden,
 }: SectionInspectorProps) {
+  const t = useTranslations('builder');
+  const tc = useTranslations('common');
   const [tab, setTab] = useState<Tab>('content');
   const [menuOpen, setMenuOpen] = useState(false);
-  const ar = locale === 'ar';
 
   if (!section) {
-    return <EmptyState ar={ar} />;
+    return <EmptyState />;
   }
 
   const schema = findSectionSchema(section.section_key);
@@ -57,7 +59,7 @@ export function SectionInspector({
             <Settings2 className="size-5 text-red-400" />
           </div>
           <p className="text-xs text-zinc-600 leading-relaxed">
-            {ar ? 'نوع سكشن غير معروف:' : 'Unknown section type:'}
+            {t('unknownSectionType')}
           </p>
           <code className="font-mono text-[11px] text-red-500 block mt-1">{section.section_key}</code>
         </div>
@@ -70,19 +72,19 @@ export function SectionInspector({
   const contentFields = schema.schema.filter((f) => translatableKeys.has(f.key));
 
   const localeContent =
-    section.translations.find((t) => t.locale === locale)?.content ??
-    section.translations.find((t) => t.locale === primaryLocale)?.content ??
+    section.translations.find((tr) => tr.locale === locale)?.content ??
+    section.translations.find((tr) => tr.locale === primaryLocale)?.content ??
     {};
 
   const sectionStyle = ((section.settings as Record<string, unknown>)._style as SectionStyle | undefined) || {};
 
   const tabs: { id: Tab; label: string; Icon: typeof Type; count?: number; show: boolean }[] = [
-    { id: 'content', label: ar ? 'المحتوى' : 'Content', Icon: Type, count: contentFields.length, show: contentFields.length > 0 },
-    { id: 'settings', label: ar ? 'الإعدادات' : 'Settings', Icon: Settings2, count: settingsFields.length, show: settingsFields.length > 0 },
-    { id: 'style', label: ar ? 'الستايل' : 'Style', Icon: Sparkles, show: true },
+    { id: 'content', label: t('tabContent'), Icon: Type, count: contentFields.length, show: contentFields.length > 0 },
+    { id: 'settings', label: t('tabSettings'), Icon: Settings2, count: settingsFields.length, show: settingsFields.length > 0 },
+    { id: 'style', label: t('tabStyle'), Icon: Sparkles, show: true },
   ];
-  const visibleTabs = tabs.filter((t) => t.show);
-  const activeTab = visibleTabs.find((t) => t.id === tab) ? tab : visibleTabs[0]?.id;
+  const visibleTabs = tabs.filter((tb) => tb.show);
+  const activeTab = visibleTabs.find((tb) => tb.id === tab) ? tab : visibleTabs[0]?.id;
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -100,7 +102,7 @@ export function SectionInspector({
                 </span>
                 {section.is_hidden && (
                   <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 font-semibold">
-                    {ar ? 'مخفي' : 'Hidden'}
+                    {t('hidden')}
                   </span>
                 )}
               </div>
@@ -136,7 +138,7 @@ export function SectionInspector({
                     className="w-full text-start flex items-center gap-2 px-2 py-1.5 text-[12px] rounded text-zinc-700 hover:bg-zinc-100"
                   >
                     {section.is_hidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-                    {section.is_hidden ? (ar ? 'إظهار السكشن' : 'Show section') : (ar ? 'إخفاء السكشن' : 'Hide section')}
+                    {section.is_hidden ? t('showSection') : t('hideSection')}
                   </button>
                   <button
                     type="button"
@@ -148,7 +150,7 @@ export function SectionInspector({
                     className="w-full text-start flex items-center gap-2 px-2 py-1.5 text-[12px] rounded text-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="size-3.5" />
-                    {ar ? 'حذف' : 'Delete'}
+                    {tc('delete')}
                   </button>
                 </div>
               )}
@@ -158,13 +160,13 @@ export function SectionInspector({
 
         {/* ─── Tab bar (Elementor-style: icon stack + indicator) ── */}
         <div className="flex items-stretch px-2 -mb-px relative">
-          {visibleTabs.map((t) => {
-            const isActive = activeTab === t.id;
+          {visibleTabs.map((tb) => {
+            const isActive = activeTab === tb.id;
             return (
               <button
-                key={t.id}
+                key={tb.id}
                 type="button"
-                onClick={() => setTab(t.id)}
+                onClick={() => setTab(tb.id)}
                 className={cn(
                   'group relative flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11.5px] font-semibold transition-colors',
                   isActive
@@ -172,14 +174,14 @@ export function SectionInspector({
                     : 'text-zinc-500 hover:text-zinc-900',
                 )}
               >
-                <t.Icon className={cn('size-3.5 transition', isActive && 'scale-110')} />
-                <span>{t.label}</span>
-                {typeof t.count === 'number' && t.count > 0 && (
+                <tb.Icon className={cn('size-3.5 transition', isActive && 'scale-110')} />
+                <span>{tb.label}</span>
+                {typeof tb.count === 'number' && tb.count > 0 && (
                   <span className={cn(
                     'text-[9.5px] font-bold px-1.5 py-0.5 rounded-full leading-none transition',
                     isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-zinc-100 text-zinc-500',
                   )}>
-                    {t.count}
+                    {tb.count}
                   </span>
                 )}
                 {isActive && (
@@ -199,13 +201,11 @@ export function SectionInspector({
               <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200/70 px-3 py-2 text-[11px] text-amber-900">
                 <Copy className="size-3.5 mt-px shrink-0 text-amber-600" />
                 <span className="leading-relaxed">
-                  {ar
-                    ? `الحقول الفارغة تستبدل تلقائياً بمحتوى ${primaryLocale}.`
-                    : `Empty fields fall back to ${primaryLocale}.`}
+                  {t('fallbackToPrimary', { locale: primaryLocale })}
                 </span>
               </div>
             )}
-            <FieldGroup title={ar ? 'المحتوى' : 'Content'}>
+            <FieldGroup title={t('contentGroup')}>
               {contentFields.map((field) => (
                 <FieldRenderer
                   key={field.key}
@@ -223,7 +223,7 @@ export function SectionInspector({
 
         {activeTab === 'settings' && settingsFields.length > 0 && (
           <div className="p-4 space-y-4">
-            <FieldGroup title={ar ? 'إعدادات السكشن' : 'Section settings'}>
+            <FieldGroup title={t('sectionSettings')}>
               {settingsFields.map((field) => (
                 <FieldRenderer
                   key={field.key}
@@ -256,7 +256,8 @@ export function SectionInspector({
 }
 
 /** Empty state — shown when no section is selected. */
-function EmptyState({ ar }: { ar: boolean }) {
+function EmptyState() {
+  const t = useTranslations('builder');
   return (
     <div className="h-full flex items-center justify-center p-6 bg-gradient-to-b from-zinc-50/40 to-white">
       <div className="text-center max-w-65">
@@ -267,12 +268,10 @@ function EmptyState({ ar }: { ar: boolean }) {
           </div>
         </div>
         <h3 className="text-[13px] font-semibold text-zinc-900 mb-1.5">
-          {ar ? 'لم يتم تحديد سكشن' : 'No section selected'}
+          {t('noSectionSelected')}
         </h3>
         <p className="text-[11.5px] text-zinc-500 leading-relaxed">
-          {ar
-            ? 'اختر سكشن من اللوحة الجانبية أو انقر على أي عنصر في المعاينة لتعديله من هنا.'
-            : 'Pick a section from the side panel, or click any block in the preview to edit it here.'}
+          {t('noSectionSelectedDesc')}
         </p>
       </div>
     </div>

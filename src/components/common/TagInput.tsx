@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 
@@ -10,7 +11,9 @@ interface TagInputProps {
   placeholder?: string;
 }
 
-export function TagInput({ tags, onChange, placeholder = 'Type and press Enter' }: TagInputProps) {
+export function TagInput({ tags, onChange, placeholder }: TagInputProps) {
+  const t = useTranslations('components');
+  const resolvedPlaceholder = placeholder ?? t('tagInputPlaceholder');
   const [input, setInput] = useState('');
 
   const addTag = () => {
@@ -27,7 +30,7 @@ export function TagInput({ tags, onChange, placeholder = 'Type and press Enter' 
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-1.5 min-h-[36px] border rounded-md bg-background focus-within:ring-2 focus-within:ring-ring">
       {tags.map((tag, i) => (
-        <Badge key={i} variant="outline" className="text-xs gap-1 pr-0.5 bg-blue-50 text-blue-700 border-blue-200">
+        <Badge key={i} variant="outline" className="text-xs gap-1 pe-0.5 bg-blue-50 text-blue-700 border-blue-200">
           {tag}
           <button type="button" onClick={() => removeTag(i)} className="hover:text-red-500 transition p-0.5">
             <X className="w-3 h-3" />
@@ -36,7 +39,7 @@ export function TagInput({ tags, onChange, placeholder = 'Type and press Enter' 
       ))}
       <input
         className="flex-1 min-w-[100px] text-sm bg-transparent outline-none placeholder:text-muted-foreground px-1"
-        placeholder={tags.length === 0 ? placeholder : ''}
+        placeholder={tags.length === 0 ? resolvedPlaceholder : ''}
         value={input}
         onChange={e => setInput(e.target.value)}
         onKeyDown={e => {

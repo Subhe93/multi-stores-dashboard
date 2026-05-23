@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ interface DashboardStats {
 }
 
 export default function AdminOverview() {
+  const t = useTranslations('admin');
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
@@ -61,22 +63,22 @@ export default function AdminOverview() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Platform Overview</h1>
-        <p className="text-sm text-muted-foreground">Monitor your marketplace</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('platformOverview')}</h1>
+        <p className="text-sm text-muted-foreground">{t('monitorMarketplace')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Users" value={loading ? '...' : stats?.totalUsers ?? 0} icon={<Users className="w-4 h-4" />} />
-        <StatCard title="Providers" value={loading ? '...' : stats?.totalProviders ?? 0} subtitle="registered" icon={<Package className="w-4 h-4" />} />
-        <StatCard title="Creators" value={loading ? '...' : stats?.totalCreators ?? 0} subtitle="registered" icon={<Store className="w-4 h-4" />} />
-        <StatCard title="Platform Revenue" value={loading ? '...' : fmt(platformSummary?.platform_earnings)} subtitle="all time" icon={<DollarSign className="w-4 h-4" />} />
+        <StatCard title={t('totalUsers')} value={loading ? '...' : stats?.totalUsers ?? 0} icon={<Users className="w-4 h-4" />} />
+        <StatCard title={t('providers')} value={loading ? '...' : stats?.totalProviders ?? 0} subtitle={t('registered')} icon={<Package className="w-4 h-4" />} />
+        <StatCard title={t('creators')} value={loading ? '...' : stats?.totalCreators ?? 0} subtitle={t('registered')} icon={<Store className="w-4 h-4" />} />
+        <StatCard title={t('platformRevenue')} value={loading ? '...' : fmt(platformSummary?.platform_earnings)} subtitle={t('allTime')} icon={<DollarSign className="w-4 h-4" />} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Pending Approvals</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('pendingApprovals')}</CardTitle>
               <Badge variant="destructive" className="text-[10px]">
                 {(stats?.pendingProviders ?? 0) + (stats?.pendingCreators ?? 0)}
               </Badge>
@@ -85,11 +87,11 @@ export default function AdminOverview() {
           <CardContent>
             <div className="space-y-2">
               <button onClick={() => router.push('/admin/providers')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-left">
-                <span className="text-sm text-muted-foreground">Provider applications</span>
+                <span className="text-sm text-muted-foreground">{t('providerApplications')}</span>
                 <Badge variant="secondary">{stats?.pendingProviders ?? 0}</Badge>
               </button>
               <button onClick={() => router.push('/admin/creators')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-left">
-                <span className="text-sm text-muted-foreground">Creator applications</span>
+                <span className="text-sm text-muted-foreground">{t('creatorApplications')}</span>
                 <Badge variant="secondary">{stats?.pendingCreators ?? 0}</Badge>
               </button>
             </div>
@@ -99,13 +101,13 @@ export default function AdminOverview() {
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Recent Users</CardTitle>
-              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/admin/users')}>View all</Button>
+              <CardTitle className="text-sm font-semibold">{t('recentUsers')}</CardTitle>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push('/admin/users')}>{t('viewAll')}</Button>
             </div>
           </CardHeader>
           <CardContent>
             {recentUsers.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No users yet</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t('noUsersYet')}</p>
             ) : (
               <div className="space-y-2">
                 {recentUsers.map(u => (

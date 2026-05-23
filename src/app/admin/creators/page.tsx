@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface Creator {
 }
 
 export default function AdminCreators() {
+  const t = useTranslations('admin');
   const { token } = useAuth();
   const router = useRouter();
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -44,45 +46,45 @@ export default function AdminCreators() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Creators</h1>
-        <p className="text-sm text-muted-foreground">Manage creators and verify applications</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('creators')}</h1>
+        <p className="text-sm text-muted-foreground">{t('creatorsSubtitle')}</p>
       </div>
 
       <DataTable
         columns={[
-          { key: 'name', label: 'Creator', render: (item: Creator) => (
+          { key: 'name', label: t('creator'), render: (item: Creator) => (
             <div>
               <p className="text-sm font-medium">{item.display_name}</p>
               <p className="text-[10px] text-muted-foreground">{item.user.email}</p>
             </div>
           )},
-          { key: 'bio', label: 'Bio', render: (item: Creator) => (
+          { key: 'bio', label: t('bio'), render: (item: Creator) => (
             <span className="text-xs text-muted-foreground line-clamp-1">{item.bio || '—'}</span>
           )},
-          { key: 'verified', label: 'Status', render: (item: Creator) => (
+          { key: 'verified', label: t('status'), render: (item: Creator) => (
             item.verified
-              ? <Badge variant="outline" className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border-emerald-200">Verified</Badge>
-              : <Badge variant="outline" className="text-[10px] font-semibold bg-amber-50 text-amber-700 border-amber-200">Pending</Badge>
+              ? <Badge variant="outline" className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border-emerald-200">{t('verified')}</Badge>
+              : <Badge variant="outline" className="text-[10px] font-semibold bg-amber-50 text-amber-700 border-amber-200">{t('pending')}</Badge>
           )},
-          { key: 'created_at', label: 'Joined', render: (item: Creator) => (
+          { key: 'created_at', label: t('joined'), render: (item: Creator) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
           )},
           { key: 'actions', label: '', render: (item: Creator) => (
             <div className="flex gap-1">
               {!item.verified && (
-                <Button size="sm" className="h-6 text-[10px]" onClick={() => handleVerify(item.id)}>Verify</Button>
+                <Button size="sm" className="h-6 text-[10px]" onClick={() => handleVerify(item.id)}>{t('verify')}</Button>
               )}
-              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/creators/${item.id}`)}>View</Button>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/creators/${item.id}`)}>{t('view')}</Button>
             </div>
           )},
         ]}
         data={creators}
-        searchPlaceholder="Search creators..."
+        searchPlaceholder={t('searchCreators')}
         onSearch={(q) => {
           if (!token) return;
           api<any>(`/creators?search=${q}`, { token }).then((res) => setCreators(res?.data || []));
         }}
-        emptyMessage={loading ? 'Loading...' : 'No creators found'}
+        emptyMessage={loading ? t('loading') : t('noCreatorsFound')}
       />
     </div>
   );

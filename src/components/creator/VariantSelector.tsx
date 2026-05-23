@@ -1,6 +1,7 @@
 'use client';
 
 import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/lib/useCurrency';
 
 interface Variant {
@@ -25,6 +26,7 @@ export default function VariantSelector({
   basePrice,
 }: VariantSelectorProps) {
   const { fmt } = useCurrency();
+  const t = useTranslations('components');
   const toggle = (id: string) => {
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((v) => v !== id));
@@ -40,7 +42,7 @@ export default function VariantSelector({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          {selectedIds.length} of {variants.length} variants selected
+          {t('variantsSelectedOf', { selected: selectedIds.length, total: variants.length })}
         </p>
         <div className="flex gap-2">
           <button
@@ -48,7 +50,7 @@ export default function VariantSelector({
             onClick={selectAll}
             className="text-xs text-primary hover:underline"
           >
-            Select all
+            {t('selectAll')}
           </button>
           <span className="text-xs text-muted-foreground">·</span>
           <button
@@ -56,7 +58,7 @@ export default function VariantSelector({
             onClick={deselectAll}
             className="text-xs text-primary hover:underline"
           >
-            Deselect all
+            {t('deselectAll')}
           </button>
         </div>
       </div>
@@ -94,7 +96,7 @@ export default function VariantSelector({
                 </p>
                 {variant.stock_quantity !== null && (
                   <p className="text-[11px] text-muted-foreground">
-                    Stock: {variant.stock_quantity}
+                    {t('stockLabel', { count: variant.stock_quantity })}
                   </p>
                 )}
               </div>
@@ -108,7 +110,7 @@ export default function VariantSelector({
       </div>
 
       {selectedIds.length === 0 && (
-        <p className="text-xs text-red-600">At least one variant must be selected.</p>
+        <p className="text-xs text-red-600">{t('atLeastOneVariant')}</p>
       )}
     </div>
   );

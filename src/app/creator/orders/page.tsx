@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ export default function CreatorOrdersPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const [orders, setOrders] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +60,7 @@ export default function CreatorOrdersPage() {
   const columns = [
     {
       key: 'order_number',
-      label: 'Order',
+      label: t('orders.colOrder'),
       sortable: true,
       render: (item: any) => (
         <button
@@ -71,7 +74,7 @@ export default function CreatorOrdersPage() {
     },
     {
       key: 'customer',
-      label: 'Customer',
+      label: t('orders.colCustomer'),
       render: (item: any) => (
         <span className="text-sm">
           {item.customer
@@ -82,16 +85,16 @@ export default function CreatorOrdersPage() {
     },
     {
       key: 'items',
-      label: 'Items',
+      label: t('orders.colItems'),
       render: (item: any) => (
         <span className="text-xs text-muted-foreground">
-          {item.items?.length ?? 0} item(s)
+          {t('orders.itemCount', { count: item.items?.length ?? 0 })}
         </span>
       ),
     },
     {
       key: 'total',
-      label: 'Total',
+      label: t('orders.colTotal'),
       sortable: true,
       render: (item: any) => (
         <span className="text-sm font-medium">{fmt(item.total)}</span>
@@ -99,7 +102,7 @@ export default function CreatorOrdersPage() {
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       sortable: true,
       render: (item: any) => (
         <Badge
@@ -112,7 +115,7 @@ export default function CreatorOrdersPage() {
     },
     {
       key: 'created_at',
-      label: 'Date',
+      label: t('orders.colDate'),
       sortable: true,
       render: (item: any) => (
         <span className="text-xs text-muted-foreground">
@@ -130,7 +133,7 @@ export default function CreatorOrdersPage() {
           className="h-6 text-[10px]"
           onClick={() => router.push(`/creator/orders/${item.id}`)}
         >
-          View
+          {t('orders.view')}
         </Button>
       ),
     },
@@ -139,8 +142,8 @@ export default function CreatorOrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Orders</h1>
-        <p className="text-sm text-muted-foreground">Orders placed through your store</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('orders.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('orders.subtitle')}</p>
       </div>
 
       {/* Tab filters */}
@@ -153,7 +156,7 @@ export default function CreatorOrdersPage() {
             className="h-8 text-xs"
             onClick={() => setActiveTab(tab)}
           >
-            {tab}
+            {t(`orders.tab${tab}`)}
           </Button>
         ))}
       </div>
@@ -161,8 +164,8 @@ export default function CreatorOrdersPage() {
       <DataTable
         columns={columns}
         data={filtered}
-        searchPlaceholder="Search orders…"
-        emptyMessage={loading ? 'Loading…' : 'No orders yet'}
+        searchPlaceholder={t('orders.searchPlaceholder')}
+        emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
         pagination={meta}
         onPageChange={(p) => fetchOrders(p)}
       />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Package, Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -32,8 +33,10 @@ interface Meta {
   totalPages: number;
 }
 
-function getTitle(translations: { locale: string; title: string }[]) {
-  return translations.find((t) => t.locale === 'en')?.title || translations[0]?.title || 'Untitled';
+type Translator = ReturnType<typeof useTranslations>;
+
+function getTitle(translations: { locale: string; title: string }[], t: Translator) {
+  return translations.find((tr) => tr.locale === 'en')?.title || translations[0]?.title || t('browseCatalog.untitled');
 }
 
 function getCategoryName(translations?: { locale: string; name: string }[]) {
@@ -45,6 +48,8 @@ export default function BrowseProviderCatalogPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -108,25 +113,25 @@ export default function BrowseProviderCatalogPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon-sm" onClick={() => router.push('/creator/products')}>
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 rtl:rotate-180" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Provider Catalog</h1>
-            <p className="text-sm text-muted-foreground">Choose a product to add to your store</p>
+            <h1 className="text-xl font-semibold tracking-tight">{t('browseCatalog.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('browseCatalog.subtitle')}</p>
           </div>
         </div>
 
         <form onSubmit={handleSearch} className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute inset-s-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search products…"
-              className="h-8 w-56 pl-8"
+              placeholder={t('browseCatalog.searchPlaceholder')}
+              className="h-8 w-56 ps-8"
             />
           </div>
-          <Button type="submit" size="sm" variant="outline">Search</Button>
+          <Button type="submit" size="sm" variant="outline">{tc('search')}</Button>
         </form>
       </div>
 
@@ -134,15 +139,15 @@ export default function BrowseProviderCatalogPage() {
         {/* Category Sidebar */}
         <div className="hidden lg:block w-52 shrink-0">
           <div className="sticky top-6 space-y-1">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-2">Categories</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-2">{t('browseCatalog.categories')}</p>
             <button
               type="button"
               onClick={() => handleCategorySelect(null)}
-              className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition ${
+              className={`w-full text-start px-3 py-1.5 rounded-md text-sm transition ${
                 !selectedCategoryId ? 'bg-zinc-900 text-white font-medium' : 'text-zinc-600 hover:bg-zinc-100'
               }`}
             >
-              All Products
+              {t('browseCatalog.allProducts')}
             </button>
             {categories.map((cat) => {
               const name = cat.translations?.find((t: any) => t.locale === 'en')?.name || cat.translations?.[0]?.name || '—';
@@ -152,7 +157,7 @@ export default function BrowseProviderCatalogPage() {
                   <button
                     type="button"
                     onClick={() => handleCategorySelect(cat.id)}
-                    className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition ${
+                    className={`w-full text-start px-3 py-1.5 rounded-md text-sm transition ${
                       isActive ? 'bg-zinc-900 text-white font-medium' : 'text-zinc-600 hover:bg-zinc-100'
                     }`}
                   >
@@ -166,7 +171,7 @@ export default function BrowseProviderCatalogPage() {
                         key={child.id}
                         type="button"
                         onClick={() => handleCategorySelect(child.id)}
-                        className={`w-full text-left pl-6 pr-3 py-1 rounded-md text-xs transition ${
+                        className={`w-full text-start ps-6 pe-3 py-1 rounded-md text-xs transition ${
                           childActive ? 'bg-zinc-900 text-white font-medium' : 'text-zinc-500 hover:bg-zinc-100'
                         }`}
                       >
@@ -197,13 +202,13 @@ export default function BrowseProviderCatalogPage() {
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Package className="mb-3 size-10 text-zinc-300" />
-              <p className="text-sm font-medium">No products found</p>
-              {search && <p className="mt-1 text-xs text-muted-foreground">Try a different search term</p>}
+              <p className="text-sm font-medium">{t('browseCatalog.noProducts')}</p>
+              {search && <p className="mt-1 text-xs text-muted-foreground">{t('browseCatalog.tryDifferentSearch')}</p>}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product) => {
-                const title = getTitle(product.translations);
+                const title = getTitle(product.translations, t);
                 const category = getCategoryName(product.category?.translations);
                 const image = resolveUrl(product.images?.[0]?.url);
                 return (
@@ -228,7 +233,7 @@ export default function BrowseProviderCatalogPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold tabular-nums text-zinc-700">
-                          Base: {fmt(product.base_price)}
+                          {t('browseCatalog.basePrice', { price: fmt(product.base_price) })}
                         </span>
                         <Button
                           size="xs"
@@ -237,8 +242,8 @@ export default function BrowseProviderCatalogPage() {
                             router.push(`/creator/custom-products/new?product_id=${product.id}`);
                           }}
                         >
-                          <ShoppingBag className="w-3 h-3 mr-1" />
-                          Add to Store
+                          <ShoppingBag className="w-3 h-3 me-1" />
+                          {t('browseCatalog.addToStore')}
                         </Button>
                       </div>
                     </CardContent>
@@ -252,14 +257,14 @@ export default function BrowseProviderCatalogPage() {
           {meta && meta.totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
               <p className="text-xs text-muted-foreground">
-                Page {meta.page} of {meta.totalPages} &middot; {meta.total} products
+                {t('browseCatalog.pageInfo', { page: meta.page, totalPages: meta.totalPages, total: meta.total })}
               </p>
               <div className="flex items-center gap-1">
                 <Button size="icon-sm" variant="outline" onClick={() => setPage((p) => p - 1)} disabled={page <= 1 || loading}>
-                  <ChevronLeft className="size-3.5" />
+                  <ChevronLeft className="size-3.5 rtl:rotate-180" />
                 </Button>
                 <Button size="icon-sm" variant="outline" onClick={() => setPage((p) => p + 1)} disabled={!meta || page >= meta.totalPages || loading}>
-                  <ChevronRight className="size-3.5" />
+                  <ChevronRight className="size-3.5 rtl:rotate-180" />
                 </Button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/lib/useCurrency';
 import { pickTranslation } from './types';
 import type { BundleOffer } from './types';
@@ -37,6 +38,7 @@ function computeTotals(offer: BundleOffer, unit: number) {
 }
 
 export function BundlePreview({ offers, primaryLocale, unitPrice = 50, pricingType }: Props) {
+  const t = useTranslations();
   const { fmt } = useCurrency();
   const isVariantPricing = pricingType === 'PER_VARIANT' || pricingType === 'MARGIN';
 
@@ -44,22 +46,22 @@ export function BundlePreview({ offers, primaryLocale, unitPrice = 50, pricingTy
 
   return (
     <div className="rounded-xl border bg-white p-4">
-      <div className="mb-1 text-sm font-semibold">Preview</div>
+      <div className="mb-1 text-sm font-semibold">{t('bundle.preview')}</div>
       <p className="mb-4 text-xs text-muted-foreground">
-        A standard preview of how this bundle will look on your pages.
+        {t('bundle.previewDesc')}
       </p>
 
       {sorted.length === 0 ? (
         <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground">
-          Add at least one offer to see the preview
+          {t('bundle.previewEmpty')}
         </div>
       ) : (
         <div className="space-y-2">
           {sorted.map((offer, idx) => {
-            const t = pickTranslation(offer.translations, primaryLocale);
-            const title = t?.title || `Offer ${idx + 1}`;
-            const label = t?.label || '';
-            const sticker = t?.sticker_text || '';
+            const tr = pickTranslation(offer.translations, primaryLocale);
+            const title = tr?.title || t('bundle.offerNum', { num: idx + 1 });
+            const label = tr?.label || '';
+            const sticker = tr?.sticker_text || '';
             const totals = computeTotals(offer, unitPrice);
             const isFirst = idx === 0;
 
@@ -105,8 +107,8 @@ export function BundlePreview({ offers, primaryLocale, unitPrice = 50, pricingTy
 
       <p className="mt-3 text-[10px] text-muted-foreground">
         {isVariantPricing
-          ? `Totals computed against the cheapest variant price of ${fmt(unitPrice.toFixed(2))}. Other variants will yield different totals.`
-          : `Totals computed against a unit price of ${fmt(unitPrice.toFixed(2))}.`}
+          ? t('bundle.totalsVariant', { price: fmt(unitPrice.toFixed(2)) })
+          : t('bundle.totalsUnit', { price: fmt(unitPrice.toFixed(2)) })}
       </p>
     </div>
   );

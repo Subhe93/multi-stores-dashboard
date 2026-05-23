@@ -7,6 +7,7 @@
 // onChange and persist via onSave (PUT /stores/my/theme-selection).
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loader2, Palette, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,17 +47,23 @@ const FONT_OPTIONS = [
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 
-const COLOR_FIELDS: { key: ColorKey; en: string; ar: string; placeholder: string }[] = [
-  { key: 'primary', en: 'Primary', ar: 'الأساسي', placeholder: '#2563eb' },
-  { key: 'secondary', en: 'Secondary', ar: 'الثانوي', placeholder: '#1e40af' },
-  { key: 'accent', en: 'Accent', ar: 'التمييز', placeholder: '#f59e0b' },
-  { key: 'background', en: 'Background', ar: 'الخلفية', placeholder: '#ffffff' },
-  { key: 'surface', en: 'Surface', ar: 'السطح', placeholder: '#f5f5f5' },
-  { key: 'text', en: 'Text', ar: 'النص', placeholder: '#111827' },
+// Color token keys (used as logic + theme token keys) paired with a default
+// placeholder. Human-readable labels come from the translator, keyed by token.
+const COLOR_FIELDS: { key: ColorKey; placeholder: string }[] = [
+  { key: 'primary', placeholder: '#2563eb' },
+  { key: 'secondary', placeholder: '#1e40af' },
+  { key: 'accent', placeholder: '#f59e0b' },
+  { key: 'background', placeholder: '#ffffff' },
+  { key: 'surface', placeholder: '#f5f5f5' },
+  { key: 'text', placeholder: '#111827' },
 ];
 
 export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigger }: ThemeCustomizerProps) {
-  const ar = locale === 'ar';
+  // `locale` is the store-content locale (kept for callers); chrome text below
+  // is translated via the dashboard UI locale.
+  void locale;
+  const t = useTranslations('builder');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ThemeTokenCustomizations>(value);
   const [saving, setSaving] = useState(false);
@@ -112,12 +119,10 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Palette className="w-4 h-4" />
-            {ar ? 'تخصيص الثيم' : 'Customize theme'}
+            {t('customizeTheme')}
           </DialogTitle>
           <DialogDescription>
-            {ar
-              ? 'عدّل ألوان وخطوط ثيم متجرك. تظهر التغييرات في المعاينة فوراً.'
-              : "Tune your store theme's colors and fonts. Changes preview instantly."}
+            {t('customizeThemeDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -125,13 +130,13 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
           {/* Colors */}
           <section className="space-y-2">
             <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
-              {ar ? 'الألوان' : 'Colors'}
+              {t('colors')}
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {COLOR_FIELDS.map((f) => (
                 <ColorField
                   key={f.key}
-                  label={ar ? f.ar : f.en}
+                  label={t(`color.${f.key}`)}
                   value={draft.colors?.[f.key] || ''}
                   placeholder={f.placeholder}
                   onChange={(v) => setColor(f.key, v)}
@@ -143,25 +148,25 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
           {/* Fonts */}
           <section className="space-y-2">
             <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
-              {ar ? 'الخطوط' : 'Fonts'}
+              {t('fonts')}
             </div>
             <div className="space-y-2">
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{ar ? 'خط العناوين' : 'Heading font'}</Label>
+                <Label className="text-[11.5px] text-zinc-700">{t('headingFont')}</Label>
                 <SearchableSelect
                   value={draft.typography?.fontFamily?.heading || ''}
                   onChange={(v) => setFont('heading', v)}
-                  options={[{ value: '', label: ar ? 'افتراضي الثيم' : 'Theme default' }, ...FONT_OPTIONS]}
-                  placeholder={ar ? 'افتراضي الثيم' : 'Theme default'}
+                  options={[{ value: '', label: t('themeDefault') }, ...FONT_OPTIONS]}
+                  placeholder={t('themeDefault')}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{ar ? 'خط النص' : 'Body font'}</Label>
+                <Label className="text-[11.5px] text-zinc-700">{t('bodyFont')}</Label>
                 <SearchableSelect
                   value={draft.typography?.fontFamily?.body || ''}
                   onChange={(v) => setFont('body', v)}
-                  options={[{ value: '', label: ar ? 'افتراضي الثيم' : 'Theme default' }, ...FONT_OPTIONS]}
-                  placeholder={ar ? 'افتراضي الثيم' : 'Theme default'}
+                  options={[{ value: '', label: t('themeDefault') }, ...FONT_OPTIONS]}
+                  placeholder={t('themeDefault')}
                 />
               </div>
             </div>
@@ -171,20 +176,20 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
           <Button type="button" variant="ghost" size="sm" onClick={handleReset} className="text-zinc-500">
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-            {ar ? 'إعادة لإعدادات الثيم' : 'Reset to theme'}
+            {t('resetToTheme')}
           </Button>
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" onClick={handleCancel} disabled={saving}>
-              {ar ? 'إلغاء' : 'Cancel'}
+              {tc('cancel')}
             </Button>
             <Button type="button" onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  {ar ? 'جارٍ الحفظ…' : 'Saving…'}
+                  {tc('saving')}
                 </>
               ) : (
-                ar ? 'حفظ' : 'Save'
+                tc('save')
               )}
             </Button>
           </div>
@@ -205,6 +210,7 @@ function ColorField({
   placeholder?: string;
   onChange: (v: string) => void;
 }) {
+  const t = useTranslations('builder');
   return (
     <div className="space-y-1">
       <Label className="text-[11px] text-zinc-600">{label}</Label>
@@ -222,7 +228,7 @@ function ColorField({
           placeholder={placeholder}
         />
         {value && (
-          <button type="button" onClick={() => onChange('')} className="text-zinc-400 hover:text-zinc-900 shrink-0" title="Clear">
+          <button type="button" onClick={() => onChange('')} className="text-zinc-400 hover:text-zinc-900 shrink-0" title={t('clear')}>
             <X className="w-3 h-3" />
           </button>
         )}

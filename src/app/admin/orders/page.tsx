@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminOrders() {
+  const t = useTranslations('admin');
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
@@ -44,50 +46,55 @@ export default function AdminOrders() {
 
   const filtered = activeTab === 'All' ? orders : orders.filter((o) => o.status === activeTab.toUpperCase());
 
+  const tabLabels: Record<string, string> = {
+    All: t('tabAll'), Pending: t('statusPending'), Processing: t('statusProcessing'),
+    Shipped: t('statusShipped'), Delivered: t('statusDelivered'), Cancelled: t('statusCancelled'),
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">All Orders</h1>
-        <p className="text-sm text-muted-foreground">Platform-wide order management</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('allOrders')}</h1>
+        <p className="text-sm text-muted-foreground">{t('allOrdersSubtitle')}</p>
       </div>
 
       <div className="flex gap-1.5">
         {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((tab) => (
           <Button key={tab} variant={activeTab === tab ? 'default' : 'ghost'} size="sm" className="h-8 text-xs"
-            onClick={() => setActiveTab(tab)}>{tab}</Button>
+            onClick={() => setActiveTab(tab)}>{tabLabels[tab] ?? tab}</Button>
         ))}
       </div>
 
       <DataTable
         columns={[
-          { key: 'order_number', label: 'Order', sortable: true, render: (item: any) => (
+          { key: 'order_number', label: t('order'), sortable: true, render: (item: any) => (
             <button onClick={() => router.push(`/admin/orders/${item.id}`)} className="text-sm font-mono font-medium hover:underline text-left">
               {item.order_number}
             </button>
           )},
-          { key: 'customer', label: 'Customer', render: (item: any) => (
+          { key: 'customer', label: t('customer'), render: (item: any) => (
             <span className="text-sm">{item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}</span>
           )},
-          { key: 'items', label: 'Items', render: (item: any) => (
-            <span className="text-xs text-muted-foreground">{item.items?.length || 0} items</span>
+          { key: 'items', label: t('items'), render: (item: any) => (
+            <span className="text-xs text-muted-foreground">{t('itemsCount', { count: item.items?.length || 0 })}</span>
           )},
-          { key: 'total', label: 'Total', sortable: true, render: (item: any) => (
+          { key: 'total', label: t('total'), sortable: true, render: (item: any) => (
             <span className="text-sm font-medium">{fmt(item.total)}</span>
           )},
-          { key: 'status', label: 'Status', sortable: true, render: (item: any) => (
+          { key: 'status', label: t('status'), sortable: true, render: (item: any) => (
             <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{item.status}</Badge>
           )},
-          { key: 'created_at', label: 'Date', sortable: true, render: (item: any) => (
+          { key: 'created_at', label: t('date'), sortable: true, render: (item: any) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
           )},
           { key: 'actions', label: '', render: (item: any) => (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/orders/${item.id}`)}>View</Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/orders/${item.id}`)}>{t('view')}</Button>
           )},
         ]}
         data={filtered}
         pagination={meta}
         onPageChange={(p) => fetchOrders(p)}
-        emptyMessage={loading ? 'Loading...' : 'No orders yet'}
+        emptyMessage={loading ? t('loading') : t('noOrdersYet')}
       />
     </div>
   );

@@ -1,27 +1,29 @@
 'use client';
 
-const blockTypes = [
-  { type: 'HERO', label: 'Hero', icon: '🎯', description: 'Large hero section with image, heading, and CTA' },
-  { type: 'TEXT', label: 'Text', icon: '📝', description: 'Rich text content block' },
-  { type: 'IMAGE', label: 'Image', icon: '🖼️', description: 'Single image with optional caption' },
-  { type: 'GALLERY', label: 'Gallery', icon: '📸', description: 'Image grid gallery' },
-  { type: 'VIDEO', label: 'Video', icon: '🎬', description: 'Embedded video (YouTube, Vimeo)' },
-  { type: 'BEFORE_AFTER', label: 'Before/After', icon: '↔️', description: 'Compare two images side by side' },
-  { type: 'FAQ', label: 'FAQ', icon: '❓', description: 'Frequently asked questions accordion' },
-  { type: 'REVIEWS', label: 'Reviews', icon: '⭐', description: 'Customer reviews section' },
-  { type: 'CTA', label: 'Call to Action', icon: '📢', description: 'Call to action with button' },
-  { type: 'CUSTOM_HTML', label: 'Custom HTML', icon: '💻', description: 'Custom HTML/embed code' },
-  { type: 'SPACER', label: 'Spacer', icon: '↕️', description: 'Empty space between blocks' },
-];
+import { useTranslations } from 'next-intl';
 
 interface BlockPaletteProps {
   onAddBlock: (type: string) => void;
 }
 
 export function BlockPalette({ onAddBlock }: BlockPaletteProps) {
+  const t = useTranslations('components');
+  const blockTypes = [
+    { type: 'HERO', label: t('blockHero'), icon: '🎯' },
+    { type: 'TEXT', label: t('blockText'), icon: '📝' },
+    { type: 'IMAGE', label: t('blockImage'), icon: '🖼️' },
+    { type: 'GALLERY', label: t('blockGallery'), icon: '📸' },
+    { type: 'VIDEO', label: t('blockVideo'), icon: '🎬' },
+    { type: 'BEFORE_AFTER', label: t('blockBeforeAfter'), icon: '↔️' },
+    { type: 'FAQ', label: t('blockFaq'), icon: '❓' },
+    { type: 'REVIEWS', label: t('blockReviews'), icon: '⭐' },
+    { type: 'CTA', label: t('blockCta'), icon: '📢' },
+    { type: 'CUSTOM_HTML', label: t('blockCustomHtml'), icon: '💻' },
+    { type: 'SPACER', label: t('blockSpacer'), icon: '↕️' },
+  ];
   return (
     <div className="bg-white rounded-xl border p-4">
-      <h3 className="font-semibold text-gray-900 mb-3 text-sm">Add Block</h3>
+      <h3 className="font-semibold text-gray-900 mb-3 text-sm">{t('addBlock')}</h3>
       <div className="grid grid-cols-2 gap-2">
         {blockTypes.map((block) => (
           <button

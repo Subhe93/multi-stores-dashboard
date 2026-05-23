@@ -12,6 +12,9 @@ import { DollarSign, TrendingUp, Clock, CreditCard, Download } from 'lucide-reac
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useTranslations } from 'next-intl';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
@@ -26,10 +29,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const DATE_FILTERS = [
-  { label: 'This Month',  value: 'this_month' },
-  { label: 'Last Month',  value: 'last_month' },
-  { label: 'Last 3 Mo.',  value: 'last_3_months' },
-  { label: 'All Time',    value: 'all' },
+  { labelKey: 'filterThisMonth',   value: 'this_month' },
+  { labelKey: 'filterLastMonth',   value: 'last_month' },
+  { labelKey: 'filterLast3Months', value: 'last_3_months' },
+  { labelKey: 'filterAllTime',     value: 'all' },
 ];
 
 function filterByDate(orders: any[], filter: string): any[] {
@@ -51,8 +54,8 @@ function filterByDate(orders: any[], filter: string): any[] {
   });
 }
 
-function exportCsv(rows: any[]) {
-  const header = ['Order', 'Date', 'Order Total', 'Platform Fee', 'Creator Share', 'Your Earnings', 'Status'];
+function exportCsv(rows: any[], t: Translator) {
+  const header = [t('csvOrder'), t('csvDate'), t('csvOrderTotal'), t('csvPlatformFee'), t('csvCreatorShare'), t('csvYourEarnings'), t('csvStatus')];
   const lines = rows.map(o => [
     o.order_number,
     new Date(o.created_at).toLocaleDateString(),
@@ -76,6 +79,7 @@ export default function ProviderEarnings() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('provider');
   const [earnings, setEarnings] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,43 +107,43 @@ export default function ProviderEarnings() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Earnings</h1>
-          <p className="text-sm text-muted-foreground">Track your revenue and payouts</p>
+          <h1 className="text-xl font-semibold tracking-tight">{t('earnings')}</h1>
+          <p className="text-sm text-muted-foreground">{t('earningsSubtitle')}</p>
         </div>
         <Button
           variant="outline"
           size="sm"
           className="h-8 text-xs gap-1.5"
           disabled={filteredOrders.length === 0}
-          onClick={() => exportCsv(filteredOrders)}
+          onClick={() => exportCsv(filteredOrders, t)}
         >
-          <Download className="w-3.5 h-3.5" /> Export CSV
+          <Download className="w-3.5 h-3.5" /> {t('exportCsv')}
         </Button>
       </div>
 
       {/* Global stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Earnings"
+          title={t('totalEarnings')}
           value={loading ? '...' : fmt(earnings?.total_earnings)}
-          subtitle="all time"
+          subtitle={t('allTime')}
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
-          title="This Month"
+          title={t('thisMonth')}
           value={loading ? '...' : fmt(earnings?.this_month)}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <StatCard
-          title="Pending Payout"
+          title={t('pendingPayout')}
           value={loading ? '...' : fmt(earnings?.pending)}
-          subtitle="awaiting settlement"
+          subtitle={t('awaitingSettlement')}
           icon={<Clock className="w-4 h-4" />}
         />
         <StatCard
-          title="Total Orders"
+          title={t('totalOrders')}
           value={loading ? '...' : earnings?.total_orders ?? 0}
-          subtitle="all time"
+          subtitle={t('allTime')}
           icon={<CreditCard className="w-4 h-4" />}
         />
       </div>
@@ -148,7 +152,7 @@ export default function ProviderEarnings() {
       <Card className="shadow-none">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <CardTitle className="text-sm font-semibold">Revenue Breakdown</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('revenueBreakdown')}</CardTitle>
             <div className="flex gap-1">
               {DATE_FILTERS.map(f => (
                 <Button
@@ -158,7 +162,7 @@ export default function ProviderEarnings() {
                   className="h-7 text-xs"
                   onClick={() => setDateFilter(f.value)}
                 >
-                  {f.label}
+                  {t(f.labelKey)}
                 </Button>
               ))}
             </div>
@@ -169,15 +173,15 @@ export default function ProviderEarnings() {
         <CardContent className="pb-0">
           <div className="grid grid-cols-3 gap-4 p-3 bg-zinc-50 rounded-lg mb-4 text-xs">
             <div>
-              <p className="text-muted-foreground mb-0.5">Orders</p>
+              <p className="text-muted-foreground mb-0.5">{t('orders')}</p>
               <p className="font-semibold text-base">{filteredOrders.length}</p>
             </div>
             <div>
-              <p className="text-muted-foreground mb-0.5">Your Earnings</p>
+              <p className="text-muted-foreground mb-0.5">{t('yourEarnings')}</p>
               <p className="font-semibold text-base text-emerald-700">{fmt(filteredEarnings)}</p>
             </div>
             <div>
-              <p className="text-muted-foreground mb-0.5">Avg. Order Value</p>
+              <p className="text-muted-foreground mb-0.5">{t('avgOrderValue')}</p>
               <p className="font-semibold text-base">{fmt(avgOrderValue)}</p>
             </div>
           </div>
@@ -185,18 +189,18 @@ export default function ProviderEarnings() {
 
         <CardContent>
           {filteredOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No orders in this period</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t('noOrdersInPeriod')}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-[10px] font-semibold uppercase">Order</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">Date</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">Order Total</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">Platform Fee</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">Creator Share</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase text-emerald-700">Your Earnings</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">Status</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvOrder')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvDate')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvOrderTotal')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvPlatformFee')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvCreatorShare')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase text-emerald-700">{t('csvYourEarnings')}</TableHead>
+                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvStatus')}</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -247,7 +251,7 @@ export default function ProviderEarnings() {
                           className="h-6 text-[10px]"
                           onClick={() => router.push(`/provider/orders/${order.id}`)}
                         >
-                          View
+                          {t('view')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -262,30 +266,30 @@ export default function ProviderEarnings() {
       {/* Commission structure explanation */}
       <Card className="shadow-none bg-zinc-50/60">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">How Earnings Work</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('howEarningsWork')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-xs text-muted-foreground">
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">Order Total</span> — the full amount paid by the customer (including shipping)</p>
+            <p><span className="font-medium text-foreground">{t('csvOrderTotal')}</span> — {t('explainOrderTotal')}</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">Platform Fee</span> — the platform's commission deducted from the subtotal</p>
+            <p><span className="font-medium text-foreground">{t('csvPlatformFee')}</span> — {t('explainPlatformFee')}</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">Creator Share</span> — the creator's margin (only when a creator resells your product)</p>
+            <p><span className="font-medium text-foreground">{t('csvCreatorShare')}</span> — {t('explainCreatorShare')}</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-emerald-700">Your Earnings</span> — what you receive after all deductions, paid via Stripe Connect</p>
+            <p><span className="font-medium text-emerald-700">{t('csvYourEarnings')}</span> — {t('explainYourEarnings')}</p>
           </div>
           <Separator className="my-1" />
-          <p>Payouts are processed automatically via{' '}
+          <p>{t('payoutsIntro')}{' '}
             <button onClick={() => router.push('/provider/settings')} className="text-primary hover:underline font-medium">
-              Stripe Connect
-            </button>. Connect your account in Settings to receive payouts.
+              {t('stripeConnect')}
+            </button>. {t('payoutsOutro')}
           </p>
         </CardContent>
       </Card>

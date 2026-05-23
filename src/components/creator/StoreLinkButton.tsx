@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ExternalLink, Store as StoreIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
@@ -22,6 +23,7 @@ interface MyStore {
 
 export function StoreLinkButton() {
   const { token } = useAuth();
+  const t = useTranslations('components');
   const [store, setStore] = useState<MyStore | null>(null);
 
   useEffect(() => {
@@ -38,10 +40,10 @@ export function StoreLinkButton() {
     : storeUrl(store.slug);
 
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" title={`Open ${store.name}`}>
+    <a href={href} target="_blank" rel="noopener noreferrer" title={t('openStore', { name: store.name })}>
       <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
         <StoreIcon className="size-3.5" />
-        <span className="hidden sm:inline">Visit Store</span>
+        <span className="hidden sm:inline">{t('visitStore')}</span>
         <ExternalLink className="size-3 opacity-60" />
       </Button>
     </a>

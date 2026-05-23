@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 import { Check, ChevronsUpDown, X, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,9 +28,11 @@ export function ProductMultiSelect({
   options,
   value,
   onChange,
-  placeholder = 'Search and pick products…',
+  placeholder,
   loading = false,
 }: Props) {
+  const t = useTranslations();
+  const placeholderText = placeholder ?? t('bundle.searchAndPickProducts');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [pos, setPos] = useState({
@@ -108,7 +111,7 @@ export function ProductMultiSelect({
         )}
       >
         {selected.length === 0 ? (
-          <span className="px-1 text-sm text-muted-foreground">{placeholder}</span>
+          <span className="px-1 text-sm text-muted-foreground">{placeholderText}</span>
         ) : (
           selected.map((p) => (
             <span
@@ -132,7 +135,7 @@ export function ProductMultiSelect({
                   e.stopPropagation();
                   toggle(p.id);
                 }}
-                aria-label={`Remove ${p.name}`}
+                aria-label={t('bundle.removeNamed', { name: p.name })}
               >
                 <X className="size-2.5" />
               </button>
@@ -158,7 +161,7 @@ export function ProductMultiSelect({
               <input
                 autoFocus
                 type="text"
-                placeholder="Search products…"
+                placeholder={t('bundle.searchProducts')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground"
@@ -167,11 +170,11 @@ export function ProductMultiSelect({
             <div className="flex-1 min-h-0 overflow-y-auto">
               {loading ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">
-                  Loading…
+                  {t('common.loading')}
                 </p>
               ) : filtered.length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">
-                  No products found
+                  {t('bundle.noProductsFound')}
                 </p>
               ) : (
                 filtered.map((p) => {
@@ -212,14 +215,14 @@ export function ProductMultiSelect({
             {value.length > 0 && (
               <div className="flex shrink-0 items-center justify-between border-t bg-zinc-50/70 px-3 py-2">
                 <span className="text-[11px] text-muted-foreground">
-                  {value.length} selected
+                  {t('bundle.selectedCount', { count: value.length })}
                 </span>
                 <button
                   type="button"
                   onClick={() => onChange([])}
                   className="text-[11px] text-red-500 hover:underline"
                 >
-                  Clear all
+                  {t('bundle.clearAll')}
                 </button>
               </div>
             )}

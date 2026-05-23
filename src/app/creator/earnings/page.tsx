@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,6 +62,8 @@ const commissionStatusStyles: Record<OrderCommission['status'], string> = {
 export default function CreatorEarnings() {
   const { token } = useAuth();
   const { fmt } = useCurrency();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
 
   const [summary, setSummary] = useState<CommissionSummary | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -90,7 +93,7 @@ export default function CreatorEarnings() {
   const COMMISSION_COLUMNS = [
     {
       key: 'order_number',
-      label: 'Order',
+      label: t('earnings.colOrder'),
       render: (item: Order) => (
         <Link
           href={`/creator/orders/${item.id}`}
@@ -102,7 +105,7 @@ export default function CreatorEarnings() {
     },
     {
       key: 'subtotal',
-      label: 'Subtotal',
+      label: t('earnings.colSubtotal'),
       render: (item: Order) => (
         <span className="text-muted-foreground tabular-nums">
           {fmt(Number(item.subtotal ?? 0))}
@@ -111,7 +114,7 @@ export default function CreatorEarnings() {
     },
     {
       key: 'commission',
-      label: 'Your Share',
+      label: t('earnings.colYourShare'),
       render: (item: Order) => {
         const amount = item.commission?.creator_amount;
         if (amount == null) {
@@ -126,7 +129,7 @@ export default function CreatorEarnings() {
     },
     {
       key: 'commission_status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: Order) => {
         const status = item.commission?.status;
         if (!status) {
@@ -135,7 +138,7 @@ export default function CreatorEarnings() {
               variant="outline"
               className="text-[10px] font-semibold bg-zinc-50 text-zinc-600 border-zinc-200"
             >
-              N/A
+              {t('earnings.notApplicable')}
             </Badge>
           );
         }
@@ -151,7 +154,7 @@ export default function CreatorEarnings() {
     },
     {
       key: 'created_at',
-      label: 'Date',
+      label: t('earnings.colDate'),
       render: (item: Order) => (
         <span className="text-muted-foreground">
           {new Date(item.created_at).toLocaleDateString()}
@@ -163,37 +166,37 @@ export default function CreatorEarnings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Earnings</h1>
-        <p className="text-sm text-muted-foreground">Track your revenue and payouts</p>
+        <h1 className="text-xl font-semibold tracking-tight">{t('earnings.title')}</h1>
+        <p className="text-sm text-muted-foreground">{t('earnings.subtitle')}</p>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Earnings"
+          title={t('earnings.totalEarnings')}
           value={summary == null ? '...' : fmt(Number(summary.total_earnings ?? 0))}
           subtitle={
             summary?.total_orders != null
-              ? `${summary.total_orders} ${summary.total_orders === 1 ? 'order' : 'orders'}`
+              ? t('earnings.orderCount', { count: summary.total_orders })
               : undefined
           }
           icon={<DollarSign className="w-4 h-4" />}
         />
         <StatCard
-          title="This Month"
+          title={t('earnings.thisMonth')}
           value={summary == null ? '...' : fmt(Number(summary.this_month ?? 0))}
           trend="up"
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <StatCard
-          title="Pending"
+          title={t('earnings.pending')}
           value={summary == null ? '...' : fmt(Number(summary.pending ?? 0))}
           icon={<Clock className="w-4 h-4" />}
         />
         <StatCard
-          title="Stripe"
-          value="Connect"
-          subtitle="Not connected"
+          title={t('earnings.stripe')}
+          value={t('earnings.connect')}
+          subtitle={t('earnings.notConnected')}
           icon={<CreditCard className="w-4 h-4" />}
         />
       </div>
@@ -201,13 +204,13 @@ export default function CreatorEarnings() {
       {/* Commission Breakdown */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Commission Breakdown</CardTitle>
+          <CardTitle className="text-sm font-semibold">{t('earnings.commissionBreakdown')}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
             columns={COMMISSION_COLUMNS}
             data={loading ? [] : orders}
-            emptyMessage={loading ? 'Loading…' : 'No earnings yet'}
+            emptyMessage={loading ? tc('loading') : t('earnings.noEarningsYet')}
             pagination={meta ?? undefined}
             onPageChange={setPage}
           />
@@ -218,21 +221,21 @@ export default function CreatorEarnings() {
       <Card className="shadow-none">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">Stripe Payout</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('earnings.stripePayout')}</CardTitle>
             <Badge
               variant="outline"
               className="text-[10px] bg-amber-50 text-amber-700 border-0"
             >
-              Not Connected
+              {t('earnings.notConnectedBadge')}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <Button size="sm" disabled>
-            Connect Stripe
+            {t('earnings.connectStripe')}
           </Button>
           <p className="text-[11px] text-muted-foreground">
-            Stripe Connect integration coming soon
+            {t('earnings.stripeComingSoon')}
           </p>
         </CardContent>
       </Card>

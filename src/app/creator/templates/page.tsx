@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AlertTriangle, Check, LayoutTemplate, Loader2, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -64,6 +65,7 @@ function gradientFor(id: string): string {
 export default function TemplatesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const t = useTranslations('creator');
   const [loading, setLoading] = useState(true);
   const [kits, setKits] = useState<KitSummary[]>([]);
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -87,10 +89,9 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Templates</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('templates.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Import a ready-made store design in one click — pages, sections, content and theme.
-          Imported pages stay as drafts so you can review before publishing.
+          {t('templates.subtitle')}
         </p>
       </div>
 
@@ -104,7 +105,7 @@ export default function TemplatesPage() {
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
               <LayoutTemplate className="size-6" />
             </div>
-            <p className="text-sm font-medium">No templates available yet</p>
+            <p className="text-sm font-medium">{t('templates.noneAvailable')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -132,7 +133,7 @@ export default function TemplatesPage() {
                   </div>
                 )}
                 <Button size="sm" className="w-full" onClick={() => setActive(kit)}>
-                  Import to my store
+                  {t('templates.importToStore')}
                 </Button>
               </CardContent>
             </Card>
@@ -177,6 +178,8 @@ function ImportDialog({
   onImported: () => void | Promise<void>;
 }) {
   const { token } = useAuth();
+  const t = useTranslations('creator');
+  const tc = useTranslations('common');
   const [withDemoData, setWithDemoData] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -203,7 +206,7 @@ function ImportDialog({
       await onImported();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to import template');
+      setError(err instanceof Error ? err.message : t('templates.failedImport'));
     } finally {
       setImporting(false);
     }
@@ -213,10 +216,9 @@ function ImportDialog({
     <Dialog open={!!kit} onOpenChange={(open) => !open && !importing && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Import “{kit ? loc(kit.name, primaryLocale) : ''}”</DialogTitle>
+          <DialogTitle>{t('templates.importDialogTitle', { name: kit ? loc(kit.name, primaryLocale) : '' })}</DialogTitle>
           <DialogDescription>
-            This applies the template&apos;s theme and replaces the sections of your Home,
-            Header, Footer and Product template pages.
+            {t('templates.importDialogDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -225,9 +227,7 @@ function ImportDialog({
           <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
             <p className="text-xs text-amber-800 leading-relaxed">
-              Existing sections on those pages will be overwritten — but a backup is saved first,
-              so you can restore from <span className="font-medium">History</span> anytime. Pages
-              import as <span className="font-medium">drafts</span>; nothing goes live until you publish.
+              {t('templates.overwriteWarning')}
             </p>
           </div>
 
@@ -240,9 +240,9 @@ function ImportDialog({
               className="mt-0.5 size-4 accent-indigo-600"
             />
             <span className="min-w-0">
-              <span className="block text-xs font-medium text-zinc-800">Add demo products</span>
+              <span className="block text-xs font-medium text-zinc-800">{t('templates.addDemoProducts')}</span>
               <span className="block text-[11px] text-muted-foreground leading-relaxed">
-                Create a sample category and a few demo products so product sections look complete.
+                {t('templates.addDemoProductsDesc')}
               </span>
             </span>
           </label>
@@ -252,18 +252,18 @@ function ImportDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={importing}>
-            Cancel
+            {tc('cancel')}
           </Button>
           <Button onClick={handleImport} disabled={importing}>
             {importing ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
-                Importing…
+                {t('templates.importing')}
               </>
             ) : (
               <>
                 <Check className="size-3.5" />
-                Import &amp; review
+                {t('templates.importAndReview')}
               </>
             )}
           </Button>

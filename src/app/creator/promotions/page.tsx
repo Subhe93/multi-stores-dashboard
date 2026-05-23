@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, Tag, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -48,16 +49,20 @@ interface Promotion {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const TYPE_LABELS: Record<PromotionType, string> = {
-  PERCENTAGE: 'Percentage',
-  FIXED_AMOUNT: 'Fixed Amount',
-  BUY_X_GET_Y: 'Buy X Get Y',
-  BUNDLE: 'Bundle',
-  QUANTITY_DISCOUNT: 'Qty Discount',
-  FREE_SHIPPING: 'Free Shipping',
-  COUPON: 'Coupon',
-  FLASH_SALE: 'Flash Sale',
-};
+type Translator = ReturnType<typeof useTranslations>;
+
+function typeLabels(t: Translator): Record<PromotionType, string> {
+  return {
+    PERCENTAGE: t('promotions.typePercentage'),
+    FIXED_AMOUNT: t('promotions.typeFixedAmount'),
+    BUY_X_GET_Y: t('promotions.typeBuyXGetY'),
+    BUNDLE: t('promotions.typeBundle'),
+    QUANTITY_DISCOUNT: t('promotions.typeQtyDiscount'),
+    FREE_SHIPPING: t('promotions.typeFreeShipping'),
+    COUPON: t('promotions.typeCoupon'),
+    FLASH_SALE: t('promotions.typeFlashSale'),
+  };
+}
 
 function typeBadgeClass(type: PromotionType): string {
   switch (type) {
@@ -86,23 +91,23 @@ function statusBadgeClass(status: PromotionStatus): string {
   }
 }
 
-function formatValue(promo: Promotion, fmt: (v: any) => string): string {
+function formatValue(promo: Promotion, fmt: (v: any) => string, t: Translator): string {
   switch (promo.type) {
     case 'PERCENTAGE':
       return `${promo.value}%`;
     case 'FIXED_AMOUNT':
       return fmt(promo.value);
     case 'FREE_SHIPPING':
-      return 'Free';
+      return t('promotions.valueFree');
     case 'BUY_X_GET_Y':
-      return 'B/G';
+      return t('promotions.valueBuyGet');
     default:
       return String(promo.value);
   }
 }
 
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return 'Never';
+function formatDate(dateStr: string | undefined, t: Translator): string {
+  if (!dateStr) return t('promotions.never');
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
@@ -116,6 +121,9 @@ export default function CreatorPromotionsPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
+  const tt = useTranslations('creator');
+  const tc = useTranslations('common');
+  const TYPE_LABELS = typeLabels(tt);
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [meta, setMeta] = useState<any>(null);
@@ -162,7 +170,7 @@ export default function CreatorPromotionsPage() {
   const columns = [
     {
       key: 'name',
-      label: 'Name',
+      label: tc('name'),
       render: (item: Promotion) => {
         const title = item.translations.find((t) => t.locale === 'en')?.title;
         return (
@@ -174,7 +182,7 @@ export default function CreatorPromotionsPage() {
     },
     {
       key: 'type',
-      label: 'Type',
+      label: tt('promotions.colType'),
       render: (item: Promotion) => (
         <span
           className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium ${typeBadgeClass(item.type)}`}
@@ -185,14 +193,14 @@ export default function CreatorPromotionsPage() {
     },
     {
       key: 'value',
-      label: 'Value',
+      label: tt('promotions.colValue'),
       render: (item: Promotion) => (
-        <span className="text-sm tabular-nums">{formatValue(item, fmt)}</span>
+        <span className="text-sm tabular-nums">{formatValue(item, fmt, tt)}</span>
       ),
     },
     {
       key: 'coupon_code',
-      label: 'Coupon Code',
+      label: tt('promotions.colCouponCode'),
       render: (item: Promotion) =>
         item.coupon_code ? (
           <span className="font-mono text-xs tracking-widest">{item.coupon_code}</span>
@@ -202,14 +210,14 @@ export default function CreatorPromotionsPage() {
     },
     {
       key: 'expires_at',
-      label: 'Expires',
+      label: tt('promotions.colExpires'),
       render: (item: Promotion) => (
-        <span className="text-sm text-muted-foreground">{formatDate(item.expires_at)}</span>
+        <span className="text-sm text-muted-foreground">{formatDate(item.expires_at, tt)}</span>
       ),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: Promotion) => {
         const canToggle = item.status === 'ACTIVE' || item.status === 'DISABLED';
         return (
@@ -231,7 +239,7 @@ export default function CreatorPromotionsPage() {
               }
             }}
             className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium transition ${statusBadgeClass(item.status)} ${canToggle ? 'cursor-pointer hover:opacity-70' : 'cursor-default'}`}
-            title={canToggle ? `Click to ${item.status === 'ACTIVE' ? 'disable' : 'activate'}` : undefined}
+            title={canToggle ? (item.status === 'ACTIVE' ? tt('promotions.clickToDisable') : tt('promotions.clickToActivate')) : undefined}
           >
             {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
           </button>
@@ -247,7 +255,7 @@ export default function CreatorPromotionsPage() {
             size="icon-sm"
             variant="ghost"
             onClick={() => router.push(`/creator/promotions/${item.id}`)}
-            title="Edit"
+            title={tc('edit')}
           >
             <Pencil className="size-3.5" />
           </Button>
@@ -269,12 +277,12 @@ export default function CreatorPromotionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Promotions</h1>
-          <p className="text-sm text-muted-foreground">Manage discounts and offers for your customers</p>
+          <h1 className="text-xl font-semibold tracking-tight">{tt('promotions.title')}</h1>
+          <p className="text-sm text-muted-foreground">{tt('promotions.subtitle')}</p>
         </div>
         <Button size="sm" onClick={() => router.push('/creator/promotions/new')}>
           <Plus className="size-4" />
-          Create Promotion
+          {tt('promotions.createPromotion')}
         </Button>
       </div>
 
@@ -282,7 +290,7 @@ export default function CreatorPromotionsPage() {
       <DataTable
         columns={columns}
         data={promotions}
-        searchPlaceholder="Search promotions..."
+        searchPlaceholder={tt('promotions.searchPlaceholder')}
         emptyMessage=""
         pagination={meta}
         onPageChange={fetchPromotions}
@@ -294,9 +302,9 @@ export default function CreatorPromotionsPage() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
             <Tag className="size-6" />
           </div>
-          <p className="text-sm font-medium">No promotions yet</p>
+          <p className="text-sm font-medium">{tt('promotions.emptyTitle')}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Create your first promotion to boost sales
+            {tt('promotions.emptyDesc')}
           </p>
           <Button
             size="sm"
@@ -304,7 +312,7 @@ export default function CreatorPromotionsPage() {
             onClick={() => router.push('/creator/promotions/new')}
           >
             <Plus className="size-4" />
-            Create Promotion
+            {tt('promotions.createPromotion')}
           </Button>
         </div>
       )}
@@ -313,24 +321,24 @@ export default function CreatorPromotionsPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Promotion</DialogTitle>
+            <DialogTitle>{tt('promotions.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
+              {tt('promotions.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
                 {deleteTarget
                   ? (deleteTarget.translations.find((t) => t.locale === 'en')?.title ||
                       TYPE_LABELS[deleteTarget.type])
                   : ''}
               </span>
-              ? This action cannot be undone.
+              {tt('promotions.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? tt('promotions.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

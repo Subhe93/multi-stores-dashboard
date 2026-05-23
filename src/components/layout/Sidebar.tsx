@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { LogOut, ChevronRight } from 'lucide-react';
+import { DashboardLocaleSwitcher } from '@/components/common/DashboardLocaleSwitcher';
 
 interface NavItem {
   label: string;
@@ -21,6 +23,9 @@ interface SidebarProps {
   groups: NavGroup[];
   title: string;
   subtitle?: string;
+  /** Stable role key for the badge color (Provider | Admin | Creator). Falls
+   *  back to deriving from `subtitle` so the color survives translated subtitles. */
+  role?: string;
   userLabel?: string;
   userSub?: string;
   avatarText?: string;
@@ -37,21 +42,23 @@ export function AppSidebar({
   groups,
   title,
   subtitle,
+  role,
   userLabel,
   userSub,
   avatarText,
   onLogout,
 }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations('common');
 
   const initials = avatarText
     ?? (userLabel ?? title).slice(0, 2).toUpperCase();
 
-  const roleKey = subtitle?.split(' ')[0] ?? '';
+  const roleKey = role ?? subtitle?.split(' ')[0] ?? '';
   const roleColor = ROLE_COLORS[roleKey] ?? 'bg-zinc-100 text-zinc-600';
 
   return (
-    <aside className="w-[240px] shrink-0 bg-white min-h-screen flex flex-col border-r border-zinc-100">
+    <aside className="w-[240px] shrink-0 bg-white min-h-screen flex flex-col border-e border-zinc-100">
 
       {/* ── Brand ── */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-zinc-100">
@@ -95,9 +102,9 @@ export function AppSidebar({
                         : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900',
                     )}
                   >
-                    {/* Active left accent */}
+                    {/* Active accent on the inline-start edge */}
                     {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white/40 rounded-full" />
+                      <span className="absolute inset-s-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white/40 rounded-full" />
                     )}
 
                     <span className={cn(
@@ -121,7 +128,7 @@ export function AppSidebar({
                     )}
 
                     {!isActive && (
-                      <ChevronRight className="w-3 h-3 text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ChevronRight className="w-3 h-3 text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" />
                     )}
                   </Link>
                 );
@@ -130,6 +137,11 @@ export function AppSidebar({
           </div>
         ))}
       </nav>
+
+      {/* ── Language switcher ── */}
+      <div className="px-3 pt-3">
+        <DashboardLocaleSwitcher />
+      </div>
 
       {/* ── User card ── */}
       <div className="p-3 border-t border-zinc-100">
@@ -157,7 +169,7 @@ export function AppSidebar({
           {/* Logout */}
           <button
             onClick={onLogout}
-            title="Log out"
+            title={t('logout')}
             className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100 transition opacity-0 group-hover:opacity-100"
           >
             <LogOut className="w-3.5 h-3.5" />

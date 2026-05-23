@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Package, ShoppingBag, ChevronRight, Truck, Globe, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -121,6 +122,7 @@ export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const { token } = useAuth();
+  const t = useTranslations('creator');
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,7 +148,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-muted-foreground animate-pulse">Loading product…</p>
+        <p className="text-sm text-muted-foreground animate-pulse">{t('productDetail.loading')}</p>
       </div>
     );
   }
@@ -155,8 +157,8 @@ export default function ProductDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
         <Package className="size-10 text-zinc-300" />
-        <p className="text-sm text-muted-foreground">Product not found.</p>
-        <Button variant="outline" size="sm" onClick={() => router.back()}>Go back</Button>
+        <p className="text-sm text-muted-foreground">{t('productDetail.notFound')}</p>
+        <Button variant="outline" size="sm" onClick={() => router.back()}>{t('productDetail.goBack')}</Button>
       </div>
     );
   }
@@ -185,9 +187,9 @@ export default function ProductDetailPage() {
         <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft className="size-4" />
         </Button>
-        <span className="text-sm text-muted-foreground">Provider Catalog</span>
+        <span className="text-sm text-muted-foreground">{t('productDetail.providerCatalog')}</span>
         <ChevronRight className="size-3.5 text-muted-foreground" />
-        <span className="text-sm font-medium truncate">{trans?.title || 'Product'}</span>
+        <span className="text-sm font-medium truncate">{trans?.title || t('productDetail.product')}</span>
       </div>
 
       {/* Main layout */}
@@ -246,7 +248,7 @@ export default function ProductDetailPage() {
           )}
 
           {/* Title */}
-          <h1 className="text-2xl font-bold leading-tight tracking-tight">{trans?.title || 'Untitled'}</h1>
+          <h1 className="text-2xl font-bold leading-tight tracking-tight">{trans?.title || t('productDetail.untitled')}</h1>
 
           {/* Category */}
           {product.category && (
@@ -264,7 +266,7 @@ export default function ProductDetailPage() {
               </span>
             )}
             {!allOptionsSelected && optionKeys.length > 0 && (
-              <span className="text-xs text-muted-foreground">Starting from</span>
+              <span className="text-xs text-muted-foreground">{t('productDetail.startingFrom')}</span>
             )}
           </div>
 
@@ -390,7 +392,7 @@ export default function ProductDetailPage() {
             <div className="rounded-xl border border-zinc-200 overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 bg-zinc-50 border-b">
                 <Truck className="w-4 h-4 text-zinc-500" />
-                <p className="text-xs font-semibold text-zinc-700">Shipping — {product.shipping_profile.name}</p>
+                <p className="text-xs font-semibold text-zinc-700">{t('productDetail.shippingProfile', { name: product.shipping_profile.name })}</p>
               </div>
               <div className="divide-y">
                 {product.shipping_profile.zones.map((zone) => (
@@ -400,7 +402,7 @@ export default function ProductDetailPage() {
                       <div>
                         <p className="text-xs font-medium text-zinc-800">{zone.name}</p>
                         <p className="text-[10px] text-zinc-400">
-                          {zone.estimated_days_min}–{zone.estimated_days_max} days
+                          {t('productDetail.daysRange', { min: zone.estimated_days_min, max: zone.estimated_days_max })}
                           {zone.countries.length > 0 && ` · ${zone.countries.slice(0, 3).join(', ')}${zone.countries.length > 3 ? ` +${zone.countries.length - 3}` : ''}`}
                         </p>
                       </div>
@@ -409,7 +411,7 @@ export default function ProductDetailPage() {
                       <p className="text-xs font-semibold text-zinc-800">{fmt(zone.base_cost)}</p>
                       {zone.free_threshold && (
                         <p className="text-[10px] text-green-600 font-medium">
-                          Free over {fmt(zone.free_threshold)}
+                          {t('productDetail.freeOver', { amount: fmt(zone.free_threshold) })}
                         </p>
                       )}
                     </div>
@@ -426,15 +428,15 @@ export default function ProductDetailPage() {
             onClick={() => router.push(`/creator/custom-products/new?product_id=${product.id}`)}
           >
             <ShoppingBag className="w-4 h-4 mr-2" />
-            Add to My Store
+            {t('productDetail.addToMyStore')}
           </Button>
 
           {/* Customizable notice */}
           {product.custom_fields && product.custom_fields.length > 0 && (
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
-              <p className="text-xs font-semibold text-amber-800 mb-1">Customizable Product</p>
+              <p className="text-xs font-semibold text-amber-800 mb-1">{t('productDetail.customizableProduct')}</p>
               <p className="text-xs text-amber-700">
-                This product has {product.custom_fields.length} custom field(s) that customers can personalize.
+                {t('productDetail.customizableProductDesc', { count: product.custom_fields.length })}
               </p>
             </div>
           )}
@@ -442,8 +444,8 @@ export default function ProductDetailPage() {
           {/* Tags */}
           {product.tags && product.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-2">
-              {product.tags.map((t, i) => (
-                <Badge key={i} variant="secondary" className="text-[10px]">#{t.tag}</Badge>
+              {product.tags.map((tag, i) => (
+                <Badge key={i} variant="secondary" className="text-[10px]">#{tag.tag}</Badge>
               ))}
             </div>
           )}
@@ -456,7 +458,7 @@ export default function ProductDetailPage() {
         {/* Description */}
         {trans?.description && (
           <div className="space-y-3">
-            <h2 className="text-base font-semibold">Description</h2>
+            <h2 className="text-base font-semibold">{t('productDetail.description')}</h2>
             <div
               className="prose prose-sm max-w-none text-muted-foreground"
               dangerouslySetInnerHTML={{ __html: trans.description }}
@@ -467,12 +469,12 @@ export default function ProductDetailPage() {
         {/* Specifications */}
         {product.attributes && product.attributes.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-base font-semibold">Specifications</h2>
+            <h2 className="text-base font-semibold">{t('productDetail.specifications')}</h2>
             <div className="rounded-xl border overflow-hidden">
               <table className="w-full text-sm">
                 <tbody>
                   {product.attributes.map((attr, i) => {
-                    const name = attr.template?.translations?.find((t) => t.locale === 'en')?.name || '—';
+                    const name = attr.template?.translations?.find((tr) => tr.locale === 'en')?.name || '—';
                     return (
                       <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}>
                         <td className="px-4 py-2.5 text-muted-foreground font-medium w-2/5 border-b border-zinc-100">{name}</td>
@@ -489,11 +491,11 @@ export default function ProductDetailPage() {
         {/* FAQ */}
         {product.faqs && product.faqs.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-base font-semibold">Frequently Asked Questions</h2>
+            <h2 className="text-base font-semibold">{t('productDetail.faq')}</h2>
             <div className="divide-y rounded-xl border overflow-hidden">
               {product.faqs.map((faq, i) => {
-                const q = faq.translations?.find((t) => t.locale === 'en')?.question || faq.translations?.[0]?.question || '';
-                const a = faq.translations?.find((t) => t.locale === 'en')?.answer || faq.translations?.[0]?.answer || '';
+                const q = faq.translations?.find((tr) => tr.locale === 'en')?.question || faq.translations?.[0]?.question || '';
+                const a = faq.translations?.find((tr) => tr.locale === 'en')?.answer || faq.translations?.[0]?.answer || '';
                 return (
                   <details key={i} className="group">
                     <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-medium hover:bg-zinc-50 transition list-none">

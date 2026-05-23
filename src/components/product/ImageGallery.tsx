@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { UploadedImage } from '@/lib/useImageUpload';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 interface ProductImage {
   id: string;
@@ -27,10 +30,11 @@ interface ImageGalleryProps {
   uploading?: boolean;
 }
 
-function SortableImage({ img, onSetFeatured, onDelete }: {
+function SortableImage({ img, onSetFeatured, onDelete, t }: {
   img: ProductImage;
   onSetFeatured: () => void;
   onDelete: () => void;
+  t: Translator;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: img.id });
   const style = {
@@ -49,7 +53,7 @@ function SortableImage({ img, onSetFeatured, onDelete }: {
       {img.is_featured && (
         <div className="absolute top-1 left-1">
           <Badge className="text-[8px] bg-amber-500 hover:bg-amber-500 gap-0.5 px-1 py-0">
-            <Star className="w-2.5 h-2.5 fill-current" /> Featured
+            <Star className="w-2.5 h-2.5 fill-current" /> {t('image.featured')}
           </Badge>
         </div>
       )}
@@ -57,12 +61,12 @@ function SortableImage({ img, onSetFeatured, onDelete }: {
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
         {!img.is_featured && (
           <button onPointerDown={e => e.stopPropagation()} onClick={onSetFeatured}
-            className="h-7 w-7 bg-white rounded-md flex items-center justify-center hover:bg-amber-50" title="Set as featured">
+            className="h-7 w-7 bg-white rounded-md flex items-center justify-center hover:bg-amber-50" title={t('image.setAsFeatured')}>
             <Star className="w-3.5 h-3.5 text-amber-500" />
           </button>
         )}
         <button onPointerDown={e => e.stopPropagation()} onClick={onDelete}
-          className="h-7 w-7 bg-white rounded-md flex items-center justify-center hover:bg-red-50" title="Delete">
+          className="h-7 w-7 bg-white rounded-md flex items-center justify-center hover:bg-red-50" title={t('common.delete')}>
           <Trash2 className="w-3.5 h-3.5 text-red-500" />
         </button>
       </div>
@@ -71,6 +75,7 @@ function SortableImage({ img, onSetFeatured, onDelete }: {
 }
 
 export function ImageGallery({ images, onChange, onPickAndUpload, uploading = false }: ImageGalleryProps) {
+  const t = useTranslations();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleUpload = async (multiple = true) => {
@@ -109,14 +114,14 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-sm font-semibold">Media</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('image.media')}</CardTitle>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {images.length} image{images.length !== 1 ? 's' : ''} — drag to reorder, click star to set featured
+              {t('image.mediaHint', { count: images.length })}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleUpload(true)} disabled={uploading}>
             {uploading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
-            Upload Images
+            {t('image.uploadImages')}
           </Button>
         </div>
       </CardHeader>
@@ -131,6 +136,7 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
                     img={img}
                     onSetFeatured={() => handleSetFeatured(img.id)}
                     onDelete={() => handleDelete(img.id)}
+                    t={t}
                   />
                 ))}
 
@@ -139,7 +145,7 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
                   {uploading ? <Loader2 className="w-5 h-5 text-zinc-300 animate-spin" /> : (
                     <>
                       <Upload className="w-5 h-5 text-zinc-300 mb-1" />
-                      <span className="text-[9px] text-muted-foreground">Add</span>
+                      <span className="text-[9px] text-muted-foreground">{t('common.add')}</span>
                     </>
                   )}
                 </button>
@@ -154,8 +160,8 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
             ) : (
               <ImageIcon className="w-8 h-8 text-zinc-200 mx-auto mb-2" />
             )}
-            <p className="text-sm font-medium text-muted-foreground">Drag & drop or click to upload</p>
-            <p className="text-[10px] text-muted-foreground mt-1">PNG, JPG, WebP up to 10MB — first image becomes featured</p>
+            <p className="text-sm font-medium text-muted-foreground">{t('image.dropOrClick')}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{t('image.uploadHint')}</p>
           </button>
         )}
       </CardContent>

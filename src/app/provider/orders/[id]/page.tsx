@@ -18,6 +18,9 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+
+type Translator = ReturnType<typeof useTranslations>;
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -39,18 +42,23 @@ const STATUS_COLORS: Record<string, string> = {
   REFUNDED:       'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING:        'Pending',
-  CONFIRMED:      'Confirmed',
-  PROCESSING:     'Processing',
-  MANUFACTURING:  'Manufacturing',
-  QUALITY_CHECK:  'Quality Check',
-  SHIPPED:        'Shipped',
-  DELIVERED:      'Delivered',
-  RETURNED:       'Returned',
-  CANCELLED:      'Cancelled',
-  REFUNDED:       'Refunded',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING:        'orderStatus.pending',
+  CONFIRMED:      'orderStatus.confirmed',
+  PROCESSING:     'orderStatus.processing',
+  MANUFACTURING:  'orderStatus.manufacturing',
+  QUALITY_CHECK:  'orderStatus.qualityCheck',
+  SHIPPED:        'orderStatus.shipped',
+  DELIVERED:      'orderStatus.delivered',
+  RETURNED:       'orderStatus.returned',
+  CANCELLED:      'orderStatus.cancelled',
+  REFUNDED:       'orderStatus.refunded',
 };
+
+function statusLabel(t: Translator, status: string): string {
+  const key = STATUS_LABEL_KEYS[status];
+  return key ? t(key) : status;
+}
 
 // Standard flow — Quality Check is optional but tracked
 const STATUS_FLOW = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
@@ -82,6 +90,9 @@ export default function ProviderOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
   const { fmt } = useCurrency();
+  const t = useTranslations('provider');
+  const tc = useTranslations('common');
+  const tp = useTranslations('payments');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -106,7 +117,7 @@ export default function ProviderOrderDetail() {
     try {
       await api(`/orders/${id}/status`, {
         method: 'PUT', token,
-        body: JSON.stringify({ status, note: note || `Status updated to ${status}` }),
+        body: JSON.stringify({ status, note: note || t('noteStatusUpdated', { status }) }),
       });
       fetchOrder();
     } catch (err) { console.error(err); }
@@ -126,7 +137,7 @@ export default function ProviderOrderDetail() {
         }),
       });
       setShowTracking(false);
-      await handleStatusUpdate('SHIPPED', `Shipped with tracking: ${trackingNumber}`);
+      await handleStatusUpdate('SHIPPED', t('noteShippedWithTracking', { tracking: trackingNumber }));
     } catch (err) { console.error(err); }
     finally { setUpdating(false); }
   };
@@ -136,21 +147,20 @@ export default function ProviderOrderDetail() {
       <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
     </div>
   );
-  if (!order) return <p className="text-center py-12 text-muted-foreground">Order not found</p>;
+  if (!order) return <p className="text-center py-12 text-muted-foreground">{t('orderNotFound')}</p>;
 
   const currentIdx = STATUS_FLOW.indexOf(order.status);
   const isTerminal = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'].includes(order.status);
   const isQualityCheck = order.status === 'QUALITY_CHECK';
 
-  // Mirror the API rule: a provider can change OrderStatus only when EVERY
-  // item in the order is fulfilled by them. Mixed orders (with creator-only
-  // items) cannot be advanced from this dashboard.
+  // A provider can advance the order when they fulfill ANY of its items — the
+  // status update applies only to their own items, and the overall order status
+  // is re-derived (slowest item wins). Creator items are advanced by the creator.
   const providerId = user?.provider?.id as string | undefined;
   const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
   const canUpdateStatus =
     !!providerId &&
-    items.length > 0 &&
-    items.every((it) => it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId);
+    items.some((it) => it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId);
   const hasCreatorItems = items.some((it) => it.fulfiller_type === 'CREATOR');
 
   // Collect all design/image files from custom field values
@@ -160,7 +170,7 @@ export default function ProviderOrderDetail() {
     item.custom_field_values?.forEach((fv: any) => {
       if (fv.file_url) {
         designFiles.push({
-          label: fv.custom_field?.translations?.[0]?.label || fv.custom_field_id || 'File',
+          label: fv.custom_field?.translations?.[0]?.label || fv.custom_field_id || t('file'),
           url: fv.file_url,
           itemTitle: title,
         });
@@ -183,7 +193,7 @@ export default function ProviderOrderDetail() {
           </div>
         </div>
         <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-1 ${STATUS_COLORS[order.status] || ''}`}>
-          {STATUS_LABELS[order.status] || order.status}
+          {statusLabel(t, order.status)}
         </Badge>
       </div>
 
@@ -193,14 +203,14 @@ export default function ProviderOrderDetail() {
         <Card className="shadow-none border-blue-100 bg-blue-50/40">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-              <Info className="w-4 h-4" /> Order Status Managed Elsewhere
+              <Info className="w-4 h-4" /> {t('statusManagedElsewhere')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-blue-700">
               {hasCreatorItems
-                ? 'This order contains creator-fulfilled items. The creator manages shipping and status updates for them.'
-                : 'You don\'t fulfill items in this order, so its status is managed elsewhere.'}
+                ? t('creatorFulfilledNotice')
+                : t('noFulfillNotice')}
             </p>
           </CardContent>
         </Card>
@@ -211,11 +221,11 @@ export default function ProviderOrderDetail() {
         <Card className="shadow-none border-orange-200 bg-orange-50/40">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-orange-800 flex items-center gap-2">
-              <Package className="w-4 h-4" /> Quality Check Required
+              <Package className="w-4 h-4" /> {t('qualityCheckRequired')}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-orange-700 mb-3">Review the order and either approve it for shipping or send it back to manufacturing.</p>
+            <p className="text-xs text-orange-700 mb-3">{t('qualityCheckHint')}</p>
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -223,16 +233,16 @@ export default function ProviderOrderDetail() {
                 disabled={updating}
                 onClick={() => setShowTracking(true)}
               >
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Approve — Ship Order
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> {t('approveShipOrder')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="text-xs border-red-200 text-red-700 hover:bg-red-50"
                 disabled={updating}
-                onClick={() => handleStatusUpdate('MANUFACTURING', 'Returned to manufacturing after quality check')}
+                onClick={() => handleStatusUpdate('MANUFACTURING', t('noteBackToManufacturing'))}
               >
-                <XCircle className="w-3.5 h-3.5 mr-1.5" /> Reject — Back to Manufacturing
+                <XCircle className="w-3.5 h-3.5 mr-1.5" /> {t('rejectBackToManufacturing')}
               </Button>
             </div>
           </CardContent>
@@ -243,7 +253,7 @@ export default function ProviderOrderDetail() {
       {canUpdateStatus && !isTerminal && !isQualityCheck && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Update Fulfillment</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('updateFulfillment')}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
             {STATUS_FLOW.slice(currentIdx + 1).map(s => (
@@ -258,7 +268,7 @@ export default function ProviderOrderDetail() {
                   else handleStatusUpdate(s);
                 }}
               >
-                {s === 'SHIPPED' ? '🚚 Ship + Tracking' : STATUS_LABELS[s]}
+                {s === 'SHIPPED' ? t('shipPlusTracking') : statusLabel(t, s)}
               </Button>
             ))}
           </CardContent>
@@ -270,7 +280,7 @@ export default function ProviderOrderDetail() {
         <Card className="shadow-none border-blue-100">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <FileImage className="w-4 h-4 text-blue-500" /> Customer Design Files
+              <FileImage className="w-4 h-4 text-blue-500" /> {t('customerDesignFiles')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -294,7 +304,7 @@ export default function ProviderOrderDetail() {
                     rel="noreferrer"
                     className="block text-center text-[10px] text-blue-600 hover:underline"
                   >
-                    Download
+                    {t('download')}
                   </a>
                 </div>
               ))}
@@ -307,7 +317,7 @@ export default function ProviderOrderDetail() {
         {/* Order Items */}
         <Card className="shadow-none col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Order Items</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('orderItems')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="divide-y">
@@ -352,16 +362,16 @@ export default function ProviderOrderDetail() {
                               <Badge variant="outline" className={`text-[10px] font-semibold shrink-0 ${
                                 STATUS_COLORS[itemStatus] || 'bg-zinc-100 text-zinc-600'
                               }`}>
-                                {STATUS_LABELS[itemStatus] || itemStatus}
+                                {statusLabel(t, itemStatus)}
                               </Badge>
                             );
                           })()}
                         </div>
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <span>Qty: {item.quantity}</span>
+                          <span>{t('qtyLabel', { quantity: item.quantity })}</span>
                           <span>·</span>
-                          <span>{fmt(Number(item.unit_price))} each</span>
+                          <span>{t('eachPrice', { price: fmt(Number(item.unit_price)) })}</span>
                           <span className="ml-auto font-semibold text-foreground text-sm">
                             {fmt(Number(item.total_price || item.unit_price * item.quantity))}
                           </span>
@@ -388,7 +398,7 @@ export default function ProviderOrderDetail() {
                         {fileFields.map((fv: any) => (
                           <a key={fv.id} href={fv.file_url} target="_blank" rel="noreferrer"
                             className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
-                            title={fv.custom_field?.translations?.[0]?.label || 'File'}>
+                            title={fv.custom_field?.translations?.[0]?.label || t('file')}>
                             <img src={fv.file_url} alt="" className="w-full h-full object-contain p-0.5" />
                           </a>
                         ))}
@@ -396,7 +406,7 @@ export default function ProviderOrderDetail() {
                     )}
 
                     {item.design_notes && (
-                      <p className="ml-17 text-xs text-muted-foreground italic">Note: {item.design_notes}</p>
+                      <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
                     )}
                   </div>
                 );
@@ -406,40 +416,57 @@ export default function ProviderOrderDetail() {
             <Separator className="my-3" />
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t('subtotal')}</span>
                 <span>{fmt(Number(order.subtotal))}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Shipping</span>
+                <span className="text-muted-foreground">{t('shipping')}</span>
                 <span>{fmt(Number(order.shipping_cost))}</span>
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-xs text-emerald-600">
-                  <span>Discount</span>
+                  <span>{t('discount')}</span>
                   <span>−{fmt(Number(order.discount_amount))}</span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between font-semibold text-sm">
-                <span>Total</span>
+                <span>{t('total')}</span>
                 <span>{fmt(Number(order.total))}</span>
               </div>
               {order.commission && (
                 <div className="mt-2 pt-2 border-t border-dashed space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Platform fee</span>
+                    <span className="text-muted-foreground">{t('platformFeeLower')}</span>
                     <span className="text-zinc-500">−{fmt(Number(order.commission.platform_amount))}</span>
                   </div>
                   {Number(order.commission.creator_amount) > 0 && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Creator share</span>
+                      <span className="text-muted-foreground">{t('creatorShareLower')}</span>
                       <span className="text-zinc-500">−{fmt(Number(order.commission.creator_amount))}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xs font-semibold text-emerald-700">
-                    <span>Your earnings</span>
+                    <span>{t('yourEarningsLower')}</span>
                     <span>{fmt(Number(order.commission.provider_amount))}</span>
                   </div>
+                  {(() => {
+                    const myPayout = Array.isArray(order.payouts) ? order.payouts[0] : null;
+                    return (
+                      <div className="flex items-center justify-between text-xs border-t pt-2 mt-1">
+                        <span className="text-muted-foreground">{tp('yourPayout')}</span>
+                        {myPayout ? (
+                          <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                            {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
+                            {order.payment_status === 'paid' ? tp('statusPending') : tp('statusAwaiting')}
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -451,7 +478,7 @@ export default function ProviderOrderDetail() {
           {/* Customer */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Customer</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('customer')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.customer?.first_name} {order.customer?.last_name}</p>
@@ -463,7 +490,7 @@ export default function ProviderOrderDetail() {
           {/* Shipping address */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Shipping Address</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('shippingAddress')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
@@ -484,7 +511,7 @@ export default function ProviderOrderDetail() {
             <Card className="shadow-none border-sky-100 bg-sky-50/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-sky-600" /> Tracking
+                  <Truck className="w-3.5 h-3.5 text-sky-600" /> {t('tracking')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-xs space-y-1">
@@ -492,7 +519,7 @@ export default function ProviderOrderDetail() {
                 {order.items[0].tracking_url && (
                   <a href={order.items[0].tracking_url} target="_blank" rel="noreferrer"
                     className="text-sky-600 hover:underline flex items-center gap-1">
-                    Track shipment <ExternalLink className="w-2.5 h-2.5" />
+                    {t('trackShipment')} <ExternalLink className="w-2.5 h-2.5" />
                   </a>
                 )}
               </CardContent>
@@ -502,7 +529,7 @@ export default function ProviderOrderDetail() {
           {/* Timeline */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Timeline</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('timeline')}</CardTitle>
             </CardHeader>
             <CardContent>
               {order.timeline?.length > 0 ? (
@@ -511,7 +538,7 @@ export default function ProviderOrderDetail() {
                     <div key={e.id || i} className="flex items-start gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
                       <div>
-                        <p className="text-[11px] font-medium">{STATUS_LABELS[e.status] || e.status}</p>
+                        <p className="text-[11px] font-medium">{statusLabel(t, e.status)}</p>
                         {e.note && <p className="text-[10px] text-muted-foreground">{e.note}</p>}
                         <p className="text-[9px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
                       </div>
@@ -519,7 +546,7 @@ export default function ProviderOrderDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground text-center py-2">No entries</p>
+                <p className="text-xs text-muted-foreground text-center py-2">{t('noEntries')}</p>
               )}
             </CardContent>
           </Card>
@@ -530,20 +557,20 @@ export default function ProviderOrderDetail() {
       <Dialog open={showTracking} onOpenChange={v => { if (!v) setShowTracking(false); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Tracking & Ship</DialogTitle>
+            <DialogTitle>{t('addTrackingAndShip')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Tracking Number *</Label>
+              <Label className="text-xs">{t('trackingNumber')}</Label>
               <Input
                 className="h-9 text-sm font-mono"
-                placeholder="e.g. 1Z999AA10123456784"
+                placeholder={t('trackingNumberPlaceholder')}
                 value={trackingNumber}
                 onChange={e => setTrackingNumber(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Tracking URL (optional)</Label>
+              <Label className="text-xs">{t('trackingUrlOptional')}</Label>
               <Input
                 className="h-9 text-sm"
                 placeholder="https://track.carrier.com/..."
@@ -553,10 +580,10 @@ export default function ProviderOrderDetail() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowTracking(false)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowTracking(false)}>{tc('cancel')}</Button>
             <Button size="sm" onClick={handleAddTracking} disabled={!trackingNumber || updating}>
               <Truck className="w-3.5 h-3.5 mr-1.5" />
-              {updating ? 'Shipping...' : 'Mark as Shipped'}
+              {updating ? t('shippingInProgress') : t('markAsShipped')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -566,7 +593,7 @@ export default function ProviderOrderDetail() {
       <Dialog open={!!lightboxImg} onOpenChange={() => setLightboxImg(null)}>
         <DialogContent className="max-w-2xl p-2 bg-black/95 border-zinc-700">
           {lightboxImg && (
-            <img src={lightboxImg} alt="Design preview" className="w-full max-h-[80vh] object-contain rounded" />
+            <img src={lightboxImg} alt={t('designPreview')} className="w-full max-h-[80vh] object-contain rounded" />
           )}
         </DialogContent>
       </Dialog>

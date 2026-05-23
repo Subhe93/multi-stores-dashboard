@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { AlertTriangle, Layers, Loader2, Plus, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -26,6 +27,7 @@ interface Props {
  * The product page is responsible for sending the chosen ids on save.
  */
 export function BundlePicker({ value, onChange, productPricing }: Props) {
+  const t = useTranslations();
   const { token } = useAuth();
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -72,9 +74,9 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-muted-foreground" />
-          <span className="text-sm font-semibold">Bundles</span>
+          <span className="text-sm font-semibold">{t('bundle.bundles')}</span>
           <span className="text-xs text-muted-foreground">
-            ({value.length} attached)
+            {t('bundle.attachedCount', { count: value.length })}
           </span>
         </div>
         <Link
@@ -83,7 +85,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
-          <Plus className="size-3" /> Create bundle
+          <Plus className="size-3" /> {t('bundle.createBundle')}
         </Link>
       </div>
 
@@ -94,7 +96,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
       ) : visible.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-zinc-50 p-4 text-center">
           <p className="text-xs text-muted-foreground">
-            You haven&apos;t created any bundles yet.
+            {t('bundle.noBundlesYet')}
           </p>
           <Link
             href="/creator/bundles/new"
@@ -102,7 +104,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
             rel="noopener noreferrer"
             className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
           >
-            <Plus className="size-3" /> Create your first bundle
+            <Plus className="size-3" /> {t('bundle.createFirstBundle')}
           </Link>
         </div>
       ) : (
@@ -110,7 +112,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
           {visible.map((b) => {
             const name =
               pickTranslation(b.translations, primaryLocale)?.name ||
-              'Untitled bundle';
+              t('bundle.untitledBundle');
             const checked = value.includes(b.id);
             const conflict = !checked && isIncompatible(b);
             return (
@@ -125,7 +127,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
                 }`}
                 title={
                   conflict
-                    ? 'This bundle would sell the product below provider cost'
+                    ? t('bundle.belowCostTooltip')
                     : undefined
                 }
               >
@@ -145,18 +147,18 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
                     </span>
                     {b.status === 'DISABLED' && (
                       <span className="rounded bg-amber-50 px-1 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">
-                        Disabled
+                        {t('bundle.statusDisabled')}
                       </span>
                     )}
                     {conflict && (
                       <span className="inline-flex items-center gap-0.5 rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
                         <AlertTriangle className="size-2.5" />
-                        Below cost
+                        {t('bundle.belowCost')}
                       </span>
                     )}
                   </div>
                   <div className="text-[11px] text-muted-foreground">
-                    {b.offers.length} offer{b.offers.length === 1 ? '' : 's'}
+                    {t('bundle.offersCount', { count: b.offers.length })}
                   </div>
                 </div>
               </label>
@@ -171,7 +173,7 @@ export function BundlePicker({ value, onChange, productPricing }: Props) {
           onClick={() => onChange([])}
           className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-red-500"
         >
-          <X className="size-3" /> Clear all
+          <X className="size-3" /> {t('bundle.clearAll')}
         </button>
       )}
     </div>

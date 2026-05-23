@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Table,
   TableBody,
@@ -44,14 +45,17 @@ interface DataTableProps<T> {
 export function DataTable<T extends Record<string, any>>({
   columns,
   data,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder,
   onSearch,
-  emptyMessage = 'No data found',
+  emptyMessage,
   actions,
   pagination,
   onPageChange,
   onSort,
 }: DataTableProps<T>) {
+  const t = useTranslations('table');
+  const placeholder = searchPlaceholder ?? t('searchPlaceholder');
+  const empty = emptyMessage ?? t('noData');
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -88,7 +92,7 @@ export function DataTable<T extends Record<string, any>>({
           {onSearch && (
             <Input
               type="search"
-              placeholder={searchPlaceholder}
+              placeholder={placeholder}
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               className="max-w-xs h-8 text-sm"
@@ -124,7 +128,7 @@ export function DataTable<T extends Record<string, any>>({
           {sortedData.length === 0 ? (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground text-sm">
-                {emptyMessage}
+                {empty}
               </TableCell>
             </TableRow>
           ) : (
@@ -145,7 +149,11 @@ export function DataTable<T extends Record<string, any>>({
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t">
           <p className="text-xs text-muted-foreground">
-            Showing {((pagination.page - 1) * pagination.limit) + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+            {t('showingRange', {
+              from: ((pagination.page - 1) * pagination.limit) + 1,
+              to: Math.min(pagination.page * pagination.limit, pagination.total),
+              total: pagination.total,
+            })}
           </p>
           <div className="flex items-center gap-1">
             <Button
@@ -155,7 +163,7 @@ export function DataTable<T extends Record<string, any>>({
               disabled={pagination.page <= 1}
               onClick={() => onPageChange?.(pagination.page - 1)}
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
             </Button>
             {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => {
               const pageNum = i + 1;
@@ -179,7 +187,7 @@ export function DataTable<T extends Record<string, any>>({
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => onPageChange?.(pagination.page + 1)}
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
             </Button>
           </div>
         </div>

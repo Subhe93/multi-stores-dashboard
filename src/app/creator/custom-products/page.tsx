@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,13 +74,17 @@ const statusColors: Record<string, string> = {
   ARCHIVED: 'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
 
-const statusLabels: Record<string, string> = {
-  PUBLISHED: 'Published',
-  DRAFT: 'Draft',
-  PENDING_REVIEW: 'Pending Review',
-  REJECTED: 'Needs changes',
-  ARCHIVED: 'Archived',
-};
+type Translator = ReturnType<typeof useTranslations>;
+
+function statusLabels(t: Translator): Record<string, string> {
+  return {
+    PUBLISHED: t('myProducts.statusPublished'),
+    DRAFT: t('myProducts.statusDraft'),
+    PENDING_REVIEW: t('myProducts.statusPendingReview'),
+    REJECTED: t('myProducts.statusRejected'),
+    ARCHIVED: t('myProducts.statusArchived'),
+  };
+}
 
 function pickTitle(translations?: Translation[]): Translation | undefined {
   if (!translations?.length) return undefined;
@@ -90,6 +95,9 @@ export default function CustomProductsPage() {
   const { fmt } = useCurrency();
   const { token, user } = useAuth();
   const router = useRouter();
+  const tt = useTranslations('creator');
+  const tc = useTranslations('common');
+  const statusLabelMap = statusLabels(tt);
   const [customItems, setCustomItems] = useState<CustomProduct[]>([]);
   const [ownItems, setOwnItems] = useState<OwnProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,7 +186,7 @@ export default function CustomProductsPage() {
       }
     } catch (err) {
       console.error('Duplicate failed:', err);
-      alert('Failed to duplicate product. Please try again.');
+      alert(tt('myProducts.duplicateFailed'));
     } finally {
       setDuplicatingId(null);
     }
@@ -195,7 +203,7 @@ export default function CustomProductsPage() {
   const columns = [
     {
       key: 'title',
-      label: 'Product',
+      label: tt('myProducts.colProduct'),
       render: (item: Row) => {
         let t: Translation | undefined;
         let imgUrl: string | undefined;
@@ -227,10 +235,10 @@ export default function CustomProductsPage() {
     },
     {
       key: 'source',
-      label: 'Source',
+      label: tt('myProducts.colSource'),
       render: (item: Row) => {
         if (item.kind === 'own') {
-          return <span className="text-sm text-muted-foreground">Your own product</span>;
+          return <span className="text-sm text-muted-foreground">{tt('myProducts.yourOwnProduct')}</span>;
         }
         const t = pickTitle(item.product?.translations);
         return <span className="text-sm">{t?.title ?? '—'}</span>;
@@ -238,7 +246,7 @@ export default function CustomProductsPage() {
     },
     {
       key: 'mode',
-      label: 'Mode',
+      label: tt('myProducts.colMode'),
       render: (item: Row) => {
         if (item.kind === 'own') {
           return (
@@ -246,7 +254,7 @@ export default function CustomProductsPage() {
               variant="outline"
               className="text-[10px] font-semibold bg-purple-50 text-purple-700 border-purple-200"
             >
-              Own
+              {tt('myProducts.modeOwn')}
             </Badge>
           );
         }
@@ -259,14 +267,14 @@ export default function CustomProductsPage() {
                 : 'bg-amber-50 text-amber-700 border-amber-200'
             }`}
           >
-            {item.import_mode === 'AS_IS' ? 'As-is' : 'Custom'}
+            {item.import_mode === 'AS_IS' ? tt('myProducts.modeAsIs') : tt('myProducts.modeCustom')}
           </Badge>
         );
       },
     },
     {
       key: 'variants',
-      label: 'Variants',
+      label: tt('myProducts.colVariants'),
       render: (item: Row) => {
         if (item.kind === 'own') {
           const total = item.variants?.length ?? 0;
@@ -283,7 +291,7 @@ export default function CustomProductsPage() {
     },
     {
       key: 'pricing',
-      label: 'Pricing',
+      label: tt('myProducts.colPricing'),
       render: (item: Row) => {
         if (item.kind === 'own') {
           return <span className="text-sm font-medium">{fmt(item.base_price)}</span>;
@@ -295,23 +303,23 @@ export default function CustomProductsPage() {
           return (
             <span className="text-sm font-medium">
               +{fmt(item.margin_amount ?? 0)}
-              <span className="text-[10px] text-muted-foreground ml-1">margin</span>
+              <span className="text-[10px] text-muted-foreground ml-1">{tt('myProducts.margin')}</span>
             </span>
           );
         }
-        return <span className="text-xs text-muted-foreground">Per-variant</span>;
+        return <span className="text-xs text-muted-foreground">{tt('myProducts.perVariant')}</span>;
       },
     },
     {
       key: 'status',
-      label: 'Status',
+      label: tc('status'),
       render: (item: Row) => (
         <Badge
           variant="outline"
           className={`text-[10px] font-semibold ${statusColors[item.status] ?? ''}`}
           title={item.kind === 'custom' ? item.rejection_reason || undefined : undefined}
         >
-          {statusLabels[item.status] ?? item.status}
+          {statusLabelMap[item.status] ?? item.status}
         </Badge>
       ),
     },
@@ -326,13 +334,13 @@ export default function CustomProductsPage() {
             className="h-7 text-xs"
             onClick={() => goEdit(item)}
           >
-            Edit
+            {tc('edit')}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            title="Duplicate"
+            title={tt('myProducts.duplicate')}
             disabled={duplicatingId === item.id}
             onClick={() => handleDuplicate(item)}
           >
@@ -344,7 +352,7 @@ export default function CustomProductsPage() {
             className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={() => setDeleteTarget(item)}
           >
-            Delete
+            {tc('delete')}
           </Button>
         </div>
       ),
@@ -356,14 +364,14 @@ export default function CustomProductsPage() {
       <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center">
         <Layers className="w-6 h-6 text-zinc-400" />
       </div>
-      <p className="text-sm font-medium">No products yet</p>
+      <p className="text-sm font-medium">{tt('myProducts.emptyTitle')}</p>
       <p className="text-xs text-muted-foreground text-center max-w-xs">
-        Customize a provider product or add one of your own to start selling.
+        {tt('myProducts.emptyDesc')}
       </p>
       <div className="flex items-center gap-2">
         <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
           <Plus className="w-3.5 h-3.5 mr-1.5" />
-          Customize Provider Product
+          {tt('myProducts.customizeProviderProduct')}
         </Button>
         <Button
           size="sm"
@@ -371,7 +379,7 @@ export default function CustomProductsPage() {
           onClick={() => router.push('/creator/products/own/new')}
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" />
-          Add Own Product
+          {tt('myProducts.addOwnProduct')}
         </Button>
       </div>
     </div>
@@ -381,9 +389,9 @@ export default function CustomProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">My Products</h1>
+          <h1 className="text-xl font-semibold tracking-tight">{tt('myProducts.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            Provider products you&apos;ve customized and your own products
+            {tt('myProducts.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -393,11 +401,11 @@ export default function CustomProductsPage() {
             onClick={() => router.push('/creator/products/own/new')}
           >
             <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Own Product
+            {tt('myProducts.ownProduct')}
           </Button>
           <Button size="sm" onClick={() => router.push('/creator/custom-products/new')}>
             <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Custom Product
+            {tt('myProducts.customProduct')}
           </Button>
         </div>
       </div>
@@ -408,7 +416,7 @@ export default function CustomProductsPage() {
         <DataTable
           columns={columns}
           data={rows}
-          emptyMessage={loading ? 'Loading...' : 'No products yet'}
+          emptyMessage={loading ? tc('loading') : tt('myProducts.emptyTitle')}
         />
       )}
 
@@ -417,14 +425,16 @@ export default function CustomProductsPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              Delete {deleteTarget?.kind === 'own' ? 'Product' : 'Custom Product'}
+              {deleteTarget?.kind === 'own'
+                ? tt('myProducts.deleteTitleProduct')
+                : tt('myProducts.deleteTitleCustom')}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{' '}
+              {tt('myProducts.deleteConfirmPrefix')}{' '}
               <span className="font-medium">
-                {pickTitle(deleteTarget?.translations)?.title ?? 'this product'}
+                {pickTitle(deleteTarget?.translations)?.title ?? tt('myProducts.thisProduct')}
               </span>
-              ? This action cannot be undone.
+              {tt('myProducts.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -434,7 +444,7 @@ export default function CustomProductsPage() {
               onClick={() => setDeleteTarget(null)}
               disabled={deleting}
             >
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -442,7 +452,7 @@ export default function CustomProductsPage() {
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? 'Deleting…' : 'Delete'}
+              {deleting ? tt('myProducts.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

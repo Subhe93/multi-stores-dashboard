@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,19 +31,19 @@ interface CustomFieldManagerProps {
   onDelete: (id: string) => void;
 }
 
-const fieldTypes = [
-  { value: 'TEXT', label: 'Text', description: 'Short text input (name, title)' },
-  { value: 'TEXTAREA', label: 'Textarea', description: 'Long text (message, description)' },
-  { value: 'NUMBER', label: 'Number', description: 'Numeric value (jersey number, year)' },
-  { value: 'IMAGE', label: 'Image Upload', description: 'Customer uploads an image' },
-  { value: 'FILE', label: 'File Upload', description: 'Customer uploads any file' },
-  { value: 'SELECT', label: 'Dropdown', description: 'Choose from options (font, shape)' },
-  { value: 'COLOR', label: 'Color Picker', description: 'Choose a color' },
-  { value: 'DATE', label: 'Date', description: 'Pick a date (anniversary, birthday)' },
-  { value: 'MULTI_IMAGE', label: 'Multiple Images', description: 'Upload several images' },
-];
-
 export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: CustomFieldManagerProps) {
+  const t = useTranslations();
+  const fieldTypes = [
+    { value: 'TEXT', label: t('customField.typeText'), description: t('customField.typeTextDesc') },
+    { value: 'TEXTAREA', label: t('customField.typeTextarea'), description: t('customField.typeTextareaDesc') },
+    { value: 'NUMBER', label: t('customField.typeNumber'), description: t('customField.typeNumberDesc') },
+    { value: 'IMAGE', label: t('customField.typeImage'), description: t('customField.typeImageDesc') },
+    { value: 'FILE', label: t('customField.typeFile'), description: t('customField.typeFileDesc') },
+    { value: 'SELECT', label: t('customField.typeSelect'), description: t('customField.typeSelectDesc') },
+    { value: 'COLOR', label: t('customField.typeColor'), description: t('customField.typeColorDesc') },
+    { value: 'DATE', label: t('customField.typeDate'), description: t('customField.typeDateDesc') },
+    { value: 'MULTI_IMAGE', label: t('customField.typeMultiImage'), description: t('customField.typeMultiImageDesc') },
+  ];
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -133,20 +134,20 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-sm font-semibold">Customer Input Fields</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('customField.title')}</CardTitle>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Fields that customers fill when ordering (name to engrave, image to print, etc.)
+              {t('customField.subtitle')}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { resetForm(); setShowForm(true); }}>
-            <Plus className="w-3 h-3 mr-1" /> Add Field
+            <Plus className="w-3 h-3 mr-1" /> {t('customField.addField')}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {fields.length === 0 ? (
           <div className="text-center py-6 text-sm text-muted-foreground border-2 border-dashed rounded-lg">
-            No customer input fields defined.
+            {t('customField.empty')}
           </div>
         ) : (
           <div className="space-y-2">
@@ -157,20 +158,20 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">{field.translations?.[0]?.label || field.name}</p>
                     <Badge variant="secondary" className="text-[9px] shrink-0">{typeIcon(field.type)}</Badge>
-                    {field.is_required && <Badge className="text-[9px] shrink-0">Required</Badge>}
+                    {field.is_required && <Badge className="text-[9px] shrink-0">{t('customField.required')}</Badge>}
                   </div>
                   <p className="text-[10px] text-muted-foreground font-mono">{field.name}</p>
                   {field.validation_rules && (
                     <div className="flex gap-1 mt-1">
-                      {field.validation_rules.max_length && <Badge variant="outline" className="text-[8px]">Max: {field.validation_rules.max_length}</Badge>}
-                      {field.validation_rules.pattern && <Badge variant="outline" className="text-[8px]">Pattern: {field.validation_rules.pattern}</Badge>}
-                      {field.validation_rules.allowed_chars && <Badge variant="outline" className="text-[8px]">Chars: {field.validation_rules.allowed_chars}</Badge>}
+                      {field.validation_rules.max_length && <Badge variant="outline" className="text-[8px]">{t('customField.maxBadge')}: {field.validation_rules.max_length}</Badge>}
+                      {field.validation_rules.pattern && <Badge variant="outline" className="text-[8px]">{t('customField.patternBadge')}: {field.validation_rules.pattern}</Badge>}
+                      {field.validation_rules.allowed_chars && <Badge variant="outline" className="text-[8px]">{t('customField.charsBadge')}: {field.validation_rules.allowed_chars}</Badge>}
                     </div>
                   )}
                   {field.linked_validation && (
                     <Badge variant="outline" className="text-[8px] mt-1 border-blue-200 text-blue-600">
-                      Linked: {field.linked_validation.type} → {field.linked_validation.target_field_id}
-                      {field.linked_validation.fill_char && ` (fill: ${field.linked_validation.fill_char})`}
+                      {t('customField.linkedBadge')}: {field.linked_validation.type} → {field.linked_validation.target_field_id}
+                      {field.linked_validation.fill_char && ` (${t('customField.fillLabel')}: ${field.linked_validation.fill_char})`}
                     </Badge>
                   )}
                 </div>
@@ -192,20 +193,20 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Edit' : 'Add'} Customer Input Field</DialogTitle>
+            <DialogTitle>{editingId ? t('customField.editFieldTitle') : t('customField.addFieldTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2 max-h-[70vh] overflow-y-auto">
             {/* Basic */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Basic Info</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.basicInfo')}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Internal Name *</Label>
-                  <Input className="h-8 text-sm" placeholder="e.g. print_name, custom_image" value={name} onChange={e => setName(e.target.value)} />
-                  <p className="text-[9px] text-muted-foreground">Used in code — no spaces, lowercase</p>
+                  <Label className="text-xs">{t('customField.internalName')}</Label>
+                  <Input className="h-8 text-sm" placeholder={t('customField.internalNamePlaceholder')} value={name} onChange={e => setName(e.target.value)} />
+                  <p className="text-[9px] text-muted-foreground">{t('customField.internalNameHint')}</p>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Field Type *</Label>
+                  <Label className="text-xs">{t('customField.fieldType')}</Label>
                   <SearchableSelect value={type} onChange={setType} options={fieldTypes} />
                 </div>
               </div>
@@ -213,19 +214,19 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
 
             {/* Labels */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Labels (shown to customer)</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.labelsSection')}</p>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">English Label *</Label>
-                  <Input className="h-8 text-sm" placeholder="Name to Print" value={labelEn} onChange={e => setLabelEn(e.target.value)} />
+                  <Label className="text-xs">{t('customField.englishLabel')}</Label>
+                  <Input className="h-8 text-sm" placeholder={t('customField.englishLabelPlaceholder')} value={labelEn} onChange={e => setLabelEn(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Arabic Label</Label>
+                  <Label className="text-xs">{t('customField.arabicLabel')}</Label>
                   <Input className="h-8 text-sm" dir="rtl" placeholder="الاسم المطلوب" value={labelAr} onChange={e => setLabelAr(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Placeholder</Label>
-                  <Input className="h-8 text-sm" placeholder="Enter your name..." value={placeholder} onChange={e => setPlaceholder(e.target.value)} />
+                  <Label className="text-xs">{t('customField.placeholder')}</Label>
+                  <Input className="h-8 text-sm" placeholder={t('customField.placeholderPlaceholder')} value={placeholder} onChange={e => setPlaceholder(e.target.value)} />
                 </div>
               </div>
             </div>
@@ -233,43 +234,43 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
             {/* Select Options */}
             {type === 'SELECT' && (
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-3">Dropdown Options</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.dropdownOptions')}</p>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Options (comma separated)</Label>
-                  <Input className="h-8 text-sm" placeholder="Classic, Modern, Script, Serif" value={selectOptions} onChange={e => setSelectOptions(e.target.value)} />
+                  <Label className="text-xs">{t('customField.optionsCommaSeparated')}</Label>
+                  <Input className="h-8 text-sm" placeholder={t('customField.optionsPlaceholder')} value={selectOptions} onChange={e => setSelectOptions(e.target.value)} />
                 </div>
               </div>
             )}
 
             {/* Validation */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Validation Rules</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.validationRules')}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Max Length</Label>
+                  <Label className="text-xs">{t('customField.maxLength')}</Label>
                   <Input type="number" className="h-8 text-sm" placeholder="15" value={maxLength} onChange={e => setMaxLength(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Min Length</Label>
+                  <Label className="text-xs">{t('customField.minLength')}</Label>
                   <Input type="number" className="h-8 text-sm" placeholder="1" value={minLength} onChange={e => setMinLength(e.target.value)} />
                 </div>
               </div>
               <div className="space-y-1.5 mt-3">
-                <Label className="text-xs">Validation Pattern</Label>
+                <Label className="text-xs">{t('customField.validationPattern')}</Label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {[
-                    { label: 'English only', pattern: '^[a-zA-Z\\s]+$', chars: 'a-zA-Z\\s' },
-                    { label: 'English + ❤', pattern: '^[a-zA-Z❤\\s]+$', chars: 'a-zA-Z❤\\s' },
-                    { label: 'UPPERCASE only', pattern: '^[A-Z\\s]+$', chars: 'A-Z\\s' },
-                    { label: 'lowercase only', pattern: '^[a-z\\s]+$', chars: 'a-z\\s' },
-                    { label: 'Numbers only', pattern: '^[0-9]+$', chars: '0-9' },
-                    { label: 'English + Numbers', pattern: '^[a-zA-Z0-9\\s]+$', chars: 'a-zA-Z0-9\\s' },
-                    { label: 'Arabic only', pattern: '^[\\u0600-\\u06FF\\s]+$', chars: '\\u0600-\\u06FF\\s' },
-                    { label: 'Arabic + English', pattern: '^[a-zA-Z\\u0600-\\u06FF\\s]+$', chars: 'a-zA-Z\\u0600-\\u06FF\\s' },
-                    { label: 'Email format', pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$', chars: '' },
-                    { label: 'Phone (+xxx)', pattern: '^\\+?[0-9\\s\\-()]+$', chars: '0-9+\\-()\\s' },
-                    { label: 'No special chars', pattern: '^[a-zA-Z0-9\\s]+$', chars: 'a-zA-Z0-9\\s' },
-                    { label: 'Custom', pattern: '', chars: '' },
+                    { label: t('customField.presetEnglishOnly'), pattern: '^[a-zA-Z\\s]+$', chars: 'a-zA-Z\\s' },
+                    { label: t('customField.presetEnglishHeart'), pattern: '^[a-zA-Z❤\\s]+$', chars: 'a-zA-Z❤\\s' },
+                    { label: t('customField.presetUppercase'), pattern: '^[A-Z\\s]+$', chars: 'A-Z\\s' },
+                    { label: t('customField.presetLowercase'), pattern: '^[a-z\\s]+$', chars: 'a-z\\s' },
+                    { label: t('customField.presetNumbers'), pattern: '^[0-9]+$', chars: '0-9' },
+                    { label: t('customField.presetEnglishNumbers'), pattern: '^[a-zA-Z0-9\\s]+$', chars: 'a-zA-Z0-9\\s' },
+                    { label: t('customField.presetArabicOnly'), pattern: '^[\\u0600-\\u06FF\\s]+$', chars: '\\u0600-\\u06FF\\s' },
+                    { label: t('customField.presetArabicEnglish'), pattern: '^[a-zA-Z\\u0600-\\u06FF\\s]+$', chars: 'a-zA-Z\\u0600-\\u06FF\\s' },
+                    { label: t('customField.presetEmail'), pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$', chars: '' },
+                    { label: t('customField.presetPhone'), pattern: '^\\+?[0-9\\s\\-()]+$', chars: '0-9+\\-()\\s' },
+                    { label: t('customField.presetNoSpecial'), pattern: '^[a-zA-Z0-9\\s]+$', chars: 'a-zA-Z0-9\\s' },
+                    { label: t('customField.presetCustom'), pattern: '', chars: '' },
                   ].map(preset => (
                     <button key={preset.label} type="button"
                       onClick={() => { setPattern(preset.pattern); if (preset.chars) setAllowedChars(preset.chars); }}
@@ -280,49 +281,49 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Regex Pattern</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('customField.regexPattern')}</Label>
                     <Input className="h-7 text-xs font-mono" placeholder='^[a-zA-Z]+$' value={pattern} onChange={e => setPattern(e.target.value)} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Allowed Characters</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('customField.allowedCharacters')}</Label>
                     <Input className="h-7 text-xs font-mono" placeholder='a-zA-Z❤' value={allowedChars} onChange={e => setAllowedChars(e.target.value)} />
                   </div>
                 </div>
               </div>
               <label className="flex items-center gap-2 mt-3 cursor-pointer">
                 <input type="checkbox" className="rounded accent-primary" checked={required} onChange={e => setRequired(e.target.checked)} />
-                <span className="text-xs font-medium">Required — customer must fill this field</span>
+                <span className="text-xs font-medium">{t('customField.requiredHint')}</span>
               </label>
             </div>
 
             {/* Linked Validation */}
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Linked Validation (optional)</p>
-              <p className="text-[10px] text-muted-foreground mb-2">Link this field to another field for cross-validation (e.g. couple bracelet — both names same length)</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.linkedValidation')}</p>
+              <p className="text-[10px] text-muted-foreground mb-2">{t('customField.linkedValidationHint')}</p>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Validation Type</Label>
-                  <SearchableSelect value={linkedType} onChange={setLinkedType} placeholder="None" options={[
-                    { value: '', label: 'None' },
-                    { value: 'equal_length', label: 'Equal Length', description: 'Both fields same character count' },
-                    { value: 'max_combined', label: 'Max Combined', description: 'Combined length limit' },
+                  <Label className="text-xs">{t('customField.validationType')}</Label>
+                  <SearchableSelect value={linkedType} onChange={setLinkedType} placeholder={t('customField.none')} options={[
+                    { value: '', label: t('customField.none') },
+                    { value: 'equal_length', label: t('customField.equalLength'), description: t('customField.equalLengthDesc') },
+                    { value: 'max_combined', label: t('customField.maxCombined'), description: t('customField.maxCombinedDesc') },
                   ]} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Target Field Name</Label>
+                  <Label className="text-xs">{t('customField.targetFieldName')}</Label>
                   <Input className="h-8 text-sm font-mono" placeholder="name_2" value={linkedTarget} onChange={e => setLinkedTarget(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Fill Character</Label>
+                  <Label className="text-xs">{t('customField.fillCharacter')}</Label>
                   <Input className="h-8 text-sm" placeholder="❤" value={linkedFillChar} onChange={e => setLinkedFillChar(e.target.value)} />
-                  <p className="text-[9px] text-muted-foreground">Auto-fill to match length</p>
+                  <p className="text-[9px] text-muted-foreground">{t('customField.autoFillHint')}</p>
                 </div>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleSave} disabled={!name || !labelEn}>{editingId ? 'Save Changes' : 'Add Field'}</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
+            <Button size="sm" onClick={handleSave} disabled={!name || !labelEn}>{editingId ? t('customField.saveChanges') : t('customField.addField')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
