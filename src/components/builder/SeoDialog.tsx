@@ -137,9 +137,18 @@ export function SeoDialog({
 
       // Only send rows that actually carry SEO fields — empty rows would
       // overwrite the title set elsewhere with null.
-      const translationsToSend = Object.values(translations).filter(
-        (t) => t.title || t.meta_title || t.meta_description,
-      );
+      // Whitelist payload fields: rows fetched from the API also carry DB
+      // metadata (id, page_id, timestamps) that the upsert DTO rejects via
+      // `forbidNonWhitelisted`. Strip everything except the allowed columns.
+      const translationsToSend = Object.values(translations)
+        .filter((tr) => tr.title || tr.meta_title || tr.meta_description)
+        .map((tr) => {
+          const row: Record<string, unknown> = { locale: tr.locale };
+          if (tr.title != null) row.title = tr.title;
+          if (tr.meta_title != null) row.meta_title = tr.meta_title;
+          if (tr.meta_description != null) row.meta_description = tr.meta_description;
+          return row;
+        });
 
       await api(`/v2/pages/${pageId}`, {
         method: 'PUT',
