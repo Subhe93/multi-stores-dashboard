@@ -289,14 +289,26 @@ export default function EditCustomProduct() {
     setSaving(true);
     setSaveError('');
     try {
+      // `\w` is ASCII-only; non-Latin titles slugify to empty/"-" and 404 on the
+      // storefront. Use a strict ASCII slugifier and fall back to the primary
+      // locale's slug when a locale's title yields nothing usable.
+      const asciiSlug = (s: string) =>
+        s.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').substring(0, 100);
+      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
+      const primaryTr = translations[primaryLocale];
+      const primarySlug =
+        (primaryTr && (primaryTr.slug || asciiSlug(primaryTr.title))) || '';
       const translationsPayload = Object.entries(translations)
         .filter(([, tr]) => tr.title.trim())
-        .map(([locale, tr]) => ({
-          locale,
-          title: tr.title,
-          description: tr.description || undefined,
-          slug: tr.slug || tr.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100),
-        }));
+        .map(([locale, tr]) => {
+          const ownSlug = tr.slug && hasAlnum(tr.slug) ? tr.slug : asciiSlug(tr.title);
+          return {
+            locale,
+            title: tr.title,
+            description: tr.description || undefined,
+            slug: hasAlnum(ownSlug) ? ownSlug : primarySlug,
+          };
+        });
 
       const body: any = {
         pricing_type: pricingType,

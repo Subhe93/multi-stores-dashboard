@@ -54,8 +54,9 @@ interface ProductFormProps {
   postCreateUrl?: string;
 }
 
-// Translation state per locale
-type LocaleTranslation = { title: string; description: string };
+// Translation state per locale. Each locale has its own slug — secondary
+// locales can have a custom URL slug, otherwise we derive one (see save logic).
+type LocaleTranslation = { title: string; description: string; slug: string };
 
 export function ProductForm({ mode, productId, backUrl, postCreateUrl }: ProductFormProps) {
   const t = useTranslations();
@@ -75,9 +76,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const [allLocales, setAllLocales] = useState<string[]>(['en']);
   const [activeLocale, setActiveLocale] = useState('en');
-  // translations[locale] = { title, description }
+  // translations[locale] = { title, description, slug }
   const [translations, setTranslations] = useState<Record<string, LocaleTranslation>>({
-    en: { title: '', description: '' },
+    en: { title: '', description: '', slug: '' },
   });
   const [translatingLocale, setTranslatingLocale] = useState('');
 
@@ -85,7 +86,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryAttrs, setCategoryAttrs] = useState<any[]>([]);
   const [categoryId, setCategoryId] = useState('');
-  const [slug, setSlug] = useState('');
   const [productType, setProductType] = useState('TRADITIONAL');
   const [customizationType, setCustomizationType] = useState('');
   const [basePrice, setBasePrice] = useState('');
@@ -137,7 +137,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         // initialise empty slots for every locale
         setTranslations(prev => {
           const next: Record<string, LocaleTranslation> = {};
-          all.forEach(l => { next[l] = prev[l] || { title: '', description: '' }; });
+          all.forEach(l => { next[l] = prev[l] || { title: '', description: '', slug: '' }; });
           return next;
         });
       })
@@ -175,7 +175,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       const primaryT = p.translations?.find((t: any) => t.locale === primaryLocale) || p.translations?.[0];
 
       setCategoryId(p.category_id || '');
-      setSlug(primaryT?.slug || '');
       setMetaTitle(primaryT?.meta_title || '');
       setMetaDesc(primaryT?.meta_desc || '');
       setProductType(p.product_type || 'TRADITIONAL');
@@ -207,7 +206,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setTranslations(prev => {
         const next = { ...prev };
         (p.translations || []).forEach((t: any) => {
-          next[t.locale] = { title: t.title || '', description: t.description || '' };
+          next[t.locale] = { title: t.title || '', description: t.description || '', slug: t.slug || '' };
         });
         return next;
       });
@@ -259,10 +258,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
   // ── Auto-slug from primary locale title ───────────────────
   useEffect(() => {
-    if (primaryTitle && mode === 'create' && !slug) {
-      setSlug(primaryTitle.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100));
-    }
-  }, [primaryTitle, mode]);
+    if (mode !== 'create') return;
+    if (!primaryTitle) return;
+    if (translations[primaryLocale]?.slug) return; // user has typed a custom one
+    const auto = primaryTitle.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100);
+    if (auto) setTransField(primaryLocale, 'slug', auto);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryTitle, mode, primaryLocale]);
 
   // ── Auto-translate to target locale ───────────────────────
   const handleTranslateTo = async (targetLocale: string) => {
@@ -318,20 +320,38 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     try {
       const finalStatus = publishNow ? 'PUBLISHED' : status;
 
-      // Build translations array from all locales that have a title
+      // Compute a URL-safe slug. `\w` is ASCII-only, so non-Latin titles
+      // (Arabic, CJK, …) slugify to empty or just "-", which would 404 on the
+      // storefront. We strip down to lowercase ASCII alphanumerics and hyphens.
+      const asciiSlug = (s: string) =>
+        s.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').substring(0, 100);
+      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
+      const primaryUserSlug = translations[primaryLocale]?.slug?.trim() || '';
+      const primarySlug = hasAlnum(primaryUserSlug)
+        ? primaryUserSlug
+        : asciiSlug(primaryTitle);
+
+      // Build translations array from all locales that have a title. A locale's
+      // own slug (as entered by the user) wins if it's usable; otherwise derive
+      // from the localized title; otherwise fall back to the primary slug.
       const translationsPayload = Object.entries(translations)
         .filter(([, t]) => t.title.trim())
-        .map(([locale, t]) => ({
-          locale,
-          title: t.title,
-          description: t.description || '',
-          slug: locale === primaryLocale
-            ? (slug || primaryTitle.toLowerCase().replace(/\s+/g, '-'))
-            : t.title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100),
-          ...(locale === primaryLocale
-            ? { meta_title: metaTitle || undefined, meta_desc: metaDesc || undefined }
-            : {}),
-        }));
+        .map(([locale, t]) => {
+          const userSlug = t.slug?.trim() || '';
+          const derived = asciiSlug(t.title);
+          const resolved = hasAlnum(userSlug)
+            ? userSlug
+            : (hasAlnum(derived) ? derived : primarySlug);
+          return {
+            locale,
+            title: t.title,
+            description: t.description || '',
+            slug: locale === primaryLocale ? primarySlug : resolved,
+            ...(locale === primaryLocale
+              ? { meta_title: metaTitle || undefined, meta_desc: metaDesc || undefined }
+              : {}),
+          };
+        });
 
       const body: any = {
         category_id: categoryId,
@@ -601,6 +621,32 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   onChange={val => setTransField(activeLocale, 'description', val)}
                 />
               </div>
+
+              {/* URL slug per locale — kept ASCII (the storefront URL segment).
+                  Leaving it empty for a secondary locale reuses the primary slug. */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">
+                  {t('product.urlSlug')}
+                  {activeLocale === primaryLocale && <span className="text-red-500"> *</span>}
+                </Label>
+                <Input
+                  dir="ltr"
+                  className="h-8 text-sm font-mono"
+                  value={translations[activeLocale]?.slug || ''}
+                  onChange={e =>
+                    setTransField(
+                      activeLocale,
+                      'slug',
+                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                    )
+                  }
+                  placeholder={
+                    activeLocale === primaryLocale
+                      ? ''
+                      : translations[primaryLocale]?.slug || ''
+                  }
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -700,7 +746,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <div className="space-y-1.5"><Label className="text-xs">{t('product.metaDescription')}</Label>
                 <textarea rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs" value={metaDesc} onChange={e => setMetaDesc(e.target.value)} />
               </div>
-              <div className="space-y-1.5"><Label className="text-xs">{t('product.urlSlug')}</Label><Input className="h-8 text-sm font-mono" value={slug} onChange={e => setSlug(e.target.value)} /></div>
             </CardContent>
           </Card>
         </div>

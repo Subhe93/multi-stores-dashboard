@@ -417,14 +417,28 @@ export default function NewCustomProductPage() {
     setSaving(true);
     setSubmitError('');
     try {
+      // Non-Latin titles slugify to empty/"-" and would 404 on the storefront.
+      // Fall back to the primary locale's slug when a locale's title yields no
+      // usable Latin slug.
+      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
+      const primaryTr = translations[primaryLocale];
+      const primarySlug =
+        (primaryTr?.slug && hasAlnum(primaryTr.slug))
+          ? primaryTr.slug
+          : generateSlug(primaryTr?.title || '').substring(0, 100);
       const translationsPayload = Object.entries(translations)
         .filter(([, tr]) => tr.title.trim())
-        .map(([locale, tr]) => ({
-          locale,
-          title: tr.title,
-          description: tr.description || undefined,
-          slug: tr.slug || generateSlug(tr.title).substring(0, 100),
-        }));
+        .map(([locale, tr]) => {
+          const ownSlug = (tr.slug && hasAlnum(tr.slug))
+            ? tr.slug
+            : generateSlug(tr.title).substring(0, 100);
+          return {
+            locale,
+            title: tr.title,
+            description: tr.description || undefined,
+            slug: hasAlnum(ownSlug) ? ownSlug : primarySlug,
+          };
+        });
 
       const body: any = {
         product_id: selectedProduct.id,
