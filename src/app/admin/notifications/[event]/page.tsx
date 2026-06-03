@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,22 +10,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
-type NotificationEvent = 'order_confirmation' | 'password_reset';
-const VALID_EVENTS: NotificationEvent[] = ['order_confirmation', 'password_reset'];
-
 interface NotificationTemplate {
   id: string;
-  event: NotificationEvent;
+  event: string;
   subject: Record<string, string> | null;
   body_html: Record<string, string> | null;
   body_text: Record<string, string> | null;
   enabled: boolean;
   updated_at: string;
+}
+
+interface EventCatalogEntry {
+  event: string;
+  variables: string[];
 }
 
 const LOCALES: { code: string; label: string; dir: 'ltr' | 'rtl' }[] = [
@@ -36,19 +38,6 @@ const LOCALES: { code: string; label: string; dir: 'ltr' | 'rtl' }[] = [
   { code: 'fr', label: 'Français', dir: 'ltr' },
   { code: 'sv', label: 'Svenska', dir: 'ltr' },
 ];
-
-// Placeholder variables substituted by the backend sender for each event type.
-// Keep this in sync with the API's template renderer.
-const EVENT_VARIABLES: Record<NotificationEvent, string[]> = {
-  password_reset: ['{{reset_url}}'],
-  order_confirmation: [
-    '{{order_number}}',
-    '{{total}}',
-    '{{payment_line}}',
-    '{{order_button}}',
-    '{{order_url_text}}',
-  ],
-};
 
 // Treat whitespace-only / tag-only HTML as empty so the dot indicator reflects real emptiness.
 function isHtmlEmpty(html: string | undefined | null): boolean {
@@ -65,13 +54,10 @@ export default function AdminNotificationTemplateEditorPage() {
   const t = useTranslations('admin');
   const { token } = useAuth();
   const params = useParams<{ event: string }>();
-  const event = params?.event as NotificationEvent;
-
-  if (event && !VALID_EVENTS.includes(event)) {
-    notFound();
-  }
+  const event = params?.event as string;
 
   const [template, setTemplate] = useState<NotificationTemplate | null>(null);
+  const [eventVariables, setEventVariables] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeLocale, setActiveLocale] = useState<string>('en');
   const [subjectByLocale, setSubjectByLocale] = useState<Record<string, string>>({});
@@ -80,17 +66,25 @@ export default function AdminNotificationTemplateEditorPage() {
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
     if (!token || !event) return;
     setLoading(true);
-    api<NotificationTemplate>(`/notification-templates/admin/${event}`, { token })
-      .then((data) => {
-        setTemplate(data);
-        setSubjectByLocale({ ...(data?.subject || {}) });
-        setBodyHtmlByLocale({ ...(data?.body_html || {}) });
-        setBodyTextByLocale({ ...(data?.body_text || {}) });
-        setEnabled(Boolean(data?.enabled));
+    // Load template + event catalog in parallel; catalog returns the variables
+    // available for THIS event so we render the right hint chips.
+    Promise.all([
+      api<NotificationTemplate>(`/notification-templates/admin/${event}`, { token }),
+      api<EventCatalogEntry[]>('/notification-templates/admin/events', { token }),
+    ])
+      .then(([tpl, catalog]) => {
+        setTemplate(tpl);
+        setSubjectByLocale({ ...(tpl?.subject || {}) });
+        setBodyHtmlByLocale({ ...(tpl?.body_html || {}) });
+        setBodyTextByLocale({ ...(tpl?.body_text || {}) });
+        setEnabled(Boolean(tpl?.enabled));
+        const found = catalog.find((e) => e.event === event);
+        setEventVariables(found?.variables ?? []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -136,8 +130,8 @@ export default function AdminNotificationTemplateEditorPage() {
     }
   };
 
-  const eventLabel = t(`notifEvent_${event}` as any);
-  const variables = event ? EVENT_VARIABLES[event] : [];
+  const labelKey = `notifEvent_${event}` as const;
+  const eventLabel = (t.has(labelKey) ? t(labelKey) : event) as string;
 
   if (loading) {
     return <p className="text-sm text-muted-foreground py-12 text-center">{t('loading')}</p>;
@@ -261,7 +255,26 @@ export default function AdminNotificationTemplateEditorPage() {
 
           {/* Body HTML */}
           <div className="space-y-1.5">
-            <Label className="text-xs">{t('notifBodyHtml')}</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{t('notifBodyHtml')}</Label>
+              <button
+                type="button"
+                onClick={() => setShowPreview((v) => !v)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff className="w-3 h-3" />
+                    {t('notifHidePreview')}
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3 h-3" />
+                    {t('notifShowPreview')}
+                  </>
+                )}
+              </button>
+            </div>
             <RichTextEditor
               key={`html-${activeLocale}`}
               content={bodyHtmlByLocale[activeLocale] ?? ''}
@@ -270,6 +283,19 @@ export default function AdminNotificationTemplateEditorPage() {
               }
               dir={activeDir}
             />
+            {showPreview && (
+              <div className="rounded-md border bg-white p-3" dir={activeDir}>
+                <p className="text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-wide">
+                  {t('notifPreview')}
+                </p>
+                <div
+                  className="text-sm text-zinc-700 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: bodyHtmlByLocale[activeLocale] || `<p class="text-zinc-400">${t('notifEmptyForLocale')}</p>`,
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Body Text */}
@@ -286,18 +312,24 @@ export default function AdminNotificationTemplateEditorPage() {
           </div>
 
           {/* Available variables hint */}
-          {variables.length > 0 && (
+          {eventVariables.length > 0 && (
             <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
               <p className="text-[11px] font-medium text-zinc-700 mb-1">
                 {t('notifAvailableVariables')}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {variables.map((v) => (
+                {eventVariables.map((v) => (
                   <code
                     key={v}
                     className="text-[10.5px] font-mono px-1.5 py-0.5 rounded bg-white border border-zinc-200 text-zinc-700"
+                    title={t('notifClickToCopy')}
+                    onClick={() => {
+                      navigator.clipboard?.writeText(`{{${v}}}`).catch(() => {});
+                    }}
+                    role="button"
+                    style={{ cursor: 'pointer' }}
                   >
-                    {v}
+                    {`{{${v}}}`}
                   </code>
                 ))}
               </div>
@@ -306,7 +338,9 @@ export default function AdminNotificationTemplateEditorPage() {
 
           <div className="flex items-center justify-between pt-2 border-t">
             <p className="text-[11px] text-muted-foreground">
-              {t('notifLastUpdated', { date: new Date(template.updated_at).toLocaleString() })}
+              {template.id
+                ? t('notifLastUpdated', { date: new Date(template.updated_at).toLocaleString() })
+                : t('notifNeverSavedYet')}
             </p>
             <div className="flex items-center gap-3">
               {saved && (

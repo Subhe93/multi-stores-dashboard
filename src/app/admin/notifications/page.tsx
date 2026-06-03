@@ -9,11 +9,9 @@ import { Mail, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
-type NotificationEvent = 'order_confirmation' | 'password_reset';
-
 interface NotificationTemplate {
   id: string;
-  event: NotificationEvent;
+  event: string;
   subject: Record<string, string> | null;
   body_html: Record<string, string> | null;
   body_text: Record<string, string> | null;
@@ -21,8 +19,10 @@ interface NotificationTemplate {
   updated_at: string;
 }
 
-// Canonical order so the list stays stable regardless of API response order.
-const EVENT_ORDER: NotificationEvent[] = ['order_confirmation', 'password_reset'];
+interface EventCatalogEntry {
+  event: string;
+  variables: string[];
+}
 
 export default function AdminNotificationsListPage() {
   const t = useTranslations('admin');
@@ -32,15 +32,13 @@ export default function AdminNotificationsListPage() {
 
   useEffect(() => {
     if (!token) return;
+    // The API returns rows for ALL catalog events (placeholder for ones never
+    // saved), in canonical order — we don't need to fetch /events here.
     api<NotificationTemplate[]>('/notification-templates/admin', { token })
       .then((data) => setTemplates(Array.isArray(data) ? data : []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [token]);
-
-  const sortedTemplates = [...templates].sort(
-    (a, b) => EVENT_ORDER.indexOf(a.event) - EVENT_ORDER.indexOf(b.event),
-  );
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -51,7 +49,7 @@ export default function AdminNotificationsListPage() {
 
       {loading ? (
         <p className="text-sm text-muted-foreground py-12 text-center">{t('loading')}</p>
-      ) : sortedTemplates.length === 0 ? (
+      ) : templates.length === 0 ? (
         <Card className="shadow-none">
           <CardContent className="py-12 text-center text-sm text-muted-foreground">
             {t('noNotificationTemplatesYet')}
@@ -61,10 +59,15 @@ export default function AdminNotificationsListPage() {
         <Card className="shadow-none">
           <CardContent className="p-0">
             <ul className="divide-y">
-              {sortedTemplates.map((tpl) => {
-                const eventLabel = t(`notifEvent_${tpl.event}` as any);
+              {templates.map((tpl) => {
+                // Falls back to the raw event key when no translation exists yet —
+                // safer than throwing for an event added on the backend before
+                // the dashboard's locale files were updated.
+                const labelKey = `notifEvent_${tpl.event}` as const;
+                const eventLabel = (t.has(labelKey) ? t(labelKey) : tpl.event) as string;
+                const neverSaved = !tpl.id;
                 return (
-                  <li key={tpl.id}>
+                  <li key={tpl.event}>
                     <Link
                       href={`/admin/notifications/${tpl.event}`}
                       className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-50 transition group"
@@ -78,7 +81,11 @@ export default function AdminNotificationsListPage() {
                           <Badge variant="outline" className="text-[10px] font-mono">
                             {tpl.event}
                           </Badge>
-                          {tpl.enabled ? (
+                          {neverSaved ? (
+                            <Badge variant="outline" className="text-[10px] text-zinc-600 border-zinc-300 bg-zinc-50">
+                              {t('notifNeverSaved')}
+                            </Badge>
+                          ) : tpl.enabled ? (
                             <Badge className="text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200">
                               {t('notifEnabled')}
                             </Badge>
@@ -88,11 +95,13 @@ export default function AdminNotificationsListPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {t('notifLastUpdated', {
-                            date: new Date(tpl.updated_at).toLocaleString(),
-                          })}
-                        </p>
+                        {!neverSaved && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {t('notifLastUpdated', {
+                              date: new Date(tpl.updated_at).toLocaleString(),
+                            })}
+                          </p>
+                        )}
                       </div>
                       <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground group-hover:text-foreground transition">
                         {t('edit')}
