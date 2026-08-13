@@ -44,6 +44,10 @@ interface StripeConnectStatus {
   charges_enabled: boolean;
   payouts_enabled: boolean;
   onboarding_completed: boolean;
+  account_type?: 'express' | 'standard' | null;
+  // True when an independent store still points at a legacy Express account;
+  // the next connect click replaces it with a Standard account.
+  requires_relink?: boolean;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -504,10 +508,11 @@ export default function CreatorSettingsPage() {
             own Standard account (direct charges) for independent stores. */}
         {(() => {
           const isIndependent = store?.store_type === 'INDEPENDENT';
-          // Independent stores are ready when they can take charges directly;
-          // marketplace stores when platform payouts are enabled.
+          const requiresRelink = !!stripeStatus?.requires_relink;
+          // Independent stores are ready when they can take charges directly on
+          // a Standard account; marketplace stores when payouts are enabled.
           const stripeReady = isIndependent
-            ? !!stripeStatus?.charges_enabled
+            ? !!stripeStatus?.charges_enabled && !requiresRelink
             : !!stripeStatus?.payouts_enabled;
           return (
             <Card className="shadow-none">
@@ -533,7 +538,9 @@ export default function CreatorSettingsPage() {
                           </span>
                         ) : stripeStatus?.connected ? (
                           <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
-                            {t('settings.onboardingPending')}
+                            {requiresRelink
+                              ? t('settings.stripeRelinkRequired')
+                              : t('settings.onboardingPending')}
                           </span>
                         ) : (
                           <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
@@ -549,6 +556,8 @@ export default function CreatorSettingsPage() {
                         <Button size="sm" onClick={handleConnectStripe} disabled={stripeConnecting}>
                           {stripeConnecting ? (
                             <Loader2 className="size-3.5 animate-spin" />
+                          ) : requiresRelink ? (
+                            t('settings.reconnectStripe')
                           ) : stripeStatus?.connected ? (
                             t('settings.completeStripeSetup')
                           ) : (

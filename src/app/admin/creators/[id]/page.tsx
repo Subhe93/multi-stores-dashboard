@@ -245,7 +245,14 @@ export default function CreatorDetailPage() {
                 {typeMsg && (
                   <p className={`text-[11px] ${typeMsg.kind === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>{typeMsg.text}</p>
                 )}
-                <p className="text-[11px] text-amber-600">{t('storeTypeWarning')}</p>
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-2.5 space-y-1">
+                  <p className="text-[11px] font-medium text-amber-700">{t('storeTypeWarning')}</p>
+                  <ul className="list-disc ps-4 space-y-0.5 text-[11px] text-amber-700">
+                    <li>{t('storeTypeWarnCatalog')}</li>
+                    <li>{t('storeTypeWarnOrders')}</li>
+                    <li>{t('storeTypeWarnReconnect')}</li>
+                  </ul>
+                </div>
               </div>
             </>
           )}
