@@ -18,6 +18,8 @@ import { Layers, Plus, ImageIcon, Copy } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useStoreType } from '@/lib/useStoreType';
+import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string): string | undefined {
@@ -104,6 +106,7 @@ export default function CustomProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Row | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const { storeType } = useStoreType();
 
   const creatorId = user?.creator?.id;
 
@@ -384,6 +387,12 @@ export default function CustomProductsPage() {
       </div>
     </div>
   );
+
+  // Independent stores manage products from "Add Product" only — provider
+  // product imports do not apply, so direct navigation gets a friendly notice.
+  if (storeType === 'INDEPENDENT') {
+    return <IndependentStoreNotice description={tt('independent.customNotAvailable')} />;
+  }
 
   return (
     <div className="space-y-6">

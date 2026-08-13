@@ -31,6 +31,7 @@ interface StripeSettings {
   publishableKey: string | null;
   secretKeyConfigured: boolean;
   webhookSecretConfigured: boolean;
+  connectWebhookSecretConfigured: boolean;
   usingEnvFallback: boolean;
 }
 
@@ -82,11 +83,13 @@ export default function AdminSettings() {
     publishableKey: null,
     secretKeyConfigured: false,
     webhookSecretConfigured: false,
+    connectWebhookSecretConfigured: false,
     usingEnvFallback: false,
   });
   const [stripePublishable, setStripePublishable] = useState('');
   const [stripeSecret, setStripeSecret] = useState('');
   const [stripeWebhook, setStripeWebhook] = useState('');
+  const [stripeConnectWebhook, setStripeConnectWebhook] = useState('');
   const [stripeSaving, setStripeSaving] = useState(false);
   const [stripeSaved, setStripeSaved] = useState(false);
 
@@ -149,6 +152,7 @@ export default function AdminSettings() {
       // Only send secrets when the admin typed a new value; blank leaves them unchanged.
       if (stripeSecret.trim()) body.secret_key = stripeSecret.trim();
       if (stripeWebhook.trim()) body.webhook_secret = stripeWebhook.trim();
+      if (stripeConnectWebhook.trim()) body.connect_webhook_secret = stripeConnectWebhook.trim();
       const updated = await api<StripeSettings>('/payments/admin/settings', {
         method: 'PUT',
         token,
@@ -158,6 +162,7 @@ export default function AdminSettings() {
       setStripePublishable(updated.publishableKey || '');
       setStripeSecret('');
       setStripeWebhook('');
+      setStripeConnectWebhook('');
       setStripeSaved(true);
       setTimeout(() => setStripeSaved(false), 3000);
     } catch (err) {
@@ -548,6 +553,19 @@ export default function AdminSettings() {
               placeholder={stripe.webhookSecretConfigured ? t('stripeKeyConfiguredPlaceholder') : 'whsec_…'}
             />
             <p className="text-[10px] text-muted-foreground">{t('stripeWebhookHint')}</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">{t('stripeConnectWebhookSecret')}</Label>
+            <Input
+              className="h-8 text-sm font-mono"
+              type="password"
+              autoComplete="off"
+              value={stripeConnectWebhook}
+              onChange={(e) => setStripeConnectWebhook(e.target.value)}
+              placeholder={stripe.connectWebhookSecretConfigured ? t('stripeKeyConfiguredPlaceholder') : 'whsec_…'}
+            />
+            <p className="text-[10px] text-muted-foreground">{t('stripeConnectWebhookHint')}</p>
           </div>
 
           <div className="flex items-center gap-3 justify-end">

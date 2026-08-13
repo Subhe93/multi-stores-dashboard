@@ -5,6 +5,7 @@ import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
 import { useAuth } from '@/lib/auth';
+import { useStoreType } from '@/lib/useStoreType';
 import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
@@ -28,6 +29,10 @@ import {
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const t = useTranslations('nav');
+  // Independent stores sell only their own products, so marketplace-only
+  // entries (provider catalog, imported products) are hidden from the nav.
+  const { storeType } = useStoreType();
+  const isIndependent = storeType === 'INDEPENDENT';
 
   const creatorNav = [
     {
@@ -40,9 +45,14 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     {
       title: t('catalog'),
       items: [
-        { label: t('exploreProviderProducts'), href: '/creator/products/browse', icon: <Package className="w-4 h-4" /> },
+        // Marketplace-only entries are hidden for independent stores.
+        ...(isIndependent
+          ? []
+          : [{ label: t('exploreProviderProducts'), href: '/creator/products/browse', icon: <Package className="w-4 h-4" /> }]),
         { label: t('addProduct'), href: '/creator/products/own/new', icon: <Plus className="w-4 h-4" /> },
-        { label: t('products'), href: '/creator/custom-products', icon: <Layers className="w-4 h-4" /> },
+        ...(isIndependent
+          ? []
+          : [{ label: t('products'), href: '/creator/custom-products', icon: <Layers className="w-4 h-4" /> }]),
         { label: t('collections'), href: '/creator/categories', icon: <FolderTree className="w-4 h-4" /> },
         { label: t('shipping'), href: '/creator/shipping', icon: <Truck className="w-4 h-4" /> },
       ],

@@ -36,6 +36,7 @@ interface StoreInfo {
   slug: string;
   is_active: boolean;
   cache_enabled: boolean;
+  store_type?: 'MARKETPLACE' | 'INDEPENDENT';
 }
 
 interface StripeConnectStatus {
@@ -499,54 +500,85 @@ export default function CreatorSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Stripe Connect card */}
-        <Card className="shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('settings.stripeConnect')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stripeLoading ? (
-              <div className="space-y-2">
-                <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
-                <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  {stripeStatus?.payouts_enabled ? (
-                    <span className="inline-flex h-5 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
-                      <CheckCircle2 className="size-3" />
-                      {t('settings.payoutsEnabled')}
-                    </span>
-                  ) : stripeStatus?.connected ? (
-                    <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
-                      {t('settings.onboardingPending')}
-                    </span>
-                  ) : (
-                    <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
-                      {t('settings.notConnected')}
-                    </span>
-                  )}
-                  <p className="text-[11px] text-muted-foreground">
-                    {t('settings.stripeConnectDesc')}
-                  </p>
-                  {stripeError && <p className="text-[11px] text-destructive">{stripeError}</p>}
-                </div>
-                {!stripeStatus?.payouts_enabled && (
-                  <Button size="sm" onClick={handleConnectStripe} disabled={stripeConnecting}>
-                    {stripeConnecting ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : stripeStatus?.connected ? (
-                      t('settings.completeStripeSetup')
-                    ) : (
-                      t('settings.connectStripe')
+        {/* Stripe card — Express payouts for marketplace stores, the creator's
+            own Standard account (direct charges) for independent stores. */}
+        {(() => {
+          const isIndependent = store?.store_type === 'INDEPENDENT';
+          // Independent stores are ready when they can take charges directly;
+          // marketplace stores when platform payouts are enabled.
+          const stripeReady = isIndependent
+            ? !!stripeStatus?.charges_enabled
+            : !!stripeStatus?.payouts_enabled;
+          return (
+            <Card className="shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">
+                  {isIndependent ? t('settings.stripeAccountTitle') : t('settings.stripeConnect')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {stripeLoading || storeLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="space-y-0.5">
+                        {stripeReady ? (
+                          <span className="inline-flex h-5 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
+                            <CheckCircle2 className="size-3" />
+                            {isIndependent ? t('settings.paymentsEnabled') : t('settings.payoutsEnabled')}
+                          </span>
+                        ) : stripeStatus?.connected ? (
+                          <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
+                            {t('settings.onboardingPending')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
+                            {t('settings.notConnected')}
+                          </span>
+                        )}
+                        <p className="text-[11px] text-muted-foreground">
+                          {isIndependent ? t('settings.stripeAccountDesc') : t('settings.stripeConnectDesc')}
+                        </p>
+                        {stripeError && <p className="text-[11px] text-destructive">{stripeError}</p>}
+                      </div>
+                      {!stripeReady && (
+                        <Button size="sm" onClick={handleConnectStripe} disabled={stripeConnecting}>
+                          {stripeConnecting ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : stripeStatus?.connected ? (
+                            t('settings.completeStripeSetup')
+                          ) : (
+                            t('settings.connectStripe')
+                          )}
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Independent stores manage refunds and disputes in their
+                        own Stripe dashboard. */}
+                    {isIndependent && stripeStatus?.connected && (
+                      <div className="flex items-center justify-between gap-3 border-t pt-3">
+                        <p className="text-[11px] text-muted-foreground">
+                          {t('settings.stripeAccountRefundsHint')}
+                        </p>
+                        <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline">
+                            {t('settings.openStripeDashboard')}
+                            <ExternalLink className="size-3.5" />
+                          </Button>
+                        </a>
+                      </div>
                     )}
-                  </Button>
+                  </div>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Change Password card */}
         <Card className="shadow-none">

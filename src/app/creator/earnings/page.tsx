@@ -8,10 +8,11 @@ import { DataTable } from '@/components/common/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DollarSign, TrendingUp, Clock, CreditCard } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, CreditCard, Info, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useStoreType } from '@/lib/useStoreType';
 
 interface CommissionSummary {
   total_earnings: number;
@@ -64,6 +65,9 @@ export default function CreatorEarnings() {
   const { fmt } = useCurrency();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+
+  const { storeType } = useStoreType();
+  const isIndependent = storeType === 'INDEPENDENT';
 
   const [summary, setSummary] = useState<CommissionSummary | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -169,6 +173,27 @@ export default function CreatorEarnings() {
         <h1 className="text-xl font-semibold tracking-tight">{t('earnings.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('earnings.subtitle')}</p>
       </div>
+
+      {/* Independent stores are paid directly per order through their own
+          Stripe account — no platform commission is withheld. */}
+      {isIndependent && (
+        <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-800">
+          <Info className="mt-0.5 size-3.5 shrink-0" />
+          <div className="space-y-0.5">
+            <p className="font-medium">{t('earnings.independentBannerTitle')}</p>
+            <p>{t('earnings.independentBannerDesc')}</p>
+            <a
+              href="https://dashboard.stripe.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:text-blue-900"
+            >
+              {t('earnings.independentBannerLink')}
+              <ExternalLink className="size-3" />
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

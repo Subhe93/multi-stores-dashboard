@@ -21,6 +21,8 @@ import {
   Palette,
   ArrowRight,
   Copy,
+  Store as StoreIcon,
+  Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -1037,6 +1039,8 @@ function slugify(input: string): string {
     .replace(/^-|-$/g, '');
 }
 
+type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
+
 function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (store: Store) => void }) {
   const t = useTranslations('creator');
   const tcom = useTranslations('common');
@@ -1045,6 +1049,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
   const [slugTouched, setSlugTouched] = useState(false);
   const [description, setDescription] = useState('');
   const [primaryLocale, setPrimaryLocale] = useState('en');
+  const [storeType, setStoreType] = useState<StoreType>('MARKETPLACE');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -1071,6 +1076,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
           description: description.trim() || undefined,
           primary_locale: primaryLocale,
           secondary_locales: [primaryLocale],
+          store_type: storeType,
         }),
       });
       onCreated(created);
@@ -1121,6 +1127,51 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
             <div className="space-y-1.5">
               <Label className="text-xs">{t('myStore.primaryLanguage')}</Label>
               <SearchableSelect value={primaryLocale} onChange={setPrimaryLocale} options={LOCALES} placeholder={t('myStore.selectLanguage')} />
+            </div>
+
+            {/* Store type — chosen once at creation, immutable afterwards */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">{t('myStore.storeTypeLabel')}</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label={t('myStore.storeTypeLabel')}>
+                {([
+                  {
+                    value: 'MARKETPLACE' as StoreType,
+                    icon: <StoreIcon className="size-4" />,
+                    title: t('myStore.storeTypeMarketplace'),
+                    desc: t('myStore.storeTypeMarketplaceDesc'),
+                  },
+                  {
+                    value: 'INDEPENDENT' as StoreType,
+                    icon: <Wallet className="size-4" />,
+                    title: t('myStore.storeTypeIndependent'),
+                    desc: t('myStore.storeTypeIndependentDesc'),
+                  },
+                ]).map((opt) => {
+                  const selected = storeType === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setStoreType(opt.value)}
+                      className={`rounded-lg border p-3 text-start transition ${
+                        selected
+                          ? 'border-zinc-900 ring-1 ring-zinc-900 bg-zinc-50'
+                          : 'border-zinc-200 hover:border-zinc-400'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={selected ? 'text-zinc-900' : 'text-zinc-500'}>{opt.icon}</span>
+                        <span className="text-sm font-medium">{opt.title}</span>
+                        {selected && <Check className="size-3.5 ms-auto text-zinc-900" />}
+                      </div>
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{opt.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground">{t('myStore.storeTypeHint')}</p>
             </div>
 
             {error && <p className="text-xs text-red-600">{error}</p>}

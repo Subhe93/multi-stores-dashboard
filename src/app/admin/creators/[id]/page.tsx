@@ -8,16 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Mail, Phone, CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+
+type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
 
 interface Store {
   id: string;
   slug: string;
   name: string;
   is_active: boolean;
+  store_type?: StoreType;
 }
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
@@ -39,6 +43,10 @@ export default function CreatorDetailPage() {
   const [savingSlug, setSavingSlug] = useState(false);
   const [slugMsg, setSlugMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
+  const [storeType, setStoreType] = useState<StoreType>('MARKETPLACE');
+  const [savingType, setSavingType] = useState(false);
+  const [typeMsg, setTypeMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
   const fetchCreator = () => {
     if (!token || !id) return;
     api<any>(`/creators/${id}`, { token })
@@ -59,7 +67,7 @@ export default function CreatorDetailPage() {
     Promise.all([
       api<any>(`/creators/${id}`, { token }).then(setCreator).catch(console.error),
       api<Store>(`/stores/by-creator/${id}`, { token })
-        .then((s) => { setStore(s); setSlug(s.slug); })
+        .then((s) => { setStore(s); setSlug(s.slug); setStoreType(s.store_type ?? 'MARKETPLACE'); })
         .catch(() => setStore(null)),
     ]).finally(() => setLoading(false));
   }, [token, id]);
@@ -88,6 +96,26 @@ export default function CreatorDetailPage() {
       setSlugMsg({ kind: 'err', text: err?.message || t('failedToUpdateSlug') });
     } finally {
       setSavingSlug(false);
+    }
+  };
+
+  const handleSaveType = async () => {
+    if (!token || !store || savingType) return;
+    if (storeType === (store.store_type ?? 'MARKETPLACE')) return;
+    setSavingType(true);
+    setTypeMsg(null);
+    try {
+      const updated = await api<Store>(`/stores/by-creator/${id}`, {
+        method: 'PUT', token,
+        body: JSON.stringify({ store_type: storeType }),
+      });
+      setStore(updated);
+      setStoreType(updated.store_type ?? 'MARKETPLACE');
+      setTypeMsg({ kind: 'ok', text: t('storeTypeUpdated') });
+    } catch (err: any) {
+      setTypeMsg({ kind: 'err', text: err?.message || t('failedToUpdateStoreType') });
+    } finally {
+      setSavingType(false);
     }
   };
 
@@ -189,6 +217,35 @@ export default function CreatorDetailPage() {
                   <p className={`text-[11px] ${slugMsg.kind === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>{slugMsg.text}</p>
                 )}
                 <p className="text-[11px] text-muted-foreground">{t('slugHint')}</p>
+              </div>
+
+              {/* Store type — admin-only override; the creator cannot change it */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('storeType')}</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <SearchableSelect
+                      value={storeType}
+                      onChange={(v) => setStoreType(v as StoreType)}
+                      options={[
+                        { value: 'MARKETPLACE', label: t('storeTypeMarketplace'), description: t('storeTypeMarketplaceDesc') },
+                        { value: 'INDEPENDENT', label: t('storeTypeIndependent'), description: t('storeTypeIndependentDesc') },
+                      ]}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-8"
+                    onClick={handleSaveType}
+                    disabled={savingType || storeType === (store.store_type ?? 'MARKETPLACE')}
+                  >
+                    {savingType ? <><Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" /> {t('saving')}</> : t('save')}
+                  </Button>
+                </div>
+                {typeMsg && (
+                  <p className={`text-[11px] ${typeMsg.kind === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>{typeMsg.text}</p>
+                )}
+                <p className="text-[11px] text-amber-600">{t('storeTypeWarning')}</p>
               </div>
             </>
           )}

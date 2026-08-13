@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Package, Search, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useStoreType } from '@/lib/useStoreType';
+import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,6 +108,13 @@ export default function BrowseProviderCatalogPage() {
     setSelectedCategoryId(categoryId);
     setPage(1);
   };
+
+  // Independent stores sell only their own products — the provider catalog
+  // does not apply, so direct navigation gets a friendly notice instead.
+  const { storeType } = useStoreType();
+  if (storeType === 'INDEPENDENT') {
+    return <IndependentStoreNotice description={t('independent.browseNotAvailable')} />;
+  }
 
   return (
     <div className="space-y-6">
