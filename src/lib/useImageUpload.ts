@@ -68,6 +68,9 @@ export function useImageUpload(token: string | null) {
           resolve(result ? [result] : []);
         }
       };
+      // Resolve when the user dismisses the file dialog without picking,
+      // so callers awaiting this promise don't hang (e.g. pending spinners).
+      input.oncancel = () => resolve([]);
       input.click();
     });
   }, [upload, uploadMultiple]);

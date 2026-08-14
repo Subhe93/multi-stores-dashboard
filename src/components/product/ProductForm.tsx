@@ -648,6 +648,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             onVariantsChange={setVariants}
             basePrice={parseFloat(basePrice) || 0}
             onPickImage={() => pickAndUpload('products', false)}
+            uploading={uploading}
           />
 
           {/* Dynamic Attributes */}

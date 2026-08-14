@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { Plus, Trash2, X, ImageIcon, Pencil, Package } from 'lucide-react';
+import { Plus, Trash2, X, ImageIcon, Pencil, Package, Loader2 } from 'lucide-react';
 import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
 
@@ -43,6 +43,15 @@ interface VariantManagerProps {
   onVariantsChange: (variants: GeneratedVariant[]) => void;
   basePrice?: number;
   onPickImage?: () => Promise<UploadedImage[]>;
+  uploading?: boolean;
+}
+
+// Order-insensitive signature for a variant's options. Postgres stores
+// `options` as jsonb, which does not preserve key order — a plain
+// JSON.stringify comparison fails after a save/load round-trip and would
+// silently reset loaded variants (price, sku, stock, image) to defaults.
+function optionsKey(o: Record<string, string>): string {
+  return JSON.stringify(Object.entries(o || {}).sort(([a], [b]) => a.localeCompare(b)));
 }
 
 function generateCombinations(options: VariantOption[]): Record<string, string>[] {
@@ -239,11 +248,13 @@ function ColorEditorPopover({
   );
 }
 
-export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage }: VariantManagerProps) {
+export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage, uploading = false }: VariantManagerProps) {
   const t = useTranslations();
   const { currency } = useCurrency();
   const [newValue, setNewValue] = useState<Record<number, string>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Which row (or 'bulk') has an image pick/upload in flight — drives spinners.
+  const [pendingImageKey, setPendingImageKey] = useState<string | null>(null);
 
   // Bulk edit dialogs
   const [showBulkPrice, setShowBulkPrice] = useState(false);
@@ -273,8 +284,8 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
   useEffect(() => {
     if (combinations.length === 0) { onVariantsChange([]); return; }
     const newVariants = combinations.map(combo => {
-      const key = JSON.stringify(combo);
-      const existing = variants.find(v => JSON.stringify(v.options) === key);
+      const key = optionsKey(combo);
+      const existing = variants.find(v => optionsKey(v.options) === key);
       return existing || {
         _key: `v-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         options: combo,
@@ -335,13 +346,18 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
   };
 
   const applyBulkImage = async () => {
-    if (!onPickImage) return;
-    const imgs = await onPickImage();
-    if (!imgs.length) return;
-    onVariantsChange(variants.map(v => {
-      if (!selected.has(v._key)) return v;
-      return { ...v, image_url: imgs[0]!.url };
-    }));
+    if (!onPickImage || pendingImageKey) return;
+    setPendingImageKey('bulk');
+    try {
+      const imgs = await onPickImage();
+      if (!imgs.length) return;
+      onVariantsChange(variants.map(v => {
+        if (!selected.has(v._key)) return v;
+        return { ...v, image_url: imgs[0]!.url };
+      }));
+    } finally {
+      setPendingImageKey(null);
+    }
   };
 
   const deleteSelected = () => {
@@ -633,9 +649,11 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition">
                     <Pencil className="w-3 h-3" /> {t('variant.editStock')}
                   </button>
-                  <button onClick={applyBulkImage}
-                    className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition">
-                    <ImageIcon className="w-3 h-3" /> {t('variant.addImage')}
+                  <button onClick={applyBulkImage} disabled={pendingImageKey === 'bulk' && uploading}
+                    className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-900 transition disabled:opacity-50">
+                    {pendingImageKey === 'bulk' && uploading
+                      ? <Loader2 className="w-3 h-3 animate-spin" />
+                      : <ImageIcon className="w-3 h-3" />} {t('variant.addImage')}
                   </button>
                   <button onClick={deleteSelected}
                     className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition">
@@ -715,14 +733,21 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
 
                   {/* Image */}
                   <button onClick={async () => {
-                    if (!onPickImage) return;
-                    const imgs = await onPickImage();
-                    if (imgs.length) updateVariant(v._key, 'image_url', imgs[0]!.url);
+                    if (!onPickImage || pendingImageKey) return;
+                    setPendingImageKey(v._key);
+                    try {
+                      const imgs = await onPickImage();
+                      if (imgs.length) updateVariant(v._key, 'image_url', imgs[0]!.url);
+                    } finally {
+                      setPendingImageKey(null);
+                    }
                   }}
                     className="h-9 w-9 rounded border bg-zinc-50 flex items-center justify-center hover:bg-zinc-100 transition overflow-hidden shrink-0">
-                    {v.image_url
-                      ? <img src={v.image_url} className="h-full w-full object-cover" />
-                      : <ImageIcon className="w-4 h-4 text-zinc-300" />}
+                    {pendingImageKey === v._key && uploading
+                      ? <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
+                      : v.image_url
+                        ? <img src={v.image_url} className="h-full w-full object-cover" />
+                        : <ImageIcon className="w-4 h-4 text-zinc-300" />}
                   </button>
 
                   {/* Variant label with color swatches */}
