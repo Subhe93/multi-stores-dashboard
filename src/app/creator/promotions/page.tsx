@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Plus, Tag, Trash2, Pencil } from 'lucide-react';
+import { Plus, Tag, Trash2, Pencil, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
@@ -80,6 +80,14 @@ function typeBadgeClass(type: PromotionType): string {
   }
 }
 
+function statusLabels(t: Translator): Record<PromotionStatus, string> {
+  return {
+    ACTIVE: t('promotions.statusActive'),
+    EXPIRED: t('promotions.statusExpired'),
+    DISABLED: t('promotions.statusDisabled'),
+  };
+}
+
 function statusBadgeClass(status: PromotionStatus): string {
   switch (status) {
     case 'ACTIVE':
@@ -124,12 +132,15 @@ export default function CreatorPromotionsPage() {
   const tt = useTranslations('creator');
   const tc = useTranslations('common');
   const TYPE_LABELS = typeLabels(tt);
+  const STATUS_LABELS = statusLabels(tt);
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchPromotions = async (page = 1) => {
     if (!token) return;
@@ -156,12 +167,14 @@ export default function CreatorPromotionsPage() {
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
     setDeleting(true);
+    setDeleteError('');
     try {
       await api(`/promotions/${deleteTarget.id}`, { method: 'DELETE', token });
       setPromotions((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete promotion:', err);
+      setDeleteError(err?.message || tt('promotions.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -172,7 +185,9 @@ export default function CreatorPromotionsPage() {
       key: 'name',
       label: tc('name'),
       render: (item: Promotion) => {
-        const title = item.translations.find((t) => t.locale === 'en')?.title;
+        const title =
+          item.translations.find((t) => t.locale === 'en')?.title ||
+          item.translations[0]?.title;
         return (
           <span className="text-sm font-medium">
             {title || TYPE_LABELS[item.type]}
@@ -227,6 +242,7 @@ export default function CreatorPromotionsPage() {
             onClick={async () => {
               if (!canToggle || !token) return;
               const newStatus = item.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
+              setActionError('');
               try {
                 await api(`/promotions/${item.id}`, {
                   method: 'PUT',
@@ -234,14 +250,15 @@ export default function CreatorPromotionsPage() {
                   body: JSON.stringify({ status: newStatus }),
                 });
                 fetchPromotions(meta?.page || 1);
-              } catch (err) {
+              } catch (err: any) {
                 console.error('Failed to toggle status:', err);
+                setActionError(err?.message || tt('promotions.toggleFailed'));
               }
             }}
             className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium transition ${statusBadgeClass(item.status)} ${canToggle ? 'cursor-pointer hover:opacity-70' : 'cursor-default'}`}
             title={canToggle ? (item.status === 'ACTIVE' ? tt('promotions.clickToDisable') : tt('promotions.clickToActivate')) : undefined}
           >
-            {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+            {STATUS_LABELS[item.status] || item.status}
           </button>
         );
       },
@@ -286,11 +303,18 @@ export default function CreatorPromotionsPage() {
         </Button>
       </div>
 
+      {/* Inline error banner for row-level actions (status toggle) */}
+      {actionError && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {actionError}
+        </div>
+      )}
+
       {/* Table */}
       <DataTable
         columns={columns}
         data={promotions}
-        searchPlaceholder={tt('promotions.searchPlaceholder')}
         emptyMessage=""
         pagination={meta}
         onPageChange={fetchPromotions}
@@ -318,7 +342,15 @@ export default function CreatorPromotionsPage() {
       )}
 
       {/* Delete confirm dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeleteError('');
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{tt('promotions.deleteTitle')}</DialogTitle>
@@ -327,12 +359,19 @@ export default function CreatorPromotionsPage() {
               <span className="font-medium text-foreground">
                 {deleteTarget
                   ? (deleteTarget.translations.find((t) => t.locale === 'en')?.title ||
+                      deleteTarget.translations[0]?.title ||
                       TYPE_LABELS[deleteTarget.type])
                   : ''}
               </span>
               {tt('promotions.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
               {tc('cancel')}

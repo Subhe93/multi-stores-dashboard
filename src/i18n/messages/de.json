@@ -6,6 +6,7 @@
     "statusAwaiting": "Zahlung ausstehend",
     "statusFailed": "Fehlgeschlagen",
     "statusPending": "Ausstehend",
+    "statusRefunded": "Erstattet",
     "card": "Karte",
     "paidAt": "Bezahlt am",
     "viewReceipt": "Beleg anzeigen",
@@ -73,6 +74,7 @@
     "earnings": "Einnahmen",
     "myStore": "Mein Shop",
     "exploreProviderProducts": "Anbieterprodukte entdecken",
+    "myProducts": "Meine Produkte",
     "addProduct": "Produkt hinzufügen",
     "collections": "Kollektionen",
     "promotions": "Aktionen",
@@ -838,6 +840,7 @@
       "guest": "Gast",
       "quickActions": "Schnellaktionen",
       "browseProducts": "Produkte durchsuchen",
+      "myProducts": "Meine Produkte",
       "newCustomProduct": "Neues eigenes Produkt"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "Nicht verbunden",
       "connectStripe": "Stripe verbinden",
       "stripeComingSoon": "Die Stripe-Connect-Integration kommt bald.",
+      "connected": "Verbunden",
+      "manageInSettings": "In den Einstellungen verwalten",
+      "colRevenue": "Umsatz",
+      "revenuePending": "Ausstehender Umsatz",
+      "revenueBreakdown": "Umsatzübersicht",
       "independentBannerTitle": "Direktzahlungen",
       "independentBannerDesc": "Ihr Shop ist unabhängig: Jede Bestellung wird direkt auf Ihr verbundenes Stripe-Konto gezahlt und die Plattform erhebt keine Provision.",
       "independentBannerLink": "Auszahlungsdetails im Stripe-Dashboard ansehen"
@@ -888,7 +896,9 @@
       "tabProcessing": "In Bearbeitung",
       "tabShipped": "Versandt",
       "tabDelivered": "Geliefert",
-      "tabCancelled": "Storniert"
+      "tabCancelled": "Storniert",
+      "loadFailed": "Bestellungen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
     },
     "products": {
       "title": "Produkte",
@@ -970,7 +980,15 @@
       "statusDraft": "Entwurf",
       "statusPendingReview": "Prüfung ausstehend",
       "statusRejected": "Abgelehnt",
-      "statusArchived": "Archiviert"
+      "statusArchived": "Archiviert",
+      "ownListTitle": "Eigene Produkte",
+      "ownListSubtitle": "Produkte, die Sie erstellt haben und in Ihrem Shop verkaufen.",
+      "ownEmptyTitle": "Noch keine eigenen Produkte",
+      "ownEmptyDesc": "Erstellen Sie Ihr erstes Produkt, um in Ihrem Shop mit dem Verkauf zu beginnen.",
+      "ownLoadFailed": "Ihre Produkte konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "allStatuses": "Alle",
+      "deleteFailed": "Das Produkt konnte nicht gelöscht werden."
     },
     "customProductForm": {
       "newTitle": "Neues eigenes Produkt",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "Bitte geben Sie für jede Variante einen gültigen Preis ein.",
       "errFaqQuestion": "Jede FAQ braucht eine Frage.",
       "errImportMode": "Bitte wählen Sie einen Importmodus.",
-      "failedCreate": "Eigenes Produkt konnte nicht erstellt werden"
+      "failedCreate": "Eigenes Produkt konnte nicht erstellt werden",
+      "preselectedLoadFailed": "Das ausgewählte Produkt konnte nicht geladen werden. Es wurde möglicherweise entfernt oder ist nicht mehr verfügbar."
     },
     "editCustomProduct": {
       "title": "Eigenes Produkt bearbeiten",
@@ -1089,7 +1108,9 @@
       "collections": "Kollektionen",
       "collectionsDesc": "Fügen Sie dieses Produkt zu einer oder mehreren Ihrer Shop-Kollektionen hinzu.",
       "deleteTitle": "Eigenes Produkt löschen",
-      "deleteConfirm": "Dadurch wird dieses eigene Produkt dauerhaft aus Ihrem Shop entfernt."
+      "deleteConfirm": "Dadurch wird dieses eigene Produkt dauerhaft aus Ihrem Shop entfernt.",
+      "deleting": "Wird gelöscht...",
+      "failedDelete": "Das Produkt konnte nicht gelöscht werden."
     },
     "collections": {
       "title": "Kollektionen",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "Erstellen Sie Kollektionen, um Produkte zu gruppieren und Ihren Shop zu organisieren.",
       "createFirst": "Erste Kollektion erstellen",
       "deleteTitle": "Kollektion löschen",
+      "failedDelete": "Die Kollektion konnte nicht gelöscht werden.",
+      "noSearchResults": "Keine Kollektionen entsprechen Ihrer Suche.",
       "deleteConfirmPrefix": "Möchten Sie wirklich löschen:",
       "deleteConfirmSuffix": "? Diese Aktion kann nicht rückgängig gemacht werden.",
       "deleting": "Wird gelöscht..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "Bundle deaktivieren",
       "failedDelete": "Bundle konnte nicht gelöscht werden",
       "failedDisable": "Bundle konnte nicht deaktiviert werden",
+      "failedStatusChange": "Der Bundle-Status konnte nicht aktualisiert werden",
       "failedLoad": "Bundle konnte nicht geladen werden",
       "notFound": "Bundle nicht gefunden",
       "backToBundles": "Zurück zu Bundles"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "Blitzangebot",
       "valueFree": "Gratis",
       "valueBuyGet": "Kaufe & Erhalte",
-      "never": "Nie"
+      "never": "Nie",
+      "statusActive": "Aktiv",
+      "statusExpired": "Abgelaufen",
+      "statusDisabled": "Deaktiviert",
+      "toggleFailed": "Der Status der Aktion konnte nicht aktualisiert werden.",
+      "deleteFailed": "Die Aktion konnte nicht gelöscht werden."
     },
     "promotionForm": {
       "createTitle": "Aktion erstellen",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} Produkte ausgewählt",
       "clearAll": "Alle löschen",
       "titleEnglish": "Titel (Englisch)",
+      "titleInLocale": "Titel ({locale})",
       "titlePlaceholder": "z. B. Sommerschlussverkauf",
       "descriptionOptional": "Beschreibung (optional)",
       "descriptionPlaceholder": "Beschreiben Sie diese Aktion...",
@@ -1339,7 +1369,9 @@
       "deletePage": "Seite löschen",
       "savedExclaim": "Gespeichert!",
       "saveChanges": "Änderungen speichern",
-      "deleteConfirm": "Dadurch wird \"{title}\" dauerhaft aus Ihrem Shop gelöscht."
+      "deleteConfirm": "Dadurch wird \"{title}\" dauerhaft aus Ihrem Shop gelöscht.",
+      "saveFailed": "Die Seite konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "deleteFailed": "Die Seite konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
     },
     "landingPages": {
       "title": "Landingpages",
@@ -1367,7 +1399,10 @@
       "slugExists": "Diese URL wird bereits verwendet.",
       "failedCreate": "Landingpage konnte nicht erstellt werden",
       "creating": "Wird erstellt...",
-      "createAndOpen": "Erstellen & Öffnen"
+      "createAndOpen": "Erstellen & Öffnen",
+      "loadFailed": "Die Landingpages konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "deleteFailed": "Die Landingpage konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
     },
     "menus": {
       "title": "Menüs",
@@ -1399,7 +1434,9 @@
       "creating": "Wird erstellt...",
       "deleteTitle": "Menü löschen",
       "deleteConfirmPrefix": "Möchten Sie wirklich löschen:",
-      "deleteConfirmSuffix": "?"
+      "deleteConfirmSuffix": "?",
+      "saveFailed": "Das Menü konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "deleteFailed": "Das Menü konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
     },
     "templates": {
       "title": "Vorlagen",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "Erstellen Sie Beispielprodukte, damit Ihr Shop sofort vollständig aussieht.",
       "failedImport": "Vorlage konnte nicht importiert werden",
       "importing": "Wird importiert...",
-      "importAndReview": "Importieren & Prüfen"
+      "importAndReview": "Importieren & Prüfen",
+      "loadFailed": "Die Vorlagen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
     },
     "translations": {
       "title": "Übersetzungen",
@@ -1525,6 +1564,9 @@
       "creating": "Wird erstellt...",
       "createStore": "Shop erstellen",
       "nameSlugRequired": "Shop-Name und Slug sind erforderlich",
+      "primaryNameRequired": "Bitte geben Sie vor dem Speichern einen Shop-Namen in Ihrer Hauptsprache ein.",
+      "saveFailed": "Ihre Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "translateFailed": "Die automatische Übersetzung ist fehlgeschlagen. Bitte versuchen Sie es erneut oder füllen Sie die Felder manuell aus.",
       "failedCreateStore": "Shop konnte nicht erstellt werden"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "Lieferadresse",
       "noAddress": "Keine Adresse angegeben",
       "yourEarnings": "Ihre Einnahmen",
-      "creatorCommission": "Ihre Provision aus dieser Bestellung"
+      "creatorCommission": "Ihre Provision aus dieser Bestellung",
+      "independentEarningsNote": "Wird direkt auf Ihr Stripe-Konto ausgezahlt — ohne Plattformprovision.",
+      "updateFailed": "Der Bestellstatus konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+      "loadFailed": "Diese Bestellung konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
     },
     "orderStatus": {
       "PENDING": "Ausstehend",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "Die Menge muss mindestens 1 betragen.",
     "errDiscountNegative": "Der Rabatt darf nicht negativ sein.",
     "untitledProduct": "Unbenanntes Produkt",
+    "primaryParen": "(primär)",
     "customSuffix": "Individuell",
     "ownSuffix": "Eigenes",
     "errOfferNumTitle": "Angebot {num} benötigt einen Titel.",
@@ -2425,7 +2472,8 @@
     "inactive": "Inaktiv",
     "fillNameIn": "Gib den Namen ein auf",
     "toTranslate": "um die anderen Sprachen automatisch zu übersetzen.",
-    "couldNotSave": "Die Kollektion konnte nicht gespeichert werden"
+    "couldNotSave": "Die Kollektion konnte nicht gespeichert werden",
+    "primaryParen": "(primär)"
   },
   "shipping": {
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, one {# Zone} other {# Zonen}}",
     "zoneName": "Zonenname *",
     "zoneNamePlaceholder": "z. B. Golfstaaten",
-    "zoneOverlapWarning": "Einige Länder in dieser Zone überschneiden sich mit einer anderen Zone. Die erste passende Zone wird verwendet."
+    "zoneOverlapWarning": "Einige Länder in dieser Zone überschneiden sich mit einer anderen Zone. Die erste passende Zone wird verwendet.",
+    "saveFailed": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "deleteFailed": "Das Löschen ist fehlgeschlagen. Bitte versuchen Sie es erneut."
   }
 }

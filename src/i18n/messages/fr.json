@@ -6,6 +6,7 @@
     "statusAwaiting": "En attente de paiement",
     "statusFailed": "Échec",
     "statusPending": "En attente",
+    "statusRefunded": "Remboursé",
     "card": "Carte",
     "paidAt": "Payé le",
     "viewReceipt": "Voir le reçu",
@@ -73,6 +74,7 @@
     "earnings": "Revenus",
     "myStore": "Ma boutique",
     "exploreProviderProducts": "Explorer les produits fournisseurs",
+    "myProducts": "Mes produits",
     "addProduct": "Ajouter un produit",
     "collections": "Collections",
     "promotions": "Promotions",
@@ -838,6 +840,7 @@
       "guest": "Invité",
       "quickActions": "Actions rapides",
       "browseProducts": "Parcourir les produits",
+      "myProducts": "Mes produits",
       "newCustomProduct": "Nouveau produit personnalisé"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "Non connecté",
       "connectStripe": "Connecter Stripe",
       "stripeComingSoon": "L'intégration Stripe Connect arrive bientôt.",
+      "connected": "Connecté",
+      "manageInSettings": "Gérer dans les paramètres",
+      "colRevenue": "Revenus",
+      "revenuePending": "Revenus en attente",
+      "revenueBreakdown": "Détail des revenus",
       "independentBannerTitle": "Paiements directs",
       "independentBannerDesc": "Votre boutique est indépendante : chaque commande est payée directement sur votre compte Stripe connecté et la plateforme ne prélève aucune commission.",
       "independentBannerLink": "Voir les détails des versements dans votre tableau de bord Stripe"
@@ -888,7 +896,9 @@
       "tabProcessing": "En traitement",
       "tabShipped": "Expédiées",
       "tabDelivered": "Livrées",
-      "tabCancelled": "Annulées"
+      "tabCancelled": "Annulées",
+      "loadFailed": "Impossible de charger les commandes. Veuillez réessayer.",
+      "retry": "Réessayer"
     },
     "products": {
       "title": "Produits",
@@ -970,7 +980,15 @@
       "statusDraft": "Brouillon",
       "statusPendingReview": "En attente de révision",
       "statusRejected": "Rejeté",
-      "statusArchived": "Archivé"
+      "statusArchived": "Archivé",
+      "ownListTitle": "Vos propres produits",
+      "ownListSubtitle": "Les produits que vous avez créés et vendez dans votre boutique.",
+      "ownEmptyTitle": "Aucun produit pour le moment",
+      "ownEmptyDesc": "Créez votre premier produit pour commencer à vendre dans votre boutique.",
+      "ownLoadFailed": "Échec du chargement de vos produits.",
+      "retry": "Réessayer",
+      "allStatuses": "Tous",
+      "deleteFailed": "Échec de la suppression du produit."
     },
     "customProductForm": {
       "newTitle": "Nouveau produit personnalisé",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "Veuillez saisir un prix valide pour chaque variante.",
       "errFaqQuestion": "Chaque FAQ doit comporter une question.",
       "errImportMode": "Veuillez choisir un mode d'import.",
-      "failedCreate": "Échec de la création du produit personnalisé"
+      "failedCreate": "Échec de la création du produit personnalisé",
+      "preselectedLoadFailed": "Le produit sélectionné n'a pas pu être chargé. Il a peut-être été supprimé ou n'est plus disponible."
     },
     "editCustomProduct": {
       "title": "Modifier le produit personnalisé",
@@ -1089,7 +1108,9 @@
       "collections": "Collections",
       "collectionsDesc": "Ajoutez ce produit à une ou plusieurs collections de votre boutique.",
       "deleteTitle": "Supprimer le produit personnalisé",
-      "deleteConfirm": "Cela supprimera définitivement ce produit personnalisé de votre boutique."
+      "deleteConfirm": "Cela supprimera définitivement ce produit personnalisé de votre boutique.",
+      "deleting": "Suppression...",
+      "failedDelete": "Échec de la suppression du produit."
     },
     "collections": {
       "title": "Collections",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "Créez des collections pour regrouper des produits et organiser votre boutique.",
       "createFirst": "Créer la première collection",
       "deleteTitle": "Supprimer la collection",
+      "failedDelete": "Échec de la suppression de la collection.",
+      "noSearchResults": "Aucune collection ne correspond à votre recherche.",
       "deleteConfirmPrefix": "Voulez-vous vraiment supprimer",
       "deleteConfirmSuffix": " ? Cette action est irréversible.",
       "deleting": "Suppression..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "Désactiver le lot",
       "failedDelete": "Échec de la suppression du lot",
       "failedDisable": "Échec de la désactivation du lot",
+      "failedStatusChange": "Échec de la mise à jour du statut du lot",
       "failedLoad": "Échec du chargement du lot",
       "notFound": "Lot introuvable",
       "backToBundles": "Retour aux lots"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "Vente flash",
       "valueFree": "Gratuit",
       "valueBuyGet": "Achetez et obtenez",
-      "never": "Jamais"
+      "never": "Jamais",
+      "statusActive": "Active",
+      "statusExpired": "Expirée",
+      "statusDisabled": "Désactivée",
+      "toggleFailed": "Échec de la mise à jour du statut de la promotion.",
+      "deleteFailed": "Échec de la suppression de la promotion."
     },
     "promotionForm": {
       "createTitle": "Créer une promotion",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} produits sélectionnés",
       "clearAll": "Tout effacer",
       "titleEnglish": "Titre (anglais)",
+      "titleInLocale": "Titre ({locale})",
       "titlePlaceholder": "ex. Soldes d'été",
       "descriptionOptional": "Description (facultatif)",
       "descriptionPlaceholder": "Décrivez cette promotion...",
@@ -1339,7 +1369,9 @@
       "deletePage": "Supprimer la page",
       "savedExclaim": "Enregistré !",
       "saveChanges": "Enregistrer les modifications",
-      "deleteConfirm": "Cela supprimera définitivement « {title} » de votre boutique."
+      "deleteConfirm": "Cela supprimera définitivement « {title} » de votre boutique.",
+      "saveFailed": "Échec de l'enregistrement de la page. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de la page. Veuillez réessayer."
     },
     "landingPages": {
       "title": "Pages de destination",
@@ -1367,7 +1399,10 @@
       "slugExists": "Cette URL est déjà utilisée.",
       "failedCreate": "Échec de la création de la page de destination",
       "creating": "Création...",
-      "createAndOpen": "Créer et ouvrir"
+      "createAndOpen": "Créer et ouvrir",
+      "loadFailed": "Impossible de charger les pages de destination. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression de la page de destination. Veuillez réessayer.",
+      "retry": "Réessayer"
     },
     "menus": {
       "title": "Menus",
@@ -1399,7 +1434,9 @@
       "creating": "Création...",
       "deleteTitle": "Supprimer le menu",
       "deleteConfirmPrefix": "Voulez-vous vraiment supprimer",
-      "deleteConfirmSuffix": " ?"
+      "deleteConfirmSuffix": " ?",
+      "saveFailed": "Échec de l'enregistrement du menu. Veuillez réessayer.",
+      "deleteFailed": "Échec de la suppression du menu. Veuillez réessayer."
     },
     "templates": {
       "title": "Modèles",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "Créez des produits d'exemple pour que votre boutique paraisse complète immédiatement.",
       "failedImport": "Échec de l'import du modèle",
       "importing": "Import...",
-      "importAndReview": "Importer et réviser"
+      "importAndReview": "Importer et réviser",
+      "loadFailed": "Impossible de charger les modèles. Veuillez réessayer.",
+      "retry": "Réessayer"
     },
     "translations": {
       "title": "Traductions",
@@ -1525,6 +1564,9 @@
       "creating": "Création...",
       "createStore": "Créer la boutique",
       "nameSlugRequired": "Le nom et le slug de la boutique sont requis",
+      "primaryNameRequired": "Veuillez saisir un nom de boutique dans votre langue principale avant d'enregistrer.",
+      "saveFailed": "Impossible d'enregistrer vos modifications. Veuillez réessayer.",
+      "translateFailed": "La traduction automatique a échoué. Veuillez réessayer ou remplir les champs manuellement.",
       "failedCreateStore": "Échec de la création de la boutique"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "Adresse de livraison",
       "noAddress": "Aucune adresse fournie",
       "yourEarnings": "Vos revenus",
-      "creatorCommission": "Votre commission sur cette commande"
+      "creatorCommission": "Votre commission sur cette commande",
+      "independentEarningsNote": "Versé directement sur votre compte Stripe — sans commission de la plateforme.",
+      "updateFailed": "Échec de la mise à jour du statut de la commande. Veuillez réessayer.",
+      "loadFailed": "Impossible de charger cette commande. Veuillez réessayer.",
+      "retry": "Réessayer"
     },
     "orderStatus": {
       "PENDING": "En attente",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "La quantité doit être d'au moins 1.",
     "errDiscountNegative": "La remise ne peut pas être négative.",
     "untitledProduct": "Produit sans titre",
+    "primaryParen": "(principale)",
     "customSuffix": "Personnalisé",
     "ownSuffix": "Propre",
     "errOfferNumTitle": "L'offre {num} doit avoir un titre.",
@@ -2425,7 +2472,8 @@
     "inactive": "Inactif",
     "fillNameIn": "Renseignez le nom en",
     "toTranslate": "pour traduire automatiquement les autres langues.",
-    "couldNotSave": "Impossible d'enregistrer la collection"
+    "couldNotSave": "Impossible d'enregistrer la collection",
+    "primaryParen": "(principale)"
   },
   "shipping": {
     "actionCannotBeUndone": "Cette action est irréversible.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, one {# zone} other {# zones}}",
     "zoneName": "Nom de la zone *",
     "zoneNamePlaceholder": "p. ex. Pays du Golfe",
-    "zoneOverlapWarning": "Certains pays de cette zone chevauchent une autre zone. La première zone correspondante sera utilisée."
+    "zoneOverlapWarning": "Certains pays de cette zone chevauchent une autre zone. La première zone correspondante sera utilisée.",
+    "saveFailed": "Échec de l'enregistrement des modifications. Veuillez réessayer.",
+    "deleteFailed": "Échec de la suppression. Veuillez réessayer."
   }
 }

@@ -14,6 +14,8 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useStoreType } from '@/lib/useStoreType';
+import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
 import VariantSelector from '@/components/creator/VariantSelector';
 import PricingStrategySelector from '@/components/creator/PricingStrategySelector';
@@ -122,7 +124,10 @@ export default function EditCustomProduct() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
+  const { storeType } = useStoreType();
 
   // Language config
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -392,9 +397,23 @@ export default function EditCustomProduct() {
 
   const handleDelete = async () => {
     if (!token) return;
-    await api(`/custom-products/${id}`, { method: 'DELETE', token });
-    router.push('/creator/custom-products');
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await api(`/custom-products/${id}`, { method: 'DELETE', token });
+      router.push('/creator/custom-products');
+    } catch (err) {
+      const e = err as { message?: string };
+      setDeleteError(e?.message || t('editCustomProduct.failedDelete'));
+      setDeleting(false);
+    }
   };
+
+  // Independent stores sell only their own products — custom (imported provider)
+  // products do not apply, so direct navigation gets a friendly notice.
+  if (storeType === 'INDEPENDENT') {
+    return <IndependentStoreNotice description={t('independent.customNotAvailable')} />;
+  }
 
   if (loading) return <p className="text-sm text-muted-foreground p-6">{tc('loading')}</p>;
   if (!product) return <p className="text-sm text-muted-foreground p-6">{t('editCustomProduct.notFound')}</p>;
@@ -929,7 +948,13 @@ export default function EditCustomProduct() {
       </div>
 
       {/* Delete Confirmation */}
-      <Dialog open={deleteConfirm} onOpenChange={setDeleteConfirm}>
+      <Dialog
+        open={deleteConfirm}
+        onOpenChange={(open) => {
+          setDeleteConfirm(open);
+          if (!open) setDeleteError('');
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('editCustomProduct.deleteTitle')}</DialogTitle>
@@ -937,9 +962,16 @@ export default function EditCustomProduct() {
           <p className="text-sm text-muted-foreground py-2">
             {t('editCustomProduct.deleteConfirm')}
           </p>
+          {deleteError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>{tc('cancel')}</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>{tc('delete')}</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)} disabled={deleting}>{tc('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
+              {deleting ? t('editCustomProduct.deleting') : tc('delete')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

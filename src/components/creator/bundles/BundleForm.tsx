@@ -48,6 +48,16 @@ import {
 
 type Translator = ReturnType<typeof useTranslations>;
 
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+).replace('/api', '');
+
+// Uploaded thumbnails are stored as API-relative paths; make them absolute.
+function resolveUrl(url?: string | null): string | null {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `${API_BASE}${url}`;
+}
+
 // dnd-kit needs a string id per item that survives reorders.
 // Offers from the API have a real id; new offers get a temporary local id.
 interface OfferWithKey extends BundleOffer {
@@ -288,10 +298,9 @@ export function BundleForm({ mode, initial }: Props) {
           return {
             id: `cp:${p.id}`,
             name: `${tr0?.title || t('bundle.untitledProduct')} · ${t('bundle.customSuffix')}`,
-            thumbnail:
-              p.mockup_images?.[0]?.url ||
-              p.product?.images?.[0]?.url ||
-              null,
+            thumbnail: resolveUrl(
+              p.mockup_images?.[0]?.url || p.product?.images?.[0]?.url || null,
+            ),
             unitPrice,
             pricingType: p.pricing_type,
           };
@@ -307,7 +316,7 @@ export function BundleForm({ mode, initial }: Props) {
           return {
             id: `p:${p.id}`,
             name: `${tr0?.title || t('bundle.untitledProduct')} · ${t('bundle.ownSuffix')}`,
-            thumbnail: featured,
+            thumbnail: resolveUrl(featured),
             unitPrice: Number(p.base_price ?? 0),
             pricingType: 'SINGLE',
           };
@@ -619,7 +628,7 @@ export function BundleForm({ mode, initial }: Props) {
                     >
                       {LOCALE_LABELS[locale] || locale.toUpperCase()}
                       {locale === primaryLocale && (
-                        <span className="ml-1 text-[9px] text-zinc-400">(primary)</span>
+                        <span className="ms-1 text-[9px] text-zinc-400">{t('bundle.primaryParen')}</span>
                       )}
                     </button>
                   ))}

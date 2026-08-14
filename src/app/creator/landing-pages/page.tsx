@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
+  AlertCircle,
   ExternalLink,
   Loader2,
   Plus,
@@ -64,14 +65,18 @@ export default function LandingPagesPage() {
   const t = useTranslations('creator');
   const tc = useTranslations('common');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [pages, setPages] = useState<PageRow[]>([]);
   const [store, setStore] = useState<StoreLite | null>(null);
+  const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<PageRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchAll = async () => {
     if (!token) return;
     setLoading(true);
+    setLoadError(false);
     try {
       const [pagesRes, storeRes] = await Promise.all([
         api<PageRow[]>('/v2/pages/mine', { token }),
@@ -79,6 +84,9 @@ export default function LandingPagesPage() {
       ]);
       setPages(pagesRes);
       setStore(storeRes);
+    } catch (err) {
+      console.error('Failed to load landing pages:', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -95,10 +103,14 @@ export default function LandingPagesPage() {
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
     setDeleting(true);
+    setDeleteError('');
     try {
       await api(`/v2/pages/${deleteTarget.id}`, { method: 'DELETE', token });
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
+    } catch (err: any) {
+      console.error('Failed to delete landing page:', err);
+      setDeleteError(err?.message || t('landingPages.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -201,6 +213,13 @@ export default function LandingPagesPage() {
         <div className="flex items-center justify-center py-16">
           <Loader2 className="size-5 text-zinc-400 animate-spin" />
         </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border py-16 text-center">
+          <p className="text-sm text-destructive">{t('landingPages.loadFailed')}</p>
+          <Button variant="outline" size="sm" onClick={fetchAll}>
+            {t('landingPages.retry')}
+          </Button>
+        </div>
       ) : landings.length === 0 ? (
         <Card className="shadow-none">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -214,10 +233,31 @@ export default function LandingPagesPage() {
           </CardContent>
         </Card>
       ) : (
-        <DataTable columns={columns} data={landings} searchPlaceholder={t('landingPages.searchPlaceholder')} emptyMessage="" />
+        <DataTable
+          columns={columns}
+          data={landings.filter((p) => {
+            const q = search.trim().toLowerCase();
+            if (!q) return true;
+            return (
+              titleOf(p.translations, primaryLocale, p.slug || '').toLowerCase().includes(q) ||
+              (p.slug || '').toLowerCase().includes(q)
+            );
+          })}
+          searchPlaceholder={t('landingPages.searchPlaceholder')}
+          onSearch={setSearch}
+          emptyMessage=""
+        />
       )}
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeleteError('');
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('landingPages.deleteTitle')}</DialogTitle>
@@ -233,8 +273,14 @@ export default function LandingPagesPage() {
               )}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteError(''); }} disabled={deleting}>
               {tc('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>

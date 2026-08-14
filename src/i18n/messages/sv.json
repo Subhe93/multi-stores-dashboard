@@ -6,6 +6,7 @@
     "statusAwaiting": "Väntar på betalning",
     "statusFailed": "Misslyckades",
     "statusPending": "Väntar",
+    "statusRefunded": "Återbetald",
     "card": "Kort",
     "paidAt": "Betald den",
     "viewReceipt": "Visa kvitto",
@@ -73,6 +74,7 @@
     "earnings": "Intäkter",
     "myStore": "Min butik",
     "exploreProviderProducts": "Utforska leverantörsprodukter",
+    "myProducts": "Mina produkter",
     "addProduct": "Lägg till produkt",
     "collections": "Kollektioner",
     "promotions": "Kampanjer",
@@ -838,6 +840,7 @@
       "guest": "Gäst",
       "quickActions": "Snabbåtgärder",
       "browseProducts": "Bläddra bland produkter",
+      "myProducts": "Mina produkter",
       "newCustomProduct": "Ny anpassad produkt"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "Inte ansluten",
       "connectStripe": "Anslut Stripe",
       "stripeComingSoon": "Stripe Connect-integrationen kommer snart.",
+      "connected": "Ansluten",
+      "manageInSettings": "Hantera i inställningarna",
+      "colRevenue": "Intäkter",
+      "revenuePending": "Väntande intäkter",
+      "revenueBreakdown": "Intäktsöversikt",
       "independentBannerTitle": "Direktbetalningar",
       "independentBannerDesc": "Din butik är fristående: varje beställning betalas direkt till ditt anslutna Stripe-konto och plattformen tar ingen provision.",
       "independentBannerLink": "Se utbetalningsdetaljer i din Stripe-panel"
@@ -888,7 +896,9 @@
       "tabProcessing": "Behandlas",
       "tabShipped": "Skickad",
       "tabDelivered": "Levererad",
-      "tabCancelled": "Avbruten"
+      "tabCancelled": "Avbruten",
+      "loadFailed": "Det gick inte att ladda ordrarna. Försök igen.",
+      "retry": "Försök igen"
     },
     "products": {
       "title": "Produkter",
@@ -970,7 +980,15 @@
       "statusDraft": "Utkast",
       "statusPendingReview": "Väntar på granskning",
       "statusRejected": "Avvisad",
-      "statusArchived": "Arkiverad"
+      "statusArchived": "Arkiverad",
+      "ownListTitle": "Egna produkter",
+      "ownListSubtitle": "Produkter som du har skapat och säljer i din butik.",
+      "ownEmptyTitle": "Inga egna produkter ännu",
+      "ownEmptyDesc": "Skapa din första produkt för att börja sälja i din butik.",
+      "ownLoadFailed": "Det gick inte att läsa in dina produkter.",
+      "retry": "Försök igen",
+      "allStatuses": "Alla",
+      "deleteFailed": "Det gick inte att ta bort produkten."
     },
     "customProductForm": {
       "newTitle": "Ny anpassad produkt",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "Ange ett giltigt pris för varje variant.",
       "errFaqQuestion": "Varje vanlig fråga behöver en fråga.",
       "errImportMode": "Välj ett importläge.",
-      "failedCreate": "Det gick inte att skapa den anpassade produkten"
+      "failedCreate": "Det gick inte att skapa den anpassade produkten",
+      "preselectedLoadFailed": "Den valda produkten kunde inte läsas in. Den kan ha tagits bort eller är inte längre tillgänglig."
     },
     "editCustomProduct": {
       "title": "Redigera anpassad produkt",
@@ -1089,7 +1108,9 @@
       "collections": "Kollektioner",
       "collectionsDesc": "Lägg till den här produkten i en eller flera av dina butikskollektioner.",
       "deleteTitle": "Ta bort anpassad produkt",
-      "deleteConfirm": "Detta tar permanent bort den här anpassade produkten från din butik."
+      "deleteConfirm": "Detta tar permanent bort den här anpassade produkten från din butik.",
+      "deleting": "Tar bort...",
+      "failedDelete": "Det gick inte att ta bort produkten."
     },
     "collections": {
       "title": "Kollektioner",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "Skapa kollektioner för att gruppera produkter och organisera din butik.",
       "createFirst": "Skapa första kollektionen",
       "deleteTitle": "Ta bort kollektion",
+      "failedDelete": "Det gick inte att ta bort kollektionen.",
+      "noSearchResults": "Inga kollektioner matchar din sökning.",
       "deleteConfirmPrefix": "Är du säker på att du vill ta bort",
       "deleteConfirmSuffix": "? Den här åtgärden kan inte ångras.",
       "deleting": "Tar bort..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "Inaktivera paket",
       "failedDelete": "Det gick inte att ta bort paketet",
       "failedDisable": "Det gick inte att inaktivera paketet",
+      "failedStatusChange": "Det gick inte att uppdatera paketets status",
       "failedLoad": "Det gick inte att läsa in paketet",
       "notFound": "Paketet hittades inte",
       "backToBundles": "Tillbaka till paket"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "Blixtrea",
       "valueFree": "Gratis",
       "valueBuyGet": "Köp och få",
-      "never": "Aldrig"
+      "never": "Aldrig",
+      "statusActive": "Aktiv",
+      "statusExpired": "Utgången",
+      "statusDisabled": "Inaktiverad",
+      "toggleFailed": "Det gick inte att uppdatera kampanjens status.",
+      "deleteFailed": "Det gick inte att ta bort kampanjen."
     },
     "promotionForm": {
       "createTitle": "Skapa kampanj",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} produkter valda",
       "clearAll": "Rensa alla",
       "titleEnglish": "Titel (engelska)",
+      "titleInLocale": "Titel ({locale})",
       "titlePlaceholder": "t.ex. Sommarrea",
       "descriptionOptional": "Beskrivning (valfritt)",
       "descriptionPlaceholder": "Beskriv den här kampanjen...",
@@ -1339,7 +1369,9 @@
       "deletePage": "Ta bort sida",
       "savedExclaim": "Sparat!",
       "saveChanges": "Spara ändringar",
-      "deleteConfirm": "Detta tar permanent bort \"{title}\" från din butik."
+      "deleteConfirm": "Detta tar permanent bort \"{title}\" från din butik.",
+      "saveFailed": "Det gick inte att spara sidan. Försök igen.",
+      "deleteFailed": "Det gick inte att ta bort sidan. Försök igen."
     },
     "landingPages": {
       "title": "Landningssidor",
@@ -1367,7 +1399,10 @@
       "slugExists": "Den här URL:en används redan.",
       "failedCreate": "Det gick inte att skapa landningssidan",
       "creating": "Skapar...",
-      "createAndOpen": "Skapa och öppna"
+      "createAndOpen": "Skapa och öppna",
+      "loadFailed": "Det gick inte att ladda landningssidorna. Försök igen.",
+      "deleteFailed": "Det gick inte att ta bort landningssidan. Försök igen.",
+      "retry": "Försök igen"
     },
     "menus": {
       "title": "Menyer",
@@ -1399,7 +1434,9 @@
       "creating": "Skapar...",
       "deleteTitle": "Ta bort meny",
       "deleteConfirmPrefix": "Är du säker på att du vill ta bort",
-      "deleteConfirmSuffix": "?"
+      "deleteConfirmSuffix": "?",
+      "saveFailed": "Det gick inte att spara menyn. Försök igen.",
+      "deleteFailed": "Det gick inte att ta bort menyn. Försök igen."
     },
     "templates": {
       "title": "Mallar",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "Skapa exempelprodukter så att din butik ser komplett ut direkt.",
       "failedImport": "Det gick inte att importera mallen",
       "importing": "Importerar...",
-      "importAndReview": "Importera och granska"
+      "importAndReview": "Importera och granska",
+      "loadFailed": "Det gick inte att ladda mallarna. Försök igen.",
+      "retry": "Försök igen"
     },
     "translations": {
       "title": "Översättningar",
@@ -1525,6 +1564,9 @@
       "creating": "Skapar...",
       "createStore": "Skapa butik",
       "nameSlugRequired": "Butiksnamn och slug krävs",
+      "primaryNameRequired": "Ange ett butiksnamn på ditt huvudspråk innan du sparar.",
+      "saveFailed": "Det gick inte att spara dina ändringar. Försök igen.",
+      "translateFailed": "Den automatiska översättningen misslyckades. Försök igen eller fyll i fälten manuellt.",
       "failedCreateStore": "Det gick inte att skapa butiken"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "Leveransadress",
       "noAddress": "Ingen adress angiven",
       "yourEarnings": "Dina intäkter",
-      "creatorCommission": "Din provision från den här beställningen"
+      "creatorCommission": "Din provision från den här beställningen",
+      "independentEarningsNote": "Betalas direkt till ditt Stripe-konto — ingen plattformsprovision.",
+      "updateFailed": "Det gick inte att uppdatera orderstatusen. Försök igen.",
+      "loadFailed": "Det gick inte att ladda den här ordern. Försök igen.",
+      "retry": "Försök igen"
     },
     "orderStatus": {
       "PENDING": "Väntar",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "Antalet måste vara minst 1.",
     "errDiscountNegative": "Rabatten kan inte vara negativ.",
     "untitledProduct": "Namnlös produkt",
+    "primaryParen": "(primär)",
     "customSuffix": "Anpassad",
     "ownSuffix": "Egen",
     "errOfferNumTitle": "Erbjudande {num} behöver en titel.",
@@ -2425,7 +2472,8 @@
     "inactive": "Inaktiv",
     "fillNameIn": "Fyll i namnet på",
     "toTranslate": "för att automatiskt översätta de andra språken.",
-    "couldNotSave": "Det gick inte att spara kollektionen"
+    "couldNotSave": "Det gick inte att spara kollektionen",
+    "primaryParen": "(primär)"
   },
   "shipping": {
     "actionCannotBeUndone": "Den här åtgärden kan inte ångras.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, one {# zon} other {# zoner}}",
     "zoneName": "Zonnamn *",
     "zoneNamePlaceholder": "t.ex. Gulfstaterna",
-    "zoneOverlapWarning": "Vissa länder i denna zon överlappar med en annan zon. Den första matchande zonen används."
+    "zoneOverlapWarning": "Vissa länder i denna zon överlappar med en annan zon. Den första matchande zonen används.",
+    "saveFailed": "Det gick inte att spara ändringarna. Försök igen.",
+    "deleteFailed": "Det gick inte att ta bort. Försök igen."
   }
 }

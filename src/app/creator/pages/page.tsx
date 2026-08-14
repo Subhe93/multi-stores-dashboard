@@ -55,6 +55,7 @@ export default function CreatorPagesPage() {
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeError, setStoreError] = useState(false);
+  const [search, setSearch] = useState('');
   const [pages, setPages] = useState<StorePage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<StorePage | null>(null);
@@ -408,11 +409,19 @@ export default function CreatorPagesPage() {
         </Card>
       </div>
 
-      {/* Table */}
+      {/* Table — simple client-side filter by title or slug */}
       <DataTable
         columns={columns}
-        data={pages}
+        data={pages.filter((p) => {
+          const q = search.trim().toLowerCase();
+          if (!q) return true;
+          return (
+            getEnTitle(p.translations, t).toLowerCase().includes(q) ||
+            (p.slug || '').toLowerCase().includes(q)
+          );
+        })}
         searchPlaceholder={t('storePages.searchPlaceholder')}
+        onSearch={setSearch}
         emptyMessage=""
       />
 

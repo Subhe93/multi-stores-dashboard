@@ -82,6 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
+    // Clear the session-scoped store-type cache (written by useStoreType) so
+    // the next login doesn't render the previous account's sidebar layout.
+    try {
+      sessionStorage.removeItem('ms-creator-store-type');
+    } catch {
+      // Storage may be unavailable; the cache is best-effort anyway.
+    }
     setToken(null);
     setUser(null);
     router.push('/auth/login');

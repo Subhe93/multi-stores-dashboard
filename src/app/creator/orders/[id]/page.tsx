@@ -8,10 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Clock, Package, Info, Tag } from 'lucide-react';
+import { ArrowLeft, Clock, Package, Info, Tag, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useStoreType } from '@/lib/useStoreType';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -81,7 +82,6 @@ function statusOptions(t: Translator) {
     { value: 'MANUFACTURING', label: t('orderStatus.MANUFACTURING') },
     { value: 'SHIPPED', label: t('orderStatus.SHIPPED') },
     { value: 'DELIVERED', label: t('orderStatus.DELIVERED') },
-    { value: 'CANCELLED', label: t('orderStatus.CANCELLED') },
   ];
 }
 
@@ -90,15 +90,18 @@ export default function CreatorOrderDetailPage() {
   const { token, user } = useAuth();
   const router = useRouter();
   const { fmt } = useCurrency();
+  const { storeType } = useStoreType();
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
   const STATUS_LABELS = statusLabels(t);
   const STATUS_OPTIONS = statusOptions(t);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [nextStatus, setNextStatus] = useState('');
   const [statusNotes, setStatusNotes] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusError, setStatusError] = useState('');
   const [primaryLocale, setPrimaryLocale] = useState('en');
 
   useEffect(() => {
@@ -110,12 +113,16 @@ export default function CreatorOrderDetailPage() {
 
   const fetchOrder = () => {
     if (!token || !id) return;
+    setLoadError(false);
     api<any>(`/orders/${id}`, { token })
       .then((data) => {
         setOrder(data);
         setNextStatus('');
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        setLoadError(true);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -126,19 +133,21 @@ export default function CreatorOrderDetailPage() {
   const handleStatusUpdate = async () => {
     if (!token || !nextStatus) return;
     setUpdatingStatus(true);
+    setStatusError('');
     try {
       await api(`/orders/${id}/status`, {
         method: 'PUT',
         token,
         body: JSON.stringify({
           status: nextStatus,
-          ...(statusNotes.trim() ? { notes: statusNotes } : {}),
+          ...(statusNotes.trim() ? { note: statusNotes } : {}),
         }),
       });
       setStatusNotes('');
       fetchOrder();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setStatusError(err?.message || t('orderDetail.updateFailed'));
     } finally {
       setUpdatingStatus(false);
     }
@@ -153,6 +162,24 @@ export default function CreatorOrderDetailPage() {
   }
 
   if (!order) {
+    // Distinguish a failed request (retryable) from a genuinely missing order.
+    if (loadError) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+          <p className="text-sm text-destructive">{t('orderDetail.loadFailed')}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setLoading(true);
+              fetchOrder();
+            }}
+          >
+            {t('orderDetail.retry')}
+          </Button>
+        </div>
+      );
+    }
     return (
       <p className="text-center py-12 text-muted-foreground text-sm">{t('orderDetail.notFound')}</p>
     );
@@ -221,14 +248,15 @@ export default function CreatorOrderDetailPage() {
                     // Title chain: custom product's own title → custom product's
                     // base product title → direct product → variant's product
                     // (when the order item references only a variant) → fallback.
+                    // Prefer the store's primary locale over English.
                     const title =
-                      item.custom_product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.custom_product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
                       item.custom_product?.translations?.[0]?.title ??
-                      item.custom_product?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.custom_product?.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
                       item.custom_product?.product?.translations?.[0]?.title ??
-                      item.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
                       item.product?.translations?.[0]?.title ??
-                      item.variant?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                      item.variant?.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
                       item.variant?.product?.translations?.[0]?.title ??
                       '—';
 
@@ -250,7 +278,7 @@ export default function CreatorOrderDetailPage() {
                     if (item.custom_field_values?.length) {
                       for (const fv of item.custom_field_values) {
                         const label =
-                          fv.custom_field?.translations?.find((t: any) => t.locale === 'en')?.label ??
+                          fv.custom_field?.translations?.find((t: any) => t.locale === primaryLocale)?.label ??
                           fv.custom_field?.translations?.[0]?.label ??
                           fv.custom_field?.name ?? '—';
                         fieldValues.push({
@@ -450,8 +478,14 @@ export default function CreatorOrderDetailPage() {
                   variant="outline"
                   className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
                 >
-                  {order.status}
+                  {STATUS_LABELS[order.status] || order.status}
                 </Badge>
+                {statusError && (
+                  <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                    <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                    {statusError}
+                  </div>
+                )}
                 <SearchableSelect
                   options={STATUS_OPTIONS}
                   value={nextStatus}
@@ -489,7 +523,7 @@ export default function CreatorOrderDetailPage() {
                   variant="outline"
                   className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
                 >
-                  {order.status}
+                  {STATUS_LABELS[order.status] || order.status}
                 </Badge>
                 <p className="text-xs text-blue-700 leading-relaxed">
                   {hasProviderItems
@@ -549,27 +583,60 @@ export default function CreatorOrderDetailPage() {
                 {fmt(totalEarnings)}
               </p>
               <p className="text-muted-foreground mt-1">
-                {t('orderDetail.creatorCommission')}
+                {storeType === 'INDEPENDENT'
+                  ? t('orderDetail.independentEarningsNote')
+                  : t('orderDetail.creatorCommission')}
               </p>
-              {(() => {
-                const myPayout = Array.isArray(order.payouts) ? order.payouts[0] : null;
-                return (
-                  <div className="mt-3 space-y-1 border-t pt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{tp('yourPayout')}</span>
-                      {myPayout ? (
-                        <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                          {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
-                          {order.payment_status === 'paid' ? tp('statusPending') : tp('statusAwaiting')}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
+              <div className="mt-3 space-y-1.5 border-t pt-2">
+                {/* Payment status — surfaces refunds and failed payments */}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{tp('payment')}</span>
+                  <Badge
+                    variant="outline"
+                    className={`text-[9px] ${
+                      order.payment_status === 'paid'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : order.payment_status === 'refunded'
+                          ? 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                          : order.payment_status === 'failed'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                  >
+                    {order.payment_status === 'paid'
+                      ? tp('statusPaid')
+                      : order.payment_status === 'refunded'
+                        ? tp('statusRefunded')
+                        : order.payment_status === 'failed'
+                          ? tp('statusFailed')
+                          : tp('statusAwaiting')}
+                  </Badge>
+                </div>
+                {/* Payout row — marketplace only. Independent stores are paid
+                    directly via Stripe, so payout records are never created. */}
+                {storeType !== 'INDEPENDENT' &&
+                  (() => {
+                    const myPayout = Array.isArray(order.payouts) ? order.payouts[0] : null;
+                    return (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">{tp('yourPayout')}</span>
+                        {myPayout ? (
+                          <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                            {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
+                            {order.payment_status === 'paid'
+                              ? tp('statusPending')
+                              : order.payment_status === 'refunded'
+                                ? tp('statusRefunded')
+                                : tp('statusAwaiting')}
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })()}
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft, Package, ShoppingBag, ChevronRight, Truck, Globe, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useStoreType } from '@/lib/useStoreType';
+import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCurrency } from '@/lib/useCurrency';
@@ -128,6 +130,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const { storeType } = useStoreType();
 
   useEffect(() => {
     if (!token || !productId) return;
@@ -144,6 +147,12 @@ export default function ProductDetailPage() {
     product?.variant_option_config?.forEach((c) => { if (c.name) map[c.name] = c; });
     return map;
   }, [product?.variant_option_config]);
+
+  // Independent stores sell only their own products — the provider catalog
+  // does not apply, so direct navigation gets a friendly notice instead.
+  if (storeType === 'INDEPENDENT') {
+    return <IndependentStoreNotice description={t('independent.browseNotAvailable')} />;
+  }
 
   if (loading) {
     return (

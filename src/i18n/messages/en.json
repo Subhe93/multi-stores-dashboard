@@ -6,6 +6,7 @@
     "statusAwaiting": "Awaiting payment",
     "statusFailed": "Failed",
     "statusPending": "Pending",
+    "statusRefunded": "Refunded",
     "card": "Card",
     "paidAt": "Paid at",
     "viewReceipt": "View receipt",
@@ -73,6 +74,7 @@
     "earnings": "Earnings",
     "myStore": "My Store",
     "exploreProviderProducts": "Explore Provider Products",
+    "myProducts": "My Products",
     "addProduct": "Add Product",
     "collections": "Collections",
     "promotions": "Promotions",
@@ -838,6 +840,7 @@
       "guest": "Guest",
       "quickActions": "Quick Actions",
       "browseProducts": "Browse Products",
+      "myProducts": "My Products",
       "newCustomProduct": "New Custom Product"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "Not connected",
       "connectStripe": "Connect Stripe",
       "stripeComingSoon": "Stripe Connect integration is coming soon.",
+      "connected": "Connected",
+      "manageInSettings": "Manage in Settings",
+      "colRevenue": "Revenue",
+      "revenuePending": "Pending Revenue",
+      "revenueBreakdown": "Revenue Breakdown",
       "independentBannerTitle": "Direct payments",
       "independentBannerDesc": "Your store is independent: every order is paid directly into your connected Stripe account and the platform takes no commission.",
       "independentBannerLink": "View payout details in your Stripe dashboard"
@@ -888,7 +896,9 @@
       "tabProcessing": "Processing",
       "tabShipped": "Shipped",
       "tabDelivered": "Delivered",
-      "tabCancelled": "Cancelled"
+      "tabCancelled": "Cancelled",
+      "loadFailed": "Failed to load orders. Please try again.",
+      "retry": "Retry"
     },
     "products": {
       "title": "Products",
@@ -970,7 +980,15 @@
       "statusDraft": "Draft",
       "statusPendingReview": "Pending Review",
       "statusRejected": "Rejected",
-      "statusArchived": "Archived"
+      "statusArchived": "Archived",
+      "ownListTitle": "Own products",
+      "ownListSubtitle": "Products you created and sell in your store.",
+      "ownEmptyTitle": "No own products yet",
+      "ownEmptyDesc": "Create your first product to start selling in your store.",
+      "ownLoadFailed": "Failed to load your products.",
+      "retry": "Try again",
+      "allStatuses": "All",
+      "deleteFailed": "Failed to delete product."
     },
     "customProductForm": {
       "newTitle": "New Custom Product",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "Please enter a valid price for each variant.",
       "errFaqQuestion": "Each FAQ needs a question.",
       "errImportMode": "Please choose an import mode.",
-      "failedCreate": "Failed to create custom product"
+      "failedCreate": "Failed to create custom product",
+      "preselectedLoadFailed": "The selected product could not be loaded. It may have been removed or is no longer available."
     },
     "editCustomProduct": {
       "title": "Edit Custom Product",
@@ -1089,7 +1108,9 @@
       "collections": "Collections",
       "collectionsDesc": "Add this product to one or more of your store collections.",
       "deleteTitle": "Delete Custom Product",
-      "deleteConfirm": "This will permanently remove this custom product from your store."
+      "deleteConfirm": "This will permanently remove this custom product from your store.",
+      "deleting": "Deleting...",
+      "failedDelete": "Failed to delete product."
     },
     "collections": {
       "title": "Collections",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "Create collections to group products and organize your storefront.",
       "createFirst": "Create First Collection",
       "deleteTitle": "Delete Collection",
+      "failedDelete": "Failed to delete collection.",
+      "noSearchResults": "No collections match your search.",
       "deleteConfirmPrefix": "Are you sure you want to delete",
       "deleteConfirmSuffix": "? This action cannot be undone.",
       "deleting": "Deleting..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "Disable Bundle",
       "failedDelete": "Failed to delete bundle",
       "failedDisable": "Failed to disable bundle",
+      "failedStatusChange": "Failed to update bundle status",
       "failedLoad": "Failed to load bundle",
       "notFound": "Bundle not found",
       "backToBundles": "Back to bundles"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "Flash Sale",
       "valueFree": "Free",
       "valueBuyGet": "Buy & Get",
-      "never": "Never"
+      "never": "Never",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "statusDisabled": "Disabled",
+      "toggleFailed": "Failed to update the promotion status.",
+      "deleteFailed": "Failed to delete the promotion."
     },
     "promotionForm": {
       "createTitle": "Create Promotion",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} products selected",
       "clearAll": "Clear all",
       "titleEnglish": "Title (English)",
+      "titleInLocale": "Title ({locale})",
       "titlePlaceholder": "e.g. Summer Sale",
       "descriptionOptional": "Description (optional)",
       "descriptionPlaceholder": "Describe this promotion...",
@@ -1339,7 +1369,9 @@
       "deletePage": "Delete Page",
       "savedExclaim": "Saved!",
       "saveChanges": "Save Changes",
-      "deleteConfirm": "This will permanently delete \"{title}\" from your store."
+      "deleteConfirm": "This will permanently delete \"{title}\" from your store.",
+      "saveFailed": "Failed to save the page. Please try again.",
+      "deleteFailed": "Failed to delete the page. Please try again."
     },
     "landingPages": {
       "title": "Landing Pages",
@@ -1367,7 +1399,10 @@
       "slugExists": "This URL is already in use.",
       "failedCreate": "Failed to create landing page",
       "creating": "Creating...",
-      "createAndOpen": "Create & Open"
+      "createAndOpen": "Create & Open",
+      "loadFailed": "Failed to load landing pages. Please try again.",
+      "deleteFailed": "Failed to delete the landing page. Please try again.",
+      "retry": "Retry"
     },
     "menus": {
       "title": "Menus",
@@ -1399,7 +1434,9 @@
       "creating": "Creating...",
       "deleteTitle": "Delete Menu",
       "deleteConfirmPrefix": "Are you sure you want to delete",
-      "deleteConfirmSuffix": "?"
+      "deleteConfirmSuffix": "?",
+      "saveFailed": "Failed to save the menu. Please try again.",
+      "deleteFailed": "Failed to delete the menu. Please try again."
     },
     "templates": {
       "title": "Templates",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "Create sample products so your store looks complete right away.",
       "failedImport": "Failed to import template",
       "importing": "Importing...",
-      "importAndReview": "Import & Review"
+      "importAndReview": "Import & Review",
+      "loadFailed": "Failed to load templates. Please try again.",
+      "retry": "Retry"
     },
     "translations": {
       "title": "Translations",
@@ -1525,6 +1564,9 @@
       "creating": "Creating...",
       "createStore": "Create Store",
       "nameSlugRequired": "Store name and slug are required",
+      "primaryNameRequired": "Please enter a store name in your primary language before saving.",
+      "saveFailed": "Could not save your changes. Please try again.",
+      "translateFailed": "Automatic translation failed. Please try again or fill in the fields manually.",
       "failedCreateStore": "Failed to create store"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "Shipping Address",
       "noAddress": "No address provided",
       "yourEarnings": "Your Earnings",
-      "creatorCommission": "Your commission from this order"
+      "creatorCommission": "Your commission from this order",
+      "independentEarningsNote": "Paid directly to your Stripe account — no platform commission.",
+      "updateFailed": "Failed to update the order status. Please try again.",
+      "loadFailed": "Failed to load this order. Please try again.",
+      "retry": "Retry"
     },
     "orderStatus": {
       "PENDING": "Pending",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "Quantity must be at least 1.",
     "errDiscountNegative": "Discount cannot be negative.",
     "untitledProduct": "Untitled product",
+    "primaryParen": "(primary)",
     "customSuffix": "Custom",
     "ownSuffix": "Own",
     "errOfferNumTitle": "Offer {num} needs a title.",
@@ -2425,7 +2472,8 @@
     "inactive": "Inactive",
     "fillNameIn": "Fill in the name in",
     "toTranslate": "to auto-translate the other languages.",
-    "couldNotSave": "Could not save the collection"
+    "couldNotSave": "Could not save the collection",
+    "primaryParen": "(primary)"
   },
   "shipping": {
     "actionCannotBeUndone": "This action cannot be undone.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, one {# zone} other {# zones}}",
     "zoneName": "Zone Name *",
     "zoneNamePlaceholder": "e.g. Gulf Countries",
-    "zoneOverlapWarning": "Some countries in this zone overlap with another zone. The first matching zone will be used."
+    "zoneOverlapWarning": "Some countries in this zone overlap with another zone. The first matching zone will be used.",
+    "saveFailed": "Failed to save changes. Please try again.",
+    "deleteFailed": "Failed to delete. Please try again."
   }
 }

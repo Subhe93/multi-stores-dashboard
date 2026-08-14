@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
@@ -51,6 +52,15 @@ interface OrdersResponse {
   meta: OrdersMeta;
 }
 
+interface ConnectStatus {
+  connected: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  onboarding_completed: boolean;
+  account_type?: string;
+  requires_relink: boolean;
+}
+
 const PAGE_SIZE = 20;
 
 const commissionStatusStyles: Record<OrderCommission['status'], string> = {
@@ -63,6 +73,7 @@ const commissionStatusStyles: Record<OrderCommission['status'], string> = {
 export default function CreatorEarnings() {
   const { token } = useAuth();
   const { fmt } = useCurrency();
+  const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
 
@@ -74,6 +85,8 @@ export default function CreatorEarnings() {
   const [meta, setMeta] = useState<OrdersMeta | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [connectStatus, setConnectStatus] = useState<ConnectStatus | null>(null);
+  const [connectStatusLoading, setConnectStatusLoading] = useState(true);
 
   useEffect(() => {
     if (!token) return;
@@ -81,6 +94,23 @@ export default function CreatorEarnings() {
       .then(setSummary)
       .catch(console.error);
   }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    api<ConnectStatus>('/payments/connect/status', { token })
+      .then(setConnectStatus)
+      .catch(() => setConnectStatus(null))
+      .finally(() => setConnectStatusLoading(false));
+  }, [token]);
+
+  // Independent stores charge customers directly, so what matters is being
+  // able to take payments; marketplace creators are paid out by the platform,
+  // so what matters is payouts being enabled.
+  const stripeReady = connectStatus
+    ? isIndependent
+      ? connectStatus.charges_enabled && !connectStatus.requires_relink
+      : connectStatus.payouts_enabled
+    : false;
 
   useEffect(() => {
     if (!token) return;
@@ -118,7 +148,8 @@ export default function CreatorEarnings() {
     },
     {
       key: 'commission',
-      label: t('earnings.colYourShare'),
+      // Independent stores keep the full amount, so "share" would be misleading.
+      label: isIndependent ? t('earnings.colRevenue') : t('earnings.colYourShare'),
       render: (item: Order) => {
         const amount = item.commission?.creator_amount;
         if (amount == null) {
@@ -214,14 +245,30 @@ export default function CreatorEarnings() {
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <StatCard
-          title={t('earnings.pending')}
+          title={isIndependent ? t('earnings.revenuePending') : t('earnings.pending')}
           value={summary == null ? '...' : fmt(Number(summary.pending ?? 0))}
           icon={<Clock className="w-4 h-4" />}
         />
         <StatCard
           title={t('earnings.stripe')}
-          value={t('earnings.connect')}
-          subtitle={t('earnings.notConnected')}
+          value={
+            connectStatusLoading
+              ? '...'
+              : stripeReady
+                ? t('earnings.connected')
+                : t('earnings.notConnected')
+          }
+          subtitle={
+            stripeReady
+              ? isIndependent
+                ? t('settings.paymentsEnabled')
+                : t('settings.payoutsEnabled')
+              : connectStatus?.requires_relink
+                ? t('settings.stripeRelinkRequired')
+                : connectStatus?.connected
+                  ? t('settings.onboardingPending')
+                  : undefined
+          }
           icon={<CreditCard className="w-4 h-4" />}
         />
       </div>
@@ -229,7 +276,9 @@ export default function CreatorEarnings() {
       {/* Commission Breakdown */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">{t('earnings.commissionBreakdown')}</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            {isIndependent ? t('earnings.revenueBreakdown') : t('earnings.commissionBreakdown')}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
@@ -242,26 +291,28 @@ export default function CreatorEarnings() {
         </CardContent>
       </Card>
 
-      {/* Stripe Payout */}
+      {/* Stripe Payout — live connection status; setup itself lives in Settings. */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold">{t('earnings.stripePayout')}</CardTitle>
             <Badge
               variant="outline"
-              className="text-[10px] bg-amber-50 text-amber-700 border-0"
+              className={`text-[10px] border-0 ${
+                stripeReady ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+              }`}
             >
-              {t('earnings.notConnectedBadge')}
+              {stripeReady ? t('earnings.connected') : t('earnings.notConnectedBadge')}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button size="sm" disabled>
-            {t('earnings.connectStripe')}
-          </Button>
           <p className="text-[11px] text-muted-foreground">
-            {t('earnings.stripeComingSoon')}
+            {isIndependent ? t('settings.stripeAccountDesc') : t('settings.stripeConnectDesc')}
           </p>
+          <Button size="sm" onClick={() => router.push('/creator/settings')}>
+            {stripeReady ? t('earnings.manageInSettings') : t('earnings.connectStripe')}
+          </Button>
         </CardContent>
       </Card>
     </div>

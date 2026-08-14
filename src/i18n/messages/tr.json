@@ -6,6 +6,7 @@
     "statusAwaiting": "Ödeme bekleniyor",
     "statusFailed": "Başarısız",
     "statusPending": "Beklemede",
+    "statusRefunded": "İade edildi",
     "card": "Kart",
     "paidAt": "Ödeme tarihi",
     "viewReceipt": "Makbuzu görüntüle",
@@ -73,6 +74,7 @@
     "earnings": "Kazançlar",
     "myStore": "Mağazam",
     "exploreProviderProducts": "Tedarikçi Ürünlerini Keşfet",
+    "myProducts": "Ürünlerim",
     "addProduct": "Ürün Ekle",
     "collections": "Koleksiyonlar",
     "promotions": "Promosyonlar",
@@ -838,6 +840,7 @@
       "guest": "Misafir",
       "quickActions": "Hızlı İşlemler",
       "browseProducts": "Ürünlere Göz At",
+      "myProducts": "Ürünlerim",
       "newCustomProduct": "Yeni Özel Ürün"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "Bağlı değil",
       "connectStripe": "Stripe'a Bağlan",
       "stripeComingSoon": "Stripe Connect entegrasyonu yakında geliyor.",
+      "connected": "Bağlı",
+      "manageInSettings": "Ayarlardan yönet",
+      "colRevenue": "Gelir",
+      "revenuePending": "Bekleyen Gelir",
+      "revenueBreakdown": "Gelir Dökümü",
       "independentBannerTitle": "Doğrudan ödemeler",
       "independentBannerDesc": "Mağazanız bağımsız: her sipariş doğrudan bağlı Stripe hesabınıza ödenir ve platform komisyon almaz.",
       "independentBannerLink": "Ödeme ayrıntılarını Stripe panelinizde görüntüleyin"
@@ -888,7 +896,9 @@
       "tabProcessing": "İşleniyor",
       "tabShipped": "Kargolandı",
       "tabDelivered": "Teslim Edildi",
-      "tabCancelled": "İptal Edildi"
+      "tabCancelled": "İptal Edildi",
+      "loadFailed": "Siparişler yüklenemedi. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene"
     },
     "products": {
       "title": "Ürünler",
@@ -970,7 +980,15 @@
       "statusDraft": "Taslak",
       "statusPendingReview": "İnceleme Bekliyor",
       "statusRejected": "Reddedildi",
-      "statusArchived": "Arşivlendi"
+      "statusArchived": "Arşivlendi",
+      "ownListTitle": "Kendi ürünleriniz",
+      "ownListSubtitle": "Oluşturduğunuz ve mağazanızda sattığınız ürünler.",
+      "ownEmptyTitle": "Henüz kendi ürününüz yok",
+      "ownEmptyDesc": "Mağazanızda satışa başlamak için ilk ürününüzü oluşturun.",
+      "ownLoadFailed": "Ürünleriniz yüklenemedi.",
+      "retry": "Tekrar dene",
+      "allStatuses": "Tümü",
+      "deleteFailed": "Ürün silinemedi."
     },
     "customProductForm": {
       "newTitle": "Yeni Özel Ürün",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "Lütfen her varyant için geçerli bir fiyat girin.",
       "errFaqQuestion": "Her SSS'nin bir sorusu olmalıdır.",
       "errImportMode": "Lütfen bir içe aktarma modu seçin.",
-      "failedCreate": "Özel ürün oluşturulamadı"
+      "failedCreate": "Özel ürün oluşturulamadı",
+      "preselectedLoadFailed": "Seçilen ürün yüklenemedi. Kaldırılmış veya artık mevcut olmayabilir."
     },
     "editCustomProduct": {
       "title": "Özel Ürünü Düzenle",
@@ -1089,7 +1108,9 @@
       "collections": "Koleksiyonlar",
       "collectionsDesc": "Bu ürünü mağaza koleksiyonlarınızdan birine veya birkaçına ekleyin.",
       "deleteTitle": "Özel Ürünü Sil",
-      "deleteConfirm": "Bu, bu özel ürünü mağazanızdan kalıcı olarak kaldırır."
+      "deleteConfirm": "Bu, bu özel ürünü mağazanızdan kalıcı olarak kaldırır.",
+      "deleting": "Siliniyor...",
+      "failedDelete": "Ürün silinemedi."
     },
     "collections": {
       "title": "Koleksiyonlar",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "Ürünleri gruplamak ve mağaza vitrininizi düzenlemek için koleksiyonlar oluşturun.",
       "createFirst": "İlk Koleksiyonu Oluştur",
       "deleteTitle": "Koleksiyonu Sil",
+      "failedDelete": "Koleksiyon silinemedi.",
+      "noSearchResults": "Aramanızla eşleşen koleksiyon yok.",
       "deleteConfirmPrefix": "Silmek istediğinizden emin misiniz:",
       "deleteConfirmSuffix": "? Bu işlem geri alınamaz.",
       "deleting": "Siliniyor..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "Paketi Devre Dışı Bırak",
       "failedDelete": "Paket silinemedi",
       "failedDisable": "Paket devre dışı bırakılamadı",
+      "failedStatusChange": "Paket durumu güncellenemedi",
       "failedLoad": "Paket yüklenemedi",
       "notFound": "Paket bulunamadı",
       "backToBundles": "Paketlere dön"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "Flaş İndirim",
       "valueFree": "Ücretsiz",
       "valueBuyGet": "Al ve Kazan",
-      "never": "Asla"
+      "never": "Asla",
+      "statusActive": "Aktif",
+      "statusExpired": "Süresi doldu",
+      "statusDisabled": "Devre dışı",
+      "toggleFailed": "Promosyon durumu güncellenemedi.",
+      "deleteFailed": "Promosyon silinemedi."
     },
     "promotionForm": {
       "createTitle": "Promosyon Oluştur",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} ürün seçildi",
       "clearAll": "Tümünü temizle",
       "titleEnglish": "Başlık (İngilizce)",
+      "titleInLocale": "Başlık ({locale})",
       "titlePlaceholder": "örn. Yaz İndirimi",
       "descriptionOptional": "Açıklama (isteğe bağlı)",
       "descriptionPlaceholder": "Bu promosyonu tanımlayın...",
@@ -1339,7 +1369,9 @@
       "deletePage": "Sayfayı Sil",
       "savedExclaim": "Kaydedildi!",
       "saveChanges": "Değişiklikleri Kaydet",
-      "deleteConfirm": "Bu, \"{title}\" sayfasını mağazanızdan kalıcı olarak siler."
+      "deleteConfirm": "Bu, \"{title}\" sayfasını mağazanızdan kalıcı olarak siler.",
+      "saveFailed": "Sayfa kaydedilemedi. Lütfen tekrar deneyin.",
+      "deleteFailed": "Sayfa silinemedi. Lütfen tekrar deneyin."
     },
     "landingPages": {
       "title": "Açılış Sayfaları",
@@ -1367,7 +1399,10 @@
       "slugExists": "Bu URL zaten kullanılıyor.",
       "failedCreate": "Açılış sayfası oluşturulamadı",
       "creating": "Oluşturuluyor...",
-      "createAndOpen": "Oluştur ve Aç"
+      "createAndOpen": "Oluştur ve Aç",
+      "loadFailed": "Açılış sayfaları yüklenemedi. Lütfen tekrar deneyin.",
+      "deleteFailed": "Açılış sayfası silinemedi. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene"
     },
     "menus": {
       "title": "Menüler",
@@ -1399,7 +1434,9 @@
       "creating": "Oluşturuluyor...",
       "deleteTitle": "Menüyü Sil",
       "deleteConfirmPrefix": "Silmek istediğinizden emin misiniz:",
-      "deleteConfirmSuffix": "?"
+      "deleteConfirmSuffix": "?",
+      "saveFailed": "Menü kaydedilemedi. Lütfen tekrar deneyin.",
+      "deleteFailed": "Menü silinemedi. Lütfen tekrar deneyin."
     },
     "templates": {
       "title": "Şablonlar",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "Mağazanızın hemen tamamlanmış görünmesi için örnek ürünler oluşturun.",
       "failedImport": "Şablon içe aktarılamadı",
       "importing": "İçe aktarılıyor...",
-      "importAndReview": "İçe Aktar ve İncele"
+      "importAndReview": "İçe Aktar ve İncele",
+      "loadFailed": "Şablonlar yüklenemedi. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene"
     },
     "translations": {
       "title": "Çeviriler",
@@ -1525,6 +1564,9 @@
       "creating": "Oluşturuluyor...",
       "createStore": "Mağaza Oluştur",
       "nameSlugRequired": "Mağaza adı ve slug gereklidir",
+      "primaryNameRequired": "Kaydetmeden önce lütfen ana dilde bir mağaza adı girin.",
+      "saveFailed": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.",
+      "translateFailed": "Otomatik çeviri başarısız oldu. Lütfen tekrar deneyin veya alanları elle doldurun.",
       "failedCreateStore": "Mağaza oluşturulamadı"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "Teslimat Adresi",
       "noAddress": "Adres belirtilmedi",
       "yourEarnings": "Kazançlarınız",
-      "creatorCommission": "Bu siparişten komisyonunuz"
+      "creatorCommission": "Bu siparişten komisyonunuz",
+      "independentEarningsNote": "Doğrudan Stripe hesabınıza ödenir — platform komisyonu yoktur.",
+      "updateFailed": "Sipariş durumu güncellenemedi. Lütfen tekrar deneyin.",
+      "loadFailed": "Bu sipariş yüklenemedi. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene"
     },
     "orderStatus": {
       "PENDING": "Beklemede",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "Adet en az 1 olmalıdır.",
     "errDiscountNegative": "İndirim negatif olamaz.",
     "untitledProduct": "Adsız ürün",
+    "primaryParen": "(birincil)",
     "customSuffix": "Özel",
     "ownSuffix": "Kendi",
     "errOfferNumTitle": "Teklif {num} bir başlık gerektirir.",
@@ -2425,7 +2472,8 @@
     "inactive": "Etkin değil",
     "fillNameIn": "Adı şu dilde doldurun:",
     "toTranslate": "diğer dilleri otomatik çevirmek için.",
-    "couldNotSave": "Koleksiyon kaydedilemedi"
+    "couldNotSave": "Koleksiyon kaydedilemedi",
+    "primaryParen": "(birincil)"
   },
   "shipping": {
     "actionCannotBeUndone": "Bu işlem geri alınamaz.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, one {# bölge} other {# bölge}}",
     "zoneName": "Bölge Adı *",
     "zoneNamePlaceholder": "ör. Körfez Ülkeleri",
-    "zoneOverlapWarning": "Bu bölgedeki bazı ülkeler başka bir bölgeyle çakışıyor. İlk eşleşen bölge kullanılacak."
+    "zoneOverlapWarning": "Bu bölgedeki bazı ülkeler başka bir bölgeyle çakışıyor. İlk eşleşen bölge kullanılacak.",
+    "saveFailed": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.",
+    "deleteFailed": "Silme işlemi başarısız oldu. Lütfen tekrar deneyin."
   }
 }

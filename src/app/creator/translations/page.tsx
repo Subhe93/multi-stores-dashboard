@@ -196,7 +196,7 @@ function EntityTable({
             {/* Translate button */}
             <button
               onClick={() => handleTranslate(entity)}
-              disabled={isTranslating || isDone}
+              disabled={isTranslating}
               className="flex items-center gap-1 text-[10px] text-primary hover:underline disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
             >
               {isTranslating ? (
@@ -231,10 +231,13 @@ export default function TranslationsPage() {
     try {
       const data = await api<Overview>('/translations/overview', { token });
       setOverview(data);
-      if (!activeLocale && data.secondary_locales.length > 0) {
-        const firstSecondary = data.secondary_locales.find(l => l !== data.primary_locale);
-        setActiveLocale(firstSecondary || data.secondary_locales[0] || '');
-      }
+      // Only initialize the active tab when none is selected yet — using the
+      // functional form avoids a stale closure resetting the tab on refresh.
+      const firstSecondary =
+        data.secondary_locales.find(l => l !== data.primary_locale) ||
+        data.secondary_locales[0] ||
+        '';
+      setActiveLocale(prev => prev || firstSecondary);
     } catch (err) {
       console.error(err);
     } finally {

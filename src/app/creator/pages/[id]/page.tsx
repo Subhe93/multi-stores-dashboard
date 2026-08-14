@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Trash2, Languages, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Trash2, Languages, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
@@ -41,7 +41,10 @@ export default function EditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // Language config
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -151,6 +154,7 @@ export default function EditPage() {
   const handleSave = async () => {
     if (!token || !page) return;
     setSaving(true);
+    setSaveError('');
     try {
       const translationsPayload = Object.entries(translations)
         .filter(([, t]) => t.title.trim())
@@ -162,8 +166,9 @@ export default function EditPage() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setSaveError(err?.message || t('editPage.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -171,8 +176,16 @@ export default function EditPage() {
 
   const handleDelete = async () => {
     if (!token || !page) return;
-    await api(`/pages/${id}`, { method: 'DELETE', token });
-    router.push('/creator/pages');
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await api(`/pages/${id}`, { method: 'DELETE', token });
+      router.push('/creator/pages');
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(err?.message || t('editPage.deleteFailed'));
+      setDeleting(false);
+    }
   };
 
   if (loading) return <p className="text-sm text-muted-foreground p-6">{tc('loading')}</p>;
@@ -322,9 +335,17 @@ export default function EditPage() {
         </CardContent>
       </Card>
 
+      {/* Save error banner */}
+      {saveError && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {saveError}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <Button variant="outline" size="sm" className="text-red-500 border-red-200 hover:bg-red-50"
-          onClick={() => setDeleteConfirm(true)}>
+          onClick={() => { setDeleteError(''); setDeleteConfirm(true); }}>
           <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('editPage.deletePage')}
         </Button>
         <div className="flex items-center gap-3">
@@ -342,9 +363,15 @@ export default function EditPage() {
           <p className="text-sm text-muted-foreground py-2">
             {t('editPage.deleteConfirm', { title: primaryTitle })}
           </p>
+          {deleteError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)}>{tc('cancel')}</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>{tc('delete')}</Button>
+            <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)} disabled={deleting}>{tc('cancel')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>{tc('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

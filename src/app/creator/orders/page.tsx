@@ -23,39 +23,61 @@ const statusColors: Record<string, string> = {
 
 const TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
+type Translator = ReturnType<typeof useTranslations>;
+
+// Translated labels for the order-status badge (mirrors the detail page).
+function statusLabels(t: Translator): Record<string, string> {
+  return {
+    PENDING: t('orderStatus.PENDING'),
+    CONFIRMED: t('orderStatus.CONFIRMED'),
+    PROCESSING: t('orderStatus.PROCESSING'),
+    MANUFACTURING: t('orderStatus.MANUFACTURING'),
+    QUALITY_CHECK: t('orderStatus.QUALITY_CHECK'),
+    SHIPPED: t('orderStatus.SHIPPED'),
+    DELIVERED: t('orderStatus.DELIVERED'),
+    RETURNED: t('orderStatus.RETURNED'),
+    CANCELLED: t('orderStatus.CANCELLED'),
+    REFUNDED: t('orderStatus.REFUNDED'),
+  };
+}
+
 export default function CreatorOrdersPage() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const STATUS_LABELS = statusLabels(t);
   const [orders, setOrders] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
 
-  const fetchOrders = async (page = 1) => {
+  // Status filtering happens server-side so tabs cover ALL orders,
+  // not just the currently fetched page.
+  const fetchOrders = async (page = 1, tab = activeTab) => {
     if (!token) return;
     setLoading(true);
+    setLoadError(false);
     try {
-      const res = await api<any>(`/orders?page=${page}&limit=20`, { token });
+      const statusParam = tab === 'All' ? '' : `&status=${tab.toUpperCase()}`;
+      const res = await api<any>(`/orders?page=${page}&limit=20${statusParam}`, { token });
       setOrders(res?.data ?? []);
       setMeta(res?.meta ?? null);
     } catch (err) {
       console.error(err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [token]);
-
-  const filtered =
-    activeTab === 'All'
-      ? orders
-      : orders.filter((o) => o.status === activeTab.toUpperCase());
+    // Refetch from page 1 whenever the active tab changes.
+    fetchOrders(1, activeTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, activeTab]);
 
   const columns = [
     {
@@ -109,7 +131,7 @@ export default function CreatorOrdersPage() {
           variant="outline"
           className={`text-[10px] font-semibold ${statusColors[item.status] ?? ''}`}
         >
-          {item.status}
+          {STATUS_LABELS[item.status] || item.status}
         </Badge>
       ),
     },
@@ -161,14 +183,22 @@ export default function CreatorOrdersPage() {
         ))}
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        searchPlaceholder={t('orders.searchPlaceholder')}
-        emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
-        pagination={meta}
-        onPageChange={(p) => fetchOrders(p)}
-      />
+      {loadError ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border py-16 text-center">
+          <p className="text-sm text-destructive">{t('orders.loadFailed')}</p>
+          <Button variant="outline" size="sm" onClick={() => fetchOrders(meta?.page || 1)}>
+            {t('orders.retry')}
+          </Button>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={orders}
+          emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
+          pagination={meta}
+          onPageChange={(p) => fetchOrders(p)}
+        />
+      )}
     </div>
   );
 }

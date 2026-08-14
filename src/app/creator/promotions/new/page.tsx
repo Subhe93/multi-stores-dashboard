@@ -23,6 +23,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { useCurrency } from '@/lib/useCurrency';
+import { useStoreType } from '@/lib/useStoreType';
+
+const LOCALE_LABELS: Record<string, string> = {
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
+};
+const RTL_LOCALES = ['ar'];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -76,6 +82,7 @@ export default function NewPromotionPage() {
   const { token } = useAuth();
   const router = useRouter();
   const { currency } = useCurrency();
+  const { storeType } = useStoreType();
   const tt = useTranslations('creator');
   const tc = useTranslations('common');
   const TYPE_OPTIONS = typeOptions(tt);
@@ -92,24 +99,37 @@ export default function NewPromotionPage() {
   const [error, setError] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [products, setProducts] = useState<{ id: string; title: string }[]>([]);
+  const [primaryLocale, setPrimaryLocale] = useState('en');
 
   const showValueField = type !== null && type !== 'FREE_SHIPPING' && type !== 'BUY_X_GET_Y';
   const showCouponField = type === 'COUPON';
 
-  // Fetch creator's products for targeting
+  // The single title field targets the store's primary locale, not hardcoded English.
   useEffect(() => {
     if (!token) return;
-    api<{ data: any[] }>('/custom-products?limit=100', { token })
+    api<any>('/stores/my/store', { token })
+      .then((s) => setPrimaryLocale(s?.language_config?.primary_locale || 'en'))
+      .catch(() => {});
+  }, [token]);
+
+  // Fetch creator's products for targeting. Independent stores have no
+  // custom products — their catalog lives in /products/mine instead.
+  useEffect(() => {
+    if (!token || !storeType) return;
+    const endpoint =
+      storeType === 'INDEPENDENT' ? '/products/mine?limit=100' : '/custom-products?limit=100';
+    api<{ data: any[] }>(endpoint, { token })
       .then((res) => {
         const list = (res?.data || []).map((p: any) => ({
           id: p.id,
-          title: p.translations?.find((t: any) => t.locale === 'en')?.title
+          title: p.translations?.find((t: any) => t.locale === primaryLocale)?.title
             || p.translations?.[0]?.title || p.product?.translations?.[0]?.title || tt('promotionForm.untitled'),
         }));
         setProducts(list);
       })
       .catch(() => {});
-  }, [token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, storeType, primaryLocale]);
 
   const validate = (): string => {
     if (!type) return tt('promotionForm.selectTypeError');
@@ -137,7 +157,7 @@ export default function NewPromotionPage() {
       starts_at: startsAt,
       translations: [
         {
-          locale: 'en',
+          locale: primaryLocale,
           title: titleEn.trim(),
           ...(descEn.trim() ? { description: descEn.trim() } : {}),
         },
@@ -371,9 +391,11 @@ export default function NewPromotionPage() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs">
-                {tt('promotionForm.titleEnglish')} <span className="text-destructive">*</span>
+                {tt('promotionForm.titleInLocale', { locale: LOCALE_LABELS[primaryLocale] || primaryLocale })}{' '}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
+                dir={RTL_LOCALES.includes(primaryLocale) ? 'rtl' : undefined}
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
                 placeholder={tt('promotionForm.titlePlaceholder')}

@@ -67,14 +67,16 @@ export default function TemplatesPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [kits, setKits] = useState<KitSummary[]>([]);
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const [active, setActive] = useState<KitSummary | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!token) return;
-    // `loading` starts true and this runs once token is available, so no
-    // synchronous setState is needed here — only clear it when settled.
+    setLoading(true);
+    setLoadError(false);
     Promise.all([
       api<KitSummary[]>('/v2/templates', { token }),
       api<StoreLite>('/stores/my/store', { token }).catch(() => null),
@@ -83,8 +85,12 @@ export default function TemplatesPage() {
         setKits(Array.isArray(kitList) ? kitList : []);
         if (store?.language_config?.primary_locale) setPrimaryLocale(store.language_config.primary_locale);
       })
+      .catch((err) => {
+        console.error('Failed to load templates:', err);
+        setLoadError(true);
+      })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, reloadKey]);
 
   return (
     <div className="space-y-6">
@@ -98,6 +104,13 @@ export default function TemplatesPage() {
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="size-5 text-zinc-400 animate-spin" />
+        </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border py-16 text-center">
+          <p className="text-sm text-destructive">{t('templates.loadFailed')}</p>
+          <Button variant="outline" size="sm" onClick={() => setReloadKey((k) => k + 1)}>
+            {t('templates.retry')}
+          </Button>
         </div>
       ) : kits.length === 0 ? (
         <Card className="shadow-none">

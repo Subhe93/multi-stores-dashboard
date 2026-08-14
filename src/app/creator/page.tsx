@@ -11,6 +11,7 @@ import { Package, ShoppingCart, DollarSign } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { useStoreType } from '@/lib/useStoreType';
 
 interface CommissionSummary {
   total_earnings: number;
@@ -49,9 +50,13 @@ export default function CreatorOverview() {
   const router = useRouter();
   const t = useTranslations('creator');
 
+  const { storeType, loading: storeTypeLoading } = useStoreType();
+  const isIndependent = storeType === 'INDEPENDENT';
+
   const [commissions, setCommissions] = useState<CommissionSummary | null>(null);
   const [orders, setOrders] = useState<OrdersResponse | null>(null);
-  const [productCount, setProductCount] = useState<number>(0);
+  // null renders as "..." until the store-type-aware count has loaded.
+  const [productCount, setProductCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const { fmt } = useCurrency();
 
@@ -61,16 +66,26 @@ export default function CreatorOverview() {
     Promise.all([
       api<CommissionSummary>('/commissions/summary', { token }),
       api<OrdersResponse>('/orders?limit=5', { token }),
-      api<{ meta: { total: number } }>('/custom-products?limit=1', { token }),
     ])
-      .then(([comm, ord, prods]) => {
+      .then(([comm, ord]) => {
         setCommissions(comm);
         setOrders(ord);
-        setProductCount(prods?.meta?.total ?? 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [token]);
+
+  // Independent stores sell their own products, so the marketplace
+  // custom-products count would always be 0 for them — count own products
+  // instead. Waits for the store type so the right endpoint is queried.
+  useEffect(() => {
+    if (!token || storeTypeLoading) return;
+    const path =
+      storeType === 'INDEPENDENT' ? '/products/mine?limit=1' : '/custom-products?limit=1';
+    api<{ meta: { total: number } }>(path, { token })
+      .then((res) => setProductCount(res?.meta?.total ?? 0))
+      .catch(() => setProductCount(0));
+  }, [token, storeType, storeTypeLoading]);
 
   return (
     <div className="space-y-6">
@@ -82,8 +97,8 @@ export default function CreatorOverview() {
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title={t('overview.customProducts')}
-          value={loading ? '...' : productCount}
+          title={isIndependent ? t('overview.myProducts') : t('overview.customProducts')}
+          value={productCount == null ? '...' : productCount}
           icon={<Package className="w-4 h-4" />}
         />
         <StatCard
@@ -160,19 +175,23 @@ export default function CreatorOverview() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              {/* Independent stores have no marketplace hub — link to their
+                  own-products list instead. */}
               <Button
                 variant="outline"
                 size="sm"
                 className="flex-1"
-                onClick={() => router.push('/creator/products')}
+                onClick={() =>
+                  router.push(isIndependent ? '/creator/products/own' : '/creator/products')
+                }
               >
-                {t('overview.browseProducts')}
+                {isIndependent ? t('overview.myProducts') : t('overview.browseProducts')}
               </Button>
               <Button
                 variant="default"
                 size="sm"
                 className="flex-1"
-                onClick={() => router.push('/creator/products/new')}
+                onClick={() => router.push('/creator/products/own/new')}
               >
                 {t('overview.newCustomProduct')}
               </Button>

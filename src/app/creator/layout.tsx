@@ -45,9 +45,10 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     {
       title: t('catalog'),
       items: [
-        // Marketplace-only entries are hidden for independent stores.
+        // Marketplace-only entries are hidden for independent stores, which
+        // get their own-products list instead.
         ...(isIndependent
-          ? []
+          ? [{ label: t('myProducts'), href: '/creator/products/own', icon: <Package className="w-4 h-4" /> }]
           : [{ label: t('exploreProviderProducts'), href: '/creator/products/browse', icon: <Package className="w-4 h-4" /> }]),
         { label: t('addProduct'), href: '/creator/products/own/new', icon: <Plus className="w-4 h-4" /> },
         ...(isIndependent

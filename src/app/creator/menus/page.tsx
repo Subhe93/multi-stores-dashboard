@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
+  AlertCircle,
   ArrowDown,
   ArrowUp,
   CornerDownRight,
@@ -133,6 +134,8 @@ export default function MenusPage() {
   const [items, setItems] = useState<TreeItem[]>([]);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   // Create-menu dialog state.
   const [createOpen, setCreateOpen] = useState(false);
@@ -284,6 +287,7 @@ export default function MenusPage() {
   async function save() {
     if (!token || !selected) return;
     setSaving(true);
+    setSaveError('');
     try {
       // Serialize the tree. Keep nodes that have a URL and at least one label
       // (primary or any translation); if the primary label is blank but a
@@ -321,8 +325,9 @@ export default function MenusPage() {
       setMenus((prev) => prev.map((m) => (m.id === selected.id ? updated : m)));
       setItems(buildTree(updated.items || []));
       setDirty(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save menu:', err);
+      setSaveError(err?.message || t('menus.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -355,6 +360,7 @@ export default function MenusPage() {
 
   async function deleteMenu() {
     if (!token || !deleteTarget) return;
+    setDeleteError('');
     try {
       await api(`/menus/${deleteTarget.id}`, { method: 'DELETE', token });
       setMenus((prev) => prev.filter((m) => m.id !== deleteTarget.id));
@@ -363,8 +369,9 @@ export default function MenusPage() {
         setItems([]);
       }
       setDeleteTarget(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete menu:', err);
+      setDeleteError(err?.message || t('menus.deleteFailed'));
     }
   }
 
@@ -544,6 +551,14 @@ export default function MenusPage() {
                   </div>
                 </div>
 
+                {/* Save error banner */}
+                {saveError && (
+                  <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                    <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                    {saveError}
+                  </div>
+                )}
+
                 {/* Locale tabs — only when the store has more than one locale.
                     The active tab decides which language the Label inputs edit;
                     URL + new-tab are shared across locales. */}
@@ -701,7 +716,15 @@ export default function MenusPage() {
       </Dialog>
 
       {/* Delete confirm */}
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setDeleteTarget(null);
+            setDeleteError('');
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('menus.deleteTitle')}</DialogTitle>
@@ -709,8 +732,14 @@ export default function MenusPage() {
               {t('menus.deleteConfirmPrefix')} <span className="font-medium text-foreground">{deleteTarget?.name}</span>{t('menus.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {deleteError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            <Button variant="outline" onClick={() => { setDeleteTarget(null); setDeleteError(''); }}>
               {tc('cancel')}
             </Button>
             <Button variant="destructive" onClick={deleteMenu}>

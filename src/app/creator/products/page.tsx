@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { ShoppingBag, Package, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useStoreType } from '@/lib/useStoreType';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,22 +19,32 @@ interface CustomProduct {
   final_price: number;
   status: string;
   translations: { locale: string; title: string }[];
-  base_product?: { translations: { locale: string; title: string }[] };
+  product?: { translations: { locale: string; title: string }[] };
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function statusBadgeClass(status: string): string {
-  switch (status?.toUpperCase()) {
-    case 'ACTIVE':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'DRAFT':
-      return 'bg-zinc-100 text-zinc-600 border-zinc-200';
-    case 'PAUSED':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    default:
-      return 'bg-zinc-100 text-zinc-600 border-zinc-200';
-  }
+// Same palette as the custom-products list, so every table presents the real
+// ProductStatus enum (DRAFT | PENDING_REVIEW | REJECTED | PUBLISHED | ARCHIVED)
+// identically.
+const statusColors: Record<string, string> = {
+  PUBLISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  DRAFT: 'bg-zinc-100 text-zinc-700 border-zinc-200',
+  PENDING_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
+  REJECTED: 'bg-red-50 text-red-700 border-red-200',
+  ARCHIVED: 'bg-zinc-100 text-zinc-500 border-zinc-200',
+};
+
+type Translator = ReturnType<typeof useTranslations>;
+
+function statusLabels(t: Translator): Record<string, string> {
+  return {
+    PUBLISHED: t('myProducts.statusPublished'),
+    DRAFT: t('myProducts.statusDraft'),
+    PENDING_REVIEW: t('myProducts.statusPendingReview'),
+    REJECTED: t('myProducts.statusRejected'),
+    ARCHIVED: t('myProducts.statusArchived'),
+  };
 }
 
 function getEnTitle(translations: { locale: string; title: string }[]): string {
@@ -48,9 +59,20 @@ export default function CreatorProductsPage() {
   const router = useRouter();
   const t = useTranslations('creator');
 
+  const { storeType } = useStoreType();
+  const statusLabelMap = statusLabels(t);
+
   const [products, setProducts] = useState<CustomProduct[]>([]);
   const [meta, setMeta] = useState<{ total: number } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Independent stores sell only their own products — this hub is built around
+  // the provider catalog and imports, so send them to the own-products list.
+  useEffect(() => {
+    if (storeType === 'INDEPENDENT') {
+      router.replace('/creator/products/own');
+    }
+  }, [storeType, router]);
 
   useEffect(() => {
     if (!token) return;
@@ -66,6 +88,11 @@ export default function CreatorProductsPage() {
 
   const displayProducts = products.slice(0, 5);
   const showViewAll = (meta?.total ?? 0) > 5;
+
+  // Avoid flashing the marketplace hub while the redirect above is in flight.
+  if (storeType === 'INDEPENDENT') {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -168,8 +195,8 @@ export default function CreatorProductsPage() {
             <div className="divide-y">
               {displayProducts.map((product) => {
                 const title = getEnTitle(product.translations);
-                const baseName = product.base_product
-                  ? getEnTitle(product.base_product.translations)
+                const baseName = product.product
+                  ? getEnTitle(product.product.translations)
                   : null;
 
                 return (
@@ -188,11 +215,9 @@ export default function CreatorProductsPage() {
                         {fmt(product.final_price)}
                       </span>
                       <span
-                        className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium ${statusBadgeClass(product.status)}`}
+                        className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium ${statusColors[product.status] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}
                       >
-                        {product.status
-                          ? product.status.charAt(0) + product.status.slice(1).toLowerCase()
-                          : t('products.draft')}
+                        {statusLabelMap[product.status] ?? product.status ?? t('products.draft')}
                       </span>
                       <Button
                         size="xs"

@@ -27,6 +27,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
+import { setCachedStoreType } from '@/lib/useStoreType';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
 
 // ---------------------------------------------------------------------------
@@ -99,6 +100,7 @@ interface Store {
   favicon_url: string;
   custom_domain: string;
   is_active: boolean;
+  store_type?: 'MARKETPLACE' | 'INDEPENDENT';
   theme_key?: string;
   theme_customizations?: Record<string, unknown>;
   language_config: StoreLanguageConfig | null;
@@ -339,6 +341,8 @@ export default function CreatorStorePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [translateError, setTranslateError] = useState('');
 
   const [form, setForm] = useState(DEFAULT_FORM);
 
@@ -470,6 +474,7 @@ export default function CreatorStorePage() {
     const source = translations[form.primary_locale];
     if (!source?.name?.trim() || translatingLocale) return;
     setTranslatingLocale(targetLocale);
+    setTranslateError('');
     try {
       // Translate all text fields in parallel
       const fields: (keyof TranslatableFields)[] = ['name', 'description', 'metaTitle', 'metaDescription'];
@@ -489,7 +494,11 @@ export default function CreatorStorePage() {
         results.forEach(({ field, translated }) => { if (translated) updated[field] = translated; });
         return { ...prev, [targetLocale]: updated };
       });
-    } catch (err) { console.error('Translation failed:', err); }
+    } catch (err) {
+      console.error('Translation failed:', err);
+      // Surface the failure inline so the creator knows nothing was filled in.
+      setTranslateError(t('myStore.translateFailed'));
+    }
     finally { setTranslatingLocale(''); }
   };
 
@@ -499,11 +508,20 @@ export default function CreatorStorePage() {
 
   const handleSave = async () => {
     if (!token) return;
-    setSaving(true);
+    setSaveError('');
     setSaved(false);
 
     // Use primary locale translation for top-level store fields
     const primaryTrans = translations[form.primary_locale] || EMPTY_TRANSLATABLE;
+
+    // An empty primary name would blank the storefront title — block the save
+    // with an inline error instead of silently overwriting it.
+    if (!primaryTrans.name?.trim()) {
+      setSaveError(t('myStore.primaryNameRequired'));
+      return;
+    }
+
+    setSaving(true);
 
     // Theme colors, fonts, typography, header and template are owned by the
     // builder's Design tab (it persists colors to theme_customizations and
@@ -520,47 +538,51 @@ export default function CreatorStorePage() {
     } catch { /* fall back to the config loaded at mount */ }
 
     try {
-      await Promise.all([
-        api('/stores/my/store', {
-          method: 'PUT', token,
-          body: JSON.stringify({
-            ...(form.slug && form.slug !== store?.slug ? { slug: form.slug } : {}),
-            name: primaryTrans.name || '',
-            description: primaryTrans.description || '',
-            logo_url: form.logo_url,
-            favicon_url: form.favicon_url,
-            custom_domain: form.custom_domain,
-            is_active: form.is_active,
-          }),
+      // Run the three updates sequentially (store → theme → languages) so the
+      // first failure (e.g. a slug conflict) aborts the save and is reported
+      // instead of leaving a partially applied state behind.
+      await api('/stores/my/store', {
+        method: 'PUT', token,
+        body: JSON.stringify({
+          ...(form.slug && form.slug !== store?.slug ? { slug: form.slug } : {}),
+          name: primaryTrans.name.trim(),
+          description: primaryTrans.description || '',
+          logo_url: form.logo_url,
+          favicon_url: form.favicon_url,
+          custom_domain: form.custom_domain,
+          is_active: form.is_active,
         }),
-        api('/stores/my/theme', {
-          method: 'PUT', token,
-          body: JSON.stringify({
-            theme_config: {
-              ...baseThemeConfig,
-              hero: form.hero,
-              socials: form.socials,
-              contact: form.contact,
-              seo: {
-                metaTitle: primaryTrans.metaTitle || '',
-                metaDescription: primaryTrans.metaDescription || '',
-              },
-              translations,
+      });
+      await api('/stores/my/theme', {
+        method: 'PUT', token,
+        body: JSON.stringify({
+          theme_config: {
+            ...baseThemeConfig,
+            hero: form.hero,
+            socials: form.socials,
+            contact: form.contact,
+            seo: {
+              metaTitle: primaryTrans.metaTitle || '',
+              metaDescription: primaryTrans.metaDescription || '',
             },
-          }),
+            translations,
+          },
         }),
-        api('/stores/my/languages', {
-          method: 'PUT', token,
-          body: JSON.stringify({
-            primary_locale: form.primary_locale,
-            secondary_locales: form.secondary_locales,
-            auto_translate: form.auto_translate,
-          }),
+      });
+      await api('/stores/my/languages', {
+        method: 'PUT', token,
+        body: JSON.stringify({
+          primary_locale: form.primary_locale,
+          secondary_locales: form.secondary_locales,
+          auto_translate: form.auto_translate,
         }),
-      ]);
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) { console.error('Save error:', err); }
+    } catch (err: any) {
+      console.error('Save error:', err);
+      setSaveError(err?.message || t('myStore.saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
@@ -597,19 +619,22 @@ export default function CreatorStorePage() {
     if (activeLocale === form.primary_locale) return null;
     const primaryName = translations[form.primary_locale]?.name || '';
     return (
-      <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
-        <span className="text-xs text-muted-foreground">
-          {t('myStore.autoTranslateFrom')} <strong>{LOCALE_LABELS[form.primary_locale] || form.primary_locale}</strong>
-          {primaryName ? `: "${primaryName.substring(0, 35)}${primaryName.length > 35 ? '…' : ''}"` : ''}
-        </span>
-        <button type="button" onClick={() => handleTranslateTo(activeLocale)}
-          disabled={!!translatingLocale || !primaryName.trim()}
-          className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
-        >
-          {translatingLocale === activeLocale
-            ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('myStore.translating')}</>
-            : <><Languages className="w-3 h-3" /> {t('myStore.autoTranslate')}</>}
-        </button>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
+          <span className="text-xs text-muted-foreground">
+            {t('myStore.autoTranslateFrom')} <strong>{LOCALE_LABELS[form.primary_locale] || form.primary_locale}</strong>
+            {primaryName ? `: "${primaryName.substring(0, 35)}${primaryName.length > 35 ? '…' : ''}"` : ''}
+          </span>
+          <button type="button" onClick={() => handleTranslateTo(activeLocale)}
+            disabled={!!translatingLocale || !primaryName.trim()}
+            className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
+          >
+            {translatingLocale === activeLocale
+              ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('myStore.translating')}</>
+              : <><Languages className="w-3 h-3" /> {t('myStore.autoTranslate')}</>}
+          </button>
+        </div>
+        {translateError && <p className="text-[11px] text-red-600">{translateError}</p>}
       </div>
     );
   };
@@ -1015,6 +1040,7 @@ export default function CreatorStorePage() {
           </Button>
         </a>
         <div className="flex items-center gap-3">
+          {saveError && <span className="text-xs text-red-600 font-medium text-start">{saveError}</span>}
           {saved && <span className="text-xs text-emerald-600 font-medium">{t('myStore.savedExclaim')}</span>}
           <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {tcom('saving')}</> : t('myStore.saveSettings')}
@@ -1079,6 +1105,9 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
           store_type: storeType,
         }),
       });
+      // Update the session cache immediately so the sidebar switches to the
+      // right layout without requiring a reload.
+      setCachedStoreType(created.store_type === 'INDEPENDENT' ? 'INDEPENDENT' : 'MARKETPLACE');
       onCreated(created);
     } catch (err: any) {
       setError(err?.message || t('myStore.failedCreateStore'));

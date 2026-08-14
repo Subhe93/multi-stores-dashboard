@@ -6,6 +6,7 @@
     "statusAwaiting": "بانتظار الدفع",
     "statusFailed": "فشل",
     "statusPending": "قيد الانتظار",
+    "statusRefunded": "مسترد",
     "card": "البطاقة",
     "paidAt": "تاريخ الدفع",
     "viewReceipt": "عرض الإيصال",
@@ -73,6 +74,7 @@
     "earnings": "الأرباح",
     "myStore": "متجري",
     "exploreProviderProducts": "استكشاف منتجات الموردين",
+    "myProducts": "منتجاتي",
     "addProduct": "إضافة منتج",
     "collections": "المجموعات",
     "promotions": "العروض الترويجية",
@@ -838,6 +840,7 @@
       "guest": "زائر",
       "quickActions": "إجراءات سريعة",
       "browseProducts": "تصفح المنتجات",
+      "myProducts": "منتجاتي",
       "newCustomProduct": "منتج مخصص جديد"
     },
     "earnings": {
@@ -861,6 +864,11 @@
       "notConnectedBadge": "غير مرتبط",
       "connectStripe": "ربط سترايب",
       "stripeComingSoon": "تكامل سترايب كونكت قادم قريباً.",
+      "connected": "متصل",
+      "manageInSettings": "الإدارة من الإعدادات",
+      "colRevenue": "الإيرادات",
+      "revenuePending": "الإيرادات المعلقة",
+      "revenueBreakdown": "تفاصيل الإيرادات",
       "independentBannerTitle": "مدفوعات مباشرة",
       "independentBannerDesc": "متجرك مستقل: يُدفع كل طلب مباشرة إلى حساب سترايب المرتبط بك ولا تأخذ المنصة أي عمولة.",
       "independentBannerLink": "عرض تفاصيل التحويلات في لوحة تحكم سترايب"
@@ -888,7 +896,9 @@
       "tabProcessing": "قيد المعالجة",
       "tabShipped": "تم الشحن",
       "tabDelivered": "تم التسليم",
-      "tabCancelled": "ملغي"
+      "tabCancelled": "ملغي",
+      "loadFailed": "فشل تحميل الطلبات. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
     },
     "products": {
       "title": "المنتجات",
@@ -970,7 +980,15 @@
       "statusDraft": "مسودة",
       "statusPendingReview": "قيد المراجعة",
       "statusRejected": "مرفوض",
-      "statusArchived": "مؤرشف"
+      "statusArchived": "مؤرشف",
+      "ownListTitle": "منتجاتك الخاصة",
+      "ownListSubtitle": "المنتجات التي أنشأتها وتبيعها في متجرك.",
+      "ownEmptyTitle": "لا توجد منتجات خاصة بعد",
+      "ownEmptyDesc": "أنشئ منتجك الأول لبدء البيع في متجرك.",
+      "ownLoadFailed": "فشل تحميل منتجاتك.",
+      "retry": "حاول مرة أخرى",
+      "allStatuses": "الكل",
+      "deleteFailed": "فشل حذف المنتج."
     },
     "customProductForm": {
       "newTitle": "منتج مخصص جديد",
@@ -1024,7 +1042,8 @@
       "errVariantPrice": "يرجى إدخال سعر صالح لكل متغير.",
       "errFaqQuestion": "كل سؤال شائع يحتاج إلى نص.",
       "errImportMode": "يرجى اختيار وضع الاستيراد.",
-      "failedCreate": "فشل إنشاء المنتج المخصص"
+      "failedCreate": "فشل إنشاء المنتج المخصص",
+      "preselectedLoadFailed": "تعذّر تحميل المنتج المحدد. ربما تمت إزالته أو لم يعد متاحًا."
     },
     "editCustomProduct": {
       "title": "تعديل المنتج المخصص",
@@ -1089,7 +1108,9 @@
       "collections": "المجموعات",
       "collectionsDesc": "أضف هذا المنتج إلى مجموعة أو أكثر من مجموعات متجرك.",
       "deleteTitle": "حذف المنتج المخصص",
-      "deleteConfirm": "سيؤدي هذا إلى إزالة هذا المنتج المخصص نهائياً من متجرك."
+      "deleteConfirm": "سيؤدي هذا إلى إزالة هذا المنتج المخصص نهائياً من متجرك.",
+      "deleting": "جارٍ الحذف...",
+      "failedDelete": "فشل حذف المنتج."
     },
     "collections": {
       "title": "المجموعات",
@@ -1107,6 +1128,8 @@
       "emptyDesc": "أنشئ مجموعات لتجميع المنتجات وتنظيم واجهة متجرك.",
       "createFirst": "إنشاء أول مجموعة",
       "deleteTitle": "حذف المجموعة",
+      "failedDelete": "فشل حذف المجموعة.",
+      "noSearchResults": "لا توجد مجموعات مطابقة لبحثك.",
       "deleteConfirmPrefix": "هل أنت متأكد أنك تريد حذف",
       "deleteConfirmSuffix": "؟ لا يمكن التراجع عن هذا الإجراء.",
       "deleting": "جارٍ الحذف..."
@@ -1139,6 +1162,7 @@
       "disableBundle": "تعطيل الحزمة",
       "failedDelete": "فشل حذف الحزمة",
       "failedDisable": "فشل تعطيل الحزمة",
+      "failedStatusChange": "فشل تحديث حالة الحزمة",
       "failedLoad": "فشل تحميل الحزمة",
       "notFound": "الحزمة غير موجودة",
       "backToBundles": "العودة إلى الحزم"
@@ -1170,7 +1194,12 @@
       "typeFlashSale": "تخفيض سريع",
       "valueFree": "مجاني",
       "valueBuyGet": "اشترِ واحصل",
-      "never": "أبداً"
+      "never": "أبداً",
+      "statusActive": "نشط",
+      "statusExpired": "منتهي",
+      "statusDisabled": "معطّل",
+      "toggleFailed": "فشل تحديث حالة العرض.",
+      "deleteFailed": "فشل حذف العرض."
     },
     "promotionForm": {
       "createTitle": "إنشاء عرض",
@@ -1211,6 +1240,7 @@
       "productsSelected": "{count} منتجات محددة",
       "clearAll": "مسح الكل",
       "titleEnglish": "العنوان (بالإنجليزية)",
+      "titleInLocale": "العنوان ({locale})",
       "titlePlaceholder": "مثال: تخفيضات الصيف",
       "descriptionOptional": "الوصف (اختياري)",
       "descriptionPlaceholder": "صف هذا العرض...",
@@ -1339,7 +1369,9 @@
       "deletePage": "حذف الصفحة",
       "savedExclaim": "تم الحفظ!",
       "saveChanges": "حفظ التغييرات",
-      "deleteConfirm": "سيؤدي هذا إلى حذف \"{title}\" نهائياً من متجرك."
+      "deleteConfirm": "سيؤدي هذا إلى حذف \"{title}\" نهائياً من متجرك.",
+      "saveFailed": "فشل حفظ الصفحة. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف الصفحة. يرجى المحاولة مرة أخرى."
     },
     "landingPages": {
       "title": "الصفحات المقصودة",
@@ -1367,7 +1399,10 @@
       "slugExists": "هذا الرابط مستخدم بالفعل.",
       "failedCreate": "فشل إنشاء الصفحة المقصودة",
       "creating": "جارٍ الإنشاء...",
-      "createAndOpen": "إنشاء وفتح"
+      "createAndOpen": "إنشاء وفتح",
+      "loadFailed": "فشل تحميل الصفحات المقصودة. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف الصفحة المقصودة. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
     },
     "menus": {
       "title": "القوائم",
@@ -1399,7 +1434,9 @@
       "creating": "جارٍ الإنشاء...",
       "deleteTitle": "حذف القائمة",
       "deleteConfirmPrefix": "هل أنت متأكد أنك تريد حذف",
-      "deleteConfirmSuffix": "؟"
+      "deleteConfirmSuffix": "؟",
+      "saveFailed": "فشل حفظ القائمة. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف القائمة. يرجى المحاولة مرة أخرى."
     },
     "templates": {
       "title": "القوالب",
@@ -1413,7 +1450,9 @@
       "addDemoProductsDesc": "أنشئ منتجات نموذجية ليبدو متجرك مكتملاً على الفور.",
       "failedImport": "فشل استيراد القالب",
       "importing": "جارٍ الاستيراد...",
-      "importAndReview": "استيراد ومراجعة"
+      "importAndReview": "استيراد ومراجعة",
+      "loadFailed": "فشل تحميل القوالب. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
     },
     "translations": {
       "title": "الترجمات",
@@ -1525,6 +1564,9 @@
       "creating": "جارٍ الإنشاء...",
       "createStore": "إنشاء متجر",
       "nameSlugRequired": "اسم المتجر والمعرّف مطلوبان",
+      "primaryNameRequired": "يرجى إدخال اسم المتجر باللغة الأساسية قبل الحفظ.",
+      "saveFailed": "تعذّر حفظ التغييرات. يرجى المحاولة مرة أخرى.",
+      "translateFailed": "فشلت الترجمة التلقائية. يرجى المحاولة مرة أخرى أو تعبئة الحقول يدويًا.",
       "failedCreateStore": "فشل إنشاء المتجر"
     },
     "settings": {
@@ -1616,7 +1658,11 @@
       "shippingAddress": "عنوان الشحن",
       "noAddress": "لم يتم تقديم عنوان",
       "yourEarnings": "أرباحك",
-      "creatorCommission": "عمولتك من هذا الطلب"
+      "creatorCommission": "عمولتك من هذا الطلب",
+      "independentEarningsNote": "تُدفع مباشرة إلى حسابك في سترايب — بدون عمولة للمنصة.",
+      "updateFailed": "فشل تحديث حالة الطلب. يرجى المحاولة مرة أخرى.",
+      "loadFailed": "فشل تحميل هذا الطلب. يرجى المحاولة مرة أخرى.",
+      "retry": "إعادة المحاولة"
     },
     "orderStatus": {
       "PENDING": "قيد الانتظار",
@@ -2353,6 +2399,7 @@
     "errQuantityMin": "يجب أن تكون الكمية 1 على الأقل.",
     "errDiscountNegative": "لا يمكن أن يكون الخصم سالبًا.",
     "untitledProduct": "منتج بدون عنوان",
+    "primaryParen": "(أساسي)",
     "customSuffix": "مخصّص",
     "ownSuffix": "خاص",
     "errOfferNumTitle": "العرض {num} يحتاج إلى عنوان.",
@@ -2425,7 +2472,8 @@
     "inactive": "غير نشطة",
     "fillNameIn": "املأ الاسم بـ",
     "toTranslate": "لترجمة اللغات الأخرى تلقائيًا.",
-    "couldNotSave": "تعذّر حفظ المجموعة"
+    "couldNotSave": "تعذّر حفظ المجموعة",
+    "primaryParen": "(أساسي)"
   },
   "shipping": {
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
@@ -2476,6 +2524,8 @@
     "zoneCount": "{count, plural, zero {# منطقة} one {منطقة واحدة} two {منطقتان} few {# مناطق} many {# منطقة} other {# منطقة}}",
     "zoneName": "اسم المنطقة *",
     "zoneNamePlaceholder": "مثال: دول الخليج",
-    "zoneOverlapWarning": "بعض الدول في هذه المنطقة تتداخل مع منطقة أخرى. سيتم استخدام أول منطقة مطابقة."
+    "zoneOverlapWarning": "بعض الدول في هذه المنطقة تتداخل مع منطقة أخرى. سيتم استخدام أول منطقة مطابقة.",
+    "saveFailed": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.",
+    "deleteFailed": "فشل الحذف. يرجى المحاولة مرة أخرى."
   }
 }

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle } from 'lucide-react';
+import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
@@ -123,6 +123,11 @@ export default function CreatorShipping() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // User-visible error feedback — dialogs surface `formError`, actions that
+  // run outside a dialog (set default) surface `pageError`.
+  const [formError, setFormError] = useState('');
+  const [pageError, setPageError] = useState('');
+
   // Zone form state
   const [zoneName, setZoneName] = useState('');
   const [zoneCountries, setZoneCountries] = useState<string[]>([]);
@@ -154,11 +159,17 @@ export default function CreatorShipping() {
     setZoneFreeThreshold('');
     setZoneDaysMin('3');
     setZoneDaysMax('7');
+    setFormError('');
   };
+
+  // Base cost must be a valid number — a blank field would otherwise be sent
+  // as NaN and rejected by the API with an opaque 500.
+  const zoneBaseCostValid = zoneBaseCost.trim() !== '' && !isNaN(Number(zoneBaseCost));
 
   const handleAddProfile = async () => {
     if (!token || !profileName) return;
     setSaving(true);
+    setFormError('');
     try {
       await api('/shipping/profiles', {
         method: 'POST', token,
@@ -167,13 +178,17 @@ export default function CreatorShipping() {
       setShowAddProfile(false);
       setProfileName('');
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || t('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
   const handleAddZone = async () => {
-    if (!token || !showAddZone || !zoneName || zoneCountries.length === 0 || !zoneBaseCost) return;
+    if (!token || !showAddZone || !zoneName || zoneCountries.length === 0 || !zoneBaseCostValid) return;
     setSaving(true);
+    setFormError('');
     try {
       await api(`/shipping/profiles/${showAddZone}/zones`, {
         method: 'POST', token,
@@ -190,11 +205,15 @@ export default function CreatorShipping() {
       setShowAddZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || t('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
   const openEditZone = (zone: any) => {
+    setFormError('');
     setEditingZone(zone);
     setZoneName(zone.name || '');
     setZoneCountries(
@@ -210,8 +229,9 @@ export default function CreatorShipping() {
   };
 
   const handleUpdateZone = async () => {
-    if (!token || !editingZone || !zoneName || zoneCountries.length === 0) return;
+    if (!token || !editingZone || !zoneName || zoneCountries.length === 0 || !zoneBaseCostValid) return;
     setSaving(true);
+    setFormError('');
     try {
       await api(`/shipping/zones/${editingZone.id}`, {
         method: 'PUT', token,
@@ -220,7 +240,8 @@ export default function CreatorShipping() {
           countries: zoneCountries,
           base_cost: parseFloat(zoneBaseCost),
           per_item_cost: parseFloat(zonePerItem || '0'),
-          free_threshold: zoneFreeThreshold ? parseFloat(zoneFreeThreshold) : undefined,
+          // null clears the stored threshold; undefined would keep the old value.
+          free_threshold: zoneFreeThreshold ? parseFloat(zoneFreeThreshold) : null,
           estimated_days_min: parseInt(zoneDaysMin),
           estimated_days_max: parseInt(zoneDaysMax),
         }),
@@ -228,23 +249,31 @@ export default function CreatorShipping() {
       setEditingZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || t('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
   const handleSetDefault = async (profileId: string) => {
     if (!token) return;
     setSettingDefault(profileId);
+    setPageError('');
     try {
       await api(`/shipping/profiles/${profileId}/default`, { method: 'PUT', token });
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setPageError(err?.message || t('saveFailed'));
+    }
     finally { setSettingDefault(null); }
   };
 
   const handleConfirmDelete = async () => {
     if (!token || !confirm) return;
     setDeleting(true);
+    setFormError('');
     try {
       if (confirm.type === 'zone') {
         await api(`/shipping/zones/${confirm.id}`, { method: 'DELETE', token });
@@ -253,7 +282,10 @@ export default function CreatorShipping() {
       }
       setConfirm(null);
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || t('deleteFailed'));
+    }
     finally { setDeleting(false); }
   };
 
@@ -268,6 +300,14 @@ export default function CreatorShipping() {
           <Plus className="w-4 h-4 mr-1.5" /> {t('newProfile')}
         </Button>
       </div>
+
+      {/* Error banner for page-level actions (set default) */}
+      {pageError && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {pageError}
+        </div>
+      )}
 
       {loading ? (
         <p className="text-sm text-muted-foreground text-center py-8">{tc('loading')}</p>
@@ -432,7 +472,7 @@ export default function CreatorShipping() {
       )}
 
       {/* ── Add Profile Dialog ── */}
-      <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); } }}>
+      <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); setFormError(''); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t('newShippingProfile')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
@@ -446,9 +486,15 @@ export default function CreatorShipping() {
                 onKeyDown={e => e.key === 'Enter' && handleAddProfile()}
               />
             </div>
+            {formError && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                {formError}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); }}>{tc('cancel')}</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); setFormError(''); }}>{tc('cancel')}</Button>
             <Button size="sm" onClick={handleAddProfile} disabled={saving || !profileName}>
               {saving ? t('creating') : t('createProfile')}
             </Button>
@@ -471,12 +517,18 @@ export default function CreatorShipping() {
             currency,
             t,
           )}
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => { setShowAddZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleAddZone}
-              disabled={saving || !zoneName || zoneCountries.length === 0 || !zoneBaseCost}
+              disabled={saving || !zoneName || zoneCountries.length === 0 || !zoneBaseCostValid}
             >
               {saving ? t('adding') : t('addZone')}
             </Button>
@@ -499,12 +551,18 @@ export default function CreatorShipping() {
             currency,
             t,
           )}
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => { setEditingZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleUpdateZone}
-              disabled={saving || !zoneName || zoneCountries.length === 0}
+              disabled={saving || !zoneName || zoneCountries.length === 0 || !zoneBaseCostValid}
             >
               {saving ? tc('saving') : t('saveChanges')}
             </Button>
@@ -513,7 +571,7 @@ export default function CreatorShipping() {
       </Dialog>
 
       {/* ── Confirm Delete Dialog ── */}
-      <Dialog open={!!confirm} onOpenChange={v => { if (!v && !deleting) setConfirm(null); }}>
+      <Dialog open={!!confirm} onOpenChange={v => { if (!v && !deleting) { setConfirm(null); setFormError(''); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
@@ -527,8 +585,14 @@ export default function CreatorShipping() {
             )}
             {' '}{t('actionCannotBeUndone')}
           </p>
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setConfirm(null)} disabled={deleting}>{tc('cancel')}</Button>
+            <Button variant="outline" size="sm" onClick={() => { setConfirm(null); setFormError(''); }} disabled={deleting}>{tc('cancel')}</Button>
             <Button variant="destructive" size="sm" onClick={handleConfirmDelete} disabled={deleting}>
               {deleting ? t('deleting') : tc('delete')}
             </Button>

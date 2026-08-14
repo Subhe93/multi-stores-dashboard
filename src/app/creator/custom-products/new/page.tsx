@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useStoreType } from '@/lib/useStoreType';
+import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
 import ImportModeSelector from '@/components/creator/ImportModeSelector';
 import VariantSelector from '@/components/creator/VariantSelector';
@@ -149,10 +151,14 @@ export default function NewCustomProductPage() {
   const tc = useTranslations('common');
   const searchParams = useSearchParams();
   const preselectedProductId = searchParams.get('product_id');
+  const { storeType } = useStoreType();
 
   // Data
   const [products, setProducts] = useState<Product[]>([]);
   const [productDetails, setProductDetails] = useState<Product | null>(null);
+  // Set when the preselected product from the URL cannot be loaded — the picker
+  // step is skipped in that flow, so the user needs an explicit error state.
+  const [preselectError, setPreselectError] = useState(false);
 
   // Form state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -216,24 +222,41 @@ export default function NewCustomProductPage() {
       .catch(() => {});
   }, [token]);
 
+  // Product picker list — only needed when no product was preselected via URL.
+  // Restrict to published provider products: creator-own and unpublished
+  // products cannot be imported as custom products.
   useEffect(() => {
-    if (!token) return;
-    const params = new URLSearchParams({ limit: '100' });
+    if (!token || preselectedProductId) return;
+    const params = new URLSearchParams({
+      limit: '100',
+      owner_type: 'provider',
+      status: 'PUBLISHED',
+    });
     if (productSearch.trim()) params.set('search', productSearch.trim());
     api<any>(`/products?${params.toString()}`, { token })
-      .then((res) => {
-        const allProducts: Product[] = res?.data ?? res ?? [];
-        setProducts(allProducts);
-        if (preselectedProductId && !selectedProduct) {
-          const found = allProducts.find((p) => p.id === preselectedProductId);
-          if (found) {
-            setSelectedProduct(found);
-            fetchProductDetails(found.id);
-          }
-        }
-      })
+      .then((res) => setProducts(res?.data ?? res ?? []))
       .catch(console.error);
-  }, [token, productSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token, productSearch, preselectedProductId]);
+
+  // Preselected product (?product_id=…) — the picker step is skipped in this
+  // flow, so fetch the product directly instead of searching the first page of
+  // the catalog for it; otherwise a product outside that page never loads.
+  useEffect(() => {
+    if (!token || !preselectedProductId) return;
+    let cancelled = false;
+    setPreselectError(false);
+    fetchProductDetails(preselectedProductId).then((details) => {
+      if (cancelled) return;
+      if (details) {
+        setSelectedProduct(details);
+      } else {
+        setPreselectError(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, preselectedProductId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced slug availability check against the backend. We only check the
   // primary-locale slug — secondary translations don't drive the storefront URL.
@@ -259,8 +282,8 @@ export default function NewCustomProductPage() {
     return () => clearTimeout(handle);
   }, [token, translations, primaryLocale]);
 
-  const fetchProductDetails = async (productId: string) => {
-    if (!token) return;
+  const fetchProductDetails = async (productId: string): Promise<Product | null> => {
+    if (!token) return null;
     try {
       const details = await api<Product>(`/products/${productId}/import-details`, { token });
       setProductDetails(details);
@@ -280,8 +303,10 @@ export default function NewCustomProductPage() {
       } else {
         setFaqDrafts([]);
       }
+      return details;
     } catch (err) {
       console.error('Failed to fetch product details:', err);
+      return null;
     }
   };
 
@@ -535,6 +560,38 @@ export default function NewCustomProductPage() {
   const isLastStep = currentStep === totalSteps;
 
   // ── Render ─────────────────────────────────────────────
+
+  // Independent stores sell only their own products — importing provider
+  // products does not apply, so direct navigation gets a friendly notice.
+  if (storeType === 'INDEPENDENT') {
+    return <IndependentStoreNotice description={t('independent.customNotAvailable')} />;
+  }
+
+  // The preselected product could not be loaded (deleted, unpublished, bad id).
+  // The picker step is skipped in this flow, so show an explicit error instead
+  // of an endless spinner.
+  if (preselectError) {
+    return (
+      <div className="max-w-3xl space-y-6">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition"
+          >
+            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+          </button>
+          <h1 className="text-xl font-semibold tracking-tight">{t('customProductForm.newTitle')}</h1>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {t('customProductForm.preselectedLoadFailed')}
+        </div>
+        <Button size="sm" variant="outline" onClick={() => router.push('/creator/products/browse')}>
+          {t('products.browseCatalog')}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">

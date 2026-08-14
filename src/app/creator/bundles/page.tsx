@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Plus, Layers, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -33,9 +33,9 @@ function statusBadgeClass(status: BundleStatus): string {
     : 'bg-amber-50 text-amber-700 border-amber-200';
 }
 
-function formatDate(dateStr?: string): string {
+function formatDate(dateStr: string | undefined, locale: string): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-GB', {
+  return new Date(dateStr).toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -45,8 +45,10 @@ function formatDate(dateStr?: string): string {
 export default function CreatorBundlesPage() {
   const { token } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
   const tt = useTranslations('creator');
   const tc = useTranslations('common');
+  const tb = useTranslations('bundle');
 
   interface ListMeta {
     total: number;
@@ -65,6 +67,7 @@ export default function CreatorBundlesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [disableTarget, setDisableTarget] = useState<Bundle | null>(null);
   const [disabling, setDisabling] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   const fetchBundles = async (page = 1, query = searchQuery) => {
     if (!token) return;
@@ -114,8 +117,9 @@ export default function CreatorBundlesPage() {
     await applyStatus(bundle, bundle.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE');
   };
 
-  const applyStatus = async (bundle: Bundle, next: BundleStatus) => {
-    if (!token) return;
+  const applyStatus = async (bundle: Bundle, next: BundleStatus): Promise<boolean> => {
+    if (!token) return false;
+    setStatusError('');
     try {
       await api(`/bundles/${bundle.id}`, {
         method: 'PUT',
@@ -123,8 +127,12 @@ export default function CreatorBundlesPage() {
         body: JSON.stringify({ status: next }),
       });
       fetchBundles(meta?.page || 1);
+      return true;
     } catch (err) {
       console.error('Failed to toggle bundle status:', err);
+      const e = err as { message?: string };
+      setStatusError(e?.message || tt('bundles.failedStatusChange'));
+      return false;
     }
   };
 
@@ -132,8 +140,9 @@ export default function CreatorBundlesPage() {
     if (!disableTarget) return;
     setDisabling(true);
     try {
-      await applyStatus(disableTarget, 'DISABLED');
-      setDisableTarget(null);
+      // Keep the dialog open on failure so the error stays visible.
+      const ok = await applyStatus(disableTarget, 'DISABLED');
+      if (ok) setDisableTarget(null);
     } finally {
       setDisabling(false);
     }
@@ -204,7 +213,7 @@ export default function CreatorBundlesPage() {
       label: tt('bundles.colUpdated'),
       render: (item: Bundle) => (
         <span className="text-sm text-muted-foreground">
-          {formatDate(item.updated_at)}
+          {formatDate(item.updated_at, locale)}
         </span>
       ),
     },
@@ -218,7 +227,7 @@ export default function CreatorBundlesPage() {
           className={`inline-flex h-5 cursor-pointer items-center rounded-full border px-2 text-[10px] font-medium transition hover:opacity-70 ${statusBadgeClass(item.status)}`}
           title={item.status === 'ACTIVE' ? tt('bundles.clickToDisable') : tt('bundles.clickToActivate')}
         >
-          {item.status.charAt(0) + item.status.slice(1).toLowerCase()}
+          {item.status === 'ACTIVE' ? tb('statusActive') : tb('statusDisabled')}
         </button>
       ),
     },
@@ -262,6 +271,20 @@ export default function CreatorBundlesPage() {
           <Plus className="size-4" /> {tt('bundles.createBundle')}
         </Button>
       </div>
+
+      {/* Visible feedback when a direct status toggle fails (no dialog open). */}
+      {statusError && !disableTarget && (
+        <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <span>{statusError}</span>
+          <button
+            type="button"
+            onClick={() => setStatusError('')}
+            className="ms-3 shrink-0 font-medium hover:underline"
+          >
+            {tc('close')}
+          </button>
+        </div>
+      )}
 
       <DataTable
         columns={columns}
@@ -346,7 +369,12 @@ export default function CreatorBundlesPage() {
 
       <Dialog
         open={!!disableTarget}
-        onOpenChange={(open) => !open && setDisableTarget(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDisableTarget(null);
+            setStatusError('');
+          }
+        }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -370,6 +398,11 @@ export default function CreatorBundlesPage() {
               {tt('bundles.disableWarningSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {statusError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {statusError}
+            </div>
+          )}
           <DialogFooter className="gap-2 sm:gap-2">
             <Button
               variant="outline"

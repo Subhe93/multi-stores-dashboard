@@ -322,7 +322,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
   const productOptions: ProductOption[] = useMemo(() => {
     const own: ProductOption[] = products.map((p) => {
-      const t =
+      const trans =
         p.translations?.find((tr) => tr.locale === primaryLocale) ||
         p.translations?.[0];
       const featured =
@@ -331,14 +331,14 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         null;
       return {
         id: `p:${p.id}`,
-        name: `${t?.title || 'Untitled product'} · own`,
+        name: `${trans?.title || t('bundle.untitledProduct')} · ${t('bundle.ownSuffix')}`,
         thumbnail: featured ? resolveUrl(featured) : null,
         unitPrice: Number(p.base_price ?? 0),
         pricingType: 'SINGLE',
       };
     });
     const custom: ProductOption[] = customProducts.map((cp) => {
-      const t =
+      const trans =
         cp.translations?.find((tr) => tr.locale === primaryLocale) ||
         cp.translations?.[0] ||
         cp.product?.translations?.find((tr) => tr.locale === primaryLocale) ||
@@ -347,14 +347,14 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         cp.mockup_images?.[0]?.url || cp.product?.images?.[0]?.url || null;
       return {
         id: `cp:${cp.id}`,
-        name: `${t?.title || 'Untitled product'} · custom`,
+        name: `${trans?.title || t('bundle.untitledProduct')} · ${t('bundle.customSuffix')}`,
         thumbnail: thumb ? resolveUrl(thumb) : null,
         unitPrice: Number(cp.final_price ?? cp.product?.base_price ?? 0),
         pricingType: cp.pricing_type ?? 'SINGLE',
       };
     });
     return [...own, ...custom];
-  }, [products, customProducts, primaryLocale]);
+  }, [products, customProducts, primaryLocale, t]);
 
   const primaryName = translations[primaryLocale]?.name || '';
   const hasMultipleLocales = allLocales.length > 1;
@@ -598,7 +598,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                       <Check className="w-3 h-3 text-emerald-500" />
                     )}
                     {locale === primaryLocale && (
-                      <span className="text-[9px] text-zinc-400">(primary)</span>
+                      <span className="text-[9px] text-zinc-400">{t('category.primaryParen')}</span>
                     )}
                   </button>
                 );
