@@ -1990,6 +1990,8 @@
     "addSection": "Abschnitt hinzufügen",
     "addASection": "Einen Abschnitt hinzufügen",
     "addSectionDesc": "Wählen Sie einen Block, der zu Ihrer Seite hinzugefügt werden soll.",
+    "searchSections": "Abschnitte durchsuchen…",
+    "noSectionsFound": "Keine Abschnitte entsprechen Ihrer Suche.",
     "clearCacheTooltip": "Leeren Sie den Shop-Cache, damit die neuesten Änderungen sofort angezeigt werden",
     "cleared": "Geleert",
     "clearCache": "Cache leeren",

@@ -1990,6 +1990,8 @@
     "addSection": "Bölüm ekle",
     "addASection": "Bir bölüm ekle",
     "addSectionDesc": "Sayfanıza eklemek için bir blok seçin.",
+    "searchSections": "Bölüm ara…",
+    "noSectionsFound": "Aramanızla eşleşen bölüm bulunamadı.",
     "clearCacheTooltip": "En son değişikliklerin hemen görünmesi için mağaza önbelleğini temizleyin",
     "cleared": "Temizlendi",
     "clearCache": "Önbelleği temizle",

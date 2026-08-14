@@ -1990,6 +1990,8 @@
     "addSection": "Lägg till sektion",
     "addASection": "Lägg till en sektion",
     "addSectionDesc": "Välj ett block att lägga till på din sida.",
+    "searchSections": "Sök bland sektioner…",
+    "noSectionsFound": "Inga sektioner matchar din sökning.",
     "clearCacheTooltip": "Rensa butikens cache så att de senaste ändringarna visas direkt",
     "cleared": "Rensad",
     "clearCache": "Rensa cache",

@@ -817,6 +817,235 @@ function MapPreview(props: PreviewProps) {
   );
 }
 
+// ── Rich media / storytelling previews ──────────────────────
+
+function HeroVideoPreview(props: PreviewProps) {
+  // Darkened media frame with a big centered play button, heading + line
+  // below — reads as "hero with a video background", distinct from the plain
+  // Video section (which has no text bars).
+  return (
+    <Frame {...props}>
+      <rect x="14" y="10" width="172" height="70" rx="4" fill={FILL} />
+      <rect x="14" y="10" width="172" height="70" rx="4" fill={ACCENT} opacity="0.35" />
+      <circle cx="100" cy="45" r="15" fill="white" opacity="0.92" />
+      <path d="M96 38 l12 7 l-12 7 z" fill={PRIMARY} />
+      <Bar x="55" y="90" w="90" h="5" c={ACCENT} />
+      <Bar x="70" y="101" w="60" />
+    </Frame>
+  );
+}
+
+function ParallaxBannerPreview(props: PreviewProps) {
+  // Wide banner made of layered "hills" — far layers lighter, near layers
+  // darker — the classic depth cue for a parallax scene. Heading floats in
+  // the sky above the layers.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="14" width="200" height="92" fill="#eceef3" />
+      <path d="M0 64 Q 50 42 100 58 T 200 52 L 200 106 L 0 106 Z" fill={FILL} />
+      <path d="M0 86 Q 60 66 120 84 T 200 78 L 200 106 L 0 106 Z" fill={TEXT} opacity="0.6" />
+      <Bar x="60" y="30" w="80" h="6" c={ACCENT} />
+      <Bar x="75" y="42" w="50" />
+    </Frame>
+  );
+}
+
+function BeforeAfterPreview(props: PreviewProps) {
+  // One image split by a draggable vertical handle: dark "before" half on
+  // the left, light "after" half on the right, with a circular grip carrying
+  // tiny left/right arrows.
+  return (
+    <Frame {...props}>
+      <rect x="14" y="16" width="172" height="88" rx="4" fill={FILL} />
+      <path d="M18 16 h82 v88 h-82 a4 4 0 0 1 -4 -4 v-80 a4 4 0 0 1 4 -4 z" fill={TEXT} opacity="0.7" />
+      {/* Corner labels hinting before/after captions */}
+      <Bar x="22" y="24" w="20" c="white" />
+      <Bar x="158" y="24" w="20" c="white" />
+      {/* Handle line + grip */}
+      <line x1="100" y1="16" x2="100" y2="104" stroke="white" strokeWidth="2.5" />
+      <circle cx="100" cy="60" r="9" fill="white" stroke={BORDER} />
+      <path d="M97 57 l-3 3 l3 3" stroke={ACCENT} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M103 57 l3 3 l-3 3" stroke={ACCENT} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Frame>
+  );
+}
+
+function ImageHotspotsPreview(props: PreviewProps) {
+  // A photo block with three accent hotspot dots, each wrapped in a soft
+  // halo ring — the "tap a dot to learn more" pattern.
+  const spots = [
+    { x: 62, y: 46 },
+    { x: 132, y: 38 },
+    { x: 104, y: 82 },
+  ];
+  return (
+    <Frame {...props}>
+      <rect x="14" y="14" width="172" height="92" rx="4" fill={FILL} />
+      <circle cx="96" cy="60" r="18" fill={BORDER} />
+      {spots.map((s, i) => (
+        <g key={i}>
+          <circle cx={s.x} cy={s.y} r="9" fill={PRIMARY} opacity="0.2" />
+          <circle cx={s.x} cy={s.y} r="5.5" fill="white" />
+          <circle cx={s.x} cy={s.y} r="3" fill={PRIMARY} />
+        </g>
+      ))}
+    </Frame>
+  );
+}
+
+function MasonryGalleryPreview(props: PreviewProps) {
+  // Three columns of varied-height tiles with staggered seams — instantly
+  // reads as a masonry layout rather than a uniform grid.
+  const cols: [number, [number, number][]][] = [
+    [16, [[16, 36], [58, 22], [86, 20]]],
+    [74, [[16, 20], [42, 40], [88, 18]]],
+    [132, [[16, 28], [50, 30], [86, 20]]],
+  ];
+  return (
+    <Frame {...props}>
+      {cols.map(([x, tiles], i) =>
+        tiles.map(([y, h], j) => (
+          <rect key={`${i}-${j}`} x={x} y={y} width="52" height={h} rx="3" fill={FILL} opacity={0.75 + ((i + j) % 2) * 0.25} />
+        )),
+      )}
+    </Frame>
+  );
+}
+
+function HeroSplitPreview(props: PreviewProps) {
+  // Full-bleed image filling the left half, text column + button on the
+  // right — distinct from image-with-text, whose image is inset with margins.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="100" height="120" fill={FILL} />
+      <circle cx="50" cy="55" r="12" fill={BORDER} />
+      <Bar x="114" y="32" w="70" h="7" c={ACCENT} />
+      <Bar x="114" y="48" w="66" />
+      <Bar x="114" y="57" w="58" />
+      <Bar x="114" y="66" w="62" />
+      <rect x="114" y="80" width="42" height="12" rx="2" fill={PRIMARY} />
+    </Frame>
+  );
+}
+
+function TestimonialCarouselPreview(props: PreviewProps) {
+  // One big centered quote with side arrows + dots — a single rotating
+  // testimonial rather than the three-card static grid.
+  return (
+    <Frame {...props}>
+      <text x="84" y="44" fontSize="42" fontFamily="Georgia, serif" fill={PRIMARY} opacity="0.4">
+        “
+      </text>
+      <Bar x="50" y="50" w="100" c={TEXT} />
+      <Bar x="60" y="59" w="80" c={TEXT} />
+      <circle cx="86" cy="80" r="5" fill={FILL} />
+      <Bar x="95" y="78" w="24" c={ACCENT} />
+      <SliderArrows />
+      <SliderDots count={3} active={1} y={104} />
+    </Frame>
+  );
+}
+
+function TeamGridPreview(props: PreviewProps) {
+  // Three member cards: circle avatar, name + role bars, tiny social dots.
+  return (
+    <Frame {...props}>
+      <Bar x="70" y="10" w="60" h="5" c={ACCENT} />
+      {[0, 1, 2].map((i) => (
+        <g key={i}>
+          <rect x={14 + i * 60} y="24" width="52" height="82" rx="4" fill="white" stroke={BORDER} />
+          <circle cx={40 + i * 60} cy="46" r="11" fill={FILL} />
+          <Bar x={24 + i * 60} y="64" w="32" h="3" c={ACCENT} />
+          <Bar x={28 + i * 60} y="73" w="24" c={TEXT} />
+          {[0, 1, 2].map((d) => (
+            <circle key={d} cx={34 + i * 60 + d * 6} cy="90" r="2" fill={PRIMARY} opacity="0.5" />
+          ))}
+        </g>
+      ))}
+    </Frame>
+  );
+}
+
+function TimelinePreview(props: PreviewProps) {
+  // Vertical center line with milestone dots; entries alternate left/right
+  // of the line — the classic "our story" layout.
+  return (
+    <Frame {...props}>
+      <line x1="100" y1="12" x2="100" y2="108" stroke={BORDER} strokeWidth="2" />
+      {[0, 1, 2, 3].map((i) => {
+        const y = 22 + i * 25;
+        const left = i % 2 === 0;
+        return (
+          <g key={i}>
+            <circle cx="100" cy={y} r="4.5" fill={PRIMARY} />
+            <circle cx="100" cy={y} r="2" fill="white" />
+            {left ? (
+              <>
+                <Bar x={48} y={y - 4} w={40} h={4} c={ACCENT} />
+                <Bar x={58} y={y + 4} w={30} c={TEXT} />
+              </>
+            ) : (
+              <>
+                <Bar x={112} y={y - 4} w={40} h={4} c={ACCENT} />
+                <Bar x={112} y={y + 4} w={30} c={TEXT} />
+              </>
+            )}
+          </g>
+        );
+      })}
+    </Frame>
+  );
+}
+
+function PricingTablePreview(props: PreviewProps) {
+  // Three plan columns; the middle one is taller, accent-outlined and wears
+  // a small "popular" badge on its top edge.
+  const side = [16, 134];
+  return (
+    <Frame {...props}>
+      {side.map((x, i) => (
+        <g key={i}>
+          <rect x={x} y="34" width="50" height="70" rx="4" fill="white" stroke={BORDER} />
+          <Bar x={x + 8} y="44" w="24" h="3" c={TEXT} />
+          <Bar x={x + 8} y="54" w="28" h="6" c={ACCENT} />
+          <Bar x={x + 8} y="68" w="34" c={TEXT} />
+          <Bar x={x + 8} y="76" w="28" c={TEXT} />
+          <rect x={x + 8} y="88" width="34" height="9" rx="2" fill={BORDER} />
+        </g>
+      ))}
+      {/* Elevated middle plan */}
+      <rect x="72" y="20" width="56" height="90" rx="5" fill="white" stroke={PRIMARY} strokeWidth="1.5" />
+      <rect x="84" y="15" width="32" height="10" rx="5" fill={PRIMARY} />
+      <Bar x="91" y="18.5" w="18" h="2.5" c="white" />
+      <Bar x="80" y="34" w="28" h="3" c={PRIMARY} />
+      <Bar x="80" y="44" w="36" h="7" c={ACCENT} />
+      <Bar x="80" y="60" w="40" c={TEXT} />
+      <Bar x="80" y="68" w="34" c={TEXT} />
+      <Bar x="80" y="76" w="38" c={TEXT} />
+      <rect x="80" y="90" width="40" height="11" rx="2" fill={PRIMARY} />
+    </Frame>
+  );
+}
+
+function QuoteBannerPreview(props: PreviewProps) {
+  // A single oversized decorative quote mark with skewed (italic-feeling)
+  // centered bars and a small attribution line — a statement banner, not a
+  // carousel (no arrows or dots).
+  return (
+    <Frame {...props}>
+      <text x="22" y="60" fontSize="52" fontFamily="Georgia, serif" fill={PRIMARY} opacity="0.3">
+        “
+      </text>
+      <g transform="skewX(-8)">
+        <Bar x="62" y="48" w="90" h="5" c={ACCENT} />
+        <Bar x="72" y="60" w="70" c={TEXT} />
+      </g>
+      <Bar x="72" y="86" w="6" h={2} c={TEXT} />
+      <Bar x="84" y="84" w="36" c={TEXT} />
+    </Frame>
+  );
+}
+
 // ── Generic fallback ────────────────────────────────────────
 
 function AuroraHeroPreview(props: PreviewProps) {
@@ -897,6 +1126,17 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'bento-grid': BentoGridPreview,
   'animated-features': AnimatedFeaturesPreview,
   'marquee-text': MarqueeTextPreview,
+  'hero-video': HeroVideoPreview,
+  'hero-split': HeroSplitPreview,
+  'parallax-banner': ParallaxBannerPreview,
+  'before-after': BeforeAfterPreview,
+  'image-hotspots': ImageHotspotsPreview,
+  'masonry-gallery': MasonryGalleryPreview,
+  'testimonial-carousel': TestimonialCarouselPreview,
+  'team-grid': TeamGridPreview,
+  'timeline': TimelinePreview,
+  'pricing-table': PricingTablePreview,
+  'quote-banner': QuoteBannerPreview,
   'rich-text': RichTextPreview,
   'image-gallery': ImageGalleryPreview,
   'gallery-slider': GallerySliderPreview,

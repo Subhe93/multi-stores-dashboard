@@ -1990,6 +1990,8 @@
     "addSection": "Ajouter une section",
     "addASection": "Ajouter une section",
     "addSectionDesc": "Choisissez un bloc à ajouter à votre page.",
+    "searchSections": "Rechercher des sections…",
+    "noSectionsFound": "Aucune section ne correspond à votre recherche.",
     "clearCacheTooltip": "Videz le cache de la boutique pour que les dernières modifications s’affichent immédiatement",
     "cleared": "Vidé",
     "clearCache": "Vider le cache",

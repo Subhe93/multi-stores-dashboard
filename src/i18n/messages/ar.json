@@ -1990,6 +1990,8 @@
     "addSection": "إضافة قسم",
     "addASection": "إضافة قسم",
     "addSectionDesc": "اختر عنصراً لإضافته إلى صفحتك.",
+    "searchSections": "ابحث عن الأقسام…",
+    "noSectionsFound": "لا توجد أقسام مطابقة لبحثك.",
     "clearCacheTooltip": "امسح ذاكرة التخزين المؤقت للمتجر لتظهر آخر التغييرات فوراً",
     "cleared": "تم المسح",
     "clearCache": "مسح الذاكرة المؤقتة",

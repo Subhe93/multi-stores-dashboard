@@ -353,6 +353,25 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           };
         });
 
+      // Variants and images ride along in the same request — the API syncs
+      // them server-side in one transaction. Sending the existing variant id
+      // lets the server update in place, keeping ids stable across saves.
+      const variantsPayload = variants.map(v => ({
+        id: v.id || undefined,
+        options: v.options,
+        price_adjustment: (v.price || 0) - (parseFloat(basePrice) || 0),
+        compare_at_price: v.compare_at_price || undefined,
+        sku: v.sku || undefined,
+        stock_quantity: v.stock_quantity ?? undefined,
+        is_active: v.is_active,
+        image_url: v.image_url || undefined,
+      }));
+      const imagesPayload = images.map(img => ({
+        url: img.url,
+        alt_text: img.alt_text || undefined,
+        is_featured: !!img.is_featured,
+      }));
+
       const body: any = {
         category_id: categoryId,
         product_type: productType,
@@ -371,6 +390,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         translations: translationsPayload,
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
         tags: tags.length > 0 ? tags : [],
+        variants: variantsPayload,
+        images: imagesPayload,
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds } : {}),
       };
 
@@ -379,57 +400,18 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         const product = await api<any>('/products', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) });
         pid = product.id;
       } else {
-        await api(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
-      }
-
-      // Variants
-      const savedVariantIds: Map<string, string> = new Map();
-      if (pid) {
-        if (mode === 'edit') {
-          const existing = await api<any[]>(`/products/${pid}/variants`, { token });
-          for (const v of (Array.isArray(existing) ? existing : [])) {
-            await api(`/variants/${v.id}`, { method: 'DELETE', token });
-          }
-        }
-        for (const v of variants) {
-          const saved = await api<any>(`/products/${pid}/variants`, {
-            method: 'POST', token: token ?? undefined,
-            body: JSON.stringify({
-              options: v.options,
-              price_adjustment: (v.price || 0) - (parseFloat(basePrice) || 0),
-              compare_at_price: v.compare_at_price || undefined,
-              sku: v.sku || undefined,
-              stock_quantity: v.stock_quantity,
-            }),
-          });
-          if (saved?.id) savedVariantIds.set(v._key, saved.id);
-        }
-      }
-
-      // Images
-      if (pid) {
-        if (mode === 'edit') {
-          const existingImages = await api<any[]>(`/products/${pid}/images`, { token });
-          for (const img of (Array.isArray(existingImages) ? existingImages : [])) {
-            await api(`/products/images/${img.id}`, { method: 'DELETE', token });
-          }
-        }
-        for (let i = 0; i < images.length; i++) {
-          const img = images[i]!;
-          await api(`/products/${pid}/images`, {
-            method: 'POST', token: token ?? undefined,
-            body: JSON.stringify({ url: img.url, alt_text: img.alt_text, sort_order: i, is_featured: !!img.is_featured }),
-          });
-        }
-        for (const v of variants) {
-          if (v.image_url) {
-            const variantId = savedVariantIds.get(v._key);
-            await api(`/products/${pid}/images`, {
-              method: 'POST', token: token ?? undefined,
-              body: JSON.stringify({ url: v.image_url, sort_order: 999, is_featured: false, variant_id: variantId || undefined }),
-            });
-          }
-        }
+        const updated = await api<any>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        // Adopt the server-assigned ids for newly created variants so the next
+        // save updates them in place instead of recreating them. Match on a
+        // key-sorted options signature — jsonb does not preserve key order.
+        const optionsKey = (o: Record<string, string>) =>
+          JSON.stringify(Object.entries(o || {}).sort(([a], [b]) => a.localeCompare(b)));
+        const serverVariants: any[] = Array.isArray(updated?.variants) ? updated.variants : [];
+        const idByOptions = new Map(serverVariants.map(sv => [optionsKey(sv.options), sv.id]));
+        setVariants(prev => prev.map(v => ({
+          ...v,
+          id: idByOptions.get(optionsKey(v.options)) ?? v.id,
+        })));
       }
 
       // Persist custom fields + FAQs that were accumulated locally during create.

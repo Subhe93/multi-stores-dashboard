@@ -1990,6 +1990,8 @@
     "addSection": "Add section",
     "addASection": "Add a section",
     "addSectionDesc": "Choose a block to add to your page.",
+    "searchSections": "Search sections…",
+    "noSectionsFound": "No sections match your search.",
     "clearCacheTooltip": "Clear the storefront cache so the latest changes show immediately",
     "cleared": "Cleared",
     "clearCache": "Clear cache",

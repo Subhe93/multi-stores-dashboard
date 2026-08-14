@@ -136,6 +136,12 @@ function SectionRow({
 
   const schema = findSectionSchema(section.section_key);
   const title = schema ? labelOf(schema.label, locale) : section.section_key;
+  // Localized category name — shown as a muted suffix under the title when
+  // the section has no content preview text, so empty rows still get context.
+  const categoryKey = schema
+    ? (`builder.cat${schema.category.charAt(0).toUpperCase()}${schema.category.slice(1)}` as Parameters<typeof t>[0])
+    : null;
+  const categoryLabel = categoryKey ? t(categoryKey) : '';
 
   // Show a short preview from the current locale's content (or primary fallback).
   const content =
@@ -179,9 +185,11 @@ function SectionRow({
         className="flex-1 min-w-0 py-2 pr-2 text-left"
       >
         <div className="text-xs font-medium truncate">{title}</div>
-        {previewText && (
+        {previewText ? (
           <div className="text-[10px] text-zinc-400 truncate">{previewText}</div>
-        )}
+        ) : categoryLabel ? (
+          <div className="text-[10px] text-zinc-400 truncate">{categoryLabel}</div>
+        ) : null}
       </button>
       <button
         type="button"
