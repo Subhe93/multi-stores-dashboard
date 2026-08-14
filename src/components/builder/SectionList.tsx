@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslations } from 'next-intl';
-import { Eye, EyeOff, GripVertical } from 'lucide-react';
+import { Copy, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { findSectionSchema, labelOf } from '@/lib/section-schemas';
 import { cn } from '@/lib/utils';
 import { AddSectionDialog } from './AddSectionDialog';
@@ -35,6 +35,7 @@ interface SectionListProps {
   onReorder: (orderedIds: string[]) => void;
   onAdd: (sectionKey: string) => Promise<void> | void;
   onToggleHidden: (id: string, hidden: boolean) => void;
+  onDuplicate: (id: string) => Promise<void> | void;
 }
 
 export function SectionList({
@@ -47,6 +48,7 @@ export function SectionList({
   onReorder,
   onAdd,
   onToggleHidden,
+  onDuplicate,
 }: SectionListProps) {
   const t = useTranslations();
   const sensors = useSensors(
@@ -91,6 +93,7 @@ export function SectionList({
                   primaryLocale={primaryLocale}
                   onSelect={() => onSelect(section.id)}
                   onToggleHidden={() => onToggleHidden(section.id, !section.is_hidden)}
+                  onDuplicate={() => onDuplicate(section.id)}
                 />
               ))}
             </SortableContext>
@@ -112,6 +115,7 @@ function SectionRow({
   primaryLocale,
   onSelect,
   onToggleHidden,
+  onDuplicate,
 }: {
   section: SectionInstance;
   selected: boolean;
@@ -119,6 +123,7 @@ function SectionRow({
   primaryLocale: string;
   onSelect: () => void;
   onToggleHidden: () => void;
+  onDuplicate: () => void;
 }) {
   const t = useTranslations();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -177,6 +182,15 @@ function SectionRow({
         {previewText && (
           <div className="text-[10px] text-zinc-400 truncate">{previewText}</div>
         )}
+      </button>
+      <button
+        type="button"
+        onClick={onDuplicate}
+        className="p-1.5 text-zinc-300 hover:text-zinc-700 opacity-0 group-hover:opacity-100 transition"
+        aria-label={t('builder.duplicateSection')}
+        title={t('builder.duplicateSection')}
+      >
+        <Copy className="w-3.5 h-3.5" />
       </button>
       <button
         type="button"

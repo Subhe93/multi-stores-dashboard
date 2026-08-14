@@ -1956,6 +1956,7 @@
     "hidden": "Ausgeblendet",
     "showSection": "Abschnitt anzeigen",
     "hideSection": "Abschnitt ausblenden",
+    "duplicateSection": "Abschnitt duplizieren",
     "fallbackToPrimary": "Noch keine Übersetzung für diese Sprache – {locale}-Inhalt wird angezeigt.",
     "contentGroup": "Inhalt",
     "sectionSettings": "Abschnittseinstellungen",

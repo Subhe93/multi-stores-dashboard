@@ -1956,6 +1956,7 @@
     "hidden": "Gizli",
     "showSection": "Bölümü göster",
     "hideSection": "Bölümü gizle",
+    "duplicateSection": "Bölümü çoğalt",
     "fallbackToPrimary": "Bu dil için henüz çeviri yok — {locale} içeriği gösteriliyor.",
     "contentGroup": "İçerik",
     "sectionSettings": "Bölüm ayarları",

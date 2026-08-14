@@ -20,6 +20,7 @@ interface SectionInspectorProps {
   onPatchContent: (sectionId: string, locale: string, partial: Record<string, unknown>) => void;
   onDelete: (sectionId: string) => void;
   onToggleHidden: (sectionId: string, hidden: boolean) => void;
+  onDuplicate: (sectionId: string) => void;
 }
 
 type Tab = 'content' | 'settings' | 'style';
@@ -40,6 +41,7 @@ export function SectionInspector({
   onPatchContent,
   onDelete,
   onToggleHidden,
+  onDuplicate,
 }: SectionInspectorProps) {
   const t = useTranslations('builder');
   const tc = useTranslations('common');
@@ -139,6 +141,18 @@ export function SectionInspector({
                   >
                     {section.is_hidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
                     {section.is_hidden ? t('showSection') : t('hideSection')}
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onDuplicate(section.id);
+                      setMenuOpen(false);
+                    }}
+                    className="w-full text-start flex items-center gap-2 px-2 py-1.5 text-[12px] rounded text-zinc-700 hover:bg-zinc-100"
+                  >
+                    <Copy className="size-3.5" />
+                    {t('duplicateSection')}
                   </button>
                   <button
                     type="button"

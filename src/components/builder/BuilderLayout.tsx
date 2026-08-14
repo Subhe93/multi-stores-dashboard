@@ -252,6 +252,49 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     [token],
   );
 
+  const duplicateSection = useCallback(
+    async (sectionId: string) => {
+      if (!token) return;
+      // Local state already carries any unsaved edits, so copying from it makes
+      // the duplicate reflect exactly what the creator sees.
+      const source = sections.find((s) => s.id === sectionId);
+      if (!source) return;
+      const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({
+          section_key: source.section_key,
+          settings: source.settings,
+          translations: source.translations.map((tr) => ({
+            locale: tr.locale,
+            content: tr.content,
+          })),
+        }),
+      });
+      // CreateSectionDto has no is_hidden — carry the flag over separately.
+      if (source.is_hidden) {
+        await api(`/v2/pages/sections/${created.id}`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ is_hidden: true }),
+        });
+      }
+      const copy: SectionInstance = { ...created, is_hidden: source.is_hidden };
+      // Insert the copy right below its source and persist that order.
+      const idx = sections.findIndex((s) => s.id === sectionId);
+      const next = [...sections];
+      next.splice(idx + 1, 0, copy);
+      setSections(next.map((s, i) => ({ ...s, sort_order: i })));
+      setSelectedId(copy.id);
+      await api(`/v2/pages/${page.id}/sections/sort`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ section_ids: next.map((s) => s.id) }),
+      });
+    },
+    [token, page.id, sections],
+  );
+
   const reorderSections = useCallback(
     async (orderedIds: string[]) => {
       // Optimistic: reorder locally first.
@@ -471,6 +514,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
                 onReorder={reorderSections}
                 onAdd={addSection}
                 onToggleHidden={toggleHidden}
+                onDuplicate={duplicateSection}
               />
             ) : (
               <ThemePanel
@@ -515,6 +559,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               primaryLocale={store.language_config.primary_locale}
               pageType={page.type}
               menus={menus}
+              selectedId={selectedId}
               onSectionClicked={handlePreviewSectionClicked}
             />
           ) : (
@@ -535,6 +580,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
             onPatchContent={patchSectionContent}
             onDelete={deleteSection}
             onToggleHidden={toggleHidden}
+            onDuplicate={duplicateSection}
           />
         </aside>
       </div>

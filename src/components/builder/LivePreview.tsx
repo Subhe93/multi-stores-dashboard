@@ -22,6 +22,8 @@ interface LivePreviewProps {
   // Creator's navigation menus — forwarded so header/footer sections resolve a
   // selected menu key to its items in the preview (kept fresh from the dashboard).
   menus?: unknown[];
+  // Currently selected section — the preview draws a highlight frame around it.
+  selectedId?: string | null;
   onSectionClicked?: (sectionId: string) => void;
 }
 
@@ -48,6 +50,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     primaryLocale,
     pageType,
     menus,
+    selectedId,
     onSectionClicked,
   },
   ref,
@@ -77,6 +80,15 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
       '*',
     );
   }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale, menus]);
+
+  // Keep the preview's selection highlight in sync with the builder.
+  useEffect(() => {
+    if (!loaded) return;
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'SELECT_SECTION', section_id: selectedId ?? null },
+      '*',
+    );
+  }, [loaded, selectedId]);
 
   // Listen for PREVIEW_READY (initial) and SECTION_CLICKED (click-to-edit).
   useEffect(() => {

@@ -1956,6 +1956,7 @@
     "hidden": "مخفي",
     "showSection": "إظهار القسم",
     "hideSection": "إخفاء القسم",
+    "duplicateSection": "تكرار القسم",
     "fallbackToPrimary": "لا توجد ترجمة لهذه اللغة بعد — يتم عرض محتوى {locale}.",
     "contentGroup": "المحتوى",
     "sectionSettings": "إعدادات القسم",

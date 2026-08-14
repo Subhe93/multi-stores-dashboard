@@ -1956,6 +1956,7 @@
     "hidden": "Masqué",
     "showSection": "Afficher la section",
     "hideSection": "Masquer la section",
+    "duplicateSection": "Dupliquer la section",
     "fallbackToPrimary": "Pas encore de traduction pour cette langue — affichage du contenu {locale}.",
     "contentGroup": "Contenu",
     "sectionSettings": "Paramètres de la section",

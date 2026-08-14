@@ -1956,6 +1956,7 @@
     "hidden": "Dold",
     "showSection": "Visa sektion",
     "hideSection": "Dölj sektion",
+    "duplicateSection": "Duplicera sektion",
     "fallbackToPrimary": "Ingen översättning för detta språk ännu – visar {locale}-innehåll.",
     "contentGroup": "Innehåll",
     "sectionSettings": "Sektionsinställningar",

@@ -1956,6 +1956,7 @@
     "hidden": "Hidden",
     "showSection": "Show section",
     "hideSection": "Hide section",
+    "duplicateSection": "Duplicate section",
     "fallbackToPrimary": "No translation for this locale yet — showing {locale} content.",
     "contentGroup": "Content",
     "sectionSettings": "Section settings",
