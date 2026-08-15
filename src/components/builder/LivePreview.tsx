@@ -25,6 +25,8 @@ interface LivePreviewProps {
   // Currently selected section — the preview draws a highlight frame around it.
   selectedId?: string | null;
   onSectionClicked?: (sectionId: string) => void;
+  // Actions fired from the floating toolbar rendered inside the preview.
+  onSectionAction?: (sectionId: string, action: string) => void;
 }
 
 export interface LivePreviewHandle {
@@ -52,6 +54,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     menus,
     selectedId,
     onSectionClicked,
+    onSectionAction,
   },
   ref,
 ) {
@@ -112,12 +115,14 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         );
       } else if (data.type === 'SECTION_CLICKED' && onSectionClicked) {
         onSectionClicked(data.section_id);
+      } else if (data.type === 'SECTION_ACTION' && onSectionAction) {
+        onSectionAction(data.section_id, data.action);
       }
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onSectionClicked]);
+  }, [onSectionClicked, onSectionAction]);
 
   useImperativeHandle(ref, () => ({
     scrollToSection(sectionId: string) {

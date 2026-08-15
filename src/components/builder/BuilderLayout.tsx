@@ -38,6 +38,19 @@ interface BuilderLayoutProps {
 
 type LeftMode = 'sections' | 'theme';
 
+// Autosave lifecycle surfaced in the PublishBar chip.
+export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+// Deep-clone helper for history snapshots — section objects are plain JSON.
+function cloneSections(list: SectionInstance[]): SectionInstance[] {
+  return JSON.parse(JSON.stringify(list)) as SectionInstance[];
+}
+
+// Cap the undo stack so a long editing session can't grow memory unbounded.
+const HISTORY_LIMIT = 50;
+// Rapid keystrokes within this window collapse into a single checkpoint.
+const HISTORY_BURST_MS = 800;
+
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -70,6 +83,55 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const [selectedId, setSelectedId] = useState<string | null>(initialSections[0]?.id ?? null);
   const [activeLocale, setActiveLocale] = useState(store.language_config.primary_locale);
   const [pageStatus, setPageStatus] = useState<'DRAFT' | 'PUBLISHED'>(page.status);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+
+  // Always-fresh mirror of `sections` for callbacks that must read the latest
+  // state without re-subscribing (history capture, keyboard shortcuts).
+  const sectionsRef = useRef(sections);
+  useEffect(() => {
+    sectionsRef.current = sections;
+  }, [sections]);
+
+  // ── Undo/Redo history ───────────────────────────────────
+  // Snapshots of the whole section list. Mutations record a checkpoint of the
+  // PREVIOUS state before applying; undo/redo reconcile the server to the
+  // restored snapshot (see applySnapshot).
+  const historyRef = useRef<{
+    past: SectionInstance[][];
+    future: SectionInstance[][];
+    lastPushAt: number;
+  }>({ past: [], future: [], lastPushAt: 0 });
+  const [historyFlags, setHistoryFlags] = useState({ canUndo: false, canRedo: false });
+
+  const syncHistoryFlags = useCallback(() => {
+    setHistoryFlags({
+      canUndo: historyRef.current.past.length > 0,
+      canRedo: historyRef.current.future.length > 0,
+    });
+  }, []);
+
+  /**
+   * Push a checkpoint of the current state onto the undo stack. Typing bursts
+   * (rapid successive patches) collapse into one checkpoint; structural
+   * operations (add / delete / duplicate / reorder / hide) pass force.
+   */
+  const recordHistory = useCallback(
+    (opts: { force?: boolean } = {}) => {
+      const h = historyRef.current;
+      const now = Date.now();
+      if (!opts.force && h.past.length > 0 && now - h.lastPushAt < HISTORY_BURST_MS) {
+        // Same burst — keep extending the window without a new checkpoint.
+        h.lastPushAt = now;
+        return;
+      }
+      h.past.push(cloneSections(sectionsRef.current));
+      if (h.past.length > HISTORY_LIMIT) h.past.shift();
+      h.future = [];
+      h.lastPushAt = now;
+      syncHistoryFlags();
+    },
+    [syncHistoryFlags],
+  );
 
   // Left-pane mode. "sections" is the catalog the builder always had;
   // "theme" swaps it out for the Design panel that used to live at
@@ -126,27 +188,37 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     if (queue.size === 0) return;
     pendingRef.current = new Map();
 
-    await Promise.all(
-      Array.from(queue.entries()).map(async ([sectionId, patch]) => {
-        const body: Record<string, unknown> = {};
-        if (patch.settings) body.settings = patch.settings;
-        if (patch.is_hidden !== undefined) body.is_hidden = patch.is_hidden;
-        if (patch.translations) {
-          body.translations = Array.from(patch.translations.entries()).map(([locale, content]) => ({
-            locale,
-            content,
-          }));
-        }
-        await api(`/v2/pages/sections/${sectionId}`, {
-          method: 'PUT',
-          token,
-          body: JSON.stringify(body),
-        });
-      }),
-    );
+    setSaveState('saving');
+    try {
+      await Promise.all(
+        Array.from(queue.entries()).map(async ([sectionId, patch]) => {
+          const body: Record<string, unknown> = {};
+          if (patch.settings) body.settings = patch.settings;
+          if (patch.is_hidden !== undefined) body.is_hidden = patch.is_hidden;
+          if (patch.translations) {
+            body.translations = Array.from(patch.translations.entries()).map(([locale, content]) => ({
+              locale,
+              content,
+            }));
+          }
+          await api(`/v2/pages/sections/${sectionId}`, {
+            method: 'PUT',
+            token,
+            body: JSON.stringify(body),
+          });
+        }),
+      );
+      setSaveState('saved');
+    } catch {
+      // The queue was already drained — surface the failure so the creator
+      // knows the last change didn't reach the server.
+      setSaveState('error');
+    }
   }, [token]);
 
   const queueAutosave = useCallback(() => {
+    // Pending-but-not-flushed already reads as "saving" in the chip.
+    setSaveState('saving');
     if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
     flushTimerRef.current = setTimeout(() => {
       void flushAutosave();
@@ -165,6 +237,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   const patchSectionSettings = useCallback(
     (sectionId: string, partial: Record<string, unknown>) => {
+      recordHistory();
       setSections((prev) =>
         prev.map((s) => (s.id === sectionId ? { ...s, settings: { ...s.settings, ...partial } } : s)),
       );
@@ -181,6 +254,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   const patchSectionContent = useCallback(
     (sectionId: string, locale: string, partial: Record<string, unknown>) => {
+      recordHistory();
       setSections((prev) =>
         prev.map((s) => {
           if (s.id !== sectionId) return s;
@@ -205,6 +279,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   const toggleHidden = useCallback(
     (sectionId: string, hidden: boolean) => {
+      recordHistory({ force: true });
       setSections((prev) =>
         prev.map((s) => (s.id === sectionId ? { ...s, is_hidden: hidden } : s)),
       );
@@ -219,6 +294,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const addSection = useCallback(
     async (sectionKey: string) => {
       if (!token) return;
+      recordHistory({ force: true });
       const schema = findSectionSchema(sectionKey);
       // Seed with the schema's defaults so a freshly added section already has
       // visible content (heading, sample items, etc.). Without this creators
@@ -245,6 +321,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const deleteSection = useCallback(
     async (sectionId: string) => {
       if (!token) return;
+      recordHistory({ force: true });
       await api(`/v2/pages/sections/${sectionId}`, { method: 'DELETE', token });
       setSections((prev) => prev.filter((s) => s.id !== sectionId));
       setSelectedId((curr) => (curr === sectionId ? null : curr));
@@ -259,6 +336,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       // the duplicate reflect exactly what the creator sees.
       const source = sections.find((s) => s.id === sectionId);
       if (!source) return;
+      recordHistory({ force: true });
       const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
         method: 'POST',
         token,
@@ -297,6 +375,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   const reorderSections = useCallback(
     async (orderedIds: string[]) => {
+      recordHistory({ force: true });
       // Optimistic: reorder locally first.
       setSections((prev) => {
         const byId = new Map(prev.map((s) => [s.id, s]));
@@ -315,6 +394,210 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       });
     },
     [token, page.id],
+  );
+
+  /** Move a section one slot up or down (keyboard + preview toolbar). */
+  const moveSection = useCallback(
+    (sectionId: string, delta: -1 | 1) => {
+      const list = sectionsRef.current;
+      const idx = list.findIndex((s) => s.id === sectionId);
+      const to = idx + delta;
+      if (idx < 0 || to < 0 || to >= list.length) return;
+      const ids = list.map((s) => s.id);
+      [ids[idx], ids[to]] = [ids[to], ids[idx]];
+      void reorderSections(ids);
+    },
+    [reorderSections],
+  );
+
+  // ── Undo / Redo ─────────────────────────────────────────
+
+  /**
+   * Reconcile local + server state to a history snapshot. Content/settings
+   * diffs become full PUTs, extra sections are deleted, missing ones are
+   * re-created (the server assigns a fresh id, which is remapped through the
+   * remaining history so later undo/redo steps keep pointing at it), and the
+   * snapshot's order is persisted.
+   */
+  const applySnapshot = useCallback(
+    async (target: SectionInstance[]) => {
+      const current = sectionsRef.current;
+      const next = cloneSections(target);
+      // Optimistic: show the restored state immediately.
+      setSections(next);
+      setSelectedId((curr) => (curr && next.some((s) => s.id === curr) ? curr : next[0]?.id ?? null));
+      if (!token) return;
+      // The snapshot is authoritative — drop pending autosave patches.
+      pendingRef.current = new Map();
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+      setSaveState('saving');
+      try {
+        const currentById = new Map(current.map((s) => [s.id, s]));
+        const targetIds = new Set(next.map((s) => s.id));
+        for (const s of current) {
+          if (!targetIds.has(s.id)) {
+            await api(`/v2/pages/sections/${s.id}`, { method: 'DELETE', token });
+          }
+        }
+        for (const s of next) {
+          const prev = currentById.get(s.id);
+          if (!prev) {
+            const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+              method: 'POST',
+              token,
+              body: JSON.stringify({
+                section_key: s.section_key,
+                settings: s.settings,
+                translations: s.translations,
+              }),
+            });
+            if (s.is_hidden) {
+              await api(`/v2/pages/sections/${created.id}`, {
+                method: 'PUT',
+                token,
+                body: JSON.stringify({ is_hidden: true }),
+              });
+            }
+            // Remap the stale id through both history stacks + selection.
+            const oldId = s.id;
+            s.id = created.id;
+            const remap = (snap: SectionInstance[]) =>
+              snap.forEach((row) => {
+                if (row.id === oldId) row.id = created.id;
+              });
+            historyRef.current.past.forEach(remap);
+            historyRef.current.future.forEach(remap);
+            setSelectedId((curr) => (curr === oldId ? created.id : curr));
+          } else if (
+            JSON.stringify([prev.settings, prev.translations, prev.is_hidden ?? false]) !==
+            JSON.stringify([s.settings, s.translations, s.is_hidden ?? false])
+          ) {
+            await api(`/v2/pages/sections/${s.id}`, {
+              method: 'PUT',
+              token,
+              body: JSON.stringify({
+                settings: s.settings,
+                is_hidden: s.is_hidden ?? false,
+                translations: s.translations,
+              }),
+            });
+          }
+        }
+        // Re-sync local state (ids may have been remapped) + persist order.
+        setSections(next.map((s, i) => ({ ...s, sort_order: i })));
+        await api(`/v2/pages/${page.id}/sections/sort`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ section_ids: next.map((s) => s.id) }),
+        });
+        setSaveState('saved');
+      } catch {
+        setSaveState('error');
+      }
+    },
+    [token, page.id],
+  );
+
+  const undo = useCallback(() => {
+    const h = historyRef.current;
+    const prev = h.past.pop();
+    if (!prev) return;
+    h.future.push(cloneSections(sectionsRef.current));
+    h.lastPushAt = 0;
+    syncHistoryFlags();
+    void applySnapshot(prev);
+  }, [applySnapshot, syncHistoryFlags]);
+
+  const redo = useCallback(() => {
+    const h = historyRef.current;
+    const nextSnap = h.future.pop();
+    if (!nextSnap) return;
+    h.past.push(cloneSections(sectionsRef.current));
+    h.lastPushAt = 0;
+    syncHistoryFlags();
+    void applySnapshot(nextSnap);
+  }, [applySnapshot, syncHistoryFlags]);
+
+  // ── Keyboard shortcuts ──────────────────────────────────
+  // Ctrl/Cmd+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, Ctrl/Cmd+D duplicate,
+  // Delete remove, Alt+Arrow move. Form fields keep their native behavior.
+  useEffect(() => {
+    function isTyping(target: EventTarget | null): boolean {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      return (
+        el.tagName === 'INPUT' ||
+        el.tagName === 'TEXTAREA' ||
+        el.tagName === 'SELECT' ||
+        el.isContentEditable
+      );
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (isTyping(e.target)) return;
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if (mod && key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if ((mod && key === 'z' && e.shiftKey) || (mod && key === 'y')) {
+        e.preventDefault();
+        redo();
+        return;
+      }
+      if (!selectedId) return;
+      if (mod && key === 'd') {
+        e.preventDefault();
+        void duplicateSection(selectedId);
+        return;
+      }
+      if (e.key === 'Delete') {
+        e.preventDefault();
+        void deleteSection(selectedId);
+        return;
+      }
+      if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveSection(selectedId, -1);
+        return;
+      }
+      if (e.altKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveSection(selectedId, 1);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedId, undo, redo, duplicateSection, deleteSection, moveSection]);
+
+  // ── Preview toolbar actions (floating toolbar inside the iframe) ────────
+  const handlePreviewSectionAction = useCallback(
+    (sectionId: string, action: string) => {
+      switch (action) {
+        case 'duplicate':
+          void duplicateSection(sectionId);
+          break;
+        case 'hide':
+          toggleHidden(sectionId, true);
+          break;
+        case 'delete':
+          void deleteSection(sectionId);
+          break;
+        case 'move-up':
+          moveSection(sectionId, -1);
+          break;
+        case 'move-down':
+          moveSection(sectionId, 1);
+          break;
+        default:
+          break;
+      }
+    },
+    [duplicateSection, toggleHidden, deleteSection, moveSection],
   );
 
   const publishPage = useCallback(async () => {
@@ -485,6 +768,11 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         allPages={allPages}
         seo={pageSeo}
         translations={pageTranslations}
+        saveState={saveState}
+        canUndo={historyFlags.canUndo}
+        canRedo={historyFlags.canRedo}
+        onUndo={undo}
+        onRedo={redo}
         onLocaleChange={setActiveLocale}
         onBack={() => history.back()}
         onPublish={publishPage}
@@ -561,6 +849,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               menus={menus}
               selectedId={selectedId}
               onSectionClicked={handlePreviewSectionClicked}
+              onSectionAction={handlePreviewSectionAction}
             />
           ) : (
             <div className="h-full flex items-center justify-center">

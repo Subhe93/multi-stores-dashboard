@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Check, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, ExternalLink, Loader2, RefreshCw, Redo2, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import type { SaveState } from './BuilderLayout';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { VersionsDialog } from './VersionsDialog';
 import { SeoDialog } from './SeoDialog';
@@ -24,6 +26,12 @@ interface PublishBarProps {
   // SEO panel data
   seo: Record<string, unknown>;
   translations: PageTranslationRow[];
+  // Autosave chip + undo/redo controls
+  saveState?: SaveState;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
   onLocaleChange: (l: string) => void;
   onBack: () => void;
   onPublish: () => Promise<void>;
@@ -45,6 +53,11 @@ export function PublishBar({
   allPages,
   seo,
   translations,
+  saveState = 'idle',
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
   onLocaleChange,
   onBack,
   onPublish,
@@ -78,6 +91,59 @@ export function PublishBar({
           primaryLocale={primaryLocale}
           pages={allPages}
         />
+
+        {/* Undo / Redo */}
+        {onUndo && onRedo && (
+          <div className="flex items-center ms-1 shrink-0">
+            <button
+              type="button"
+              onClick={onUndo}
+              disabled={!canUndo}
+              className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:pointer-events-none transition"
+              title={t('builder.undoTooltip')}
+              aria-label={t('builder.undoTooltip')}
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onRedo}
+              disabled={!canRedo}
+              className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:pointer-events-none transition"
+              title={t('builder.redoTooltip')}
+              aria-label={t('builder.redoTooltip')}
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Autosave chip */}
+        {saveState !== 'idle' && (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 text-[11px] shrink-0 ms-1',
+              saveState === 'error' ? 'text-red-600' : 'text-zinc-400',
+            )}
+          >
+            {saveState === 'saving' ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                {t('builder.autosaveSaving')}
+              </>
+            ) : saveState === 'saved' ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-500" />
+                {t('builder.autosaveSaved')}
+              </>
+            ) : (
+              <>
+                <AlertCircle className="w-3 h-3" />
+                {t('builder.autosaveError')}
+              </>
+            )}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
