@@ -11,6 +11,7 @@ import { LivePreview, type LivePreviewHandle } from './LivePreview';
 import { SectionInspector } from './SectionInspector';
 import { SectionList } from './SectionList';
 import { PublishBar } from './PublishBar';
+import { TranslatePageDialog } from './TranslatePageDialog';
 import { ThemePanel, type ThemeCustomizations } from './ThemePanel';
 import type { ThemeTokenCustomizations } from './ThemeCustomizer';
 import type { StorePageSummary } from './PageSwitcher';
@@ -574,6 +575,52 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selectedId, undo, redo, duplicateSection, deleteSection, moveSection]);
 
+  // ── Page translation (one-click machine translation) ────────────────────
+  // The dialog persists server-side itself; here we just take the merged
+  // sections into local state behind an undo checkpoint.
+  const applyTranslatedSections = useCallback(
+    (updated: SectionInstance[]) => {
+      recordHistory({ force: true });
+      setSections(updated);
+    },
+    [recordHistory],
+  );
+
+  // ── Inline editing (double-click a text in the preview) ─────────────────
+  // The preview matched the clicked DOM text to a content field and sends its
+  // path; we write the new value into the ACTIVE locale (so editing while
+  // viewing a secondary locale creates/updates that translation).
+  const handleInlineEdit = useCallback(
+    (sectionId: string, path: (string | number)[], value: string) => {
+      const section = sectionsRef.current.find((s) => s.id === sectionId);
+      if (!section || path.length === 0) return;
+      const topKey = String(path[0]);
+      if (path.length === 1) {
+        patchSectionContent(sectionId, activeLocale, { [topKey]: value });
+        return;
+      }
+      // Nested (repeater) edit: start from the active locale's array, falling
+      // back to the displayed primary content so the rest of the items keep
+      // what the creator currently sees.
+      const activeContent = section.translations.find((tr) => tr.locale === activeLocale)?.content;
+      const primaryContent = section.translations.find(
+        (tr) => tr.locale === store.language_config.primary_locale,
+      )?.content;
+      const base = activeContent?.[topKey] ?? primaryContent?.[topKey];
+      if (!Array.isArray(base)) return;
+      const clonedArr = JSON.parse(JSON.stringify(base)) as unknown[];
+      let node: unknown = clonedArr;
+      for (let i = 1; i < path.length - 1; i++) {
+        node = (node as Record<string | number, unknown> | undefined)?.[path[i]];
+      }
+      if (node && typeof node === 'object') {
+        (node as Record<string | number, unknown>)[path[path.length - 1]] = value;
+        patchSectionContent(sectionId, activeLocale, { [topKey]: clonedArr });
+      }
+    },
+    [activeLocale, patchSectionContent, store.language_config.primary_locale],
+  );
+
   // ── Preview toolbar actions (floating toolbar inside the iframe) ────────
   const handlePreviewSectionAction = useCallback(
     (sectionId: string, action: string) => {
@@ -773,6 +820,17 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         canRedo={historyFlags.canRedo}
         onUndo={undo}
         onRedo={redo}
+        extraActions={
+          token ? (
+            <TranslatePageDialog
+              sections={sections}
+              primaryLocale={store.language_config.primary_locale}
+              secondaryLocales={store.language_config.secondary_locales}
+              token={token}
+              onApplied={applyTranslatedSections}
+            />
+          ) : null
+        }
         onLocaleChange={setActiveLocale}
         onBack={() => history.back()}
         onPublish={publishPage}
@@ -850,6 +908,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               selectedId={selectedId}
               onSectionClicked={handlePreviewSectionClicked}
               onSectionAction={handlePreviewSectionAction}
+              onInlineEdit={handleInlineEdit}
             />
           ) : (
             <div className="h-full flex items-center justify-center">

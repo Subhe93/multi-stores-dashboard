@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import { AlertCircle, ArrowLeft, Check, ExternalLink, Loader2, RefreshCw, Redo2, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,8 @@ interface PublishBarProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  // Extra action buttons injected by the builder (e.g. page translation).
+  extraActions?: ReactNode;
   onLocaleChange: (l: string) => void;
   onBack: () => void;
   onPublish: () => Promise<void>;
@@ -58,6 +61,7 @@ export function PublishBar({
   canRedo = false,
   onUndo,
   onRedo,
+  extraActions,
   onLocaleChange,
   onBack,
   onPublish,
@@ -153,6 +157,7 @@ export function PublishBar({
           active={activeLocale}
           onChange={onLocaleChange}
         />
+        {extraActions}
         <SeoDialog
           pageId={pageId}
           pageType={pageType}

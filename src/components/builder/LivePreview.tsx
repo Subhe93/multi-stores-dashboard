@@ -27,6 +27,8 @@ interface LivePreviewProps {
   onSectionClicked?: (sectionId: string) => void;
   // Actions fired from the floating toolbar rendered inside the preview.
   onSectionAction?: (sectionId: string, action: string) => void;
+  // Double-click inline edits made directly inside the preview.
+  onInlineEdit?: (sectionId: string, path: (string | number)[], value: string) => void;
 }
 
 export interface LivePreviewHandle {
@@ -55,6 +57,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     selectedId,
     onSectionClicked,
     onSectionAction,
+    onInlineEdit,
   },
   ref,
 ) {
@@ -117,12 +120,14 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         onSectionClicked(data.section_id);
       } else if (data.type === 'SECTION_ACTION' && onSectionAction) {
         onSectionAction(data.section_id, data.action);
+      } else if (data.type === 'INLINE_EDIT' && onInlineEdit) {
+        onInlineEdit(data.section_id, data.path, data.value);
       }
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onSectionClicked, onSectionAction]);
+  }, [onSectionClicked, onSectionAction, onInlineEdit]);
 
   useImperativeHandle(ref, () => ({
     scrollToSection(sectionId: string) {
