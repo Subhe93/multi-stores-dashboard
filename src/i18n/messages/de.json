@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "Farbe bearbeiten",
+    "valueImage": "Bild für diesen Wert festlegen",
     "untitledColor": "Unbenannte Farbe",
     "twoToneColor": "Zweifarbig",
     "solidColor": "Einfarbig",

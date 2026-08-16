@@ -22,6 +22,10 @@ export interface VariantOption {
   values: string[];
   colorMap?: Record<string, string>;
   dualColorMap?: Record<string, [string, string]>;
+  // Shopify-style value-level image: one image per option value (e.g. per
+  // color), shared by every variant with that value. Persisted inside
+  // variant_option_config, so no schema change and no duplicated image rows.
+  imageMap?: Record<string, string>;
 }
 
 export interface GeneratedVariant {
@@ -468,7 +472,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     onOptionsChange(u);
   };
 
-  // Remove a value (and clean up color maps)
+  // Remove a value (and clean up color/image maps)
   const removeValue = (oi: number, vi: number) => {
     const opt = options[oi]!;
     const val = opt.values[vi]!;
@@ -482,7 +486,37 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       const { [val]: _, ...rest } = updated.dualColorMap;
       updated.dualColorMap = rest;
     }
+    if (updated.imageMap) {
+      const { [val]: _, ...rest } = updated.imageMap;
+      updated.imageMap = rest;
+    }
     u[oi] = updated;
+    onOptionsChange(u);
+  };
+
+  // Assign (or replace) the value-level image for an option value.
+  const pickValueImage = async (oi: number, val: string) => {
+    if (!onPickImage || pendingImageKey) return;
+    const key = `optimg-${oi}-${val}`;
+    setPendingImageKey(key);
+    try {
+      const imgs = await onPickImage();
+      if (!imgs.length) return;
+      const opt = options[oi]!;
+      const u = [...options];
+      u[oi] = { ...opt, imageMap: { ...(opt.imageMap || {}), [val]: imgs[0]!.url } };
+      onOptionsChange(u);
+    } finally {
+      setPendingImageKey(null);
+    }
+  };
+
+  const removeValueImage = (oi: number, val: string) => {
+    const opt = options[oi]!;
+    if (!opt.imageMap?.[val]) return;
+    const { [val]: _, ...rest } = opt.imageMap;
+    const u = [...options];
+    u[oi] = { ...opt, imageMap: rest };
     onOptionsChange(u);
   };
 
@@ -543,21 +577,74 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   const hex = option.colorMap?.[val];
                   const dual = option.dualColorMap?.[val];
 
-                  if (option.style === 'color') {
+                  // Value-level image (Shopify-style): shown for color/image
+                  // options — one image per value, shared by all its variants.
+                  const valueImageUrl = option.imageMap?.[val];
+                  const valueImgPending = pendingImageKey === `optimg-${oi}-${val}` && uploading;
+                  const valueImageControl = (option.style === 'color' || option.style === 'image') && (
+                    valueImageUrl ? (
+                      <Popover>
+                        <PopoverTrigger
+                          className="h-5 w-5 rounded border border-zinc-200 overflow-hidden shrink-0 hover:ring-1 hover:ring-blue-400 transition"
+                          title={t('variant.valueImage')}
+                        >
+                          {valueImgPending
+                            ? <Loader2 className="w-3 h-3 animate-spin m-auto text-zinc-400" />
+                            : <img src={valueImageUrl} className="h-full w-full object-cover" />}
+                        </PopoverTrigger>
+                        <PopoverContent className="w-40 p-2" align="start">
+                          <img src={valueImageUrl} className="w-full aspect-square object-cover rounded mb-2" />
+                          <div className="flex gap-1">
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              className="h-6 text-[10px] flex-1"
+                              onClick={() => pickValueImage(oi, val)}
+                              title={t('variant.valueImage')}
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              className="h-6 text-[10px] flex-1 text-red-600 hover:text-red-700"
+                              onClick={() => removeValueImage(oi, val)}
+                            >
+                              {t('common.remove')}
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => pickValueImage(oi, val)}
+                        className="h-5 w-5 rounded border border-dashed border-zinc-300 flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:border-zinc-400 transition shrink-0"
+                        title={t('variant.valueImage')}
+                      >
+                        {valueImgPending
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : <ImageIcon className="w-3 h-3" />}
+                      </button>
+                    )
+                  );
+
+                  if (option.style === 'color' || option.style === 'image') {
                     return (
                       <div
                         key={vi}
                         className="inline-flex items-center gap-1.5 pl-1 pr-0.5 py-0.5 rounded-md border border-zinc-200 bg-white text-xs"
                       >
-                        <ColorEditorPopover
-                          value={val}
-                          hex={hex}
-                          dualHex={dual}
-                          onChange={(next) => updateColorForValue(oi, val, next)}
-                          t={t}
-                        >
-                          <ColorSwatch hex={hex} dualHex={dual} size={18} />
-                        </ColorEditorPopover>
+                        {option.style === 'color' && (
+                          <ColorEditorPopover
+                            value={val}
+                            hex={hex}
+                            dualHex={dual}
+                            onChange={(next) => updateColorForValue(oi, val, next)}
+                            t={t}
+                          >
+                            <ColorSwatch hex={hex} dualHex={dual} size={18} />
+                          </ColorEditorPopover>
+                        )}
+                        {valueImageControl}
                         <span className="font-medium text-zinc-700">{val}</span>
                         <button
                           type="button"

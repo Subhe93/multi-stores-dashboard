@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "Redigera färg",
+    "valueImage": "Ange bild för detta värde",
     "untitledColor": "Namnlös färg",
     "twoToneColor": "Tvåfärgad",
     "solidColor": "Enfärgad",

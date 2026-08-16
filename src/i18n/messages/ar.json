@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "تعديل اللون",
+    "valueImage": "تعيين صورة لهذه القيمة",
     "untitledColor": "لون بدون اسم",
     "twoToneColor": "لون ثنائي",
     "solidColor": "لون موحد",

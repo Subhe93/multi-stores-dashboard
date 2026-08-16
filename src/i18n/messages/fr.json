@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "Modifier la couleur",
+    "valueImage": "Définir l'image pour cette valeur",
     "untitledColor": "Couleur sans nom",
     "twoToneColor": "Couleur bicolore",
     "solidColor": "Couleur unie",

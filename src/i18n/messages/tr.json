@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "Rengi düzenle",
+    "valueImage": "Bu değer için görsel ayarla",
     "untitledColor": "Adsız renk",
     "twoToneColor": "İki tonlu renk",
     "solidColor": "Düz renk",

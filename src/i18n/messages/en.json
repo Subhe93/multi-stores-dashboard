@@ -2294,6 +2294,7 @@
   },
   "variant": {
     "editColor": "Edit color",
+    "valueImage": "Set image for this value",
     "untitledColor": "Untitled color",
     "twoToneColor": "Two-tone color",
     "solidColor": "Solid color",
