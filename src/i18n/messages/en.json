@@ -2350,7 +2350,11 @@
     "optional": "optional",
     "applyToAll": "Apply to all {count} variants",
     "pricePerOptionDesc": "Set one price per option value, applied to every matching variant",
-    "pricingDependsOn": "Pricing depends on"
+    "pricingDependsOn": "Pricing depends on",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveEarlier": "Move earlier",
+    "moveLater": "Move later"
   },
   "faq": {
     "untitled": "Untitled question",

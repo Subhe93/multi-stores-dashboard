@@ -10,7 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { Plus, Trash2, X, ImageIcon, Pencil, Package, Loader2 } from 'lucide-react';
+import {
+  Plus, Trash2, X, ImageIcon, Pencil, Package, Loader2,
+  ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
+} from 'lucide-react';
 import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
 
@@ -48,6 +51,50 @@ interface VariantManagerProps {
   basePrice?: number;
   onPickImage?: () => Promise<UploadedImage[]>;
   uploading?: boolean;
+}
+
+/**
+ * Move-earlier / move-later arrows for an option value. The chips wrap in a
+ * horizontal row, so the arrows point along the reading direction and flip
+ * under RTL while the handler stays direction-agnostic. Hidden for a lone
+ * value, where there is nothing to reorder.
+ */
+function ValueOrderControls({
+  index,
+  total,
+  onMove,
+  t,
+}: {
+  index: number;
+  total: number;
+  onMove: (dir: -1 | 1) => void;
+  t: Translator;
+}) {
+  if (total < 2) return null;
+  const base =
+    'text-zinc-300 hover:text-zinc-700 disabled:opacity-25 disabled:hover:text-zinc-300 transition';
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => onMove(-1)}
+        disabled={index === 0}
+        title={t('variant.moveEarlier')}
+        className={base}
+      >
+        <ChevronLeft className="w-3 h-3 rtl:rotate-180" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onMove(1)}
+        disabled={index === total - 1}
+        title={t('variant.moveLater')}
+        className={base}
+      >
+        <ChevronRight className="w-3 h-3 rtl:rotate-180" />
+      </button>
+    </>
+  );
 }
 
 // Order-insensitive signature for a variant's options. Postgres stores
@@ -494,6 +541,28 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     onOptionsChange(u);
   };
 
+  // Reordering. The storefront renders options and their values in exactly
+  // this order, so this is how the seller controls the product page layout —
+  // the variant `options` column is jsonb and can't carry an order of its own.
+  const moveOption = (oi: number, dir: -1 | 1) => {
+    const target = oi + dir;
+    if (target < 0 || target >= options.length) return;
+    const u = [...options];
+    [u[oi], u[target]] = [u[target]!, u[oi]!];
+    onOptionsChange(u);
+  };
+
+  const moveValue = (oi: number, vi: number, dir: -1 | 1) => {
+    const opt = options[oi]!;
+    const target = vi + dir;
+    if (target < 0 || target >= opt.values.length) return;
+    const values = [...opt.values];
+    [values[vi], values[target]] = [values[target]!, values[vi]!];
+    const u = [...options];
+    u[oi] = { ...opt, values };
+    onOptionsChange(u);
+  };
+
   // Assign (or replace) the value-level image for an option value.
   const pickValueImage = async (oi: number, val: string) => {
     if (!onPickImage || pendingImageKey) return;
@@ -554,6 +623,27 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
         {/* Option Groups */}
         {options.map((option, oi) => (
           <div key={oi} className="flex items-start gap-3 pb-4 border-b last:border-0">
+            {/* Option order — this is the order the product page renders them in. */}
+            <div className="flex flex-col mt-5 shrink-0">
+              <button
+                type="button"
+                onClick={() => moveOption(oi, -1)}
+                disabled={oi === 0}
+                title={t('variant.moveUp')}
+                className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30 disabled:hover:text-zinc-300 transition p-0.5"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveOption(oi, 1)}
+                disabled={oi === options.length - 1}
+                title={t('variant.moveDown')}
+                className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30 disabled:hover:text-zinc-300 transition p-0.5"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className="w-32 shrink-0 space-y-1">
               <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionName')}</label>
               <Input className="h-8 text-sm" placeholder={t('variant.optionNamePlaceholder')}
@@ -646,6 +736,12 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                         )}
                         {valueImageControl}
                         <span className="font-medium text-zinc-700">{val}</span>
+                        <ValueOrderControls
+                          index={vi}
+                          total={option.values.length}
+                          onMove={(dir) => moveValue(oi, vi, dir)}
+                          t={t}
+                        />
                         <button
                           type="button"
                           onClick={() => removeValue(oi, vi)}
@@ -659,8 +755,14 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   }
 
                   return (
-                    <Badge key={vi} variant="outline" className="text-xs gap-1.5 pr-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge key={vi} variant="outline" className="text-xs gap-1.5 pe-0.5 bg-blue-50 text-blue-700 border-blue-200">
                       {val}
+                      <ValueOrderControls
+                        index={vi}
+                        total={option.values.length}
+                        onMove={(dir) => moveValue(oi, vi, dir)}
+                        t={t}
+                      />
                       <button onClick={() => removeValue(oi, vi)}
                         className="hover:text-red-500 transition p-0.5"><X className="w-3 h-3" /></button>
                     </Badge>

@@ -2350,7 +2350,11 @@
     "optional": "optional",
     "applyToAll": "Auf alle {count} Varianten anwenden",
     "pricePerOptionDesc": "Legen Sie einen Preis pro Optionswert fest, der auf jede passende Variante angewendet wird",
-    "pricingDependsOn": "Preisgestaltung hängt ab von"
+    "pricingDependsOn": "Preisgestaltung hängt ab von",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "moveEarlier": "Nach vorne",
+    "moveLater": "Nach hinten"
   },
   "faq": {
     "untitled": "Unbenannte Frage",

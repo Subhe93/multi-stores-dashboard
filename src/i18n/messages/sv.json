@@ -2350,7 +2350,11 @@
     "optional": "valfritt",
     "applyToAll": "Tillämpa på alla {count} varianter",
     "pricePerOptionDesc": "Ange ett pris per alternativvärde, tillämpat på varje matchande variant",
-    "pricingDependsOn": "Prissättningen beror på"
+    "pricingDependsOn": "Prissättningen beror på",
+    "moveUp": "Flytta upp",
+    "moveDown": "Flytta ner",
+    "moveEarlier": "Flytta tidigare",
+    "moveLater": "Flytta senare"
   },
   "faq": {
     "untitled": "Namnlös fråga",

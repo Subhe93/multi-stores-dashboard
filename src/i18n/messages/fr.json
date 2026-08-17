@@ -2350,7 +2350,11 @@
     "optional": "facultatif",
     "applyToAll": "Appliquer à toutes les {count} variantes",
     "pricePerOptionDesc": "Définissez un prix par valeur d'option, appliqué à chaque variante correspondante",
-    "pricingDependsOn": "La tarification dépend de"
+    "pricingDependsOn": "La tarification dépend de",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "moveEarlier": "Avancer",
+    "moveLater": "Reculer"
   },
   "faq": {
     "untitled": "Question sans titre",

@@ -2350,7 +2350,11 @@
     "optional": "isteğe bağlı",
     "applyToAll": "Tüm {count} varyanta uygula",
     "pricePerOptionDesc": "Her eşleşen varyanta uygulanacak şekilde seçenek değeri başına tek bir fiyat belirleyin",
-    "pricingDependsOn": "Fiyatlandırma şuna bağlı"
+    "pricingDependsOn": "Fiyatlandırma şuna bağlı",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "moveEarlier": "Öne al",
+    "moveLater": "Sona al"
   },
   "faq": {
     "untitled": "Başlıksız soru",

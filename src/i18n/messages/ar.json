@@ -2350,7 +2350,11 @@
     "optional": "اختياري",
     "applyToAll": "تطبيق على جميع المتغيرات الـ {count}",
     "pricePerOptionDesc": "حدد سعرًا واحدًا لكل قيمة خيار، يُطبَّق على كل متغير مطابق",
-    "pricingDependsOn": "يعتمد التسعير على"
+    "pricingDependsOn": "يعتمد التسعير على",
+    "moveUp": "تحريك لأعلى",
+    "moveDown": "تحريك لأسفل",
+    "moveEarlier": "تقديم",
+    "moveLater": "تأخير"
   },
   "faq": {
     "untitled": "سؤال بدون عنوان",
