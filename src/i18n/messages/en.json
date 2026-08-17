@@ -1637,7 +1637,13 @@
       "passwordTooShort": "Password must be at least 8 characters",
       "passwordChanged": "Password changed",
       "passwordChangeFailed": "Failed to change password",
-      "changing": "Changing..."
+      "changing": "Changing...",
+      "storeCurrency": "Store currency",
+      "storeCurrencyHint": "Customers are charged in this currency. Independent stores charge on their own Stripe account, so you choose it.",
+      "storeCurrencyWarning": "Changing this re-labels your existing prices — it does not convert them. Orders already placed keep the currency they were charged in.",
+      "currencyPlatformDefault": "Use the platform currency",
+      "currencyUpdated": "Store currency updated",
+      "currencyUpdateFailed": "Could not update the store currency"
     },
     "orderDetail": {
       "notFound": "Order not found",

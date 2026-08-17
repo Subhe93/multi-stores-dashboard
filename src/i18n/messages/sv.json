@@ -1637,7 +1637,13 @@
       "passwordTooShort": "Lösenordet måste vara minst 8 tecken",
       "passwordChanged": "Lösenord ändrat",
       "passwordChangeFailed": "Det gick inte att ändra lösenordet",
-      "changing": "Ändrar..."
+      "changing": "Ändrar...",
+      "storeCurrency": "Butikens valuta",
+      "storeCurrencyHint": "Kunder debiteras i den här valutan. Fristående butiker debiterar via sitt eget Stripe-konto, så du väljer valutan.",
+      "storeCurrencyWarning": "Att ändra detta märker om dina befintliga priser — det räknar inte om dem. Redan lagda ordrar behåller valutan de debiterades i.",
+      "currencyPlatformDefault": "Använd plattformens valuta",
+      "currencyUpdated": "Butikens valuta uppdaterad",
+      "currencyUpdateFailed": "Det gick inte att uppdatera butikens valuta"
     },
     "orderDetail": {
       "notFound": "Beställningen hittades inte",

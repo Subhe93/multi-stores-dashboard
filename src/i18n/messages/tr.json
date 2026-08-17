@@ -1637,7 +1637,13 @@
       "passwordTooShort": "Parola en az 8 karakter olmalıdır",
       "passwordChanged": "Parola değiştirildi",
       "passwordChangeFailed": "Parola değiştirilemedi",
-      "changing": "Değiştiriliyor..."
+      "changing": "Değiştiriliyor...",
+      "storeCurrency": "Mağaza para birimi",
+      "storeCurrencyHint": "Müşterilerden bu para biriminde tahsilat yapılır. Bağımsız mağazalar kendi Stripe hesabından tahsil ettiği için seçim sizindir.",
+      "storeCurrencyWarning": "Bunu değiştirmek mevcut fiyatlarınızı yeniden etiketler, dönüştürmez. Verilmiş siparişler tahsil edildikleri para birimini korur.",
+      "currencyPlatformDefault": "Platform para birimini kullan",
+      "currencyUpdated": "Mağaza para birimi güncellendi",
+      "currencyUpdateFailed": "Mağaza para birimi güncellenemedi"
     },
     "orderDetail": {
       "notFound": "Sipariş bulunamadı",

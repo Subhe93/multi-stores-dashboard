@@ -1637,7 +1637,13 @@
       "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
       "passwordChanged": "تم تغيير كلمة المرور",
       "passwordChangeFailed": "فشل تغيير كلمة المرور",
-      "changing": "جارٍ التغيير..."
+      "changing": "جارٍ التغيير...",
+      "storeCurrency": "عملة المتجر",
+      "storeCurrencyHint": "يُشحن العملاء بهذه العملة. المتاجر المستقلة تشحن على حساب سترايب الخاص بها، لذا يمكنك اختيارها.",
+      "storeCurrencyWarning": "تغييرها يعيد تسمية أسعارك الحالية ولا يحوّلها. الطلبات السابقة تحتفظ بالعملة التي شُحنت بها.",
+      "currencyPlatformDefault": "استخدام عملة المنصة",
+      "currencyUpdated": "تم تحديث عملة المتجر",
+      "currencyUpdateFailed": "تعذّر تحديث عملة المتجر"
     },
     "orderDetail": {
       "notFound": "الطلب غير موجود",

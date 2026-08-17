@@ -7,6 +7,9 @@ import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Tr
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
+import { clearCurrencyCache } from '@/lib/useCurrency';
+import { CURRENCIES } from '@/lib/currencies';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +42,9 @@ interface StoreInfo {
   // Cash on delivery availability at checkout (off by default).
   cod_enabled?: boolean;
   store_type?: 'MARKETPLACE' | 'INDEPENDENT';
+  // Presentment currency. Null means the platform default; only independent
+  // stores may set it (they charge on their own connected account).
+  currency?: string | null;
 }
 
 interface StripeConnectStatus {
@@ -83,6 +89,10 @@ export default function CreatorSettingsPage() {
   // Cash-on-delivery on/off toggle
   const [codSaving, setCodSaving] = useState(false);
   const [codMsg, setCodMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Store currency (independent stores only)
+  const [currencySaving, setCurrencySaving] = useState(false);
+  const [currencyMsg, setCurrencyMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Stripe disconnect (two-step confirm)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -210,6 +220,29 @@ export default function CreatorSettingsPage() {
       setCodMsg({ type: 'error', text: err?.message || t('settings.codUpdateFailed') });
     } finally {
       setCodSaving(false);
+    }
+  };
+
+  const handleChangeCurrency = async (next: string) => {
+    if (!token || !store || currencySaving) return;
+    const previous = store.currency ?? '';
+    if (next === previous) return;
+    setCurrencySaving(true);
+    setCurrencyMsg(null);
+    setStore({ ...store, currency: next || null });
+    try {
+      await api('/stores/my/store', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ currency: next }),
+      });
+      clearCurrencyCache();
+      setCurrencyMsg({ type: 'success', text: t('settings.currencyUpdated') });
+    } catch (err: any) {
+      setStore({ ...store, currency: previous || null });
+      setCurrencyMsg({ type: 'error', text: err?.message || t('settings.currencyUpdateFailed') });
+    } finally {
+      setCurrencySaving(false);
     }
   };
 
@@ -564,6 +597,47 @@ export default function CreatorSettingsPage() {
                   >
                     {codMsg.text}
                   </p>
+                )}
+
+                {/* Store currency — independent stores charge on their own
+                    connected account, so they pick the currency customers pay
+                    in. Marketplace stores are charged on the platform account
+                    and stay on the platform currency. */}
+                {store.store_type === 'INDEPENDENT' && (
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium">{t('settings.storeCurrency')}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {t('settings.storeCurrencyHint')}
+                      </p>
+                    </div>
+                    <div className="max-w-xs flex items-center gap-2">
+                      <SearchableSelect
+                        value={store.currency ?? ''}
+                        onChange={handleChangeCurrency}
+                        options={[
+                          { value: '', label: t('settings.currencyPlatformDefault') },
+                          ...CURRENCIES,
+                        ]}
+                        placeholder={t('settings.currencyPlatformDefault')}
+                      />
+                      {currencySaving && (
+                        <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-amber-600">
+                      {t('settings.storeCurrencyWarning')}
+                    </p>
+                    {currencyMsg && (
+                      <p
+                        className={`text-[11px] ${
+                          currencyMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {currencyMsg.text}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
