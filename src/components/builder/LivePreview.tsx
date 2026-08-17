@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -68,6 +68,16 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const typeParam = pageType ? `&type=${pageType}` : '';
   const previewUrl = `${webOrigin}/builder-preview/${storeSlug}?locale=${storeLocale}${typeParam}`;
+  // Address the iframe explicitly instead of '*', and accept messages only from
+  // it — otherwise any page holding a handle to this window could inject
+  // UPDATE_SECTIONS / INLINE_EDIT / SECTION_ACTION.
+  const previewOrigin = useMemo(() => {
+    try {
+      return new URL(previewUrl, window.location.href).origin;
+    } catch {
+      return window.location.origin;
+    }
+  }, [previewUrl]);
 
   // Push state into the iframe whenever inputs change. The iframe acks 'PREVIEW_READY'
   // on first mount; we resend on every change after that.
@@ -83,22 +93,25 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         primaryLocale,
         menus,
       },
-      '*',
+      previewOrigin,
     );
-  }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale, menus]);
+  }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale, menus, previewOrigin]);
 
   // Keep the preview's selection highlight in sync with the builder.
   useEffect(() => {
     if (!loaded) return;
     iframeRef.current?.contentWindow?.postMessage(
       { type: 'SELECT_SECTION', section_id: selectedId ?? null },
-      '*',
+      previewOrigin,
     );
-  }, [loaded, selectedId]);
+  }, [loaded, selectedId, previewOrigin]);
 
   // Listen for PREVIEW_READY (initial) and SECTION_CLICKED (click-to-edit).
   useEffect(() => {
     function onMessage(e: MessageEvent) {
+      // Only the preview iframe may drive the builder.
+      if (e.origin !== previewOrigin) return;
+      if (e.source !== iframeRef.current?.contentWindow) return;
       const data = e.data;
       if (!data || typeof data !== 'object') return;
       if (data.type === 'PREVIEW_READY') {
@@ -114,7 +127,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
             primaryLocale,
             menus,
           },
-          '*',
+          previewOrigin,
         );
       } else if (data.type === 'SECTION_CLICKED' && onSectionClicked) {
         onSectionClicked(data.section_id);
@@ -127,13 +140,13 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onSectionClicked, onSectionAction, onInlineEdit]);
+  }, [onSectionClicked, onSectionAction, onInlineEdit, previewOrigin]);
 
   useImperativeHandle(ref, () => ({
     scrollToSection(sectionId: string) {
       iframeRef.current?.contentWindow?.postMessage(
         { type: 'SCROLL_TO_SECTION', section_id: sectionId },
-        '*',
+        previewOrigin,
       );
     },
   }));
