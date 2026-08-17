@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Eye, EyeOff, Loader2, RotateCcw } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { LOCALE_LABELS, RTL_LOCALES } from '@/components/creator/bundles/types';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
@@ -32,14 +33,12 @@ interface EventCatalogEntry {
   variables: string[];
 }
 
-const LOCALES: { code: string; label: string; dir: 'ltr' | 'rtl' }[] = [
-  { code: 'en', label: 'English', dir: 'ltr' },
-  { code: 'ar', label: 'العربية', dir: 'rtl' },
-  { code: 'tr', label: 'Türkçe', dir: 'ltr' },
-  { code: 'de', label: 'Deutsch', dir: 'ltr' },
-  { code: 'fr', label: 'Français', dir: 'ltr' },
-  { code: 'sv', label: 'Svenska', dir: 'ltr' },
-];
+interface StoreLanguages {
+  language_config?: {
+    primary_locale?: string;
+    secondary_locales?: string[];
+  } | null;
+}
 
 // Tag-only or whitespace-only HTML counts as empty, so the per-locale dot
 // reflects whether that language actually has content.
@@ -63,6 +62,10 @@ export default function CreatorEmailTemplateEditorPage() {
   const [template, setTemplate] = useState<StoreTemplate | null>(null);
   const [eventVariables, setEventVariables] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  // Only the languages this store actually sells in — a German-only shop has no
+  // use for five other tabs, and an email is only ever rendered in one of the
+  // store's own locales.
+  const [locales, setLocales] = useState<string[]>([]);
   const [activeLocale, setActiveLocale] = useState('en');
   const [subjectByLocale, setSubjectByLocale] = useState<Record<string, string>>({});
   const [bodyHtmlByLocale, setBodyHtmlByLocale] = useState<Record<string, string>>({});
@@ -89,17 +92,27 @@ export default function CreatorEmailTemplateEditorPage() {
     Promise.all([
       api<StoreTemplate>(`/notification-templates/store/${event}`, { token }),
       api<EventCatalogEntry[]>('/notification-templates/store/events', { token }),
+      api<StoreLanguages>('/stores/my/store', { token }),
     ])
-      .then(([tpl, catalog]) => {
+      .then(([tpl, catalog, store]) => {
         applyTemplate(tpl);
         setEventVariables(catalog.find((e) => e.event === event)?.variables ?? []);
+
+        const primary = store.language_config?.primary_locale || 'en';
+        const secondary = store.language_config?.secondary_locales ?? [];
+        // Primary first, then the secondaries, de-duplicated.
+        const list = [primary, ...secondary].filter(
+          (code, i, all) => code && all.indexOf(code) === i,
+        );
+        setLocales(list);
+        setActiveLocale(primary);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [token, event]);
 
-  const activeDir = useMemo(
-    () => LOCALES.find((l) => l.code === activeLocale)?.dir || 'ltr',
+  const activeDir = useMemo<'ltr' | 'rtl'>(
+    () => (RTL_LOCALES.has(activeLocale) ? 'rtl' : 'ltr'),
     [activeLocale],
   );
 
@@ -224,40 +237,43 @@ export default function CreatorEmailTemplateEditorPage() {
           <CardTitle className="text-sm font-semibold">{t('content')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Locale tabs */}
-          <div className="flex flex-wrap gap-1.5 border-b pb-3">
-            {LOCALES.map((locale) => {
-              const isActive = activeLocale === locale.code;
-              const empty =
-                isStringEmpty(subjectByLocale[locale.code]) &&
-                isHtmlEmpty(bodyHtmlByLocale[locale.code]) &&
-                isStringEmpty(bodyTextByLocale[locale.code]);
-              return (
-                <button
-                  key={locale.code}
-                  type="button"
-                  onClick={() => setActiveLocale(locale.code)}
-                  className={`relative px-3 py-1.5 rounded-md border text-xs font-medium transition ${
-                    isActive
-                      ? 'bg-zinc-900 text-white border-zinc-900'
-                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'
-                  }`}
-                  title={empty ? t('emptyForLocale') : undefined}
-                >
-                  <span>{locale.label}</span>
-                  <span className="ms-1.5 opacity-60 text-[10px] uppercase">{locale.code}</span>
-                  {empty && (
-                    <span
-                      className={`absolute -top-0.5 -inset-e-0.5 w-2 h-2 rounded-full ${
-                        isActive ? 'bg-amber-300' : 'bg-amber-500'
-                      }`}
-                      aria-label={t('emptyForLocale')}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {/* Locale tabs — the store's own languages only. Hidden entirely for
+              a single-language store, where there is nothing to switch between. */}
+          {locales.length > 1 && (
+            <div className="flex flex-wrap gap-1.5 border-b pb-3">
+              {locales.map((code) => {
+                const isActive = activeLocale === code;
+                const empty =
+                  isStringEmpty(subjectByLocale[code]) &&
+                  isHtmlEmpty(bodyHtmlByLocale[code]) &&
+                  isStringEmpty(bodyTextByLocale[code]);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setActiveLocale(code)}
+                    className={`relative px-3 py-1.5 rounded-md border text-xs font-medium transition ${
+                      isActive
+                        ? 'bg-zinc-900 text-white border-zinc-900'
+                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'
+                    }`}
+                    title={empty ? t('emptyForLocale') : undefined}
+                  >
+                    <span>{LOCALE_LABELS[code] || code}</span>
+                    <span className="ms-1.5 opacity-60 text-[10px] uppercase">{code}</span>
+                    {empty && (
+                      <span
+                        className={`absolute -top-0.5 -inset-e-0.5 w-2 h-2 rounded-full ${
+                          isActive ? 'bg-amber-300' : 'bg-amber-500'
+                        }`}
+                        aria-label={t('emptyForLocale')}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-xs">{t('subject')}</Label>
