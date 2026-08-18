@@ -32,6 +32,9 @@ interface StripeSettings {
   secretKeyConfigured: boolean;
   webhookSecretConfigured: boolean;
   connectWebhookSecretConfigured: boolean;
+  /** True once at least one independent store exists — see the warning below. */
+  connectWebhookRequired?: boolean;
+  independentStoreCount?: number;
   usingEnvFallback: boolean;
 }
 
@@ -566,6 +569,16 @@ export default function AdminSettings() {
               placeholder={stripe.connectWebhookSecretConfigured ? t('stripeKeyConfiguredPlaceholder') : 'whsec_…'}
             />
             <p className="text-[10px] text-muted-foreground">{t('stripeConnectWebhookHint')}</p>
+            {/* Independent stores charge on their own accounts, so refunds the
+                creator makes in their own Stripe dashboard only reach us
+                through this endpoint. Without the secret they never sync. */}
+            {stripe.connectWebhookRequired && !stripe.connectWebhookSecretConfigured && (
+              <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
+                {t('stripeConnectWebhookMissing', {
+                  count: stripe.independentStoreCount ?? 0,
+                })}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-3 justify-end">

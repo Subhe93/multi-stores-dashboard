@@ -518,7 +518,8 @@
     "notifHidePreview": "إخفاء المعاينة",
     "notifLastUpdated": "آخر تحديث: {date}",
     "notifEmptyForLocale": "لا يوجد محتوى لهذه اللغة بعد",
-    "noNotificationTemplatesYet": "لا توجد قوالب إشعارات."
+    "noNotificationTemplatesYet": "لا توجد قوالب إشعارات.",
+    "stripeConnectWebhookMissing": "{count} متجر مستقل يشحن على حساب سترايب الخاص به. بدون هذا السرّ، الاستردادات التي يجرونها في سترايب لن تُزامَن مع الطلب إطلاقاً."
   },
   "provider": {
     "orderStatus": {

@@ -518,7 +518,8 @@
     "notifHidePreview": "Önizlemeyi gizle",
     "notifLastUpdated": "Son güncelleme: {date}",
     "notifEmptyForLocale": "Bu dil için henüz içerik yok",
-    "noNotificationTemplatesYet": "Bildirim şablonu bulunamadı."
+    "noNotificationTemplatesYet": "Bildirim şablonu bulunamadı.",
+    "stripeConnectWebhookMissing": "{count} bağımsız mağaza kendi Stripe hesabından tahsilat yapıyor. Bu gizli anahtar olmadan, Stripe'ta yaptıkları iadeler siparişe hiç işlenmez."
   },
   "provider": {
     "orderStatus": {

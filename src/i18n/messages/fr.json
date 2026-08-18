@@ -518,7 +518,8 @@
     "notifHidePreview": "Masquer l'aperçu",
     "notifLastUpdated": "Dernière mise à jour : {date}",
     "notifEmptyForLocale": "Aucun contenu pour cette langue",
-    "noNotificationTemplatesYet": "Aucun modèle de notification trouvé."
+    "noNotificationTemplatesYet": "Aucun modèle de notification trouvé.",
+    "stripeConnectWebhookMissing": "{count} boutique(s) indépendante(s) encaissent sur leur propre compte Stripe. Sans ce secret, les remboursements qu'elles effectuent dans Stripe ne sont jamais répercutés sur la commande."
   },
   "provider": {
     "orderStatus": {

@@ -518,7 +518,8 @@
     "notifHidePreview": "Vorschau ausblenden",
     "notifLastUpdated": "Zuletzt aktualisiert: {date}",
     "notifEmptyForLocale": "Noch kein Inhalt für diese Sprache",
-    "noNotificationTemplatesYet": "Keine Benachrichtigungsvorlagen gefunden."
+    "noNotificationTemplatesYet": "Keine Benachrichtigungsvorlagen gefunden.",
+    "stripeConnectWebhookMissing": "{count} unabhängige Shops belasten ihr eigenes Stripe-Konto. Ohne dieses Secret werden dort vorgenommene Rückerstattungen nie mit der Bestellung synchronisiert."
   },
   "provider": {
     "orderStatus": {

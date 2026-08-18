@@ -518,7 +518,8 @@
     "notifHidePreview": "Dölj förhandsgranskning",
     "notifLastUpdated": "Senast uppdaterad: {date}",
     "notifEmptyForLocale": "Inget innehåll för detta språk än",
-    "noNotificationTemplatesYet": "Inga aviseringsmallar hittades."
+    "noNotificationTemplatesYet": "Inga aviseringsmallar hittades.",
+    "stripeConnectWebhookMissing": "{count} fristående butik(er) debiterar via sitt eget Stripe-konto. Utan den här hemligheten synkas återbetalningar de gör i Stripe aldrig tillbaka till ordern."
   },
   "provider": {
     "orderStatus": {

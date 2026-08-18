@@ -518,7 +518,8 @@
     "notifHidePreview": "Hide preview",
     "notifLastUpdated": "Last updated: {date}",
     "notifEmptyForLocale": "No content for this language yet",
-    "noNotificationTemplatesYet": "No notification templates found."
+    "noNotificationTemplatesYet": "No notification templates found.",
+    "stripeConnectWebhookMissing": "{count} independent store(s) charge on their own Stripe account. Without this secret, refunds they make in Stripe never sync back to the order."
   },
   "provider": {
     "orderStatus": {
