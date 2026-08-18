@@ -332,6 +332,7 @@ export default function ProviderOrderDetail() {
                   item.variant?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
                   item.variant?.product?.translations?.[0]?.title ?? '—';
                 const imgUrl =
+                  item.image_url ??
                   item.custom_product?.mockup_images?.[0]?.url ??
                   item.custom_product?.product?.images?.[0]?.url ??
                   item.product?.images?.[0]?.url ??

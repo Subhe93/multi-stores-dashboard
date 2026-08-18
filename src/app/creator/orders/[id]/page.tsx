@@ -262,6 +262,7 @@ export default function CreatorOrderDetailPage() {
 
                     // Image: custom product mockup → base product → variant's product.
                     const imgUrl =
+                      item.image_url ??
                       item.custom_product?.mockup_images?.[0]?.url ??
                       item.custom_product?.product?.images?.[0]?.url ??
                       item.product?.images?.[0]?.url ??
