@@ -73,9 +73,14 @@ export function SectionInspector({
   const settingsFields = schema.schema.filter((f) => !translatableKeys.has(f.key));
   const contentFields = schema.schema.filter((f) => translatableKeys.has(f.key));
 
+  // Same fallback chain as the live preview (locale → primary → first
+  // translation that has content). Without the last step, changing the
+  // store's primary locale left the edit fields empty while the preview
+  // still showed the old-locale content.
   const localeContent =
     section.translations.find((tr) => tr.locale === locale)?.content ??
     section.translations.find((tr) => tr.locale === primaryLocale)?.content ??
+    section.translations.find((tr) => tr.content && Object.keys(tr.content).length > 0)?.content ??
     {};
 
   const sectionStyle = ((section.settings as Record<string, unknown>)._style as SectionStyle | undefined) || {};

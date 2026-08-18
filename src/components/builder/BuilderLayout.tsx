@@ -254,6 +254,23 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     [sections, queueAutosave],
   );
 
+  // Base content a new locale row must start from: what the creator currently
+  // SEES (locale → primary → first translation with content). Seeding from the
+  // fallback matters after a primary-locale change: patching only the edited
+  // key into an empty new-locale row would make the storefront (which prefers
+  // the matching-locale row wholesale) drop every other field of the section.
+  const contentBaseFor = useCallback(
+    (translations: SectionInstance['translations'], locale: string): Record<string, unknown> => {
+      return (
+        translations.find((t) => t.locale === locale)?.content ??
+        translations.find((t) => t.locale === store.language_config.primary_locale)?.content ??
+        translations.find((t) => t.content && Object.keys(t.content).length > 0)?.content ??
+        {}
+      );
+    },
+    [store.language_config.primary_locale],
+  );
+
   const patchSectionContent = useCallback(
     (sectionId: string, locale: string, partial: Record<string, unknown>) => {
       recordHistory();
@@ -261,7 +278,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         prev.map((s) => {
           if (s.id !== sectionId) return s;
           const existing = s.translations.find((t) => t.locale === locale);
-          const mergedContent = { ...(existing?.content || {}), ...partial };
+          const base = existing?.content || contentBaseFor(s.translations, locale);
+          const mergedContent = { ...base, ...partial };
           const nextTranslations = existing
             ? s.translations.map((t) => (t.locale === locale ? { ...t, content: mergedContent } : t))
             : [...s.translations, { locale, content: mergedContent }];
@@ -270,13 +288,17 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       );
       const entry = pendingRef.current.get(sectionId) || {};
       const trMap = entry.translations || new Map<string, Record<string, unknown>>();
-      const current = trMap.get(locale) || sections.find((s) => s.id === sectionId)?.translations.find((t) => t.locale === locale)?.content || {};
+      const sectionRow = sections.find((s) => s.id === sectionId);
+      const current =
+        trMap.get(locale) ||
+        sectionRow?.translations.find((t) => t.locale === locale)?.content ||
+        (sectionRow ? contentBaseFor(sectionRow.translations, locale) : {});
       trMap.set(locale, { ...current, ...partial });
       entry.translations = trMap;
       pendingRef.current.set(sectionId, entry);
       queueAutosave();
     },
-    [sections, queueAutosave],
+    [sections, queueAutosave, contentBaseFor],
   );
 
   const toggleHidden = useCallback(
@@ -600,14 +622,11 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         patchSectionContent(sectionId, activeLocale, { [topKey]: value });
         return;
       }
-      // Nested (repeater) edit: start from the active locale's array, falling
-      // back to the displayed primary content so the rest of the items keep
-      // what the creator currently sees.
-      const activeContent = section.translations.find((tr) => tr.locale === activeLocale)?.content;
-      const primaryContent = section.translations.find(
-        (tr) => tr.locale === store.language_config.primary_locale,
-      )?.content;
-      const base = activeContent?.[topKey] ?? primaryContent?.[topKey];
+      // Nested (repeater) edit: start from the displayed content (active
+      // locale → primary → first translation with content) so the rest of the
+      // items keep what the creator currently sees — including after a
+      // primary-locale change left the new locale empty.
+      const base = contentBaseFor(section.translations, activeLocale)?.[topKey];
       if (!Array.isArray(base)) return;
       const clonedArr = JSON.parse(JSON.stringify(base)) as unknown[];
       let node: unknown = clonedArr;
@@ -619,7 +638,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         patchSectionContent(sectionId, activeLocale, { [topKey]: clonedArr });
       }
     },
-    [activeLocale, patchSectionContent, store.language_config.primary_locale],
+    [activeLocale, patchSectionContent, contentBaseFor],
   );
 
   // ── Preview toolbar actions (floating toolbar inside the iframe) ────────
