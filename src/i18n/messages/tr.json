@@ -43,7 +43,8 @@
     "success": "Başarılı",
     "noResults": "Sonuç bulunamadı",
     "select": "Seç...",
-    "searchEllipsis": "Ara..."
+    "searchEllipsis": "Ara...",
+    "moreResultsRefine": "{count} sonuç daha — aramayı daraltın"
   },
   "nav": {
     "platform": "Platform",

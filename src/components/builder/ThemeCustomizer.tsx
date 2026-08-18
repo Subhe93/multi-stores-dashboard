@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 
 // ── Token shape (subset of the storefront's ThemeTokens we expose) ──
 export interface ThemeTokenCustomizations {
@@ -40,10 +41,8 @@ interface ThemeCustomizerProps {
   trigger: React.ReactNode;
 }
 
-const FONT_OPTIONS = [
-  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Playfair Display', 'Lato', 'Open Sans',
-  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Noto Sans', 'Noto Serif', 'Merriweather',
-].map((f) => ({ value: f, label: f }));
+// Every Google Fonts family, popularity-ordered (shared catalog).
+const FONT_OPTIONS = GOOGLE_FONT_OPTIONS;
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 

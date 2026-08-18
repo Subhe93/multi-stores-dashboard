@@ -42,11 +42,17 @@ export function SearchableSelect({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selected = options.find((o) => o.value === value);
-  const filtered = options.filter(
+  const matching = options.filter(
     (o) =>
       o.label.toLowerCase().includes(search.toLowerCase()) ||
       o.description?.toLowerCase().includes(search.toLowerCase()),
   );
+  // Large catalogs (the ~2k Google Fonts list) would render thousands of rows
+  // at once; the dropdown is search-driven, so showing the first slice and a
+  // "refine your search" hint keeps it instant without hiding anything findable.
+  const DISPLAY_CAP = 150;
+  const filtered = matching.slice(0, DISPLAY_CAP);
+  const truncatedCount = matching.length - filtered.length;
 
   useEffect(() => {
     if (!open) return;
@@ -154,6 +160,11 @@ export function SearchableSelect({
                   </div>
                 </button>
               ))
+            )}
+            {truncatedCount > 0 && (
+              <p className="text-[10px] text-muted-foreground text-center py-1.5">
+                {t('moreResultsRefine', { count: truncatedCount })}
+              </p>
             )}
           </div>
         </div>,

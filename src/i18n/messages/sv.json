@@ -43,7 +43,8 @@
     "success": "Lyckades",
     "noResults": "Inga resultat hittades",
     "select": "Välj...",
-    "searchEllipsis": "Sök..."
+    "searchEllipsis": "Sök...",
+    "moreResultsRefine": "{count} till — förfina sökningen"
   },
   "nav": {
     "platform": "Plattform",

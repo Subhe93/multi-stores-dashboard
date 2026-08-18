@@ -18,6 +18,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ThemeSwitcher } from '@/components/creator/ThemeSwitcher';
 import { ThemeCustomizer, type ThemeTokenCustomizations } from './ThemeCustomizer';
 import { findTheme } from '@/lib/themes-catalog';
+import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 import { cn } from '@/lib/utils';
 
 // ── Types ────────────────────────────────────────────────────
@@ -68,11 +69,8 @@ interface ThemePanelProps {
   onTokensSave: (next: ThemeTokenCustomizations) => Promise<void>;
 }
 
-const FONT_OPTIONS = [
-  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Playfair Display', 'Lato', 'Open Sans',
-  'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', 'Noto Sans', 'Noto Serif', 'Merriweather',
-];
-const FONT_SELECT_OPTIONS = FONT_OPTIONS.map((f) => ({ value: f, label: f }));
+// Every Google Fonts family, popularity-ordered (shared catalog).
+const FONT_SELECT_OPTIONS = GOOGLE_FONT_OPTIONS;
 
 type TypographyKey = 'heading' | 'body' | 'button' | 'link' | 'header';
 
@@ -324,18 +322,12 @@ export function ThemePanel({
           />
         </Group>
 
-        {/* ── Default font ──────────────────────────────── */}
-        <Group title={tb('defaultFont')}>
-          <SearchableSelect
-            value={c.fontFamily || ''}
-            onChange={(v) => set({ fontFamily: v })}
-            options={FONT_SELECT_OPTIONS}
-            placeholder={tb('selectFont')}
-          />
-          <p className="text-[10px] text-zinc-400 leading-snug mt-1.5">
-            {tb('defaultFontHint')}
-          </p>
-        </Group>
+        {/* The store-wide fonts (heading/body) live in the "Customize theme"
+            popup above — the token system the storefront resolves first. The
+            legacy "default font" selector that used to sit here duplicated it
+            through a second storage path (theme_config.fontFamily) and was
+            removed; existing stores that set it keep working, since the
+            storefront still reads the stored value. */}
 
         {/* ── Per-element typography ────────────────────── */}
         <Group title={tb('typography')} defaultOpen={false}>

@@ -43,7 +43,8 @@
     "success": "Success",
     "noResults": "No results found",
     "select": "Select...",
-    "searchEllipsis": "Search..."
+    "searchEllipsis": "Search...",
+    "moreResultsRefine": "{count} more — refine your search"
   },
   "nav": {
     "platform": "Platform",

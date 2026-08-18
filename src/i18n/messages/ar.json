@@ -43,7 +43,8 @@
     "success": "تم بنجاح",
     "noResults": "لا توجد نتائج",
     "select": "اختر...",
-    "searchEllipsis": "بحث..."
+    "searchEllipsis": "بحث...",
+    "moreResultsRefine": "{count} نتيجة أخرى — دقّق البحث"
   },
   "nav": {
     "platform": "المنصة",
