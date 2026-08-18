@@ -221,7 +221,8 @@ const DEFAULT_FORM = {
   socials: { instagram: '', facebook: '', twitter: '', tiktok: '', youtube: '' },
   contact: { email: '', phone: '', whatsapp: '', address: '' },
   primary_locale: 'en',
-  secondary_locales: ['en'] as string[],
+  // Secondary = ADDITIONAL languages only — never the primary itself.
+  secondary_locales: [] as string[],
   auto_translate: false,
 };
 
@@ -406,7 +407,8 @@ export default function CreatorStorePage() {
             whatsapp: tc.contact?.whatsapp ?? '', address: tc.contact?.address ?? '',
           },
           primary_locale: primary,
-          secondary_locales: secondary.length ? secondary : [primary],
+          // Strip the primary if an older save duplicated it into the list.
+          secondary_locales: secondary.filter((l) => l !== primary),
           auto_translate: s.language_config?.auto_translate ?? false,
         });
 
@@ -573,7 +575,8 @@ export default function CreatorStorePage() {
         method: 'PUT', token,
         body: JSON.stringify({
           primary_locale: form.primary_locale,
-          secondary_locales: form.secondary_locales,
+          // Never persist the primary inside the secondary list.
+          secondary_locales: form.secondary_locales.filter((l) => l !== form.primary_locale),
           auto_translate: form.auto_translate,
         }),
       });
@@ -771,7 +774,7 @@ export default function CreatorStorePage() {
             ...DEFAULT_FORM,
             slug: s.slug ?? '',
             primary_locale: primary,
-            secondary_locales: secondary.length ? secondary : [primary],
+            secondary_locales: secondary.filter((l) => l !== primary),
           });
           setTranslations({ [primary]: { ...EMPTY_TRANSLATABLE, name: s.name ?? '', description: s.description ?? '' } });
           setActiveLocale(primary);
@@ -961,10 +964,17 @@ export default function CreatorStorePage() {
             <SearchableSelect
               value={form.primary_locale}
               onChange={(v) => {
-                setForm((prev) => ({
-                  ...prev, primary_locale: v,
-                  secondary_locales: prev.secondary_locales.includes(v) ? prev.secondary_locales : [...prev.secondary_locales, v],
-                }));
+                setForm((prev) => {
+                  // Swap semantics: the OLD primary becomes a secondary
+                  // language (its content stays reachable and translatable),
+                  // and the new primary is removed from the secondary list.
+                  const oldPrimary = prev.primary_locale;
+                  const nextSecondary = Array.from(new Set([
+                    ...prev.secondary_locales.filter((l) => l !== v),
+                    ...(oldPrimary && oldPrimary !== v ? [oldPrimary] : []),
+                  ]));
+                  return { ...prev, primary_locale: v, secondary_locales: nextSecondary };
+                });
                 setTranslations(prev => prev[v] ? prev : { ...prev, [v]: { ...EMPTY_TRANSLATABLE } });
                 setActiveLocale(v);
               }}
@@ -1101,7 +1111,7 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
           slug: slug.trim(),
           description: description.trim() || undefined,
           primary_locale: primaryLocale,
-          secondary_locales: [primaryLocale],
+          secondary_locales: [],
           store_type: storeType,
         }),
       });
