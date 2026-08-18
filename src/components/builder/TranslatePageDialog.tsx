@@ -37,12 +37,33 @@ interface TranslatePageDialogProps {
 // translated value into the prepared target-content object.
 interface StringJob {
   source: string;
+  // Actual locale of the source text — after a primary-locale change the
+  // content may still live under the OLD locale, and the provider needs the
+  // true source language to translate correctly.
+  sourceLocale: string;
   target: string;
   assign: (value: string) => void;
 }
 
 function clone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T;
+}
+
+// The row translation actually reads from: the primary locale when it has
+// content, otherwise the first translation that has any (e.g. content still
+// keyed under the previous primary locale after a language switch).
+function sourceRowFor(
+  section: SectionInstance,
+  primaryLocale: string,
+): { locale: string; content: Record<string, unknown> } | null {
+  const primary = section.translations.find((tr) => tr.locale === primaryLocale);
+  if (primary?.content && Object.keys(primary.content).length > 0) {
+    return { locale: primary.locale, content: primary.content };
+  }
+  const first = section.translations.find(
+    (tr) => tr.content && Object.keys(tr.content).length > 0,
+  );
+  return first ? { locale: first.locale, content: first.content } : null;
 }
 
 export function TranslatePageDialog({
@@ -53,14 +74,34 @@ export function TranslatePageDialog({
   onApplied,
 }: TranslatePageDialogProps) {
   const t = useTranslations('builder');
+
+  // Every configured store locale is a potential target — including the
+  // primary: after a primary-locale change the content still lives under the
+  // OLD locale and the new primary is exactly what needs generating. Targets
+  // matching a section's own source locale are skipped per section in run().
+  const allLocales = Array.from(
+    new Set([primaryLocale, ...secondaryLocales].filter(Boolean)),
+  );
+
+  // Where the page's content actually is right now — used for the dialog copy
+  // and to pick sensible default targets.
+  const sourceCounts = new Map<string, number>();
+  for (const s of sections) {
+    const row = sourceRowFor(s, primaryLocale);
+    if (row) sourceCounts.set(row.locale, (sourceCounts.get(row.locale) || 0) + 1);
+  }
+  const mainSource =
+    Array.from(sourceCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || primaryLocale;
+  const defaultTargets = allLocales.filter((l) => l !== mainSource);
+
   const [open, setOpen] = useState(false);
-  const [targets, setTargets] = useState<Set<string>>(new Set(secondaryLocales));
+  const [targets, setTargets] = useState<Set<string>>(new Set(defaultTargets));
   const [overwrite, setOverwrite] = useState(false);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [result, setResult] = useState<{ translated: number; failed: number } | null>(null);
 
-  if (secondaryLocales.length === 0) return null;
+  if (allLocales.length === 0) return null;
 
   const toggleTarget = (locale: string) => {
     setTargets((prev) => {
@@ -72,7 +113,7 @@ export function TranslatePageDialog({
   };
 
   async function run() {
-    const selected = secondaryLocales.filter((l) => targets.has(l));
+    const selected = allLocales.filter((l) => targets.has(l));
     if (selected.length === 0 || running) return;
     setRunning(true);
     setResult(null);
@@ -84,11 +125,16 @@ export function TranslatePageDialog({
     for (const section of sections) {
       const schema = findSectionSchema(section.section_key);
       if (!schema) continue;
-      const primary = section.translations.find((tr) => tr.locale === primaryLocale)?.content;
-      if (!primary || Object.keys(primary).length === 0) continue;
+      const sourceRow = sourceRowFor(section, primaryLocale);
+      if (!sourceRow) continue;
+      const primary = sourceRow.content;
       const defs = schema.schema.filter((f) => schema.translatable.includes(f.key));
 
       for (const target of selected) {
+        // Translating a section into the language it is already written in is
+        // a no-op — skip it (this also covers the post-language-switch case
+        // where different sections source from different locales).
+        if (target === sourceRow.locale) continue;
         const existing = clone(
           section.translations.find((tr) => tr.locale === target)?.content ?? {},
         );
@@ -103,6 +149,7 @@ export function TranslatePageDialog({
             touched = true;
             jobs.push({
               source: src,
+              sourceLocale: sourceRow.locale,
               target,
               assign: (value) => {
                 existing[def.key] = value;
@@ -125,6 +172,7 @@ export function TranslatePageDialog({
                 if (typeof sv !== 'string' || !sv.trim()) continue;
                 jobs.push({
                   source: sv,
+                  sourceLocale: sourceRow.locale,
                   target,
                   assign: (value) => {
                     item[sub.key] = value;
@@ -136,6 +184,14 @@ export function TranslatePageDialog({
         }
 
         if (touched) {
+          // Backfill keys the translator won't touch (rich text, skipped
+          // fields) with the source values so a freshly created locale row is
+          // complete — the storefront prefers the matching-locale row
+          // wholesale, and missing keys would render as gaps.
+          const sourceCopy = clone(primary);
+          for (const [k, v] of Object.entries(sourceCopy)) {
+            if (!(k in existing)) existing[k] = v;
+          }
           const bySection = prepared.get(section.id) ?? new Map<string, Record<string, unknown>>();
           bySection.set(target, existing);
           prepared.set(section.id, bySection);
@@ -160,7 +216,7 @@ export function TranslatePageDialog({
             token,
             body: JSON.stringify({
               text: job.source,
-              source_locale: primaryLocale,
+              source_locale: job.sourceLocale,
               target_locale: job.target,
             }),
           });
@@ -216,7 +272,7 @@ export function TranslatePageDialog({
         if (running) return; // don't close mid-run
         setOpen(next);
         if (next) {
-          setTargets(new Set(secondaryLocales));
+          setTargets(new Set(defaultTargets));
           setResult(null);
           setProgress({ done: 0, total: 0 });
         }
@@ -234,7 +290,7 @@ export function TranslatePageDialog({
         <DialogHeader>
           <DialogTitle>{t('translatePage')}</DialogTitle>
           <DialogDescription>
-            {t('translatePageDesc', { locale: primaryLocale.toUpperCase() })}
+            {t('translatePageDesc', { locale: mainSource.toUpperCase() })}
           </DialogDescription>
         </DialogHeader>
 
@@ -242,7 +298,7 @@ export function TranslatePageDialog({
           <div>
             <p className="text-xs font-medium text-zinc-600 mb-2">{t('translateTargets')}</p>
             <div className="flex flex-wrap gap-1.5">
-              {secondaryLocales.map((locale) => {
+              {allLocales.map((locale) => {
                 const active = targets.has(locale);
                 return (
                   <button
