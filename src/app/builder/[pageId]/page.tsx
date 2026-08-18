@@ -101,10 +101,47 @@ function BuilderInner() {
         setStore(s);
 
         // Page list is non-fatal; the builder still works with just the
-        // current page if the list call rejects.
+        // current page if the list calls reject. The switcher must show BOTH
+        // systems: v2 builder pages (home, statics, landing, chrome, product
+        // template) and legacy static pages — deduped by slug so a migrated
+        // or kit-imported page doesn't appear twice (v2 wins: it is what the
+        // storefront serves).
         try {
-          const list = await api<StorePageSummary[]>(`/stores/${s.id}/pages`, { token });
-          setAllPages(Array.isArray(list) ? list : []);
+          const [legacyList, v2List] = await Promise.all([
+            api<any[]>(`/stores/${s.id}/pages`, { token }).catch(() => []),
+            api<any[]>('/v2/pages/mine', { token }).catch(() => []),
+          ]);
+
+          const v2Rows: StorePageSummary[] = (Array.isArray(v2List) ? v2List : []).map((p) => ({
+            id: p.id,
+            slug: p.slug || '',
+            // "Live" for v2 means a published snapshot exists — the status
+            // column can lag (e.g. after a version restore).
+            status: p.published_version_id ? 'PUBLISHED' : 'DRAFT',
+            // Surface the static kind (about/contact/…) so the row gets its
+            // proper icon and label instead of a generic "Static".
+            type: p.type === 'STATIC' && p.static_kind ? p.static_kind : p.type,
+            translations: (p.translations || []).map((tr: any) => ({
+              locale: tr.locale,
+              title: tr.title || '',
+            })),
+          }));
+
+          const v2Slugs = new Set(v2Rows.map((r) => r.slug).filter(Boolean));
+          const legacyRows: StorePageSummary[] = (Array.isArray(legacyList) ? legacyList : [])
+            .filter((p) => !v2Slugs.has(p.slug))
+            .map((p) => ({
+              id: p.id,
+              slug: p.slug,
+              status: p.status,
+              type: p.type,
+              translations: (p.translations || []).map((tr: any) => ({
+                locale: tr.locale,
+                title: tr.title || '',
+              })),
+            }));
+
+          setAllPages([...v2Rows, ...legacyRows]);
         } catch {
           /* ignore */
         }
