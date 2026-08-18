@@ -332,9 +332,14 @@ function MigrationPrompt({
       //    schema (which expects at least one translation) doesn't reject
       //    the create.
       const v2Type = v2TypeFor(legacy.type);
+      // Title-case the slug ("new-offer" → "New Offer") rather than persisting
+      // an English "Untitled" literal into the store's content.
+      const slugTitle = (legacy.slug || 'page')
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
       const translations = legacy.translations.length > 0
-        ? legacy.translations.map((t) => ({ locale: t.locale, title: t.title || legacy.slug }))
-        : [{ locale: primaryLocale, title: legacy.slug || 'Untitled' }];
+        ? legacy.translations.map((t) => ({ locale: t.locale, title: t.title || slugTitle }))
+        : [{ locale: primaryLocale, title: slugTitle }];
 
       const payload: Record<string, unknown> = {
         type: v2Type,

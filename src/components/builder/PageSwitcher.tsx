@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Header chip + dropdown that lists every page in the store. Tapping the
 // current-page chip opens the list; tapping a row navigates the builder to
@@ -104,12 +104,16 @@ function labelOfType(type: string, t: Translator): string {
   return KNOWN_PAGE_TYPES.has(k) ? t(`pageType.${k}`) : type.toLowerCase().replace(/_/g, ' ');
 }
 
-function titleOf(p: StorePageSummary, locale: string, primaryLocale: string): string {
+function titleOf(p: StorePageSummary, locale: string, primaryLocale: string, t: Translator): string {
   return (
-    p.translations.find((t) => t.locale === locale)?.title ||
-    p.translations.find((t) => t.locale === primaryLocale)?.title ||
+    p.translations.find((tr) => tr.locale === locale)?.title ||
+    p.translations.find((tr) => tr.locale === primaryLocale)?.title ||
     p.translations[0]?.title ||
-    (p.type === 'HOME' ? 'Home' : p.slug || 'Untitled')
+    // Untitled pages fall back to their translated type label ("Home",
+    // "Header", …) instead of a hardcoded English literal.
+    (KNOWN_PAGE_TYPES.has(p.type?.toUpperCase?.() || '')
+      ? labelOfType(p.type, t)
+      : p.slug || t('untitledPage'))
   );
 }
 
@@ -153,7 +157,7 @@ export function PageSwitcher({
     const q = query.trim().toLowerCase();
     const matches = pages.filter((p) => {
       if (!q) return true;
-      const title = titleOf(p, locale, primaryLocale).toLowerCase();
+      const title = titleOf(p, locale, primaryLocale, t).toLowerCase();
       return title.includes(q) || p.slug.toLowerCase().includes(q);
     });
     return matches.slice().sort((a, b) => {
@@ -232,7 +236,7 @@ export function PageSwitcher({
             ) : (
               filtered.map((p) => {
                 const Icon = TYPE_ICON[p.type.toUpperCase()] || FileText;
-                const title = titleOf(p, locale, primaryLocale);
+                const title = titleOf(p, locale, primaryLocale, t);
                 const isCurrent = p.id === currentPageId;
                 return (
                   <button

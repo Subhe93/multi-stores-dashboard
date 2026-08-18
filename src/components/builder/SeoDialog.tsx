@@ -213,6 +213,20 @@ export function SeoDialog({
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-xs">{t('builder.pageTitle')}</Label>
+              <Input
+                dir={editLocale === 'ar' ? 'rtl' : 'ltr'}
+                value={current.title || ''}
+                onChange={(e) => patchTranslation({ title: e.target.value })}
+                maxLength={160}
+                placeholder={t('builder.pageTitlePlaceholder')}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                {t('builder.pageTitleHint')}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-xs">{t('builder.metaTitle')}</Label>
               <Input
                 value={current.meta_title || ''}

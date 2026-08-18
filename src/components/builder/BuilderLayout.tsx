@@ -78,6 +78,7 @@ interface BuilderMenu {
 
 export function BuilderLayout({ page, initialSections, allPages, store }: BuilderLayoutProps) {
   const { token } = useAuth();
+  const tBuilder = useTranslations('builder');
   const previewRef = useRef<LivePreviewHandle>(null);
 
   const [sections, setSections] = useState<SectionInstance[]>(initialSections);
@@ -796,10 +797,21 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   // ── Render ──────────────────────────────────────────────
 
+  // Untitled pages fall back to the translated page-type label ("Home",
+  // "Header", …) so the builder chrome follows the dashboard language instead
+  // of showing hardcoded English literals.
+  const knownPageTypes = new Set([
+    'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'ABOUT', 'CONTACT',
+    'PRIVACY_POLICY', 'TERMS', 'SHIPPING_POLICY', 'RETURN_POLICY',
+    'CUSTOM', 'HEADER', 'FOOTER',
+  ]);
+  const pageTypeKey = (page.type || '').toUpperCase();
   const pageTitle =
     page.translations.find((t) => t.locale === activeLocale)?.title ||
     page.translations.find((t) => t.locale === store.language_config.primary_locale)?.title ||
-    (page.type === 'HOME' ? 'Home' : page.slug || 'Untitled');
+    (knownPageTypes.has(pageTypeKey)
+      ? tBuilder(`pageType.${pageTypeKey}`)
+      : page.slug || tBuilder('untitledPage'));
 
   return (
     <div className="h-screen w-full flex flex-col bg-zinc-50">

@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Plus, FileText, Trash2, Pencil, Store, Wand2, Loader2, Package, LayoutPanelTop, Columns } from 'lucide-react';
+import { Plus, FileText, Trash2, Pencil, Store, Wand2, Loader2, Package, LayoutPanelTop, Columns, Type } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
@@ -20,12 +22,24 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface StorePage {
+interface PageTranslation {
+  locale: string;
+  title?: string | null;
+  content?: string | null;
+}
+
+// One row in the unified table. Pages live in two backends: the legacy
+// StaticPage table and the builder's v2 Page table. The builder publishes to
+// v2 only, so the published state must be read from whichever system the row
+// belongs to — that is what `isPublished` carries.
+interface PageRow {
   id: string;
+  system: 'legacy' | 'v2';
   slug: string;
-  status: 'DRAFT' | 'PUBLISHED';
   type: string;
-  translations: { locale: string; title: string }[];
+  isPublished: boolean;
+  isRequired: boolean;
+  translations: PageTranslation[];
   created_at: string;
 }
 
@@ -41,8 +55,20 @@ function formatDate(dateStr: string): string {
 
 type Translator = ReturnType<typeof useTranslations>;
 
-function getEnTitle(translations: { locale: string; title: string }[], t: Translator): string {
-  return translations.find((tr) => tr.locale === 'en')?.title || translations[0]?.title || t('storePages.untitled');
+// Store-content-locale-aware title: primary locale → en → first row with a
+// title → translated "Untitled". The old version looked up hardcoded 'en'
+// first, so German stores listed every page under its English name.
+function pageTitle(
+  translations: PageTranslation[],
+  primaryLocale: string,
+  t: Translator,
+): string {
+  return (
+    translations.find((tr) => tr.locale === primaryLocale)?.title ||
+    translations.find((tr) => tr.locale === 'en')?.title ||
+    translations.find((tr) => !!tr.title)?.title ||
+    t('storePages.untitled')
+  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -56,10 +82,16 @@ export default function CreatorPagesPage() {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeError, setStoreError] = useState(false);
   const [search, setSearch] = useState('');
-  const [pages, setPages] = useState<StorePage[]>([]);
+  const [pages, setPages] = useState<PageRow[]>([]);
+  const [primaryLocale, setPrimaryLocale] = useState('en');
+  const [allLocales, setAllLocales] = useState<string[]>(['en']);
   const [loading, setLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<StorePage | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PageRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<PageRow | null>(null);
+  const [renameTitles, setRenameTitles] = useState<Record<string, string>>({});
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState('');
   const [openingHomeBuilder, setOpeningHomeBuilder] = useState(false);
   const [openingTemplateBuilder, setOpeningTemplateBuilder] = useState(false);
   const [openingHeaderBuilder, setOpeningHeaderBuilder] = useState(false);
@@ -136,13 +168,57 @@ export default function CreatorPagesPage() {
   const fetchStoreAndPages = async () => {
     setLoading(true);
     try {
-      // Step 1: get store id
-      const store = await api<{ id: string }>('/stores/my/store', { token: token! });
+      // Step 1: store id + content locales (page titles follow the STORE's
+      // languages, not the dashboard UI language).
+      const store = await api<{
+        id: string;
+        language_config?: { primary_locale?: string; secondary_locales?: string[] };
+      }>('/stores/my/store', { token: token! });
       setStoreId(store.id);
+      const primary = store.language_config?.primary_locale || 'en';
+      const secondary = store.language_config?.secondary_locales || [];
+      setPrimaryLocale(primary);
+      setAllLocales([primary, ...secondary.filter((l) => l && l !== primary)]);
 
-      // Step 2: get pages
-      const pagesData = await api<StorePage[]>(`/stores/${store.id}/pages`, { token: token! });
-      setPages(Array.isArray(pagesData) ? pagesData : []);
+      // Step 2: both page systems. The table shows legacy static pages plus
+      // builder (v2) STATIC pages; the builder publishes to v2 only, so the
+      // v2 published flag comes from published_version_id (what the
+      // storefront actually serves), not the status column.
+      const [legacy, v2] = await Promise.all([
+        api<any[]>(`/stores/${store.id}/pages`, { token: token! }),
+        api<any[]>('/v2/pages/mine', { token: token! }).catch(() => []),
+      ]);
+
+      const v2Rows: PageRow[] = (Array.isArray(v2) ? v2 : [])
+        .filter((p) => p.type === 'STATIC' && p.slug)
+        .map((p) => ({
+          id: p.id,
+          system: 'v2' as const,
+          slug: p.slug,
+          type: p.static_kind || 'CUSTOM',
+          isPublished: !!p.published_version_id,
+          isRequired: !!p.is_required,
+          translations: p.translations || [],
+          created_at: p.created_at,
+        }));
+      const v2Slugs = new Set(v2Rows.map((p) => p.slug));
+
+      const legacyRows: PageRow[] = (Array.isArray(legacy) ? legacy : [])
+        // A slug that exists in v2 means the page was migrated to the builder
+        // (or rebuilt there) — the v2 row is the one the storefront serves.
+        .filter((p) => !v2Slugs.has(p.slug))
+        .map((p) => ({
+          id: p.id,
+          system: 'legacy' as const,
+          slug: p.slug,
+          type: p.type || 'CUSTOM',
+          isPublished: p.status === 'PUBLISHED',
+          isRequired: !!p.is_required,
+          translations: p.translations || [],
+          created_at: p.created_at,
+        }));
+
+      setPages([...v2Rows, ...legacyRows]);
     } catch (err: any) {
       if (err?.status === 404 || err?.status === 403) {
         setStoreError(true);
@@ -158,7 +234,9 @@ export default function CreatorPagesPage() {
     if (!deleteTarget || !token) return;
     setDeleting(true);
     try {
-      await api(`/pages/${deleteTarget.id}`, { method: 'DELETE', token });
+      const path =
+        deleteTarget.system === 'v2' ? `/v2/pages/${deleteTarget.id}` : `/pages/${deleteTarget.id}`;
+      await api(path, { method: 'DELETE', token });
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch (err) {
@@ -168,26 +246,96 @@ export default function CreatorPagesPage() {
     }
   };
 
+  // ── Rename ────────────────────────────────────────────────
+  const openRename = (row: PageRow) => {
+    const titles: Record<string, string> = {};
+    for (const locale of allLocales) {
+      titles[locale] = row.translations.find((tr) => tr.locale === locale)?.title || '';
+    }
+    setRenameTitles(titles);
+    setRenameError('');
+    setRenameTarget(row);
+  };
+
+  const handleRename = async () => {
+    if (!renameTarget || !token || renaming) return;
+    const entries = allLocales
+      .map((locale) => ({ locale, title: (renameTitles[locale] || '').trim() }))
+      .filter((e) => e.title);
+    if (entries.length === 0) {
+      setRenameError(t('storePages.renameEmpty'));
+      return;
+    }
+    setRenaming(true);
+    setRenameError('');
+    try {
+      if (renameTarget.system === 'v2') {
+        // v2 upserts per locale — only titled locales are sent, nothing is deleted.
+        await api(`/v2/pages/${renameTarget.id}`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ translations: entries }),
+        });
+      } else {
+        // Legacy update REPLACES all translation rows, so resend every
+        // existing row with its content preserved and only the title changed.
+        const byLocale = new Map(renameTarget.translations.map((tr) => [tr.locale, tr]));
+        const locales = Array.from(new Set([...allLocales, ...renameTarget.translations.map((tr) => tr.locale)]));
+        const translations = locales
+          .map((locale) => {
+            const existing = byLocale.get(locale);
+            const title = (renameTitles[locale] ?? existing?.title ?? '').trim();
+            if (!title) return null;
+            return { locale, title, content: existing?.content ?? '' };
+          })
+          .filter((tr): tr is { locale: string; title: string; content: string } => !!tr);
+        await api(`/pages/${renameTarget.id}`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ translations }),
+        });
+      }
+      // Reflect the new titles in the table without a refetch.
+      setPages((prev) =>
+        prev.map((p) => {
+          if (p.id !== renameTarget.id) return p;
+          const others = p.translations.filter((tr) => !entries.some((e) => e.locale === tr.locale));
+          const updated = entries.map((e) => ({
+            ...(p.translations.find((tr) => tr.locale === e.locale) || {}),
+            locale: e.locale,
+            title: e.title,
+          }));
+          return { ...p, translations: [...updated, ...others] };
+        }),
+      );
+      setRenameTarget(null);
+    } catch (err: any) {
+      setRenameError(err?.message || t('storePages.renameFailed'));
+    } finally {
+      setRenaming(false);
+    }
+  };
+
   const columns = [
     {
       key: 'title',
       label: t('storePages.colTitle'),
-      render: (item: StorePage) => (
-        <span className="text-sm font-medium">{getEnTitle(item.translations, t)}</span>
+      render: (item: PageRow) => (
+        <span className="text-sm font-medium">{pageTitle(item.translations, primaryLocale, t)}</span>
       ),
     },
     {
       key: 'slug',
       label: t('storePages.colSlug'),
-      render: (item: StorePage) => (
+      render: (item: PageRow) => (
         <span className="font-mono text-[10px] text-muted-foreground">/{item.slug}</span>
       ),
     },
     {
       key: 'status',
       label: tc('status'),
-      render: (item: StorePage) =>
-        item.status === 'PUBLISHED' ? (
+      render: (item: PageRow) =>
+        item.isPublished ? (
           <span className="inline-flex h-5 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
             {t('storePages.published')}
           </span>
@@ -200,24 +348,34 @@ export default function CreatorPagesPage() {
     {
       key: 'type',
       label: t('storePages.colType'),
-      render: (item: StorePage) => (
+      render: (item: PageRow) => (
         <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 text-[10px] font-medium text-zinc-600">
-          {item.type?.toLowerCase().replace(/_/g, ' ') || t('storePages.typeCustom')}
+          {item.type && item.type !== 'CUSTOM'
+            ? item.type.toLowerCase().replace(/_/g, ' ')
+            : t('storePages.typeCustom')}
         </span>
       ),
     },
     {
       key: 'created_at',
       label: t('storePages.colDate'),
-      render: (item: StorePage) => (
+      render: (item: PageRow) => (
         <span className="text-xs text-muted-foreground">{formatDate(item.created_at)}</span>
       ),
     },
     {
       key: 'actions',
       label: '',
-      render: (item: StorePage) => (
+      render: (item: PageRow) => (
         <div className="flex items-center justify-end gap-1">
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            title={t('storePages.rename')}
+            onClick={() => openRename(item)}
+          >
+            <Type className="size-3.5" />
+          </Button>
           <Button
             size="icon-sm"
             variant="ghost"
@@ -416,7 +574,8 @@ export default function CreatorPagesPage() {
           const q = search.trim().toLowerCase();
           if (!q) return true;
           return (
-            getEnTitle(p.translations, t).toLowerCase().includes(q) ||
+            pageTitle(p.translations, primaryLocale, t).toLowerCase().includes(q) ||
+            p.translations.some((tr) => (tr.title || '').toLowerCase().includes(q)) ||
             (p.slug || '').toLowerCase().includes(q)
           );
         })}
@@ -446,6 +605,44 @@ export default function CreatorPagesPage() {
         </div>
       )}
 
+      {/* Rename dialog — page title per store content locale. Writes through
+          the system the page belongs to (v2 upsert / legacy full replace). */}
+      <Dialog open={!!renameTarget} onOpenChange={(open) => !open && setRenameTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('storePages.renameTitle')}</DialogTitle>
+            <DialogDescription>{t('storePages.renameDesc')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-1">
+            {allLocales.map((locale) => (
+              <div key={locale} className="space-y-1.5">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {locale}
+                  {locale === primaryLocale && <span className="ms-1 text-[9px]">({t('storePages.primaryLocale')})</span>}
+                </Label>
+                <Input
+                  dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                  value={renameTitles[locale] || ''}
+                  onChange={(e) =>
+                    setRenameTitles((prev) => ({ ...prev, [locale]: e.target.value }))
+                  }
+                />
+              </div>
+            ))}
+            {renameError && <p className="text-xs text-red-600">{renameError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameTarget(null)} disabled={renaming}>
+              {tc('cancel')}
+            </Button>
+            <Button onClick={handleRename} disabled={renaming}>
+              {renaming ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              {tc('save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete confirm dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-md">
@@ -454,7 +651,7 @@ export default function CreatorPagesPage() {
             <DialogDescription>
               {t('storePages.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
-                {deleteTarget ? getEnTitle(deleteTarget.translations, t) : ''}
+                {deleteTarget ? pageTitle(deleteTarget.translations, primaryLocale, t) : ''}
               </span>
               {t('storePages.deleteConfirmSuffix')}
             </DialogDescription>
