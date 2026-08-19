@@ -551,7 +551,13 @@ export default function CreatorStorePage() {
           description: primaryTrans.description || '',
           logo_url: form.logo_url,
           favicon_url: form.favicon_url,
-          custom_domain: form.custom_domain,
+          // An empty custom_domain means "clear it" server-side, so only send
+          // the field when the creator actually changed it — otherwise a save
+          // made before the store fetch populated the form would silently
+          // wipe the domain.
+          ...(store && form.custom_domain !== (store.custom_domain ?? '')
+            ? { custom_domain: form.custom_domain }
+            : {}),
           is_active: form.is_active,
         }),
       });
