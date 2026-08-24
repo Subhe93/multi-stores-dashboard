@@ -116,7 +116,7 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
           <div>
             <CardTitle className="text-sm font-semibold">{t('image.media')}</CardTitle>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {t('image.mediaHint', { count: images.length })}
+              {t('image.mediaHint', { count: images.length })} · {t('image.ratioHint')}
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleUpload(true)} disabled={uploading}>
@@ -162,6 +162,7 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
             )}
             <p className="text-sm font-medium text-muted-foreground">{t('image.dropOrClick')}</p>
             <p className="text-[10px] text-muted-foreground mt-1">{t('image.uploadHint')}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{t('image.ratioHint')}</p>
           </button>
         )}
       </CardContent>

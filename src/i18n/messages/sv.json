@@ -1009,6 +1009,7 @@
       "noProducts": "Inga produkter hittades",
       "loadingProduct": "Laddar produkt…",
       "images": "Bilder",
+      "imageRatioHint": "Använd ett standardbildförhållande — 1:1 (kvadrat), 4:5 eller 4:3 — och håll samma förhållande på alla bilder.",
       "selectedCount": "({count} valda)",
       "upload": "Ladda upp",
       "setAsFeatured": "Ange som huvudbild",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} valda)",
       "upload": "Ladda upp",
       "noImagesYet": "Inga bilder än. Ladda upp eller välj från basprodukten nedan.",
+      "imageRatioHint": "Använd ett standardbildförhållande — 1:1 (kvadrat), 4:5 eller 4:3 — och håll samma förhållande på alla bilder.",
       "setAsFeatured": "Ange som huvudbild",
       "selectFromBase": "Välj från basprodukt",
       "pricing": "Prissättning",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "Redigera färg",
     "valueImage": "Ange bild för detta värde",
+    "imageRatioHint": "Använd samma bildförhållande som dina produktbilder (1:1 rekommenderas).",
     "untitledColor": "Namnlös färg",
     "twoToneColor": "Tvåfärgad",
     "solidColor": "Enfärgad",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} bilder",
     "uploadImages": "Ladda upp bilder",
     "dropOrClick": "Släpp bilder här eller klicka för att ladda upp",
-    "uploadHint": "PNG, JPG eller WEBP upp till 10 MB"
+    "uploadHint": "PNG, JPG eller WEBP upp till 10 MB",
+    "ratioHint": "Använd ett standardbildförhållande — 1:1 (kvadrat), 4:5 eller 4:3 — och håll samma förhållande på alla bilder."
   },
   "bundle": {
     "searchAndPickProducts": "Sök och välj produkter",

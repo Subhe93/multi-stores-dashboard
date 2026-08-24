@@ -1009,6 +1009,7 @@
       "noProducts": "Aucun produit trouvé",
       "loadingProduct": "Chargement du produit…",
       "images": "Images",
+      "imageRatioHint": "Utilisez un ratio standard — 1:1 (carré), 4:5 ou 4:3 — et gardez le même ratio pour toutes les images.",
       "selectedCount": "({count} sélectionnés)",
       "upload": "Téléverser",
       "setAsFeatured": "Définir comme image principale",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} sélectionnés)",
       "upload": "Téléverser",
       "noImagesYet": "Aucune image pour l'instant. Téléversez-en ou sélectionnez depuis le produit de base ci-dessous.",
+      "imageRatioHint": "Utilisez un ratio standard — 1:1 (carré), 4:5 ou 4:3 — et gardez le même ratio pour toutes les images.",
       "setAsFeatured": "Définir comme image principale",
       "selectFromBase": "Sélectionner depuis le produit de base",
       "pricing": "Tarification",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "Modifier la couleur",
     "valueImage": "Définir l'image pour cette valeur",
+    "imageRatioHint": "Utilisez le même ratio que vos images produit (1:1 recommandé).",
     "untitledColor": "Couleur sans nom",
     "twoToneColor": "Couleur bicolore",
     "solidColor": "Couleur unie",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} images",
     "uploadImages": "Télécharger des images",
     "dropOrClick": "Déposez des images ici ou cliquez pour télécharger",
-    "uploadHint": "PNG, JPG ou WEBP jusqu'à 10 Mo"
+    "uploadHint": "PNG, JPG ou WEBP jusqu'à 10 Mo",
+    "ratioHint": "Utilisez un ratio standard — 1:1 (carré), 4:5 ou 4:3 — et gardez le même ratio pour toutes les images."
   },
   "bundle": {
     "searchAndPickProducts": "Rechercher et choisir des produits",

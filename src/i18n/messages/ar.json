@@ -1009,6 +1009,7 @@
       "noProducts": "لم يتم العثور على منتجات",
       "loadingProduct": "جارٍ تحميل المنتج…",
       "images": "الصور",
+      "imageRatioHint": "استخدم نسبة أبعاد قياسية — 1:1 (مربع) أو 4:5 أو 4:3 — وحافظ على نفس النسبة لكل الصور.",
       "selectedCount": "({count} محدد)",
       "upload": "رفع",
       "setAsFeatured": "تعيين كصورة رئيسية",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} محدد)",
       "upload": "رفع",
       "noImagesYet": "لا توجد صور بعد. ارفع صوراً أو اختر من المنتج الأساسي أدناه.",
+      "imageRatioHint": "استخدم نسبة أبعاد قياسية — 1:1 (مربع) أو 4:5 أو 4:3 — وحافظ على نفس النسبة لكل الصور.",
       "setAsFeatured": "تعيين كصورة رئيسية",
       "selectFromBase": "اختر من المنتج الأساسي",
       "pricing": "التسعير",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "تعديل اللون",
     "valueImage": "تعيين صورة لهذه القيمة",
+    "imageRatioHint": "استخدم نفس نسبة أبعاد صور المنتج (يُنصح بـ 1:1).",
     "untitledColor": "لون بدون اسم",
     "twoToneColor": "لون ثنائي",
     "solidColor": "لون موحد",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} صور",
     "uploadImages": "رفع صور",
     "dropOrClick": "أفلت الصور هنا أو انقر للرفع",
-    "uploadHint": "PNG أو JPG أو WEBP حتى 10 ميغابايت"
+    "uploadHint": "PNG أو JPG أو WEBP حتى 10 ميغابايت",
+    "ratioHint": "استخدم نسبة أبعاد قياسية — 1:1 (مربع) أو 4:5 أو 4:3 — وحافظ على نفس النسبة لكل الصور."
   },
   "bundle": {
     "searchAndPickProducts": "ابحث واختر المنتجات",

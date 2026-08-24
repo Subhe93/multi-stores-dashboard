@@ -1009,6 +1009,7 @@
       "noProducts": "Ürün bulunamadı",
       "loadingProduct": "Ürün yükleniyor…",
       "images": "Görseller",
+      "imageRatioHint": "Standart en-boy oranı kullanın — 1:1 (kare), 4:5 veya 4:3 — ve tüm görsellerde aynı oranı koruyun.",
       "selectedCount": "({count} seçildi)",
       "upload": "Yükle",
       "setAsFeatured": "Öne çıkan olarak ayarla",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} seçildi)",
       "upload": "Yükle",
       "noImagesYet": "Henüz görsel yok. Yükleyin veya aşağıdaki temel üründen seçin.",
+      "imageRatioHint": "Standart en-boy oranı kullanın — 1:1 (kare), 4:5 veya 4:3 — ve tüm görsellerde aynı oranı koruyun.",
       "setAsFeatured": "Öne çıkan olarak ayarla",
       "selectFromBase": "Temel üründen seç",
       "pricing": "Fiyatlandırma",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "Rengi düzenle",
     "valueImage": "Bu değer için görsel ayarla",
+    "imageRatioHint": "Ürün görselleriyle aynı en-boy oranını kullanın (1:1 önerilir).",
     "untitledColor": "Adsız renk",
     "twoToneColor": "İki tonlu renk",
     "solidColor": "Düz renk",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} görsel",
     "uploadImages": "Görsel yükle",
     "dropOrClick": "Görselleri buraya bırakın veya yüklemek için tıklayın",
-    "uploadHint": "PNG, JPG veya WEBP, 10 MB'a kadar"
+    "uploadHint": "PNG, JPG veya WEBP, 10 MB'a kadar",
+    "ratioHint": "Standart en-boy oranı kullanın — 1:1 (kare), 4:5 veya 4:3 — ve tüm görsellerde aynı oranı koruyun."
   },
   "bundle": {
     "searchAndPickProducts": "Ürün ara ve seç",

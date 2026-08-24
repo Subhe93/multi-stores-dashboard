@@ -809,6 +809,9 @@ export default function NewCustomProductPage() {
                     {t('customProductForm.upload')}
                   </Button>
                 </div>
+                <p className="text-[10px] text-muted-foreground -mt-1">
+                  {t('customProductForm.imageRatioHint')}
+                </p>
 
                 {/* Current selected images with featured + remove */}
                 {selectedImageUrls.length > 0 && (

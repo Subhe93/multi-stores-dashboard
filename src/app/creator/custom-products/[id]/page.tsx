@@ -542,6 +542,9 @@ export default function EditCustomProduct() {
                 </Button>
               </div>
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {t('editCustomProduct.imageRatioHint')}
+            </p>
           </CardHeader>
           <CardContent>
             {selectedImageUrls.length === 0 ? (

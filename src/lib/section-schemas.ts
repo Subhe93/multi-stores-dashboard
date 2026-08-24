@@ -2106,6 +2106,17 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'featured', label: { en: 'Featured only', ar: 'المميّزة فقط' } },
         ],
       },
+      {
+        key: 'aspect',
+        type: 'select',
+        label: { en: 'Image aspect ratio', ar: 'نسبة أبعاد الصور' },
+        defaultValue: 'square',
+        options: [
+          { value: 'square', label: { en: 'Square (1:1)', ar: 'مربّع (1:1)' } },
+          { value: 'portrait', label: { en: 'Portrait (4:5)', ar: 'طولي (4:5)' } },
+          { value: 'landscape', label: { en: 'Landscape (4:3)', ar: 'عرضي (4:3)' } },
+        ],
+      },
       { key: 'limit', type: 'number', label: { en: 'Number of products', ar: 'عدد المنتجات' }, min: 1, max: 12, defaultValue: 4 },
       { key: 'columns', type: 'number', label: { en: 'Columns — desktop', ar: 'الأعمدة — سطح المكتب' }, min: 1, max: 6, defaultValue: 4 },
       { key: 'columns_tablet', type: 'number', label: { en: 'Columns — tablet', ar: 'الأعمدة — تابلت' }, min: 1, max: 6, defaultValue: 3 },
@@ -2115,7 +2126,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       ...textColorFields({ heading: true, subheading: true }),
       c('link_color', 'See-all link color', 'لون رابط الكل'),
     ],
-    defaultSettings: { filter: 'newest', limit: 4, columns: 4, columns_tablet: 3, columns_mobile: 2 },
+    defaultSettings: { filter: 'newest', aspect: 'square', limit: 4, columns: 4, columns_tablet: 3, columns_mobile: 2 },
     defaultContent: {
       heading: 'Featured products',
       subheading: 'Handpicked picks from our latest catalogue.',
@@ -2145,6 +2156,17 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'featured', label: { en: 'Featured only', ar: 'المميّزة فقط' } },
         ],
       },
+      {
+        key: 'aspect',
+        type: 'select',
+        label: { en: 'Image aspect ratio', ar: 'نسبة أبعاد الصور' },
+        defaultValue: 'square',
+        options: [
+          { value: 'square', label: { en: 'Square (1:1)', ar: 'مربّع (1:1)' } },
+          { value: 'portrait', label: { en: 'Portrait (4:5)', ar: 'طولي (4:5)' } },
+          { value: 'landscape', label: { en: 'Landscape (4:3)', ar: 'عرضي (4:3)' } },
+        ],
+      },
       { key: 'limit', type: 'number', label: { en: 'Number of products', ar: 'عدد المنتجات' }, min: 1, max: 24, defaultValue: 8 },
       { key: 'slides_per_view', type: 'number', label: { en: 'Slides per view — desktop', ar: 'عدد الشرائح — سطح المكتب' }, min: 1, max: 6, defaultValue: 4 },
       { key: 'slides_per_view_tablet', type: 'number', label: { en: 'Slides per view — tablet', ar: 'عدد الشرائح — تابلت' }, min: 1, max: 6, defaultValue: 3 },
@@ -2161,6 +2183,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
     ],
     defaultSettings: {
       filter: 'newest',
+      aspect: 'square',
       limit: 8,
       slides_per_view: 4,
       slides_per_view_tablet: 3,
@@ -2187,6 +2210,17 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' } },
       { key: 'subheading', type: 'textarea', label: { en: 'Subheading', ar: 'العنوان الفرعي' } },
       { key: 'category', type: 'collectionPicker', label: { en: 'Category', ar: 'الفئة' }, description: { en: 'Pick one of your categories — its products fill the grid.', ar: 'اختر إحدى فئاتك — تُعرض منتجاتها في الشبكة.' } },
+      {
+        key: 'aspect',
+        type: 'select',
+        label: { en: 'Image aspect ratio', ar: 'نسبة أبعاد الصور' },
+        defaultValue: 'square',
+        options: [
+          { value: 'square', label: { en: 'Square (1:1)', ar: 'مربّع (1:1)' } },
+          { value: 'portrait', label: { en: 'Portrait (4:5)', ar: 'طولي (4:5)' } },
+          { value: 'landscape', label: { en: 'Landscape (4:3)', ar: 'عرضي (4:3)' } },
+        ],
+      },
       { key: 'limit', type: 'number', label: { en: 'Number of products', ar: 'عدد المنتجات' }, min: 1, max: 24, defaultValue: 8 },
       { key: 'columns', type: 'number', label: { en: 'Columns — desktop', ar: 'الأعمدة — سطح المكتب' }, min: 1, max: 6, defaultValue: 4 },
       { key: 'columns_tablet', type: 'number', label: { en: 'Columns — tablet', ar: 'الأعمدة — تابلت' }, min: 1, max: 6, defaultValue: 3 },
@@ -2196,7 +2230,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       ...textColorFields({ heading: true, subheading: true }),
       c('link_color', 'See-all link color', 'لون رابط الكل'),
     ],
-    defaultSettings: { limit: 8, columns: 4, columns_tablet: 3, columns_mobile: 2 },
+    defaultSettings: { aspect: 'square', limit: 8, columns: 4, columns_tablet: 3, columns_mobile: 2 },
     defaultContent: { heading: 'Shop the collection' },
   },
   {
@@ -2333,6 +2367,17 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'outline', label: { en: 'Outline', ar: 'إطار' } },
         ],
       },
+      {
+        key: 'gallery_aspect',
+        type: 'select',
+        label: { en: 'Gallery aspect ratio', ar: 'نسبة أبعاد المعرض' },
+        defaultValue: 'square',
+        options: [
+          { value: 'square', label: { en: 'Square (1:1)', ar: 'مربّع (1:1)' } },
+          { value: 'portrait', label: { en: 'Portrait (4:5)', ar: 'طولي (4:5)' } },
+          { value: 'landscape', label: { en: 'Landscape (4:3)', ar: 'عرضي (4:3)' } },
+        ],
+      },
     ],
     defaultSettings: {
       show_trust_badges: true,
@@ -2340,6 +2385,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       show_tabs: true,
       show_tags: true,
       button_style: 'solid',
+      gallery_aspect: 'square',
     },
   },
   {

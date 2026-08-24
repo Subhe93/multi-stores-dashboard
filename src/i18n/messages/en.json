@@ -1009,6 +1009,7 @@
       "noProducts": "No products found",
       "loadingProduct": "Loading product…",
       "images": "Images",
+      "imageRatioHint": "Use a standard aspect ratio — 1:1 (square), 4:5 or 4:3 — and keep all images the same ratio.",
       "selectedCount": "({count} selected)",
       "upload": "Upload",
       "setAsFeatured": "Set as featured",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} selected)",
       "upload": "Upload",
       "noImagesYet": "No images yet. Upload or select from the base product below.",
+      "imageRatioHint": "Use a standard aspect ratio — 1:1 (square), 4:5 or 4:3 — and keep all images the same ratio.",
       "setAsFeatured": "Set as featured",
       "selectFromBase": "Select from base product",
       "pricing": "Pricing",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "Edit color",
     "valueImage": "Set image for this value",
+    "imageRatioHint": "Use the same aspect ratio as your product images (1:1 recommended).",
     "untitledColor": "Untitled color",
     "twoToneColor": "Two-tone color",
     "solidColor": "Solid color",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} images",
     "uploadImages": "Upload images",
     "dropOrClick": "Drop images here or click to upload",
-    "uploadHint": "PNG, JPG or WEBP up to 10MB"
+    "uploadHint": "PNG, JPG or WEBP up to 10MB",
+    "ratioHint": "Use a standard aspect ratio — 1:1 (square), 4:5 or 4:3 — and keep all images the same ratio."
   },
   "bundle": {
     "searchAndPickProducts": "Search and pick products",

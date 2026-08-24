@@ -683,7 +683,10 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                             : <img src={valueImageUrl} className="h-full w-full object-cover" />}
                         </PopoverTrigger>
                         <PopoverContent className="w-40 p-2" align="start">
-                          <img src={valueImageUrl} className="w-full aspect-square object-cover rounded mb-2" />
+                          <img src={valueImageUrl} className="w-full aspect-square object-cover rounded mb-1.5" />
+                          <p className="text-[9px] text-muted-foreground leading-snug mb-1.5">
+                            {t('variant.imageRatioHint')}
+                          </p>
                           <div className="flex gap-1">
                             <Button
                               type="button" variant="outline" size="sm"
@@ -931,6 +934,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                       setPendingImageKey(null);
                     }
                   }}
+                    title={t('variant.imageRatioHint')}
                     className="h-9 w-9 rounded border bg-zinc-50 flex items-center justify-center hover:bg-zinc-100 transition overflow-hidden shrink-0">
                     {pendingImageKey === v._key && uploading
                       ? <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />

@@ -688,6 +688,9 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                       <Trash2 className="size-3.5 mr-1" />
                       {t('common.remove')}
                     </Button>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      {t('category.thumbnailHint')}
+                    </p>
                   </div>
                 </div>
               ) : (

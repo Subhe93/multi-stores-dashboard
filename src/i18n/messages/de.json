@@ -1009,6 +1009,7 @@
       "noProducts": "Keine Produkte gefunden",
       "loadingProduct": "Produkt wird geladen…",
       "images": "Bilder",
+      "imageRatioHint": "Verwenden Sie ein Standard-Seitenverhältnis — 1:1 (quadratisch), 4:5 oder 4:3 — und halten Sie alle Bilder im gleichen Verhältnis.",
       "selectedCount": "({count} ausgewählt)",
       "upload": "Hochladen",
       "setAsFeatured": "Als Hauptbild festlegen",
@@ -1069,6 +1070,7 @@
       "selectedCount": "({count} ausgewählt)",
       "upload": "Hochladen",
       "noImagesYet": "Noch keine Bilder. Laden Sie welche hoch oder wählen Sie unten aus dem Basisprodukt.",
+      "imageRatioHint": "Verwenden Sie ein Standard-Seitenverhältnis — 1:1 (quadratisch), 4:5 oder 4:3 — und halten Sie alle Bilder im gleichen Verhältnis.",
       "setAsFeatured": "Als Hauptbild festlegen",
       "selectFromBase": "Aus Basisprodukt wählen",
       "pricing": "Preis",
@@ -2378,6 +2380,7 @@
   "variant": {
     "editColor": "Farbe bearbeiten",
     "valueImage": "Bild für diesen Wert festlegen",
+    "imageRatioHint": "Verwenden Sie dasselbe Seitenverhältnis wie Ihre Produktbilder (1:1 empfohlen).",
     "untitledColor": "Unbenannte Farbe",
     "twoToneColor": "Zweifarbig",
     "solidColor": "Einfarbig",
@@ -2453,7 +2456,8 @@
     "mediaHint": "{count} Bilder",
     "uploadImages": "Bilder hochladen",
     "dropOrClick": "Bilder hierher ziehen oder zum Hochladen klicken",
-    "uploadHint": "PNG, JPG oder WEBP bis zu 10 MB"
+    "uploadHint": "PNG, JPG oder WEBP bis zu 10 MB",
+    "ratioHint": "Verwenden Sie ein Standard-Seitenverhältnis — 1:1 (quadratisch), 4:5 oder 4:3 — und halten Sie alle Bilder im gleichen Verhältnis."
   },
   "bundle": {
     "searchAndPickProducts": "Produkte suchen und auswählen",
