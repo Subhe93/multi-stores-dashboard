@@ -30,7 +30,7 @@ interface SectionListProps {
   selectedId: string | null;
   locale: string;
   primaryLocale: string;
-  pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'HEADER' | 'FOOTER';
+  pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   onSelect: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
   onAdd: (sectionKey: string) => Promise<void> | void;

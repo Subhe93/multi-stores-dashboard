@@ -820,7 +820,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   // "Header", …) so the builder chrome follows the dashboard language instead
   // of showing hardcoded English literals.
   const knownPageTypes = new Set([
-    'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'ABOUT', 'CONTACT',
+    'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'CATALOG_TEMPLATE', 'COLLECTION_TEMPLATE',
+    'ABOUT', 'CONTACT',
     'PRIVACY_POLICY', 'TERMS', 'SHIPPING_POLICY', 'RETURN_POLICY',
     'CUSTOM', 'HEADER', 'FOOTER',
   ]);

@@ -42,7 +42,10 @@ interface LegacyPageResponse {
 // types (ABOUT, CONTACT, policies, custom slugs) to STATIC since the v2
 // builder treats them all the same way — a slug + sections. The slug keeps
 // the original page identity in the storefront URL.
-const V2_ACCEPTED_TYPES = new Set(['HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'HEADER', 'FOOTER']);
+const V2_ACCEPTED_TYPES = new Set([
+  'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'CATALOG_TEMPLATE', 'COLLECTION_TEMPLATE',
+  'HEADER', 'FOOTER',
+]);
 
 // Accepted `static_kind` values when `type === 'STATIC'`. The legacy `type`
 // field on /pages rows already speaks this vocabulary (uppercase snake_case),

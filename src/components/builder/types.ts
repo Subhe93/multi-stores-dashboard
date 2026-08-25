@@ -13,7 +13,7 @@ export interface SectionInstance {
 
 export interface BuilderPage {
   id: string;
-  type: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'HEADER' | 'FOOTER';
+  type: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   slug: string | null;
   static_kind: string | null;
   status: 'DRAFT' | 'PUBLISHED';

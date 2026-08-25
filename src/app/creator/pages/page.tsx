@@ -3,7 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Plus, FileText, Trash2, Pencil, Store, Wand2, Loader2, Package, LayoutPanelTop, Columns, Type } from 'lucide-react';
+import {
+  Plus,
+  FileText,
+  Trash2,
+  Pencil,
+  Store,
+  Wand2,
+  Loader2,
+  Package,
+  LayoutGrid,
+  FolderTree,
+  LayoutPanelTop,
+  Columns,
+  Type,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
@@ -96,6 +110,8 @@ export default function CreatorPagesPage() {
   const [openingTemplateBuilder, setOpeningTemplateBuilder] = useState(false);
   const [openingHeaderBuilder, setOpeningHeaderBuilder] = useState(false);
   const [openingFooterBuilder, setOpeningFooterBuilder] = useState(false);
+  const [openingCatalogBuilder, setOpeningCatalogBuilder] = useState(false);
+  const [openingCollectionBuilder, setOpeningCollectionBuilder] = useState(false);
 
   const openHomeBuilder = async () => {
     if (!token || openingHomeBuilder) return;
@@ -124,6 +140,40 @@ export default function CreatorPagesPage() {
     } catch (err) {
       console.error('Failed to open product template builder:', err);
       setOpeningTemplateBuilder(false);
+    }
+  };
+
+  // Listing templates — the catalog (/products) and collection
+  // (/collections/[handle]) pages. Same ensure-on-demand pattern as the
+  // product template: the API provisions the singleton and seeds it with the
+  // `product-listing` section on first call.
+  const openCatalogTemplateBuilder = async () => {
+    if (!token || openingCatalogBuilder) return;
+    setOpeningCatalogBuilder(true);
+    try {
+      const template = await api<{ id: string }>('/v2/pages/mine/catalog-template/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${template.id}`);
+    } catch (err) {
+      console.error('Failed to open catalog template builder:', err);
+      setOpeningCatalogBuilder(false);
+    }
+  };
+
+  const openCollectionTemplateBuilder = async () => {
+    if (!token || openingCollectionBuilder) return;
+    setOpeningCollectionBuilder(true);
+    try {
+      const template = await api<{ id: string }>('/v2/pages/mine/collection-template/ensure', {
+        method: 'POST',
+        token,
+      });
+      router.push(`/builder/${template.id}`);
+    } catch (err) {
+      console.error('Failed to open collection template builder:', err);
+      setOpeningCollectionBuilder(false);
     }
   };
 
@@ -441,7 +491,7 @@ export default function CreatorPagesPage() {
         </Button>
       </div>
 
-      {/* Builder callouts — Home, Product template, Header, Footer.
+      {/* Builder callouts — Home, Product / Catalog / Collection templates, Header, Footer.
           Each provisions its singleton page on demand and opens the builder. */}
       <div className="grid gap-3 md:grid-cols-2">
         <Card className="shadow-none border-dashed">
@@ -491,6 +541,70 @@ export default function CreatorPagesPage() {
               className="shrink-0"
             >
               {openingTemplateBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  {t('storePages.opening')}
+                </>
+              ) : (
+                t('storePages.editTemplate')
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <LayoutGrid className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{t('storePages.catalogTemplate')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('storePages.catalogTemplateDesc')}
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openCatalogTemplateBuilder}
+              disabled={openingCatalogBuilder}
+              className="shrink-0"
+            >
+              {openingCatalogBuilder ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  {t('storePages.opening')}
+                </>
+              ) : (
+                t('storePages.editTemplate')
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-dashed">
+          <CardContent className="flex items-start justify-between gap-4 py-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-white">
+                <FolderTree className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{t('storePages.collectionTemplate')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t('storePages.collectionTemplateDesc')}
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openCollectionTemplateBuilder}
+              disabled={openingCollectionBuilder}
+              className="shrink-0"
+            >
+              {openingCollectionBuilder ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
                   {t('storePages.opening')}

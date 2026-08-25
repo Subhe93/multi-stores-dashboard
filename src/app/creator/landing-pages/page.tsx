@@ -31,7 +31,7 @@ import { DataTable } from '@/components/common/DataTable';
 
 interface PageRow {
   id: string;
-  type: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE';
+  type: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE';
   slug: string | null;
   status: 'DRAFT' | 'PUBLISHED';
   created_at: string;

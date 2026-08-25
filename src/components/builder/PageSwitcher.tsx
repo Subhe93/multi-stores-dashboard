@@ -13,8 +13,10 @@ import {
   ChevronDown,
   Columns,
   FileText,
+  FolderTree,
   Home,
   Info,
+  LayoutGrid,
   LayoutPanelTop,
   Package,
   Phone,
@@ -55,6 +57,8 @@ const TYPE_SORT = [
   'HOME',
   'LANDING',
   'PRODUCT_TEMPLATE',
+  'CATALOG_TEMPLATE',
+  'COLLECTION_TEMPLATE',
   'ABOUT',
   'CONTACT',
   'PRIVACY_POLICY',
@@ -78,6 +82,8 @@ const TYPE_ICON: Record<string, typeof Home> = {
   STATIC: FileText,
   LANDING: Sparkles,
   PRODUCT_TEMPLATE: Package,
+  CATALOG_TEMPLATE: LayoutGrid,
+  COLLECTION_TEMPLATE: FolderTree,
   ABOUT: Info,
   CONTACT: Phone,
   PRIVACY_POLICY: ShieldCheck,
@@ -94,7 +100,8 @@ type Translator = ReturnType<typeof useTranslations>;
 // Page-type identifiers that have a translated chrome label. Anything outside
 // this set falls back to a humanized form of the raw type key.
 const KNOWN_PAGE_TYPES = new Set([
-  'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'ABOUT', 'CONTACT',
+  'HOME', 'STATIC', 'LANDING', 'PRODUCT_TEMPLATE', 'CATALOG_TEMPLATE', 'COLLECTION_TEMPLATE',
+  'ABOUT', 'CONTACT',
   'PRIVACY_POLICY', 'TERMS', 'SHIPPING_POLICY', 'RETURN_POLICY',
   'CUSTOM', 'HEADER', 'FOOTER',
 ]);

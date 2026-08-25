@@ -18,7 +18,7 @@ import { SectionPreview } from './SectionPreviews';
 
 interface AddSectionDialogProps {
   locale: string;
-  pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'HEADER' | 'FOOTER';
+  pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   onAdd: (sectionKey: string) => Promise<void> | void;
 }
 
@@ -63,6 +63,8 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
   //   palettes hide all other sections by default.
   // - PRODUCT_TEMPLATE additionally allows magic sections.
   // - Other regular page types drop magic sections (they need product context).
+  //   CATALOG_TEMPLATE / COLLECTION_TEMPLATE behave like HOME/LANDING here; the
+  //   `product-listing` section reaches them via its own `pageTypes` whitelist.
   const visible = SECTION_SCHEMAS.filter((s) => {
     if (!isAvailableForPageType(s, pageType)) return false;
     if (isProductTemplate) return true;

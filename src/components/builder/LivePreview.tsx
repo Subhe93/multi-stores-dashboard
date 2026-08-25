@@ -18,7 +18,7 @@ interface LivePreviewProps {
   primaryLocale: string;
   // Page type drives which preview chrome to load — PRODUCT_TEMPLATE needs the
   // storefront to fetch a sample product so magic sections render with data.
-  pageType?: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'HEADER' | 'FOOTER';
+  pageType?: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   // Creator's navigation menus — forwarded so header/footer sections resolve a
   // selected menu key to its items in the preview (kept fresh from the dashboard).
   menus?: unknown[];
