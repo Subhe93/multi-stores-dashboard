@@ -12,10 +12,27 @@ const inter = Inter({ subsets: ["latin"] });
 // Arabic UI font — applied only when the dashboard language is Arabic.
 const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-arabic' });
 
-export const metadata: Metadata = {
-  title: "Multi-Stores Dashboard",
-  description: "Management dashboard for providers, creators, and admins",
-};
+// Browser-tab title inherits the admin-configured platform name.
+export async function generateMetadata(): Promise<Metadata> {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  let platformName = 'Multi Stores';
+  try {
+    const res = await fetch(`${apiBase}/storefront/platform-meta`, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as { data?: { platform_name?: string }; platform_name?: string };
+      platformName = json.data?.platform_name || json.platform_name || platformName;
+    }
+  } catch {
+    // Offline API must never block the dashboard shell — keep the fallback.
+  }
+  return {
+    title: `${platformName} Dashboard`,
+    description: "Management dashboard for providers, creators, and admins",
+  };
+}
 
 export default async function RootLayout({
   children,

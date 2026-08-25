@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
+import { usePlatformName } from '@/lib/usePlatformName';
 import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
 
 export default function ProviderLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const platformName = usePlatformName();
   const t = useTranslations('nav');
 
   const providerNav = [
@@ -46,7 +48,7 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
       <div className="flex min-h-screen bg-zinc-50">
         <AppSidebar
           groups={providerNav}
-          title="Multi-Stores"
+          title={platformName}
           subtitle={t('providerDashboard')}
           role="Provider"
           userLabel={user?.provider?.company_name || user?.email || 'Provider'}

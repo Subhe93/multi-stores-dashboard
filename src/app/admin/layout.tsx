@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/layout/Sidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
+import { usePlatformName } from '@/lib/usePlatformName';
 import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
@@ -22,6 +23,7 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const platformName = usePlatformName();
   const t = useTranslations('nav');
 
   const adminNav = [
@@ -67,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex min-h-screen bg-zinc-50">
         <AppSidebar
           groups={adminNav}
-          title="Multi-Stores"
+          title={platformName}
           subtitle={t('adminPanel')}
           role="Admin"
           userLabel={user?.email || 'Admin'}

@@ -5,6 +5,7 @@ import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
 import { useAuth } from '@/lib/auth';
+import { usePlatformName } from '@/lib/usePlatformName';
 import { useStoreType } from '@/lib/useStoreType';
 import { useTranslations } from 'next-intl';
 import {
@@ -29,6 +30,7 @@ import {
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const platformName = usePlatformName();
   const t = useTranslations('nav');
   // Independent stores sell only their own products, so marketplace-only
   // entries (provider catalog, imported products) are hidden from the nav.
@@ -91,7 +93,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
       <div className="flex min-h-screen bg-zinc-50">
         <AppSidebar
           groups={creatorNav}
-          title="Multi-Stores"
+          title={platformName}
           subtitle={t('creatorDashboard')}
           role="Creator"
           userLabel={user?.creator?.display_name || user?.email || 'Creator'}
