@@ -36,6 +36,8 @@ interface StripeSettings {
   connectWebhookRequired?: boolean;
   independentStoreCount?: number;
   usingEnvFallback: boolean;
+  /** Optional Kustom partner id, sent as the Kustom-Partner header for independent stores. */
+  kustomPartnerId: string | null;
 }
 
 interface SmtpSettings {
@@ -88,11 +90,13 @@ export default function AdminSettings() {
     webhookSecretConfigured: false,
     connectWebhookSecretConfigured: false,
     usingEnvFallback: false,
+    kustomPartnerId: null,
   });
   const [stripePublishable, setStripePublishable] = useState('');
   const [stripeSecret, setStripeSecret] = useState('');
   const [stripeWebhook, setStripeWebhook] = useState('');
   const [stripeConnectWebhook, setStripeConnectWebhook] = useState('');
+  const [kustomPartnerId, setKustomPartnerId] = useState('');
   const [stripeSaving, setStripeSaving] = useState(false);
   const [stripeSaved, setStripeSaved] = useState(false);
 
@@ -141,6 +145,7 @@ export default function AdminSettings() {
         if (s) {
           setStripe(s);
           setStripePublishable(s.publishableKey || '');
+          setKustomPartnerId(s.kustomPartnerId || '');
         }
       })
       .catch(console.error);
@@ -151,7 +156,11 @@ export default function AdminSettings() {
     setStripeSaving(true);
     setStripeSaved(false);
     try {
-      const body: Record<string, string> = { publishable_key: stripePublishable };
+      const body: Record<string, string> = {
+        publishable_key: stripePublishable,
+        // Always sent: an empty string clears the partner id.
+        kustom_partner_id: kustomPartnerId.trim(),
+      };
       // Only send secrets when the admin typed a new value; blank leaves them unchanged.
       if (stripeSecret.trim()) body.secret_key = stripeSecret.trim();
       if (stripeWebhook.trim()) body.webhook_secret = stripeWebhook.trim();
@@ -163,6 +172,7 @@ export default function AdminSettings() {
       });
       setStripe(updated);
       setStripePublishable(updated.publishableKey || '');
+      setKustomPartnerId(updated.kustomPartnerId || '');
       setStripeSecret('');
       setStripeWebhook('');
       setStripeConnectWebhook('');
@@ -579,6 +589,19 @@ export default function AdminSettings() {
                 })}
               </p>
             )}
+          </div>
+
+          {/* Kustom Checkout — platform-level partner id. Merchant credentials
+              live on each independent store's creator settings. */}
+          <div className="space-y-1.5 border-t pt-4">
+            <Label className="text-xs">{t('kustomPartnerId')}</Label>
+            <Input
+              className="h-8 text-sm font-mono"
+              value={kustomPartnerId}
+              onChange={(e) => setKustomPartnerId(e.target.value)}
+              autoComplete="off"
+            />
+            <p className="text-[10px] text-muted-foreground">{t('kustomPartnerIdHint')}</p>
           </div>
 
           <div className="flex items-center gap-3 justify-end">

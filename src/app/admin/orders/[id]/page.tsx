@@ -11,6 +11,7 @@ import { ArrowLeft, Clock, Package, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
 import Link from 'next/link';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
@@ -313,7 +314,14 @@ export default function OrderDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="text-xs space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">{tp('payment')}</span><span className="uppercase">{order.payment_method}</span></div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{tp('payment')}</span>
+                {order.payment_method === 'KUSTOM' ? (
+                  <span>{tp('kustomProvider')}</span>
+                ) : (
+                  <span className="uppercase">{order.payment_method}</span>
+                )}
+              </div>
               {order.card_brand && (
                 <div className="flex justify-between"><span className="text-muted-foreground">{tp('card')}</span><span className="capitalize">{order.card_brand} •••• {order.card_last4}</span></div>
               )}
@@ -327,6 +335,12 @@ export default function OrderDetailPage() {
                 <a href={order.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline pt-1">
                   {tp('viewReceipt')} <ExternalLink className="w-3 h-3" />
                 </a>
+              )}
+              {/* Kustom orders: order id, capture state, manual capture / refund. */}
+              {order.payment_method === 'KUSTOM' && token && (
+                <div className="border-t pt-2 mt-2">
+                  <KustomPaymentPanel orderId={id} order={order} token={token} onRefresh={fetchOrder} currency={order.currency} />
+                </div>
               )}
               {order.payment_method === 'STRIPE' &&
                 (order.payment_status !== 'paid' ||

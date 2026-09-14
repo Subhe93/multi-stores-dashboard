@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
+import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -637,6 +638,19 @@ export default function CreatorOrderDetailPage() {
                       </div>
                     );
                   })()}
+                {/* Kustom orders: order id, capture state, manual capture / refund. */}
+                {order.payment_method === 'KUSTOM' && token && (
+                  <div className="border-t pt-2 mt-2">
+                    <KustomPaymentPanel
+                      orderId={id}
+                      order={order}
+                      token={token}
+                      onRefresh={fetchOrder}
+                      showProvider
+                      currency={order.currency}
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

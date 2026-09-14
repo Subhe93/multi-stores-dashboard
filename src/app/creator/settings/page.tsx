@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Trash2, User as UserIcon } from 'lucide-react';
@@ -58,6 +58,22 @@ interface StripeConnectStatus {
   requires_relink?: boolean;
 }
 
+type KustomEnvironment = 'playground' | 'production';
+
+// Mirrors the API contract: the shared secret is never returned, only whether
+// one is stored.
+interface KustomSettings {
+  supported: boolean;
+  enabled: boolean;
+  merchant_id: string | null;
+  secret_configured: boolean;
+  environment: KustomEnvironment;
+  /** Store presentment currency and whether Kustom can process it. */
+  currency?: string;
+  currency_supported?: boolean;
+  ready: boolean;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreatorSettingsPage() {
@@ -103,6 +119,20 @@ export default function CreatorSettingsPage() {
   const [stripeLoading, setStripeLoading] = useState(true);
   const [stripeConnecting, setStripeConnecting] = useState(false);
   const [stripeError, setStripeError] = useState('');
+
+  // Kustom Checkout (independent stores only)
+  const [kustom, setKustom] = useState<KustomSettings | null>(null);
+  const [kustomLoading, setKustomLoading] = useState(false);
+  const [kustomLoadError, setKustomLoadError] = useState(false);
+  const [kustomMerchantId, setKustomMerchantId] = useState('');
+  const [kustomSecret, setKustomSecret] = useState('');
+  const [kustomEnvironment, setKustomEnvironment] = useState<KustomEnvironment>('playground');
+  const [kustomEnabled, setKustomEnabled] = useState(false);
+  const [kustomSaving, setKustomSaving] = useState(false);
+  const [kustomTesting, setKustomTesting] = useState(false);
+  const [kustomMsg, setKustomMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [confirmKustomRemove, setConfirmKustomRemove] = useState(false);
+  const [kustomRemoving, setKustomRemoving] = useState(false);
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -282,6 +312,93 @@ export default function CreatorSettingsPage() {
     } catch (err: any) {
       setStripeError(err?.message || t('settings.stripeConnectError'));
       setStripeConnecting(false);
+    }
+  };
+
+  // Sync the Kustom form fields from a settings response. The secret input is
+  // always cleared: blank means "keep the stored secret".
+  const applyKustomSettings = useCallback((s: KustomSettings) => {
+    setKustom(s);
+    setKustomMerchantId(s.merchant_id || '');
+    setKustomSecret('');
+    setKustomEnvironment(s.environment || 'playground');
+    setKustomEnabled(!!s.enabled);
+  }, []);
+
+  // Load Kustom settings once we know the store is independent.
+  useEffect(() => {
+    if (!token || store?.store_type !== 'INDEPENDENT') return;
+    setKustomLoading(true);
+    setKustomLoadError(false);
+    api<KustomSettings>('/payments/kustom/settings', { token })
+      .then((s) => applyKustomSettings(s))
+      .catch(() => setKustomLoadError(true))
+      .finally(() => setKustomLoading(false));
+  }, [token, store?.store_type, applyKustomSettings]);
+
+  const handleSaveKustom = async () => {
+    if (!token || !kustom || kustomSaving) return;
+    // Send only what changed. A blank merchant id or secret is ignored here —
+    // clearing credentials goes through the explicit "remove" action below.
+    const body: Record<string, string | boolean> = {};
+    const merchantId = kustomMerchantId.trim();
+    if (merchantId && merchantId !== (kustom.merchant_id || '')) body.merchant_id = merchantId;
+    if (kustomSecret.trim()) body.shared_secret = kustomSecret.trim();
+    if (kustomEnvironment !== kustom.environment) body.environment = kustomEnvironment;
+    if (kustomEnabled !== kustom.enabled) body.enabled = kustomEnabled;
+    if (Object.keys(body).length === 0) return;
+    setKustomSaving(true);
+    setKustomMsg(null);
+    try {
+      const updated = await api<KustomSettings>('/payments/kustom/settings', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify(body),
+      });
+      applyKustomSettings(updated);
+      setKustomMsg({ type: 'success', text: t('settings.kustomSaved') });
+    } catch (err) {
+      setKustomMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.kustomSaveFailed') });
+    } finally {
+      setKustomSaving(false);
+    }
+  };
+
+  // Verifies the *stored* credentials against the selected Kustom environment.
+  const handleTestKustom = async () => {
+    if (!token || kustomTesting) return;
+    setKustomTesting(true);
+    setKustomMsg(null);
+    try {
+      const res = await api<{ ok: boolean; message: string }>('/payments/kustom/settings/test', {
+        method: 'POST',
+        token,
+      });
+      setKustomMsg({ type: res.ok ? 'success' : 'error', text: res.message });
+    } catch (err) {
+      setKustomMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.kustomTestFailed') });
+    } finally {
+      setKustomTesting(false);
+    }
+  };
+
+  // Clears merchant id + secret and disables Kustom (two-step confirm).
+  const handleRemoveKustom = async () => {
+    if (!token || kustomRemoving) return;
+    setKustomRemoving(true);
+    setKustomMsg(null);
+    try {
+      const updated = await api<KustomSettings>('/payments/kustom/settings', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ merchant_id: '', shared_secret: '', enabled: false }),
+      });
+      applyKustomSettings(updated);
+      setConfirmKustomRemove(false);
+    } catch (err) {
+      setKustomMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.kustomRemoveFailed') });
+    } finally {
+      setKustomRemoving(false);
     }
   };
 
@@ -775,6 +892,218 @@ export default function CreatorSettingsPage() {
                             onClick={() => setConfirmDisconnect(true)}
                           >
                             {t('settings.disconnectStripe')}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* Kustom Checkout card — the creator's own Kustom (ex Klarna Checkout)
+            merchant account, independent stores only. */}
+        {store?.store_type === 'INDEPENDENT' && (() => {
+          const savedCredentials = !!kustom?.merchant_id && !!kustom?.secret_configured;
+          // The toggle unlocks as soon as both credentials are present, either
+          // already stored or typed into the form.
+          const credentialsPresent =
+            !!(kustom?.merchant_id || kustomMerchantId.trim()) &&
+            !!(kustom?.secret_configured || kustomSecret.trim());
+          const kustomDirty =
+            !!kustom &&
+            ((kustomMerchantId.trim() !== '' && kustomMerchantId.trim() !== (kustom.merchant_id || '')) ||
+              kustomSecret.trim() !== '' ||
+              kustomEnvironment !== kustom.environment ||
+              kustomEnabled !== kustom.enabled);
+          return (
+            <Card className="shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">{t('settings.kustomTitle')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {kustomLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
+                  </div>
+                ) : kustomLoadError || !kustom ? (
+                  <p className="text-[11px] text-destructive">{t('settings.kustomLoadFailed')}</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      {kustom.ready ? (
+                        <span className="inline-flex h-5 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 text-[10px] font-medium text-emerald-700">
+                          <CheckCircle2 className="size-3" />
+                          {t('settings.kustomReady')}
+                        </span>
+                      ) : savedCredentials ? (
+                        <span className="inline-flex h-5 items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-medium text-amber-700">
+                          {t('settings.kustomConfiguredDisabled')}
+                        </span>
+                      ) : (
+                        <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-100 px-2 text-[10px] font-medium text-zinc-600">
+                          {t('settings.kustomNotConfigured')}
+                        </span>
+                      )}
+                      <p className="text-[11px] text-muted-foreground">{t('settings.kustomDesc')}</p>
+                      {kustom.currency_supported === false && (
+                        <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
+                          {t('settings.kustomCurrencyUnsupported', { currency: kustom.currency || '' })}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.kustomMerchantId')}</Label>
+                      <Input
+                        value={kustomMerchantId}
+                        onChange={(e) => setKustomMerchantId(e.target.value)}
+                        placeholder={t('settings.kustomMerchantIdPlaceholder')}
+                        className="h-8 font-mono"
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.kustomSharedSecret')}</Label>
+                      <Input
+                        type="password"
+                        value={kustomSecret}
+                        onChange={(e) => setKustomSecret(e.target.value)}
+                        placeholder={
+                          kustom.secret_configured
+                            ? t('settings.kustomSecretConfiguredPlaceholder')
+                            : t('settings.kustomSharedSecretPlaceholder')
+                        }
+                        className="h-8 font-mono"
+                        autoComplete="new-password"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.kustomEnvironment')}</Label>
+                      <div className="max-w-xs">
+                        <SearchableSelect
+                          value={kustomEnvironment}
+                          onChange={(v) => setKustomEnvironment(v === 'production' ? 'production' : 'playground')}
+                          options={[
+                            { value: 'playground', label: t('settings.kustomEnvPlayground') },
+                            { value: 'production', label: t('settings.kustomEnvProduction') },
+                          ]}
+                        />
+                      </div>
+                      <p className="text-[11px] text-amber-600">{t('settings.kustomEnvHint')}</p>
+                    </div>
+
+                    {/* Enable at checkout — locked until both credentials exist. */}
+                    <div className="flex items-center justify-between gap-3 border-t pt-3">
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{t('settings.kustomEnabled')}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {credentialsPresent
+                            ? t('settings.kustomEnabledHint')
+                            : t('settings.kustomEnabledLockedHint')}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={kustomEnabled}
+                        onClick={() => setKustomEnabled((v) => !v)}
+                        disabled={!credentialsPresent || kustomSaving}
+                        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          kustomEnabled ? 'bg-emerald-500' : 'bg-zinc-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
+                            kustomEnabled ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {kustomMsg && (
+                      <div
+                        className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs ${
+                          kustomMsg.type === 'success'
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : 'border-destructive/30 bg-destructive/5 text-destructive'
+                        }`}
+                      >
+                        {kustomMsg.type === 'success' ? (
+                          <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
+                        ) : (
+                          <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                        )}
+                        {kustomMsg.text}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleTestKustom}
+                        disabled={kustomTesting || !savedCredentials}
+                      >
+                        {kustomTesting ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="size-3.5" />
+                        )}
+                        {t('settings.kustomTestConnection')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleSaveKustom}
+                        disabled={kustomSaving || !kustomDirty}
+                      >
+                        {kustomSaving ? tc('saving') : tc('save')}
+                      </Button>
+                    </div>
+
+                    {/* Remove credentials — clears both values and disables
+                        Kustom at checkout (two-step confirm). */}
+                    {(kustom.merchant_id || kustom.secret_configured) && (
+                      <div className="flex items-center justify-between gap-3 border-t pt-3">
+                        <p className="text-[11px] text-muted-foreground">
+                          {t('settings.kustomRemoveHint')}
+                        </p>
+                        {confirmKustomRemove ? (
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setConfirmKustomRemove(false)}
+                              disabled={kustomRemoving}
+                            >
+                              {tc('cancel')}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                              onClick={handleRemoveKustom}
+                              disabled={kustomRemoving}
+                            >
+                              {kustomRemoving && <Loader2 className="size-3.5 animate-spin" />}
+                              {t('settings.kustomRemoveConfirm')}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="shrink-0 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => setConfirmKustomRemove(true)}
+                          >
+                            {t('settings.kustomRemove')}
                           </Button>
                         )}
                       </div>
