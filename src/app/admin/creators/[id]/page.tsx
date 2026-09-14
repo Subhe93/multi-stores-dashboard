@@ -252,6 +252,12 @@ export default function CreatorDetailPage() {
                     <li>{t('storeTypeWarnOrders')}</li>
                     <li>{t('storeTypeWarnReconnect')}</li>
                   </ul>
+                  <Link
+                    href="/admin/guide"
+                    className="inline-block text-[11px] font-medium text-amber-800 underline underline-offset-2 hover:text-amber-900"
+                  >
+                    {t('storeTypeGuideLink')}
+                  </Link>
                 </div>
               </div>
             </>

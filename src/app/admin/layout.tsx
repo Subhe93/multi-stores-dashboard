@@ -19,6 +19,7 @@ import {
   Package,
   Scale,
   Mail,
+  BookOpen,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: t('settings'), href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
         { label: t('legalPages'), href: '/admin/legal', icon: <Scale className="w-4 h-4" /> },
         { label: t('notificationTemplates'), href: '/admin/notifications', icon: <Mail className="w-4 h-4" /> },
+        { label: t('guide'), href: '/admin/guide', icon: <BookOpen className="w-4 h-4" /> },
       ],
     },
   ];
