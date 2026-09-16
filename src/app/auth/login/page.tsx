@@ -71,25 +71,6 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
-
-            {/* Quick login buttons for testing */}
-            <div className="pt-2 border-t">
-              <p className="text-[10px] text-muted-foreground text-center mb-2">Quick login (dev only)</p>
-              <div className="grid grid-cols-3 gap-2">
-                <Button type="button" variant="outline" size="sm" className="text-[10px] h-7"
-                  onClick={() => { setEmail('admin@multistores.com'); setPassword('admin123456'); }}>
-                  Admin
-                </Button>
-                <Button type="button" variant="outline" size="sm" className="text-[10px] h-7"
-                  onClick={() => { setEmail('provider@test.com'); setPassword('provider123'); }}>
-                  Provider
-                </Button>
-                <Button type="button" variant="outline" size="sm" className="text-[10px] h-7"
-                  onClick={() => { setEmail('creator@test.com'); setPassword('creator123'); }}>
-                  Creator
-                </Button>
-              </div>
-            </div>
           </form>
         </CardContent>
       </Card>
