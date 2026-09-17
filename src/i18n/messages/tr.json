@@ -188,6 +188,9 @@
     "englishLabel": "İngilizce Etiket",
     "englishLabelPlaceholder": "Kumaş Türü",
     "arabicLabel": "Arapça Etiket",
+    "localizedLabels": "Yerelleştirilmiş etiketler",
+    "labelIn": "Etiket ({locale})",
+    "defaultLocaleMarker": "(varsayılan)",
     "optionsCommaSeparated": "Seçenekler (virgülle ayrılmış)",
     "requiredField": "Zorunlu alan",
     "cancel": "İptal",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "Hedef alan adı",
     "fillCharacter": "Doldurma karakteri",
     "autoFillHint": "Hedef alan uzunluğuna ulaşmak için otomatik doldur",
-    "saveChanges": "Değişiklikleri kaydet"
+    "saveChanges": "Değişiklikleri kaydet",
+    "labelIn": "Etiket ({locale})",
+    "placeholderIn": "Yer tutucu ({locale})",
+    "optionLabelsTitle": "Seçeneklerin görünen adları",
+    "optionLabelsHint": "Bu dilde her seçenek için isteğe bağlı görünen metin. Kaydedilen değer aynı kalır.",
+    "autoTranslate": "Otomatik çevir",
+    "autoTranslateFrom": "Şu dilden otomatik çevir:",
+    "translating": "Çevriliyor…",
+    "primaryRequired": "Birincil dildeki etiket zorunludur",
+    "primaryParen": "(birincil)"
   },
   "variant": {
     "editColor": "Rengi düzenle",

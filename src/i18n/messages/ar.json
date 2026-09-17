@@ -188,6 +188,9 @@
     "englishLabel": "التسمية بالإنجليزية",
     "englishLabelPlaceholder": "نوع القماش",
     "arabicLabel": "التسمية بالعربية",
+    "localizedLabels": "التسميات المترجمة",
+    "labelIn": "التسمية ({locale})",
+    "defaultLocaleMarker": "(الافتراضية)",
     "optionsCommaSeparated": "الخيارات (مفصولة بفواصل)",
     "requiredField": "حقل مطلوب",
     "cancel": "إلغاء",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "اسم الحقل المستهدف",
     "fillCharacter": "حرف التعبئة",
     "autoFillHint": "تعبئة تلقائية لمطابقة طول الحقل المستهدف",
-    "saveChanges": "حفظ التغييرات"
+    "saveChanges": "حفظ التغييرات",
+    "labelIn": "التسمية ({locale})",
+    "placeholderIn": "النص التلميحي ({locale})",
+    "optionLabelsTitle": "تسميات عرض الخيارات",
+    "optionLabelsHint": "نص عرض اختياري لكل خيار بهذه اللغة. تبقى القيمة المخزّنة كما هي.",
+    "autoTranslate": "ترجمة تلقائية",
+    "autoTranslateFrom": "ترجمة تلقائية من",
+    "translating": "جارٍ الترجمة…",
+    "primaryRequired": "التسمية باللغة الأساسية مطلوبة",
+    "primaryParen": "(أساسية)"
   },
   "variant": {
     "editColor": "تعديل اللون",

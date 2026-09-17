@@ -188,6 +188,9 @@
     "englishLabel": "Englisches Label",
     "englishLabelPlaceholder": "Stoffart",
     "arabicLabel": "Arabisches Label",
+    "localizedLabels": "Lokalisierte Labels",
+    "labelIn": "Label ({locale})",
+    "defaultLocaleMarker": "(Standard)",
     "optionsCommaSeparated": "Optionen (durch Komma getrennt)",
     "requiredField": "Pflichtfeld",
     "cancel": "Abbrechen",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "Name des Zielfelds",
     "fillCharacter": "Füllzeichen",
     "autoFillHint": "Automatisch auffüllen, um die Länge des Zielfelds zu erreichen",
-    "saveChanges": "Änderungen speichern"
+    "saveChanges": "Änderungen speichern",
+    "labelIn": "Beschriftung ({locale})",
+    "placeholderIn": "Platzhalter ({locale})",
+    "optionLabelsTitle": "Anzeigenamen der Optionen",
+    "optionLabelsHint": "Optionaler Anzeigetext je Option in dieser Sprache. Der gespeicherte Wert bleibt unverändert.",
+    "autoTranslate": "Automatisch übersetzen",
+    "autoTranslateFrom": "Automatisch übersetzen aus",
+    "translating": "Wird übersetzt…",
+    "primaryRequired": "Die Beschriftung in der Hauptsprache ist erforderlich",
+    "primaryParen": "(Hauptsprache)"
   },
   "variant": {
     "editColor": "Farbe bearbeiten",

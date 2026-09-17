@@ -188,6 +188,9 @@
     "englishLabel": "English Label",
     "englishLabelPlaceholder": "Fabric Type",
     "arabicLabel": "Arabic Label",
+    "localizedLabels": "Localized labels",
+    "labelIn": "Label ({locale})",
+    "defaultLocaleMarker": "(default)",
     "optionsCommaSeparated": "Options (comma separated)",
     "requiredField": "Required field",
     "cancel": "Cancel",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "Target field name",
     "fillCharacter": "Fill character",
     "autoFillHint": "Automatically pad to match the target field length",
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "labelIn": "Label ({locale})",
+    "placeholderIn": "Placeholder ({locale})",
+    "optionLabelsTitle": "Option display labels",
+    "optionLabelsHint": "Optional display text for each option in this language. The stored value stays the same.",
+    "autoTranslate": "Auto-translate",
+    "autoTranslateFrom": "Auto-translate from",
+    "translating": "Translating…",
+    "primaryRequired": "A label in the primary language is required",
+    "primaryParen": "(primary)"
   },
   "variant": {
     "editColor": "Edit color",

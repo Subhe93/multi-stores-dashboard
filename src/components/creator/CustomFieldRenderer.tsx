@@ -32,6 +32,8 @@ interface CustomFieldRendererProps {
   values: Record<string, { value?: string; file_url?: string }>;
   onChange: (fieldId: string, data: { value?: string; file_url?: string }) => void;
   locale?: string;
+  /** Store primary content locale; used as the first fallback when `locale` has no translation */
+  primaryLocale?: string;
   token?: string | null;
 }
 
@@ -43,6 +45,7 @@ export default function CustomFieldRenderer({
   values,
   onChange,
   locale = 'en',
+  primaryLocale = 'en',
   token,
 }: CustomFieldRendererProps) {
   const t = useTranslations('components');
@@ -53,7 +56,12 @@ export default function CustomFieldRenderer({
   return (
     <div className="space-y-4">
       {fields.map((field) => {
-        const translation = field.translations?.find((tr) => tr.locale === locale) ||
+        // Resolution chain: current locale → store primary locale → en → first translation
+        const findTranslation = (l: string) => field.translations?.find((tr) => tr.locale === l);
+        const translation =
+          findTranslation(locale) ||
+          findTranslation(primaryLocale) ||
+          findTranslation('en') ||
           field.translations?.[0];
         const label = translation?.label || field.name;
         const placeholder = translation?.placeholder || field.placeholder || '';
@@ -63,7 +71,7 @@ export default function CustomFieldRenderer({
           <div key={field.id} className="space-y-1.5">
             <Label className="text-xs font-medium">
               {label}
-              {field.is_required && <span className="text-red-500 ml-0.5">*</span>}
+              {field.is_required && <span className="text-red-500 ms-0.5">*</span>}
             </Label>
 
             {renderField(field, fieldValue, placeholder, onChange, translation, token, t, tc)}
@@ -133,7 +141,7 @@ function renderField(
           <option value="">{placeholder || tc('select')}</option>
           {options.map((opt: string) => (
             <option key={opt} value={opt}>
-              {optionLabels[opt] || opt}
+              {optionLabels[opt] ?? opt}
             </option>
           ))}
         </select>

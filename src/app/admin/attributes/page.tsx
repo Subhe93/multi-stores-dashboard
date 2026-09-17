@@ -1,30 +1,46 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+
+interface AttributeTranslation {
+  locale: string;
+  label: string;
+  /** Optional per-option labels for SELECT / MULTI_SELECT ({ "cotton": "قطن" }). */
+  option_labels?: Record<string, string> | null;
+}
 
 interface AttributeTemplate {
   id: string;
   name: string;
   type: string;
   unit?: string;
-  options?: any;
+  options?: unknown;
   is_required: boolean;
   group_name?: string;
   sort_order: number;
-  translations: { locale: string; label: string }[];
+  translations: AttributeTranslation[];
 }
+
+interface PlatformLocales {
+  default_locale: string;
+  supported_locales: string[];
+}
+
+const FALLBACK_LOCALES: PlatformLocales = { default_locale: 'en', supported_locales: ['en'] };
+
+/** Locales whose label inputs should render right-to-left. */
+const RTL_LOCALES = new Set(['ar']);
 
 const typeColors: Record<string, string> = {
   TEXT: 'bg-zinc-100 text-zinc-700', NUMBER: 'bg-blue-50 text-blue-700',
@@ -33,7 +49,26 @@ const typeColors: Record<string, string> = {
   DIMENSIONS: 'bg-amber-50 text-amber-700',
 };
 
-const emptyForm = { name: '', type: 'TEXT', unit: '', group_name: '', is_required: false, label_en: '', label_ar: '', options: '' };
+/** Display label: platform default locale, then `en`, then the first entry, then the raw name. */
+function pickLabel(translations: AttributeTranslation[], defaultLocale: string, name: string): string {
+  return (
+    translations.find(tr => tr.locale === defaultLocale)?.label ||
+    translations.find(tr => tr.locale === 'en')?.label ||
+    translations[0]?.label ||
+    name
+  );
+}
+
+const emptyForm = {
+  name: '',
+  type: 'TEXT',
+  unit: '',
+  group_name: '',
+  is_required: false,
+  /** Label per locale code, keyed by locale. */
+  labels: {} as Record<string, string>,
+  options: '',
+};
 
 export default function AdminAttributes() {
   const t = useTranslations('admin');
@@ -45,6 +80,7 @@ export default function AdminAttributes() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [locales, setLocales] = useState<PlatformLocales>(FALLBACK_LOCALES);
 
   const fetchTemplates = async () => {
     if (!token) return;
@@ -56,6 +92,28 @@ export default function AdminAttributes() {
   };
 
   useEffect(() => { fetchTemplates(); }, [token]);
+
+  // Platform locales drive the per-locale label inputs; loaded once.
+  useEffect(() => {
+    if (!token) return;
+    api<Partial<PlatformLocales>>('/admin/platform-config', { token })
+      .then(config => {
+        const supported = config?.supported_locales?.length ? config.supported_locales : FALLBACK_LOCALES.supported_locales;
+        const defaultLocale = config?.default_locale || FALLBACK_LOCALES.default_locale;
+        setLocales({ default_locale: defaultLocale, supported_locales: supported });
+      })
+      .catch(console.error);
+  }, [token]);
+
+  // Locales rendered in the form; the default locale is always present even if
+  // the platform config lists it inconsistently.
+  const formLocales = useMemo(() => {
+    const { default_locale, supported_locales } = locales;
+    return supported_locales.includes(default_locale) ? supported_locales : [default_locale, ...supported_locales];
+  }, [locales]);
+
+  const defaultLabel = (form.labels[locales.default_locale] || '').trim();
+  const canSave = !!form.name.trim() && !!defaultLabel;
 
   const openCreate = () => {
     setEditingId(null);
@@ -71,15 +129,38 @@ export default function AdminAttributes() {
       unit: tmpl.unit || '',
       group_name: tmpl.group_name || '',
       is_required: tmpl.is_required,
-      label_en: tmpl.translations.find(t => t.locale === 'en')?.label || '',
-      label_ar: tmpl.translations.find(t => t.locale === 'ar')?.label || '',
+      labels: Object.fromEntries(tmpl.translations.map(tr => [tr.locale, tr.label])),
       options: Array.isArray(tmpl.options) ? tmpl.options.join(', ') : '',
     });
     setShowForm(true);
   };
 
+  /**
+   * Build the translations payload: one entry per filled platform locale, keeping
+   * any existing option_labels. The API replaces all rows on update, so entries
+   * for locales no longer in the platform list are carried over untouched.
+   * Only DTO fields are emitted (the API forbids non-whitelisted properties).
+   */
+  const buildTranslations = (): AttributeTranslation[] => {
+    const existing = editingId ? templates.find(x => x.id === editingId)?.translations ?? [] : [];
+    const existingByLocale = new Map(existing.map(tr => [tr.locale, tr]));
+    const result: AttributeTranslation[] = [];
+
+    for (const locale of formLocales) {
+      const label = (form.labels[locale] || '').trim();
+      if (!label) continue;
+      const prev = existingByLocale.get(locale);
+      result.push({ locale, label, ...(prev?.option_labels != null && { option_labels: prev.option_labels }) });
+    }
+    for (const tr of existing) {
+      if (formLocales.includes(tr.locale)) continue;
+      result.push({ locale: tr.locale, label: tr.label, ...(tr.option_labels != null && { option_labels: tr.option_labels }) });
+    }
+    return result;
+  };
+
   const handleSave = async () => {
-    if (!token || !form.name) return;
+    if (!token || !canSave) return;
     setSaving(true);
     try {
       const body = {
@@ -89,10 +170,7 @@ export default function AdminAttributes() {
         group_name: form.group_name || undefined,
         is_required: form.is_required,
         options: form.options ? form.options.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-        translations: [
-          { locale: 'en', label: form.label_en || form.name },
-          ...(form.label_ar ? [{ locale: 'ar', label: form.label_ar }] : []),
-        ],
+        translations: buildTranslations(),
       };
 
       if (editingId) {
@@ -130,7 +208,7 @@ export default function AdminAttributes() {
           { key: 'name', label: t('name'), sortable: true, render: (item: AttributeTemplate) => (
             <div>
               <p className="text-sm font-medium font-mono">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground">{item.translations.find(t => t.locale === 'en')?.label}</p>
+              <p className="text-[10px] text-muted-foreground">{pickLabel(item.translations, locales.default_locale, item.name)}</p>
             </div>
           )},
           { key: 'type', label: t('type'), sortable: true, render: (item: AttributeTemplate) => (
@@ -195,15 +273,38 @@ export default function AdminAttributes() {
                 <Label className="text-xs">{t('group')}</Label>
                 <Input className="h-8 text-sm" placeholder={t('groupPlaceholder')} value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('englishLabel')} *</Label>
-                <Input className="h-8 text-sm" placeholder={t('englishLabelPlaceholder')} value={form.label_en} onChange={e => setForm({ ...form, label_en: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('arabicLabel')}</Label>
-                <Input className="h-8 text-sm" dir="rtl" placeholder="نوع القماش" value={form.label_ar} onChange={e => setForm({ ...form, label_ar: e.target.value })} />
+            </div>
+
+            {/* One label input per platform-supported locale; the default locale is required. */}
+            <div className="space-y-2">
+              <Label className="text-xs">{t('localizedLabels')}</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {formLocales.map(locale => {
+                  const isDefault = locale === locales.default_locale;
+                  return (
+                    <div key={locale} className="space-y-1">
+                      <span className="block text-[10px] text-muted-foreground">
+                        {t('labelIn', { locale: locale.toUpperCase() })}
+                        {isDefault && (
+                          <>
+                            {' '}
+                            <span className="font-medium text-foreground">{t('defaultLocaleMarker')}</span> *
+                          </>
+                        )}
+                      </span>
+                      <Input
+                        className="h-8 text-sm"
+                        dir={RTL_LOCALES.has(locale) ? 'rtl' : undefined}
+                        placeholder={isDefault ? t('englishLabelPlaceholder') : undefined}
+                        value={form.labels[locale] || ''}
+                        onChange={e => setForm({ ...form, labels: { ...form.labels, [locale]: e.target.value } })}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
             {(form.type === 'SELECT' || form.type === 'MULTI_SELECT') && (
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('optionsCommaSeparated')}</Label>
@@ -217,7 +318,7 @@ export default function AdminAttributes() {
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>{t('cancel')}</Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>{saving ? t('saving') : editingId ? t('saveChanges') : t('create')}</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving || !canSave}>{saving ? t('saving') : editingId ? t('saveChanges') : t('create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -188,6 +188,9 @@
     "englishLabel": "Engelsk etikett",
     "englishLabelPlaceholder": "Tygtyp",
     "arabicLabel": "Arabisk etikett",
+    "localizedLabels": "Lokaliserade etiketter",
+    "labelIn": "Etikett ({locale})",
+    "defaultLocaleMarker": "(standard)",
     "optionsCommaSeparated": "Alternativ (kommaseparerade)",
     "requiredField": "Obligatoriskt fält",
     "cancel": "Avbryt",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "Målfältets namn",
     "fillCharacter": "Fyllnadstecken",
     "autoFillHint": "Fyll automatiskt för att matcha målfältets längd",
-    "saveChanges": "Spara ändringar"
+    "saveChanges": "Spara ändringar",
+    "labelIn": "Etikett ({locale})",
+    "placeholderIn": "Platshållare ({locale})",
+    "optionLabelsTitle": "Visningsnamn för alternativ",
+    "optionLabelsHint": "Valfri visningstext per alternativ på detta språk. Det sparade värdet ändras inte.",
+    "autoTranslate": "Översätt automatiskt",
+    "autoTranslateFrom": "Översätt automatiskt från",
+    "translating": "Översätter…",
+    "primaryRequired": "Etiketten på huvudspråket är obligatorisk",
+    "primaryParen": "(huvudspråk)"
   },
   "variant": {
     "editColor": "Redigera färg",

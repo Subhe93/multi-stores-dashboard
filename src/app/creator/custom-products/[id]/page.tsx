@@ -505,6 +505,7 @@ export default function EditCustomProduct() {
                 setFieldValues((prev) => ({ ...prev, [fieldId]: data }))
               }
               locale={primaryLocale}
+              primaryLocale={primaryLocale}
               token={token}
             />
           </CardContent>

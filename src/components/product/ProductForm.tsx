@@ -38,6 +38,13 @@ const LOCALE_LABELS: Record<string, string> = {
 };
 const RTL_LOCALES = ['ar'];
 
+/** Pick a translation row preferring the store primary locale, then English, then the first available */
+interface TranslationRow { locale: string; name?: string; label?: string }
+const pickTranslation = (translations: TranslationRow[] | undefined, primaryLocale: string): TranslationRow | undefined =>
+  translations?.find(tr => tr.locale === primaryLocale) ||
+  translations?.find(tr => tr.locale === 'en') ||
+  translations?.[0];
+
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
   return (
@@ -158,7 +165,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       const flat: any[] = [];
       const flatten = (items: any[], prefix = '') => {
         for (const c of items) {
-          const name = c.translations?.find((t: any) => t.locale === 'en')?.name || c.slug;
+          const name = pickTranslation(c.translations, primaryLocale)?.name || c.slug;
           flat.push({ value: c.id, label: prefix + name });
           if (c.children) flatten(c.children, prefix + '— ');
         }
@@ -166,7 +173,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       flatten(Array.isArray(cats) ? cats : []);
       setCategories(flat);
     });
-  }, []);
+  }, [primaryLocale]);
 
   // ── Fetch product data (edit mode) ────────────────────────
   useEffect(() => {
@@ -298,7 +305,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     categoryAttrs.filter(a => a.is_required).forEach(a => {
       const val = attrValues[a.id];
       if (val === '' || val == null || val === false)
-        errs[`attr_${a.id}`] = t('product.errFieldRequired', { field: a.translations?.find((tr: any) => tr.locale === 'en')?.label || a.name });
+        errs[`attr_${a.id}`] = t('product.errFieldRequired', { field: pickTranslation(a.translations, primaryLocale)?.label || a.name });
     });
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) {
@@ -663,7 +670,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   {categoryAttrs.map((attr: any) => {
-                    const label = attr.translations?.find((tr: any) => tr.locale === 'en')?.label || attr.name;
+                    const label = pickTranslation(attr.translations, primaryLocale)?.label || attr.name;
                     const errKey = `attr_${attr.id}`;
                     const clearErr = () => { if (fieldErrors[errKey]) setFieldErrors(p => ({ ...p, [errKey]: '' })); };
                     return (
@@ -706,6 +713,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             onAdd={handleAddCustomField}
             onUpdate={handleUpdateCustomField}
             onDelete={handleDeleteCustomField}
+            locales={allLocales}
+            primaryLocale={primaryLocale}
           />
 
           {/* FAQ */}

@@ -188,6 +188,9 @@
     "englishLabel": "Libellé anglais",
     "englishLabelPlaceholder": "Type de tissu",
     "arabicLabel": "Libellé arabe",
+    "localizedLabels": "Libellés localisés",
+    "labelIn": "Libellé ({locale})",
+    "defaultLocaleMarker": "(par défaut)",
     "optionsCommaSeparated": "Options (séparées par des virgules)",
     "requiredField": "Champ obligatoire",
     "cancel": "Annuler",
@@ -2503,7 +2506,16 @@
     "targetFieldName": "Nom du champ cible",
     "fillCharacter": "Caractère de remplissage",
     "autoFillHint": "Compléter automatiquement pour atteindre la longueur du champ cible",
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "labelIn": "Libellé ({locale})",
+    "placeholderIn": "Texte indicatif ({locale})",
+    "optionLabelsTitle": "Libellés d'affichage des options",
+    "optionLabelsHint": "Texte d'affichage facultatif pour chaque option dans cette langue. La valeur enregistrée reste inchangée.",
+    "autoTranslate": "Traduire automatiquement",
+    "autoTranslateFrom": "Traduire automatiquement depuis",
+    "translating": "Traduction en cours…",
+    "primaryRequired": "Le libellé dans la langue principale est obligatoire",
+    "primaryParen": "(principale)"
   },
   "variant": {
     "editColor": "Modifier la couleur",

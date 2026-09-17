@@ -9,7 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { Plus, Trash2, GripVertical, Pencil } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Pencil, Languages, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
+import { api } from '@/lib/api';
+
+export interface CustomFieldTranslation {
+  locale: string;
+  label: string;
+  placeholder?: string;
+  /** Display label per option value (SELECT fields) */
+  option_labels?: Record<string, string>;
+}
 
 export interface CustomField {
   id?: string;
@@ -21,7 +31,7 @@ export interface CustomField {
   validation_rules?: any;
   linked_validation?: any;
   sort_order: number;
-  translations?: { locale: string; label: string; placeholder?: string }[];
+  translations?: CustomFieldTranslation[];
 }
 
 interface CustomFieldManagerProps {
@@ -29,10 +39,41 @@ interface CustomFieldManagerProps {
   onAdd: (field: Omit<CustomField, 'sort_order'>) => void;
   onUpdate?: (id: string, field: Omit<CustomField, 'sort_order'>) => void;
   onDelete: (id: string) => void;
+  /** Store content locales (primary first). Defaults to ['en'] when the store config is not loaded yet. */
+  locales?: string[];
+  primaryLocale?: string;
 }
 
-export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: CustomFieldManagerProps) {
+/** Per-locale editable data for a single custom field */
+interface LocaleFormData {
+  label: string;
+  placeholder: string;
+  optionLabels: Record<string, string>;
+}
+
+const LOCALE_LABELS: Record<string, string> = {
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
+};
+const RTL_LOCALES = ['ar'];
+
+/** Field types whose `options` array is edited in the dialog */
+const TYPES_WITH_OPTIONS = ['SELECT'];
+
+const parseOptions = (raw: string): string[] =>
+  raw.split(',').map(s => s.trim()).filter(Boolean);
+
+const emptyLocaleData = (): LocaleFormData => ({ label: '', placeholder: '', optionLabels: {} });
+
+export function CustomFieldManager({
+  fields,
+  onAdd,
+  onUpdate,
+  onDelete,
+  locales = ['en'],
+  primaryLocale = 'en',
+}: CustomFieldManagerProps) {
   const t = useTranslations();
+  const { token } = useAuth();
   const fieldTypes = [
     { value: 'TEXT', label: t('customField.typeText'), description: t('customField.typeTextDesc') },
     { value: 'TEXTAREA', label: t('customField.typeTextarea'), description: t('customField.typeTextareaDesc') },
@@ -49,9 +90,12 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
   const [name, setName] = useState('');
   const [type, setType] = useState('TEXT');
   const [required, setRequired] = useState(false);
-  const [labelEn, setLabelEn] = useState('');
-  const [labelAr, setLabelAr] = useState('');
-  const [placeholder, setPlaceholder] = useState('');
+  // Per-locale label / placeholder / option labels
+  const [activeLocale, setActiveLocale] = useState(primaryLocale);
+  const [localeData, setLocaleData] = useState<Record<string, LocaleFormData>>({});
+  // Translations for locales that are not part of the store's language list; passed through untouched on save
+  const [extraTranslations, setExtraTranslations] = useState<CustomFieldTranslation[]>([]);
+  const [translatingLocale, setTranslatingLocale] = useState('');
   const [maxLength, setMaxLength] = useState('');
   const [minLength, setMinLength] = useState('');
   const [pattern, setPattern] = useState('');
@@ -62,21 +106,75 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
   const [linkedTarget, setLinkedTarget] = useState('');
   const [linkedFillChar, setLinkedFillChar] = useState('');
 
+  const hasOptions = TYPES_WITH_OPTIONS.includes(type);
+  const optionValues = hasOptions ? parseOptions(selectOptions) : [];
+  const primaryLabel = localeData[primaryLocale]?.label?.trim() || '';
+  const canSave = !!name && !!primaryLabel;
+  const isRtl = RTL_LOCALES.includes(activeLocale);
+  const localeName = (locale: string) => LOCALE_LABELS[locale] || locale.toUpperCase();
+
+  const setLocaleField = (locale: string, key: 'label' | 'placeholder', value: string) =>
+    setLocaleData(prev => ({
+      ...prev,
+      [locale]: { ...(prev[locale] || emptyLocaleData()), [key]: value },
+    }));
+
+  const setOptionLabel = (locale: string, option: string, value: string) =>
+    setLocaleData(prev => {
+      const current = prev[locale] || emptyLocaleData();
+      return {
+        ...prev,
+        [locale]: { ...current, optionLabels: { ...current.optionLabels, [option]: value } },
+      };
+    });
+
   const resetForm = () => {
     setEditingId(null);
-    setName(''); setType('TEXT'); setRequired(false); setLabelEn(''); setLabelAr('');
-    setPlaceholder(''); setMaxLength(''); setMinLength(''); setPattern('');
+    setName(''); setType('TEXT'); setRequired(false);
+    const data: Record<string, LocaleFormData> = {};
+    locales.forEach(l => { data[l] = emptyLocaleData(); });
+    setLocaleData(data);
+    setExtraTranslations([]);
+    setActiveLocale(primaryLocale);
+    setTranslatingLocale('');
+    setMaxLength(''); setMinLength(''); setPattern('');
     setAllowedChars(''); setSelectOptions(''); setLinkedType(''); setLinkedTarget(''); setLinkedFillChar('');
   };
+
+  /** Resolve the best translation for display: primary locale → en → first → nothing */
+  const resolveTranslation = (field: CustomField): CustomFieldTranslation | undefined =>
+    field.translations?.find(tr => tr.locale === primaryLocale) ||
+    field.translations?.find(tr => tr.locale === 'en') ||
+    field.translations?.[0];
+
+  const displayLabel = (field: CustomField) => resolveTranslation(field)?.label || field.name;
 
   const openEdit = (field: CustomField) => {
     setEditingId(field.id || null);
     setName(field.name);
     setType(field.type);
     setRequired(field.is_required);
-    setLabelEn(field.translations?.find(t => t.locale === 'en')?.label || field.name);
-    setLabelAr(field.translations?.find(t => t.locale === 'ar')?.label || '');
-    setPlaceholder(field.placeholder || '');
+    const data: Record<string, LocaleFormData> = {};
+    locales.forEach(l => {
+      const tr = field.translations?.find(x => x.locale === l);
+      data[l] = {
+        label: tr?.label || '',
+        placeholder: tr?.placeholder || '',
+        optionLabels: { ...(tr?.option_labels || {}) },
+      };
+    });
+    // Legacy fields may have no row for the primary locale; seed it so the form is saveable
+    if (!data[primaryLocale]?.label) {
+      data[primaryLocale] = {
+        ...(data[primaryLocale] || emptyLocaleData()),
+        label: displayLabel(field),
+        placeholder: data[primaryLocale]?.placeholder || field.placeholder || '',
+      };
+    }
+    setLocaleData(data);
+    setExtraTranslations((field.translations || []).filter(tr => !locales.includes(tr.locale)));
+    setActiveLocale(primaryLocale);
+    setTranslatingLocale('');
     setMaxLength(field.validation_rules?.max_length ? String(field.validation_rules.max_length) : '');
     setMinLength(field.validation_rules?.min_length ? String(field.validation_rules.min_length) : '');
     setPattern(field.validation_rules?.pattern || '');
@@ -88,8 +186,52 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
     setShowForm(true);
   };
 
+  const translateText = (text: string, targetLocale: string) =>
+    api<{ translated: string }>('/translations/translate-text', {
+      method: 'POST',
+      token: token ?? undefined,
+      body: JSON.stringify({ text, source_locale: primaryLocale, target_locale: targetLocale }),
+    });
+
+  /** Translate label, placeholder and option labels from the primary locale into the target locale */
+  const handleTranslateTo = async (targetLocale: string) => {
+    const source = localeData[primaryLocale];
+    if (!source?.label.trim() || translatingLocale) return;
+    setTranslatingLocale(targetLocale);
+    try {
+      const labelTask = translateText(source.label, targetLocale);
+      const placeholderTask = source.placeholder.trim()
+        ? translateText(source.placeholder, targetLocale)
+        : Promise.resolve<{ translated: string } | null>(null);
+      const optionTasks = optionValues.map(opt =>
+        translateText(source.optionLabels[opt]?.trim() || opt, targetLocale),
+      );
+      const [labelRes, placeholderRes, ...optionRes] = await Promise.all([labelTask, placeholderTask, ...optionTasks]);
+      setLocaleData(prev => {
+        const current = prev[targetLocale] || emptyLocaleData();
+        const optionLabels = { ...current.optionLabels };
+        optionValues.forEach((opt, i) => {
+          const translated = optionRes[i]?.translated;
+          if (translated) optionLabels[opt] = translated;
+        });
+        return {
+          ...prev,
+          [targetLocale]: {
+            label: labelRes?.translated || current.label,
+            placeholder: placeholderRes?.translated || current.placeholder,
+            optionLabels,
+          },
+        };
+      });
+    } catch {
+      // silent
+    } finally {
+      setTranslatingLocale('');
+    }
+  };
+
   const handleSave = () => {
-    if (!name || !labelEn) return;
+    if (!canSave) return;
 
     const validationRules: any = {};
     if (maxLength) validationRules.max_length = parseInt(maxLength);
@@ -103,18 +245,50 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
       fill_char: linkedFillChar || undefined,
     } : undefined;
 
+    const options = hasOptions && optionValues.length > 0 ? optionValues : undefined;
+
+    // One entry per store locale with a label, plus any untouched rows for locales outside the store list
+    const translations: CustomFieldTranslation[] = [
+      ...locales
+        .filter(locale => localeData[locale]?.label?.trim())
+        .map(locale => {
+          const data = localeData[locale];
+          const placeholder = data.placeholder.trim();
+          const optionLabels: Record<string, string> = {};
+          (options || []).forEach(opt => {
+            const label = data.optionLabels[opt]?.trim();
+            if (label) optionLabels[opt] = label;
+          });
+          return {
+            locale,
+            label: data.label.trim(),
+            ...(placeholder ? { placeholder } : {}),
+            ...(Object.keys(optionLabels).length > 0 ? { option_labels: optionLabels } : {}),
+          };
+        }),
+      // Rows loaded from the API carry extra columns (id, field_id, ...);
+      // the DTO whitelist rejects unknown keys, so send only the DTO shape.
+      ...extraTranslations.map(tr => ({
+        locale: tr.locale,
+        label: tr.label,
+        ...(tr.placeholder ? { placeholder: tr.placeholder } : {}),
+        ...(tr.option_labels && Object.keys(tr.option_labels).length > 0
+          ? { option_labels: tr.option_labels }
+          : {}),
+      })),
+    ];
+
+    const primaryPlaceholder = localeData[primaryLocale]?.placeholder?.trim() || '';
+
     const fieldData = {
       name,
       type,
       is_required: required,
-      placeholder: placeholder || undefined,
-      options: selectOptions ? selectOptions.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+      placeholder: primaryPlaceholder || undefined,
+      options,
       validation_rules: Object.keys(validationRules).length > 0 ? validationRules : undefined,
       linked_validation: linkedValidation,
-      translations: [
-        { locale: 'en', label: labelEn, placeholder: placeholder || undefined },
-        ...(labelAr ? [{ locale: 'ar', label: labelAr }] : []),
-      ],
+      translations,
     };
 
     if (editingId && onUpdate) {
@@ -127,7 +301,7 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
     setShowForm(false);
   };
 
-  const typeIcon = (t: string) => fieldTypes.find(ft => ft.value === t)?.label || t;
+  const typeIcon = (value: string) => fieldTypes.find(ft => ft.value === value)?.label || value;
 
   return (
     <Card className="shadow-none">
@@ -140,7 +314,7 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { resetForm(); setShowForm(true); }}>
-            <Plus className="w-3 h-3 mr-1" /> {t('customField.addField')}
+            <Plus className="w-3 h-3 me-1" /> {t('customField.addField')}
           </Button>
         </div>
       </CardHeader>
@@ -156,7 +330,7 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
                 <GripVertical className="w-4 h-4 text-zinc-300 cursor-grab shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium truncate">{field.translations?.[0]?.label || field.name}</p>
+                    <p className="text-sm font-medium truncate">{displayLabel(field)}</p>
                     <Badge variant="secondary" className="text-[9px] shrink-0">{typeIcon(field.type)}</Badge>
                     {field.is_required && <Badge className="text-[9px] shrink-0">{t('customField.required')}</Badge>}
                   </div>
@@ -212,27 +386,8 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
               </div>
             </div>
 
-            {/* Labels */}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.labelsSection')}</p>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('customField.englishLabel')}</Label>
-                  <Input className="h-8 text-sm" placeholder={t('customField.englishLabelPlaceholder')} value={labelEn} onChange={e => setLabelEn(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('customField.arabicLabel')}</Label>
-                  <Input className="h-8 text-sm" dir="rtl" placeholder="الاسم المطلوب" value={labelAr} onChange={e => setLabelAr(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('customField.placeholder')}</Label>
-                  <Input className="h-8 text-sm" placeholder={t('customField.placeholderPlaceholder')} value={placeholder} onChange={e => setPlaceholder(e.target.value)} />
-                </div>
-              </div>
-            </div>
-
             {/* Select Options */}
-            {type === 'SELECT' && (
+            {hasOptions && (
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.dropdownOptions')}</p>
                 <div className="space-y-1.5">
@@ -241,6 +396,106 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
                 </div>
               </div>
             )}
+
+            {/* Labels (per store locale) */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-3">{t('customField.labelsSection')}</p>
+
+              {/* Language tabs */}
+              {locales.length > 1 && (
+                <div className="flex items-center gap-0 border-b mb-3">
+                  {locales.map(locale => (
+                    <button
+                      key={locale}
+                      type="button"
+                      onClick={() => setActiveLocale(locale)}
+                      className={`px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
+                        locale === activeLocale
+                          ? 'border-zinc-900 text-zinc-900'
+                          : 'border-transparent text-zinc-400 hover:text-zinc-600'
+                      }`}
+                    >
+                      {localeName(locale)}
+                      {locale === primaryLocale && <span className="text-[9px] text-zinc-400 ms-1">{t('customField.primaryParen')}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {/* Auto-translate from primary locale */}
+                {activeLocale !== primaryLocale && (
+                  <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
+                    <span className="text-xs text-muted-foreground truncate">
+                      {t('customField.autoTranslateFrom')} <strong>{localeName(primaryLocale)}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleTranslateTo(activeLocale)}
+                      disabled={!!translatingLocale || !primaryLabel}
+                      className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
+                    >
+                      {translatingLocale === activeLocale ? (
+                        <><Loader2 className="w-3 h-3 animate-spin" /> {t('customField.translating')}</>
+                      ) : (
+                        <><Languages className="w-3 h-3" /> {t('customField.autoTranslate')}</>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">
+                      {t('customField.labelIn', { locale: localeName(activeLocale) })}
+                      {activeLocale === primaryLocale && <span className="text-red-500"> *</span>}
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      dir={isRtl ? 'rtl' : undefined}
+                      placeholder={t('customField.englishLabelPlaceholder')}
+                      value={localeData[activeLocale]?.label || ''}
+                      onChange={e => setLocaleField(activeLocale, 'label', e.target.value)}
+                    />
+                    {activeLocale === primaryLocale && !primaryLabel && (
+                      <p className="text-[9px] text-muted-foreground">{t('customField.primaryRequired')}</p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('customField.placeholderIn', { locale: localeName(activeLocale) })}</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      dir={isRtl ? 'rtl' : undefined}
+                      placeholder={t('customField.placeholderPlaceholder')}
+                      value={localeData[activeLocale]?.placeholder || ''}
+                      onChange={e => setLocaleField(activeLocale, 'placeholder', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Per-option display labels for this locale */}
+                {hasOptions && optionValues.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] text-muted-foreground">{t('customField.optionLabelsTitle')}</Label>
+                    <div className="rounded-md border divide-y">
+                      {optionValues.map(opt => (
+                        <div key={opt} className="flex items-center gap-2 px-2 py-1">
+                          <span className="text-[10px] font-mono text-zinc-500 w-28 truncate shrink-0" title={opt}>{opt}</span>
+                          <Input
+                            className="h-7 text-xs"
+                            dir={isRtl ? 'rtl' : undefined}
+                            placeholder={opt}
+                            value={localeData[activeLocale]?.optionLabels?.[opt] || ''}
+                            onChange={e => setOptionLabel(activeLocale, opt, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">{t('customField.optionLabelsHint')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Validation */}
             <div>
@@ -323,7 +578,7 @@ export function CustomFieldManager({ fields, onAdd, onUpdate, onDelete }: Custom
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
-            <Button size="sm" onClick={handleSave} disabled={!name || !labelEn}>{editingId ? t('customField.saveChanges') : t('customField.addField')}</Button>
+            <Button size="sm" onClick={handleSave} disabled={!canSave}>{editingId ? t('customField.saveChanges') : t('customField.addField')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
