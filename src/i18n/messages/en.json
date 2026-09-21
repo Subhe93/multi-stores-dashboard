@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "Payment",
+    "includesVat": "Includes VAT ({rate})",
     "verifyPayment": "Verify payment",
     "statusPaid": "Paid",
     "statusAwaiting": "Awaiting payment",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "Enter a valid amount.",
     "kustomCancelAuthHint": "The payment is authorized but not yet captured, so only a full refund is possible: it releases the authorization.",
     "yourPayout": "Your payout",
+    "pickup": "Pickup",
     "provider": "Provider",
     "creator": "Creator"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "Kustom Partner ID",
     "kustomPartnerIdHint": "Optional. Sent as the Kustom-Partner header on every Kustom API call made for independent stores. Leave blank if the platform has no Kustom partner agreement.",
     "stripeConnectWebhookMissing": "{count} independent store(s) charge on their own Stripe account. Without this secret, refunds they make in Stripe never sync back to the order.",
-    "storeTypeGuideLink": "How to convert a store: open the guide"
+    "storeTypeGuideLink": "How to convert a store: open the guide",
+    "storeTaxRate": "VAT rate: {rate} %",
+    "storeTaxRateInherited": "VAT rate: platform default ({rate})",
+    "defaultTaxRate": "Default VAT rate (%)",
+    "defaultTaxRateHint": "Applied to every store that has not set its own VAT rate. Prices are entered including VAT; the rate only sets the VAT share shown to customers at checkout and on receipts."
   },
   "guide": {
     "title": "Operations guide",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "Could not remove the Kustom credentials.",
       "kustomLoadFailed": "Could not load the Kustom settings.",
       "kustomCurrencyUnsupported": "Kustom does not process your store currency ({currency}). Switch the store currency to a supported one (for example SEK, NOK, DKK, EUR, GBP or USD) to offer Kustom at checkout.",
-      "currencyUpdateFailed": "Could not update the store currency"
+      "currencyUpdateFailed": "Could not update the store currency",
+      "taxRate": "VAT rate (%)",
+      "taxRateHint": "Prices are entered including VAT. The VAT amount is shown to customers at checkout and on receipts. Swedish stores typically use 25 %.",
+      "taxRateUpdated": "VAT rate updated",
+      "taxRateUpdateFailed": "Could not update the VAT rate",
+      "taxRateUsePlatformDefault": "Use platform default ({rate})",
+      "kustomNoTaxHint": "The VAT rate is 0 % — Kustom will show 0 % VAT. Set a VAT rate in the store card above."
     },
     "orderDetail": {
       "notFound": "Order not found",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "e.g. Gulf Countries",
     "zoneOverlapWarning": "Some countries in this zone overlap with another zone. The first matching zone will be used.",
     "saveFailed": "Failed to save changes. Please try again.",
-    "deleteFailed": "Failed to delete. Please try again."
+    "deleteFailed": "Failed to delete. Please try again.",
+    "methods": "Shipping methods",
+    "addMethod": "Add method",
+    "editMethod": "Edit method",
+    "deleteMethod": "Delete method",
+    "methodName": "Method name",
+    "methodNamePlaceholder": "e.g. Standard shipping, Express, Pick up in store",
+    "methodType": "Type",
+    "typeDelivery": "Delivery",
+    "typePickup": "Pickup",
+    "readyIn": "Ready for pickup in",
+    "translations": "Translations",
+    "translationsHint": "Shown to customers browsing the store in that language. Leave blank to use the default name.",
+    "noMethodsYet": "This zone still uses its legacy rate. Add a method so customers can choose how to receive their order.",
+    "sortOrder": "Sort order",
+    "active": "Active",
+    "inactive": "Inactive",
+    "defaultMethodSection": "Default shipping method",
+    "defaultMethodHint": "Created together with the zone. You can add more methods afterwards."
   }
 }

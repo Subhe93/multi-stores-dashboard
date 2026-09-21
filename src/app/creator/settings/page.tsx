@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
+import { formatTaxRateLabel, formatTaxRatePercent, parseTaxRateBp, resolveTaxRateBp } from '@/lib/taxRate';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,10 @@ interface StoreInfo {
   // Presentment currency. Null means the platform default; only independent
   // stores may set it (they charge on their own connected account).
   currency?: string | null;
+  // VAT rate override in basis points (2500 = 25 %). Null inherits the
+  // platform default. Prices are tax-inclusive; the VAT share is shown to the
+  // customer at checkout and on receipts. 0 = no VAT.
+  tax_rate_bp?: number | null;
 }
 
 interface StripeConnectStatus {
@@ -110,6 +115,14 @@ export default function CreatorSettingsPage() {
   const [currencySaving, setCurrencySaving] = useState(false);
   const [currencyMsg, setCurrencyMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // VAT rate (every store type). The input holds a percent string and is
+  // committed on blur / Enter as `tax_rate_bp` (percent x 100); null means the
+  // store inherits the platform default fetched from the platform config.
+  const [taxRateInput, setTaxRateInput] = useState('');
+  const [taxRateSaving, setTaxRateSaving] = useState(false);
+  const [taxRateMsg, setTaxRateMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [platformTaxRateBp, setPlatformTaxRateBp] = useState(0);
+
   // Stripe disconnect (two-step confirm)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -158,9 +171,21 @@ export default function CreatorSettingsPage() {
     if (!token) return;
     setStoreLoading(true);
     api<StoreInfo>('/stores/my/store', { token })
-      .then((s) => setStore(s))
+      .then((s) => {
+        setStore(s);
+        setTaxRateInput(formatTaxRatePercent(s.tax_rate_bp));
+      })
       .catch(() => setStore(null))
       .finally(() => setStoreLoading(false));
+  }, [token]);
+
+  // Platform default VAT rate (admin-configured); the store inherits it while
+  // `tax_rate_bp` is null.
+  useEffect(() => {
+    if (!token) return;
+    api<{ default_tax_rate_bp?: number | null }>('/admin/platform-config', { token })
+      .then((c) => setPlatformTaxRateBp(Number(c?.default_tax_rate_bp) || 0))
+      .catch(() => {});
   }, [token]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -275,6 +300,55 @@ export default function CreatorSettingsPage() {
       setCurrencySaving(false);
     }
   };
+
+  // Persists `tax_rate_bp` (integer basis points, or null to inherit the
+  // platform default) with optimistic update and rollback.
+  const saveTaxRateBp = async (next: number | null) => {
+    if (!token || !store || taxRateSaving) return;
+    const previous = store.tax_rate_bp ?? null;
+    if (next === previous) return;
+    setTaxRateSaving(true);
+    setTaxRateMsg(null);
+    setStore({ ...store, tax_rate_bp: next });
+    setTaxRateInput(formatTaxRatePercent(next ?? platformTaxRateBp));
+    try {
+      await api('/stores/my/store', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ tax_rate_bp: next }),
+      });
+      setTaxRateMsg({ type: 'success', text: t('settings.taxRateUpdated') });
+    } catch (err: unknown) {
+      setStore({ ...store, tax_rate_bp: previous });
+      setTaxRateInput(formatTaxRatePercent(previous ?? platformTaxRateBp));
+      setTaxRateMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.taxRateUpdateFailed') });
+    } finally {
+      setTaxRateSaving(false);
+    }
+  };
+
+  // Commits the VAT input. Runs on blur / Enter so typing does not fire a
+  // request per keystroke; the input is normalised back to the saved value.
+  const handleSaveTaxRate = async () => {
+    if (!store || store.tax_rate_bp == null) return;
+    const next = parseTaxRateBp(taxRateInput);
+    if (next === null) {
+      setTaxRateInput(formatTaxRatePercent(store.tax_rate_bp));
+      return;
+    }
+    setTaxRateInput(formatTaxRatePercent(next));
+    await saveTaxRateBp(next);
+  };
+
+  // "Use platform default" toggle: checked -> clear the override (null);
+  // unchecked -> start the override at the platform rate so the input opens
+  // on the value the customer is already being charged.
+  const handleToggleTaxPlatformDefault = (usePlatformDefault: boolean) => {
+    void saveTaxRateBp(usePlatformDefault ? null : platformTaxRateBp);
+  };
+
+  // True while the store inherits the platform VAT rate (no override set).
+  const taxUsePlatformDefault = store?.tax_rate_bp == null;
 
   const handleDisconnectStripe = async () => {
     if (!token || disconnecting) return;
@@ -756,6 +830,68 @@ export default function CreatorSettingsPage() {
                     )}
                   </div>
                 )}
+
+                {/* VAT rate — every store type. Prices are entered
+                    tax-inclusive; the rate drives the VAT share shown to the
+                    customer at checkout and on receipts. Saved as basis points;
+                    null inherits the platform default. */}
+                <div className="border-t pt-3 space-y-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="store-tax-rate" className="text-sm font-medium">
+                      {t('settings.taxRate')}
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t('settings.taxRateHint')}
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="size-3.5 accent-zinc-900"
+                      checked={taxUsePlatformDefault}
+                      disabled={taxRateSaving}
+                      onChange={(e) => handleToggleTaxPlatformDefault(e.target.checked)}
+                    />
+                    <span>
+                      {t('settings.taxRateUsePlatformDefault', { rate: formatTaxRateLabel(platformTaxRateBp) })}
+                    </span>
+                  </label>
+                  <div className="max-w-xs flex items-center gap-2">
+                    <div className="relative w-28">
+                      <Input
+                        id="store-tax-rate"
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        value={taxRateInput}
+                        onChange={(e) => setTaxRateInput(e.target.value)}
+                        onBlur={handleSaveTaxRate}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.currentTarget.blur();
+                        }}
+                        disabled={taxRateSaving || taxUsePlatformDefault}
+                        className="h-8 pe-7"
+                      />
+                      <span className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-2.5 text-xs text-muted-foreground">
+                        %
+                      </span>
+                    </div>
+                    {taxRateSaving && (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                  {taxRateMsg && (
+                    <p
+                      className={`text-[11px] ${
+                        taxRateMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {taxRateMsg.text}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -952,6 +1088,14 @@ export default function CreatorSettingsPage() {
                       {kustom.currency_supported === false && (
                         <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
                           {t('settings.kustomCurrencyUnsupported', { currency: kustom.currency || '' })}
+                        </p>
+                      )}
+                      {/* Kustom is on but the resolved VAT rate (store
+                          override, else platform default) is 0 %: every line
+                          would be sent with 0 % VAT. */}
+                      {kustom.enabled && resolveTaxRateBp(store?.tax_rate_bp, platformTaxRateBp) === 0 && (
+                        <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
+                          {t('settings.kustomNoTaxHint')}
                         </p>
                       )}
                     </div>

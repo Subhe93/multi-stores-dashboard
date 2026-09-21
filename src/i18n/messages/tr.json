@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "Ödeme",
+    "includesVat": "KDV dahil ({rate})",
     "verifyPayment": "Ödemeyi doğrula",
     "statusPaid": "Ödendi",
     "statusAwaiting": "Ödeme bekleniyor",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "Geçerli bir tutar girin.",
     "kustomCancelAuthHint": "Ödeme yetkilendirildi ancak henüz tahsil edilmedi; bu nedenle yalnızca yetkilendirmeyi iptal eden tam iade yapılabilir.",
     "yourPayout": "Ödemeniz",
+    "pickup": "Mağazadan teslim",
     "provider": "Tedarikçi",
     "creator": "İçerik üretici"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "Kustom Partner Kimliği",
     "kustomPartnerIdHint": "İsteğe bağlı. Bağımsız mağazalar için yapılan her Kustom API çağrısında Kustom-Partner başlığı olarak gönderilir. Platformun Kustom partner anlaşması yoksa boş bırakın.",
     "stripeConnectWebhookMissing": "{count} bağımsız mağaza kendi Stripe hesabından tahsilat yapıyor. Bu gizli anahtar olmadan, Stripe'ta yaptıkları iadeler siparişe hiç işlenmez.",
-    "storeTypeGuideLink": "Bir mağaza nasıl dönüştürülür: rehberi açın"
+    "storeTypeGuideLink": "Bir mağaza nasıl dönüştürülür: rehberi açın",
+    "storeTaxRate": "KDV oranı: %{rate}",
+    "storeTaxRateInherited": "KDV oranı: platform varsayılanı ({rate})",
+    "defaultTaxRate": "Varsayılan KDV oranı (%)",
+    "defaultTaxRateHint": "Kendi KDV oranını belirlememiş her mağazaya uygulanır. Fiyatlar KDV dahil girilir; oran yalnızca ödeme sırasında ve fişlerde müşterilere gösterilen KDV payını belirler."
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "Kustom kimlik bilgileri kaldırılamadı.",
       "kustomLoadFailed": "Kustom ayarları yüklenemedi.",
       "kustomCurrencyUnsupported": "Kustom, mağaza para biriminizi ({currency}) işlemez. Ödeme sayfasında Kustom sunmak için mağaza para birimini desteklenen bir birime (örneğin SEK, NOK, DKK, EUR, GBP veya USD) değiştirin.",
-      "currencyUpdateFailed": "Mağaza para birimi güncellenemedi"
+      "currencyUpdateFailed": "Mağaza para birimi güncellenemedi",
+      "taxRate": "KDV oranı (%)",
+      "taxRateHint": "Fiyatlar KDV dahil girilir. KDV tutarı ödeme sırasında ve fişlerde müşterilere gösterilir. İsveç mağazaları genellikle %25 kullanır.",
+      "taxRateUpdated": "KDV oranı güncellendi",
+      "taxRateUpdateFailed": "KDV oranı güncellenemedi",
+      "taxRateUsePlatformDefault": "Platform varsayılanını kullan ({rate})",
+      "kustomNoTaxHint": "KDV oranı %0 — Kustom %0 KDV gösterecek. Yukarıdaki mağaza kartından bir KDV oranı ayarlayın."
     },
     "orderDetail": {
       "notFound": "Sipariş bulunamadı",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "ör. Körfez Ülkeleri",
     "zoneOverlapWarning": "Bu bölgedeki bazı ülkeler başka bir bölgeyle çakışıyor. İlk eşleşen bölge kullanılacak.",
     "saveFailed": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.",
-    "deleteFailed": "Silme işlemi başarısız oldu. Lütfen tekrar deneyin."
+    "deleteFailed": "Silme işlemi başarısız oldu. Lütfen tekrar deneyin.",
+    "methods": "Kargo yöntemleri",
+    "addMethod": "Yöntem ekle",
+    "editMethod": "Yöntemi düzenle",
+    "deleteMethod": "Yöntemi sil",
+    "methodName": "Yöntem adı",
+    "methodNamePlaceholder": "örn. Standart kargo, Ekspres, Mağazadan teslim",
+    "methodType": "Tür",
+    "typeDelivery": "Teslimat",
+    "typePickup": "Mağazadan teslim",
+    "readyIn": "Teslime hazır olma süresi",
+    "translations": "Çeviriler",
+    "translationsHint": "Mağazayı o dilde görüntüleyen müşterilere gösterilir. Varsayılan adı kullanmak için boş bırakın.",
+    "noMethodsYet": "Bu bölge hâlâ eski tarifesini kullanıyor. Müşterilerin siparişlerini nasıl alacaklarını seçebilmesi için bir yöntem ekleyin.",
+    "sortOrder": "Sıralama",
+    "active": "Etkin",
+    "inactive": "Devre dışı",
+    "defaultMethodSection": "Varsayılan kargo yöntemi",
+    "defaultMethodHint": "Bölgeyle birlikte oluşturulur. Daha sonra başka yöntemler ekleyebilirsiniz."
   }
 }

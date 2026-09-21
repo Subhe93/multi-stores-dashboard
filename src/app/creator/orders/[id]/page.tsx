@@ -12,6 +12,7 @@ import { ArrowLeft, Clock, Package, Info, Tag, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { formatAmountIn, formatTaxRateLabel } from '@/lib/taxRate';
 import { useStoreType } from '@/lib/useStoreType';
 import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
 
@@ -90,7 +91,7 @@ export default function CreatorOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
   const router = useRouter();
-  const { fmt } = useCurrency();
+  const { fmt, currency } = useCurrency();
   const { storeType } = useStoreType();
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
@@ -406,16 +407,30 @@ export default function CreatorOrderDetailPage() {
                   <span>{t('orderDetail.subtotal')}</span>
                   <span>{fmt(Number(order.subtotal ?? order.total))}</span>
                 </div>
-                {Number(order.shipping_cost ?? 0) > 0 && (
+                {/* Shown when there is a cost or a chosen method (free pickup still names the method). */}
+                {(Number(order.shipping_cost ?? 0) > 0 || order.shipping_method_name) && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>{t('orderDetail.shipping')}</span>
-                    <span>{fmt(Number(order.shipping_cost))}</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      {t('orderDetail.shipping')}
+                      {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
+                      {order.shipping_method_type === 'PICKUP' && (
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{tp('pickup')}</Badge>
+                      )}
+                    </span>
+                    <span>{fmt(Number(order.shipping_cost ?? 0))}</span>
                   </div>
                 )}
                 {Number(order.discount_amount ?? 0) > 0 && (
                   <div className="flex justify-between text-emerald-600">
                     <span>{t('orderDetail.discount')}</span>
                     <span>-{fmt(Number(order.discount_amount))}</span>
+                  </div>
+                )}
+                {/* VAT is included in the total; shown in the order's own currency. */}
+                {Number(order.tax_rate_bp ?? 0) > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{tp('includesVat', { rate: formatTaxRateLabel(Number(order.tax_rate_bp)) })}</span>
+                    <span>{formatAmountIn(order.tax_amount, order.currency || currency)}</span>
                   </div>
                 )}
                 <Separator />

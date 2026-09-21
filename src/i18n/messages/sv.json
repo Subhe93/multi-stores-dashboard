@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "Betalning",
+    "includesVat": "Inkl. moms ({rate})",
     "verifyPayment": "Verifiera betalning",
     "statusPaid": "Betald",
     "statusAwaiting": "Väntar på betalning",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "Ange ett giltigt belopp.",
     "kustomCancelAuthHint": "Betalningen är auktoriserad men ännu inte debiterad, därför är endast full återbetalning möjlig – den släpper auktorisationen.",
     "yourPayout": "Din utbetalning",
+    "pickup": "Upphämtning",
     "provider": "Leverantör",
     "creator": "Kreatör"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "Kustom partner-ID",
     "kustomPartnerIdHint": "Valfritt. Skickas som Kustom-Partner-header vid varje anrop till Kustoms API för fristående butiker. Lämna tomt om plattformen saknar partneravtal med Kustom.",
     "stripeConnectWebhookMissing": "{count} fristående butik(er) debiterar via sitt eget Stripe-konto. Utan den här hemligheten synkas återbetalningar de gör i Stripe aldrig tillbaka till ordern.",
-    "storeTypeGuideLink": "Så omvandlas en butik: öppna guiden"
+    "storeTypeGuideLink": "Så omvandlas en butik: öppna guiden",
+    "storeTaxRate": "Momssats: {rate} %",
+    "storeTaxRateInherited": "Momssats: plattformens standard ({rate})",
+    "defaultTaxRate": "Standardmomssats (%)",
+    "defaultTaxRateHint": "Gäller varje butik som inte angett en egen momssats. Priserna anges inklusive moms; satsen styr bara momsandelen som visas för kunder i kassan och på kvitton."
   },
   "guide": {
     "title": "Driftguide",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "Det gick inte att ta bort Kustom-uppgifterna.",
       "kustomLoadFailed": "Det gick inte att läsa in Kustom-inställningarna.",
       "kustomCurrencyUnsupported": "Kustom hanterar inte din butiks valuta ({currency}). Byt butikens valuta till en som stöds (till exempel SEK, NOK, DKK, EUR, GBP eller USD) för att erbjuda Kustom i kassan.",
-      "currencyUpdateFailed": "Det gick inte att uppdatera butikens valuta"
+      "currencyUpdateFailed": "Det gick inte att uppdatera butikens valuta",
+      "taxRate": "Momssats (%)",
+      "taxRateHint": "Priserna anges inklusive moms. Momsbeloppet visas för kunder i kassan och på kvitton. Svenska butiker använder vanligtvis 25 %.",
+      "taxRateUpdated": "Momssatsen har uppdaterats",
+      "taxRateUpdateFailed": "Det gick inte att uppdatera momssatsen",
+      "taxRateUsePlatformDefault": "Använd plattformens standard ({rate})",
+      "kustomNoTaxHint": "Momssatsen är 0 % — Kustom visar 0 % moms. Ange en momssats i butikskortet ovan."
     },
     "orderDetail": {
       "notFound": "Beställningen hittades inte",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "t.ex. Gulfstaterna",
     "zoneOverlapWarning": "Vissa länder i denna zon överlappar med en annan zon. Den första matchande zonen används.",
     "saveFailed": "Det gick inte att spara ändringarna. Försök igen.",
-    "deleteFailed": "Det gick inte att ta bort. Försök igen."
+    "deleteFailed": "Det gick inte att ta bort. Försök igen.",
+    "methods": "Fraktmetoder",
+    "addMethod": "Lägg till metod",
+    "editMethod": "Redigera metod",
+    "deleteMethod": "Ta bort metod",
+    "methodName": "Metodens namn",
+    "methodNamePlaceholder": "t.ex. Standardfrakt, Express, Hämta i butik",
+    "methodType": "Typ",
+    "typeDelivery": "Leverans",
+    "typePickup": "Upphämtning",
+    "readyIn": "Klar för upphämtning inom",
+    "translations": "Översättningar",
+    "translationsHint": "Visas för kunder som besöker butiken på det språket. Lämna tomt för att använda standardnamnet.",
+    "noMethodsYet": "Den här zonen använder fortfarande sin gamla taxa. Lägg till en metod så att kunderna kan välja hur de vill få sin beställning.",
+    "sortOrder": "Sorteringsordning",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "defaultMethodSection": "Standardfraktmetod",
+    "defaultMethodHint": "Skapas tillsammans med zonen. Du kan lägga till fler metoder efteråt."
   }
 }

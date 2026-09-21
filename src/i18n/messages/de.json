@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "Zahlung",
+    "includesVat": "Inkl. MwSt. ({rate})",
     "verifyPayment": "Zahlung prüfen",
     "statusPaid": "Bezahlt",
     "statusAwaiting": "Zahlung ausstehend",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "Geben Sie einen gültigen Betrag ein.",
     "kustomCancelAuthHint": "Die Zahlung ist autorisiert, aber noch nicht eingezogen. Daher ist nur eine vollständige Rückerstattung möglich, die die Autorisierung freigibt.",
     "yourPayout": "Ihre Auszahlung",
+    "pickup": "Abholung",
     "provider": "Anbieter",
     "creator": "Creator"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "Kustom-Partner-ID",
     "kustomPartnerIdHint": "Optional. Wird bei jedem Kustom-API-Aufruf für unabhängige Shops als Kustom-Partner-Header gesendet. Leer lassen, wenn die Plattform keine Kustom-Partnervereinbarung hat.",
     "stripeConnectWebhookMissing": "{count} unabhängige Shops belasten ihr eigenes Stripe-Konto. Ohne dieses Secret werden dort vorgenommene Rückerstattungen nie mit der Bestellung synchronisiert.",
-    "storeTypeGuideLink": "So wird ein Shop umgewandelt: Leitfaden öffnen"
+    "storeTypeGuideLink": "So wird ein Shop umgewandelt: Leitfaden öffnen",
+    "storeTaxRate": "MwSt.-Satz: {rate} %",
+    "storeTaxRateInherited": "MwSt.-Satz: Plattform-Standard ({rate})",
+    "defaultTaxRate": "Standard-MwSt.-Satz (%)",
+    "defaultTaxRateHint": "Gilt für jeden Shop, der keinen eigenen MwSt.-Satz festgelegt hat. Preise werden inklusive MwSt. eingegeben; der Satz bestimmt nur den MwSt.-Anteil, der Kunden im Checkout und auf Belegen angezeigt wird."
   },
   "guide": {
     "title": "Betriebsleitfaden",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "Die Kustom-Zugangsdaten konnten nicht entfernt werden.",
       "kustomLoadFailed": "Die Kustom-Einstellungen konnten nicht geladen werden.",
       "kustomCurrencyUnsupported": "Kustom verarbeitet Ihre Shop-Währung ({currency}) nicht. Stellen Sie die Shop-Währung auf eine unterstützte um (z. B. SEK, NOK, DKK, EUR, GBP oder USD), um Kustom im Checkout anzubieten.",
-      "currencyUpdateFailed": "Shop-Währung konnte nicht aktualisiert werden"
+      "currencyUpdateFailed": "Shop-Währung konnte nicht aktualisiert werden",
+      "taxRate": "MwSt.-Satz (%)",
+      "taxRateHint": "Preise werden inklusive MwSt. eingegeben. Der MwSt.-Betrag wird Kunden im Checkout und auf Belegen angezeigt. Schwedische Shops verwenden in der Regel 25 %.",
+      "taxRateUpdated": "MwSt.-Satz aktualisiert",
+      "taxRateUpdateFailed": "MwSt.-Satz konnte nicht aktualisiert werden",
+      "taxRateUsePlatformDefault": "Plattform-Standard verwenden ({rate})",
+      "kustomNoTaxHint": "Der MwSt.-Satz beträgt 0 % — Kustom zeigt 0 % MwSt. an. Legen Sie oben in der Shop-Karte einen MwSt.-Satz fest."
     },
     "orderDetail": {
       "notFound": "Bestellung nicht gefunden",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "z. B. Golfstaaten",
     "zoneOverlapWarning": "Einige Länder in dieser Zone überschneiden sich mit einer anderen Zone. Die erste passende Zone wird verwendet.",
     "saveFailed": "Die Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-    "deleteFailed": "Das Löschen ist fehlgeschlagen. Bitte versuchen Sie es erneut."
+    "deleteFailed": "Das Löschen ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "methods": "Versandmethoden",
+    "addMethod": "Methode hinzufügen",
+    "editMethod": "Methode bearbeiten",
+    "deleteMethod": "Methode löschen",
+    "methodName": "Name der Methode",
+    "methodNamePlaceholder": "z. B. Standardversand, Express, Abholung im Geschäft",
+    "methodType": "Typ",
+    "typeDelivery": "Lieferung",
+    "typePickup": "Abholung",
+    "readyIn": "Abholbereit in",
+    "translations": "Übersetzungen",
+    "translationsHint": "Wird Kunden angezeigt, die den Shop in dieser Sprache nutzen. Leer lassen, um den Standardnamen zu verwenden.",
+    "noMethodsYet": "Diese Zone verwendet noch ihren alten Tarif. Fügen Sie eine Methode hinzu, damit Kunden wählen können, wie sie ihre Bestellung erhalten.",
+    "sortOrder": "Sortierung",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "defaultMethodSection": "Standard-Versandmethode",
+    "defaultMethodHint": "Wird zusammen mit der Zone erstellt. Weitere Methoden können Sie danach hinzufügen."
   }
 }

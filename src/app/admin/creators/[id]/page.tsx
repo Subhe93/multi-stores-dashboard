@@ -12,6 +12,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Mail, Phone, CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { formatTaxRateLabel } from '@/lib/taxRate';
 import Link from 'next/link';
 
 type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
@@ -22,6 +23,8 @@ interface Store {
   name: string;
   is_active: boolean;
   store_type?: StoreType;
+  // VAT rate override in basis points (2500 = 25 %); null inherits the platform default.
+  tax_rate_bp?: number | null;
 }
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
@@ -47,6 +50,9 @@ export default function CreatorDetailPage() {
   const [savingType, setSavingType] = useState(false);
   const [typeMsg, setTypeMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
+  // Platform default VAT rate, shown when the store has no override.
+  const [platformTaxRateBp, setPlatformTaxRateBp] = useState(0);
+
   const fetchCreator = () => {
     if (!token || !id) return;
     api<any>(`/creators/${id}`, { token })
@@ -69,6 +75,9 @@ export default function CreatorDetailPage() {
       api<Store>(`/stores/by-creator/${id}`, { token })
         .then((s) => { setStore(s); setSlug(s.slug); setStoreType(s.store_type ?? 'MARKETPLACE'); })
         .catch(() => setStore(null)),
+      api<{ default_tax_rate_bp?: number | null }>('/admin/platform-config', { token })
+        .then((c) => setPlatformTaxRateBp(Number(c?.default_tax_rate_bp) || 0))
+        .catch(() => {}),
     ]).finally(() => setLoading(false));
   }, [token, id]);
 
@@ -260,6 +269,14 @@ export default function CreatorDetailPage() {
                   </Link>
                 </div>
               </div>
+
+              {/* VAT rate is set by the creator (any store type); read-only
+                  here. Null means the store inherits the platform default. */}
+              <p className="text-xs text-muted-foreground border-t pt-3">
+                {store.tax_rate_bp == null
+                  ? t('storeTaxRateInherited', { rate: formatTaxRateLabel(platformTaxRateBp) })
+                  : t('storeTaxRate', { rate: store.tax_rate_bp / 100 })}
+              </p>
             </>
           )}
         </CardContent>

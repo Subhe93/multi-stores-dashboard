@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { formatAmountIn, formatTaxRateLabel } from '@/lib/taxRate';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -89,7 +90,7 @@ function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): s
 export default function ProviderOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
-  const { fmt } = useCurrency();
+  const { fmt, currency } = useCurrency();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const tp = useTranslations('payments');
@@ -420,14 +421,28 @@ export default function ProviderOrderDetail() {
                 <span className="text-muted-foreground">{t('subtotal')}</span>
                 <span>{fmt(Number(order.subtotal))}</span>
               </div>
+              {/* Shipping line names the chosen method; pickup orders get a small badge. */}
               <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">{t('shipping')}</span>
+                <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                  {t('shipping')}
+                  {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
+                  {order.shipping_method_type === 'PICKUP' && (
+                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{tp('pickup')}</Badge>
+                  )}
+                </span>
                 <span>{fmt(Number(order.shipping_cost))}</span>
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-xs text-emerald-600">
                   <span>{t('discount')}</span>
                   <span>−{fmt(Number(order.discount_amount))}</span>
+                </div>
+              )}
+              {/* VAT is included in the total; shown in the order's own currency. */}
+              {Number(order.tax_rate_bp ?? 0) > 0 && (
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{tp('includesVat', { rate: formatTaxRateLabel(Number(order.tax_rate_bp)) })}</span>
+                  <span>{formatAmountIn(order.tax_amount, order.currency || currency)}</span>
                 </div>
               )}
               <Separator />

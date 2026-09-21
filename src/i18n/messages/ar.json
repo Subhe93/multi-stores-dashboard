@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "الدفع",
+    "includesVat": "شامل ضريبة القيمة المضافة ({rate})",
     "verifyPayment": "تحقّق من الدفع",
     "statusPaid": "مدفوع",
     "statusAwaiting": "بانتظار الدفع",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "أدخل مبلغاً صالحاً.",
     "kustomCancelAuthHint": "الدفعة مفوَّضة ولم تُحصَّل بعد، لذا لا يمكن سوى استرداد كامل يلغي التفويض.",
     "yourPayout": "دفعتك",
+    "pickup": "استلام",
     "provider": "المورّد",
     "creator": "الكرييتور"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "معرّف شريك Kustom",
     "kustomPartnerIdHint": "اختياري. يُرسَل كترويسة Kustom-Partner مع كل طلب إلى واجهة Kustom للمتاجر المستقلة. اتركه فارغاً إن لم يكن للمنصة اتفاقية شراكة مع Kustom.",
     "stripeConnectWebhookMissing": "{count} متجر مستقل يشحن على حساب سترايب الخاص به. بدون هذا السرّ، الاستردادات التي يجرونها في سترايب لن تُزامَن مع الطلب إطلاقاً.",
-    "storeTypeGuideLink": "كيفية تحويل المتجر: افتح الدليل"
+    "storeTypeGuideLink": "كيفية تحويل المتجر: افتح الدليل",
+    "storeTaxRate": "نسبة ضريبة القيمة المضافة: {rate} %",
+    "storeTaxRateInherited": "نسبة ضريبة القيمة المضافة: الإعداد الافتراضي للمنصة ({rate})",
+    "defaultTaxRate": "نسبة ضريبة القيمة المضافة الافتراضية (%)",
+    "defaultTaxRateHint": "تُطبَّق على كل متجر لم يحدّد نسبة ضريبة خاصة به. تُدخل الأسعار شاملة الضريبة؛ النسبة تحدّد فقط حصة الضريبة المعروضة للعملاء عند الدفع وفي الإيصالات."
   },
   "guide": {
     "title": "دليل العمليات",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "تعذّر إزالة بيانات اعتماد Kustom.",
       "kustomLoadFailed": "تعذّر تحميل إعدادات Kustom.",
       "kustomCurrencyUnsupported": "لا تعالج Kustom عملة متجرك ({currency}). غيّر عملة المتجر إلى عملة مدعومة (مثل SEK أو NOK أو DKK أو EUR أو GBP أو USD) لعرض Kustom في صفحة الدفع.",
-      "currencyUpdateFailed": "تعذّر تحديث عملة المتجر"
+      "currencyUpdateFailed": "تعذّر تحديث عملة المتجر",
+      "taxRate": "نسبة ضريبة القيمة المضافة (%)",
+      "taxRateHint": "تُدخل الأسعار شاملة ضريبة القيمة المضافة. تُعرض قيمة الضريبة للعملاء عند الدفع وفي الإيصالات. المتاجر السويدية تستخدم عادةً 25 %.",
+      "taxRateUpdated": "تم تحديث نسبة الضريبة",
+      "taxRateUpdateFailed": "تعذّر تحديث نسبة الضريبة",
+      "taxRateUsePlatformDefault": "استخدام الإعداد الافتراضي للمنصة ({rate})",
+      "kustomNoTaxHint": "نسبة الضريبة 0 % — ستعرض Kustom ضريبة 0 %. حدّد نسبة ضريبة في بطاقة المتجر أعلاه."
     },
     "orderDetail": {
       "notFound": "الطلب غير موجود",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "مثال: دول الخليج",
     "zoneOverlapWarning": "بعض الدول في هذه المنطقة تتداخل مع منطقة أخرى. سيتم استخدام أول منطقة مطابقة.",
     "saveFailed": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.",
-    "deleteFailed": "فشل الحذف. يرجى المحاولة مرة أخرى."
+    "deleteFailed": "فشل الحذف. يرجى المحاولة مرة أخرى.",
+    "methods": "طرق الشحن",
+    "addMethod": "إضافة طريقة",
+    "editMethod": "تعديل الطريقة",
+    "deleteMethod": "حذف الطريقة",
+    "methodName": "اسم الطريقة",
+    "methodNamePlaceholder": "مثال: شحن عادي، شحن سريع، استلام من المتجر",
+    "methodType": "النوع",
+    "typeDelivery": "توصيل",
+    "typePickup": "استلام",
+    "readyIn": "جاهز للاستلام خلال",
+    "translations": "الترجمات",
+    "translationsHint": "تظهر للعملاء الذين يتصفحون المتجر بتلك اللغة. اتركها فارغة لاستخدام الاسم الافتراضي.",
+    "noMethodsYet": "لا تزال هذه المنطقة تستخدم تعرفتها القديمة. أضف طريقة ليتمكن العملاء من اختيار كيفية استلام طلبهم.",
+    "sortOrder": "ترتيب العرض",
+    "active": "مفعّلة",
+    "inactive": "معطّلة",
+    "defaultMethodSection": "طريقة الشحن الافتراضية",
+    "defaultMethodHint": "تُنشأ مع المنطقة. يمكنك إضافة طرق أخرى لاحقاً."
   }
 }

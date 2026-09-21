@@ -7,14 +7,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle } from 'lucide-react';
+import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
+import {
+  ZoneMethods,
+  MethodFormFields,
+  emptyMethodForm,
+  isMethodFormValid,
+  methodFormToBody,
+  type MethodFormState,
+} from '@/components/common/ShippingMethods';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
+
+interface PlatformLocales {
+  default_locale?: string;
+  supported_locales?: string[];
+}
 
 function getCountryName(code: string): string {
   return COUNTRIES.find(c => c.code === code)?.name ?? code;
@@ -35,39 +48,23 @@ function getDuplicateCountries(zones: any[]): Set<string> {
 }
 
 // Reusable zone form fields — extracted as a plain function returning JSX (not a component)
-// so it can be inlined without remount issues
+// so it can be inlined without remount issues. A zone is just a name + countries;
+// rates live on its shipping methods.
 function zoneFormFields(
   zoneName: string, setZoneName: (v: string) => void,
   zoneCountries: string[], setZoneCountries: (v: string[]) => void,
-  zoneBaseCost: string, setZoneBaseCost: (v: string) => void,
-  zonePerItem: string, setZonePerItem: (v: string) => void,
-  zoneFreeThreshold: string, setZoneFreeThreshold: (v: string) => void,
-  zoneDaysMin: string, setZoneDaysMin: (v: string) => void,
-  zoneDaysMax: string, setZoneDaysMax: (v: string) => void,
-  currency: string,
   t: Translator,
 ) {
   return (
     <div className="space-y-4 py-2">
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('zoneName')}</Label>
-          <Input
-            className="h-8 text-sm"
-            placeholder={t('zoneNamePlaceholder')}
-            value={zoneName}
-            onChange={e => setZoneName(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('estimatedDelivery')}</Label>
-          <div className="flex gap-1.5 items-center">
-            <Input type="number" min="1" className="h-8 text-sm" placeholder={t('min')} value={zoneDaysMin} onChange={e => setZoneDaysMin(e.target.value)} />
-            <span className="text-xs text-muted-foreground shrink-0">{t('to')}</span>
-            <Input type="number" min="1" className="h-8 text-sm" placeholder={t('max')} value={zoneDaysMax} onChange={e => setZoneDaysMax(e.target.value)} />
-            <span className="text-xs text-muted-foreground shrink-0">{t('days')}</span>
-          </div>
-        </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">{t('zoneName')}</Label>
+        <Input
+          className="h-8 text-sm"
+          placeholder={t('zoneNamePlaceholder')}
+          value={zoneName}
+          onChange={e => setZoneName(e.target.value)}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -80,21 +77,6 @@ function zoneFormFields(
         {zoneCountries.length > 0 && (
           <p className="text-[10px] text-muted-foreground">{t('countriesSelected', { count: zoneCountries.length })}</p>
         )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('baseShippingCost', { currency })}</Label>
-          <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder="0.00" value={zoneBaseCost} onChange={e => setZoneBaseCost(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('perAdditionalItem', { currency })}</Label>
-          <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder="0.00" value={zonePerItem} onChange={e => setZonePerItem(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{t('freeShippingAbove', { currency })}</Label>
-          <Input type="number" step="0.01" min="0" className="h-8 text-sm" placeholder={t('optional')} value={zoneFreeThreshold} onChange={e => setZoneFreeThreshold(e.target.value)} />
-        </div>
       </div>
     </div>
   );
@@ -109,12 +91,17 @@ interface ConfirmState {
 export default function ProviderShipping() {
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
+  // Existing page copy lives in the `provider` namespace; method-related keys
+  // are shared with the creator page under `shipping`.
   const t = useTranslations('provider');
+  const ts = useTranslations('shipping');
   const tc = useTranslations('common');
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingDefault, setSettingDefault] = useState<string | null>(null);
+  // Platform content locales offered for method name translations.
+  const [platformLocales, setPlatformLocales] = useState<string[]>([]);
 
   // Dialogs
   const [showAddProfile, setShowAddProfile] = useState(false);
@@ -123,14 +110,16 @@ export default function ProviderShipping() {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // User-visible error feedback — dialogs surface `formError`, actions that
+  // run outside a dialog (set default) surface `pageError`.
+  const [formError, setFormError] = useState('');
+  const [pageError, setPageError] = useState('');
+
   // Zone form state
   const [zoneName, setZoneName] = useState('');
   const [zoneCountries, setZoneCountries] = useState<string[]>([]);
-  const [zoneBaseCost, setZoneBaseCost] = useState('');
-  const [zonePerItem, setZonePerItem] = useState('0');
-  const [zoneFreeThreshold, setZoneFreeThreshold] = useState('');
-  const [zoneDaysMin, setZoneDaysMin] = useState('3');
-  const [zoneDaysMax, setZoneDaysMax] = useState('7');
+  // Default method created together with a new zone (one-step flow).
+  const [methodForm, setMethodForm] = useState<MethodFormState>(emptyMethodForm());
 
   // Profile form state
   const [profileName, setProfileName] = useState('');
@@ -146,19 +135,33 @@ export default function ProviderShipping() {
 
   useEffect(() => { fetchProfiles(); }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    api<Partial<PlatformLocales>>('/admin/platform-config', { token })
+      .then(config => {
+        if (cancelled) return;
+        const primary = config?.default_locale || 'en';
+        const supported = config?.supported_locales || [];
+        setPlatformLocales([primary, ...supported.filter(l => l !== primary)]);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [token]);
+
   const resetZoneForm = () => {
     setZoneName('');
     setZoneCountries([]);
-    setZoneBaseCost('');
-    setZonePerItem('0');
-    setZoneFreeThreshold('');
-    setZoneDaysMin('3');
-    setZoneDaysMax('7');
+    setMethodForm(emptyMethodForm());
+    setFormError('');
   };
+
+  const zoneFormValid = !!zoneName && zoneCountries.length > 0;
 
   const handleAddProfile = async () => {
     if (!token || !profileName) return;
     setSaving(true);
+    setFormError('');
     try {
       await api('/shipping/profiles', {
         method: 'POST', token,
@@ -167,34 +170,40 @@ export default function ProviderShipping() {
       setShowAddProfile(false);
       setProfileName('');
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || ts('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
+  // Creates the zone together with its default method in a single request
+  // (CreateShippingZoneDto.methods): either both exist afterwards or neither.
   const handleAddZone = async () => {
-    if (!token || !showAddZone || !zoneName || zoneCountries.length === 0 || !zoneBaseCost) return;
+    if (!token || !showAddZone || !zoneFormValid || !isMethodFormValid(methodForm)) return;
     setSaving(true);
+    setFormError('');
     try {
       await api(`/shipping/profiles/${showAddZone}/zones`, {
         method: 'POST', token,
         body: JSON.stringify({
           name: zoneName,
           countries: zoneCountries,
-          base_cost: parseFloat(zoneBaseCost),
-          per_item_cost: parseFloat(zonePerItem || '0'),
-          free_threshold: zoneFreeThreshold ? parseFloat(zoneFreeThreshold) : undefined,
-          estimated_days_min: parseInt(zoneDaysMin),
-          estimated_days_max: parseInt(zoneDaysMax),
+          methods: [methodFormToBody(methodForm)],
         }),
       });
       setShowAddZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || ts('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
   const openEditZone = (zone: any) => {
+    setFormError('');
     setEditingZone(zone);
     setZoneName(zone.name || '');
     setZoneCountries(
@@ -202,49 +211,45 @@ export default function ProviderShipping() {
         ? zone.countries
         : (zone.countries || '').split(',').map((c: string) => c.trim()).filter(Boolean),
     );
-    setZoneBaseCost(String(zone.base_cost || ''));
-    setZonePerItem(String(zone.per_item_cost || '0'));
-    setZoneFreeThreshold(zone.free_threshold ? String(zone.free_threshold) : '');
-    setZoneDaysMin(String(zone.estimated_days_min || '3'));
-    setZoneDaysMax(String(zone.estimated_days_max || '7'));
   };
 
   const handleUpdateZone = async () => {
-    if (!token || !editingZone || !zoneName || zoneCountries.length === 0) return;
+    if (!token || !editingZone || !zoneFormValid) return;
     setSaving(true);
+    setFormError('');
     try {
       await api(`/shipping/zones/${editingZone.id}`, {
         method: 'PUT', token,
-        body: JSON.stringify({
-          name: zoneName,
-          countries: zoneCountries,
-          base_cost: parseFloat(zoneBaseCost),
-          per_item_cost: parseFloat(zonePerItem || '0'),
-          free_threshold: zoneFreeThreshold ? parseFloat(zoneFreeThreshold) : undefined,
-          estimated_days_min: parseInt(zoneDaysMin),
-          estimated_days_max: parseInt(zoneDaysMax),
-        }),
+        body: JSON.stringify({ name: zoneName, countries: zoneCountries }),
       });
       setEditingZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || ts('saveFailed'));
+    }
     finally { setSaving(false); }
   };
 
   const handleSetDefault = async (profileId: string) => {
     if (!token) return;
     setSettingDefault(profileId);
+    setPageError('');
     try {
       await api(`/shipping/profiles/${profileId}/default`, { method: 'PUT', token });
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setPageError(err?.message || ts('saveFailed'));
+    }
     finally { setSettingDefault(null); }
   };
 
   const handleConfirmDelete = async () => {
     if (!token || !confirm) return;
     setDeleting(true);
+    setFormError('');
     try {
       if (confirm.type === 'zone') {
         await api(`/shipping/zones/${confirm.id}`, { method: 'DELETE', token });
@@ -253,7 +258,10 @@ export default function ProviderShipping() {
       }
       setConfirm(null);
       await fetchProfiles();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      setFormError(err?.message || ts('deleteFailed'));
+    }
     finally { setDeleting(false); }
   };
 
@@ -265,9 +273,17 @@ export default function ProviderShipping() {
           <p className="text-sm text-muted-foreground">{t('shippingSubtitle')}</p>
         </div>
         <Button size="sm" onClick={() => setShowAddProfile(true)}>
-          <Plus className="w-4 h-4 mr-1.5" /> {t('newProfile')}
+          <Plus className="w-4 h-4 me-1.5" /> {t('newProfile')}
         </Button>
       </div>
+
+      {/* Error banner for page-level actions (set default) */}
+      {pageError && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {pageError}
+        </div>
+      )}
 
       {loading ? (
         <p className="text-sm text-muted-foreground text-center py-8">{tc('loading')}</p>
@@ -318,7 +334,7 @@ export default function ProviderShipping() {
                     className="h-7 text-xs"
                     onClick={() => { resetZoneForm(); setShowAddZone(profile.id); }}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> {t('addZone')}
+                    <Plus className="w-3 h-3 me-1" /> {t('addZone')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -402,25 +418,17 @@ export default function ProviderShipping() {
                         </div>
                       )}
 
-                      {/* Rates */}
-                      <div className="grid grid-cols-4 gap-3 text-xs pt-2 border-t border-dashed">
-                        <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('baseCost')}</p>
-                          <p className="font-semibold">{fmt(zone.base_cost)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('perExtraItem')}</p>
-                          <p className="font-semibold">{fmt(zone.per_item_cost)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('freeShippingAboveShort')}</p>
-                          <p className="font-semibold">{zone.free_threshold ? `${fmt(Number(zone.free_threshold))}` : '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-[10px] mb-0.5">{t('estDelivery')}</p>
-                          <p className="font-semibold">{t('daysRange', { min: zone.estimated_days_min, max: zone.estimated_days_max })}</p>
-                        </div>
-                      </div>
+                      {/* Shipping methods (rates live here) */}
+                      {token && (
+                        <ZoneMethods
+                          zone={zone}
+                          token={token}
+                          locales={platformLocales}
+                          currency={currency}
+                          fmt={fmt}
+                          onChanged={fetchProfiles}
+                        />
+                      )}
                     </div>
                   );
                 })
@@ -432,7 +440,7 @@ export default function ProviderShipping() {
       )}
 
       {/* ── Add Profile Dialog ── */}
-      <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); } }}>
+      <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); setFormError(''); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>{t('newShippingProfile')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
@@ -446,9 +454,15 @@ export default function ProviderShipping() {
                 onKeyDown={e => e.key === 'Enter' && handleAddProfile()}
               />
             </div>
+            {formError && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                {formError}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); }}>{tc('cancel')}</Button>
+            <Button variant="outline" size="sm" onClick={() => { setShowAddProfile(false); setProfileName(''); setFormError(''); }}>{tc('cancel')}</Button>
             <Button size="sm" onClick={handleAddProfile} disabled={saving || !profileName}>
               {saving ? t('creating') : t('createProfile')}
             </Button>
@@ -456,27 +470,30 @@ export default function ProviderShipping() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Add Zone Dialog ── */}
+      {/* ── Add Zone Dialog (zone + its default method) ── */}
       <Dialog open={!!showAddZone} onOpenChange={v => { if (!v) { setShowAddZone(null); resetZoneForm(); } }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{t('addShippingZone')}</DialogTitle></DialogHeader>
-          {zoneFormFields(
-            zoneName, setZoneName,
-            zoneCountries, setZoneCountries,
-            zoneBaseCost, setZoneBaseCost,
-            zonePerItem, setZonePerItem,
-            zoneFreeThreshold, setZoneFreeThreshold,
-            zoneDaysMin, setZoneDaysMin,
-            zoneDaysMax, setZoneDaysMax,
-            currency,
-            t,
+          {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
+          <div className="rounded-lg border bg-zinc-50/60 p-3 space-y-3">
+            <div>
+              <p className="text-xs font-medium">{ts('defaultMethodSection')}</p>
+              <p className="text-[10px] text-muted-foreground">{ts('defaultMethodHint')}</p>
+            </div>
+            <MethodFormFields form={methodForm} onChange={setMethodForm} locales={platformLocales} currency={currency} compact />
+          </div>
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
           )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => { setShowAddZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleAddZone}
-              disabled={saving || !zoneName || zoneCountries.length === 0 || !zoneBaseCost}
+              disabled={saving || !zoneFormValid || !isMethodFormValid(methodForm)}
             >
               {saving ? t('adding') : t('addZone')}
             </Button>
@@ -488,23 +505,19 @@ export default function ProviderShipping() {
       <Dialog open={!!editingZone} onOpenChange={v => { if (!v) { setEditingZone(null); resetZoneForm(); } }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name })}</DialogTitle></DialogHeader>
-          {zoneFormFields(
-            zoneName, setZoneName,
-            zoneCountries, setZoneCountries,
-            zoneBaseCost, setZoneBaseCost,
-            zonePerItem, setZonePerItem,
-            zoneFreeThreshold, setZoneFreeThreshold,
-            zoneDaysMin, setZoneDaysMin,
-            zoneDaysMax, setZoneDaysMax,
-            currency,
-            t,
+          {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
           )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => { setEditingZone(null); resetZoneForm(); }}>{tc('cancel')}</Button>
             <Button
               size="sm"
               onClick={handleUpdateZone}
-              disabled={saving || !zoneName || zoneCountries.length === 0}
+              disabled={saving || !zoneFormValid}
             >
               {saving ? tc('saving') : t('saveChanges')}
             </Button>
@@ -513,7 +526,7 @@ export default function ProviderShipping() {
       </Dialog>
 
       {/* ── Confirm Delete Dialog ── */}
-      <Dialog open={!!confirm} onOpenChange={v => { if (!v && !deleting) setConfirm(null); }}>
+      <Dialog open={!!confirm} onOpenChange={v => { if (!v && !deleting) { setConfirm(null); setFormError(''); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
@@ -527,8 +540,14 @@ export default function ProviderShipping() {
             )}
             {' '}{t('actionCannotBeUndone')}
           </p>
+          {formError && (
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {formError}
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setConfirm(null)} disabled={deleting}>{tc('cancel')}</Button>
+            <Button variant="outline" size="sm" onClick={() => { setConfirm(null); setFormError(''); }} disabled={deleting}>{tc('cancel')}</Button>
             <Button variant="destructive" size="sm" onClick={handleConfirmDelete} disabled={deleting}>
               {deleting ? t('deleting') : tc('delete')}
             </Button>

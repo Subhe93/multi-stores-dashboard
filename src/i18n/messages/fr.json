@@ -1,6 +1,7 @@
 {
   "payments": {
     "payment": "Paiement",
+    "includesVat": "Dont TVA ({rate})",
     "verifyPayment": "Vérifier le paiement",
     "statusPaid": "Payé",
     "statusAwaiting": "En attente de paiement",
@@ -33,6 +34,7 @@
     "kustomRefundInvalidAmount": "Saisissez un montant valide.",
     "kustomCancelAuthHint": "Le paiement est autorisé mais pas encore capturé : seul un remboursement intégral est possible, il annule l'autorisation.",
     "yourPayout": "Votre versement",
+    "pickup": "Retrait",
     "provider": "Fournisseur",
     "creator": "Créateur"
   },
@@ -546,7 +548,11 @@
     "kustomPartnerId": "ID partenaire Kustom",
     "kustomPartnerIdHint": "Facultatif. Envoyé dans l’en-tête Kustom-Partner à chaque appel à l’API Kustom pour les boutiques indépendantes. Laissez vide si la plateforme n’a pas d’accord de partenariat Kustom.",
     "stripeConnectWebhookMissing": "{count} boutique(s) indépendante(s) encaissent sur leur propre compte Stripe. Sans ce secret, les remboursements qu'elles effectuent dans Stripe ne sont jamais répercutés sur la commande.",
-    "storeTypeGuideLink": "Comment convertir une boutique : ouvrir le guide"
+    "storeTypeGuideLink": "Comment convertir une boutique : ouvrir le guide",
+    "storeTaxRate": "Taux de TVA : {rate} %",
+    "storeTaxRateInherited": "Taux de TVA : valeur par défaut de la plateforme ({rate})",
+    "defaultTaxRate": "Taux de TVA par défaut (%)",
+    "defaultTaxRateHint": "Appliqué à toute boutique qui n’a pas défini son propre taux de TVA. Les prix sont saisis TVA comprise ; le taux détermine uniquement la part de TVA affichée aux clients lors du paiement et sur les reçus."
   },
   "guide": {
     "title": "Guide des opérations",
@@ -1783,7 +1789,13 @@
       "kustomRemoveFailed": "Impossible de supprimer les identifiants Kustom.",
       "kustomLoadFailed": "Impossible de charger les paramètres Kustom.",
       "kustomCurrencyUnsupported": "Kustom ne traite pas la devise de votre boutique ({currency}). Passez la devise de la boutique à une devise prise en charge (par exemple SEK, NOK, DKK, EUR, GBP ou USD) pour proposer Kustom au paiement.",
-      "currencyUpdateFailed": "Impossible de mettre à jour la devise de la boutique"
+      "currencyUpdateFailed": "Impossible de mettre à jour la devise de la boutique",
+      "taxRate": "Taux de TVA (%)",
+      "taxRateHint": "Les prix sont saisis TVA comprise. Le montant de la TVA est affiché aux clients lors du paiement et sur les reçus. Les boutiques suédoises utilisent généralement 25 %.",
+      "taxRateUpdated": "Taux de TVA mis à jour",
+      "taxRateUpdateFailed": "Impossible de mettre à jour le taux de TVA",
+      "taxRateUsePlatformDefault": "Utiliser la valeur par défaut de la plateforme ({rate})",
+      "kustomNoTaxHint": "Le taux de TVA est de 0 % — Kustom affichera 0 % de TVA. Définissez un taux de TVA dans la carte Boutique ci-dessus."
     },
     "orderDetail": {
       "notFound": "Commande introuvable",
@@ -2776,6 +2788,24 @@
     "zoneNamePlaceholder": "p. ex. Pays du Golfe",
     "zoneOverlapWarning": "Certains pays de cette zone chevauchent une autre zone. La première zone correspondante sera utilisée.",
     "saveFailed": "Échec de l'enregistrement des modifications. Veuillez réessayer.",
-    "deleteFailed": "Échec de la suppression. Veuillez réessayer."
+    "deleteFailed": "Échec de la suppression. Veuillez réessayer.",
+    "methods": "Modes de livraison",
+    "addMethod": "Ajouter un mode",
+    "editMethod": "Modifier le mode",
+    "deleteMethod": "Supprimer le mode",
+    "methodName": "Nom du mode",
+    "methodNamePlaceholder": "ex. Livraison standard, Express, Retrait en magasin",
+    "methodType": "Type",
+    "typeDelivery": "Livraison",
+    "typePickup": "Retrait",
+    "readyIn": "Prêt pour le retrait sous",
+    "translations": "Traductions",
+    "translationsHint": "Affiché aux clients qui consultent la boutique dans cette langue. Laissez vide pour utiliser le nom par défaut.",
+    "noMethodsYet": "Cette zone utilise encore son ancien tarif. Ajoutez un mode pour que les clients puissent choisir comment recevoir leur commande.",
+    "sortOrder": "Ordre d'affichage",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "defaultMethodSection": "Mode de livraison par défaut",
+    "defaultMethodHint": "Créé en même temps que la zone. Vous pourrez ajouter d'autres modes ensuite."
   }
 }
