@@ -13,7 +13,6 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
-import { formatTaxRatePercent, parseTaxRateBp } from '@/lib/taxRate';
 
 interface PlatformConfig {
   commission_type: string;
@@ -26,8 +25,6 @@ interface PlatformConfig {
   min_order_amount: number | null;
   require_provider_approval: boolean;
   require_creator_approval: boolean;
-  // Platform-wide VAT rate in basis points (2500 = 25 %); stores may override it.
-  default_tax_rate_bp: number;
 }
 
 interface StripeSettings {
@@ -83,10 +80,7 @@ export default function AdminSettings() {
     min_order_amount: null,
     require_provider_approval: true,
     require_creator_approval: true,
-    default_tax_rate_bp: 0,
   });
-  // Percent string for the VAT input; parsed into basis points on save.
-  const [taxRateInput, setTaxRateInput] = useState('0');
 
   // Platform Stripe settings (separate, admin-only endpoint — secrets are never
   // returned, only whether they are configured).
@@ -138,9 +132,7 @@ export default function AdminSettings() {
           min_order_amount: config.min_order_amount ? Number(config.min_order_amount) : null,
           require_provider_approval: config.require_provider_approval ?? true,
           require_creator_approval: config.require_creator_approval ?? true,
-          default_tax_rate_bp: Number(config.default_tax_rate_bp) || 0,
         });
-        if (config) setTaxRateInput(formatTaxRatePercent(Number(config.default_tax_rate_bp) || 0));
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -258,8 +250,6 @@ export default function AdminSettings() {
     if (!token) return;
     setSaving(true);
     setSaved(false);
-    // Invalid VAT input falls back to the last saved rate.
-    const default_tax_rate_bp = parseTaxRateBp(taxRateInput) ?? form.default_tax_rate_bp;
     try {
       await api('/admin/platform-config', {
         method: 'PUT',
@@ -269,11 +259,8 @@ export default function AdminSettings() {
           commission_value: parseFloat(String(form.commission_value)),
           min_order_amount: form.min_order_amount ? parseFloat(String(form.min_order_amount)) : null,
           support_email: form.support_email || null,
-          default_tax_rate_bp,
         }),
       });
-      setField('default_tax_rate_bp', default_tax_rate_bp);
-      setTaxRateInput(formatTaxRatePercent(default_tax_rate_bp));
       clearCurrencyCache();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -473,35 +460,8 @@ export default function AdminSettings() {
         </CardContent>
       </Card>
 
-      {/* Default VAT rate — inherited by every store that has no override.
-          Prices are tax-inclusive; the rate only sets the VAT share shown to
-          customers. Stored as basis points. */}
-      <Card className="shadow-none">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">{t('defaultTaxRate')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1.5 max-w-xs">
-            <div className="relative w-28">
-              <Input
-                id="platform-default-tax-rate"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                max={100}
-                step={0.1}
-                className="h-8 text-sm pe-7"
-                value={taxRateInput}
-                onChange={e => setTaxRateInput(e.target.value)}
-              />
-              <span className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-2.5 text-xs text-muted-foreground">
-                %
-              </span>
-            </div>
-            <p className="text-[10px] text-muted-foreground">{t('defaultTaxRateHint')}</p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tax settings (pricing mode, platform country, OSS, rates) live on
+          /admin/taxes. */}
 
       {/* Registration Approvals */}
       <Card className="shadow-none">

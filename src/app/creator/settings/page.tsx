@@ -1,16 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Trash2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
-import { formatTaxRateLabel, formatTaxRatePercent, parseTaxRateBp, resolveTaxRateBp } from '@/lib/taxRate';
+import { countryName, taxCountryOptions } from '@/lib/taxCountries';
+import { localizedTaxText, type MyTaxSettings, type TaxBasis, type TaxPricingMode } from '@/lib/taxRate';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,10 +49,24 @@ interface StoreInfo {
   // Presentment currency. Null means the platform default; only independent
   // stores may set it (they charge on their own connected account).
   currency?: string | null;
-  // VAT rate override in basis points (2500 = 25 %). Null inherits the
-  // platform default. Prices are tax-inclusive; the VAT share is shown to the
-  // customer at checkout and on receipts. 0 = no VAT.
-  tax_rate_bp?: number | null;
+}
+
+// Editable subset of GET /taxes/my/settings (the PUT body).
+type TaxSettingsForm = Pick<
+  MyTaxSettings,
+  'pricing_mode' | 'basis' | 'tax_country' | 'oss_registered' | 'use_platform_tax_rates' | 'shipping_tax_class_id' | 'display_prices_incl_tax'
+>;
+
+function pickTaxForm(s: MyTaxSettings): TaxSettingsForm {
+  return {
+    pricing_mode: s.pricing_mode === 'EXCLUSIVE' ? 'EXCLUSIVE' : 'INCLUSIVE',
+    basis: s.basis === 'BILLING' || s.basis === 'STORE' ? s.basis : 'SHIPPING',
+    tax_country: s.tax_country || null,
+    oss_registered: !!s.oss_registered,
+    use_platform_tax_rates: s.use_platform_tax_rates !== false,
+    shipping_tax_class_id: s.shipping_tax_class_id || null,
+    display_prices_incl_tax: s.display_prices_incl_tax !== false,
+  };
 }
 
 interface StripeConnectStatus {
@@ -86,6 +103,8 @@ export default function CreatorSettingsPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const locale = useLocale();
+  const taxCountryOpts = useMemo(() => taxCountryOptions(locale), [locale]);
   const { upload, uploading } = useImageUpload(token ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,13 +134,17 @@ export default function CreatorSettingsPage() {
   const [currencySaving, setCurrencySaving] = useState(false);
   const [currencyMsg, setCurrencyMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // VAT rate (every store type). The input holds a percent string and is
-  // committed on blur / Enter as `tax_rate_bp` (percent x 100); null means the
-  // store inherits the platform default fetched from the platform config.
-  const [taxRateInput, setTaxRateInput] = useState('');
-  const [taxRateSaving, setTaxRateSaving] = useState(false);
-  const [taxRateMsg, setTaxRateMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [platformTaxRateBp, setPlatformTaxRateBp] = useState(0);
+  // Taxes (GET/PUT /taxes/my/settings). Marketplace stores are platform-managed
+  // (registrant PLATFORM) and only see a note; independent stores edit the
+  // store fields and save them explicitly.
+  const [taxSettings, setTaxSettings] = useState<MyTaxSettings | null>(null);
+  const [taxForm, setTaxForm] = useState<TaxSettingsForm | null>(null);
+  const [taxLoading, setTaxLoading] = useState(true);
+  const [taxLoadError, setTaxLoadError] = useState(false);
+  const [taxSaving, setTaxSaving] = useState(false);
+  const [taxMsg, setTaxMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Number of the store's own rate rows (independent stores) for the Kustom hint.
+  const [ownTaxRatesCount, setOwnTaxRatesCount] = useState<number | null>(null);
 
   // Stripe disconnect (two-step confirm)
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -171,22 +194,41 @@ export default function CreatorSettingsPage() {
     if (!token) return;
     setStoreLoading(true);
     api<StoreInfo>('/stores/my/store', { token })
-      .then((s) => {
-        setStore(s);
-        setTaxRateInput(formatTaxRatePercent(s.tax_rate_bp));
-      })
+      .then((s) => setStore(s))
       .catch(() => setStore(null))
       .finally(() => setStoreLoading(false));
   }, [token]);
 
-  // Platform default VAT rate (admin-configured); the store inherits it while
-  // `tax_rate_bp` is null.
+  // Load tax settings once the store is known.
+  const storeId = store?.id;
   useEffect(() => {
-    if (!token) return;
-    api<{ default_tax_rate_bp?: number | null }>('/admin/platform-config', { token })
-      .then((c) => setPlatformTaxRateBp(Number(c?.default_tax_rate_bp) || 0))
-      .catch(() => {});
-  }, [token]);
+    if (!token || !storeId) return;
+    setTaxLoading(true);
+    setTaxLoadError(false);
+    api<MyTaxSettings>('/taxes/my/settings', { token })
+      .then((s) => {
+        setTaxSettings(s);
+        setTaxForm(pickTaxForm(s));
+      })
+      .catch(() => setTaxLoadError(true))
+      .finally(() => setTaxLoading(false));
+  }, [token, storeId]);
+
+  // Own rate rows count, used by the Kustom "no tax rate" hint and the
+  // platform-rates toggle. The settings response carries it; an older API
+  // without `store_rates_count` is asked for the rate list instead.
+  const taxRegistrant = taxSettings?.registrant;
+  const settingsRatesCount = taxSettings?.store_rates_count;
+  useEffect(() => {
+    if (!token || taxRegistrant !== 'STORE') return;
+    if (typeof settingsRatesCount === 'number') {
+      setOwnTaxRatesCount(settingsRatesCount);
+      return;
+    }
+    api<unknown[]>('/taxes/my/rates', { token })
+      .then((rows) => setOwnTaxRatesCount(Array.isArray(rows) ? rows.length : 0))
+      .catch(() => setOwnTaxRatesCount(null));
+  }, [token, taxRegistrant, settingsRatesCount]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,54 +343,49 @@ export default function CreatorSettingsPage() {
     }
   };
 
-  // Persists `tax_rate_bp` (integer basis points, or null to inherit the
-  // platform default) with optimistic update and rollback.
-  const saveTaxRateBp = async (next: number | null) => {
-    if (!token || !store || taxRateSaving) return;
-    const previous = store.tax_rate_bp ?? null;
-    if (next === previous) return;
-    setTaxRateSaving(true);
-    setTaxRateMsg(null);
-    setStore({ ...store, tax_rate_bp: next });
-    setTaxRateInput(formatTaxRatePercent(next ?? platformTaxRateBp));
+  // Tax settings form helpers. Dirty = differs from the last server state.
+  const taxDirty =
+    !!taxSettings && !!taxForm && JSON.stringify(pickTaxForm(taxSettings)) !== JSON.stringify(taxForm);
+
+  const setTaxField = <K extends keyof TaxSettingsForm>(key: K, value: TaxSettingsForm[K]) => {
+    setTaxForm((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  // The store has no rate rows of its own, so with platform rates off every
+  // sale would be taxed at 0 %. Turning the toggle off is blocked meanwhile.
+  const noOwnTaxRates = taxSettings?.registrant === 'STORE' && ownTaxRatesCount === 0;
+  const platformRatesOffWithoutRates = noOwnTaxRates && taxSettings?.use_platform_tax_rates === false;
+
+  // PUT /taxes/my/settings with only the fields that changed (the API treats
+  // absent fields as "keep", so an untouched null `tax_country` never
+  // overwrites anything). The response may only carry the store fields, so it
+  // is merged over the previous settings (classes, registrant, counts stay).
+  const handleSaveTaxSettings = async () => {
+    if (!token || !taxForm || !taxSettings || taxSaving) return;
+    const loaded = pickTaxForm(taxSettings);
+    const changes: Partial<TaxSettingsForm> = {};
+    (Object.keys(taxForm) as (keyof TaxSettingsForm)[]).forEach((key) => {
+      if (taxForm[key] !== loaded[key]) (changes as Record<string, unknown>)[key] = taxForm[key];
+    });
+    if (Object.keys(changes).length === 0) return;
+    setTaxSaving(true);
+    setTaxMsg(null);
     try {
-      await api('/stores/my/store', {
+      const updated = await api<Partial<MyTaxSettings>>('/taxes/my/settings', {
         method: 'PUT',
         token,
-        body: JSON.stringify({ tax_rate_bp: next }),
+        body: JSON.stringify(changes),
       });
-      setTaxRateMsg({ type: 'success', text: t('settings.taxRateUpdated') });
+      const merged: MyTaxSettings = { ...taxSettings, ...taxForm, ...(updated && typeof updated === 'object' ? updated : {}) };
+      setTaxSettings(merged);
+      setTaxForm(pickTaxForm(merged));
+      setTaxMsg({ type: 'success', text: t('settings.taxSettingsSaved') });
     } catch (err: unknown) {
-      setStore({ ...store, tax_rate_bp: previous });
-      setTaxRateInput(formatTaxRatePercent(previous ?? platformTaxRateBp));
-      setTaxRateMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.taxRateUpdateFailed') });
+      setTaxMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.taxSettingsSaveFailed') });
     } finally {
-      setTaxRateSaving(false);
+      setTaxSaving(false);
     }
   };
-
-  // Commits the VAT input. Runs on blur / Enter so typing does not fire a
-  // request per keystroke; the input is normalised back to the saved value.
-  const handleSaveTaxRate = async () => {
-    if (!store || store.tax_rate_bp == null) return;
-    const next = parseTaxRateBp(taxRateInput);
-    if (next === null) {
-      setTaxRateInput(formatTaxRatePercent(store.tax_rate_bp));
-      return;
-    }
-    setTaxRateInput(formatTaxRatePercent(next));
-    await saveTaxRateBp(next);
-  };
-
-  // "Use platform default" toggle: checked -> clear the override (null);
-  // unchecked -> start the override at the platform rate so the input opens
-  // on the value the customer is already being charged.
-  const handleToggleTaxPlatformDefault = (usePlatformDefault: boolean) => {
-    void saveTaxRateBp(usePlatformDefault ? null : platformTaxRateBp);
-  };
-
-  // True while the store inherits the platform VAT rate (no override set).
-  const taxUsePlatformDefault = store?.tax_rate_bp == null;
 
   const handleDisconnectStripe = async () => {
     if (!token || disconnecting) return;
@@ -831,67 +868,6 @@ export default function CreatorSettingsPage() {
                   </div>
                 )}
 
-                {/* VAT rate — every store type. Prices are entered
-                    tax-inclusive; the rate drives the VAT share shown to the
-                    customer at checkout and on receipts. Saved as basis points;
-                    null inherits the platform default. */}
-                <div className="border-t pt-3 space-y-2">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="store-tax-rate" className="text-sm font-medium">
-                      {t('settings.taxRate')}
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground">
-                      {t('settings.taxRateHint')}
-                    </p>
-                  </div>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="size-3.5 accent-zinc-900"
-                      checked={taxUsePlatformDefault}
-                      disabled={taxRateSaving}
-                      onChange={(e) => handleToggleTaxPlatformDefault(e.target.checked)}
-                    />
-                    <span>
-                      {t('settings.taxRateUsePlatformDefault', { rate: formatTaxRateLabel(platformTaxRateBp) })}
-                    </span>
-                  </label>
-                  <div className="max-w-xs flex items-center gap-2">
-                    <div className="relative w-28">
-                      <Input
-                        id="store-tax-rate"
-                        type="number"
-                        inputMode="decimal"
-                        min={0}
-                        max={100}
-                        step={0.1}
-                        value={taxRateInput}
-                        onChange={(e) => setTaxRateInput(e.target.value)}
-                        onBlur={handleSaveTaxRate}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') e.currentTarget.blur();
-                        }}
-                        disabled={taxRateSaving || taxUsePlatformDefault}
-                        className="h-8 pe-7"
-                      />
-                      <span className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-2.5 text-xs text-muted-foreground">
-                        %
-                      </span>
-                    </div>
-                    {taxRateSaving && (
-                      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
-                    )}
-                  </div>
-                  {taxRateMsg && (
-                    <p
-                      className={`text-[11px] ${
-                        taxRateMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
-                      }`}
-                    >
-                      {taxRateMsg.text}
-                    </p>
-                  )}
-                </div>
               </div>
             )}
 
@@ -912,6 +888,210 @@ export default function CreatorSettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Taxes card — GET/PUT /taxes/my/settings. Marketplace stores are
+            taxed by the platform (registrant PLATFORM) and only see a note;
+            independent stores configure their own tax setup here and manage
+            rates on /creator/taxes. */}
+        {store && (
+          <Card className="shadow-none">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">{t('settings.taxesTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {taxLoading ? (
+                <div className="space-y-2">
+                  <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
+                </div>
+              ) : taxLoadError || !taxSettings || !taxForm ? (
+                <p className="text-[11px] text-destructive">{t('settings.taxesLoadFailed')}</p>
+              ) : taxSettings.registrant === 'PLATFORM' ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-muted-foreground">
+                    {taxSettings.effective_tax_country ?? taxSettings.tax_country
+                      ? t('settings.taxesPlatformManaged', {
+                          country: countryName(taxSettings.effective_tax_country ?? taxSettings.tax_country ?? '', locale),
+                        })
+                      : t('settings.taxesPlatformManagedNoCountry')}
+                  </p>
+                  <Link href="/creator/taxes" className="inline-block text-xs text-primary hover:underline">
+                    {t('settings.taxesReportLink')}
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Pricing mode */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">{t('settings.taxPricingMode')}</p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {(['INCLUSIVE', 'EXCLUSIVE'] as TaxPricingMode[]).map((mode) => (
+                        <label
+                          key={mode}
+                          className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 transition-colors ${
+                            taxForm.pricing_mode === mode ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:bg-zinc-50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="store-tax-pricing-mode"
+                            className="mt-0.5 accent-zinc-900"
+                            checked={taxForm.pricing_mode === mode}
+                            onChange={() => setTaxField('pricing_mode', mode)}
+                          />
+                          <span className="space-y-0.5">
+                            <span className="block text-sm font-medium">
+                              {mode === 'INCLUSIVE' ? t('settings.taxPricingInclusive') : t('settings.taxPricingExclusive')}
+                            </span>
+                            <span className="block text-[11px] text-muted-foreground">
+                              {mode === 'INCLUSIVE' ? t('settings.taxPricingInclusiveHint') : t('settings.taxPricingExclusiveHint')}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Destination basis */}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.taxBasis')}</Label>
+                      <SearchableSelect
+                        value={taxForm.basis}
+                        onChange={(v) => setTaxField('basis', (v || 'SHIPPING') as TaxBasis)}
+                        options={[
+                          { value: 'SHIPPING', label: t('settings.taxBasisShipping') },
+                          { value: 'BILLING', label: t('settings.taxBasisBilling') },
+                          { value: 'STORE', label: t('settings.taxBasisStore') },
+                        ]}
+                      />
+                      <p className="text-[10px] text-muted-foreground">{t('settings.taxBasisHint')}</p>
+                    </div>
+                    {/* Registration country. A null stored value means "use the
+                        platform country"; the option names that country from
+                        `effective_tax_country` but the form keeps null so the
+                        effective value is never written back as the store's own. */}
+                    {(() => {
+                      const platformDefaultLabel =
+                        !taxSettings.tax_country && taxSettings.effective_tax_country
+                          ? t('settings.taxCountryPlatformDefaultWith', {
+                              country: countryName(taxSettings.effective_tax_country, locale),
+                            })
+                          : t('settings.taxCountryPlatformDefault');
+                      return (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">{t('settings.taxCountry')}</Label>
+                          <SearchableSelect
+                            value={taxForm.tax_country || ''}
+                            onChange={(v) => setTaxField('tax_country', v || null)}
+                            options={[{ value: '', label: platformDefaultLabel }, ...taxCountryOpts]}
+                            placeholder={platformDefaultLabel}
+                          />
+                          <p className="text-[10px] text-muted-foreground">{t('settings.taxCountryHint')}</p>
+                        </div>
+                      );
+                    })()}
+                    {/* Shipping tax class */}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.taxShippingClass')}</Label>
+                      <SearchableSelect
+                        value={taxForm.shipping_tax_class_id || ''}
+                        onChange={(v) => setTaxField('shipping_tax_class_id', v || null)}
+                        options={[
+                          { value: '', label: t('settings.taxShippingClassHighest') },
+                          ...(taxSettings.classes || []).map((c) => ({
+                            value: c.id,
+                            label: localizedTaxText(c.name, locale, c.key),
+                            description: c.key,
+                          })),
+                        ]}
+                        placeholder={t('settings.taxShippingClassHighest')}
+                      />
+                      <p className="text-[10px] text-muted-foreground">{t('settings.taxShippingClassHint')}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 border-t pt-3">
+                    {/* OSS */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{t('settings.taxOss')}</p>
+                        <p className="text-[11px] text-muted-foreground">{t('settings.taxOssHint')}</p>
+                      </div>
+                      <ToggleSwitch
+                        checked={taxForm.oss_registered}
+                        onChange={(v) => setTaxField('oss_registered', v)}
+                        disabled={taxSaving}
+                        label={t('settings.taxOss')}
+                      />
+                    </div>
+                    {/* Use platform rates */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{t('settings.taxUsePlatformRates')}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {t('settings.taxUsePlatformRatesHint', { count: taxSettings.platform_rates_count ?? 0 })}
+                        </p>
+                        {ownTaxRatesCount !== null && (
+                          <p className="text-[11px] text-muted-foreground">
+                            {t('settings.taxOwnRatesCount', { count: ownTaxRatesCount })}
+                          </p>
+                        )}
+                        {noOwnTaxRates && taxForm.use_platform_tax_rates && (
+                          <p className="text-[10px] text-muted-foreground">{t('settings.taxUsePlatformRatesLocked')}</p>
+                        )}
+                      </div>
+                      <ToggleSwitch
+                        checked={taxForm.use_platform_tax_rates}
+                        onChange={(v) => setTaxField('use_platform_tax_rates', v)}
+                        // Without own rates the toggle can only be turned on.
+                        disabled={taxSaving || (noOwnTaxRates && taxForm.use_platform_tax_rates)}
+                        label={t('settings.taxUsePlatformRates')}
+                      />
+                    </div>
+                    {platformRatesOffWithoutRates && (
+                      <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
+                        {t('settings.taxNoOwnRatesWarning')}{' '}
+                        <Link href="/creator/taxes" className="font-medium underline">
+                          {t('settings.taxRatesLink')}
+                        </Link>
+                      </p>
+                    )}
+                    {/* Display prices incl. tax */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{t('settings.taxDisplayIncl')}</p>
+                        <p className="text-[11px] text-muted-foreground">{t('settings.taxDisplayInclHint')}</p>
+                      </div>
+                      <ToggleSwitch
+                        checked={taxForm.display_prices_incl_tax}
+                        onChange={(v) => setTaxField('display_prices_incl_tax', v)}
+                        disabled={taxSaving}
+                        label={t('settings.taxDisplayIncl')}
+                      />
+                    </div>
+                  </div>
+
+                  {taxMsg && (
+                    <p className={`text-[11px] ${taxMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {taxMsg.text}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between border-t pt-3">
+                    <Link href="/creator/taxes" className="text-xs text-primary hover:underline">
+                      {t('settings.taxRatesLink')}
+                    </Link>
+                    <Button size="sm" onClick={handleSaveTaxSettings} disabled={taxSaving || !taxDirty}>
+                      {taxSaving && <Loader2 className="size-3.5 animate-spin" />}
+                      {taxSaving ? tc('saving') : tc('save')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stripe card — Express payouts for marketplace stores, the creator's
             own Standard account (direct charges) for independent stores. */}
@@ -1090,14 +1270,17 @@ export default function CreatorSettingsPage() {
                           {t('settings.kustomCurrencyUnsupported', { currency: kustom.currency || '' })}
                         </p>
                       )}
-                      {/* Kustom is on but the resolved VAT rate (store
-                          override, else platform default) is 0 %: every line
-                          would be sent with 0 % VAT. */}
-                      {kustom.enabled && resolveTaxRateBp(store?.tax_rate_bp, platformTaxRateBp) === 0 && (
-                        <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
-                          {t('settings.kustomNoTaxHint')}
-                        </p>
-                      )}
+                      {/* Kustom is on but no tax rate can match: the store has
+                          no own rates and either ignores platform rates or the
+                          platform has none. Every line would go out at 0 % VAT. */}
+                      {kustom.enabled &&
+                        taxSettings?.registrant === 'STORE' &&
+                        ownTaxRatesCount === 0 &&
+                        (!taxSettings.use_platform_tax_rates || (taxSettings.platform_rates_count ?? 0) === 0) && (
+                          <p className="text-[11px] rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-700">
+                            {t('settings.kustomNoTaxHint')}
+                          </p>
+                        )}
                     </div>
 
                     <div className="space-y-1.5">

@@ -11,7 +11,7 @@ import { ArrowLeft, Clock, Package, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
-import { formatAmountIn, formatTaxRateLabel } from '@/lib/taxRate';
+import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
 import Link from 'next/link';
 
@@ -275,13 +275,9 @@ export default function OrderDetailPage() {
                 <span>{fmt(Number(order.shipping_cost))}</span>
               </div>
               {Number(order.discount_amount) > 0 && <div className="flex justify-between text-xs text-emerald-600"><span>{t('discount')}</span><span>-{fmt(Number(order.discount_amount))}</span></div>}
-              {/* VAT is included in the total; shown in the order's own currency. */}
-              {Number(order.tax_rate_bp) > 0 && (
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{tp('includesVat', { rate: formatTaxRateLabel(Number(order.tax_rate_bp)) })}</span>
-                  <span>{formatAmountIn(order.tax_amount, order.currency || currency)}</span>
-                </div>
-              )}
+              {/* Itemised tax lines (one row per rate) in the order's own currency;
+                  inclusive orders show what the total already contains. */}
+              <OrderTaxLines order={order} currency={order.currency || currency} rowClassName="text-xs" />
               <Separator />
               <div className="flex justify-between font-semibold"><span>{t('total')}</span><span>{fmt(Number(order.total))}</span></div>
             </div>

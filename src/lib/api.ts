@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Exported so non-JSON requests (CSV downloads) can reuse the same base URL.
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface FetchOptions extends RequestInit {
   token?: string;

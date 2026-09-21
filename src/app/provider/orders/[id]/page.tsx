@@ -16,7 +16,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
-import { formatAmountIn, formatTaxRateLabel } from '@/lib/taxRate';
+import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -438,13 +438,9 @@ export default function ProviderOrderDetail() {
                   <span>−{fmt(Number(order.discount_amount))}</span>
                 </div>
               )}
-              {/* VAT is included in the total; shown in the order's own currency. */}
-              {Number(order.tax_rate_bp ?? 0) > 0 && (
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{tp('includesVat', { rate: formatTaxRateLabel(Number(order.tax_rate_bp)) })}</span>
-                  <span>{formatAmountIn(order.tax_amount, order.currency || currency)}</span>
-                </div>
-              )}
+              {/* Itemised tax lines (one row per rate) in the order's own currency;
+                  inclusive orders show what the total already contains. */}
+              <OrderTaxLines order={order} currency={order.currency || currency} rowClassName="text-xs" />
               <Separator />
               <div className="flex justify-between font-semibold text-sm">
                 <span>{t('total')}</span>

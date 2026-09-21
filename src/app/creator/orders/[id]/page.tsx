@@ -12,7 +12,7 @@ import { ArrowLeft, Clock, Package, Info, Tag, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
-import { formatAmountIn, formatTaxRateLabel } from '@/lib/taxRate';
+import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { useStoreType } from '@/lib/useStoreType';
 import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
 
@@ -426,13 +426,9 @@ export default function CreatorOrderDetailPage() {
                     <span>-{fmt(Number(order.discount_amount))}</span>
                   </div>
                 )}
-                {/* VAT is included in the total; shown in the order's own currency. */}
-                {Number(order.tax_rate_bp ?? 0) > 0 && (
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>{tp('includesVat', { rate: formatTaxRateLabel(Number(order.tax_rate_bp)) })}</span>
-                    <span>{formatAmountIn(order.tax_amount, order.currency || currency)}</span>
-                  </div>
-                )}
+                {/* Itemised tax lines (one row per rate) in the order's own currency;
+                    inclusive orders show what the total already contains. */}
+                <OrderTaxLines order={order} currency={order.currency || currency} />
                 <Separator />
                 <div className="flex justify-between font-semibold text-base pt-1">
                   <span>{t('orderDetail.total')}</span>

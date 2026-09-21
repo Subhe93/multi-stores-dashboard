@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   ClipboardList,
   DollarSign,
+  Percent,
   Settings,
   Package,
   Scale,
@@ -58,6 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: t('finance'),
       items: [
         { label: t('commissions'), href: '/admin/commissions', icon: <DollarSign className="w-4 h-4" /> },
+        { label: t('taxes'), href: '/admin/taxes', icon: <Percent className="w-4 h-4" /> },
         { label: t('settings'), href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
         { label: t('legalPages'), href: '/admin/legal', icon: <Scale className="w-4 h-4" /> },
         { label: t('notificationTemplates'), href: '/admin/notifications', icon: <Mail className="w-4 h-4" /> },

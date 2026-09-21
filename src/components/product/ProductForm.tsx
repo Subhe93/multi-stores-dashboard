@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
+import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 
 // ─────────────────────────────────────────
 // Constants
@@ -117,8 +118,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
   const [shippingProfiles, setShippingProfiles] = useState<{ id: string; name: string; is_default: boolean }[]>([]);
   const [shippingProfileId, setShippingProfileId] = useState('');
+  // Tax: platform + own-store classes; '' = the scope's default class.
+  const [taxClasses, setTaxClasses] = useState<TaxClass[]>([]);
+  const [taxClassId, setTaxClassId] = useState('');
+  const [taxExempt, setTaxExempt] = useState(false);
 
   const { pickAndUpload, uploading } = useImageUpload(token);
+  const uiLocale = useLocale();
 
   // ── Helpers ───────────────────────────────────────────────
   const primaryTitle = translations[primaryLocale]?.title || '';
@@ -156,6 +162,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     if (!token) return;
     api<any[]>('/shipping/profiles', { token })
       .then(profiles => setShippingProfiles(Array.isArray(profiles) ? profiles : []))
+      .catch(() => {});
+  }, [token]);
+
+  // ── Fetch tax classes (platform + caller's store) ──────────
+  useEffect(() => {
+    if (!token) return;
+    api<TaxClass[]>('/taxes/classes', { token })
+      .then(classes => setTaxClasses(Array.isArray(classes) ? classes : []))
       .catch(() => {});
   }, [token]);
 
@@ -208,6 +222,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           .filter((id: any): id is string => typeof id === 'string'),
       );
       setShippingProfileId(p.shipping_profile_id || '');
+      setTaxClassId(p.tax_class_id || '');
+      setTaxExempt(!!p.tax_exempt);
 
       // Populate translations for all configured locales
       setTranslations(prev => {
@@ -393,6 +409,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         weight_unit: weightUnit,
         variant_option_config: variantOptions.length > 0 ? variantOptions : undefined,
         shipping_profile_id: shippingProfileId || undefined,
+        // null = default class of the scope (platform or store).
+        tax_class_id: taxClassId || null,
+        tax_exempt: taxExempt,
         status: finalStatus,
         translations: translationsPayload,
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
@@ -920,6 +939,45 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 <div className="space-y-1.5"><Label className="text-xs">{t('product.unit')}</Label>
                   <SearchableSelect value={weightUnit} onChange={setWeightUnit} options={[{ value: 'kg', label: 'kg' }, { value: 'g', label: 'g' }, { value: 'lb', label: 'lb' }]} /></div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Tax — class picks which rate applies per country; exempt products
+              are always taxed at 0 %. Empty selection = the scope default class. */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.tax')}</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.taxClass')}</Label>
+                {(() => {
+                  // Store-scoped default wins over the platform default.
+                  const scopeDefault = taxClasses.find(c => c.is_default && c.store_id) || taxClasses.find(c => c.is_default);
+                  const defaultLabel = scopeDefault
+                    ? t('product.taxClassDefaultNamed', { name: localizedTaxText(scopeDefault.name, uiLocale, scopeDefault.key) })
+                    : t('product.taxClassDefault');
+                  return (
+                    <SearchableSelect
+                      value={taxClassId}
+                      onChange={setTaxClassId}
+                      options={[
+                        { value: '', label: defaultLabel },
+                        ...taxClasses.map(c => ({
+                          value: c.id,
+                          label: localizedTaxText(c.name, uiLocale, c.key),
+                          description: c.key,
+                        })),
+                      ]}
+                      placeholder={defaultLabel}
+                    />
+                  );
+                })()}
+                <p className="text-[10px] text-muted-foreground">{t('product.taxClassHint')}</p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="rounded accent-primary" checked={taxExempt} onChange={e => setTaxExempt(e.target.checked)} />
+                <span className="text-xs font-medium">{t('product.taxExempt')}</span>
+              </label>
+              <p className="text-[10px] text-muted-foreground">{t('product.taxExemptHint')}</p>
             </CardContent>
           </Card>
 

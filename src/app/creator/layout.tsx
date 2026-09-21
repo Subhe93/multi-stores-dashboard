@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Tag,
   DollarSign,
+  Percent,
   FileText,
   Settings,
   Languages,
@@ -68,6 +69,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         { label: t('promotions'), href: '/creator/promotions', icon: <Tag className="w-4 h-4" /> },
         { label: t('bundles'), href: '/creator/bundles', icon: <Layers className="w-4 h-4" /> },
         { label: t('earnings'), href: '/creator/earnings', icon: <DollarSign className="w-4 h-4" /> },
+        { label: t('taxes'), href: '/creator/taxes', icon: <Percent className="w-4 h-4" /> },
       ],
     },
     {
