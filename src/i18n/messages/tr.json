@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "Vergi ayarları kaydedildi",
       "taxSettingsSaveFailed": "Vergi ayarları kaydedilemedi",
       "kustomNoTaxHint": "Mağazanızla eşleşen vergi oranı yok — Kustom %0 KDV gösterecek. Vergiler sayfasından bir oran ekleyin veya platform oranlarını etkinleştirin.",
-      "currencyUpdateFailed": "Mağaza para birimi güncellenemedi"
+      "currencyUpdateFailed": "Mağaza para birimi güncellenemedi",
+      "kustomCaptureMode": "Müşteriden ne zaman tahsil edilsin",
+      "kustomCaptureOnShipment": "Sipariş gönderildiğinde (önerilir)",
+      "kustomCaptureImmediate": "Satın alma hemen sonrasında",
+      "kustomCaptureOnShipmentHint": "Kustom ödeme sırasında tutarı yalnızca rezerve eder. Siparişi gönderildi olarak işaretlediğinizde (veya manuel tahsil ettiğinizde) tahsil edilir. Bu Kustom'un standart modelidir. Yetkilendirme süresi dolmadan gönderin.",
+      "kustomCaptureImmediateHint": "Tutar, satın alma onaylanır onaylanmaz tahsil edilir. Sonradan iptal, rezervasyonu serbest bırakmak yerine iade anlamına gelir ve sonra öde müşterilerine ürün gönderilmeden fatura kesilir."
     },
     "orderDetail": {
       "notFound": "Sipariş bulunamadı",

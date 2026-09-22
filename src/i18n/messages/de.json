@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "Steuereinstellungen gespeichert",
       "taxSettingsSaveFailed": "Steuereinstellungen konnten nicht gespeichert werden",
       "kustomNoTaxHint": "Kein Steuersatz passt zu deinem Shop – Kustom zeigt 0 % MwSt. Lege auf der Steuerseite einen Satz an oder aktiviere die Plattformsätze.",
-      "currencyUpdateFailed": "Shop-Währung konnte nicht aktualisiert werden"
+      "currencyUpdateFailed": "Shop-Währung konnte nicht aktualisiert werden",
+      "kustomCaptureMode": "Wann der Kunde belastet wird",
+      "kustomCaptureOnShipment": "Beim Versand der Bestellung (empfohlen)",
+      "kustomCaptureImmediate": "Sofort nach dem Kauf",
+      "kustomCaptureOnShipmentHint": "Kustom reserviert den Betrag beim Checkout nur. Er wird eingezogen, wenn Sie die Bestellung als versendet markieren (oder manuell einziehen). Das ist das Standardmodell von Kustom. Versenden Sie, bevor die Autorisierung abläuft.",
+      "kustomCaptureImmediateHint": "Der Betrag wird sofort nach Bestätigung des Kaufs eingezogen. Eine spätere Stornierung bedeutet eine Erstattung statt einer Freigabe der Reservierung, und Rechnungskunden erhalten die Rechnung vor dem Versand."
     },
     "orderDetail": {
       "notFound": "Bestellung nicht gefunden",

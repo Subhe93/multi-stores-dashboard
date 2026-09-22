@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "تم حفظ إعدادات الضرائب",
       "taxSettingsSaveFailed": "تعذّر حفظ إعدادات الضرائب",
       "kustomNoTaxHint": "لا توجد نسبة ضريبة مطابقة لمتجرك — سيعرض Kustom ضريبة 0 %. أضف نسبة في صفحة الضرائب أو فعّل نسب المنصة.",
-      "currencyUpdateFailed": "تعذّر تحديث عملة المتجر"
+      "currencyUpdateFailed": "تعذّر تحديث عملة المتجر",
+      "kustomCaptureMode": "متى يُخصم المبلغ من العميل",
+      "kustomCaptureOnShipment": "عند شحن الطلب (موصى به)",
+      "kustomCaptureImmediate": "فوراً بعد الشراء",
+      "kustomCaptureOnShipmentHint": "Kustom يحجز المبلغ فقط عند الشراء، ويُخصم عندما تحوّل الطلب إلى \"تم الشحن\" (أو تحصّله يدوياً). هذا هو النموذج القياسي لدى Kustom. اشحن قبل انتهاء صلاحية التفويض.",
+      "kustomCaptureImmediateHint": "يُخصم المبلغ فور تأكيد الشراء. الإلغاء لاحقاً يصبح استرداداً بدل تحرير حجز، وعملاء \"ادفع لاحقاً\" تصلهم الفاتورة قبل شحن البضاعة."
     },
     "orderDetail": {
       "notFound": "الطلب غير موجود",

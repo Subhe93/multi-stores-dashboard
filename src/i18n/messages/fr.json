@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "Paramètres de taxes enregistrés",
       "taxSettingsSaveFailed": "Impossible d'enregistrer les paramètres de taxes",
       "kustomNoTaxHint": "Aucun taux de taxe ne correspond à votre boutique — Kustom affichera 0 % de TVA. Ajoutez un taux sur la page Taxes ou activez les taux de la plateforme.",
-      "currencyUpdateFailed": "Impossible de mettre à jour la devise de la boutique"
+      "currencyUpdateFailed": "Impossible de mettre à jour la devise de la boutique",
+      "kustomCaptureMode": "Quand débiter le client",
+      "kustomCaptureOnShipment": "À l'expédition de la commande (recommandé)",
+      "kustomCaptureImmediate": "Immédiatement après l'achat",
+      "kustomCaptureOnShipmentHint": "Kustom ne fait que réserver le montant au paiement. Il est débité lorsque vous marquez la commande comme expédiée (ou le capturez manuellement). C'est le modèle standard de Kustom. Expédiez avant l'expiration de l'autorisation.",
+      "kustomCaptureImmediateHint": "Le montant est débité dès que l'achat est confirmé. Une annulation ultérieure devient un remboursement au lieu d'une libération de réservation, et les clients en paiement différé sont facturés avant l'expédition."
     },
     "orderDetail": {
       "notFound": "Commande introuvable",

@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "Tax settings saved",
       "taxSettingsSaveFailed": "Could not save the tax settings",
       "kustomNoTaxHint": "No tax rate matches your store — Kustom will show 0 % VAT. Add a rate on the Taxes page or enable platform rates.",
-      "currencyUpdateFailed": "Could not update the store currency"
+      "currencyUpdateFailed": "Could not update the store currency",
+      "kustomCaptureMode": "When to charge the customer",
+      "kustomCaptureOnShipment": "When the order ships (recommended)",
+      "kustomCaptureImmediate": "Immediately after purchase",
+      "kustomCaptureOnShipmentHint": "Kustom only reserves the amount at checkout. It is charged when you mark the order as shipped (or capture it manually). This is Kustom's standard model. Ship before the authorization expires.",
+      "kustomCaptureImmediateHint": "The amount is charged as soon as the purchase is confirmed. Cancelling later means a refund instead of releasing a reservation, and pay-later customers are invoiced before the goods ship."
     },
     "orderDetail": {
       "notFound": "Order not found",

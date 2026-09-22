@@ -81,6 +81,9 @@ interface StripeConnectStatus {
 }
 
 type KustomEnvironment = 'playground' | 'production';
+// When the authorization is captured: at shipment (Klarna's default) or
+// right after the purchase is confirmed.
+type KustomCaptureMode = 'on_shipment' | 'immediate';
 
 // Mirrors the API contract: the shared secret is never returned, only whether
 // one is stored.
@@ -90,6 +93,7 @@ interface KustomSettings {
   merchant_id: string | null;
   secret_configured: boolean;
   environment: KustomEnvironment;
+  capture_mode?: KustomCaptureMode;
   /** Store presentment currency and whether Kustom can process it. */
   currency?: string;
   currency_supported?: boolean;
@@ -163,6 +167,7 @@ export default function CreatorSettingsPage() {
   const [kustomMerchantId, setKustomMerchantId] = useState('');
   const [kustomSecret, setKustomSecret] = useState('');
   const [kustomEnvironment, setKustomEnvironment] = useState<KustomEnvironment>('playground');
+  const [kustomCaptureMode, setKustomCaptureMode] = useState<KustomCaptureMode>('on_shipment');
   const [kustomEnabled, setKustomEnabled] = useState(false);
   const [kustomSaving, setKustomSaving] = useState(false);
   const [kustomTesting, setKustomTesting] = useState(false);
@@ -433,6 +438,7 @@ export default function CreatorSettingsPage() {
     setKustomMerchantId(s.merchant_id || '');
     setKustomSecret('');
     setKustomEnvironment(s.environment || 'playground');
+    setKustomCaptureMode(s.capture_mode === 'immediate' ? 'immediate' : 'on_shipment');
     setKustomEnabled(!!s.enabled);
   }, []);
 
@@ -456,6 +462,7 @@ export default function CreatorSettingsPage() {
     if (merchantId && merchantId !== (kustom.merchant_id || '')) body.merchant_id = merchantId;
     if (kustomSecret.trim()) body.shared_secret = kustomSecret.trim();
     if (kustomEnvironment !== kustom.environment) body.environment = kustomEnvironment;
+    if (kustomCaptureMode !== (kustom.capture_mode || 'on_shipment')) body.capture_mode = kustomCaptureMode;
     if (kustomEnabled !== kustom.enabled) body.enabled = kustomEnabled;
     if (Object.keys(body).length === 0) return;
     setKustomSaving(true);
@@ -1233,6 +1240,7 @@ export default function CreatorSettingsPage() {
             ((kustomMerchantId.trim() !== '' && kustomMerchantId.trim() !== (kustom.merchant_id || '')) ||
               kustomSecret.trim() !== '' ||
               kustomEnvironment !== kustom.environment ||
+              kustomCaptureMode !== (kustom.capture_mode || 'on_shipment') ||
               kustomEnabled !== kustom.enabled);
           return (
             <Card className="shadow-none">
@@ -1323,6 +1331,26 @@ export default function CreatorSettingsPage() {
                         />
                       </div>
                       <p className="text-[11px] text-amber-600">{t('settings.kustomEnvHint')}</p>
+                    </div>
+
+                    {/* When the authorization is captured. */}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('settings.kustomCaptureMode')}</Label>
+                      <div className="max-w-xs">
+                        <SearchableSelect
+                          value={kustomCaptureMode}
+                          onChange={(v) => setKustomCaptureMode(v === 'immediate' ? 'immediate' : 'on_shipment')}
+                          options={[
+                            { value: 'on_shipment', label: t('settings.kustomCaptureOnShipment') },
+                            { value: 'immediate', label: t('settings.kustomCaptureImmediate') },
+                          ]}
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {kustomCaptureMode === 'immediate'
+                          ? t('settings.kustomCaptureImmediateHint')
+                          : t('settings.kustomCaptureOnShipmentHint')}
+                      </p>
                     </div>
 
                     {/* Enable at checkout — locked until both credentials exist. */}

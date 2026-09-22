@@ -2001,7 +2001,12 @@
       "taxSettingsSaved": "Momsinställningar sparade",
       "taxSettingsSaveFailed": "Kunde inte spara momsinställningarna",
       "kustomNoTaxHint": "Ingen momssats matchar din butik – Kustom visar 0 % moms. Lägg till en sats på momssidan eller aktivera plattformens satser.",
-      "currencyUpdateFailed": "Det gick inte att uppdatera butikens valuta"
+      "currencyUpdateFailed": "Det gick inte att uppdatera butikens valuta",
+      "kustomCaptureMode": "När kunden debiteras",
+      "kustomCaptureOnShipment": "När ordern skickas (rekommenderas)",
+      "kustomCaptureImmediate": "Direkt efter köpet",
+      "kustomCaptureOnShipmentHint": "Kustom reserverar bara beloppet i kassan. Det debiteras när du markerar ordern som skickad (eller aktiverar manuellt). Det är Kustoms standardmodell. Skicka innan auktorisationen löper ut.",
+      "kustomCaptureImmediateHint": "Beloppet debiteras så snart köpet bekräftas. En senare avbokning blir en återbetalning i stället för att en reservation släpps, och kunder som betalar senare faktureras innan varorna skickas."
     },
     "orderDetail": {
       "notFound": "Beställningen hittades inte",
