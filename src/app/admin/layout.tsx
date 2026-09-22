@@ -21,6 +21,7 @@ import {
   Scale,
   Mail,
   BookOpen,
+  DatabaseBackup,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       items: [
         { label: t('overview'), href: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
         { label: t('users'), href: '/admin/users', icon: <Users className="w-4 h-4" /> },
+        { label: t('backups'), href: '/admin/backups', icon: <DatabaseBackup className="w-4 h-4" /> },
         { label: t('providers'), href: '/admin/providers', icon: <Factory className="w-4 h-4" /> },
         { label: t('creators'), href: '/admin/creators', icon: <Palette className="w-4 h-4" /> },
       ],
