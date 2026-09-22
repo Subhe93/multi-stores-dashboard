@@ -25,6 +25,24 @@ const TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled
 
 type Translator = ReturnType<typeof useTranslations>;
 
+// Order list row — the subset of the API order payload the table renders.
+interface OrderRow {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number | string;
+  created_at?: string | null;
+  customer?: { first_name?: string | null; last_name?: string | null } | null;
+  items?: unknown[] | null;
+}
+
+interface OrdersMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // Translated labels for the order-status badge (mirrors the detail page).
 function statusLabels(t: Translator): Record<string, string> {
   return {
@@ -48,8 +66,8 @@ export default function CreatorOrdersPage() {
   const t = useTranslations('creator');
   const tc = useTranslations('common');
   const STATUS_LABELS = statusLabels(t);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [meta, setMeta] = useState<OrdersMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
@@ -62,7 +80,7 @@ export default function CreatorOrdersPage() {
     setLoadError(false);
     try {
       const statusParam = tab === 'All' ? '' : `&status=${tab.toUpperCase()}`;
-      const res = await api<any>(`/orders?page=${page}&limit=20${statusParam}`, { token });
+      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}`, { token });
       setOrders(res?.data ?? []);
       setMeta(res?.meta ?? null);
     } catch (err) {
@@ -84,7 +102,7 @@ export default function CreatorOrdersPage() {
       key: 'order_number',
       label: t('orders.colOrder'),
       sortable: true,
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <button
           type="button"
           onClick={() => router.push(`/creator/orders/${item.id}`)}
@@ -97,7 +115,7 @@ export default function CreatorOrdersPage() {
     {
       key: 'customer',
       label: t('orders.colCustomer'),
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <span className="text-sm">
           {item.customer
             ? `${item.customer.first_name} ${item.customer.last_name}`.trim()
@@ -108,7 +126,7 @@ export default function CreatorOrdersPage() {
     {
       key: 'items',
       label: t('orders.colItems'),
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <span className="text-xs text-muted-foreground">
           {t('orders.itemCount', { count: item.items?.length ?? 0 })}
         </span>
@@ -118,7 +136,7 @@ export default function CreatorOrdersPage() {
       key: 'total',
       label: t('orders.colTotal'),
       sortable: true,
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <span className="text-sm font-medium">{fmt(item.total)}</span>
       ),
     },
@@ -126,7 +144,7 @@ export default function CreatorOrdersPage() {
       key: 'status',
       label: tc('status'),
       sortable: true,
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <Badge
           variant="outline"
           className={`text-[10px] font-semibold ${statusColors[item.status] ?? ''}`}
@@ -139,7 +157,7 @@ export default function CreatorOrdersPage() {
       key: 'created_at',
       label: t('orders.colDate'),
       sortable: true,
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <span className="text-xs text-muted-foreground">
           {item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}
         </span>
@@ -148,7 +166,7 @@ export default function CreatorOrdersPage() {
     {
       key: 'actions',
       label: '',
-      render: (item: any) => (
+      render: (item: OrderRow) => (
         <Button
           variant="ghost"
           size="sm"
@@ -195,7 +213,7 @@ export default function CreatorOrdersPage() {
           columns={columns}
           data={orders}
           emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
-          pagination={meta}
+          pagination={meta ?? undefined}
           onPageChange={(p) => fetchOrders(p)}
         />
       )}

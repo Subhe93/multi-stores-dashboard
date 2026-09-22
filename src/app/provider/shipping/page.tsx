@@ -18,11 +18,37 @@ import {
   isMethodFormValid,
   methodFormToBody,
   type MethodFormState,
+  type ShippingMethod,
 } from '@/components/common/ShippingMethods';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
+
+/** Shipping zone as returned by GET /shipping/profiles (legacy rows may store countries as CSV). */
+interface ShippingZone {
+  id: string;
+  name: string;
+  countries?: string[] | string | null;
+  methods?: ShippingMethod[] | null;
+  base_cost?: number | string;
+  per_item_cost?: number | string;
+  free_threshold?: number | string | null;
+  estimated_days_min?: number;
+  estimated_days_max?: number;
+}
+
+interface ShippingProfile {
+  id: string;
+  name: string;
+  is_default?: boolean;
+  zones?: ShippingZone[] | null;
+}
+
+/** Human-readable message from a thrown api() error, with a translated fallback. */
+function errorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
 
 interface PlatformLocales {
   default_locale?: string;
@@ -34,7 +60,7 @@ function getCountryName(code: string): string {
 }
 
 /** Returns a set of country codes that appear in more than one zone within the profile */
-function getDuplicateCountries(zones: any[]): Set<string> {
+function getDuplicateCountries(zones: ShippingZone[]): Set<string> {
   const seen = new Map<string, number>();
   for (const zone of zones) {
     const codes: string[] = Array.isArray(zone.countries)
@@ -96,7 +122,7 @@ export default function ProviderShipping() {
   const t = useTranslations('provider');
   const ts = useTranslations('shipping');
   const tc = useTranslations('common');
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<ShippingProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingDefault, setSettingDefault] = useState<string | null>(null);
@@ -106,7 +132,7 @@ export default function ProviderShipping() {
   // Dialogs
   const [showAddProfile, setShowAddProfile] = useState(false);
   const [showAddZone, setShowAddZone] = useState<string | null>(null); // profileId
-  const [editingZone, setEditingZone] = useState<any>(null);
+  const [editingZone, setEditingZone] = useState<ShippingZone | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -127,7 +153,7 @@ export default function ProviderShipping() {
   const fetchProfiles = async () => {
     if (!token) return;
     try {
-      const res = await api<any[]>('/shipping/profiles', { token });
+      const res = await api<ShippingProfile[]>('/shipping/profiles', { token });
       setProfiles(Array.isArray(res) ? res : []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -170,9 +196,9 @@ export default function ProviderShipping() {
       setShowAddProfile(false);
       setProfileName('');
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || ts('saveFailed'));
+      setFormError(errorMessage(err, ts('saveFailed')));
     }
     finally { setSaving(false); }
   };
@@ -195,14 +221,14 @@ export default function ProviderShipping() {
       setShowAddZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || ts('saveFailed'));
+      setFormError(errorMessage(err, ts('saveFailed')));
     }
     finally { setSaving(false); }
   };
 
-  const openEditZone = (zone: any) => {
+  const openEditZone = (zone: ShippingZone) => {
     setFormError('');
     setEditingZone(zone);
     setZoneName(zone.name || '');
@@ -225,9 +251,9 @@ export default function ProviderShipping() {
       setEditingZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || ts('saveFailed'));
+      setFormError(errorMessage(err, ts('saveFailed')));
     }
     finally { setSaving(false); }
   };
@@ -239,9 +265,9 @@ export default function ProviderShipping() {
     try {
       await api(`/shipping/profiles/${profileId}/default`, { method: 'PUT', token });
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setPageError(err?.message || ts('saveFailed'));
+      setPageError(errorMessage(err, ts('saveFailed')));
     }
     finally { setSettingDefault(null); }
   };
@@ -258,9 +284,9 @@ export default function ProviderShipping() {
       }
       setConfirm(null);
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || ts('deleteFailed'));
+      setFormError(errorMessage(err, ts('deleteFailed')));
     }
     finally { setDeleting(false); }
   };
@@ -354,7 +380,7 @@ export default function ProviderShipping() {
                   <p className="text-xs text-muted-foreground">{t('noZonesYet')}</p>
                 </div>
               ) : (
-                profile.zones.map((zone: any) => {
+                profile.zones.map((zone) => {
                   const codes: string[] = Array.isArray(zone.countries)
                     ? zone.countries
                     : (zone.countries || '').split(',').map((c: string) => c.trim()).filter(Boolean);
@@ -504,7 +530,7 @@ export default function ProviderShipping() {
       {/* ── Edit Zone Dialog ── */}
       <Dialog open={!!editingZone} onOpenChange={v => { if (!v) { setEditingZone(null); resetZoneForm(); } }}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name })}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name ?? '' })}</DialogTitle></DialogHeader>
           {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
           {formError && (
             <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">

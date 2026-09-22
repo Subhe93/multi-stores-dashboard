@@ -33,6 +33,14 @@ interface User {
   customer?: { first_name: string; last_name: string };
 }
 
+// Mirrors the pagination shape DataTable expects.
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const roleColors: Record<string, string> = {
   PROVIDER: 'bg-blue-50 text-blue-700 border-blue-200',
   CREATOR: 'bg-purple-50 text-purple-700 border-purple-200',
@@ -73,7 +81,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -108,7 +116,7 @@ export default function AdminUsers() {
       if (status) params.set('status', status);
       if (search) params.set('search', search);
 
-      const res = await api<any>(`/admin/users?${params}`, { token });
+      const res = await api<{ data: User[]; meta?: PaginationMeta }>(`/admin/users?${params}`, { token });
       setUsers(res?.data || []);
       setMeta(res?.meta || null);
       setPage(p);
@@ -139,8 +147,8 @@ export default function AdminUsers() {
       await api(`/admin/users/${userId}/status`, { method: 'PUT', token, body: JSON.stringify({ status: newStatus }) });
       flashSuccess(t('statusUpdated'));
       fetchUsers(page);
-    } catch (err: any) {
-      setError(err?.message || t('failedToUpdateStatus'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToUpdateStatus'));
     }
   };
 
@@ -174,7 +182,7 @@ export default function AdminUsers() {
     }
     setCreating(true);
     try {
-      const payload: Record<string, any> = {
+      const payload: Record<string, unknown> = {
         email: form.email.trim(),
         password: form.password,
         role: form.role,
@@ -201,8 +209,8 @@ export default function AdminUsers() {
       resetForm();
       flashSuccess(t('userCreated'));
       fetchUsers(1);
-    } catch (err: any) {
-      setError(err?.message || t('failedToCreateUser'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToCreateUser'));
     } finally {
       setCreating(false);
     }
@@ -216,8 +224,8 @@ export default function AdminUsers() {
       flashSuccess(t('userDeleted'));
       setDeleteTarget(null);
       fetchUsers(page);
-    } catch (err: any) {
-      setError(err?.message || t('failedToDeleteUser'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToDeleteUser'));
     } finally {
       setDeleting(false);
     }
@@ -293,7 +301,7 @@ export default function AdminUsers() {
           )},
         ]}
         data={users}
-        pagination={meta}
+        pagination={meta ?? undefined}
         onPageChange={(p) => fetchUsers(p)}
         searchPlaceholder={t('searchByEmail')}
         onSearch={(q) => fetchUsers(1, undefined, undefined, q)}

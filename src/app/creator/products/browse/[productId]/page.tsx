@@ -62,7 +62,7 @@ interface Product {
     dualColorMap?: Record<string, [string, string]>;
   }[];
   custom_fields?: { id: string; translations: { locale: string; label: string }[] }[];
-  attributes?: { value: any; template: { translations: { locale: string; name: string }[] } }[];
+  attributes?: { value: unknown; template: { translations: { locale: string; name: string }[] } }[];
   tags?: { tag: string }[];
   faqs?: { translations: { locale: string; question: string; answer: string }[] }[];
   provider?: { company_name: string };

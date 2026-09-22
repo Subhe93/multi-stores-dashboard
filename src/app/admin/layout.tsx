@@ -50,9 +50,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: t('operations'),
       items: [
         { label: t('orders'), href: '/admin/orders', icon: <ClipboardList className="w-4 h-4" /> },
-        // Global shipping zones are hidden for now — creators/providers manage
-        // their own shipping. Re-enable when platform-level fallback is built.
-        // { label: t('shippingZones'), href: '/admin/shipping', icon: <Truck className="w-4 h-4" /> },
       ],
     },
     {

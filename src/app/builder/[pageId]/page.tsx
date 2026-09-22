@@ -26,6 +26,24 @@ interface StoreResponse {
   } | null;
 }
 
+// Row shapes from the two page list endpoints (only the fields used below).
+interface LegacyPageRow {
+  id: string;
+  slug: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  type: string;
+  translations?: { locale: string; title?: string | null }[] | null;
+}
+
+interface V2PageListRow {
+  id: string;
+  slug?: string | null;
+  type: string;
+  static_kind?: string | null;
+  published_version_id?: string | null;
+  translations?: { locale: string; title?: string | null }[] | null;
+}
+
 interface V2PageResponse extends BuilderPage {
   sections: SectionInstance[];
 }
@@ -111,8 +129,8 @@ function BuilderInner() {
         // storefront serves).
         try {
           const [legacyList, v2List] = await Promise.all([
-            api<any[]>(`/stores/${s.id}/pages`, { token }).catch(() => []),
-            api<any[]>('/v2/pages/mine', { token }).catch(() => []),
+            api<LegacyPageRow[]>(`/stores/${s.id}/pages`, { token }).catch(() => []),
+            api<V2PageListRow[]>('/v2/pages/mine', { token }).catch(() => []),
           ]);
 
           const v2Rows: StorePageSummary[] = (Array.isArray(v2List) ? v2List : []).map((p) => ({
@@ -124,7 +142,7 @@ function BuilderInner() {
             // Surface the static kind (about/contact/…) so the row gets its
             // proper icon and label instead of a generic "Static".
             type: p.type === 'STATIC' && p.static_kind ? p.static_kind : p.type,
-            translations: (p.translations || []).map((tr: any) => ({
+            translations: (p.translations || []).map((tr) => ({
               locale: tr.locale,
               title: tr.title || '',
             })),
@@ -138,7 +156,7 @@ function BuilderInner() {
               slug: p.slug,
               status: p.status,
               type: p.type,
-              translations: (p.translations || []).map((tr: any) => ({
+              translations: (p.translations || []).map((tr) => ({
                 locale: tr.locale,
                 title: tr.title || '',
               })),
@@ -437,7 +455,7 @@ function MigrationPrompt({
           <div className="min-w-0">
             <h1 className="text-base font-semibold text-zinc-900">{t('upgradeTitle')}</h1>
             <p className="text-[12.5px] text-zinc-500 leading-relaxed mt-1">
-              <span className="font-medium text-zinc-700">"{primaryTitle}"</span> {t('upgradeDescription')}
+              <span className="font-medium text-zinc-700">&quot;{primaryTitle}&quot;</span> {t('upgradeDescription')}
             </p>
           </div>
         </div>

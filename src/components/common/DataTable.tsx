@@ -42,7 +42,11 @@ interface DataTableProps<T> {
   onSort?: (key: string, direction: 'asc' | 'desc') => void;
 }
 
-export function DataTable<T extends Record<string, any>>({
+/** Read a cell by column key. Rows are plain objects; column keys index them by name. */
+const cellValue = (row: object, key: string): unknown =>
+  (row as Record<string, unknown>)[key];
+
+export function DataTable<T extends object>({
   columns,
   data,
   searchPlaceholder,
@@ -76,8 +80,8 @@ export function DataTable<T extends Record<string, any>>({
   let sortedData = data;
   if (sortKey && !onSort) {
     sortedData = [...data].sort((a, b) => {
-      const aVal = a[sortKey] ?? '';
-      const bVal = b[sortKey] ?? '';
+      const aVal = (cellValue(a, sortKey) ?? '') as string | number;
+      const bVal = (cellValue(b, sortKey) ?? '') as string | number;
       if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
       return 0;
@@ -136,7 +140,7 @@ export function DataTable<T extends Record<string, any>>({
               <TableRow key={idx}>
                 {columns.map((col) => (
                   <TableCell key={col.key} className="text-sm py-3">
-                    {col.render ? col.render(item) : item[col.key]}
+                    {col.render ? col.render(item) : (cellValue(item, col.key) as React.ReactNode)}
                   </TableCell>
                 ))}
               </TableRow>

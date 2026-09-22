@@ -15,7 +15,7 @@ import {
   Package,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -503,11 +503,11 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
       }
 
       router.push('/creator/categories');
-    } catch (err: any) {
+    } catch (err) {
       setSubmitError(
-        Array.isArray(err?.errors)
+        err instanceof ApiError && Array.isArray(err.errors)
           ? err.errors.join(' • ')
-          : err?.message || t('category.failedToSave'),
+          : (err instanceof Error && err.message) || t('category.failedToSave'),
       );
     } finally {
       setSaving(false);

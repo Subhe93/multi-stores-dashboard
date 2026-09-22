@@ -14,7 +14,8 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { useStoreType } from '@/lib/useStoreType';
-import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
+import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
+import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -35,6 +36,100 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'bg-red-50 text-red-700 border-red-200',
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
+
+// ── Order payload types (only the fields this page reads) ──────────────
+
+interface LocalizedTitle { locale: string; title?: string | null }
+
+interface ProductSummary {
+  translations?: LocalizedTitle[] | null;
+  images?: { url?: string | null }[] | null;
+}
+
+interface OrderItemCustomFieldValue {
+  value?: string | null;
+  file_url?: string | null;
+  custom_field?: {
+    name?: string | null;
+    translations?: { locale: string; label?: string | null }[] | null;
+  } | null;
+}
+
+interface OrderItemBundleOffer {
+  quantity: number;
+  translations?: { locale: string; title?: string | null; label?: string | null }[] | null;
+  bundle?: { translations?: { locale: string; name?: string | null }[] | null } | null;
+}
+
+interface OrderItem {
+  id: string;
+  quantity: number;
+  unit_price?: number | string | null;
+  original_unit_price?: number | string | null;
+  total_price?: number | string | null;
+  fulfillment_status?: string | null;
+  fulfiller_type?: string;
+  fulfiller_id?: string;
+  image_url?: string | null;
+  design_notes?: string | null;
+  custom_product?:
+    | (ProductSummary & {
+        mockup_images?: { url?: string | null }[] | null;
+        product?: ProductSummary | null;
+      })
+    | null;
+  product?: ProductSummary | null;
+  variant?: { options?: Record<string, string> | null; product?: ProductSummary | null } | null;
+  custom_field_values?: OrderItemCustomFieldValue[] | null;
+  bundle_offer?: OrderItemBundleOffer | null;
+}
+
+interface OrderTimelineEntry {
+  id?: string;
+  status: string;
+  created_at?: string | null;
+  note?: string | null;
+  notes?: string | null;
+}
+
+interface OrderCommission { creator_amount?: number | string | null }
+
+interface OrderAddress {
+  street?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  apartment?: string | null;
+  city?: string | null;
+  zip?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  country_code?: string | null;
+}
+
+interface Order extends KustomOrderFields {
+  id: string;
+  order_number: string;
+  status: string;
+  created_at?: string | null;
+  subtotal?: number | string | null;
+  total: number | string;
+  shipping_cost?: number | string | null;
+  shipping_method_name?: string | null;
+  shipping_method_type?: string | null;
+  discount_amount?: number | string | null;
+  currency?: string | null;
+  tax_lines?: TaxLine[] | null;
+  tax_rate_bp?: number | null;
+  tax_amount?: number | string | null;
+  tax_pricing_mode?: TaxPricingMode | null;
+  items?: OrderItem[] | null;
+  timeline?: OrderTimelineEntry[] | null;
+  // Legacy orders carry a single commission object; newer ones an array.
+  commission?: OrderCommission | OrderCommission[] | null;
+  customer?: { first_name?: string | null; last_name?: string | null; email?: string | null } | null;
+  address?: OrderAddress | null;
+  payouts?: { status?: string | null }[] | null;
+}
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -97,7 +192,7 @@ export default function CreatorOrderDetailPage() {
   const tp = useTranslations('payments');
   const STATUS_LABELS = statusLabels(t);
   const STATUS_OPTIONS = statusOptions(t);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [nextStatus, setNextStatus] = useState('');
@@ -116,7 +211,7 @@ export default function CreatorOrderDetailPage() {
   const fetchOrder = () => {
     if (!token || !id) return;
     setLoadError(false);
-    api<any>(`/orders/${id}`, { token })
+    api<Order>(`/orders/${id}`, { token })
       .then((data) => {
         setOrder(data);
         setNextStatus('');
@@ -147,9 +242,9 @@ export default function CreatorOrderDetailPage() {
       });
       setStatusNotes('');
       fetchOrder();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setStatusError(err?.message || t('orderDetail.updateFailed'));
+      setStatusError((err instanceof Error && err.message) || t('orderDetail.updateFailed'));
     } finally {
       setUpdatingStatus(false);
     }
@@ -190,7 +285,7 @@ export default function CreatorOrderDetailPage() {
   // Earnings: sum creator_amount from commission entries
   const totalEarnings = Array.isArray(order.commission)
     ? order.commission.reduce(
-        (acc: number, c: any) => acc + Number(c.creator_amount ?? 0),
+        (acc: number, c) => acc + Number(c.creator_amount ?? 0),
         0,
       )
     : Number(order.commission?.creator_amount ?? 0);
@@ -245,20 +340,20 @@ export default function CreatorOrderDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="divide-y">
-                {order.items?.length > 0 ? (
-                  order.items.map((item: any) => {
+                {order.items && order.items.length > 0 ? (
+                  order.items.map((item) => {
                     // Title chain: custom product's own title → custom product's
                     // base product title → direct product → variant's product
                     // (when the order item references only a variant) → fallback.
                     // Prefer the store's primary locale over English.
                     const title =
-                      item.custom_product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
+                      item.custom_product?.translations?.find((t) => t.locale === primaryLocale)?.title ??
                       item.custom_product?.translations?.[0]?.title ??
-                      item.custom_product?.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
+                      item.custom_product?.product?.translations?.find((t) => t.locale === primaryLocale)?.title ??
                       item.custom_product?.product?.translations?.[0]?.title ??
-                      item.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
+                      item.product?.translations?.find((t) => t.locale === primaryLocale)?.title ??
                       item.product?.translations?.[0]?.title ??
-                      item.variant?.product?.translations?.find((t: any) => t.locale === primaryLocale)?.title ??
+                      item.variant?.product?.translations?.find((t) => t.locale === primaryLocale)?.title ??
                       item.variant?.product?.translations?.[0]?.title ??
                       '—';
 
@@ -281,7 +376,7 @@ export default function CreatorOrderDetailPage() {
                     if (item.custom_field_values?.length) {
                       for (const fv of item.custom_field_values) {
                         const label =
-                          fv.custom_field?.translations?.find((t: any) => t.locale === primaryLocale)?.label ??
+                          fv.custom_field?.translations?.find((t) => t.locale === primaryLocale)?.label ??
                           fv.custom_field?.translations?.[0]?.label ??
                           fv.custom_field?.name ?? '—';
                         fieldValues.push({
@@ -293,10 +388,10 @@ export default function CreatorOrderDetailPage() {
 
                     const bundleOffer = item.bundle_offer ?? null;
                     const bundleTr =
-                      bundleOffer?.translations?.find((tr: any) => tr.locale === primaryLocale) ??
+                      bundleOffer?.translations?.find((tr) => tr.locale === primaryLocale) ??
                       bundleOffer?.translations?.[0];
                     const bundleNameTr =
-                      bundleOffer?.bundle?.translations?.find((tr: any) => tr.locale === primaryLocale) ??
+                      bundleOffer?.bundle?.translations?.find((tr) => tr.locale === primaryLocale) ??
                       bundleOffer?.bundle?.translations?.[0];
                     const unitPrice = Number(item.unit_price ?? 0);
                     const originalUnitPrice =
@@ -444,9 +539,9 @@ export default function CreatorOrderDetailPage() {
               <CardTitle className="text-sm font-semibold">{t('orderDetail.timeline')}</CardTitle>
             </CardHeader>
             <CardContent>
-              {order.timeline?.length > 0 ? (
+              {order.timeline && order.timeline.length > 0 ? (
                 <div className="space-y-3">
-                  {order.timeline.map((entry: any, idx: number) => (
+                  {order.timeline.map((entry, idx) => (
                     <div key={entry.id ?? idx} className="flex items-start gap-3">
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>

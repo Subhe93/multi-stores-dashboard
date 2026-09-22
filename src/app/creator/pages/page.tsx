@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,28 @@ interface PageRow {
   isPublished: boolean;
   isRequired: boolean;
   translations: PageTranslation[];
+  created_at: string;
+}
+
+// Raw rows from the two page backends — only the fields the table needs.
+interface LegacyPageDto {
+  id: string;
+  slug: string;
+  type?: string | null;
+  status?: string | null;
+  is_required?: boolean | null;
+  translations?: PageTranslation[] | null;
+  created_at: string;
+}
+
+interface V2PageDto {
+  id: string;
+  slug: string;
+  type?: string | null;
+  static_kind?: string | null;
+  published_version_id?: string | null;
+  is_required?: boolean | null;
+  translations?: PageTranslation[] | null;
   created_at: string;
 }
 
@@ -235,8 +257,8 @@ export default function CreatorPagesPage() {
       // v2 published flag comes from published_version_id (what the
       // storefront actually serves), not the status column.
       const [legacy, v2] = await Promise.all([
-        api<any[]>(`/stores/${store.id}/pages`, { token: token! }),
-        api<any[]>('/v2/pages/mine', { token: token! }).catch(() => []),
+        api<LegacyPageDto[]>(`/stores/${store.id}/pages`, { token: token! }),
+        api<V2PageDto[]>('/v2/pages/mine', { token: token! }).catch((): V2PageDto[] => []),
       ]);
 
       const v2Rows: PageRow[] = (Array.isArray(v2) ? v2 : [])
@@ -269,8 +291,8 @@ export default function CreatorPagesPage() {
         }));
 
       setPages([...v2Rows, ...legacyRows]);
-    } catch (err: any) {
-      if (err?.status === 404 || err?.status === 403) {
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 404 || err.status === 403)) {
         setStoreError(true);
       } else {
         console.error('Failed to load pages:', err);
@@ -359,8 +381,8 @@ export default function CreatorPagesPage() {
         }),
       );
       setRenameTarget(null);
-    } catch (err: any) {
-      setRenameError(err?.message || t('storePages.renameFailed'));
+    } catch (err) {
+      setRenameError((err instanceof Error && err.message) || t('storePages.renameFailed'));
     } finally {
       setRenaming(false);
     }

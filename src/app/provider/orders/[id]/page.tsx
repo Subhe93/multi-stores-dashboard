@@ -18,10 +18,106 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
+import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
+
+// ---------------------------------------------------------------------------
+// API shapes (GET /orders/:id) — only the fields this page reads.
+// ---------------------------------------------------------------------------
+
+interface LocalizedTitle {
+  locale?: string;
+  title?: string | null;
+}
+
+interface ProductRef {
+  id?: string;
+  name?: string | null;
+  translations?: LocalizedTitle[] | null;
+  images?: { url: string }[] | null;
+}
+
+interface CustomFieldValue {
+  id: string;
+  custom_field_id?: string;
+  value?: string | null;
+  file_url?: string;
+  custom_field?: { translations?: { label?: string | null }[] | null } | null;
+}
+
+interface OrderItem {
+  id: string;
+  product_id: string;
+  fulfiller_type?: string;
+  fulfiller_id?: string;
+  fulfillment_status?: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price?: number | string | null;
+  image_url?: string | null;
+  design_notes?: string | null;
+  tracking_number?: string | null;
+  tracking_url?: string | null;
+  product?: ProductRef | null;
+  variant?: { options?: Record<string, string> | null; product?: ProductRef | null } | null;
+  custom_product?: {
+    translations?: LocalizedTitle[] | null;
+    mockup_images?: { url: string }[] | null;
+    product?: ProductRef | null;
+  } | null;
+  custom_field_values?: CustomFieldValue[] | null;
+}
+
+interface TimelineEntry {
+  id?: string;
+  status: string;
+  note?: string | null;
+  created_at: string;
+}
+
+interface OrderDetail {
+  id: string;
+  order_number: string;
+  status: string;
+  created_at: string;
+  currency?: string | null;
+  subtotal: number | string;
+  shipping_cost: number | string;
+  shipping_method_name?: string | null;
+  shipping_method_type?: string | null;
+  discount_amount?: number | string | null;
+  total: number | string;
+  payment_status?: string | null;
+  tax_lines?: TaxLine[] | null;
+  tax_rate_bp?: number | null;
+  tax_amount?: number | string | null;
+  tax_pricing_mode?: TaxPricingMode | null;
+  items: OrderItem[];
+  timeline: TimelineEntry[];
+  commission?: {
+    platform_amount: number | string;
+    creator_amount: number | string;
+    provider_amount: number | string;
+  } | null;
+  payouts?: { status: string }[] | null;
+  customer?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
+  address?: {
+    full_name?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country_code?: string | null;
+  } | null;
+}
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -94,7 +190,7 @@ export default function ProviderOrderDetail() {
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const tp = useTranslations('payments');
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showTracking, setShowTracking] = useState(false);
@@ -104,7 +200,7 @@ export default function ProviderOrderDetail() {
 
   const fetchOrder = () => {
     if (!token || !id) return;
-    api<any>(`/orders/${id}`, { token })
+    api<OrderDetail>(`/orders/${id}`, { token })
       .then(setOrder)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -166,9 +262,9 @@ export default function ProviderOrderDetail() {
 
   // Collect all design/image files from custom field values
   const designFiles: { label: string; url: string; itemTitle: string }[] = [];
-  order.items?.forEach((item: any) => {
+  order.items?.forEach((item) => {
     const title = item.product?.translations?.[0]?.title || item.product?.name || item.product_id;
-    item.custom_field_values?.forEach((fv: any) => {
+    item.custom_field_values?.forEach((fv) => {
       if (fv.file_url) {
         designFiles.push({
           label: fv.custom_field?.translations?.[0]?.label || fv.custom_field_id || t('file'),
@@ -322,15 +418,15 @@ export default function ProviderOrderDetail() {
           </CardHeader>
           <CardContent>
             <div className="divide-y">
-              {order.items?.map((item: any) => {
+              {order.items?.map((item) => {
                 const title =
-                  item.custom_product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.custom_product?.translations?.find((t) => t.locale === 'en')?.title ??
                   item.custom_product?.translations?.[0]?.title ??
-                  item.custom_product?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.custom_product?.product?.translations?.find((t) => t.locale === 'en')?.title ??
                   item.custom_product?.product?.translations?.[0]?.title ??
-                  item.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.product?.translations?.find((t) => t.locale === 'en')?.title ??
                   item.product?.translations?.[0]?.title ??
-                  item.variant?.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.variant?.product?.translations?.find((t) => t.locale === 'en')?.title ??
                   item.variant?.product?.translations?.[0]?.title ?? '—';
                 const imgUrl =
                   item.image_url ??
@@ -342,8 +438,8 @@ export default function ProviderOrderDetail() {
                 const variantLabel = variantOpts
                   ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
                   : null;
-                const textFields = (item.custom_field_values || []).filter((fv: any) => !fv.file_url && fv.value);
-                const fileFields = (item.custom_field_values || []).filter((fv: any) => fv.file_url);
+                const textFields = (item.custom_field_values || []).filter((fv) => !fv.file_url && fv.value);
+                const fileFields = (item.custom_field_values || []).filter((fv) => fv.file_url);
 
                 return (
                   <div key={item.id} className="py-3 space-y-2">
@@ -384,7 +480,7 @@ export default function ProviderOrderDetail() {
                     {/* Inline custom field text values */}
                     {textFields.length > 0 && (
                       <div className="ml-17 pl-3 border-l-2 border-muted space-y-0.5">
-                        {textFields.map((fv: any) => (
+                        {textFields.map((fv) => (
                           <p key={fv.id} className="text-xs text-muted-foreground">
                             <span className="font-medium text-foreground">
                               {fv.custom_field?.translations?.[0]?.label || fv.custom_field_id}:
@@ -397,7 +493,7 @@ export default function ProviderOrderDetail() {
                     {/* Inline file thumbnails */}
                     {fileFields.length > 0 && (
                       <div className="ml-17 flex flex-wrap gap-2">
-                        {fileFields.map((fv: any) => (
+                        {fileFields.map((fv) => (
                           <a key={fv.id} href={fv.file_url} target="_blank" rel="noreferrer"
                             className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
                             title={fv.custom_field?.translations?.[0]?.label || t('file')}>
@@ -432,7 +528,7 @@ export default function ProviderOrderDetail() {
                 </span>
                 <span>{fmt(Number(order.shipping_cost))}</span>
               </div>
-              {order.discount_amount > 0 && (
+              {Number(order.discount_amount) > 0 && (
                 <div className="flex justify-between text-xs text-emerald-600">
                   <span>{t('discount')}</span>
                   <span>−{fmt(Number(order.discount_amount))}</span>
@@ -546,7 +642,7 @@ export default function ProviderOrderDetail() {
             <CardContent>
               {order.timeline?.length > 0 ? (
                 <div className="space-y-2.5">
-                  {[...order.timeline].reverse().map((e: any, i: number) => (
+                  {[...order.timeline].reverse().map((e, i) => (
                     <div key={e.id || i} className="flex items-start gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
                       <div>

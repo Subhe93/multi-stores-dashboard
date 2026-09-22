@@ -325,9 +325,9 @@ export default function MenusPage() {
       setMenus((prev) => prev.map((m) => (m.id === selected.id ? updated : m)));
       setItems(buildTree(updated.items || []));
       setDirty(false);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save menu:', err);
-      setSaveError(err?.message || t('menus.saveFailed'));
+      setSaveError((err instanceof Error && err.message) || t('menus.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -369,9 +369,9 @@ export default function MenusPage() {
         setItems([]);
       }
       setDeleteTarget(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete menu:', err);
-      setDeleteError(err?.message || t('menus.deleteFailed'));
+      setDeleteError((err instanceof Error && err.message) || t('menus.deleteFailed'));
     }
   }
 

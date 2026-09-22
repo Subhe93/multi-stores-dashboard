@@ -16,14 +16,23 @@ interface CustomFieldTranslation {
   option_labels?: Record<string, string>;
 }
 
+/** Validation constraints stored on a custom field (all optional) */
+interface CustomFieldValidationRules {
+  max_length?: number;
+  min_length?: number;
+  pattern?: string;
+  allowed_chars?: string;
+}
+
 interface CustomField {
   id: string;
   name: string;
   type: string;
   is_required: boolean;
   placeholder?: string;
-  options?: any;
-  validation_rules?: any;
+  /** Option values for SELECT fields */
+  options?: string[] | null;
+  validation_rules?: CustomFieldValidationRules | null;
   translations: CustomFieldTranslation[];
 }
 

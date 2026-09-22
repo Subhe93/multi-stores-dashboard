@@ -28,6 +28,12 @@ interface Product {
   translations: { locale: string; title: string }[];
 }
 
+interface Category {
+  id: string;
+  translations?: { locale: string; name: string }[];
+  children?: Category[];
+}
+
 interface Meta {
   total: number;
   page: number;
@@ -60,12 +66,12 @@ export default function BrowseProviderCatalogPage() {
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
 
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
-    api<any[]>('/categories', { token })
+    api<Category[]>('/categories', { token })
       .then((res) => setCategories(Array.isArray(res) ? res : []))
       .catch(() => {});
   }, [token]);
@@ -159,7 +165,7 @@ export default function BrowseProviderCatalogPage() {
               {t('browseCatalog.allProducts')}
             </button>
             {categories.map((cat) => {
-              const name = cat.translations?.find((t: any) => t.locale === 'en')?.name || cat.translations?.[0]?.name || '—';
+              const name = cat.translations?.find((t) => t.locale === 'en')?.name || cat.translations?.[0]?.name || '—';
               const isActive = selectedCategoryId === cat.id;
               return (
                 <div key={cat.id}>
@@ -172,8 +178,8 @@ export default function BrowseProviderCatalogPage() {
                   >
                     {name}
                   </button>
-                  {cat.children?.map((child: any) => {
-                    const childName = child.translations?.find((t: any) => t.locale === 'en')?.name || child.translations?.[0]?.name || '—';
+                  {cat.children?.map((child) => {
+                    const childName = child.translations?.find((t) => t.locale === 'en')?.name || child.translations?.[0]?.name || '—';
                     const childActive = selectedCategoryId === child.id;
                     return (
                       <button

@@ -36,13 +36,21 @@ interface ProviderStore {
   language_config?: { primary_locale: string } | null;
 }
 
+/** Pagination block returned next to `data` by list endpoints. */
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export default function ProviderStores() {
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const [stores, setStores] = useState<ProviderStore[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -50,7 +58,7 @@ export default function ProviderStores() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api<any>(`/providers/me/stores?page=${page}&limit=20`, { token });
+      const res = await api<{ data: ProviderStore[]; meta?: PaginationMeta | null }>(`/providers/me/stores?page=${page}&limit=20`, { token });
       setStores(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }

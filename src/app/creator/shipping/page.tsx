@@ -18,11 +18,32 @@ import {
   isMethodFormValid,
   methodFormToBody,
   type MethodFormState,
+  type ShippingMethod,
 } from '@/components/common/ShippingMethods';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
+
+/** Shipping zone as returned by the API; `countries` may be an array or a CSV string. */
+interface ShippingZone {
+  id: string;
+  name: string;
+  countries?: string[] | string | null;
+  methods?: ShippingMethod[] | null;
+  base_cost?: number | string;
+  per_item_cost?: number | string;
+  free_threshold?: number | string | null;
+  estimated_days_min?: number;
+  estimated_days_max?: number;
+}
+
+interface ShippingProfile {
+  id: string;
+  name: string;
+  is_default?: boolean;
+  zones?: ShippingZone[] | null;
+}
 
 interface StoreLangResponse {
   language_config?: { primary_locale?: string; secondary_locales?: string[] } | null;
@@ -33,7 +54,7 @@ function getCountryName(code: string): string {
 }
 
 /** Returns a set of country codes that appear in more than one zone within the profile */
-function getDuplicateCountries(zones: any[]): Set<string> {
+function getDuplicateCountries(zones: ShippingZone[]): Set<string> {
   const seen = new Map<string, number>();
   for (const zone of zones) {
     const codes: string[] = Array.isArray(zone.countries)
@@ -92,7 +113,7 @@ export default function CreatorShipping() {
   const { token } = useAuth();
   const t = useTranslations('shipping');
   const tc = useTranslations('common');
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<ShippingProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settingDefault, setSettingDefault] = useState<string | null>(null);
@@ -102,7 +123,7 @@ export default function CreatorShipping() {
   // Dialogs
   const [showAddProfile, setShowAddProfile] = useState(false);
   const [showAddZone, setShowAddZone] = useState<string | null>(null); // profileId
-  const [editingZone, setEditingZone] = useState<any>(null);
+  const [editingZone, setEditingZone] = useState<ShippingZone | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -123,7 +144,7 @@ export default function CreatorShipping() {
   const fetchProfiles = async () => {
     if (!token) return;
     try {
-      const res = await api<any[]>('/shipping/profiles', { token });
+      const res = await api<ShippingProfile[]>('/shipping/profiles', { token });
       setProfiles(Array.isArray(res) ? res : []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -166,9 +187,9 @@ export default function CreatorShipping() {
       setShowAddProfile(false);
       setProfileName('');
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || t('saveFailed'));
+      setFormError((err instanceof Error && err.message) || t('saveFailed'));
     }
     finally { setSaving(false); }
   };
@@ -191,14 +212,14 @@ export default function CreatorShipping() {
       setShowAddZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || t('saveFailed'));
+      setFormError((err instanceof Error && err.message) || t('saveFailed'));
     }
     finally { setSaving(false); }
   };
 
-  const openEditZone = (zone: any) => {
+  const openEditZone = (zone: ShippingZone) => {
     setFormError('');
     setEditingZone(zone);
     setZoneName(zone.name || '');
@@ -221,9 +242,9 @@ export default function CreatorShipping() {
       setEditingZone(null);
       resetZoneForm();
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || t('saveFailed'));
+      setFormError((err instanceof Error && err.message) || t('saveFailed'));
     }
     finally { setSaving(false); }
   };
@@ -235,9 +256,9 @@ export default function CreatorShipping() {
     try {
       await api(`/shipping/profiles/${profileId}/default`, { method: 'PUT', token });
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setPageError(err?.message || t('saveFailed'));
+      setPageError((err instanceof Error && err.message) || t('saveFailed'));
     }
     finally { setSettingDefault(null); }
   };
@@ -254,9 +275,9 @@ export default function CreatorShipping() {
       }
       setConfirm(null);
       await fetchProfiles();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setFormError(err?.message || t('deleteFailed'));
+      setFormError((err instanceof Error && err.message) || t('deleteFailed'));
     }
     finally { setDeleting(false); }
   };
@@ -350,7 +371,7 @@ export default function CreatorShipping() {
                   <p className="text-xs text-muted-foreground">{t('noZonesYet')}</p>
                 </div>
               ) : (
-                profile.zones.map((zone: any) => {
+                profile.zones.map((zone) => {
                   const codes: string[] = Array.isArray(zone.countries)
                     ? zone.countries
                     : (zone.countries || '').split(',').map((c: string) => c.trim()).filter(Boolean);
@@ -500,7 +521,7 @@ export default function CreatorShipping() {
       {/* ── Edit Zone Dialog ── */}
       <Dialog open={!!editingZone} onOpenChange={v => { if (!v) { setEditingZone(null); resetZoneForm(); } }}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name })}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name ?? '' })}</DialogTitle></DialogHeader>
           {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
           {formError && (
             <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">

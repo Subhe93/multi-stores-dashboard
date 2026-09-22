@@ -7,9 +7,9 @@ import { BlockPalette } from './BlockPalette';
 interface Block {
   id: string;
   type: string;
-  settings: any;
+  settings: Record<string, unknown>;
   sort_order: number;
-  translations: { locale: string; content: any }[];
+  translations: { locale: string; content: Record<string, unknown> }[];
 }
 
 interface PageBuilderEditorProps {

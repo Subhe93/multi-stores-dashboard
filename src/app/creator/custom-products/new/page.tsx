@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -55,16 +55,8 @@ interface ProductVariant {
   options: Record<string, string>;
   images?: ProductImage[];
 }
-interface ProductCustomField {
-  id: string;
-  name: string;
-  type: string;
-  is_required: boolean;
-  placeholder?: string;
-  options?: any;
-  validation_rules?: any;
-  translations: any[];
-}
+// Custom field shape as consumed by CustomFieldRenderer (single source of truth).
+type ProductCustomField = ComponentProps<typeof CustomFieldRenderer>['fields'][number];
 interface VariantOptionConfig {
   name: string;
   style: 'text' | 'color' | 'image';
@@ -87,6 +79,26 @@ interface Product {
 type ImportMode = 'AS_IS' | 'CUSTOMIZE';
 type PricingType = 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
 type LocaleTranslation = { title: string; description: string; slug: string };
+
+// Subset of the store payload used here (content-locale configuration).
+interface StoreLanguageSettings {
+  language_config?: { primary_locale?: string; secondary_locales?: string[] };
+}
+
+// POST /custom-products payload; optional keys are only sent when relevant.
+interface CreateCustomProductBody {
+  product_id: string;
+  import_mode: ImportMode;
+  pricing_type: PricingType;
+  translations: { locale: string; title: string; description?: string; slug: string }[];
+  final_price?: number;
+  margin_amount?: number;
+  selected_variants?: { variant_id: string; custom_price?: number }[];
+  field_values?: { custom_field_id: string; value?: string; file_url?: string }[];
+  mockup_image_urls?: string[];
+  bundle_ids?: string[];
+  creator_category_ids?: string[];
+}
 
 // ── Error helpers ────────────────────────────────────────
 // The backend uses class-validator with whitelist + forbidNonWhitelisted, which
@@ -112,12 +124,15 @@ function friendlyErrorPatterns(t: Translator): { pattern: RegExp; message: strin
   ];
 }
 
-function formatSubmitError(err: any, t: Translator): string {
-  const raw: string[] = Array.isArray(err?.errors)
-    ? err.errors
-    : err?.message
-    ? [err.message]
-    : [];
+// Validation messages from the API (ApiError.errors), else the plain error message.
+function errorMessages(err: unknown): string[] {
+  if (err instanceof ApiError && Array.isArray(err.errors)) return err.errors;
+  if (err instanceof Error && err.message) return [err.message];
+  return [];
+}
+
+function formatSubmitError(err: unknown, t: Translator): string {
+  const raw = errorMessages(err);
   if (raw.length === 0) return t('customProductForm.failedCreate');
 
   const patterns = friendlyErrorPatterns(t);
@@ -131,8 +146,8 @@ function formatSubmitError(err: any, t: Translator): string {
   return Array.from(friendly).join(' • ');
 }
 
-function stepKeyFromError(err: any, t: Translator): string | null {
-  const raw: string[] = Array.isArray(err?.errors) ? err.errors : err?.message ? [err.message] : [];
+function stepKeyFromError(err: unknown, t: Translator): string | null {
+  const raw = errorMessages(err);
   const patterns = friendlyErrorPatterns(t);
   for (const msg of raw) {
     const match = patterns.find((p) => p.pattern.test(msg));
@@ -205,7 +220,7 @@ export default function NewCustomProductPage() {
 
   useEffect(() => {
     if (!token) return;
-    api<any>('/stores/my/store', { token })
+    api<StoreLanguageSettings>('/stores/my/store', { token })
       .then((store) => {
         const primary: string = store.language_config?.primary_locale || 'en';
         const secondary: string[] = store.language_config?.secondary_locales || [];
@@ -233,8 +248,8 @@ export default function NewCustomProductPage() {
       status: 'PUBLISHED',
     });
     if (productSearch.trim()) params.set('search', productSearch.trim());
-    api<any>(`/products?${params.toString()}`, { token })
-      .then((res) => setProducts(res?.data ?? res ?? []))
+    api<Product[] | { data?: Product[] }>(`/products?${params.toString()}`, { token })
+      .then((res) => setProducts(Array.isArray(res) ? res : res?.data ?? []))
       .catch(console.error);
   }, [token, productSearch, preselectedProductId]);
 
@@ -465,7 +480,7 @@ export default function NewCustomProductPage() {
           };
         });
 
-      const body: any = {
+      const body: CreateCustomProductBody = {
         product_id: selectedProduct.id,
         import_mode: importMode,
         pricing_type: pricingType,
@@ -542,7 +557,7 @@ export default function NewCustomProductPage() {
 
       // Redirect to edit page so the creator can submit for review or finalize details
       router.push(created?.id ? `/creator/custom-products/${created.id}` : '/creator/custom-products');
-    } catch (err: any) {
+    } catch (err) {
       setSubmitError(formatSubmitError(err, t));
       const targetKey = stepKeyFromError(err, t);
       if (targetKey) {

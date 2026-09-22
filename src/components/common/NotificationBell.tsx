@@ -14,7 +14,7 @@ interface Notification {
   type: string;
   title: string;
   body: string;
-  data?: { custom_product_id?: string; reason?: string; [key: string]: any } | null;
+  data?: { custom_product_id?: string; reason?: string; [key: string]: unknown } | null;
   is_read: boolean;
   created_at: string;
 }

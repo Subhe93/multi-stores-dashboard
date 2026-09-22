@@ -10,6 +10,25 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 
+// Order row as returned by GET /orders (only the fields this table reads).
+interface AdminOrderRow {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number | string;
+  created_at: string;
+  customer?: { first_name?: string | null; last_name?: string | null } | null;
+  items?: unknown[];
+}
+
+// Mirrors the pagination shape DataTable expects.
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const statusColors: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
   CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -26,16 +45,16 @@ export default function AdminOrders() {
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrderRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [activeTab, setActiveTab] = useState('All');
 
   const fetchOrders = async (page = 1) => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api<any>(`/orders?page=${page}&limit=20`, { token });
+      const res = await api<{ data: AdminOrderRow[]; meta?: PaginationMeta }>(`/orders?page=${page}&limit=20`, { token });
       setOrders(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }
@@ -67,32 +86,32 @@ export default function AdminOrders() {
 
       <DataTable
         columns={[
-          { key: 'order_number', label: t('order'), sortable: true, render: (item: any) => (
+          { key: 'order_number', label: t('order'), sortable: true, render: (item: AdminOrderRow) => (
             <button onClick={() => router.push(`/admin/orders/${item.id}`)} className="text-sm font-mono font-medium hover:underline text-left">
               {item.order_number}
             </button>
           )},
-          { key: 'customer', label: t('customer'), render: (item: any) => (
+          { key: 'customer', label: t('customer'), render: (item: AdminOrderRow) => (
             <span className="text-sm">{item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}</span>
           )},
-          { key: 'items', label: t('items'), render: (item: any) => (
+          { key: 'items', label: t('items'), render: (item: AdminOrderRow) => (
             <span className="text-xs text-muted-foreground">{t('itemsCount', { count: item.items?.length || 0 })}</span>
           )},
-          { key: 'total', label: t('total'), sortable: true, render: (item: any) => (
+          { key: 'total', label: t('total'), sortable: true, render: (item: AdminOrderRow) => (
             <span className="text-sm font-medium">{fmt(item.total)}</span>
           )},
-          { key: 'status', label: t('status'), sortable: true, render: (item: any) => (
+          { key: 'status', label: t('status'), sortable: true, render: (item: AdminOrderRow) => (
             <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{item.status}</Badge>
           )},
-          { key: 'created_at', label: t('date'), sortable: true, render: (item: any) => (
+          { key: 'created_at', label: t('date'), sortable: true, render: (item: AdminOrderRow) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
           )},
-          { key: 'actions', label: '', render: (item: any) => (
+          { key: 'actions', label: '', render: (item: AdminOrderRow) => (
             <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/orders/${item.id}`)}>{t('view')}</Button>
           )},
         ]}
         data={filtered}
-        pagination={meta}
+        pagination={meta ?? undefined}
         onPageChange={(p) => fetchOrders(p)}
         emptyMessage={loading ? t('loading') : t('noOrdersYet')}
       />

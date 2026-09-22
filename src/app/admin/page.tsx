@@ -21,14 +21,28 @@ interface DashboardStats {
   pendingCreators: number;
 }
 
+// Row from GET /admin/users/recent (only the fields this page reads).
+interface RecentUser {
+  id: string;
+  email: string;
+  role: string;
+  provider?: { company_name?: string | null } | null;
+  creator?: { display_name?: string | null } | null;
+  customer?: { first_name?: string | null; last_name?: string | null } | null;
+}
+
+interface PlatformSummary {
+  platform_earnings?: number | string | null;
+}
+
 export default function AdminOverview() {
   const t = useTranslations('admin');
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentUsers, setRecentUsers] = useState<any[]>([]);
-  const [platformSummary, setPlatformSummary] = useState<any>(null);
+  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [platformSummary, setPlatformSummary] = useState<PlatformSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,8 +50,8 @@ export default function AdminOverview() {
 
     Promise.all([
       api<DashboardStats>('/admin/users/stats', { token }),
-      api<any[]>('/admin/users/recent', { token }),
-      api<any>('/commissions/platform', { token }).catch(() => null),
+      api<RecentUser[]>('/admin/users/recent', { token }),
+      api<PlatformSummary>('/commissions/platform', { token }).catch(() => null),
     ])
       .then(([s, users, comm]) => {
         setStats(s);
@@ -53,7 +67,7 @@ export default function AdminOverview() {
     CUSTOMER: 'bg-emerald-50 text-emerald-700', ADMIN: 'bg-zinc-100 text-zinc-700',
   };
 
-  const getName = (u: any) => {
+  const getName = (u: RecentUser) => {
     if (u.provider) return u.provider.company_name;
     if (u.creator) return u.creator.display_name;
     if (u.customer) return `${u.customer.first_name} ${u.customer.last_name}`;

@@ -239,8 +239,8 @@ export default function AdminSettings() {
         body: JSON.stringify(testEmail.trim() ? { to: testEmail.trim() } : {}),
       });
       setTestMsg({ type: 'success', text: t('smtpTestSent') });
-    } catch (err: any) {
-      setTestMsg({ type: 'error', text: err?.message || t('smtpTestFailed') });
+    } catch (err) {
+      setTestMsg({ type: 'error', text: (err instanceof Error && err.message) || t('smtpTestFailed') });
     } finally {
       setTesting(false);
     }

@@ -588,9 +588,9 @@ export default function CreatorStorePage() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save error:', err);
-      setSaveError(err?.message || t('myStore.saveFailed'));
+      setSaveError((err instanceof Error && err.message) || t('myStore.saveFailed'));
     }
     finally { setSaving(false); }
   };
@@ -1125,8 +1125,8 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
       // right layout without requiring a reload.
       setCachedStoreType(created.store_type === 'INDEPENDENT' ? 'INDEPENDENT' : 'MARKETPLACE');
       onCreated(created);
-    } catch (err: any) {
-      setError(err?.message || t('myStore.failedCreateStore'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('myStore.failedCreateStore'));
     } finally {
       setSubmitting(false);
     }

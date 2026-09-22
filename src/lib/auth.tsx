@@ -4,14 +4,39 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { useRouter } from 'next/navigation';
 import { api } from './api';
 
-interface User {
+export interface ProviderProfile {
+  id: string;
+  company_name?: string | null;
+  description?: string | null;
+  phone?: string | null;
+  country?: string | null;
+  verified?: boolean;
+}
+
+export interface CreatorProfile {
+  id: string;
+  display_name?: string | null;
+  phone?: string | null;
+  bio?: string | null;
+  verified?: boolean;
+}
+
+export interface CustomerProfile {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone?: string | null;
+  addresses?: Array<Record<string, unknown>>;
+}
+
+export interface User {
   id: string;
   email: string;
   role: 'ADMIN' | 'PROVIDER' | 'CREATOR' | 'CUSTOMER';
   status: string;
-  provider?: any;
-  creator?: any;
-  customer?: any;
+  provider?: ProviderProfile | null;
+  creator?: CreatorProfile | null;
+  customer?: CustomerProfile | null;
 }
 
 interface AuthContextType {

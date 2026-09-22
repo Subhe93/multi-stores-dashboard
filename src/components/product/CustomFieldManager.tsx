@@ -21,15 +21,31 @@ export interface CustomFieldTranslation {
   option_labels?: Record<string, string>;
 }
 
+/** Validation constraints stored on a custom field (all optional) */
+export interface CustomFieldValidationRules {
+  max_length?: number;
+  min_length?: number;
+  pattern?: string;
+  allowed_chars?: string;
+}
+
+/** Cross-field validation: links this field's value to another field by name */
+export interface CustomFieldLinkedValidation {
+  type: string;
+  target_field_id: string;
+  fill_char?: string;
+}
+
 export interface CustomField {
   id?: string;
   name: string;
   type: string;
   is_required: boolean;
   placeholder?: string;
-  options?: any;
-  validation_rules?: any;
-  linked_validation?: any;
+  /** Option values for SELECT fields */
+  options?: string[] | null;
+  validation_rules?: CustomFieldValidationRules | null;
+  linked_validation?: CustomFieldLinkedValidation | null;
   sort_order: number;
   translations?: CustomFieldTranslation[];
 }
@@ -233,7 +249,7 @@ export function CustomFieldManager({
   const handleSave = () => {
     if (!canSave) return;
 
-    const validationRules: any = {};
+    const validationRules: CustomFieldValidationRules = {};
     if (maxLength) validationRules.max_length = parseInt(maxLength);
     if (minLength) validationRules.min_length = parseInt(minLength);
     if (pattern) validationRules.pattern = pattern;

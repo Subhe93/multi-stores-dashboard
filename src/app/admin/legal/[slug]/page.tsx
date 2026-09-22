@@ -105,7 +105,7 @@ export default function AdminLegalEditorPage() {
     }
   };
 
-  const slugLabel = t(`legalSlug_${slug}` as any);
+  const slugLabel = t(`legalSlug_${slug}` as Parameters<typeof t>[0]);
   const titleHeading = page ? slugLabel : '';
 
   if (loading) {

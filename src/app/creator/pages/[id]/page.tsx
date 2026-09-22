@@ -21,6 +21,11 @@ const RTL_LOCALES = ['ar'];
 
 type LocaleTranslation = { title: string; content: string };
 
+// Subset of the store payload used here (content-locale configuration).
+interface StoreLanguageSettings {
+  language_config?: { primary_locale?: string; secondary_locales?: string[] };
+}
+
 interface StorePage {
   id: string;
   slug: string;
@@ -66,7 +71,7 @@ export default function EditPage() {
   // Fetch store language config
   useEffect(() => {
     if (!token) return;
-    api<any>('/stores/my/store', { token })
+    api<StoreLanguageSettings>('/stores/my/store', { token })
       .then(store => {
         const primary: string = store.language_config?.primary_locale || 'en';
         const secondary: string[] = store.language_config?.secondary_locales || [];
@@ -166,9 +171,9 @@ export default function EditPage() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setSaveError(err?.message || t('editPage.saveFailed'));
+      setSaveError((err instanceof Error && err.message) || t('editPage.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -181,9 +186,9 @@ export default function EditPage() {
     try {
       await api(`/pages/${id}`, { method: 'DELETE', token });
       router.push('/creator/pages');
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setDeleteError(err?.message || t('editPage.deleteFailed'));
+      setDeleteError((err instanceof Error && err.message) || t('editPage.deleteFailed'));
       setDeleting(false);
     }
   };

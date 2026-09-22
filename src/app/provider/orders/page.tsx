@@ -23,6 +23,25 @@ const STATUS_COLORS: Record<string, string> = {
   REFUNDED:       'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
 
+/** Order list row (GET /orders) — only the fields rendered by the table. */
+interface OrderRow {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number | string;
+  created_at: string;
+  customer?: { first_name?: string | null; last_name?: string | null } | null;
+  items?: { id: string }[] | null;
+}
+
+/** Pagination block returned next to `data` by list endpoints. */
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // Tab label → actual status value(s)
 const TABS: { label: string; statuses: string[] | null }[] = [
   { label: 'All',            statuses: null },
@@ -57,8 +76,8 @@ export default function ProviderOrders() {
   const router = useRouter();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
-  const [orders, setOrders] = useState<any[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
 
@@ -66,7 +85,7 @@ export default function ProviderOrders() {
     if (!token || !user) return;
     setLoading(true);
     try {
-      const res = await api<any>(`/orders?page=${page}&limit=20`, { token });
+      const res = await api<{ data: OrderRow[]; meta?: PaginationMeta | null }>(`/orders?page=${page}&limit=20`, { token });
       setOrders(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }
@@ -125,7 +144,7 @@ export default function ProviderOrders() {
             key: 'order_number',
             label: t('csvOrder'),
             sortable: true,
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <button
                 onClick={() => router.push(`/provider/orders/${item.id}`)}
                 className="text-sm font-mono font-medium hover:underline text-left"
@@ -137,7 +156,7 @@ export default function ProviderOrders() {
           {
             key: 'customer',
             label: t('customer'),
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <span className="text-sm">
                 {item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}
               </span>
@@ -146,7 +165,7 @@ export default function ProviderOrders() {
           {
             key: 'items',
             label: t('items'),
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <span className="text-xs text-muted-foreground">{t('itemCount', { count: item.items?.length || 0 })}</span>
             ),
           },
@@ -154,7 +173,7 @@ export default function ProviderOrders() {
             key: 'total',
             label: t('total'),
             sortable: true,
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <span className="text-sm font-medium">{fmt(item.total)}</span>
             ),
           },
@@ -162,7 +181,7 @@ export default function ProviderOrders() {
             key: 'status',
             label: t('colStatus'),
             sortable: true,
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <Badge variant="outline" className={`text-[10px] font-semibold ${STATUS_COLORS[item.status] || ''}`}>
                 {item.status.replace('_', ' ')}
               </Badge>
@@ -172,14 +191,14 @@ export default function ProviderOrders() {
             key: 'created_at',
             label: t('csvDate'),
             sortable: true,
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
             ),
           },
           {
             key: 'actions',
             label: '',
-            render: (item: any) => (
+            render: (item: OrderRow) => (
               <Button
                 variant="ghost"
                 size="sm"
@@ -192,7 +211,7 @@ export default function ProviderOrders() {
           },
         ]}
         data={filtered}
-        pagination={meta}
+        pagination={meta ?? undefined}
         onPageChange={p => fetchOrders(p)}
         emptyMessage={loading ? tc('loading') : t('noOrders')}
       />

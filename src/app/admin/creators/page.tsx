@@ -29,7 +29,7 @@ export default function AdminCreators() {
   const fetchCreators = async () => {
     if (!token) return;
     try {
-      const res = await api<any>('/creators', { token });
+      const res = await api<{ data: Creator[] }>('/creators', { token });
       setCreators(res?.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -82,7 +82,7 @@ export default function AdminCreators() {
         searchPlaceholder={t('searchCreators')}
         onSearch={(q) => {
           if (!token) return;
-          api<any>(`/creators?search=${q}`, { token }).then((res) => setCreators(res?.data || []));
+          api<{ data: Creator[] }>(`/creators?search=${q}`, { token }).then((res) => setCreators(res?.data || []));
         }}
         emptyMessage={loading ? t('loading') : t('noCreatorsFound')}
       />

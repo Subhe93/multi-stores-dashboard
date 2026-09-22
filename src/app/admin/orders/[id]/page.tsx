@@ -12,8 +12,97 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
-import { KustomPaymentPanel } from '@/components/common/KustomPaymentPanel';
+import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
+import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
+
+// Shapes below cover only the fields this page reads from GET /orders/:id.
+interface LocalizedTitle { locale: string; title: string }
+interface ImageRef { url: string }
+
+interface OrderItem {
+  id: string;
+  quantity: number;
+  unit_price: number | string;
+  total_price: number | string;
+  fulfiller_type?: string | null;
+  fulfillment_status?: string | null;
+  image_url?: string | null;
+  design_notes?: string | null;
+  variant?: { options?: Record<string, string> | null } | null;
+  product?: { translations?: LocalizedTitle[]; images?: ImageRef[] } | null;
+  custom_product?: {
+    translations?: LocalizedTitle[];
+    mockup_images?: ImageRef[];
+    product?: { images?: ImageRef[] } | null;
+  } | null;
+  custom_field_values?: CustomFieldValue[];
+}
+
+interface CustomFieldValue {
+  id: string;
+  custom_field_id: string;
+  value?: string | null;
+  file_url?: string | null;
+  custom_field?: { translations?: { label: string }[] } | null;
+}
+
+interface Payout {
+  id: string;
+  recipient_type: string;
+  amount: number | string;
+  status: string;
+  error?: string | null;
+}
+
+interface TimelineEntry {
+  id: string;
+  status: string;
+  created_at: string;
+  note?: string | null;
+}
+
+interface AdminOrder extends KustomOrderFields {
+  id: string;
+  order_number: string;
+  status: string;
+  created_at: string;
+  currency?: string | null;
+  subtotal: number | string;
+  shipping_cost: number | string;
+  discount_amount?: number | string | null;
+  total: number | string;
+  shipping_method_name?: string | null;
+  shipping_method_type?: string | null;
+  // Tax fields consumed by OrderTaxLines.
+  tax_lines?: TaxLine[] | null;
+  tax_rate_bp?: number | null;
+  tax_amount?: number | string | null;
+  tax_pricing_mode?: TaxPricingMode | null;
+  // Payment details.
+  card_brand?: string | null;
+  card_last4?: string | null;
+  paid_at?: string | null;
+  payment_failure_message?: string | null;
+  receipt_url?: string | null;
+  customer?: { first_name?: string | null; last_name?: string | null; phone?: string | null } | null;
+  address?: {
+    full_name?: string | null;
+    line1?: string | null;
+    line2?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country_code?: string | null;
+  } | null;
+  commission?: {
+    provider_amount: number | string;
+    platform_amount: number | string;
+    creator_amount: number | string;
+  } | null;
+  items?: OrderItem[];
+  payouts?: Payout[];
+  timeline?: TimelineEntry[];
+}
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -96,13 +185,13 @@ export default function OrderDetailPage() {
   const { fmt, currency } = useCurrency();
 
   const statusLabel = (status: string) =>
-    STATUS_LABELS[status] ? t(`orderStatus_${status}` as any) : status;
-  const [order, setOrder] = useState<any>(null);
+    STATUS_LABELS[status] ? t(`orderStatus_${status}` as Parameters<typeof t>[0]) : status;
+  const [order, setOrder] = useState<AdminOrder | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchOrder = () => {
     if (!token || !id) return;
-    api<any>(`/orders/${id}`, { token })
+    api<AdminOrder>(`/orders/${id}`, { token })
       .then(setOrder)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -173,11 +262,11 @@ export default function OrderDetailPage() {
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('items')}</CardTitle></CardHeader>
           <CardContent>
             <div className="divide-y">
-              {order.items?.map((item: any) => {
+              {order.items?.map((item) => {
                 const title =
-                  item.custom_product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.custom_product?.translations?.find((tr) => tr.locale === 'en')?.title ??
                   item.custom_product?.translations?.[0]?.title ??
-                  item.product?.translations?.find((t: any) => t.locale === 'en')?.title ??
+                  item.product?.translations?.find((tr) => tr.locale === 'en')?.title ??
                   item.product?.translations?.[0]?.title ?? '—';
                 const imgUrl =
                   item.image_url ??
@@ -188,8 +277,8 @@ export default function OrderDetailPage() {
                 const variantLabel = variantOpts
                   ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
                   : null;
-                const textFields = (item.custom_field_values || []).filter((fv: any) => !fv.file_url && fv.value);
-                const fileFields = (item.custom_field_values || []).filter((fv: any) => fv.file_url);
+                const textFields = (item.custom_field_values || []).filter((fv) => !fv.file_url && fv.value);
+                const fileFields = (item.custom_field_values || []).filter((fv) => fv.file_url);
 
                 return (
                   <div key={item.id} className="py-3 space-y-2">
@@ -230,7 +319,7 @@ export default function OrderDetailPage() {
 
                     {textFields.length > 0 && (
                       <div className="ml-17 pl-3 border-l-2 border-muted space-y-0.5">
-                        {textFields.map((fv: any) => (
+                        {textFields.map((fv) => (
                           <p key={fv.id} className="text-xs text-muted-foreground">
                             <span className="font-medium text-foreground">
                               {fv.custom_field?.translations?.[0]?.label || fv.custom_field_id}:
@@ -242,11 +331,11 @@ export default function OrderDetailPage() {
 
                     {fileFields.length > 0 && (
                       <div className="ml-17 flex flex-wrap gap-2">
-                        {fileFields.map((fv: any) => (
-                          <a key={fv.id} href={fv.file_url} target="_blank" rel="noreferrer"
+                        {fileFields.map((fv) => (
+                          <a key={fv.id} href={fv.file_url ?? undefined} target="_blank" rel="noreferrer"
                             className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
                             title={fv.custom_field?.translations?.[0]?.label || t('file')}>
-                            <img src={fv.file_url} alt="" className="w-full h-full object-contain p-0.5" />
+                            <img src={fv.file_url ?? undefined} alt="" className="w-full h-full object-contain p-0.5" />
                           </a>
                         ))}
                       </div>
@@ -358,7 +447,7 @@ export default function OrderDetailPage() {
               )}
               {order.payment_method === 'STRIPE' &&
                 (order.payment_status !== 'paid' ||
-                  order.payouts?.some((p: any) => p.status !== 'paid')) && (
+                  order.payouts?.some((p) => p.status !== 'paid')) && (
                   <Button variant="outline" size="sm" className="w-full mt-2 text-xs" onClick={handleVerifyPayment} disabled={verifying}>
                     {verifying ? '…' : tp('verifyPayment')}
                   </Button>
@@ -367,11 +456,11 @@ export default function OrderDetailPage() {
           </Card>
 
           {/* Payouts ledger */}
-          {order.payouts?.length > 0 && (
+          {(order.payouts?.length ?? 0) > 0 && (
             <Card className="shadow-none">
               <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{tp('payouts')}</CardTitle></CardHeader>
               <CardContent className="text-xs space-y-2">
-                {order.payouts.map((p: any) => (
+                {order.payouts?.map((p) => (
                   <div key={p.id} className="space-y-0.5">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">{p.recipient_type === 'PROVIDER' ? tp('provider') : tp('creator')}</span>
@@ -397,9 +486,9 @@ export default function OrderDetailPage() {
       <Card className="shadow-none">
         <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('timeline')}</CardTitle></CardHeader>
         <CardContent>
-          {order.timeline?.length > 0 ? (
+          {(order.timeline?.length ?? 0) > 0 ? (
             <div className="space-y-3">
-              {order.timeline.map((entry: any) => (
+              {order.timeline?.map((entry) => (
                 <div key={entry.id} className="flex items-start gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>

@@ -172,7 +172,7 @@ export function PageSwitcher({
       const ib = TYPE_SORT.indexOf(b.type.toUpperCase());
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
-  }, [pages, query, locale, primaryLocale]);
+  }, [pages, query, locale, primaryLocale, t]);
 
   const CurrentIcon = TYPE_ICON[currentPageType.toUpperCase()] || FileText;
 

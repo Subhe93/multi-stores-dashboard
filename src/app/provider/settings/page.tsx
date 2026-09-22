@@ -9,10 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Upload, ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '@/lib/auth';
+import { useAuth, type ProviderProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { useTranslations } from 'next-intl';
+
+/** GET /providers/me — auth profile plus the editable logo. */
+interface ProviderMe extends ProviderProfile {
+  logo_url?: string | null;
+}
 
 interface StripeConnectStatus {
   connected: boolean;
@@ -38,7 +43,7 @@ export default function ProviderSettings() {
   ];
   const { token } = useAuth();
   const { pickAndUpload, uploading } = useImageUpload(token);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProviderMe | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -57,7 +62,7 @@ export default function ProviderSettings() {
 
   useEffect(() => {
     if (!token) return;
-    api<any>('/providers/me', { token })
+    api<ProviderMe>('/providers/me', { token })
       .then((p) => {
         setProfile(p);
         setCompanyName(p.company_name || '');
@@ -86,8 +91,8 @@ export default function ProviderSettings() {
     try {
       const { url } = await api<{ url: string }>('/payments/connect/onboarding-link', { token });
       window.location.href = url;
-    } catch (err: any) {
-      setStripeError(err?.message || t('stripeConnectError'));
+    } catch (err) {
+      setStripeError(err instanceof Error && err.message ? err.message : t('stripeConnectError'));
       setStripeConnecting(false);
     }
   };

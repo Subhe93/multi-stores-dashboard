@@ -246,9 +246,9 @@ export default function CreatorSettingsPage() {
         }),
       });
       setProfileMsg({ type: 'success', text: t('settings.profileSaved') });
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save profile:', err);
-      setProfileMsg({ type: 'error', text: err?.message || t('settings.profileSaveFailed') });
+      setProfileMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.profileSaveFailed') });
     } finally {
       setProfileSaving(false);
     }
@@ -271,8 +271,8 @@ export default function CreatorSettingsPage() {
     try {
       await api('/stores/my/cache/flush', { method: 'POST', token });
       setFlushMsg({ type: 'success', text: t('settings.cacheCleared') });
-    } catch (err: any) {
-      setFlushMsg({ type: 'error', text: err?.message || t('settings.cacheClearFailed') });
+    } catch (err) {
+      setFlushMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.cacheClearFailed') });
     } finally {
       setFlushing(false);
     }
@@ -291,9 +291,9 @@ export default function CreatorSettingsPage() {
         token,
         body: JSON.stringify({ cache_enabled: next }),
       });
-    } catch (err: any) {
+    } catch (err) {
       setStore({ ...store, cache_enabled: !next });
-      setFlushMsg({ type: 'error', text: err?.message || t('settings.cachingUpdateFailed') });
+      setFlushMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.cachingUpdateFailed') });
     } finally {
       setCacheSaving(false);
     }
@@ -312,9 +312,9 @@ export default function CreatorSettingsPage() {
         token,
         body: JSON.stringify({ cod_enabled: next }),
       });
-    } catch (err: any) {
+    } catch (err) {
       setStore({ ...store, cod_enabled: !next });
-      setCodMsg({ type: 'error', text: err?.message || t('settings.codUpdateFailed') });
+      setCodMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.codUpdateFailed') });
     } finally {
       setCodSaving(false);
     }
@@ -335,9 +335,9 @@ export default function CreatorSettingsPage() {
       });
       clearCurrencyCache();
       setCurrencyMsg({ type: 'success', text: t('settings.currencyUpdated') });
-    } catch (err: any) {
+    } catch (err) {
       setStore({ ...store, currency: previous || null });
-      setCurrencyMsg({ type: 'error', text: err?.message || t('settings.currencyUpdateFailed') });
+      setCurrencyMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.currencyUpdateFailed') });
     } finally {
       setCurrencySaving(false);
     }
@@ -396,8 +396,8 @@ export default function CreatorSettingsPage() {
       const fresh = await api<StripeConnectStatus>('/payments/connect/status', { token });
       setStripeStatus(fresh);
       setConfirmDisconnect(false);
-    } catch (err: any) {
-      setStripeError(err?.message || t('settings.disconnectFailed'));
+    } catch (err) {
+      setStripeError((err instanceof Error && err.message) || t('settings.disconnectFailed'));
     } finally {
       setDisconnecting(false);
     }
@@ -420,8 +420,8 @@ export default function CreatorSettingsPage() {
     try {
       const { url } = await api<{ url: string }>('/payments/connect/onboarding-link', { token });
       window.location.href = url;
-    } catch (err: any) {
-      setStripeError(err?.message || t('settings.stripeConnectError'));
+    } catch (err) {
+      setStripeError((err instanceof Error && err.message) || t('settings.stripeConnectError'));
       setStripeConnecting(false);
     }
   };
@@ -545,8 +545,8 @@ export default function CreatorSettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
       setPasswordMsg({ type: 'success', text: t('settings.passwordChanged') });
-    } catch (err: any) {
-      setPasswordMsg({ type: 'error', text: err?.message || t('settings.passwordChangeFailed') });
+    } catch (err) {
+      setPasswordMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.passwordChangeFailed') });
     } finally {
       setPasswordSaving(false);
     }

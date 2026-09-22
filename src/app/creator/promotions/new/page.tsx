@@ -42,6 +42,18 @@ type PromotionType =
   | 'COUPON'
   | 'FLASH_SALE';
 
+// Minimal shape of the store response used by this page.
+interface StoreLocaleInfo {
+  language_config?: { primary_locale?: string };
+}
+
+// Minimal product shape (custom product or own product) used for targeting.
+interface TargetProduct {
+  id: string;
+  translations?: { locale: string; title?: string }[];
+  product?: { translations?: { locale: string; title?: string }[] };
+}
+
 // ─── Type options ─────────────────────────────────────────────────────────────
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -107,7 +119,7 @@ export default function NewPromotionPage() {
   // The single title field targets the store's primary locale, not hardcoded English.
   useEffect(() => {
     if (!token) return;
-    api<any>('/stores/my/store', { token })
+    api<StoreLocaleInfo>('/stores/my/store', { token })
       .then((s) => setPrimaryLocale(s?.language_config?.primary_locale || 'en'))
       .catch(() => {});
   }, [token]);
@@ -118,11 +130,11 @@ export default function NewPromotionPage() {
     if (!token || !storeType) return;
     const endpoint =
       storeType === 'INDEPENDENT' ? '/products/mine?limit=100' : '/custom-products?limit=100';
-    api<{ data: any[] }>(endpoint, { token })
+    api<{ data: TargetProduct[] }>(endpoint, { token })
       .then((res) => {
-        const list = (res?.data || []).map((p: any) => ({
+        const list = (res?.data || []).map((p) => ({
           id: p.id,
-          title: p.translations?.find((t: any) => t.locale === primaryLocale)?.title
+          title: p.translations?.find((t) => t.locale === primaryLocale)?.title
             || p.translations?.[0]?.title || p.product?.translations?.[0]?.title || tt('promotionForm.untitled'),
         }));
         setProducts(list);
@@ -150,7 +162,7 @@ export default function NewPromotionPage() {
     setSaving(true);
     setError('');
 
-    const payload: Record<string, any> = {
+    const payload: Record<string, unknown> = {
       type,
       level: 'CREATOR_TO_CUSTOMER',
       value: parseFloat(value) || 0,
@@ -184,8 +196,8 @@ export default function NewPromotionPage() {
         body: JSON.stringify(payload),
       });
       router.push('/creator/promotions');
-    } catch (err: any) {
-      setError(err?.message || tt('promotionForm.failedCreate'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || tt('promotionForm.failedCreate'));
     } finally {
       setSaving(false);
     }

@@ -32,6 +32,12 @@ const buildTemplateOptions = (t: Translator) => [
 
 type LocaleTranslation = { title: string };
 
+// Subset of the store payload used here (id + content-locale configuration).
+interface StoreSummary {
+  id?: string;
+  language_config?: { primary_locale?: string; secondary_locales?: string[] };
+}
+
 export default function NewPage() {
   const router = useRouter();
   const { token } = useAuth();
@@ -62,7 +68,7 @@ export default function NewPage() {
   // Fetch store id + language config
   useEffect(() => {
     if (!token) return;
-    api<any>('/stores/my/store', { token })
+    api<StoreSummary>('/stores/my/store', { token })
       .then(s => {
         setStoreId(s?.id || null);
         const primary: string = s.language_config?.primary_locale || 'en';
@@ -131,8 +137,8 @@ export default function NewPage() {
         });
       }
       router.push('/creator/pages');
-    } catch (err: any) {
-      setError(err?.message || t('newPage.failedCreate'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('newPage.failedCreate'));
     } finally {
       setSaving(false);
     }

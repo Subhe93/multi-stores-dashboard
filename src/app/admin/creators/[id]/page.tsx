@@ -29,6 +29,17 @@ interface Store {
   tax_country?: string | null;
 }
 
+// Creator profile as returned by GET /creators/:id (only the fields this page reads).
+interface CreatorDetail {
+  id: string;
+  display_name: string;
+  phone?: string | null;
+  bio?: string | null;
+  verified: boolean;
+  created_at: string;
+  user?: { email: string } | null;
+}
+
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
 function storeUrl(slug: string): string {
@@ -41,7 +52,7 @@ export default function CreatorDetailPage() {
   const locale = useLocale();
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
-  const [creator, setCreator] = useState<any>(null);
+  const [creator, setCreator] = useState<CreatorDetail | null>(null);
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +66,7 @@ export default function CreatorDetailPage() {
 
   const fetchCreator = () => {
     if (!token || !id) return;
-    api<any>(`/creators/${id}`, { token })
+    api<CreatorDetail>(`/creators/${id}`, { token })
       .then(setCreator)
       .catch(console.error);
   };
@@ -71,7 +82,7 @@ export default function CreatorDetailPage() {
     if (!token || !id) return;
     setLoading(true);
     Promise.all([
-      api<any>(`/creators/${id}`, { token }).then(setCreator).catch(console.error),
+      api<CreatorDetail>(`/creators/${id}`, { token }).then(setCreator).catch(console.error),
       api<Store>(`/stores/by-creator/${id}`, { token })
         .then((s) => { setStore(s); setSlug(s.slug); setStoreType(s.store_type ?? 'MARKETPLACE'); })
         .catch(() => setStore(null)),
@@ -98,8 +109,8 @@ export default function CreatorDetailPage() {
       setStore(updated);
       setSlug(updated.slug);
       setSlugMsg({ kind: 'ok', text: t('slugUpdated') });
-    } catch (err: any) {
-      setSlugMsg({ kind: 'err', text: err?.message || t('failedToUpdateSlug') });
+    } catch (err) {
+      setSlugMsg({ kind: 'err', text: (err instanceof Error && err.message) || t('failedToUpdateSlug') });
     } finally {
       setSavingSlug(false);
     }
@@ -118,8 +129,8 @@ export default function CreatorDetailPage() {
       setStore(updated);
       setStoreType(updated.store_type ?? 'MARKETPLACE');
       setTypeMsg({ kind: 'ok', text: t('storeTypeUpdated') });
-    } catch (err: any) {
-      setTypeMsg({ kind: 'err', text: err?.message || t('failedToUpdateStoreType') });
+    } catch (err) {
+      setTypeMsg({ kind: 'err', text: (err instanceof Error && err.message) || t('failedToUpdateStoreType') });
     } finally {
       setSavingType(false);
     }

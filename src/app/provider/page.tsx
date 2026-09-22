@@ -12,7 +12,7 @@ import {
   AlertCircle, CreditCard, Settings,
   Store as StoreIcon, BadgeCheck,
 } from 'lucide-react';
-import { useAuth } from '@/lib/auth';
+import { useAuth, type ProviderProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
@@ -32,6 +32,55 @@ const STATUS_COLORS: Record<string, string> = {
 
 type Translator = ReturnType<typeof useTranslations>;
 
+// ---------------------------------------------------------------------------
+// API shapes — only the fields this overview reads.
+// ---------------------------------------------------------------------------
+
+interface OverviewOrder {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number | string;
+  created_at: string;
+  commission?: { provider_amount?: number | string | null } | null;
+}
+
+interface OverviewProduct {
+  id: string;
+  base_price: number | string;
+  images?: { url: string; is_featured?: boolean }[] | null;
+  translations?: { title?: string | null }[] | null;
+}
+
+interface EarningsSummary {
+  total_earnings?: number | string | null;
+  this_month?: number | string | null;
+  pending?: number | string | null;
+}
+
+interface ShippingProfileSummary {
+  id: string;
+  zones: { id: string }[];
+}
+
+/** GET /providers/me — auth profile plus the payout account id. */
+interface ProviderMe extends ProviderProfile {
+  stripe_account_id?: string | null;
+}
+
+interface OverviewStore {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  products_using_count?: number;
+  creator?: { display_name?: string | null; verified?: boolean } | null;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  meta?: { total?: number } | null;
+}
+
 const STATUS_LABEL_KEYS: Record<string, string> = {
   PENDING:        'orderStatus.pending',
   CONFIRMED:      'orderStatus.confirmed',
@@ -50,14 +99,14 @@ function statusLabel(t: Translator, status: string): string {
   return key ? t(key) : status;
 }
 
-function countByStatus(orders: any[]): Record<string, number> {
+function countByStatus(orders: OverviewOrder[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const o of orders) counts[o.status] = (counts[o.status] || 0) + 1;
   return counts;
 }
 
 /** Calculate month-over-month earnings trend */
-function calcTrend(orders: any[]): { value: string; direction: 'up' | 'down' | 'flat' } {
+function calcTrend(orders: OverviewOrder[]): { value: string; direction: 'up' | 'down' | 'flat' } {
   const now = new Date();
   const startThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -83,24 +132,24 @@ export default function ProviderOverview() {
   const router = useRouter();
   const { fmt } = useCurrency();
   const t = useTranslations('provider');
-  const [products, setProducts] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [earnings, setEarnings] = useState<any>(null);
-  const [shippingProfiles, setShippingProfiles] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>(null);
-  const [stores, setStores] = useState<any[]>([]);
-  const [storesMeta, setStoresMeta] = useState<any>(null);
+  const [products, setProducts] = useState<OverviewProduct[]>([]);
+  const [orders, setOrders] = useState<OverviewOrder[]>([]);
+  const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
+  const [shippingProfiles, setShippingProfiles] = useState<ShippingProfileSummary[]>([]);
+  const [profile, setProfile] = useState<ProviderMe | null>(null);
+  const [stores, setStores] = useState<OverviewStore[]>([]);
+  const [storesMeta, setStoresMeta] = useState<{ total?: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!token) return;
     Promise.all([
-      api<any>('/products/mine?limit=5', { token }).catch(() => ({ data: [] })),
-      api<any>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
-      api<any>('/commissions/summary', { token }).catch(() => null),
-      api<any[]>('/shipping/profiles', { token }).catch(() => []),
-      api<any>('/providers/me', { token }).catch(() => null),
-      api<any>('/providers/me/stores?limit=5', { token }).catch(() => ({ data: [], meta: null })),
+      api<PaginatedResponse<OverviewProduct>>('/products/mine?limit=5', { token }).catch(() => ({ data: [] })),
+      api<PaginatedResponse<OverviewOrder>>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
+      api<EarningsSummary>('/commissions/summary', { token }).catch(() => null),
+      api<ShippingProfileSummary[]>('/shipping/profiles', { token }).catch(() => []),
+      api<ProviderMe>('/providers/me', { token }).catch(() => null),
+      api<PaginatedResponse<OverviewStore>>('/providers/me/stores?limit=5', { token }).catch(() => ({ data: [], meta: null })),
     ]).then(([prods, ords, earn, shipping, prov, strs]) => {
       setProducts(prods?.data || []);
       setOrders(ords?.data || []);
@@ -212,7 +261,7 @@ export default function ProviderOverview() {
               <p className="text-sm text-muted-foreground py-8 text-center">{t('noOrdersYet')}</p>
             ) : (
               <div className="space-y-1">
-                {recentOrders.map((o: any) => (
+                {recentOrders.map((o) => (
                   <button
                     key={o.id}
                     onClick={() => router.push(`/provider/orders/${o.id}`)}
@@ -277,8 +326,8 @@ export default function ProviderOverview() {
                 <p className="text-xs text-muted-foreground py-4 text-center">{t('noProductsYet')}</p>
               ) : (
                 <div className="space-y-1.5">
-                  {products.slice(0, 4).map((p: any) => {
-                    const img = p.images?.find((i: any) => i.is_featured)?.url || p.images?.[0]?.url;
+                  {products.slice(0, 4).map((p) => {
+                    const img = p.images?.find((i) => i.is_featured)?.url || p.images?.[0]?.url;
                     return (
                       <button
                         key={p.id}
@@ -326,7 +375,7 @@ export default function ProviderOverview() {
                 <p className="text-xs text-muted-foreground py-4 text-center">{t('noStoresYet')}</p>
               ) : (
                 <div className="space-y-1.5">
-                  {stores.slice(0, 4).map((s: any) => (
+                  {stores.slice(0, 4).map((s) => (
                     <button
                       key={s.id}
                       onClick={() => router.push(`/provider/stores/${s.id}`)}

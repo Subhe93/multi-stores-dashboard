@@ -108,9 +108,9 @@ export default function LandingPagesPage() {
       await api(`/v2/pages/${deleteTarget.id}`, { method: 'DELETE', token });
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete landing page:', err);
-      setDeleteError(err?.message || t('landingPages.deleteFailed'));
+      setDeleteError((err instanceof Error && err.message) || t('landingPages.deleteFailed'));
     } finally {
       setDeleting(false);
     }

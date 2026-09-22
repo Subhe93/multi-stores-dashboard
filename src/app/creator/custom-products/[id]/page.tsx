@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ComponentProps } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,15 +47,12 @@ interface ProductVariant {
   options: Record<string, string>;
 }
 
-interface ProductCustomField {
-  id: string;
-  name: string;
-  type: string;
-  is_required: boolean;
-  placeholder?: string;
-  options?: any;
-  validation_rules?: any;
-  translations: any[];
+// Custom field shape as consumed by CustomFieldRenderer (single source of truth).
+type ProductCustomField = ComponentProps<typeof CustomFieldRenderer>['fields'][number];
+
+// Subset of the store payload used here (content-locale configuration).
+interface StoreLanguageSettings {
+  language_config?: { primary_locale?: string; secondary_locales?: string[] };
 }
 
 interface CustomProduct {
@@ -71,6 +68,8 @@ interface CustomProduct {
   field_values?: { id: string; custom_field_id: string; value?: string; file_url?: string }[];
   bundles?: { bundle_id: string }[];
   creator_categories?: { creator_category_id: string; creator_category?: { id: string } }[];
+  mockup_images?: { url: string }[];
+  faqs?: Faq[];
   product: {
     id: string;
     base_price: number;
@@ -108,6 +107,20 @@ const STATUS_COLORS: Record<string, string> = {
 
 type PricingType = 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
 type LocaleTranslation = { title: string; description: string; slug: string };
+
+// PUT /custom-products/:id payload; optional keys are only sent when relevant.
+interface UpdateCustomProductBody {
+  pricing_type: PricingType;
+  translations: { locale: string; title: string; description?: string; slug: string }[];
+  status?: string;
+  final_price?: number;
+  margin_amount?: number;
+  selected_variants?: { variant_id: string; custom_price?: number }[];
+  field_values?: { custom_field_id: string; value?: string; file_url?: string }[];
+  mockup_image_urls?: string[];
+  bundle_ids?: string[];
+  creator_category_ids?: string[];
+}
 
 export default function EditCustomProduct() {
   const { fmt } = useCurrency();
@@ -176,7 +189,7 @@ export default function EditCustomProduct() {
     setLoading(true);
     try {
       const [store, productRes] = await Promise.all([
-        api<any>('/stores/my/store', { token }),
+        api<StoreLanguageSettings>('/stores/my/store', { token }),
         api<CustomProduct>(`/custom-products/${id}`, { token }),
       ]);
 
@@ -222,7 +235,7 @@ export default function EditCustomProduct() {
       setFieldValues(fv);
 
       // Mockup images
-      const imgUrls = (productRes as any).mockup_images?.map((img: any) => img.url) || [];
+      const imgUrls = productRes.mockup_images?.map((img) => img.url) || [];
       setSelectedImageUrls(imgUrls);
       setFeaturedImageUrl(imgUrls[0] || null);
 
@@ -234,7 +247,7 @@ export default function EditCustomProduct() {
       });
       setTranslations(merged);
 
-      setFaqs((productRes as any).faqs || []);
+      setFaqs(productRes.faqs || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -315,7 +328,7 @@ export default function EditCustomProduct() {
           };
         });
 
-      const body: any = {
+      const body: UpdateCustomProductBody = {
         pricing_type: pricingType,
         translations: translationsPayload,
       };
@@ -513,7 +526,7 @@ export default function EditCustomProduct() {
       )}
 
       {/* Product Images */}
-      {product.product.images && (product.product.images as any[]).length > 0 && (
+      {product.product.images && product.product.images.length > 0 && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -598,11 +611,11 @@ export default function EditCustomProduct() {
             )}
 
             {/* Select from base product */}
-            {(product.product.images as any[])?.length > 0 && (
+            {(product.product.images?.length ?? 0) > 0 && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs font-medium text-muted-foreground mb-2">{t('editCustomProduct.selectFromBase')}</p>
                 <div className="grid grid-cols-6 gap-1.5">
-                  {(product.product.images as any[]).map((img: any, i: number) => {
+                  {(product.product.images ?? []).map((img, i) => {
                     const imgUrl = resolveUrl(img.url);
                     const isSelected = selectedImageUrls.includes(img.url);
                     return (

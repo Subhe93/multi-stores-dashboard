@@ -5,6 +5,13 @@ interface FetchOptions extends RequestInit {
   token?: string;
 }
 
+/** Error thrown by `api()` for non-2xx responses; carries the HTTP status and validation details. */
+export class ApiError extends Error {
+  status?: number;
+  errors?: string[];
+  code?: string;
+}
+
 export async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { token, ...fetchOptions } = options;
 
@@ -25,7 +32,7 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
   const json = await res.json();
 
   if (!res.ok) {
-    const err: any = new Error(
+    const err = new ApiError(
       Array.isArray(json.message) ? json.message.join(' · ') : (json.message || 'API request failed')
     );
     err.status = res.status;

@@ -70,7 +70,7 @@ export default function AdminLegalListPage() {
           <CardContent className="p-0">
             <ul className="divide-y">
               {sortedPages.map((page) => {
-                const slugLabel = t(`legalSlug_${page.slug}` as any);
+                const slugLabel = t(`legalSlug_${page.slug}` as Parameters<typeof t>[0]);
                 const displayTitle = pickDisplayTitle(page, slugLabel);
                 return (
                   <li key={page.id}>

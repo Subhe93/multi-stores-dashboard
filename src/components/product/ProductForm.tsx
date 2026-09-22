@@ -21,7 +21,7 @@ import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
 import { TagInput } from '@/components/common/TagInput';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
@@ -45,6 +45,97 @@ const pickTranslation = (translations: TranslationRow[] | undefined, primaryLoca
   translations?.find(tr => tr.locale === primaryLocale) ||
   translations?.find(tr => tr.locale === 'en') ||
   translations?.[0];
+
+// ─────────────────────────────────────────
+// Local API shapes (only the fields this form reads)
+// ─────────────────────────────────────────
+interface SelectOption { value: string; label: string }
+
+interface ShippingProfile { id: string; name: string; is_default: boolean }
+
+interface StoreResponse {
+  language_config?: { primary_locale?: string; secondary_locales?: string[] } | null;
+}
+
+interface CategoryNode {
+  id: string;
+  slug: string;
+  translations?: TranslationRow[];
+  children?: CategoryNode[];
+}
+
+interface CategoryAttribute {
+  id: string;
+  name: string;
+  type: string;
+  is_required?: boolean;
+  unit?: string | null;
+  options?: string[] | null;
+  translations?: TranslationRow[];
+}
+
+/** Attribute value as edited in the form: checkbox → boolean, everything else → string */
+type AttrValue = string | boolean | null | undefined;
+
+interface ProductImage {
+  id: string;
+  url: string;
+  alt_text?: string;
+  is_featured?: boolean;
+  variant_id?: string | null;
+}
+
+interface ProductTranslationRow {
+  locale: string;
+  title?: string | null;
+  description?: string | null;
+  slug?: string | null;
+  meta_title?: string | null;
+  meta_desc?: string | null;
+}
+
+interface ProductVariantRow {
+  id: string;
+  options: Record<string, string>;
+  price_adjustment?: number | string | null;
+  compare_at_price?: number | string | null;
+  sku?: string | null;
+  stock_quantity: number | null;
+  is_active: boolean;
+  images?: { url: string }[];
+}
+
+interface ProductResponse {
+  id: string;
+  category_id?: string | null;
+  product_type?: string | null;
+  customization_type?: string | null;
+  base_price?: number | string | null;
+  compare_at_price?: number | string | null;
+  cost_price?: number | string | null;
+  sku?: string | null;
+  track_inventory?: boolean | null;
+  stock_quantity?: number | null;
+  weight?: number | string | null;
+  weight_unit?: string | null;
+  tags?: { tag: string }[];
+  status?: string | null;
+  images?: ProductImage[];
+  custom_fields?: CustomField[];
+  faqs?: Faq[];
+  bundles?: { bundle_id: string }[];
+  creator_categories?: {
+    creator_category_id?: string | null;
+    creator_category?: { id?: string | null } | null;
+  }[];
+  shipping_profile_id?: string | null;
+  tax_class_id?: string | null;
+  tax_exempt?: boolean | null;
+  translations?: ProductTranslationRow[];
+  variants?: ProductVariantRow[];
+  variant_option_config?: VariantOption[] | null;
+  attributes?: { template_id: string; value: AttrValue }[];
+}
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
@@ -91,8 +182,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [translatingLocale, setTranslatingLocale] = useState('');
 
   // ── Other product fields ───────────────────────────────────
-  const [categories, setCategories] = useState<any[]>([]);
-  const [categoryAttrs, setCategoryAttrs] = useState<any[]>([]);
+  const [categories, setCategories] = useState<SelectOption[]>([]);
+  const [categoryAttrs, setCategoryAttrs] = useState<CategoryAttribute[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [productType, setProductType] = useState('TRADITIONAL');
   const [customizationType, setCustomizationType] = useState('');
@@ -108,15 +199,15 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [status, setStatus] = useState('DRAFT');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
-  const [attrValues, setAttrValues] = useState<Record<string, any>>({});
-  const [images, setImages] = useState<any[]>([]);
+  const [attrValues, setAttrValues] = useState<Record<string, AttrValue>>({});
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
   const [variants, setVariants] = useState<GeneratedVariant[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [bundleIds, setBundleIds] = useState<string[]>([]);
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
-  const [shippingProfiles, setShippingProfiles] = useState<{ id: string; name: string; is_default: boolean }[]>([]);
+  const [shippingProfiles, setShippingProfiles] = useState<ShippingProfile[]>([]);
   const [shippingProfileId, setShippingProfileId] = useState('');
   // Tax: platform + own-store classes; '' = the scope's default class.
   const [taxClasses, setTaxClasses] = useState<TaxClass[]>([]);
@@ -139,7 +230,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Fetch store language config ────────────────────────────
   useEffect(() => {
     if (!token) return;
-    api<any>('/stores/my/store', { token })
+    api<StoreResponse>('/stores/my/store', { token })
       .then(store => {
         const primary: string = store.language_config?.primary_locale || 'en';
         const secondary: string[] = store.language_config?.secondary_locales || [];
@@ -160,7 +251,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Fetch shipping profiles ────────────────────────────────
   useEffect(() => {
     if (!token) return;
-    api<any[]>('/shipping/profiles', { token })
+    api<ShippingProfile[]>('/shipping/profiles', { token })
       .then(profiles => setShippingProfiles(Array.isArray(profiles) ? profiles : []))
       .catch(() => {});
   }, [token]);
@@ -175,9 +266,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
   // ── Fetch categories ──────────────────────────────────────
   useEffect(() => {
-    api<any[]>('/categories').then(cats => {
-      const flat: any[] = [];
-      const flatten = (items: any[], prefix = '') => {
+    api<CategoryNode[]>('/categories').then(cats => {
+      const flat: SelectOption[] = [];
+      const flatten = (items: CategoryNode[], prefix = '') => {
         for (const c of items) {
           const name = pickTranslation(c.translations, primaryLocale)?.name || c.slug;
           flat.push({ value: c.id, label: prefix + name });
@@ -192,8 +283,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Fetch product data (edit mode) ────────────────────────
   useEffect(() => {
     if (mode !== 'edit' || !token || !productId) return;
-    api<any>(`/products/${productId}`, { token }).then(p => {
-      const primaryT = p.translations?.find((t: any) => t.locale === primaryLocale) || p.translations?.[0];
+    api<ProductResponse>(`/products/${productId}`, { token }).then(p => {
+      const primaryT = p.translations?.find((t) => t.locale === primaryLocale) || p.translations?.[0];
 
       setCategoryId(p.category_id || '');
       setMetaTitle(primaryT?.meta_title || '');
@@ -208,9 +299,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setStockQty(p.stock_quantity ? String(p.stock_quantity) : '');
       setWeight(p.weight ? String(p.weight) : '');
       setWeightUnit(p.weight_unit || 'kg');
-      setTags(p.tags?.map((t: any) => t.tag) || []);
+      setTags(p.tags?.map((t) => t.tag) || []);
       setStatus(p.status || 'DRAFT');
-      setImages((p.images || []).filter((img: any) => !img.variant_id));
+      setImages((p.images || []).filter((img) => !img.variant_id));
       setCustomFields(p.custom_fields || []);
       setFaqs(p.faqs || []);
       setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
@@ -218,8 +309,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       // { creator_category_id, creator_category: {...} }; either field works.
       setCreatorCategoryIds(
         (p.creator_categories || [])
-          .map((link: any) => link?.creator_category?.id || link?.creator_category_id)
-          .filter((id: any): id is string => typeof id === 'string'),
+          .map((link) => link?.creator_category?.id || link?.creator_category_id)
+          .filter((id): id is string => typeof id === 'string'),
       );
       setShippingProfileId(p.shipping_profile_id || '');
       setTaxClassId(p.tax_class_id || '');
@@ -228,31 +319,32 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       // Populate translations for all configured locales
       setTranslations(prev => {
         const next = { ...prev };
-        (p.translations || []).forEach((t: any) => {
+        (p.translations || []).forEach((t) => {
           next[t.locale] = { title: t.title || '', description: t.description || '', slug: t.slug || '' };
         });
         return next;
       });
 
       // Variants
-      if (p.variants?.length > 0) {
+      const variantRows = p.variants ?? [];
+      if (variantRows.length > 0) {
         // Use persisted config if available (preserves styles, colorMap, etc.)
         if (Array.isArray(p.variant_option_config) && p.variant_option_config.length > 0) {
           setVariantOptions(p.variant_option_config);
         } else {
           // Fallback: reconstruct from variant data (old products without config)
-          const optionNames = Object.keys(p.variants[0].options || {});
+          const optionNames = Object.keys(variantRows[0]!.options || {});
           const opts: VariantOption[] = optionNames.map(name => {
-            const vals = p.variants.map((v: any) => String(v.options[name] || '')).filter(Boolean);
+            const vals = variantRows.map((v) => String(v.options[name] || '')).filter(Boolean);
             return { name, style: 'text' as const, values: Array.from(new Set(vals)) };
           });
           setVariantOptions(opts);
         }
         const variantImageMap: Record<string, string> = {};
-        (p.images || []).forEach((img: any) => {
+        (p.images || []).forEach((img) => {
           if (img.variant_id) variantImageMap[img.variant_id] = img.url;
         });
-        setVariants(p.variants.map((v: any) => ({
+        setVariants(variantRows.map((v) => ({
           id: v.id,
           _key: v.id || `v-${Date.now()}-${Math.random()}`,
           options: v.options,
@@ -265,8 +357,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         })));
       }
 
-      const av: Record<string, any> = {};
-      (p.attributes || []).forEach((a: any) => { av[a.template_id] = a.value; });
+      const av: Record<string, AttrValue> = {};
+      (p.attributes || []).forEach((a) => { av[a.template_id] = a.value; });
       setAttrValues(av);
     }).catch(console.error).finally(() => setLoading(false));
   }, [mode, token, productId, primaryLocale]);
@@ -274,7 +366,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Fetch attrs when category changes ─────────────────────
   useEffect(() => {
     if (!categoryId) { setCategoryAttrs([]); return; }
-    api<any[]>(`/categories/${categoryId}/attributes`)
+    api<CategoryAttribute[]>(`/categories/${categoryId}/attributes`)
       .then(attrs => setCategoryAttrs(Array.isArray(attrs) ? attrs : []))
       .catch(() => setCategoryAttrs([]));
   }, [categoryId]);
@@ -395,7 +487,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         is_featured: !!img.is_featured,
       }));
 
-      const body: any = {
+      const body: Record<string, unknown> = {
         category_id: categoryId,
         product_type: productType,
         customization_type: productType === 'CUSTOMIZABLE' ? customizationType : undefined,
@@ -423,16 +515,16 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
       let pid = productId;
       if (mode === 'create') {
-        const product = await api<any>('/products', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) });
+        const product = await api<{ id: string }>('/products', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) });
         pid = product.id;
       } else {
-        const updated = await api<any>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        const updated = await api<Pick<ProductResponse, 'variants'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
         // Adopt the server-assigned ids for newly created variants so the next
         // save updates them in place instead of recreating them. Match on a
         // key-sorted options signature — jsonb does not preserve key order.
         const optionsKey = (o: Record<string, string>) =>
           JSON.stringify(Object.entries(o || {}).sort(([a], [b]) => a.localeCompare(b)));
-        const serverVariants: any[] = Array.isArray(updated?.variants) ? updated.variants : [];
+        const serverVariants: ProductVariantRow[] = Array.isArray(updated?.variants) ? updated.variants : [];
         const idByOptions = new Map(serverVariants.map(sv => [optionsKey(sv.options), sv.id]));
         setVariants(prev => prev.map(v => ({
           ...v,
@@ -467,29 +559,29 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
       }
-    } catch (err: any) {
-      if (Array.isArray(err.errors)) setError(err.errors.join(' · '));
-      else setError(err.message || t('product.failedToSave'));
+    } catch (err) {
+      if (err instanceof ApiError && Array.isArray(err.errors)) setError(err.errors.join(' · '));
+      else setError((err instanceof Error && err.message) || t('product.failedToSave'));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAddCustomField = async (field: any) => {
+  const handleAddCustomField = async (field: Omit<CustomField, 'sort_order'>) => {
     if (mode === 'edit' && productId && token) {
       await api(`/products/${productId}/custom-fields`, { method: 'POST', token: token ?? undefined, body: JSON.stringify(field) });
-      const p = await api<any>(`/products/${productId}`, { token });
+      const p = await api<Pick<ProductResponse, 'custom_fields'>>(`/products/${productId}`, { token });
       setCustomFields(p.custom_fields || []);
     } else {
       setCustomFields(prev => [...prev, { ...field, id: `temp-${Date.now()}`, sort_order: prev.length }]);
     }
   };
 
-  const handleUpdateCustomField = async (fid: string, field: any) => {
+  const handleUpdateCustomField = async (fid: string, field: Omit<CustomField, 'sort_order'>) => {
     if (token && !fid.startsWith('temp-')) {
       await api(`/custom-fields/${fid}`, { method: 'PUT', token, body: JSON.stringify(field) });
       if (productId) {
-        const p = await api<any>(`/products/${productId}`, { token });
+        const p = await api<Pick<ProductResponse, 'custom_fields'>>(`/products/${productId}`, { token });
         setCustomFields(p.custom_fields || []);
         return;
       }
@@ -688,7 +780,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  {categoryAttrs.map((attr: any) => {
+                  {categoryAttrs.map((attr) => {
                     const label = pickTranslation(attr.translations, primaryLocale)?.label || attr.name;
                     const errKey = `attr_${attr.id}`;
                     const clearErr = () => { if (fieldErrors[errKey]) setFieldErrors(p => ({ ...p, [errKey]: '' })); };
@@ -704,7 +796,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                           </label>
                         ) : attr.type === 'SELECT' && Array.isArray(attr.options) ? (
                           <SearchableSelect
-                            value={attrValues[attr.id] || ''}
+                            value={(attrValues[attr.id] || '') as string}
                             onChange={v => { setAttrValues({ ...attrValues, [attr.id]: v }); clearErr(); }}
                             placeholder={t('product.selectField', { field: label })}
                             options={attr.options.map((o: string) => ({ value: o, label: o }))}
@@ -713,7 +805,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                           <Input
                             className={`h-8 text-sm ${fieldErrors[errKey] ? 'border-red-400' : ''}`}
                             placeholder={attr.unit ? `(${attr.unit})` : ''}
-                            value={attrValues[attr.id] || ''}
+                            value={(attrValues[attr.id] || '') as string}
                             onChange={e => { setAttrValues({ ...attrValues, [attr.id]: e.target.value }); clearErr(); }}
                           />
                         )}

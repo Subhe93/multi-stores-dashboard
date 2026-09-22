@@ -3,12 +3,22 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
+/** Response payload of POST /translations/auto-translate */
+export interface AITranslateResult {
+  entity_type: string;
+  entity_id: string;
+  source_locale: string;
+  target_locale: string;
+  /** Translated field values keyed by field name */
+  translated: Record<string, string>;
+}
+
 interface AITranslateButtonProps {
   entityType: string;
   entityId: string;
   sourceLocale: string;
   targetLocale: string;
-  onTranslated?: (result: any) => void;
+  onTranslated?: (result: AITranslateResult) => void;
 }
 
 export function AITranslateButton({

@@ -25,6 +25,14 @@ interface AdminProduct {
   images?: { url: string; sort_order: number }[];
 }
 
+// Mirrors the pagination shape DataTable expects.
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const statusColors: Record<ProductStatus, string> = {
   PUBLISHED: 'bg-emerald-50 text-emerald-700',
   DRAFT: 'bg-amber-50 text-amber-700',
@@ -44,7 +52,7 @@ export default function AdminProducts() {
   const { token } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [toggleTarget, setToggleTarget] = useState<AdminProduct | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,7 +64,7 @@ export default function AdminProducts() {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       const tabStatus = TABS[activeTab]?.status;
       if (tabStatus) params.set('status', tabStatus);
-      const res = await api<any>(`/products?${params}`, { token });
+      const res = await api<{ data: AdminProduct[]; meta?: PaginationMeta }>(`/products?${params}`, { token });
       setProducts(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) {
@@ -192,7 +200,7 @@ export default function AdminProducts() {
           },
         ]}
         data={products}
-        pagination={meta}
+        pagination={meta ?? undefined}
         onPageChange={(p) => fetchProducts(p)}
         emptyMessage={loading ? t('loading') : t('noProductsFound')}
       />

@@ -11,16 +11,28 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 
+// Provider profile as returned by GET /providers/:id (only the fields this page reads).
+interface ProviderDetail {
+  id: string;
+  company_name: string;
+  country?: string | null;
+  phone?: string | null;
+  description?: string | null;
+  verified: boolean;
+  created_at: string;
+  user?: { email: string } | null;
+}
+
 export default function ProviderDetailPage() {
   const t = useTranslations('admin');
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
-  const [provider, setProvider] = useState<any>(null);
+  const [provider, setProvider] = useState<ProviderDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProvider = () => {
     if (!token || !id) return;
-    api<any>(`/providers/${id}`, { token })
+    api<ProviderDetail>(`/providers/${id}`, { token })
       .then(setProvider)
       .catch(console.error)
       .finally(() => setLoading(false));

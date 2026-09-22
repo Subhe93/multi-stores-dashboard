@@ -113,8 +113,8 @@ export default function ReviewDetailPage() {
       await api(`/custom-products/${id}/approve`, { method: 'POST', token });
       setSuccess(t('approvedSuccessfully'));
       setTimeout(() => router.push('/provider/reviews'), 1000);
-    } catch (err: any) {
-      setError(err?.message || t('failedToApprove'));
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t('failedToApprove'));
     } finally {
       setActionLoading(false);
     }
@@ -133,8 +133,8 @@ export default function ReviewDetailPage() {
       setShowRejectDialog(false);
       setSuccess(t('rejectedWithFeedback'));
       setTimeout(() => router.push('/provider/reviews'), 1000);
-    } catch (err: any) {
-      setError(err?.message || t('failedToReject'));
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t('failedToReject'));
     } finally {
       setActionLoading(false);
     }

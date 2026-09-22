@@ -21,7 +21,8 @@ interface Category {
   is_active: boolean;
   translations: { locale: string; name: string; description?: string }[];
   children: Category[];
-  attribute_templates?: { template: { id: string; name: string; type: string; translations: { locale: string; label: string }[] } }[];
+  // Join rows from GET /categories/:id; `template` is populated when the relation is loaded.
+  attribute_templates?: { template_id: string; template?: { id: string; name: string; type: string; translations: { locale: string; label: string }[] } }[];
 }
 
 interface AttrTemplate {
@@ -87,7 +88,7 @@ export default function AdminCategories() {
     setLinkingCat(cat);
     // Fetch category with attributes
     const full = await api<Category>(`/categories/${cat.id}`, { token });
-    const ids = (full as any)?.attribute_templates?.map((at: any) => at.template?.id || at.template_id) || [];
+    const ids = full?.attribute_templates?.map((at) => at.template?.id || at.template_id) || [];
     setLinkedIds(ids);
   };
 

@@ -18,16 +18,44 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { ArrowLeft, Pencil, Key, Trash2, AlertTriangle } from 'lucide-react';
-import { useAuth } from '@/lib/auth';
+import { useAuth, type ProviderProfile, type CreatorProfile, type CustomerProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+
+// Saved customer address (only the fields this page renders).
+interface CustomerAddress {
+  id: string;
+  label?: string | null;
+  full_name?: string | null;
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  country_code?: string | null;
+}
+
+interface AdminCustomerProfile extends Omit<CustomerProfile, 'addresses'> {
+  addresses?: CustomerAddress[];
+}
+
+// User as returned by GET /admin/users/:id.
+interface AdminUserDetail {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  created_at: string;
+  provider?: ProviderProfile | null;
+  creator?: CreatorProfile | null;
+  customer?: AdminCustomerProfile | null;
+}
 
 export default function UserDetailPage() {
   const t = useTranslations('admin');
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { token, user: currentUser } = useAuth();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Edit dialogs
@@ -57,7 +85,7 @@ export default function UserDetailPage() {
   const fetchUser = () => {
     if (!token || !id) return;
     setLoading(true);
-    api<any>(`/admin/users/${id}`, { token })
+    api<AdminUserDetail>(`/admin/users/${id}`, { token })
       .then(setUser)
       .catch((e) => setError(e?.message || t('failedToLoadUser')))
       .finally(() => setLoading(false));
@@ -100,7 +128,7 @@ export default function UserDetailPage() {
     setSaving(true);
     setError('');
     try {
-      const payload: Record<string, any> = { email: editEmail };
+      const payload: Record<string, unknown> = { email: editEmail };
       if (user.role === 'PROVIDER') {
         payload.company_name = editCompany;
         payload.description = editDescription || null;
@@ -125,8 +153,8 @@ export default function UserDetailPage() {
       setShowEditProfile(false);
       flash(t('profileUpdated'));
       fetchUser();
-    } catch (err: any) {
-      setError(err?.message || t('failedToUpdateProfile'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToUpdateProfile'));
     } finally {
       setSaving(false);
     }
@@ -154,8 +182,8 @@ export default function UserDetailPage() {
       setNewPassword('');
       setConfirmPassword('');
       flash(t('passwordResetDone'));
-    } catch (err: any) {
-      setError(err?.message || t('failedToResetPassword'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToResetPassword'));
     } finally {
       setSaving(false);
     }
@@ -171,8 +199,8 @@ export default function UserDetailPage() {
       });
       flash(t('statusChangedTo', { status }));
       fetchUser();
-    } catch (err: any) {
-      setError(err?.message || t('failedToUpdateStatus'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToUpdateStatus'));
     }
   };
 
@@ -183,8 +211,8 @@ export default function UserDetailPage() {
     try {
       await api(`/admin/users/${id}`, { method: 'DELETE', token });
       router.push('/admin/users');
-    } catch (err: any) {
-      setError(err?.message || t('failedToDeleteUser'));
+    } catch (err) {
+      setError((err instanceof Error && err.message) || t('failedToDeleteUser'));
       setSaving(false);
     }
   };
@@ -364,11 +392,11 @@ export default function UserDetailPage() {
             </CardContent>
           </Card>
 
-          {user.customer?.addresses?.length > 0 && (
+          {(user.customer?.addresses?.length ?? 0) > 0 && (
             <Card className="shadow-none">
               <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('addresses')}</CardTitle></CardHeader>
               <CardContent className="space-y-2">
-                {user.customer.addresses.map((addr: any) => (
+                {user.customer?.addresses?.map((addr) => (
                   <div key={addr.id} className="text-xs p-2 bg-zinc-50 rounded border space-y-0.5">
                     {addr.label && <Badge variant="secondary" className="text-[9px] mb-1">{addr.label}</Badge>}
                     <p className="font-medium">{addr.full_name}</p>

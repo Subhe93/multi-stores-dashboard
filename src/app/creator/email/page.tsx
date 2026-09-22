@@ -79,10 +79,10 @@ export default function CreatorEmailPage() {
         setEnabled(s.enabled);
         setTemplates(Array.isArray(tpl) ? tpl : []);
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         // The API refuses marketplace stores outright — show why rather than
         // an empty form the creator could fill in for nothing.
-        if (!cancelled) setBlocked(err?.message || t('loadFailed'));
+        if (!cancelled) setBlocked((err instanceof Error && err.message) || t('loadFailed'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -114,8 +114,8 @@ export default function CreatorEmailPage() {
       setSettings(updated);
       setPassword('');
       setSaveMsg({ type: 'success', text: t('saved') });
-    } catch (err: any) {
-      setSaveMsg({ type: 'error', text: err?.message || t('saveFailed') });
+    } catch (err) {
+      setSaveMsg({ type: 'error', text: (err instanceof Error && err.message) || t('saveFailed') });
     } finally {
       setSaving(false);
     }
@@ -134,8 +134,8 @@ export default function CreatorEmailPage() {
       setTestMsg({ type: 'success', text: t('testSent') });
       const s = await api<StoreMailSettings>('/mail/store/settings', { token });
       setSettings(s);
-    } catch (err: any) {
-      setTestMsg({ type: 'error', text: err?.message || t('testFailed') });
+    } catch (err) {
+      setTestMsg({ type: 'error', text: (err instanceof Error && err.message) || t('testFailed') });
     } finally {
       setTesting(false);
     }

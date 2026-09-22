@@ -19,6 +19,27 @@ const STATUS_COLORS: Record<string, string> = {
   ARCHIVED:   'bg-amber-50 text-amber-700 border-amber-200',
 };
 
+/** Product list row (GET /products/mine) — only the fields rendered by the table. */
+interface ProductRow {
+  id: string;
+  status: string;
+  product_type: string;
+  base_price: number | string;
+  created_at: string;
+  images?: { url: string; is_featured?: boolean }[] | null;
+  translations?: { title?: string | null }[] | null;
+  category?: { translations?: { name?: string | null }[] | null } | null;
+  variants?: { id: string }[] | null;
+}
+
+/** Pagination block returned next to `data` by list endpoints. */
+interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const TABS = ['All', 'Draft', 'Published', 'Archived'];
 
 const TAB_LABEL_KEYS: Record<string, string> = {
@@ -34,11 +55,11 @@ export default function ProviderProducts() {
   const router = useRouter();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
-  const [products, setProducts] = useState<any[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
-  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<'delete' | 'publish' | 'archive' | null>(null);
   const [bulkWorking, setBulkWorking] = useState(false);
@@ -50,7 +71,7 @@ export default function ProviderProducts() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (status) params.set('status', status);
-      const res = await api<any>(`/products/mine?${params}`, { token });
+      const res = await api<{ data: ProductRow[]; meta?: PaginationMeta | null }>(`/products/mine?${params}`, { token });
       setProducts(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }
@@ -127,8 +148,8 @@ export default function ProviderProducts() {
     finally { setBulkWorking(false); }
   };
 
-  const getFeaturedImage = (item: any) =>
-    item.images?.find((img: any) => img.is_featured)?.url || item.images?.[0]?.url || null;
+  const getFeaturedImage = (item: ProductRow) =>
+    item.images?.find((img) => img.is_featured)?.url || item.images?.[0]?.url || null;
 
   const allSelected = products.length > 0 && selected.size === products.length;
   const someSelected = selected.size > 0 && selected.size < products.length;

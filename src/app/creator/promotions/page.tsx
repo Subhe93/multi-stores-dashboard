@@ -47,6 +47,13 @@ interface Promotion {
   _count: { usages: number };
 }
 
+interface Meta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -99,7 +106,7 @@ function statusBadgeClass(status: PromotionStatus): string {
   }
 }
 
-function formatValue(promo: Promotion, fmt: (v: any) => string, t: Translator): string {
+function formatValue(promo: Promotion, fmt: (v: number | string | null | undefined) => string, t: Translator): string {
   switch (promo.type) {
     case 'PERCENTAGE':
       return `${promo.value}%`;
@@ -135,7 +142,7 @@ export default function CreatorPromotionsPage() {
   const STATUS_LABELS = statusLabels(tt);
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [meta, setMeta] = useState<any>(null);
+  const [meta, setMeta] = useState<Meta | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Promotion | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -146,7 +153,7 @@ export default function CreatorPromotionsPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api<{ data: Promotion[]; meta: any }>(
+      const res = await api<{ data: Promotion[]; meta: Meta }>(
         `/promotions?page=${page}&limit=20`,
         { token },
       );
@@ -172,9 +179,9 @@ export default function CreatorPromotionsPage() {
       await api(`/promotions/${deleteTarget.id}`, { method: 'DELETE', token });
       setPromotions((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete promotion:', err);
-      setDeleteError(err?.message || tt('promotions.deleteFailed'));
+      setDeleteError((err instanceof Error && err.message) || tt('promotions.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -250,9 +257,9 @@ export default function CreatorPromotionsPage() {
                   body: JSON.stringify({ status: newStatus }),
                 });
                 fetchPromotions(meta?.page || 1);
-              } catch (err: any) {
+              } catch (err) {
                 console.error('Failed to toggle status:', err);
-                setActionError(err?.message || tt('promotions.toggleFailed'));
+                setActionError((err instanceof Error && err.message) || tt('promotions.toggleFailed'));
               }
             }}
             className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium transition ${statusBadgeClass(item.status)} ${canToggle ? 'cursor-pointer hover:opacity-70' : 'cursor-default'}`}
@@ -316,7 +323,7 @@ export default function CreatorPromotionsPage() {
         columns={columns}
         data={promotions}
         emptyMessage=""
-        pagination={meta}
+        pagination={meta ?? undefined}
         onPageChange={fetchPromotions}
       />
 

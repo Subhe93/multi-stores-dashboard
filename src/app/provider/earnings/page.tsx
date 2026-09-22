@@ -16,6 +16,31 @@ import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
 
+/** Commission split attached to an order (decimals may arrive as strings). */
+interface OrderCommission {
+  platform_amount: number | string;
+  creator_amount: number | string;
+  provider_amount: number | string;
+}
+
+/** Subset of the order row used by the earnings table and CSV export. */
+interface EarningsOrder {
+  id: string;
+  order_number: string;
+  created_at: string;
+  total: number | string;
+  status: string;
+  commission?: OrderCommission | null;
+}
+
+/** Response of GET /commissions/summary. */
+interface EarningsSummary {
+  total_earnings?: number | string | null;
+  this_month?: number | string | null;
+  pending?: number | string | null;
+  total_orders?: number;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
   CONFIRMED:      'bg-blue-50 text-blue-700 border-blue-200',
@@ -35,7 +60,7 @@ const DATE_FILTERS = [
   { labelKey: 'filterAllTime',     value: 'all' },
 ];
 
-function filterByDate(orders: any[], filter: string): any[] {
+function filterByDate(orders: EarningsOrder[], filter: string): EarningsOrder[] {
   const now = new Date();
   const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
   return orders.filter(o => {
@@ -54,7 +79,7 @@ function filterByDate(orders: any[], filter: string): any[] {
   });
 }
 
-function exportCsv(rows: any[], t: Translator) {
+function exportCsv(rows: EarningsOrder[], t: Translator) {
   const header = [t('csvOrder'), t('csvDate'), t('csvOrderTotal'), t('csvPlatformFee'), t('csvCreatorShare'), t('csvYourEarnings'), t('csvStatus')];
   const lines = rows.map(o => [
     o.order_number,
@@ -80,16 +105,16 @@ export default function ProviderEarnings() {
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('provider');
-  const [earnings, setEarnings] = useState<any>(null);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
+  const [orders, setOrders] = useState<EarningsOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('this_month');
 
   useEffect(() => {
     if (!token) return;
     Promise.all([
-      api<any>('/commissions/summary', { token }).catch(() => null),
-      api<any>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
+      api<EarningsSummary>('/commissions/summary', { token }).catch(() => null),
+      api<{ data: EarningsOrder[] }>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
     ]).then(([earn, ords]) => {
       setEarnings(earn);
       setOrders(ords?.data || []);
@@ -205,7 +230,7 @@ export default function ProviderEarnings() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order: any) => {
+                {filteredOrders.map((order) => {
                   const providerAmt  = order.commission ? Number(order.commission.provider_amount) : null;
                   const platformAmt  = order.commission ? Number(order.commission.platform_amount) : null;
                   const creatorAmt   = order.commission ? Number(order.commission.creator_amount)  : null;

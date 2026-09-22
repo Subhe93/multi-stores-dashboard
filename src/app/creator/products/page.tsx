@@ -77,7 +77,7 @@ export default function CreatorProductsPage() {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    api<{ data: CustomProduct[]; meta: any }>('/custom-products?limit=20', { token })
+    api<{ data: CustomProduct[]; meta: { total: number } | null }>('/custom-products?limit=20', { token })
       .then((res) => {
         setProducts(res?.data ?? []);
         setMeta(res?.meta ?? null);

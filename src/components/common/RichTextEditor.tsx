@@ -38,6 +38,19 @@ interface RichTextEditorProps {
   dir?: 'ltr' | 'rtl';
 }
 
+/** Toolbar icon button. Module-scoped so its identity is stable across renders. */
+const Btn = ({ onClick, active, disabled, title, children }: {
+  onClick: () => void; active?: boolean; disabled?: boolean; title?: string; children: React.ReactNode;
+}) => (
+  <Button type="button" variant="ghost" size="icon" onClick={onClick} disabled={disabled} title={title}
+    className={cn('h-7 w-7', active && 'bg-muted text-foreground')}>
+    {children}
+  </Button>
+);
+
+/** Vertical toolbar divider */
+const Sep = () => <Separator orientation="vertical" className="h-5 mx-0.5" />;
+
 export function RichTextEditor({
   content = '',
   onChange,
@@ -71,14 +84,14 @@ export function RichTextEditor({
     if (url === null) return;
     if (url === '') { editor.chain().focus().extendMarkRange('link').unsetLink().run(); return; }
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  }, [editor]);
+  }, [editor, t]);
 
   const toggleSource = useCallback(() => {
     if (!editor) return;
     if (!showSource) { setSourceHtml(editor.getHTML()); }
     else { editor.commands.setContent(sourceHtml); }
     setShowSource(!showSource);
-  }, [editor, showSource, sourceHtml]);
+  }, [editor, showSource, sourceHtml, setSourceHtml, setShowSource]);
 
   useEffect(() => {
     if (!editor || editor.getHTML() === content) return;
@@ -86,17 +99,6 @@ export function RichTextEditor({
   }, [content, editor]);
 
   if (!editor) return null;
-
-  const Btn = ({ onClick, active, disabled, title, children }: {
-    onClick: () => void; active?: boolean; disabled?: boolean; title?: string; children: React.ReactNode;
-  }) => (
-    <Button type="button" variant="ghost" size="icon" onClick={onClick} disabled={disabled} title={title}
-      className={cn('h-7 w-7', active && 'bg-muted text-foreground')}>
-      {children}
-    </Button>
-  );
-
-  const Sep = () => <Separator orientation="vertical" className="h-5 mx-0.5" />;
 
   return (
     <div className="rounded-md border border-input overflow-hidden">

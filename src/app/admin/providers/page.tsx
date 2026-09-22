@@ -30,7 +30,7 @@ export default function AdminProviders() {
   const fetchProviders = async () => {
     if (!token) return;
     try {
-      const res = await api<any>('/providers', { token });
+      const res = await api<{ data: Provider[] }>('/providers', { token });
       setProviders(res?.data || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -86,7 +86,7 @@ export default function AdminProviders() {
         searchPlaceholder={t('searchProviders')}
         onSearch={(q) => {
           if (!token) return;
-          api<any>(`/providers?search=${q}`, { token }).then((res) => setProviders(res?.data || []));
+          api<{ data: Provider[] }>(`/providers?search=${q}`, { token }).then((res) => setProviders(res?.data || []));
         }}
         emptyMessage={loading ? t('loading') : t('noProvidersFound')}
       />

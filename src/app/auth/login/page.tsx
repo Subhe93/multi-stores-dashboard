@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-    } catch (err: any) {
+    } catch (err) {
       setError(apiError(err));
     } finally {
       setLoading(false);

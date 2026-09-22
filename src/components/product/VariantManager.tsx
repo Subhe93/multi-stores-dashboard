@@ -360,7 +360,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     return map;
   }, [options]);
 
-  const updateVariant = (key: string, field: keyof GeneratedVariant, value: any) => {
+  const updateVariant = (key: string, field: keyof GeneratedVariant, value: GeneratedVariant[keyof GeneratedVariant]) => {
     onVariantsChange(variants.map(v => v._key === key ? { ...v, [field]: value } : v));
   };
 
@@ -652,7 +652,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             <div className="w-24 shrink-0 space-y-1">
               <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionStyle')}</label>
               <select className="w-full h-8 px-2 rounded-md border border-input bg-background text-sm"
-                value={option.style} onChange={e => { const u = [...options]; u[oi] = { ...u[oi]!, style: e.target.value as any }; onOptionsChange(u); }}>
+                value={option.style} onChange={e => { const u = [...options]; u[oi] = { ...u[oi]!, style: e.target.value as VariantOption['style'] }; onOptionsChange(u); }}>
                 <option value="text">{t('variant.styleText')}</option>
                 <option value="color">{t('variant.styleColor')}</option>
                 <option value="image">{t('variant.styleImage')}</option>
