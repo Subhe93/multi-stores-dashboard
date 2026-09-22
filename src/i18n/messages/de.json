@@ -37,7 +37,15 @@
     "yourPayout": "Ihre Auszahlung",
     "pickup": "Abholung",
     "provider": "Anbieter",
-    "creator": "Creator"
+    "creator": "Creator",
+    "kustomLiveStatus": "Status bei Kustom",
+    "kustomRefreshStatus": "Von Kustom aktualisieren",
+    "kustomLiveCaptured": "Bei Kustom eingezogen",
+    "kustomLiveRemaining": "Verbleibende Autorisierung",
+    "kustomLiveRefunded": "Bei Kustom erstattet",
+    "kustomLiveExpires": "Autorisierung läuft ab",
+    "kustomLivePaymentMethod": "Zahlungsmethode",
+    "kustomStatusFailed": "Die Bestellung konnte nicht von Kustom gelesen werden."
   },
   "backups": {
     "title": "Backups",

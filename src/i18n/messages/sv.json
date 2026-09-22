@@ -37,7 +37,15 @@
     "yourPayout": "Din utbetalning",
     "pickup": "Upphämtning",
     "provider": "Leverantör",
-    "creator": "Kreatör"
+    "creator": "Kreatör",
+    "kustomLiveStatus": "Status hos Kustom",
+    "kustomRefreshStatus": "Uppdatera från Kustom",
+    "kustomLiveCaptured": "Debiterat hos Kustom",
+    "kustomLiveRemaining": "Återstående auktorisation",
+    "kustomLiveRefunded": "Återbetalat hos Kustom",
+    "kustomLiveExpires": "Auktorisationen löper ut",
+    "kustomLivePaymentMethod": "Betalsätt",
+    "kustomStatusFailed": "Det gick inte att läsa ordern från Kustom."
   },
   "backups": {
     "title": "Säkerhetskopior",

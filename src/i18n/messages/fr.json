@@ -37,7 +37,15 @@
     "yourPayout": "Votre versement",
     "pickup": "Retrait",
     "provider": "Fournisseur",
-    "creator": "Créateur"
+    "creator": "Créateur",
+    "kustomLiveStatus": "Statut chez Kustom",
+    "kustomRefreshStatus": "Actualiser depuis Kustom",
+    "kustomLiveCaptured": "Capturé chez Kustom",
+    "kustomLiveRemaining": "Autorisation restante",
+    "kustomLiveRefunded": "Remboursé chez Kustom",
+    "kustomLiveExpires": "Expiration de l'autorisation",
+    "kustomLivePaymentMethod": "Moyen de paiement",
+    "kustomStatusFailed": "Impossible de lire la commande chez Kustom."
   },
   "backups": {
     "title": "Sauvegardes",

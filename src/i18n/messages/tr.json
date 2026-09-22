@@ -37,7 +37,15 @@
     "yourPayout": "Ödemeniz",
     "pickup": "Mağazadan teslim",
     "provider": "Tedarikçi",
-    "creator": "İçerik üretici"
+    "creator": "İçerik üretici",
+    "kustomLiveStatus": "Kustom'daki durum",
+    "kustomRefreshStatus": "Kustom'dan yenile",
+    "kustomLiveCaptured": "Kustom'da tahsil edilen",
+    "kustomLiveRemaining": "Kalan yetkilendirme",
+    "kustomLiveRefunded": "Kustom'da iade edilen",
+    "kustomLiveExpires": "Yetkilendirme sona erme",
+    "kustomLivePaymentMethod": "Ödeme yöntemi",
+    "kustomStatusFailed": "Sipariş Kustom'dan okunamadı."
   },
   "backups": {
     "title": "Yedekler",

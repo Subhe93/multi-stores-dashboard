@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Check, CheckCircle2, Copy, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, Copy, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,19 @@ interface KustomCaptureResponse {
 interface KustomRefundResponse {
   refunded: true;
   amount: number;
+}
+
+/** Live order state read from Kustom's Order Management API. */
+interface KustomLiveStatus {
+  status: string;
+  fraud_status: string | null;
+  currency: string;
+  order_amount: number;
+  captured_amount: number;
+  refunded_amount: number;
+  remaining_authorized_amount: number;
+  expires_at: string | null;
+  payment_method: string | null;
 }
 
 interface Props {
@@ -65,6 +78,8 @@ export function KustomPaymentPanel({ orderId, order, token, onRefresh, showProvi
   const [confirmRefund, setConfirmRefund] = useState(false);
   const [refunding, setRefunding] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [live, setLive] = useState<KustomLiveStatus | null>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
 
   const isCaptured = !!order.kustom_captured_at;
   // Our order is marked paid as soon as Kustom authorizes the payment.
@@ -83,6 +98,22 @@ export function KustomPaymentPanel({ orderId, order, token, onRefresh, showProvi
       setTimeout(() => setCopied(false), 1500);
     } catch {
       // Clipboard access denied — nothing to do.
+    }
+  };
+
+  // Ask Kustom for the authoritative state of this order (captured in the
+  // portal? cancelled? expired?) so a refused capture is explainable.
+  const handleRefreshLive = async () => {
+    if (liveLoading) return;
+    setLiveLoading(true);
+    setMsg(null);
+    try {
+      const res = await api<KustomLiveStatus>(`/payments/kustom/orders/${orderId}/status`, { token });
+      setLive(res);
+    } catch (err) {
+      setMsg({ type: 'error', text: (err instanceof Error && err.message) || tp('kustomStatusFailed') });
+    } finally {
+      setLiveLoading(false);
     }
   };
 
@@ -187,6 +218,54 @@ export function KustomPaymentPanel({ orderId, order, token, onRefresh, showProvi
           <span className="text-muted-foreground text-end">{tp('statusAwaiting')}</span>
         )}
       </div>
+
+      {/* Live state from Kustom, on demand */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-muted-foreground shrink-0">{tp('kustomLiveStatus')}</span>
+        <button
+          type="button"
+          onClick={handleRefreshLive}
+          disabled={liveLoading}
+          className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline disabled:opacity-50"
+        >
+          {liveLoading ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+          {tp('kustomRefreshStatus')}
+        </button>
+      </div>
+      {live && (
+        <div className="rounded-lg border bg-muted/30 px-2.5 py-2 text-[11px] space-y-0.5">
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">{tp('kustomLiveStatus')}</span>
+            <span className="font-medium">{live.status || '—'}{live.fraud_status ? ` · ${live.fraud_status}` : ''}</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">{tp('kustomLiveCaptured')}</span>
+            <span>{fmtAmount(live.captured_amount)}</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">{tp('kustomLiveRemaining')}</span>
+            <span>{fmtAmount(live.remaining_authorized_amount)}</span>
+          </div>
+          {live.refunded_amount > 0 && (
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">{tp('kustomLiveRefunded')}</span>
+              <span>{fmtAmount(live.refunded_amount)}</span>
+            </div>
+          )}
+          {live.expires_at && (
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">{tp('kustomLiveExpires')}</span>
+              <span>{new Date(live.expires_at).toLocaleString()}</span>
+            </div>
+          )}
+          {live.payment_method && (
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">{tp('kustomLivePaymentMethod')}</span>
+              <span>{live.payment_method}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {msg && (
         <div

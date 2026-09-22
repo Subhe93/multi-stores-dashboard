@@ -37,7 +37,15 @@
     "yourPayout": "Your payout",
     "pickup": "Pickup",
     "provider": "Provider",
-    "creator": "Creator"
+    "creator": "Creator",
+    "kustomLiveStatus": "Status at Kustom",
+    "kustomRefreshStatus": "Refresh from Kustom",
+    "kustomLiveCaptured": "Captured at Kustom",
+    "kustomLiveRemaining": "Remaining authorization",
+    "kustomLiveRefunded": "Refunded at Kustom",
+    "kustomLiveExpires": "Authorization expires",
+    "kustomLivePaymentMethod": "Payment method",
+    "kustomStatusFailed": "Could not read the order from Kustom."
   },
   "backups": {
     "title": "Backups",

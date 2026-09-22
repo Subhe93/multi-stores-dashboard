@@ -37,7 +37,15 @@
     "yourPayout": "دفعتك",
     "pickup": "استلام",
     "provider": "المورّد",
-    "creator": "الكرييتور"
+    "creator": "الكرييتور",
+    "kustomLiveStatus": "الحالة لدى Kustom",
+    "kustomRefreshStatus": "تحديث من Kustom",
+    "kustomLiveCaptured": "المحصَّل لدى Kustom",
+    "kustomLiveRemaining": "المتبقي من التفويض",
+    "kustomLiveRefunded": "المسترَد لدى Kustom",
+    "kustomLiveExpires": "انتهاء التفويض",
+    "kustomLivePaymentMethod": "وسيلة الدفع",
+    "kustomStatusFailed": "تعذّر قراءة الطلب من Kustom."
   },
   "backups": {
     "title": "النسخ الاحتياطية",
