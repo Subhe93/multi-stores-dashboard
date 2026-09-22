@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "Bei Kustom erstattet",
     "kustomLiveExpires": "Autorisierung läuft ab",
     "kustomLivePaymentMethod": "Zahlungsmethode",
-    "kustomStatusFailed": "Die Bestellung konnte nicht von Kustom gelesen werden."
+    "kustomStatusFailed": "Die Bestellung konnte nicht von Kustom gelesen werden.",
+    "kustomAuthReleased": "Die Autorisierung wurde bei Kustom vor dem Einzug storniert oder ist abgelaufen: dem Kunden wurde nichts belastet. Die Bestellung wurde storniert und der Bestand zurückgebucht."
   },
   "backups": {
     "title": "Backups",

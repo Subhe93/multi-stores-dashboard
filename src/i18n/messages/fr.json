@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "Remboursé chez Kustom",
     "kustomLiveExpires": "Expiration de l'autorisation",
     "kustomLivePaymentMethod": "Moyen de paiement",
-    "kustomStatusFailed": "Impossible de lire la commande chez Kustom."
+    "kustomStatusFailed": "Impossible de lire la commande chez Kustom.",
+    "kustomAuthReleased": "L'autorisation a été annulée ou a expiré chez Kustom avant la capture : le client n'a jamais été débité. La commande a été annulée et le stock restitué."
   },
   "backups": {
     "title": "Sauvegardes",

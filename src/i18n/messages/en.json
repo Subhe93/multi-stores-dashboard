@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "Refunded at Kustom",
     "kustomLiveExpires": "Authorization expires",
     "kustomLivePaymentMethod": "Payment method",
-    "kustomStatusFailed": "Could not read the order from Kustom."
+    "kustomStatusFailed": "Could not read the order from Kustom.",
+    "kustomAuthReleased": "The authorization was cancelled or expired at Kustom before capture: the customer was never charged. The order has been cancelled and its stock returned."
   },
   "backups": {
     "title": "Backups",

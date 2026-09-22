@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "المسترَد لدى Kustom",
     "kustomLiveExpires": "انتهاء التفويض",
     "kustomLivePaymentMethod": "وسيلة الدفع",
-    "kustomStatusFailed": "تعذّر قراءة الطلب من Kustom."
+    "kustomStatusFailed": "تعذّر قراءة الطلب من Kustom.",
+    "kustomAuthReleased": "أُلغي التفويض أو انتهى لدى Kustom قبل التحصيل: لم يُخصم أي مبلغ من العميل. أُلغي الطلب وأُعيد مخزونه."
   },
   "backups": {
     "title": "النسخ الاحتياطية",

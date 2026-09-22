@@ -34,6 +34,8 @@ interface KustomRefundResponse {
 
 /** Live order state read from Kustom's Order Management API. */
 interface KustomLiveStatus {
+  /** Set when the API corrected our order from the live state (e.g. cancelled authorization). */
+  synced?: 'authorization_released' | null;
   status: string;
   fraud_status: string | null;
   currency: string;
@@ -110,6 +112,10 @@ export function KustomPaymentPanel({ orderId, order, token, onRefresh, showProvi
     try {
       const res = await api<KustomLiveStatus>(`/payments/kustom/orders/${orderId}/status`, { token });
       setLive(res);
+      if (res.synced === 'authorization_released') {
+        setMsg({ type: 'error', text: tp('kustomAuthReleased') });
+        onRefresh();
+      }
     } catch (err) {
       setMsg({ type: 'error', text: (err instanceof Error && err.message) || tp('kustomStatusFailed') });
     } finally {

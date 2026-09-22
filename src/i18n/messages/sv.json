@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "Återbetalat hos Kustom",
     "kustomLiveExpires": "Auktorisationen löper ut",
     "kustomLivePaymentMethod": "Betalsätt",
-    "kustomStatusFailed": "Det gick inte att läsa ordern från Kustom."
+    "kustomStatusFailed": "Det gick inte att läsa ordern från Kustom.",
+    "kustomAuthReleased": "Auktorisationen avbröts eller löpte ut hos Kustom före debitering: kunden har aldrig debiterats. Ordern har avbrutits och lagret återförts."
   },
   "backups": {
     "title": "Säkerhetskopior",

@@ -45,7 +45,8 @@
     "kustomLiveRefunded": "Kustom'da iade edilen",
     "kustomLiveExpires": "Yetkilendirme sona erme",
     "kustomLivePaymentMethod": "Ödeme yöntemi",
-    "kustomStatusFailed": "Sipariş Kustom'dan okunamadı."
+    "kustomStatusFailed": "Sipariş Kustom'dan okunamadı.",
+    "kustomAuthReleased": "Yetkilendirme, tahsilattan önce Kustom'da iptal edildi veya süresi doldu: müşteriden hiç ücret alınmadı. Sipariş iptal edildi ve stoğu iade edildi."
   },
   "backups": {
     "title": "Yedekler",
