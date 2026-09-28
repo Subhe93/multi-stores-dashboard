@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,9 @@ interface TemplateTestSendProps {
   subject: string;
   html: string;
   text: string;
-  // Admin may pick the recipient; a creator's test always goes to their own
-  // login email (enforced by the API).
+  // Admin may pick the recipient; a creator's test always goes to the store's
+  // notification email, or the login email when none is set (enforced by the
+  // API).
   allowRecipient?: boolean;
 }
 
@@ -36,6 +37,24 @@ export function TemplateTestSend({
   const { token, user } = useAuth();
 
   const [to, setTo] = useState('');
+  // Where a creator's test will land: the address set under Order
+  // notifications, falling back to the login email.
+  const [ownRecipient, setOwnRecipient] = useState('');
+
+  useEffect(() => {
+    if (!token || allowRecipient) return;
+    let cancelled = false;
+    api<{ effective_email: string }>('/mail/store/notifications', { token })
+      .then((res) => {
+        if (!cancelled) setOwnRecipient(res.effective_email || '');
+      })
+      .catch(() => {
+        // The hint falls back to the login email; the API still decides.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, allowRecipient]);
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -68,7 +87,7 @@ export function TemplateTestSend({
       <div>
         <p className="text-xs font-medium">{t('testTitle')}</p>
         <p className="text-[11px] text-muted-foreground">
-          {allowRecipient ? t('testHintAdmin') : t('testHint', { email: user?.email || '' })}
+          {allowRecipient ? t('testHintAdmin') : t('testHint', { email: ownRecipient || user?.email || '' })}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
