@@ -2108,6 +2108,12 @@
         "new_order_owner": "Ny order (till dig)",
         "welcome": "Välkommen",
         "password_reset": "Återställ lösenord"
+      },
+      "tabs": {
+        "notifications": "Aviseringar",
+        "sender": "Avsändare",
+        "templates": "Mallar",
+        "log": "E-postlogg"
       }
     }
   },

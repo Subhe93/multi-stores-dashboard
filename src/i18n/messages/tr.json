@@ -2108,6 +2108,12 @@
         "new_order_owner": "Yeni sipariş (size)",
         "welcome": "Hoş geldiniz",
         "password_reset": "Parola sıfırlama"
+      },
+      "tabs": {
+        "notifications": "Bildirimler",
+        "sender": "Gönderici",
+        "templates": "Şablonlar",
+        "log": "E-posta kaydı"
       }
     }
   },

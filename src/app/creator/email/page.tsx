@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmailLogTable } from '@/components/mail/EmailLogTable';
 import { OrderNotificationsCard } from '@/components/mail/OrderNotificationsCard';
 
@@ -42,6 +43,22 @@ export default function CreatorEmailPage() {
 
   const [loading, setLoading] = useState(true);
   const [blocked, setBlocked] = useState<string | null>(null);
+
+  // Active tab, mirrored in ?tab= so a reload or the way back from the
+  // template editor lands on the same tab.
+  const [tab, setTab] = useState('notifications');
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('tab');
+    if (wanted && ['notifications', 'sender', 'templates', 'log'].includes(wanted)) {
+      setTab(wanted);
+    }
+  }, []);
+  const changeTab = (value: string) => {
+    setTab(value);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', value);
+    window.history.replaceState(null, '', url.toString());
+  };
 
   // Sender
   const [settings, setSettings] = useState<StoreMailSettings | null>(null);
@@ -152,28 +169,51 @@ export default function CreatorEmailPage() {
     );
   }
 
+  // Own sender + templates exist for independent stores only; the API says
+  // so by refusing, and those two tabs are then left out.
+  const activeTab = blocked && (tab === 'sender' || tab === 'templates') ? 'notifications' : tab;
+
   return (
-    <div className="space-y-8">
-    <div className="space-y-5 max-w-3xl">
+    <div className="space-y-5">
       <div>
         <h1 className="text-lg font-semibold">{t('title')}</h1>
         <p className="text-xs text-muted-foreground mt-0.5">{tl('creatorSubtitle')}</p>
       </div>
 
-      {/* Order notifications — every store type */}
-      <OrderNotificationsCard />
+      <Tabs value={activeTab} onValueChange={(v) => changeTab(String(v))}>
+        <TabsList variant="line" className="border-b w-full justify-start rounded-none px-0">
+          <TabsTrigger value="notifications" className="flex-none px-3">
+            {t('tabs.notifications')}
+          </TabsTrigger>
+          {!blocked && (
+            <TabsTrigger value="sender" className="flex-none px-3">
+              {t('tabs.sender')}
+            </TabsTrigger>
+          )}
+          {!blocked && (
+            <TabsTrigger value="templates" className="flex-none px-3">
+              {t('tabs.templates')}
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="log" className="flex-none px-3">
+            {t('tabs.log')}
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Own sender + templates are for independent stores; the API says why
-          when it refuses, and the rest of the page still works. */}
-      {blocked ? (
-        <Card className="shadow-none">
-          <CardContent className="py-6 text-center space-y-2">
-            <Mail className="size-5 mx-auto text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">{blocked}</p>
-          </CardContent>
-        </Card>
-      ) : (
-      <>
+        <TabsContent value="notifications" className="space-y-4 pt-4 max-w-3xl">
+          <OrderNotificationsCard />
+          {blocked && (
+            <Card className="shadow-none">
+              <CardContent className="py-5 flex items-start gap-3">
+                <Mail className="size-4 shrink-0 mt-0.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">{blocked}</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {!blocked && (
+        <TabsContent value="sender" className="pt-4 max-w-3xl">
       {/* Sender */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
@@ -324,7 +364,11 @@ export default function CreatorEmailPage() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+        )}
 
+        {!blocked && (
+        <TabsContent value="templates" className="pt-4 max-w-3xl">
       {/* Templates */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
@@ -356,15 +400,13 @@ export default function CreatorEmailPage() {
           </div>
         </CardContent>
       </Card>
-      </>
-      )}
-    </div>
+        </TabsContent>
+        )}
 
-      {/* Delivery log — every store type */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold">{tl('title')}</h2>
-        <EmailLogTable endpoint="/mail/store/logs" />
-      </div>
+        <TabsContent value="log" className="pt-4">
+          <EmailLogTable endpoint="/mail/store/logs" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

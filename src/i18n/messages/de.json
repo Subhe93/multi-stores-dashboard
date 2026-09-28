@@ -2108,6 +2108,12 @@
         "new_order_owner": "Neue Bestellung (an Sie)",
         "welcome": "Willkommen",
         "password_reset": "Passwort zurücksetzen"
+      },
+      "tabs": {
+        "notifications": "Benachrichtigungen",
+        "sender": "Absender",
+        "templates": "Vorlagen",
+        "log": "E-Mail-Protokoll"
       }
     }
   },

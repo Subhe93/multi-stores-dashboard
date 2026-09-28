@@ -148,7 +148,7 @@ export default function CreatorEmailTemplateEditorPage() {
     setResetting(true);
     try {
       await api(`/notification-templates/store/${event}`, { method: 'DELETE', token });
-      router.push('/creator/email');
+      router.push('/creator/email?tab=templates');
     } catch (err) {
       console.error(err);
       setResetting(false);
@@ -167,7 +167,7 @@ export default function CreatorEmailTemplateEditorPage() {
     return (
       <div className="space-y-4">
         <Link
-          href="/creator/email"
+          href="/creator/email?tab=templates"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
@@ -183,7 +183,7 @@ export default function CreatorEmailTemplateEditorPage() {
     <div className="space-y-5 max-w-4xl">
       <div className="flex items-center gap-3">
         <Link
-          href="/creator/email"
+          href="/creator/email?tab=templates"
           className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition"
           aria-label={tc('back')}
         >

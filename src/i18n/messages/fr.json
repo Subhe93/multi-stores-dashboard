@@ -2108,6 +2108,12 @@
         "new_order_owner": "Nouvelle commande (pour vous)",
         "welcome": "Bienvenue",
         "password_reset": "Réinitialisation du mot de passe"
+      },
+      "tabs": {
+        "notifications": "Notifications",
+        "sender": "Expéditeur",
+        "templates": "Modèles",
+        "log": "Journal des e-mails"
       }
     }
   },

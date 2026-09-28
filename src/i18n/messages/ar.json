@@ -2108,6 +2108,12 @@
         "new_order_owner": "طلب جديد (إليك)",
         "welcome": "ترحيب",
         "password_reset": "استعادة كلمة المرور"
+      },
+      "tabs": {
+        "notifications": "الإشعارات",
+        "sender": "المرسل",
+        "templates": "القوالب",
+        "log": "سجل البريد"
       }
     }
   },
