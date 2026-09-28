@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { EmailLogTable } from '@/components/mail/EmailLogTable';
+import { OrderNotificationsCard } from '@/components/mail/OrderNotificationsCard';
 
 interface StoreMailSettings {
   host: string | null;
@@ -33,6 +35,7 @@ interface TemplateRow {
 
 export default function CreatorEmailPage() {
   const t = useTranslations('creator.email');
+  const tl = useTranslations('emailLog');
   const tc = useTranslations('common');
   const { token } = useAuth();
   const router = useRouter();
@@ -149,24 +152,28 @@ export default function CreatorEmailPage() {
     );
   }
 
-  if (blocked) {
-    return (
-      <Card className="shadow-none max-w-2xl">
-        <CardContent className="py-8 text-center space-y-2">
-          <Mail className="size-6 mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{blocked}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
+    <div className="space-y-8">
     <div className="space-y-5 max-w-3xl">
       <div>
         <h1 className="text-lg font-semibold">{t('title')}</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{t('subtitle')}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{tl('creatorSubtitle')}</p>
       </div>
 
+      {/* Order notifications — every store type */}
+      <OrderNotificationsCard />
+
+      {/* Own sender + templates are for independent stores; the API says why
+          when it refuses, and the rest of the page still works. */}
+      {blocked ? (
+        <Card className="shadow-none">
+          <CardContent className="py-6 text-center space-y-2">
+            <Mail className="size-5 mx-auto text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">{blocked}</p>
+          </CardContent>
+        </Card>
+      ) : (
+      <>
       {/* Sender */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
@@ -349,6 +356,15 @@ export default function CreatorEmailPage() {
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
+    </div>
+
+      {/* Delivery log — every store type */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold">{tl('title')}</h2>
+        <EmailLogTable endpoint="/mail/store/logs" />
+      </div>
     </div>
   );
 }

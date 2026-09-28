@@ -27,7 +27,6 @@ import {
   LayoutTemplate,
   Truck,
   Mail,
-  MailCheck,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -81,13 +80,9 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         { label: t('menus'), href: '/creator/menus', icon: <ListTree className="w-4 h-4" /> },
         { label: t('landingPages'), href: '/creator/landing-pages', icon: <Sparkles className="w-4 h-4" /> },
         { label: t('translations'), href: '/creator/translations', icon: <Languages className="w-4 h-4" /> },
-        // Only independent stores send under their own address; a marketplace
-        // store's customer mail always goes out from the platform.
-        ...(isIndependent
-          ? [{ label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> }]
-          : []),
-        // Every store type: notifications address + delivery log.
-        { label: t('emailLog'), href: '/creator/email-log', icon: <MailCheck className="w-4 h-4" /> },
+        // Every store type: order notifications address + delivery log. The
+        // own-sender and template sections inside are independent-only.
+        { label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> },
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],
     },
