@@ -305,7 +305,8 @@
     "legalPages": "Yasal Sayfalar",
     "notificationTemplates": "Bildirim Şablonları",
     "email": "E-posta",
-    "guide": "Rehber"
+    "guide": "Rehber",
+    "emailLog": "E-posta kaydı"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -3025,5 +3026,54 @@
     "inactive": "Devre dışı",
     "defaultMethodSection": "Varsayılan kargo yöntemi",
     "defaultMethodHint": "Bölgeyle birlikte oluşturulur. Daha sonra başka yöntemler ekleyebilirsiniz."
+  },
+  "emailLog": {
+    "title": "E-posta kaydı",
+    "adminSubtitle": "Platformun son 90 günde tüm mağazalar için göndermeye çalıştığı her e-posta.",
+    "creatorSubtitle": "Sipariş bildirimlerinizin gittiği adres ve son 90 günde mağazanız için gönderilen her e-posta.",
+    "loadFailed": "E-posta kaydı yüklenemedi.",
+    "searchPlaceholder": "Alıcı veya konu ara",
+    "allStatuses": "Tüm durumlar",
+    "refresh": "Yenile",
+    "date": "Tarih",
+    "recipient": "Alıcı",
+    "subject": "Konu",
+    "store": "Mağaza",
+    "sender": "Gönderim yolu",
+    "statusLabel": "Durum",
+    "platform": "Platform",
+    "empty": "Henüz kayıtlı e-posta yok.",
+    "showError": "Hatayı göster",
+    "sentHint": "\"Gönderildi\", posta sunucusunun iletiyi kabul ettiği anlamına gelir. Gelen kutusunu garanti etmez: ileti yine de spam klasörüne düşebilir.",
+    "failedWarning": "Son 7 günde {count} e-posta başarısız oldu veya gönderilmedi.",
+    "pageOf": "Sayfa {page} / {pages} · {total} e-posta",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "status": {
+      "SENT": "Gönderildi",
+      "FAILED": "Başarısız",
+      "SKIPPED": "Gönderilmedi"
+    },
+    "via": {
+      "store": "Mağaza göndericisi",
+      "platform": "Platform göndericisi"
+    },
+    "events": {
+      "order_confirmation": "Sipariş onayı",
+      "order_shipped": "Sipariş kargolandı",
+      "order_delivered": "Sipariş teslim edildi",
+      "order_cancelled": "Sipariş iptal edildi",
+      "order_refunded": "Sipariş iade edildi",
+      "new_order_owner": "Yeni sipariş (mağaza sahibi)",
+      "password_reset": "Şifre sıfırlama",
+      "welcome": "Hoş geldiniz",
+      "test": "Test e-postası"
+    },
+    "notificationTitle": "Sipariş bildirimleri",
+    "notificationHint": "Yeni sipariş e-postaları bu adrese gönderilir. Giriş e-postanızı kullanmak için boş bırakın.",
+    "notificationEmail": "Bildirim e-postası",
+    "notificationCurrent": "Bildirimler şu anda şuraya gidiyor:",
+    "notificationSaved": "Bildirim e-postası kaydedildi",
+    "notificationSaveFailed": "Bildirim e-postası kaydedilemedi."
   }
 }

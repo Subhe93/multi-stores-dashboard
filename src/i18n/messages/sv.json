@@ -305,7 +305,8 @@
     "legalPages": "Juridiska sidor",
     "notificationTemplates": "Aviseringsmallar",
     "email": "E-post",
-    "guide": "Guide"
+    "guide": "Guide",
+    "emailLog": "E-postlogg"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -3025,5 +3026,54 @@
     "inactive": "Inaktiv",
     "defaultMethodSection": "Standardfraktmetod",
     "defaultMethodHint": "Skapas tillsammans med zonen. Du kan lägga till fler metoder efteråt."
+  },
+  "emailLog": {
+    "title": "E-postlogg",
+    "adminSubtitle": "Varje mejl som plattformen har försökt skicka, för alla butiker, under de senaste 90 dagarna.",
+    "creatorSubtitle": "Vart dina orderaviseringar går, och varje mejl som skickats för din butik under de senaste 90 dagarna.",
+    "loadFailed": "Det gick inte att läsa in e-postloggen.",
+    "searchPlaceholder": "Sök mottagare eller ämne",
+    "allStatuses": "Alla statusar",
+    "refresh": "Uppdatera",
+    "date": "Datum",
+    "recipient": "Mottagare",
+    "subject": "Ämne",
+    "store": "Butik",
+    "sender": "Skickat via",
+    "statusLabel": "Status",
+    "platform": "Plattform",
+    "empty": "Inga mejl har loggats ännu.",
+    "showError": "Visa fel",
+    "sentHint": "\"Skickat\" betyder att e-postservern tog emot meddelandet. Det garanterar inte inkorgen: ett meddelande kan ändå hamna i skräpposten.",
+    "failedWarning": "{count} mejl misslyckades eller skickades inte under de senaste 7 dagarna.",
+    "pageOf": "Sida {page} av {pages} · {total} mejl",
+    "previous": "Föregående",
+    "next": "Nästa",
+    "status": {
+      "SENT": "Skickat",
+      "FAILED": "Misslyckades",
+      "SKIPPED": "Ej skickat"
+    },
+    "via": {
+      "store": "Butikens avsändare",
+      "platform": "Plattformens avsändare"
+    },
+    "events": {
+      "order_confirmation": "Orderbekräftelse",
+      "order_shipped": "Order skickad",
+      "order_delivered": "Order levererad",
+      "order_cancelled": "Order avbruten",
+      "order_refunded": "Order återbetald",
+      "new_order_owner": "Ny order (butiksägare)",
+      "password_reset": "Återställ lösenord",
+      "welcome": "Välkommen",
+      "test": "Testmejl"
+    },
+    "notificationTitle": "Orderaviseringar",
+    "notificationHint": "Mejl om nya ordrar skickas till den här adressen. Lämna tomt för att använda din inloggningsadress.",
+    "notificationEmail": "E-post för aviseringar",
+    "notificationCurrent": "Aviseringar går just nu till:",
+    "notificationSaved": "E-post för aviseringar sparad",
+    "notificationSaveFailed": "Det gick inte att spara e-postadressen för aviseringar."
   }
 }

@@ -305,7 +305,8 @@
     "legalPages": "Rechtliche Seiten",
     "notificationTemplates": "Benachrichtigungsvorlagen",
     "email": "E-Mail",
-    "guide": "Leitfaden"
+    "guide": "Leitfaden",
+    "emailLog": "E-Mail-Protokoll"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -3025,5 +3026,54 @@
     "inactive": "Inaktiv",
     "defaultMethodSection": "Standard-Versandmethode",
     "defaultMethodHint": "Wird zusammen mit der Zone erstellt. Weitere Methoden können Sie danach hinzufügen."
+  },
+  "emailLog": {
+    "title": "E-Mail-Protokoll",
+    "adminSubtitle": "Jede E-Mail, die die Plattform in den letzten 90 Tagen für alle Shops zu senden versucht hat.",
+    "creatorSubtitle": "Wohin Ihre Bestellbenachrichtigungen gehen und jede E-Mail, die in den letzten 90 Tagen für Ihren Shop gesendet wurde.",
+    "loadFailed": "Das E-Mail-Protokoll konnte nicht geladen werden.",
+    "searchPlaceholder": "Empfänger oder Betreff suchen",
+    "allStatuses": "Alle Status",
+    "refresh": "Aktualisieren",
+    "date": "Datum",
+    "recipient": "Empfänger",
+    "subject": "Betreff",
+    "store": "Shop",
+    "sender": "Gesendet über",
+    "statusLabel": "Status",
+    "platform": "Plattform",
+    "empty": "Noch keine E-Mails protokolliert.",
+    "showError": "Fehler anzeigen",
+    "sentHint": "„Gesendet“ bedeutet, dass der Mailserver die Nachricht angenommen hat. Das garantiert nicht den Posteingang: Eine Nachricht kann trotzdem im Spam landen.",
+    "failedWarning": "{count} E-Mail(s) sind in den letzten 7 Tagen fehlgeschlagen oder wurden nicht gesendet.",
+    "pageOf": "Seite {page} von {pages} · {total} E-Mails",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "status": {
+      "SENT": "Gesendet",
+      "FAILED": "Fehlgeschlagen",
+      "SKIPPED": "Nicht gesendet"
+    },
+    "via": {
+      "store": "Shop-Absender",
+      "platform": "Plattform-Absender"
+    },
+    "events": {
+      "order_confirmation": "Bestellbestätigung",
+      "order_shipped": "Bestellung versendet",
+      "order_delivered": "Bestellung zugestellt",
+      "order_cancelled": "Bestellung storniert",
+      "order_refunded": "Bestellung erstattet",
+      "new_order_owner": "Neue Bestellung (Shop-Inhaber)",
+      "password_reset": "Passwort zurücksetzen",
+      "welcome": "Willkommen",
+      "test": "Test-E-Mail"
+    },
+    "notificationTitle": "Bestellbenachrichtigungen",
+    "notificationHint": "E-Mails zu neuen Bestellungen gehen an diese Adresse. Leer lassen, um Ihre Login-E-Mail zu verwenden.",
+    "notificationEmail": "Benachrichtigungs-E-Mail",
+    "notificationCurrent": "Benachrichtigungen gehen derzeit an:",
+    "notificationSaved": "Benachrichtigungs-E-Mail gespeichert",
+    "notificationSaveFailed": "Die Benachrichtigungs-E-Mail konnte nicht gespeichert werden."
   }
 }

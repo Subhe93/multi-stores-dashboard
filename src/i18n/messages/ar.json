@@ -305,7 +305,8 @@
     "legalPages": "الصفحات القانونية",
     "notificationTemplates": "قوالب الإشعارات",
     "email": "البريد",
-    "guide": "الدليل"
+    "guide": "الدليل",
+    "emailLog": "سجل البريد"
   },
   "table": {
     "searchPlaceholder": "بحث...",
@@ -3025,5 +3026,54 @@
     "inactive": "معطّلة",
     "defaultMethodSection": "طريقة الشحن الافتراضية",
     "defaultMethodHint": "تُنشأ مع المنطقة. يمكنك إضافة طرق أخرى لاحقاً."
+  },
+  "emailLog": {
+    "title": "سجل البريد",
+    "adminSubtitle": "كل رسالة حاولت المنصة إرسالها، لجميع المتاجر، خلال آخر 90 يوماً.",
+    "creatorSubtitle": "العنوان الذي تصله إشعارات الطلبات، وكل رسالة أُرسلت لمتجرك خلال آخر 90 يوماً.",
+    "loadFailed": "تعذّر تحميل سجل البريد.",
+    "searchPlaceholder": "ابحث بالمستلم أو العنوان",
+    "allStatuses": "كل الحالات",
+    "refresh": "تحديث",
+    "date": "التاريخ",
+    "recipient": "المستلم",
+    "subject": "الموضوع",
+    "store": "المتجر",
+    "sender": "أُرسل عبر",
+    "statusLabel": "الحالة",
+    "platform": "المنصة",
+    "empty": "لا توجد رسائل مسجلة بعد.",
+    "showError": "عرض الخطأ",
+    "sentHint": "\"أُرسل\" تعني أن خادم البريد استلم الرسالة. هذا لا يضمن وصولها لصندوق الوارد، فقد تذهب إلى البريد المزعج.",
+    "failedWarning": "{count} رسالة فشلت أو لم تُرسل خلال آخر 7 أيام.",
+    "pageOf": "صفحة {page} من {pages} · {total} رسالة",
+    "previous": "السابق",
+    "next": "التالي",
+    "status": {
+      "SENT": "أُرسل",
+      "FAILED": "فشل",
+      "SKIPPED": "لم يُرسل"
+    },
+    "via": {
+      "store": "مرسل المتجر",
+      "platform": "مرسل المنصة"
+    },
+    "events": {
+      "order_confirmation": "تأكيد الطلب",
+      "order_shipped": "شحن الطلب",
+      "order_delivered": "تسليم الطلب",
+      "order_cancelled": "إلغاء الطلب",
+      "order_refunded": "استرداد الطلب",
+      "new_order_owner": "طلب جديد (صاحب المتجر)",
+      "password_reset": "استعادة كلمة السر",
+      "welcome": "ترحيب",
+      "test": "رسالة اختبار"
+    },
+    "notificationTitle": "إشعارات الطلبات",
+    "notificationHint": "رسائل الطلبات الجديدة تُرسل إلى هذا العنوان. اتركه فارغاً لاستخدام بريد تسجيل الدخول.",
+    "notificationEmail": "بريد الإشعارات",
+    "notificationCurrent": "الإشعارات تصل حالياً إلى:",
+    "notificationSaved": "تم حفظ بريد الإشعارات",
+    "notificationSaveFailed": "تعذّر حفظ بريد الإشعارات."
   }
 }

@@ -305,7 +305,8 @@
     "legalPages": "Legal Pages",
     "notificationTemplates": "Notification Templates",
     "email": "Email",
-    "guide": "Guide"
+    "guide": "Guide",
+    "emailLog": "Email log"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -3025,5 +3026,54 @@
     "inactive": "Inactive",
     "defaultMethodSection": "Default shipping method",
     "defaultMethodHint": "Created together with the zone. You can add more methods afterwards."
+  },
+  "emailLog": {
+    "title": "Email log",
+    "adminSubtitle": "Every email the platform tried to send, for all stores, over the last 90 days.",
+    "creatorSubtitle": "Where your order notifications go, and every email sent for your store over the last 90 days.",
+    "loadFailed": "Could not load the email log.",
+    "searchPlaceholder": "Search recipient or subject",
+    "allStatuses": "All statuses",
+    "refresh": "Refresh",
+    "date": "Date",
+    "recipient": "Recipient",
+    "subject": "Subject",
+    "store": "Store",
+    "sender": "Sent through",
+    "statusLabel": "Status",
+    "platform": "Platform",
+    "empty": "No emails recorded yet.",
+    "showError": "Show error",
+    "sentHint": "\"Sent\" means the mail server accepted the message. It does not guarantee the inbox: a message can still land in spam.",
+    "failedWarning": "{count} email(s) failed or were skipped in the last 7 days.",
+    "pageOf": "Page {page} of {pages} · {total} emails",
+    "previous": "Previous",
+    "next": "Next",
+    "status": {
+      "SENT": "Sent",
+      "FAILED": "Failed",
+      "SKIPPED": "Not sent"
+    },
+    "via": {
+      "store": "Store sender",
+      "platform": "Platform sender"
+    },
+    "events": {
+      "order_confirmation": "Order confirmation",
+      "order_shipped": "Order shipped",
+      "order_delivered": "Order delivered",
+      "order_cancelled": "Order cancelled",
+      "order_refunded": "Order refunded",
+      "new_order_owner": "New order (store owner)",
+      "password_reset": "Password reset",
+      "welcome": "Welcome",
+      "test": "Test email"
+    },
+    "notificationTitle": "Order notifications",
+    "notificationHint": "New-order emails are sent to this address. Leave it empty to use your login email.",
+    "notificationEmail": "Notification email",
+    "notificationCurrent": "Notifications currently go to:",
+    "notificationSaved": "Notification email saved",
+    "notificationSaveFailed": "Could not save the notification email."
   }
 }

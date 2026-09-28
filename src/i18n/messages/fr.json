@@ -305,7 +305,8 @@
     "legalPages": "Pages légales",
     "notificationTemplates": "Modèles de notifications",
     "email": "E-mail",
-    "guide": "Guide"
+    "guide": "Guide",
+    "emailLog": "Journal des e-mails"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -3025,5 +3026,54 @@
     "inactive": "Inactif",
     "defaultMethodSection": "Mode de livraison par défaut",
     "defaultMethodHint": "Créé en même temps que la zone. Vous pourrez ajouter d'autres modes ensuite."
+  },
+  "emailLog": {
+    "title": "Journal des e-mails",
+    "adminSubtitle": "Chaque e-mail que la plateforme a tenté d'envoyer, pour toutes les boutiques, sur les 90 derniers jours.",
+    "creatorSubtitle": "Où vont vos notifications de commande, et chaque e-mail envoyé pour votre boutique sur les 90 derniers jours.",
+    "loadFailed": "Impossible de charger le journal des e-mails.",
+    "searchPlaceholder": "Rechercher un destinataire ou un objet",
+    "allStatuses": "Tous les statuts",
+    "refresh": "Actualiser",
+    "date": "Date",
+    "recipient": "Destinataire",
+    "subject": "Objet",
+    "store": "Boutique",
+    "sender": "Envoyé via",
+    "statusLabel": "Statut",
+    "platform": "Plateforme",
+    "empty": "Aucun e-mail enregistré pour le moment.",
+    "showError": "Afficher l'erreur",
+    "sentHint": "« Envoyé » signifie que le serveur de messagerie a accepté le message. Cela ne garantit pas la boîte de réception : un message peut tout de même arriver dans les spams.",
+    "failedWarning": "{count} e-mail(s) ont échoué ou n'ont pas été envoyés au cours des 7 derniers jours.",
+    "pageOf": "Page {page} sur {pages} · {total} e-mails",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "status": {
+      "SENT": "Envoyé",
+      "FAILED": "Échec",
+      "SKIPPED": "Non envoyé"
+    },
+    "via": {
+      "store": "Expéditeur de la boutique",
+      "platform": "Expéditeur de la plateforme"
+    },
+    "events": {
+      "order_confirmation": "Confirmation de commande",
+      "order_shipped": "Commande expédiée",
+      "order_delivered": "Commande livrée",
+      "order_cancelled": "Commande annulée",
+      "order_refunded": "Commande remboursée",
+      "new_order_owner": "Nouvelle commande (propriétaire)",
+      "password_reset": "Réinitialisation du mot de passe",
+      "welcome": "Bienvenue",
+      "test": "E-mail de test"
+    },
+    "notificationTitle": "Notifications de commande",
+    "notificationHint": "Les e-mails de nouvelle commande sont envoyés à cette adresse. Laissez vide pour utiliser votre e-mail de connexion.",
+    "notificationEmail": "E-mail de notification",
+    "notificationCurrent": "Les notifications sont actuellement envoyées à :",
+    "notificationSaved": "E-mail de notification enregistré",
+    "notificationSaveFailed": "Impossible d'enregistrer l'e-mail de notification."
   }
 }

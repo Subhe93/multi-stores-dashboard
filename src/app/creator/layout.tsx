@@ -27,6 +27,7 @@ import {
   LayoutTemplate,
   Truck,
   Mail,
+  MailCheck,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -85,6 +86,8 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         ...(isIndependent
           ? [{ label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> }]
           : []),
+        // Every store type: notifications address + delivery log.
+        { label: t('emailLog'), href: '/creator/email-log', icon: <MailCheck className="w-4 h-4" /> },
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],
     },
