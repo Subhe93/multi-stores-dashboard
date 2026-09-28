@@ -13,6 +13,7 @@ import { CURRENCIES } from '@/lib/currencies';
 import { countryName, taxCountryOptions } from '@/lib/taxCountries';
 import { localizedTaxText, type MyTaxSettings, type TaxBasis, type TaxPricingMode } from '@/lib/taxRate';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,6 +108,25 @@ export default function CreatorSettingsPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+
+  // Active tab, mirrored in ?tab= so a reload keeps it. Coming back from
+  // Stripe onboarding lands on the payments tab.
+  const [settingsTab, setSettingsTab] = useState('account');
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get('tab');
+    if (wanted && ['account', 'store', 'taxes', 'payments', 'security'].includes(wanted)) {
+      setSettingsTab(wanted);
+    } else if ([...params.keys()].some((k) => k.toLowerCase().includes('stripe'))) {
+      setSettingsTab('payments');
+    }
+  }, []);
+  const changeSettingsTab = (value: string) => {
+    setSettingsTab(value);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', value);
+    window.history.replaceState(null, '', url.toString());
+  };
   const locale = useLocale();
   const taxCountryOpts = useMemo(() => taxCountryOptions(locale), [locale]);
   const { upload, uploading } = useImageUpload(token ?? null);
@@ -567,7 +587,26 @@ export default function CreatorSettingsPage() {
         <p className="text-sm text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
-      <div className="max-w-2xl space-y-4">
+      <Tabs value={settingsTab} onValueChange={(v) => changeSettingsTab(String(v))}>
+        <TabsList variant="line" className="border-b w-full justify-start rounded-none px-0">
+          <TabsTrigger value="account" className="flex-none px-3">
+            {t('settings.tabs.account')}
+          </TabsTrigger>
+          <TabsTrigger value="store" className="flex-none px-3">
+            {t('settings.tabs.store')}
+          </TabsTrigger>
+          <TabsTrigger value="taxes" className="flex-none px-3">
+            {t('settings.tabs.taxes')}
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex-none px-3">
+            {t('settings.tabs.payments')}
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex-none px-3">
+            {t('settings.tabs.security')}
+          </TabsTrigger>
+        </TabsList>
+
+      <TabsContent value="account" className="max-w-2xl space-y-4 pt-4">
         {/* Account Info card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
@@ -699,7 +738,9 @@ export default function CreatorSettingsPage() {
             </form>
           </CardContent>
         </Card>
+      </TabsContent>
 
+      <TabsContent value="store" className="max-w-2xl space-y-4 pt-4">
         {/* Store Status card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
@@ -895,7 +936,9 @@ export default function CreatorSettingsPage() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
 
+      <TabsContent value="taxes" className="max-w-2xl space-y-4 pt-4">
         {/* Taxes card — GET/PUT /taxes/my/settings. Marketplace stores are
             taxed by the platform (registrant PLATFORM) and only see a note;
             independent stores configure their own tax setup here and manage
@@ -1099,7 +1142,9 @@ export default function CreatorSettingsPage() {
             </CardContent>
           </Card>
         )}
+      </TabsContent>
 
+      <TabsContent value="payments" className="max-w-2xl space-y-4 pt-4">
         {/* Stripe card — Express payouts for marketplace stores, the creator's
             own Standard account (direct charges) for independent stores. */}
         {(() => {
@@ -1469,7 +1514,9 @@ export default function CreatorSettingsPage() {
             </Card>
           );
         })()}
+      </TabsContent>
 
+      <TabsContent value="security" className="max-w-2xl space-y-4 pt-4">
         {/* Change Password card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
@@ -1537,7 +1584,8 @@ export default function CreatorSettingsPage() {
             </form>
           </CardContent>
         </Card>
-      </div>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }

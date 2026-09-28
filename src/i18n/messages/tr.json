@@ -2007,7 +2007,14 @@
       "kustomCaptureOnShipment": "Sipariş gönderildiğinde (önerilir)",
       "kustomCaptureImmediate": "Satın alma hemen sonrasında",
       "kustomCaptureOnShipmentHint": "Kustom ödeme sırasında tutarı yalnızca rezerve eder. Siparişi gönderildi olarak işaretlediğinizde (veya manuel tahsil ettiğinizde) tahsil edilir. Bu Kustom'un standart modelidir. Yetkilendirme süresi dolmadan gönderin.",
-      "kustomCaptureImmediateHint": "Tutar, satın alma onaylanır onaylanmaz tahsil edilir. Sonradan iptal, rezervasyonu serbest bırakmak yerine iade anlamına gelir ve sonra öde müşterilerine ürün gönderilmeden fatura kesilir."
+      "kustomCaptureImmediateHint": "Tutar, satın alma onaylanır onaylanmaz tahsil edilir. Sonradan iptal, rezervasyonu serbest bırakmak yerine iade anlamına gelir ve sonra öde müşterilerine ürün gönderilmeden fatura kesilir.",
+      "tabs": {
+        "account": "Hesap",
+        "store": "Mağaza",
+        "taxes": "Vergiler",
+        "payments": "Ödemeler",
+        "security": "Güvenlik"
+      }
     },
     "orderDetail": {
       "notFound": "Sipariş bulunamadı",
@@ -3081,5 +3088,24 @@
     "notificationCurrent": "Bildirimler şu anda şuraya gidiyor:",
     "notificationSaved": "Bildirim e-postası kaydedildi",
     "notificationSaveFailed": "Bildirim e-postası kaydedilemedi."
+  },
+  "templateEditor": {
+    "body": "İçerik (HTML)",
+    "visual": "Görsel",
+    "html": "HTML",
+    "designedHint": "Bu şablonun tasarlanmış bir düzeni var, bu yüzden HTML olarak düzenlenir. Görsel düzenleyici tasarımı silerdi.",
+    "preview": "Önizleme",
+    "showPreview": "Önizlemeyi göster",
+    "hidePreview": "Önizlemeyi gizle",
+    "previewHint": "Örnek verilerle gösterilir: son siparişin ürünleri ve örnek bir müşteri.",
+    "previewFailed": "Önizleme oluşturulamadı.",
+    "emptyPreview": "Bu dilde önizlenecek içerik henüz yok.",
+    "testTitle": "Test gönder",
+    "testHint": "Bu şablonu, düzenleyicideki mevcut haliyle {email} adresine gönderir.",
+    "testHintAdmin": "Bu şablonu düzenleyicideki mevcut haliyle gönderir. Kendinize göndermek için adresi boş bırakın.",
+    "sendTest": "Test gönder",
+    "sending": "Gönderiliyor…",
+    "testSent": "Test {email} adresine gönderildi",
+    "testFailed": "Test e-postası gönderilemedi."
   }
 }

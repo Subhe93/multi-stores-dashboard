@@ -2007,7 +2007,14 @@
       "kustomCaptureOnShipment": "À l'expédition de la commande (recommandé)",
       "kustomCaptureImmediate": "Immédiatement après l'achat",
       "kustomCaptureOnShipmentHint": "Kustom ne fait que réserver le montant au paiement. Il est débité lorsque vous marquez la commande comme expédiée (ou le capturez manuellement). C'est le modèle standard de Kustom. Expédiez avant l'expiration de l'autorisation.",
-      "kustomCaptureImmediateHint": "Le montant est débité dès que l'achat est confirmé. Une annulation ultérieure devient un remboursement au lieu d'une libération de réservation, et les clients en paiement différé sont facturés avant l'expédition."
+      "kustomCaptureImmediateHint": "Le montant est débité dès que l'achat est confirmé. Une annulation ultérieure devient un remboursement au lieu d'une libération de réservation, et les clients en paiement différé sont facturés avant l'expédition.",
+      "tabs": {
+        "account": "Compte",
+        "store": "Boutique",
+        "taxes": "Taxes",
+        "payments": "Paiements",
+        "security": "Sécurité"
+      }
     },
     "orderDetail": {
       "notFound": "Commande introuvable",
@@ -3081,5 +3088,24 @@
     "notificationCurrent": "Les notifications sont actuellement envoyées à :",
     "notificationSaved": "E-mail de notification enregistré",
     "notificationSaveFailed": "Impossible d'enregistrer l'e-mail de notification."
+  },
+  "templateEditor": {
+    "body": "Contenu (HTML)",
+    "visual": "Visuel",
+    "html": "HTML",
+    "designedHint": "Ce modèle a une mise en page conçue, il est donc modifié en HTML. L'éditeur visuel supprimerait le design.",
+    "preview": "Aperçu",
+    "showPreview": "Afficher l'aperçu",
+    "hidePreview": "Masquer l'aperçu",
+    "previewHint": "Affiché avec des données d'exemple : les produits de la dernière commande et un client fictif.",
+    "previewFailed": "Impossible de générer l'aperçu.",
+    "emptyPreview": "Rien à prévisualiser dans cette langue pour le moment.",
+    "testTitle": "Envoyer un test",
+    "testHint": "Envoie ce modèle, tel qu'il est dans l'éditeur, à {email}.",
+    "testHintAdmin": "Envoie ce modèle, tel qu'il est dans l'éditeur. Laissez l'adresse vide pour vous l'envoyer.",
+    "sendTest": "Envoyer un test",
+    "sending": "Envoi…",
+    "testSent": "Test envoyé à {email}",
+    "testFailed": "L'e-mail de test n'a pas pu être envoyé."
   }
 }

@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Eye, EyeOff, Loader2, RotateCcw } from 'lucide-react';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { ArrowLeft, Loader2, RotateCcw } from 'lucide-react';
+import { TemplateBodyEditor } from '@/components/mail/TemplateBodyEditor';
+import { TemplateTestSend } from '@/components/mail/TemplateTestSend';
 import { LOCALE_LABELS, RTL_LOCALES } from '@/components/creator/bundles/types';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -74,7 +75,6 @@ export default function CreatorEmailTemplateEditorPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
 
   const applyTemplate = (tpl: StoreTemplate) => {
     setTemplate(tpl);
@@ -287,51 +287,19 @@ export default function CreatorEmailTemplateEditorPage() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">{t('bodyHtml')}</Label>
-              <button
-                type="button"
-                onClick={() => setShowPreview((v) => !v)}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="w-3 h-3" />
-                    {t('hidePreview')}
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-3 h-3" />
-                    {t('showPreview')}
-                  </>
-                )}
-              </button>
-            </div>
-            <RichTextEditor
-              key={`html-${activeLocale}`}
-              content={bodyHtmlByLocale[activeLocale] ?? ''}
-              onChange={(html) =>
-                setBodyHtmlByLocale((prev) => ({ ...prev, [activeLocale]: html }))
-              }
-              dir={activeDir}
-            />
-            {showPreview && (
-              <div className="rounded-md border bg-white p-3" dir={activeDir}>
-                <p className="text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-wide">
-                  {t('preview')}
-                </p>
-                <div
-                  className="text-sm text-zinc-700 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      bodyHtmlByLocale[activeLocale] ||
-                      `<p class="text-zinc-400">${t('emptyForLocale')}</p>`,
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <TemplateBodyEditor
+            key={`body-${activeLocale}`}
+            basePath="/mail/store/templates"
+            event={event}
+            locale={activeLocale}
+            dir={activeDir}
+            subject={subjectByLocale[activeLocale] ?? ''}
+            html={bodyHtmlByLocale[activeLocale] ?? ''}
+            text={bodyTextByLocale[activeLocale] ?? ''}
+            onHtmlChange={(html) =>
+              setBodyHtmlByLocale((prev) => ({ ...prev, [activeLocale]: html }))
+            }
+          />
 
           <div className="space-y-1.5">
             <Label className="text-xs">{t('bodyText')}</Label>
@@ -365,6 +333,15 @@ export default function CreatorEmailTemplateEditorPage() {
               </div>
             </div>
           )}
+
+          <TemplateTestSend
+            basePath="/mail/store/templates"
+            event={event}
+            locale={activeLocale}
+            subject={subjectByLocale[activeLocale] ?? ''}
+            html={bodyHtmlByLocale[activeLocale] ?? ''}
+            text={bodyTextByLocale[activeLocale] ?? ''}
+          />
 
           <div className="flex items-center justify-between pt-2 border-t gap-3">
             {template.overridden ? (

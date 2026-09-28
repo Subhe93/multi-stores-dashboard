@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, AlertTriangle, Eye, EyeOff } from 'lucide-react';
-import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { TemplateBodyEditor } from '@/components/mail/TemplateBodyEditor';
+import { TemplateTestSend } from '@/components/mail/TemplateTestSend';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
@@ -66,7 +67,6 @@ export default function AdminNotificationTemplateEditorPage() {
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
 
   useEffect(() => {
     if (!token || !event) return;
@@ -253,50 +253,19 @@ export default function AdminNotificationTemplateEditorPage() {
             />
           </div>
 
-          {/* Body HTML */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">{t('notifBodyHtml')}</Label>
-              <button
-                type="button"
-                onClick={() => setShowPreview((v) => !v)}
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="w-3 h-3" />
-                    {t('notifHidePreview')}
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-3 h-3" />
-                    {t('notifShowPreview')}
-                  </>
-                )}
-              </button>
-            </div>
-            <RichTextEditor
-              key={`html-${activeLocale}`}
-              content={bodyHtmlByLocale[activeLocale] ?? ''}
-              onChange={(html) =>
-                setBodyHtmlByLocale((prev) => ({ ...prev, [activeLocale]: html }))
-              }
-              dir={activeDir}
-            />
-            {showPreview && (
-              <div className="rounded-md border bg-white p-3" dir={activeDir}>
-                <p className="text-[10px] font-medium text-zinc-500 mb-2 uppercase tracking-wide">
-                  {t('notifPreview')}
-                </p>
-                <div
-                  className="text-sm text-zinc-700 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: bodyHtmlByLocale[activeLocale] || `<p class="text-zinc-400">${t('notifEmptyForLocale')}</p>`,
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <TemplateBodyEditor
+            key={`body-${activeLocale}`}
+            basePath="/mail/admin/templates"
+            event={event}
+            locale={activeLocale}
+            dir={activeDir}
+            subject={subjectByLocale[activeLocale] ?? ''}
+            html={bodyHtmlByLocale[activeLocale] ?? ''}
+            text={bodyTextByLocale[activeLocale] ?? ''}
+            onHtmlChange={(html) =>
+              setBodyHtmlByLocale((prev) => ({ ...prev, [activeLocale]: html }))
+            }
+          />
 
           {/* Body Text */}
           <div className="space-y-1.5">
@@ -335,6 +304,15 @@ export default function AdminNotificationTemplateEditorPage() {
               </div>
             </div>
           )}
+
+          <TemplateTestSend
+            basePath="/mail/admin/templates"
+            event={event}
+            locale={activeLocale}
+            subject={subjectByLocale[activeLocale] ?? ''}
+            html={bodyHtmlByLocale[activeLocale] ?? ''}
+            text={bodyTextByLocale[activeLocale] ?? ''} allowRecipient
+          />
 
           <div className="flex items-center justify-between pt-2 border-t">
             <p className="text-[11px] text-muted-foreground">

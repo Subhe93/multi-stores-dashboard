@@ -2007,7 +2007,14 @@
       "kustomCaptureOnShipment": "När ordern skickas (rekommenderas)",
       "kustomCaptureImmediate": "Direkt efter köpet",
       "kustomCaptureOnShipmentHint": "Kustom reserverar bara beloppet i kassan. Det debiteras när du markerar ordern som skickad (eller aktiverar manuellt). Det är Kustoms standardmodell. Skicka innan auktorisationen löper ut.",
-      "kustomCaptureImmediateHint": "Beloppet debiteras så snart köpet bekräftas. En senare avbokning blir en återbetalning i stället för att en reservation släpps, och kunder som betalar senare faktureras innan varorna skickas."
+      "kustomCaptureImmediateHint": "Beloppet debiteras så snart köpet bekräftas. En senare avbokning blir en återbetalning i stället för att en reservation släpps, och kunder som betalar senare faktureras innan varorna skickas.",
+      "tabs": {
+        "account": "Konto",
+        "store": "Butik",
+        "taxes": "Skatter",
+        "payments": "Betalningar",
+        "security": "Säkerhet"
+      }
     },
     "orderDetail": {
       "notFound": "Beställningen hittades inte",
@@ -3081,5 +3088,24 @@
     "notificationCurrent": "Aviseringar går just nu till:",
     "notificationSaved": "E-post för aviseringar sparad",
     "notificationSaveFailed": "Det gick inte att spara e-postadressen för aviseringar."
+  },
+  "templateEditor": {
+    "body": "Innehåll (HTML)",
+    "visual": "Visuell",
+    "html": "HTML",
+    "designedHint": "Den här mallen har en designad layout och redigeras därför som HTML. Den visuella redigeraren skulle ta bort designen.",
+    "preview": "Förhandsvisning",
+    "showPreview": "Visa förhandsvisning",
+    "hidePreview": "Dölj förhandsvisning",
+    "previewHint": "Visas med exempeldata: produkterna i den senaste ordern och en exempelkund.",
+    "previewFailed": "Det gick inte att skapa förhandsvisningen.",
+    "emptyPreview": "Inget att förhandsvisa på det här språket ännu.",
+    "testTitle": "Skicka ett test",
+    "testHint": "Skickar mallen, som den ser ut i redigeraren nu, till {email}.",
+    "testHintAdmin": "Skickar mallen som den ser ut i redigeraren nu. Lämna adressen tom för att skicka till dig själv.",
+    "sendTest": "Skicka test",
+    "sending": "Skickar…",
+    "testSent": "Test skickat till {email}",
+    "testFailed": "Testmejlet kunde inte skickas."
   }
 }
