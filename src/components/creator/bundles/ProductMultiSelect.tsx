@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { createPortal } from 'react-dom';
 import { Check, ChevronsUpDown, X, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { resolveMediaUrl } from '@/lib/media';
 
 export interface ProductOption {
   id: string;
@@ -120,7 +121,7 @@ export function ProductMultiSelect({
             >
               {p.thumbnail ? (
                 <img
-                  src={p.thumbnail}
+                  src={resolveMediaUrl(p.thumbnail)}
                   alt=""
                   className="size-4 rounded object-cover"
                 />
@@ -191,7 +192,7 @@ export function ProductMultiSelect({
                     >
                       {p.thumbnail ? (
                         <img
-                          src={p.thumbnail}
+                          src={resolveMediaUrl(p.thumbnail)}
                           alt=""
                           className="size-7 rounded object-cover"
                         />

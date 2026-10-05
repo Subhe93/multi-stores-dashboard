@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { resolveMediaUrl } from '@/lib/media';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +49,7 @@ function SortableImage({ img, onSetFeatured, onDelete, t }: {
     <div ref={setNodeRef} style={style}
       className="relative aspect-square bg-zinc-100 rounded-lg overflow-hidden group border cursor-grab active:cursor-grabbing"
       {...attributes} {...listeners}>
-      <img src={img.url} alt={img.alt_text || ''} className="w-full h-full object-cover pointer-events-none" />
+      <img src={resolveMediaUrl(img.url)} alt={img.alt_text || ''} className="w-full h-full object-cover pointer-events-none" />
 
       {img.is_featured && (
         <div className="absolute top-1 left-1">

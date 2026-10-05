@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { resolveMediaUrl } from '@/lib/media';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -680,10 +681,10 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                         >
                           {valueImgPending
                             ? <Loader2 className="w-3 h-3 animate-spin m-auto text-zinc-400" />
-                            : <img src={valueImageUrl} className="h-full w-full object-cover" />}
+                            : <img src={resolveMediaUrl(valueImageUrl)} className="h-full w-full object-cover" />}
                         </PopoverTrigger>
                         <PopoverContent className="w-40 p-2" align="start">
-                          <img src={valueImageUrl} className="w-full aspect-square object-cover rounded mb-1.5" />
+                          <img src={resolveMediaUrl(valueImageUrl)} className="w-full aspect-square object-cover rounded mb-1.5" />
                           <p className="text-[9px] text-muted-foreground leading-snug mb-1.5">
                             {t('variant.imageRatioHint')}
                           </p>
@@ -939,7 +940,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     {pendingImageKey === v._key && uploading
                       ? <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
                       : v.image_url
-                        ? <img src={v.image_url} className="h-full w-full object-cover" />
+                        ? <img src={resolveMediaUrl(v.image_url)} className="h-full w-full object-cover" />
                         : <ImageIcon className="w-4 h-4 text-zinc-300" />}
                   </button>
 
