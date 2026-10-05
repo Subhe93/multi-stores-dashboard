@@ -27,6 +27,7 @@ import {
   LayoutTemplate,
   Truck,
   Mail,
+  Palette,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -75,6 +76,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     {
       title: t('store'),
       items: [
+        { label: t('themes'), href: '/creator/themes', icon: <Palette className="w-4 h-4" /> },
         { label: t('templates'), href: '/creator/templates', icon: <LayoutTemplate className="w-4 h-4" /> },
         { label: t('pages'), href: '/creator/pages', icon: <FileText className="w-4 h-4" /> },
         { label: t('menus'), href: '/creator/menus', icon: <ListTree className="w-4 h-4" /> },
