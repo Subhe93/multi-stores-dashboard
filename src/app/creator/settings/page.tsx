@@ -46,6 +46,8 @@ interface StoreInfo {
   cache_enabled: boolean;
   // Cash on delivery availability at checkout (off by default).
   cod_enabled?: boolean;
+  // Marketplace stores: show the vendor's company name on product cards/pages.
+  show_vendor_name?: boolean;
   store_type?: 'MARKETPLACE' | 'INDEPENDENT';
   // Presentment currency. Null means the platform default; only independent
   // stores may set it (they charge on their own connected account).
@@ -153,6 +155,10 @@ export default function CreatorSettingsPage() {
   // Cash-on-delivery on/off toggle
   const [codSaving, setCodSaving] = useState(false);
   const [codMsg, setCodMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // "Show maker name" on/off toggle (marketplace stores only)
+  const [vendorNameSaving, setVendorNameSaving] = useState(false);
+  const [vendorNameMsg, setVendorNameMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Store currency (independent stores only)
   const [currencySaving, setCurrencySaving] = useState(false);
@@ -342,6 +348,27 @@ export default function CreatorSettingsPage() {
       setCodMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.codUpdateFailed') });
     } finally {
       setCodSaving(false);
+    }
+  };
+
+  const handleToggleVendorName = async () => {
+    if (!token || !store || vendorNameSaving) return;
+    const next = !store.show_vendor_name;
+    setVendorNameSaving(true);
+    setVendorNameMsg(null);
+    // Optimistic update - revert on failure.
+    setStore({ ...store, show_vendor_name: next });
+    try {
+      await api('/stores/my/store', {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ show_vendor_name: next }),
+      });
+    } catch (err) {
+      setStore({ ...store, show_vendor_name: !next });
+      setVendorNameMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.showVendorNameUpdateFailed') });
+    } finally {
+      setVendorNameSaving(false);
     }
   };
 
@@ -873,6 +900,43 @@ export default function CreatorSettingsPage() {
                   >
                     {codMsg.text}
                   </p>
+                )}
+
+                {/* Show maker (vendor) name on products - marketplace stores only. */}
+                {store.store_type === 'MARKETPLACE' && (
+                  <>
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">{t('settings.showVendorName')}</p>
+                        <p className="text-[11px] text-muted-foreground">{t('settings.showVendorNameHint')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!!store.show_vendor_name}
+                        onClick={handleToggleVendorName}
+                        disabled={vendorNameSaving}
+                        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          store.show_vendor_name ? 'bg-emerald-500' : 'bg-zinc-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
+                            store.show_vendor_name ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {vendorNameMsg && (
+                      <p
+                        className={`text-[11px] ${
+                          vendorNameMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {vendorNameMsg.text}
+                      </p>
+                    )}
+                  </>
                 )}
 
                 {/* Store currency — independent stores charge on their own
