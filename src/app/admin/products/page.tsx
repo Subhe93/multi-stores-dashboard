@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 import { Package } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
 
@@ -141,7 +142,7 @@ export default function AdminProducts() {
               <div className="flex items-center gap-2.5">
                 {item.images?.[0]?.url ? (
                   <img
-                    src={item.images[0].url}
+                    src={resolveMediaUrl(item.images[0].url)}
                     alt=""
                     className="w-8 h-8 rounded object-cover bg-zinc-100 shrink-0"
                   />

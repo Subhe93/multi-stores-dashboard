@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Package, Pencil, Trash2, ImageIcon, CheckSquare2, Copy } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
 
@@ -149,7 +150,7 @@ export default function ProviderProducts() {
   };
 
   const getFeaturedImage = (item: ProductRow) =>
-    item.images?.find((img) => img.is_featured)?.url || item.images?.[0]?.url || null;
+    resolveMediaUrl(item.images?.find((img) => img.is_featured)?.url || item.images?.[0]?.url) || null;
 
   const allSelected = products.length > 0 && selected.size === products.length;
   const someSelected = selected.size > 0 && selected.size < products.length;

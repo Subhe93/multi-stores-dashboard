@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { resolveMediaUrl } from '@/lib/media';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -268,7 +269,8 @@ export default function ProviderOrderDetail() {
       if (fv.file_url) {
         designFiles.push({
           label: fv.custom_field?.translations?.[0]?.label || fv.custom_field_id || t('file'),
-          url: fv.file_url,
+          // Customer uploads live on the API host; make the path absolute.
+          url: resolveMediaUrl(fv.file_url) || fv.file_url,
           itemTitle: title,
         });
       }
