@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "الهيدر"
   },
   "product": {
+    "seededFromLocale": "الاسم والوصف معروضان من لغة متجر سابقة ({locale}). راجعهما ثم احفظ لتخزينهما باللغة الحالية.",
     "errTitleRequired": "العنوان مطلوب",
     "errCategoryRequired": "يرجى اختيار فئة",
     "errPricePositive": "يجب أن يكون السعر أكبر من صفر",

@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "Sidhuvudsfält"
   },
   "product": {
+    "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",
     "errTitleRequired": "Titel krävs",
     "errCategoryRequired": "Välj en kategori",
     "errPricePositive": "Priset måste vara större än noll",

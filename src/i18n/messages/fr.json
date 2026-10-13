@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "Barre d’en-tête"
   },
   "product": {
+    "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",
     "errTitleRequired": "Le titre est requis",
     "errCategoryRequired": "Veuillez sélectionner une catégorie",
     "errPricePositive": "Le prix doit être supérieur à zéro",

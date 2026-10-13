@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "Kopfleiste"
   },
   "product": {
+    "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",
     "errTitleRequired": "Titel ist erforderlich",
     "errCategoryRequired": "Bitte wählen Sie eine Kategorie",
     "errPricePositive": "Der Preis muss größer als null sein",

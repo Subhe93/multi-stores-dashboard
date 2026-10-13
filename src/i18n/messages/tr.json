@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "Üst çubuk"
   },
   "product": {
+    "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",
     "errTitleRequired": "Başlık gereklidir",
     "errCategoryRequired": "Lütfen bir kategori seçin",
     "errPricePositive": "Fiyat sıfırdan büyük olmalıdır",

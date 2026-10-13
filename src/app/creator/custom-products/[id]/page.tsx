@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useStoreType } from '@/lib/useStoreType';
@@ -150,6 +150,8 @@ export default function EditCustomProduct() {
     en: { title: '', description: '', slug: '' },
   });
   const [translatingLocale, setTranslatingLocale] = useState('');
+  // Locale the primary tab was seeded from (store switched content language).
+  const [seededFrom, setSeededFrom] = useState('');
 
   // Pricing
   const [pricingType, setPricingType] = useState<PricingType>('SINGLE');
@@ -239,12 +241,24 @@ export default function EditCustomProduct() {
       setSelectedImageUrls(imgUrls);
       setFeaturedImageUrl(imgUrls[0] || null);
 
-      // Translations
+      // Translations. Rows under locales the store no longer configures are
+      // kept (the API replaces all translations on save). If the primary tab
+      // would be empty because the store switched its content language, seed
+      // it from the best available row so the product doesn't look nameless.
       const merged: Record<string, LocaleTranslation> = {};
       all.forEach((l) => { merged[l] = { title: '', description: '', slug: '' }; });
       (productRes.translations || []).forEach((tr) => {
         merged[tr.locale] = { title: tr.title || '', description: tr.description || '', slug: tr.slug || '' };
       });
+      if (!merged[primary]?.title?.trim()) {
+        const donor =
+          (merged['en']?.title?.trim() ? 'en' : undefined) ||
+          Object.keys(merged).find((l) => l !== primary && merged[l]?.title?.trim());
+        if (donor) {
+          merged[primary] = { ...merged[donor]! };
+          setSeededFrom(donor);
+        }
+      }
       setTranslations(merged);
 
       setFaqs(productRes.faqs || []);
@@ -707,6 +721,12 @@ export default function EditCustomProduct() {
         )}
 
         <CardContent className="space-y-4 pt-4">
+          {seededFrom && (
+            <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>{t('product.seededFromLocale', { locale: LOCALE_LABELS[seededFrom] || seededFrom.toUpperCase() })}</span>
+            </div>
+          )}
           {activeLocale !== primaryLocale && (
             <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">
               <span className="text-xs text-muted-foreground">

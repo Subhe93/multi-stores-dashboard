@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Loader2, Languages, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, Languages, Check, Info } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { VariantManager, type VariantOption, type GeneratedVariant } from './VariantManager';
@@ -180,6 +180,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     en: { title: '', description: '', slug: '' },
   });
   const [translatingLocale, setTranslatingLocale] = useState('');
+  // Locale the primary tab was seeded from when the store's language set no
+  // longer covers the product's stored translations (see the seeding effect).
+  const [seededFrom, setSeededFrom] = useState('');
+  const seededRef = useRef(false);
+  const [localeConfigLoaded, setLocaleConfigLoaded] = useState(false);
 
   // ── Other product fields ───────────────────────────────────
   const [categories, setCategories] = useState<SelectOption[]>([]);
@@ -238,12 +243,16 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setPrimaryLocale(primary);
         setAllLocales(all);
         setActiveLocale(primary);
-        // initialise empty slots for every locale
+        // Initialise empty slots for every configured locale, KEEPING rows for
+        // locales that are no longer configured (a store that switched its
+        // content language). The API replaces all translations on save, so
+        // dropping them from state here would silently delete them.
         setTranslations(prev => {
-          const next: Record<string, LocaleTranslation> = {};
-          all.forEach(l => { next[l] = prev[l] || { title: '', description: '', slug: '' }; });
+          const next: Record<string, LocaleTranslation> = { ...prev };
+          all.forEach(l => { if (!next[l]) next[l] = { title: '', description: '', slug: '' }; });
           return next;
         });
+        setLocaleConfigLoaded(true);
       })
       .catch(() => {}); // no store yet — keep defaults
   }, [token]);
@@ -370,6 +379,25 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       .then(attrs => setCategoryAttrs(Array.isArray(attrs) ? attrs : []))
       .catch(() => setCategoryAttrs([]));
   }, [categoryId]);
+
+  // ── Seed an empty primary tab from an orphan translation ──
+  // A store that switched its primary content language leaves older products
+  // translated only under the previous locale; every configured-locale tab
+  // then comes up empty and the product looks like it lost its name. Seed the
+  // primary tab once from the best available row (en, then any) so the
+  // creator sees the content and can store it under the current language —
+  // the original row stays in state and is re-sent on save.
+  useEffect(() => {
+    if (mode !== 'edit' || loading || !localeConfigLoaded || seededRef.current) return;
+    if (translations[primaryLocale]?.title?.trim()) return;
+    const donor =
+      (translations['en']?.title?.trim() ? 'en' : undefined) ||
+      Object.keys(translations).find((l) => l !== primaryLocale && translations[l]?.title?.trim());
+    if (!donor) return;
+    seededRef.current = true;
+    setSeededFrom(donor);
+    setTranslations((prev) => ({ ...prev, [primaryLocale]: { ...prev[donor]! } }));
+  }, [mode, loading, localeConfigLoaded, translations, primaryLocale]);
 
   // ── Auto-slug from primary locale title ───────────────────
   useEffect(() => {
@@ -668,6 +696,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             )}
 
             <CardContent className="pt-5 space-y-4">
+              {seededFrom && (
+                <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                  <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>{t('product.seededFromLocale', { locale: LOCALE_LABELS[seededFrom] || seededFrom.toUpperCase() })}</span>
+                </div>
+              )}
               {/* Translate button for secondary locales */}
               {activeLocale !== primaryLocale && (
                 <div className="flex items-center justify-between p-2.5 bg-zinc-50 rounded-lg border border-dashed">

@@ -2639,6 +2639,7 @@
     "typoHeaderBar": "Header bar"
   },
   "product": {
+    "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",
     "errTitleRequired": "Title is required",
     "errCategoryRequired": "Please select a category",
     "errPricePositive": "Price must be greater than zero",
