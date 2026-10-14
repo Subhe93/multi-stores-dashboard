@@ -1,14 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { useMarkets } from '@/lib/useMarkets';
+import type { BuyerType } from '@/lib/b2b';
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -34,6 +38,12 @@ interface OrderRow {
   created_at?: string | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
   items?: unknown[] | null;
+  currency?: string | null;
+  // Present when the Markets app priced the order (GET /orders includes market).
+  market?: { key: string; name: string; currency: string } | null;
+  // b2b app snapshot: COMPANY orders carry the company name bought under.
+  customer_type?: BuyerType | null;
+  company_name?: string | null;
 }
 
 interface OrdersMeta {
@@ -71,6 +81,35 @@ export default function CreatorOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
+  // Market filter (Markets app only): `?market=<key>` is mirrored in the URL
+  // so a filtered list can be linked.
+  const searchParams = useSearchParams();
+  const marketKey = searchParams.get('market') ?? '';
+  const { apps } = useStoreApps();
+  const marketsEnabled = isAppEnabled(apps, 'markets');
+  const { markets } = useMarkets(marketsEnabled);
+  // Buyer filter (b2b app only): `?buyer=company|person` mirrored in the URL.
+  const b2bEnabled = isAppEnabled(apps, 'b2b');
+  const buyer = searchParams.get('buyer') ?? '';
+  // The API only knows the filter when the b2b app is on; drop it otherwise.
+  // Kept as a string so the first `apps` arrival doesn't refetch an unfiltered list.
+  const buyerParam = b2bEnabled && buyer ? `&buyer=${encodeURIComponent(buyer)}` : '';
+
+  const setMarketKey = (key: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (key) params.set('market', key);
+    else params.delete('market');
+    const qs = params.toString();
+    router.replace(qs ? `/creator/orders?${qs}` : '/creator/orders');
+  };
+
+  const setBuyer = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set('buyer', value);
+    else params.delete('buyer');
+    const qs = params.toString();
+    router.replace(qs ? `/creator/orders?${qs}` : '/creator/orders');
+  };
 
   // Status filtering happens server-side so tabs cover ALL orders,
   // not just the currently fetched page.
@@ -80,7 +119,8 @@ export default function CreatorOrdersPage() {
     setLoadError(false);
     try {
       const statusParam = tab === 'All' ? '' : `&status=${tab.toUpperCase()}`;
-      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}`, { token });
+      const marketParam = marketKey ? `&market=${encodeURIComponent(marketKey)}` : '';
+      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${marketParam}${buyerParam}`, { token });
       setOrders(res?.data ?? []);
       setMeta(res?.meta ?? null);
     } catch (err) {
@@ -92,10 +132,22 @@ export default function CreatorOrdersPage() {
   };
 
   useEffect(() => {
-    // Refetch from page 1 whenever the active tab changes.
+    // Refetch from page 1 whenever the active tab or a filter changes.
     fetchOrders(1, activeTab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, activeTab]);
+  }, [token, activeTab, marketKey, buyerParam]);
+
+  // Market orders are charged in the market currency, which can differ from
+  // the store currency `fmt` formats in.
+  const fmtOrderTotal = (item: OrderRow) => {
+    const cur = item.market?.currency ?? item.currency;
+    if (!cur) return fmt(item.total);
+    try {
+      return new Intl.NumberFormat('en', { style: 'currency', currency: cur }).format(Number(item.total ?? 0));
+    } catch {
+      return fmt(item.total);
+    }
+  };
 
   const columns = [
     {
@@ -116,11 +168,22 @@ export default function CreatorOrdersPage() {
       key: 'customer',
       label: t('orders.colCustomer'),
       render: (item: OrderRow) => (
-        <span className="text-sm">
-          {item.customer
-            ? `${item.customer.first_name} ${item.customer.last_name}`.trim()
-            : '—'}
-        </span>
+        <div className="min-w-0">
+          <span className="text-sm">
+            {item.customer
+              ? `${item.customer.first_name} ${item.customer.last_name}`.trim()
+              : '—'}
+          </span>
+          {/* Company orders (b2b app) show the company bought under. */}
+          {item.customer_type === 'COMPANY' && (
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <Badge variant="outline" className="text-[10px] font-medium bg-violet-50 text-violet-700 border-violet-200">
+                {t('orders.companyBadge')}
+              </Badge>
+              {item.company_name && <span className="text-xs text-muted-foreground">{item.company_name}</span>}
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -137,9 +200,24 @@ export default function CreatorOrdersPage() {
       label: t('orders.colTotal'),
       sortable: true,
       render: (item: OrderRow) => (
-        <span className="text-sm font-medium">{fmt(item.total)}</span>
+        <span className="text-sm font-medium">{fmtOrderTotal(item)}</span>
       ),
     },
+    // Market column only for stores running the Markets app.
+    ...(marketsEnabled
+      ? [{
+          key: 'market',
+          label: t('orders.market'),
+          render: (item: OrderRow) =>
+            item.market ? (
+              <Badge variant="outline" className="text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+                {item.market.name} · {item.market.currency}
+              </Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            ),
+        }]
+      : []),
     {
       key: 'status',
       label: tc('status'),
@@ -187,18 +265,51 @@ export default function CreatorOrdersPage() {
       </div>
 
       {/* Tab filters */}
-      <div className="flex gap-1.5 flex-wrap">
-        {TABS.map((tab) => (
-          <Button
-            key={tab}
-            variant={activeTab === tab ? 'default' : 'ghost'}
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => setActiveTab(tab)}
-          >
-            {t(`orders.tab${tab}`)}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1.5 flex-wrap">
+          {TABS.map((tab) => (
+            <Button
+              key={tab}
+              variant={activeTab === tab ? 'default' : 'ghost'}
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setActiveTab(tab)}
+            >
+              {t(`orders.tab${tab}`)}
+            </Button>
+          ))}
+        </div>
+        {(marketsEnabled || b2bEnabled) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {marketsEnabled && markets && markets.length > 0 && (
+              <div className="w-56">
+                <SearchableSelect
+                  value={marketKey}
+                  onChange={setMarketKey}
+                  placeholder={t('orders.marketFilter')}
+                  options={[
+                    { value: '', label: t('orders.marketAll') },
+                    ...markets.map((m) => ({ value: m.key, label: m.name, description: `${m.key} · ${m.currency}` })),
+                  ]}
+                />
+              </div>
+            )}
+            {b2bEnabled && (
+              <div className="w-44">
+                <SearchableSelect
+                  value={buyer}
+                  onChange={setBuyer}
+                  placeholder={t('orders.buyerFilter')}
+                  options={[
+                    { value: '', label: t('orders.buyerAll') },
+                    { value: 'company', label: t('orders.buyerCompany') },
+                    { value: 'person', label: t('orders.buyerPerson') },
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {loadError ? (

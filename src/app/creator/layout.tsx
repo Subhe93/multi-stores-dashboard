@@ -7,6 +7,7 @@ import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
 import { useStoreType } from '@/lib/useStoreType';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
@@ -28,6 +29,8 @@ import {
   Truck,
   Mail,
   Palette,
+  Blocks,
+  Globe,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +41,13 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   // entries (provider catalog, imported products) are hidden from the nav.
   const { storeType } = useStoreType();
   const isIndependent = storeType === 'INDEPENDENT';
+  // Store apps gate their own nav entries (markets only while enabled).
+  const { apps } = useStoreApps();
+  const marketsEnabled = isAppEnabled(apps, 'markets');
+  // Invoices stay reachable (read-only) while the app is merely available,
+  // so issued documents remain accessible after it is switched off (L1).
+  const invoicesVisible =
+    isAppEnabled(apps, 'invoices') || !!apps?.some((a) => a.key === 'invoices' && a.available);
 
   const creatorNav = [
     {
@@ -61,12 +71,20 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
           : [{ label: t('products'), href: '/creator/custom-products', icon: <Layers className="w-4 h-4" /> }]),
         { label: t('collections'), href: '/creator/categories', icon: <FolderTree className="w-4 h-4" /> },
         { label: t('shipping'), href: '/creator/shipping', icon: <Truck className="w-4 h-4" /> },
+        // Markets app: per-country domains, currencies and locales.
+        ...(marketsEnabled
+          ? [{ label: t('markets'), href: '/creator/markets', icon: <Globe className="w-4 h-4" /> }]
+          : []),
       ],
     },
     {
       title: t('sales'),
       items: [
         { label: t('orders'), href: '/creator/orders', icon: <ClipboardList className="w-4 h-4" /> },
+        // Invoices app: issued invoices/credit notes, backlog, seller profile.
+        ...(invoicesVisible
+          ? [{ label: t('invoices'), href: '/creator/invoices', icon: <FileText className="w-4 h-4" /> }]
+          : []),
         { label: t('promotions'), href: '/creator/promotions', icon: <Tag className="w-4 h-4" /> },
         { label: t('bundles'), href: '/creator/bundles', icon: <Layers className="w-4 h-4" /> },
         { label: t('earnings'), href: '/creator/earnings', icon: <DollarSign className="w-4 h-4" /> },
@@ -85,6 +103,9 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         // Every store type: order notifications address + delivery log. The
         // own-sender and template sections inside are independent-only.
         { label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> },
+        // Optional store apps (markets, B2B, invoices, importer) the admin
+        // made available; the creator switches them on here.
+        { label: t('apps'), href: '/creator/apps', icon: <Blocks className="w-4 h-4" /> },
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],
     },

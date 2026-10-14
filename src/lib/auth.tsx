@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from './api';
+import { clearCachedStoreApps } from './useStoreApps';
 
 export interface ProviderProfile {
   id: string;
@@ -114,6 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Storage may be unavailable; the cache is best-effort anyway.
     }
+    // Same for the store-apps cache (written by useStoreApps).
+    clearCachedStoreApps();
     setToken(null);
     setUser(null);
     router.push('/auth/login');

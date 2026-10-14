@@ -1,0 +1,96 @@
+// Mirror of multi-stores-shared/src/constants/store-apps.ts — keep in sync.
+//
+// Static registry of the optional "Store Apps" a store can switch on. The API
+// holds the source of truth for availability/enabled state; this file only
+// describes each app so the dashboard can render names, badges and
+// dependency hints without an extra request.
+
+export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer'] as const;
+
+export type StoreAppKey = (typeof STORE_APP_KEYS)[number];
+
+export interface StoreAppDefinition {
+  key: StoreAppKey;
+  // i18n keys under `creator.apps.items.<key>` (same strings the API returns
+  // as name_key / description_key).
+  nameKey: string;
+  descriptionKey: string;
+  // Only INDEPENDENT stores may enable the app.
+  requiresIndependent: boolean;
+  // Apps that must be enabled before this one can be switched on.
+  dependsOn: StoreAppKey[];
+}
+
+export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
+  markets: {
+    key: 'markets',
+    nameKey: 'creator.apps.items.markets.name',
+    descriptionKey: 'creator.apps.items.markets.description',
+    requiresIndependent: true,
+    dependsOn: [],
+  },
+  b2b: {
+    key: 'b2b',
+    nameKey: 'creator.apps.items.b2b.name',
+    descriptionKey: 'creator.apps.items.b2b.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
+  invoices: {
+    key: 'invoices',
+    nameKey: 'creator.apps.items.invoices.name',
+    descriptionKey: 'creator.apps.items.invoices.description',
+    requiresIndependent: true,
+    dependsOn: [],
+  },
+  importer: {
+    key: 'importer',
+    nameKey: 'creator.apps.items.importer.name',
+    descriptionKey: 'creator.apps.items.importer.description',
+    requiresIndependent: true,
+    dependsOn: ['markets'],
+  },
+};
+
+export function isStoreAppKey(value: unknown): value is StoreAppKey {
+  return typeof value === 'string' && (STORE_APP_KEYS as readonly string[]).includes(value);
+}
+
+// ─── API view shapes ─────────────────────────────────────────────────────────
+
+export type StoreAppBlockedReason = 'NOT_AVAILABLE' | 'REQUIRES_INDEPENDENT' | 'DEPENDENCY_MISSING';
+
+/**
+ * Creator view: GET /stores/my/apps returns every registry key. Apps the admin
+ * has not made available come back with `available: false`,
+ * `can_enable: false` and `blocked_reason: 'NOT_AVAILABLE'`.
+ * `enabled` is already the effective value (available && enabled).
+ */
+export interface MyStoreAppView {
+  key: StoreAppKey;
+  name_key: string;
+  description_key: string;
+  available: boolean;
+  enabled: boolean;
+  settings: Record<string, unknown>;
+  enabled_at: string | null;
+  requires_independent: boolean;
+  depends_on: StoreAppKey[];
+  can_enable: boolean;
+  blocked_reason: StoreAppBlockedReason | null;
+}
+
+/**
+ * Admin view: GET /stores/by-creator/:creatorId/apps (every registry key).
+ * `enabled` is the raw creator toggle, so a row can be available=false and
+ * enabled=true at the same time.
+ */
+export interface AdminStoreAppView {
+  key: StoreAppKey;
+  name_key: string;
+  description_key: string;
+  available: boolean;
+  enabled: boolean;
+  requires_independent: boolean;
+  depends_on: StoreAppKey[];
+}

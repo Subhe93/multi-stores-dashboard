@@ -10,6 +10,8 @@ export class ApiError extends Error {
   status?: number;
   errors?: string[];
   code?: string;
+  /** Raw error body for codes that carry extra fields (e.g. `observed` DNS records). */
+  payload?: Record<string, unknown>;
 }
 
 export async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
@@ -40,6 +42,7 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
     // Stable machine-readable error code (when the API provides one). The UI can
     // translate `errors.<code>`, falling back to the English `message` above.
     err.code = typeof json.code === 'string' ? json.code : undefined;
+    err.payload = json && typeof json === 'object' ? json : undefined;
     throw err;
   }
 

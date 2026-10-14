@@ -13,9 +13,13 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
+import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
 import { useStoreType } from '@/lib/useStoreType';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
-import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
+import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
+import type { CustomerB2bDefaults, OrderB2bSnapshot } from '@/lib/b2b';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -106,7 +110,8 @@ interface OrderAddress {
   country_code?: string | null;
 }
 
-interface Order extends KustomOrderFields {
+// OrderB2bSnapshot: the five company columns written by the b2b app.
+interface Order extends KustomOrderFields, OrderB2bSnapshot {
   id: string;
   order_number: string;
   status: string;
@@ -118,15 +123,22 @@ interface Order extends KustomOrderFields {
   shipping_method_type?: string | null;
   discount_amount?: number | string | null;
   currency?: string | null;
+  // Markets app: set when the order was placed through a market (M1).
+  market?: { key: string; name: string; currency: string } | null;
+  hostname?: string | null;
+  locale?: string | null;
+  fx_rate_snapshot?: number | string | null;
   tax_lines?: TaxLine[] | null;
   tax_rate_bp?: number | null;
   tax_amount?: number | string | null;
+  shipping_tax_amount?: number | string | null;
   tax_pricing_mode?: TaxPricingMode | null;
   items?: OrderItem[] | null;
   timeline?: OrderTimelineEntry[] | null;
   // Legacy orders carry a single commission object; newer ones an array.
   commission?: OrderCommission | OrderCommission[] | null;
-  customer?: { first_name?: string | null; last_name?: string | null; email?: string | null } | null;
+  // Customer account; the b2b defaults are prefill, the order snapshot wins.
+  customer?: ({ first_name?: string | null; last_name?: string | null; email?: string | null } & CustomerB2bDefaults) | null;
   address?: OrderAddress | null;
   payouts?: { status?: string | null }[] | null;
 }
@@ -145,6 +157,9 @@ function statusLabels(t: Translator): Record<string, string> {
     RETURNED: t('orderStatus.RETURNED'),
     CANCELLED: t('orderStatus.CANCELLED'),
     REFUNDED: t('orderStatus.REFUNDED'),
+    // Invoices app timeline rows.
+    INVOICE_ISSUED: t('orderStatus.INVOICE_ISSUED'),
+    CREDIT_NOTE_ISSUED: t('orderStatus.CREDIT_NOTE_ISSUED'),
   };
 }
 
@@ -188,6 +203,11 @@ export default function CreatorOrderDetailPage() {
   const router = useRouter();
   const { fmt, currency } = useCurrency();
   const { storeType } = useStoreType();
+  // Invoices app: writes need it enabled; documents stay readable after it is
+  // switched off (L1), so the card is always mounted and hides itself when
+  // there are no documents and nothing may be written.
+  const { apps } = useStoreApps();
+  const invoicesEnabled = isAppEnabled(apps, 'invoices');
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
   const STATUS_LABELS = statusLabels(t);
@@ -319,6 +339,19 @@ export default function CreatorOrderDetailPage() {
             <p className="text-sm text-muted-foreground">
               {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}
             </p>
+            {/* Market context (Markets app): market, hostname, locale, FX rate used. */}
+            {order.market && (
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">
+                  {t('orders.market')}: {order.market.name} · {order.market.currency}
+                </Badge>
+                {order.hostname && <span dir="ltr">{t('orders.marketHostname')}: {order.hostname}</span>}
+                {order.locale && <span>{t('orders.marketLocale')}: {order.locale}</span>}
+                {order.fx_rate_snapshot != null && (
+                  <span dir="ltr">{t('orders.marketFxRate')}: {Number(order.fx_rate_snapshot)}</span>
+                )}
+              </p>
+            )}
           </div>
         </div>
         <Badge
@@ -521,13 +554,22 @@ export default function CreatorOrderDetailPage() {
                     <span>-{fmt(Number(order.discount_amount))}</span>
                   </div>
                 )}
+                {/* Company orders (b2b app) read net-first: net total, then the
+                    VAT rows, then the gross labelled "incl. VAT". */}
+                {order.customer_type === 'COMPANY' && (
+                  <div className="flex justify-between font-medium">
+                    <span>{t('orderDetail.netTotal')}</span>
+                    <span>{formatAmountIn(deriveNetTotals(order).net_total, order.currency || currency)}</span>
+                  </div>
+                )}
                 {/* Itemised tax lines (one row per rate) in the order's own currency;
                     inclusive orders show what the total already contains. */}
                 <OrderTaxLines order={order} currency={order.currency || currency} />
                 <Separator />
                 <div className="flex justify-between font-semibold text-base pt-1">
-                  <span>{t('orderDetail.total')}</span>
-                  <span>{fmt(Number(order.total))}</span>
+                  <span>{order.customer_type === 'COMPANY' ? t('orderDetail.totalInclVat') : t('orderDetail.total')}</span>
+                  {/* Order currency (market orders can differ from the store currency). */}
+                  <span>{formatAmountIn(order.total, order.currency || currency)}</span>
                 </div>
               </div>
             </CardContent>
@@ -652,8 +694,15 @@ export default function CreatorOrderDetailPage() {
                 {order.customer?.first_name} {order.customer?.last_name}
               </p>
               <p className="text-muted-foreground">{order.customer?.email ?? '—'}</p>
+              {/* Company snapshot (b2b app); renders nothing for person orders. */}
+              <OrderCompanyLines order={order} customer={order.customer} />
             </CardContent>
           </Card>
+
+          {/* Invoices app: documents of this order, manual issue and credit notes. */}
+          {token && (
+            <OrderInvoiceCard orderId={id} token={token} appEnabled={invoicesEnabled} />
+          )}
 
           {/* Address */}
           <Card className="shadow-none">

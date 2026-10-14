@@ -130,6 +130,38 @@ export function orderTaxLines(order: {
   return [{ label: 'VAT', rate_bp: rateBp, taxable_amount: Number(order.total ?? 0) - taxAmount, tax_amount: taxAmount }];
 }
 
+// Net view of a stored order (b2b app). Mirror of `deriveNetTotals` in
+// multi-stores-api/src/modules/taxes/tax.service.ts — keep in sync. Nothing is
+// stored: `gross = total`, `net_total = total − tax_amount`, and the shipping
+// net only differs from the gross in INCLUSIVE mode.
+export interface NetTotals {
+  gross: number;
+  net_total: number;
+  net_shipping: number;
+  tax_total: number;
+}
+
+export function deriveNetTotals(order: {
+  total?: number | string | null;
+  tax_amount?: number | string | null;
+  shipping_cost?: number | string | null;
+  shipping_tax_amount?: number | string | null;
+  tax_pricing_mode?: TaxPricingMode | null;
+}): NetTotals {
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const gross = Number(order.total ?? 0);
+  const taxTotal = Number(order.tax_amount ?? 0);
+  const shipping = Number(order.shipping_cost ?? 0);
+  const shippingTax = Number(order.shipping_tax_amount ?? 0);
+  const inclusive = order.tax_pricing_mode !== 'EXCLUSIVE';
+  return {
+    gross: round(gross),
+    net_total: round(gross - taxTotal),
+    net_shipping: round(inclusive ? shipping - shippingTax : shipping),
+    tax_total: round(taxTotal),
+  };
+}
+
 // Format an amount in a specific currency (the order's own, which for an
 // independent store can differ from the dashboard default).
 export function formatAmountIn(amount: number | string | null | undefined, currency: string): string {

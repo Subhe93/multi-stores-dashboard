@@ -307,7 +307,10 @@
     "notificationTemplates": "Notification Templates",
     "email": "Email",
     "guide": "Guide",
-    "emailLog": "Email log"
+    "emailLog": "Email log",
+    "apps": "Apps",
+    "markets": "Markets",
+    "invoices": "Invoices"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -731,7 +734,42 @@
     "kustomPartnerId": "Kustom Partner ID",
     "kustomPartnerIdHint": "Optional. Sent as the Kustom-Partner header on every Kustom API call made for independent stores. Leave blank if the platform has no Kustom partner agreement.",
     "stripeConnectWebhookMissing": "{count} independent store(s) charge on their own Stripe account. Without this secret, refunds they make in Stripe never sync back to the order.",
-    "storeTypeGuideLink": "How to convert a store: open the guide"
+    "storeTypeGuideLink": "How to convert a store: open the guide",
+    "storeApps": {
+      "title": "Store apps",
+      "available": "Available",
+      "creatorEnabled": "Enabled by creator",
+      "creatorDisabled": "Not enabled",
+      "updateFailed": "Failed to update app availability.",
+      "loadFailed": "Failed to load store apps."
+    },
+    "fxRates": {
+      "title": "FX rates (Markets)",
+      "subtitle": "Platform rates used by markets with the \"platform rate\" source.",
+      "empty": "No rates yet.",
+      "base": "From",
+      "quote": "To",
+      "rate": "Rate",
+      "remove": "Remove",
+      "removeConfirm": "Remove the rate {pair}? Markets using the platform rate for this pair lose their automatic prices.",
+      "add": "Add rate",
+      "saved": "Rates saved",
+      "save": "Save rates"
+    },
+    "domains": {
+      "title": "Market domains",
+      "subtitle": "Set a domain to Active after the Cloudflare step; only Active domains are served.",
+      "updated": "Domain status updated.",
+      "verifiedAt": "verified {date}",
+      "loadFailed": "Failed to load domains.",
+      "status": {
+        "PENDING": "Pending",
+        "VERIFIED": "Verified",
+        "ACTIVE": "Active"
+      }
+    },
+    "orderStatus_INVOICE_ISSUED": "Invoice issued",
+    "orderStatus_CREDIT_NOTE_ISSUED": "Credit note issued"
   },
   "guide": {
     "title": "Operations guide",
@@ -1157,7 +1195,12 @@
       "revenueBreakdown": "Revenue Breakdown",
       "independentBannerTitle": "Direct payments",
       "independentBannerDesc": "Your store is independent: every order is paid directly into your connected Stripe account and the platform takes no commission.",
-      "independentBannerLink": "View payout details in your Stripe dashboard"
+      "independentBannerLink": "View payout details in your Stripe dashboard",
+      "byCurrency": {
+        "title": "Earnings in {currency}",
+        "mixedHidden": "Your orders are in several currencies, so totals are shown per currency.",
+        "pending": "Pending {amount}"
+      }
     },
     "independent": {
       "notAvailableTitle": "Not available for independent stores",
@@ -1184,7 +1227,18 @@
       "tabDelivered": "Delivered",
       "tabCancelled": "Cancelled",
       "loadFailed": "Failed to load orders. Please try again.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "market": "Market",
+      "marketFilter": "Filter by market",
+      "marketAll": "All markets",
+      "marketHostname": "Domain",
+      "marketLocale": "Language",
+      "marketFxRate": "FX rate",
+      "companyBadge": "Company",
+      "buyerFilter": "Filter by buyer",
+      "buyerAll": "All buyers",
+      "buyerCompany": "Companies",
+      "buyerPerson": "Private persons"
     },
     "products": {
       "title": "Products",
@@ -1201,7 +1255,26 @@
       "noProductsHint": "Add products from the provider catalog or create your own.",
       "base": "Base",
       "draft": "Draft",
-      "edit": "Edit"
+      "edit": "Edit",
+      "marketPrices": {
+        "tab": "Prices by market",
+        "detailsTab": "Product",
+        "title": "Prices by market",
+        "subtitle": "Base prices are in {currency}. Leave a field empty to use the converted price.",
+        "save": "Save prices",
+        "saved": "Prices saved",
+        "noMarkets": "No markets yet.",
+        "available": "Available in this market",
+        "hiddenWarning": "No rate and no manual price: this product is hidden in this market.",
+        "colAuto": "Converted price",
+        "rateNote": "Rate {rate}",
+        "noRate": "No rate",
+        "colOverride": "Manual price",
+        "manual": "Manual",
+        "resetToAuto": "Reset to automatic",
+        "colCompareAt": "Compare-at price",
+        "variants": "Variants ({count})"
+      }
     },
     "browseCatalog": {
       "title": "Provider Catalog",
@@ -2090,7 +2163,14 @@
       "independentEarningsNote": "Paid directly to your Stripe account — no platform commission.",
       "updateFailed": "Failed to update the order status. Please try again.",
       "loadFailed": "Failed to load this order. Please try again.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "company": "Company",
+      "orgNumber": "Org. number",
+      "vatNumber": "VAT number",
+      "reference": "Reference",
+      "customerDefaults": "Customer defaults",
+      "netTotal": "Net total",
+      "totalInclVat": "Total incl. VAT"
     },
     "orderStatus": {
       "PENDING": "Pending",
@@ -2102,7 +2182,9 @@
       "DELIVERED": "Delivered",
       "RETURNED": "Returned",
       "CANCELLED": "Cancelled",
-      "REFUNDED": "Refunded"
+      "REFUNDED": "Refunded",
+      "INVOICE_ISSUED": "Invoice issued",
+      "CREDIT_NOTE_ISSUED": "Credit note issued"
     },
     "email": {
       "title": "Email",
@@ -2165,6 +2247,426 @@
         "templates": "Templates",
         "log": "Email log"
       }
+    },
+    "apps": {
+      "title": "Apps",
+      "subtitle": "Switch optional features on or off for your store.",
+      "empty": "No apps yet. Apps are made available by the platform admin.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "requiresIndependent": "Independent stores only",
+      "dependsOn": "Requires: {apps}",
+      "blockedRequiresIndependent": "This app can only be enabled on an independent store.",
+      "blockedDependencyMissing": "Enable {apps} first.",
+      "saveFailed": "Failed to update the app.",
+      "items": {
+        "markets": {
+          "name": "Markets",
+          "description": "Sell on several domains, each with its own currency, language and pricing."
+        },
+        "b2b": {
+          "name": "Business customers (B2B)",
+          "description": "Company accounts with VAT numbers and net pricing for business buyers."
+        },
+        "invoices": {
+          "name": "Invoices",
+          "description": "Generate and send invoices for your orders."
+        },
+        "importer": {
+          "name": "WooCommerce importer",
+          "description": "Import products and categories from an existing WooCommerce shop."
+        }
+      },
+      "b2b": {
+        "settings": {
+          "title": "B2B settings",
+          "allowCompany": "Allow company purchases",
+          "defaultBuyerType": "Default buyer type",
+          "person": "Private person",
+          "company": "Company",
+          "requireVat": "Require VAT number",
+          "orgCountries": "Validate organisation number format for",
+          "orgCountriesHint": "Strict format rules exist for Sweden, Finland, Denmark and Norway; other countries use a generic check. Default: Sweden.",
+          "kustomNote": "Organisation purchases must be enabled on your Kustom account — confirm with Kustom support before switching this on for business buyers.",
+          "saved": "Saved",
+          "saveFailed": "Failed to save the B2B settings."
+        }
+      },
+      "invoices": {
+        "settings": {
+          "title": "Invoice settings",
+          "openInvoices": "Seller profile & numbering",
+          "autoIssue": "Issue invoices automatically",
+          "autoIssueHint": "Card and Kustom orders are invoiced as soon as payment is confirmed.",
+          "codIssueOn": "Invoice cash-on-delivery orders",
+          "codIssueOnHint": "Cash is usually collected on delivery, so that is the default.",
+          "codDelivered": "When the order is delivered",
+          "codCreated": "When the order is placed",
+          "attachPdf": "Attach the PDF to order emails",
+          "attachPdfHint": "The invoice or credit note is attached to the next order email the customer receives.",
+          "creditOnCancel": "Credit cancelled orders automatically",
+          "creditOnCancelHint": "A full credit note is issued when an invoiced order is cancelled.",
+          "saved": "Saved",
+          "saveFailed": "Failed to save the invoice settings."
+        }
+      }
+    },
+    "markets": {
+      "title": "Markets",
+      "subtitle": "Sell per country with its own domain, currency, languages and prices.",
+      "addMarket": "Add market",
+      "empty": "No markets yet.",
+      "notEnabled": "The Markets app is not enabled for your store.",
+      "notEnabledLink": "Open Apps",
+      "managedHint": "Managed in Markets while the Markets app is enabled.",
+      "managedLink": "Open Markets",
+      "defaultBadge": "Default",
+      "status": {
+        "DRAFT": "Draft",
+        "LIVE": "Live"
+      },
+      "list": {
+        "edit": "Edit",
+        "allCountries": "All other countries",
+        "locales": "Languages",
+        "primaryDomain": "Primary domain"
+      },
+      "form": {
+        "newTitle": "New market",
+        "newSubtitle": "Domains and the payment check become available after saving.",
+        "general": "General",
+        "name": "Name",
+        "namePlaceholder": "Europe",
+        "key": "Key",
+        "keyHint": "Short handle used in URLs and the API (letters, digits, dashes).",
+        "keyLocked": "The key cannot be changed after creation.",
+        "keyInvalid": "Key: 1–16 lowercase letters, digits or hyphens, not starting or ending with a hyphen.",
+        "rateRequired": "Enter a rate greater than 0 for a manual conversion rule.",
+        "countries": "Countries",
+        "countriesHint": "A country can belong to only one live market.",
+        "defaultLocale": "Default language",
+        "currency": "Currency",
+        "defaultCurrencyHint": "The default market follows your store currency.",
+        "locales": "Additional languages",
+        "defaultBadge": "default",
+        "pricing": "Pricing",
+        "pricingHint": "Product prices are entered in {currency}; this rule converts them for this market.",
+        "save": "Save market",
+        "create": "Create market",
+        "saved": "Market saved",
+        "deleteMarket": "Delete market",
+        "deleteConfirm": "Delete the market \"{name}\"? Its domains and price overrides are removed.",
+        "deleteWarnOrders": "Deleting a market keeps its orders; they just lose the market reference."
+      },
+      "rule": {
+        "sameCurrency": "This market uses your store currency ({currency}); prices are used as entered.",
+        "mode": "Mode",
+        "modeConvert": "Convert automatically",
+        "modeConvertDesc": "Base price × rate, then rounding",
+        "modeFixed": "Fixed prices",
+        "modeFixedDesc": "Only manual prices per product",
+        "fixedWarning": "Fixed mode: products without a manual price fall back to the rate below; without a rate they are hidden in this market.",
+        "source": "Rate source",
+        "sourceManual": "Manual rate",
+        "sourceManualDesc": "You enter the rate",
+        "sourcePlatform": "Platform rate",
+        "sourcePlatformDesc": "Maintained by the platform",
+        "rate": "Rate ({from} → {to})",
+        "ratePlatformMissing": "No platform rate for this pair",
+        "ratePlatformHint": "Platform rate: {rate}",
+        "increment": "Round to",
+        "incrementNone": "No rounding",
+        "ending": "Price ending",
+        "endingNone": "None",
+        "example": "Example: {from} → {to}",
+        "exampleNoRate": "Enter a rate to preview a conversion."
+      },
+      "domains": {
+        "title": "Domains",
+        "subtitle": "Hostnames that serve this market. Point each one to the platform with a CNAME record.",
+        "platformHost": "Platform address",
+        "copy": "Copy",
+        "primary": "Primary",
+        "redirectsTo": "Redirects to {host}",
+        "verify": "Verify",
+        "setPrimary": "Make primary",
+        "remove": "Remove",
+        "removeConfirm": "Remove {host} from this market?",
+        "removePrimaryConfirm": "{host} is the primary hostname of this market. Remove it anyway?",
+        "wwwFailed": "The main hostname was added, but www.{host} could not be added: {error}",
+        "hostname": "Hostname",
+        "add": "Add",
+        "redirectWww": "Also add www.{host}",
+        "redirectWwwDesc": "Redirects www to the main hostname (301).",
+        "activationNote": "After \"Verify\" the status becomes Verified. The platform activates the domain once the Cloudflare setup is done; only Active domains are served.",
+        "dnsNotConfigured": "The platform has not published a DNS target yet — contact support before adding domains",
+        "status": {
+          "PENDING": "Pending",
+          "VERIFIED": "Verified",
+          "ACTIVE": "Active"
+        },
+        "dns": {
+          "type": "Type",
+          "name": "Name",
+          "value": "Value",
+          "observed": "Observed",
+          "observedNone": "no record found",
+          "intro": "DNS record to add:"
+        }
+      },
+      "check": {
+        "title": "Payments",
+        "never": "Not checked yet",
+        "checkedAt": "Checked {date}",
+        "recheck": "Re-check",
+        "setLive": "Set live",
+        "setDraft": "Set to draft",
+        "setLiveBlocked": "At least one payment provider must support this currency before the market can go live.",
+        "state": {
+          "ok": "ready",
+          "missing": "not available",
+          "unknown": "unknown"
+        },
+        "stripe": {
+          "label": "Stripe",
+          "ok": "Your Stripe account can charge in this currency.",
+          "missing": "Stripe cannot charge in this currency.",
+          "unknown": "Stripe could not be checked. Try again later.",
+          "no_standard_account": "Connect a Stripe account in Settings first.",
+          "account_not_ready": "Your Stripe account is not ready for card payments yet. Complete the Stripe onboarding.",
+          "currency_not_supported_by_stripe": "Stripe does not support this currency.",
+          "settlement_conversion_note": "Payments in {currency} are converted to your Stripe payout currency."
+        },
+        "kustom": {
+          "label": "Kustom",
+          "ok": "Kustom supports this currency for the selected countries.",
+          "missing": "Kustom cannot be used for this market.",
+          "unknown": "Kustom support could not be determined. Confirm with Kustom support that your account covers these countries.",
+          "not_configured": "Kustom is not set up in Settings.",
+          "currency_mismatch": "Kustom expects {expected} for {country}.",
+          "unknown_country": "No Kustom data for {country}. Confirm with Kustom support.",
+          "currency_not_supported": "Kustom does not support this currency."
+        }
+      }
+    },
+    "invoices": {
+      "title": "Invoices",
+      "subtitle": "Invoices and credit notes issued for your orders.",
+      "notEnabled": "The Invoices app is switched off. Invoices already issued stay available here for your records.",
+      "notEnabledLink": "Open Apps",
+      "profileIncomplete": "Your seller profile is incomplete, so no invoices can be issued yet.",
+      "profileIncompleteLink": "Complete the seller profile",
+      "paidBadge": "Paid",
+      "unpaidBadge": "Unpaid",
+      "loading": "Loading…",
+      "empty": "No invoices found.",
+      "resultCount": "{count, plural, one {# document} other {# documents}}",
+      "creditFor": "for",
+      "download": "Download PDF",
+      "creditNoteAction": "Create credit note",
+      "exportCsv": "Export CSV",
+      "exporting": "Exporting…",
+      "exportFailed": "The export failed.",
+      "tabs": {
+        "invoices": "Invoices",
+        "backlog": "Backlog",
+        "profile": "Seller profile",
+        "numbering": "Numbering"
+      },
+      "kind": {
+        "INVOICE": "Invoice",
+        "CREDIT_NOTE": "Credit note"
+      },
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Number, order or buyer",
+        "kind": "Type",
+        "allKinds": "All types",
+        "paid": "Payment",
+        "paidAll": "All",
+        "from": "From",
+        "to": "To",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "number": "Number",
+        "kind": "Type",
+        "date": "Date",
+        "order": "Order",
+        "buyer": "Buyer",
+        "total": "Total",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "paymentMethods": {
+        "STRIPE": "Card",
+        "KUSTOM": "Kustom",
+        "COD": "Cash on delivery"
+      },
+      "detail": {
+        "subtitle": "Issued to {buyer}",
+        "issueDate": "Invoice date",
+        "dueDate": "Due date",
+        "order": "Order",
+        "trigger": "Issued because of",
+        "paymentMethod": "Payment method",
+        "creditedInvoice": "Credits invoice",
+        "reason": "Reason",
+        "buyer": "Buyer",
+        "orgNumber": "Org. number",
+        "vatNumber": "VAT number",
+        "reference": "Reference",
+        "email": "Email",
+        "vatSummary": "VAT summary",
+        "rate": "Rate",
+        "net": "Net",
+        "vat": "VAT",
+        "gross": "Total",
+        "remaining": "Remaining to credit",
+        "creditNote": "Create credit note",
+        "downloadPdf": "Download PDF",
+        "triggers": {
+          "PAYMENT": "Payment",
+          "COD_CREATED": "Cash-on-delivery order placed",
+          "COD_DELIVERED": "Cash-on-delivery order delivered",
+          "MANUAL": "Issued manually",
+          "REFUND": "Refund",
+          "CANCELLATION": "Cancellation"
+        },
+        "pdfUnavailable": "The PDF is not available yet."
+      },
+      "backlog": {
+        "title": "Orders without an invoice",
+        "description": "Paid orders (and delivered cash-on-delivery orders) that have no invoice yet, for example orders placed before the app was switched on.",
+        "issueAll": "Issue all",
+        "issuingAll": "Issuing…",
+        "issue": "Issue",
+        "issuing": "Issuing…",
+        "empty": "Every paid order has an invoice.",
+        "count": "{count, plural, one {# order has no invoice} other {# orders have no invoice}}",
+        "moreHidden": "Showing {shown} of {count}. \"Issue all\" covers every order.",
+        "result": "Issued {issued}, skipped {skipped}.",
+        "resultErrors": "{count, plural, one {# order failed:} other {# orders failed:}}",
+        "confirmTitle": "Issue all missing invoices?",
+        "confirmDescription": "{count, plural, one {An invoice will be issued for # order.} other {Invoices will be issued for # orders.}} Invoice numbers are assigned in order and cannot be undone; mistakes are corrected with a credit note.",
+        "columns": {
+          "order": "Order",
+          "date": "Date",
+          "payment": "Payment",
+          "total": "Total"
+        },
+        "bulkLimitHint": "At most {max} orders are issued per run. Run \"Issue all\" again for the rest of the {count}."
+      },
+      "profile": {
+        "groups": {
+          "identity": "Company identity",
+          "identityHint": "Printed as the seller on every invoice and in order emails.",
+          "address": "Address",
+          "contact": "Contact",
+          "bank": "Bank details",
+          "bankHint": "Shown on unpaid invoices so the buyer can pay by transfer. A bankgiro, plusgiro or IBAN is required.",
+          "document": "Invoice layout"
+        },
+        "fields": {
+          "legal_name": "Legal name",
+          "brand_name": "Brand name",
+          "org_number": "Organisation number",
+          "vat_number": "VAT number",
+          "address_line1": "Address line 1",
+          "address_line2": "Address line 2",
+          "postal_code": "Postal code",
+          "city": "City",
+          "country_code": "Country",
+          "registered_office": "Registered office",
+          "email": "Email",
+          "phone": "Phone",
+          "website": "Website",
+          "bankgiro": "Bankgiro",
+          "plusgiro": "Plusgiro",
+          "iban": "IBAN",
+          "bic": "BIC / SWIFT",
+          "bank_name": "Bank name",
+          "logo_url": "Logo",
+          "f_tax_approved": "Approved for F-tax",
+          "due_days": "Payment terms (days)",
+          "footer_note": "Footer note",
+          "timezone": "Time zone"
+        },
+        "hints": {
+          "brand_name": "Optional trading name shown above the legal name.",
+          "vat_number": "Required when you charge VAT, e.g. SE556036079301.",
+          "registered_office": "The municipality where the company is registered (Swedish limited companies).",
+          "f_tax_approved": "Prints \"Approved for F-tax\" on the invoice (Sweden).",
+          "due_days": "Used for unpaid invoices; paid invoices are due on the invoice date.",
+          "timezone": "Decides the invoice date around midnight.",
+          "footer_note": "For example payment terms or late-payment interest."
+        },
+        "selectCountry": "Select a country",
+        "logoFallback": "Store logo is used",
+        "uploadLogo": "Upload logo",
+        "removeLogo": "Remove",
+        "checklistTitle": "Ready to invoice?",
+        "complete": "Your seller profile is complete. Invoices can be issued.",
+        "incomplete": "Still missing:",
+        "checklistHint": "Changes apply to invoices issued from now on; issued invoices never change.",
+        "saved": "Saved",
+        "invalidEmail": "Enter a valid email address.",
+        "invalidWebsite": "Enter a full address starting with https://",
+        "invalidDueDays": "Enter a number of days between 0 and 120.",
+        "fixErrors": "Please correct the highlighted fields.",
+        "logoUploadFailed": "The logo could not be uploaded. Please try again."
+      },
+      "numbering": {
+        "description": "Invoices and credit notes each have their own series without gaps. Prefix and padding can always be changed.",
+        "lockedExplanation": "A series whose first document has been issued keeps counting from where it is; its next number can no longer be changed.",
+        "notConfigured": "Save the seller profile first; the number series are created with it.",
+        "invoiceSeries": "Invoices",
+        "creditNoteSeries": "Credit notes",
+        "issuedCount": "{count, plural, =0 {Nothing issued yet} one {# issued} other {# issued}}",
+        "lockedBadge": "Locked",
+        "prefix": "Prefix",
+        "prefixHint": "Optional; must end with a letter or symbol, e.g. INV-",
+        "invalidPrefix": "Up to 12 characters (letters, digits . _ / -), ending in a non-digit.",
+        "nextNumber": "Next number",
+        "nextNumberHint": "Continue an existing series, e.g. from your previous shop.",
+        "lockedHint": "Locked because documents were issued in this series.",
+        "invalidNextNumber": "Enter a whole number from 1.",
+        "padding": "Minimum digits",
+        "paddingHint": "Pads with leading zeros (0 = none).",
+        "invalidPadding": "Enter a number between 0 and {max}.",
+        "preview": "Next number will be",
+        "saved": "Saved",
+        "fixErrors": "Please correct the highlighted fields."
+      },
+      "card": {
+        "title": "Invoices",
+        "empty": "No invoice has been issued for this order yet.",
+        "download": "Download PDF",
+        "remaining": "Remaining to credit",
+        "issue": "Issue invoice",
+        "issuing": "Issuing…",
+        "creditNote": "Create credit note",
+        "disabledHint": "The Invoices app is off; existing documents stay available.",
+        "pdfUnavailable": "The PDF is not available yet."
+      },
+      "creditDialog": {
+        "title": "Credit note for {number}",
+        "description": "A credit note reverses all or part of the invoice. The amount is split over the invoice VAT rates automatically.",
+        "remaining": "Remaining to credit",
+        "mode": "What to credit",
+        "full": "Everything remaining",
+        "amount": "An amount",
+        "amountLabel": "Amount incl. VAT ({currency})",
+        "amountHint": "At most {max}.",
+        "invalidAmount": "Enter an amount greater than 0 and at most {max}.",
+        "reason": "Reason (optional)",
+        "reasonPlaceholder": "e.g. Damaged item, goodwill discount",
+        "submit": "Issue credit note",
+        "submitting": "Issuing…"
+      },
+      "profileLoadFailed": "The seller profile could not be loaded.",
+      "retry": "Retry",
+      "profileVatOnly": "Add a VAT number if you charge VAT."
     }
   },
   "components": {
@@ -2396,7 +2898,58 @@
     "PRODUCT_FAQ_NOT_FOUND": "FAQ not found",
     "PAGE_BUILDER_PAGE_NOT_FOUND": "Page not found",
     "CUSTOM_FIELD_PRODUCT_NOT_FOUND": "Product not found",
-    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Attribute template not found"
+    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Attribute template not found",
+    "STORE_APP_UNKNOWN": "Unknown store app",
+    "STORE_APP_NOT_AVAILABLE": "This app is not available for your store",
+    "STORE_APP_REQUIRES_INDEPENDENT": "This app requires an independent store",
+    "STORE_APP_DEPENDENCY_MISSING": "Enable the required app first",
+    "STORE_APP_DEPENDENCY_IN_USE": "Another enabled app depends on this one; disable it first",
+    "STORE_APP_NOT_ENABLED": "This app is not enabled for your store",
+    "MARKET_NOT_FOUND": "Market not found",
+    "MARKET_KEY_TAKEN": "A market with this key already exists",
+    "MARKET_DEFAULT_UNDELETABLE": "The default market cannot be deleted",
+    "MARKET_DEFAULT_LOCALE_IN_LOCALES": "The default language cannot also be an additional language",
+    "MARKET_LOCALE_UNSUPPORTED": "This language is not supported by the storefront",
+    "MARKET_CURRENCY_UNSUPPORTED": "This currency is not supported",
+    "MARKET_COUNTRY_OVERLAP": "A country can belong to only one live market",
+    "MARKET_PAYMENT_CHECK_FAILED": "No payment provider supports this currency yet",
+    "MARKET_DOMAIN_RESERVED": "This hostname is reserved",
+    "MARKET_DOMAIN_TAKEN": "This hostname is already in use",
+    "MARKET_DOMAIN_VERIFY_FAILED": "DNS verification failed. Check the CNAME record and try again.",
+    "MARKET_NOT_LIVE": "This market is not live",
+    "MARKET_FX_RATE_MISSING": "No rate available for this currency pair — set a manual rate or ask the platform to add one",
+    "MARKET_DEFAULT_LOCKED": "The default market cannot be renamed by key or set to draft",
+    "MARKET_DOMAIN_INVALID": "This hostname is not valid",
+    "MARKET_DOMAIN_REDIRECT_INVALID": "The redirect target must be another hostname of the same market",
+    "MARKET_DOMAIN_NOT_FOUND": "Domain not found",
+    "MARKET_PRODUCT_NOT_FOUND": "Product not found",
+    "MARKET_PRIMARY_DOMAIN_REQUIRED": "Add a hostname to this market and have it activated before setting it live",
+    "FX_RATE_NOT_FOUND": "No platform rate exists for this currency pair",
+    "FX_RATE_IN_USE": "This rate is used by a live market and cannot be removed",
+    "MARKET_DOMAIN_IN_USE": "This is the active primary hostname of a live market — set another primary or set the market to draft first",
+    "STORE_CUSTOM_DOMAIN_MANAGED_BY_MARKETS": "Domains are managed in Markets while the Markets app is enabled",
+    "B2B_COMPANY_NOT_ALLOWED": "Company purchases are not enabled for this store",
+    "B2B_COMPANY_NAME_REQUIRED": "Company name is required",
+    "B2B_ORG_NUMBER_REQUIRED": "Organisation number is required",
+    "B2B_ORG_NUMBER_INVALID": "Organisation number has an invalid format",
+    "B2B_VAT_NUMBER_REQUIRED": "VAT number is required",
+    "B2B_VAT_NUMBER_INVALID": "VAT number has an invalid format",
+    "STORE_APP_SETTINGS_INVALID": "The app settings are invalid",
+    "INVOICE_PROFILE_INCOMPLETE": "Your seller profile is incomplete. Fill in the missing fields before issuing invoices.",
+    "INVOICE_SEQUENCE_LOCKED": "The next number cannot be changed after documents have been issued in this series.",
+    "INVOICE_NUMBERING_INVALID": "The numbering settings are invalid.",
+    "INVOICE_ORDER_NOT_ELIGIBLE": "This order cannot be invoiced (it is cancelled, failed or refunded).",
+    "INVOICE_ALREADY_ISSUED": "An invoice has already been issued for this order.",
+    "INVOICE_NOT_FOUND": "Invoice not found.",
+    "INVOICE_CREDIT_EXCEEDS": "The amount is higher than what remains to be credited on this invoice.",
+    "INVOICE_CREDIT_NOTHING_LEFT": "This invoice has already been fully credited.",
+    "INVOICE_PDF_UNAVAILABLE": "The PDF cannot be generated right now. Please try again later.",
+    "INVOICE_IBAN_INVALID": "The IBAN is not valid.",
+    "INVOICE_BANKGIRO_INVALID": "The bankgiro number is not valid (format 1234-5678).",
+    "INVOICE_BIC_INVALID": "The BIC / SWIFT code is not valid.",
+    "INVOICE_VAT_NUMBER_INVALID": "The VAT number is not valid.",
+    "INVOICE_TIMEZONE_INVALID": "The time zone is not valid.",
+    "INVOICE_SNAPSHOT_INVALID": "This order can't be invoiced automatically because its amounts don't add up (or it uses stacked tax rates). Please contact support."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

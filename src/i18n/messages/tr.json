@@ -307,7 +307,10 @@
     "notificationTemplates": "Bildirim Şablonları",
     "email": "E-posta",
     "guide": "Rehber",
-    "emailLog": "E-posta kaydı"
+    "emailLog": "E-posta kaydı",
+    "apps": "Uygulamalar",
+    "markets": "Pazarlar",
+    "invoices": "Faturalar"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -731,7 +734,42 @@
     "kustomPartnerId": "Kustom Partner Kimliği",
     "kustomPartnerIdHint": "İsteğe bağlı. Bağımsız mağazalar için yapılan her Kustom API çağrısında Kustom-Partner başlığı olarak gönderilir. Platformun Kustom partner anlaşması yoksa boş bırakın.",
     "stripeConnectWebhookMissing": "{count} bağımsız mağaza kendi Stripe hesabından tahsilat yapıyor. Bu gizli anahtar olmadan, Stripe'ta yaptıkları iadeler siparişe hiç işlenmez.",
-    "storeTypeGuideLink": "Bir mağaza nasıl dönüştürülür: rehberi açın"
+    "storeTypeGuideLink": "Bir mağaza nasıl dönüştürülür: rehberi açın",
+    "storeApps": {
+      "title": "Mağaza uygulamaları",
+      "available": "Kullanılabilir",
+      "creatorEnabled": "Mağaza sahibi etkinleştirdi",
+      "creatorDisabled": "Etkin değil",
+      "updateFailed": "Uygulama kullanılabilirliği güncellenemedi.",
+      "loadFailed": "Mağaza uygulamaları yüklenemedi."
+    },
+    "fxRates": {
+      "title": "Döviz kurları (Pazarlar)",
+      "subtitle": "\"Platform kuru\" kaynağını kullanan pazarların platform kurları.",
+      "empty": "Henüz kur yok.",
+      "base": "Kaynak",
+      "quote": "Hedef",
+      "rate": "Kur",
+      "remove": "Kaldır",
+      "removeConfirm": "{pair} kuru kaldırılsın mı? Bu çift için platform kurunu kullanan pazarlar otomatik fiyatlarını kaybeder.",
+      "add": "Kur ekle",
+      "saved": "Kurlar kaydedildi",
+      "save": "Kurları kaydet"
+    },
+    "domains": {
+      "title": "Pazar alan adları",
+      "subtitle": "Cloudflare adımından sonra alan adını Etkin yapın; yalnızca Etkin alan adları yayınlanır.",
+      "updated": "Alan adı durumu güncellendi.",
+      "verifiedAt": "doğrulandı {date}",
+      "loadFailed": "Alan adları yüklenemedi.",
+      "status": {
+        "PENDING": "Beklemede",
+        "VERIFIED": "Doğrulandı",
+        "ACTIVE": "Etkin"
+      }
+    },
+    "orderStatus_INVOICE_ISSUED": "Fatura kesildi",
+    "orderStatus_CREDIT_NOTE_ISSUED": "İade faturası kesildi"
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -1157,7 +1195,12 @@
       "revenueBreakdown": "Gelir Dökümü",
       "independentBannerTitle": "Doğrudan ödemeler",
       "independentBannerDesc": "Mağazanız bağımsız: her sipariş doğrudan bağlı Stripe hesabınıza ödenir ve platform komisyon almaz.",
-      "independentBannerLink": "Ödeme ayrıntılarını Stripe panelinizde görüntüleyin"
+      "independentBannerLink": "Ödeme ayrıntılarını Stripe panelinizde görüntüleyin",
+      "byCurrency": {
+        "title": "{currency} kazançları",
+        "mixedHidden": "Siparişleriniz birden fazla para biriminde; toplamlar para birimi başına gösterilir.",
+        "pending": "Beklemede {amount}"
+      }
     },
     "independent": {
       "notAvailableTitle": "Bağımsız mağazalar için kullanılamaz",
@@ -1184,7 +1227,18 @@
       "tabDelivered": "Teslim Edildi",
       "tabCancelled": "İptal Edildi",
       "loadFailed": "Siparişler yüklenemedi. Lütfen tekrar deneyin.",
-      "retry": "Tekrar dene"
+      "retry": "Tekrar dene",
+      "market": "Pazar",
+      "marketFilter": "Pazara göre filtrele",
+      "marketAll": "Tüm pazarlar",
+      "marketHostname": "Alan adı",
+      "marketLocale": "Dil",
+      "marketFxRate": "Kur",
+      "companyBadge": "Şirket",
+      "buyerFilter": "Alıcıya göre filtrele",
+      "buyerAll": "Tüm alıcılar",
+      "buyerCompany": "Şirketler",
+      "buyerPerson": "Bireysel alıcılar"
     },
     "products": {
       "title": "Ürünler",
@@ -1201,7 +1255,26 @@
       "noProductsHint": "Tedarikçi kataloğundan ürün ekleyin veya kendi ürününüzü oluşturun.",
       "base": "Temel",
       "draft": "Taslak",
-      "edit": "Düzenle"
+      "edit": "Düzenle",
+      "marketPrices": {
+        "tab": "Pazara göre fiyatlar",
+        "detailsTab": "Ürün",
+        "title": "Pazara göre fiyatlar",
+        "subtitle": "Temel fiyatlar {currency} cinsindendir. Dönüştürülmüş fiyatı kullanmak için alanı boş bırakın.",
+        "save": "Fiyatları kaydet",
+        "saved": "Fiyatlar kaydedildi",
+        "noMarkets": "Henüz pazar yok.",
+        "available": "Bu pazarda satışta",
+        "hiddenWarning": "Kur ve manuel fiyat yok: bu ürün bu pazarda gizli.",
+        "colAuto": "Dönüştürülmüş fiyat",
+        "rateNote": "Kur {rate}",
+        "noRate": "Kur yok",
+        "colOverride": "Manuel fiyat",
+        "manual": "Manuel",
+        "resetToAuto": "Otomatiğe sıfırla",
+        "colCompareAt": "Karşılaştırma fiyatı",
+        "variants": "Varyantlar ({count})"
+      }
     },
     "browseCatalog": {
       "title": "Tedarikçi Kataloğu",
@@ -2090,7 +2163,14 @@
       "independentEarningsNote": "Doğrudan Stripe hesabınıza ödenir — platform komisyonu yoktur.",
       "updateFailed": "Sipariş durumu güncellenemedi. Lütfen tekrar deneyin.",
       "loadFailed": "Bu sipariş yüklenemedi. Lütfen tekrar deneyin.",
-      "retry": "Tekrar dene"
+      "retry": "Tekrar dene",
+      "company": "Şirket",
+      "orgNumber": "Kuruluş numarası",
+      "vatNumber": "Vergi numarası",
+      "reference": "Referans",
+      "customerDefaults": "Müşteri varsayılanları",
+      "netTotal": "Net toplam",
+      "totalInclVat": "KDV dahil toplam"
     },
     "orderStatus": {
       "PENDING": "Beklemede",
@@ -2102,7 +2182,9 @@
       "DELIVERED": "Teslim Edildi",
       "RETURNED": "İade Edildi",
       "CANCELLED": "İptal Edildi",
-      "REFUNDED": "Geri Ödendi"
+      "REFUNDED": "Geri Ödendi",
+      "INVOICE_ISSUED": "Fatura kesildi",
+      "CREDIT_NOTE_ISSUED": "İade faturası kesildi"
     },
     "email": {
       "title": "E-posta",
@@ -2165,6 +2247,426 @@
         "templates": "Şablonlar",
         "log": "E-posta kaydı"
       }
+    },
+    "apps": {
+      "title": "Uygulamalar",
+      "subtitle": "Mağazanız için isteğe bağlı özellikleri açın veya kapatın.",
+      "empty": "Henüz uygulama yok. Uygulamalar platform yöneticisi tarafından kullanıma sunulur.",
+      "enabled": "Etkin",
+      "disabled": "Devre dışı",
+      "requiresIndependent": "Yalnızca bağımsız mağazalar",
+      "dependsOn": "Gerektirir: {apps}",
+      "blockedRequiresIndependent": "Bu uygulama yalnızca bağımsız bir mağazada etkinleştirilebilir.",
+      "blockedDependencyMissing": "Önce {apps} uygulamasını etkinleştirin.",
+      "saveFailed": "Uygulama güncellenemedi.",
+      "items": {
+        "markets": {
+          "name": "Pazarlar",
+          "description": "Her biri kendi para birimi, dili ve fiyatlandırmasıyla birden fazla alan adında satış yapın."
+        },
+        "b2b": {
+          "name": "Kurumsal müşteriler (B2B)",
+          "description": "Kurumsal alıcılar için vergi numaralı şirket hesapları ve net fiyatlandırma."
+        },
+        "invoices": {
+          "name": "Faturalar",
+          "description": "Siparişleriniz için fatura oluşturun ve gönderin."
+        },
+        "importer": {
+          "name": "WooCommerce içe aktarıcı",
+          "description": "Mevcut bir WooCommerce mağazasından ürünleri ve kategorileri içe aktarın."
+        }
+      },
+      "b2b": {
+        "settings": {
+          "title": "B2B ayarları",
+          "allowCompany": "Şirket alımlarına izin ver",
+          "defaultBuyerType": "Varsayılan alıcı türü",
+          "person": "Bireysel",
+          "company": "Şirket",
+          "requireVat": "Vergi numarası zorunlu olsun",
+          "orgCountries": "Kuruluş numarası biçimini doğrulanacak ülkeler",
+          "orgCountriesHint": "İsveç, Finlandiya, Danimarka ve Norveç için katı biçim kuralları vardır; diğer ülkelerde genel bir kontrol uygulanır. Varsayılan: İsveç.",
+          "kustomNote": "Kuruluş alımlarının Kustom hesabınızda etkin olması gerekir — kurumsal alıcılar için bu seçeneği açmadan önce Kustom desteğiyle teyit edin.",
+          "saved": "Kaydedildi",
+          "saveFailed": "B2B ayarları kaydedilemedi."
+        }
+      },
+      "invoices": {
+        "settings": {
+          "title": "Fatura ayarları",
+          "openInvoices": "Satıcı profili ve numaralandırma",
+          "autoIssue": "Faturaları otomatik kes",
+          "autoIssueHint": "Kart ve Kustom siparişleri ödeme onaylanır onaylanmaz faturalanır.",
+          "codIssueOn": "Kapıda ödemeli siparişleri faturala",
+          "codIssueOnHint": "Kapıda ödemede tahsilat genellikle teslimatta yapılır; bu nedenle varsayılan budur.",
+          "codDelivered": "Sipariş teslim edildiğinde",
+          "codCreated": "Sipariş verildiğinde",
+          "attachPdf": "PDF’yi sipariş e-postalarına ekle",
+          "attachPdfHint": "Fatura veya iade faturası, müşterinin alacağı bir sonraki sipariş e-postasına eklenir.",
+          "creditOnCancel": "İptal edilen siparişler için otomatik iade faturası",
+          "creditOnCancelHint": "Faturalanmış bir sipariş iptal edildiğinde tam tutarlı iade faturası kesilir.",
+          "saved": "Kaydedildi",
+          "saveFailed": "Fatura ayarları kaydedilemedi."
+        }
+      }
+    },
+    "markets": {
+      "title": "Pazarlar",
+      "subtitle": "Her ülkede kendi alan adı, para birimi, dilleri ve fiyatlarıyla satış yapın.",
+      "addMarket": "Pazar ekle",
+      "empty": "Henüz pazar yok.",
+      "notEnabled": "Pazarlar uygulaması mağazanız için etkin değil.",
+      "notEnabledLink": "Uygulamaları aç",
+      "managedHint": "Pazarlar uygulaması etkinken Pazarlar sayfasından yönetilir.",
+      "managedLink": "Pazarları aç",
+      "defaultBadge": "Varsayılan",
+      "status": {
+        "DRAFT": "Taslak",
+        "LIVE": "Yayında"
+      },
+      "list": {
+        "edit": "Düzenle",
+        "allCountries": "Diğer tüm ülkeler",
+        "locales": "Diller",
+        "primaryDomain": "Birincil alan adı"
+      },
+      "form": {
+        "newTitle": "Yeni pazar",
+        "newSubtitle": "Alan adları ve ödeme kontrolü kaydettikten sonra kullanılabilir.",
+        "general": "Genel",
+        "name": "Ad",
+        "namePlaceholder": "Avrupa",
+        "key": "Anahtar",
+        "keyHint": "URL'lerde ve API'de kullanılan kısa tanımlayıcı (harf, rakam, tire).",
+        "keyLocked": "Anahtar oluşturulduktan sonra değiştirilemez.",
+        "keyInvalid": "Anahtar: 1–16 küçük harf, rakam veya tire; tire ile başlayamaz veya bitemez.",
+        "rateRequired": "Manuel dönüşüm kuralı için 0’dan büyük bir kur girin.",
+        "countries": "Ülkeler",
+        "countriesHint": "Bir ülke yalnızca tek bir yayındaki pazara ait olabilir.",
+        "defaultLocale": "Varsayılan dil",
+        "currency": "Para birimi",
+        "defaultCurrencyHint": "Varsayılan pazar mağaza para biriminizi kullanır.",
+        "locales": "Ek diller",
+        "defaultBadge": "varsayılan",
+        "pricing": "Fiyatlandırma",
+        "pricingHint": "Ürün fiyatları {currency} olarak girilir; bu kural fiyatları bu pazar için dönüştürür.",
+        "save": "Pazarı kaydet",
+        "create": "Pazar oluştur",
+        "saved": "Pazar kaydedildi",
+        "deleteMarket": "Pazarı sil",
+        "deleteConfirm": "\"{name}\" pazarı silinsin mi? Alan adları ve manuel fiyatları kaldırılır.",
+        "deleteWarnOrders": "Bir pazarı silmek siparişlerini korur; yalnızca pazar bağlantısı kaldırılır."
+      },
+      "rule": {
+        "sameCurrency": "Bu pazar mağaza para biriminizi ({currency}) kullanır; fiyatlar girildiği gibi kullanılır.",
+        "mode": "Mod",
+        "modeConvert": "Otomatik dönüştür",
+        "modeConvertDesc": "Temel fiyat × kur, ardından yuvarlama",
+        "modeFixed": "Sabit fiyatlar",
+        "modeFixedDesc": "Ürün başına yalnızca manuel fiyatlar",
+        "fixedWarning": "Sabit mod: manuel fiyatı olmayan ürünler aşağıdaki kura döner; kur yoksa bu pazarda gizlenir.",
+        "source": "Kur kaynağı",
+        "sourceManual": "Manuel kur",
+        "sourceManualDesc": "Kuru siz girersiniz",
+        "sourcePlatform": "Platform kuru",
+        "sourcePlatformDesc": "Platform tarafından belirlenir",
+        "rate": "Kur ({from} → {to})",
+        "ratePlatformMissing": "Bu çift için platform kuru yok",
+        "ratePlatformHint": "Platform kuru: {rate}",
+        "increment": "Yuvarlama adımı",
+        "incrementNone": "Yuvarlama yok",
+        "ending": "Fiyat sonu",
+        "endingNone": "Yok",
+        "example": "Örnek: {from} → {to}",
+        "exampleNoRate": "Dönüşümü önizlemek için bir kur girin."
+      },
+      "domains": {
+        "title": "Alan adları",
+        "subtitle": "Bu pazara hizmet veren ana makine adları. Her birini bir CNAME kaydıyla platforma yönlendirin.",
+        "platformHost": "Platform adresi",
+        "copy": "Kopyala",
+        "primary": "Birincil",
+        "redirectsTo": "{host} adresine yönlendirilir",
+        "verify": "Doğrula",
+        "setPrimary": "Birincil yap",
+        "remove": "Kaldır",
+        "removeConfirm": "{host} bu pazardan kaldırılsın mı?",
+        "removePrimaryConfirm": "{host} bu pazarın birincil ana makine adı. Yine de kaldırılsın mı?",
+        "wwwFailed": "Ana makine adı eklendi ancak www.{host} eklenemedi: {error}",
+        "hostname": "Ana makine adı",
+        "add": "Ekle",
+        "redirectWww": "www.{host} adresini de ekle",
+        "redirectWwwDesc": "www'yi ana makine adına yönlendirir (301).",
+        "activationNote": "\"Doğrula\" sonrasında durum Doğrulandı olur. Cloudflare kurulumu tamamlanınca platform alan adını etkinleştirir; yalnızca Etkin alan adları yayınlanır.",
+        "dnsNotConfigured": "Platform henüz bir DNS hedefi yayımlamadı — alan adı eklemeden önce destekle iletişime geçin",
+        "status": {
+          "PENDING": "Beklemede",
+          "VERIFIED": "Doğrulandı",
+          "ACTIVE": "Etkin"
+        },
+        "dns": {
+          "type": "Tür",
+          "name": "Ad",
+          "value": "Değer",
+          "observed": "Gözlenen",
+          "observedNone": "kayıt bulunamadı",
+          "intro": "Eklenecek DNS kaydı:"
+        }
+      },
+      "check": {
+        "title": "Ödemeler",
+        "never": "Henüz kontrol edilmedi",
+        "checkedAt": "Kontrol: {date}",
+        "recheck": "Yeniden kontrol et",
+        "setLive": "Yayına al",
+        "setDraft": "Taslağa al",
+        "setLiveBlocked": "Pazar yayına alınmadan önce en az bir ödeme sağlayıcısı bu para birimini desteklemelidir.",
+        "state": {
+          "ok": "hazır",
+          "missing": "kullanılamıyor",
+          "unknown": "bilinmiyor"
+        },
+        "stripe": {
+          "label": "Stripe",
+          "ok": "Stripe hesabınız bu para biriminde tahsilat yapabilir.",
+          "missing": "Stripe bu para biriminde tahsilat yapamıyor.",
+          "unknown": "Stripe kontrol edilemedi. Daha sonra tekrar deneyin.",
+          "no_standard_account": "Önce Ayarlar bölümünden bir Stripe hesabı bağlayın.",
+          "account_not_ready": "Stripe hesabınız henüz kart ödemelerine hazır değil. Stripe kaydını tamamlayın.",
+          "currency_not_supported_by_stripe": "Stripe bu para birimini desteklemiyor.",
+          "settlement_conversion_note": "{currency} cinsinden ödemeler Stripe ödeme para biriminize dönüştürülür."
+        },
+        "kustom": {
+          "label": "Kustom",
+          "ok": "Kustom seçili ülkeler için bu para birimini destekliyor.",
+          "missing": "Kustom bu pazar için kullanılamıyor.",
+          "unknown": "Kustom desteği belirlenemedi. Hesabınızın bu ülkeleri kapsadığını Kustom desteğiyle doğrulayın.",
+          "not_configured": "Kustom, Ayarlar bölümünde kurulmamış.",
+          "currency_mismatch": "Kustom, {country} için {expected} bekliyor.",
+          "unknown_country": "{country} için Kustom verisi yok. Kustom desteğiyle doğrulayın.",
+          "currency_not_supported": "Kustom bu para birimini desteklemiyor."
+        }
+      }
+    },
+    "invoices": {
+      "title": "Faturalar",
+      "subtitle": "Siparişleriniz için kesilen faturalar ve iade faturaları.",
+      "notEnabled": "Faturalar uygulaması kapalı. Daha önce kesilen faturalar kayıtlarınız için burada kalır.",
+      "notEnabledLink": "Uygulamaları aç",
+      "profileIncomplete": "Satıcı profiliniz eksik olduğundan henüz fatura kesilemez.",
+      "profileIncompleteLink": "Satıcı profilini tamamla",
+      "paidBadge": "Ödendi",
+      "unpaidBadge": "Ödenmedi",
+      "loading": "Yükleniyor…",
+      "empty": "Fatura bulunamadı.",
+      "resultCount": "{count, plural, one {# belge} other {# belge}}",
+      "creditFor": "için",
+      "download": "PDF indir",
+      "creditNoteAction": "İade faturası oluştur",
+      "exportCsv": "CSV dışa aktar",
+      "exporting": "Dışa aktarılıyor…",
+      "exportFailed": "Dışa aktarma başarısız oldu.",
+      "tabs": {
+        "invoices": "Faturalar",
+        "backlog": "Faturalanmamış",
+        "profile": "Satıcı profili",
+        "numbering": "Numaralandırma"
+      },
+      "kind": {
+        "INVOICE": "Fatura",
+        "CREDIT_NOTE": "İade faturası"
+      },
+      "filters": {
+        "search": "Ara",
+        "searchPlaceholder": "Numara, sipariş veya alıcı",
+        "kind": "Tür",
+        "allKinds": "Tüm türler",
+        "paid": "Ödeme",
+        "paidAll": "Tümü",
+        "from": "Başlangıç",
+        "to": "Bitiş",
+        "clear": "Filtreleri temizle"
+      },
+      "columns": {
+        "number": "Numara",
+        "kind": "Tür",
+        "date": "Tarih",
+        "order": "Sipariş",
+        "buyer": "Alıcı",
+        "total": "Toplam",
+        "status": "Durum",
+        "actions": "İşlemler"
+      },
+      "paymentMethods": {
+        "STRIPE": "Kart",
+        "KUSTOM": "Kustom",
+        "COD": "Kapıda ödeme"
+      },
+      "detail": {
+        "subtitle": "{buyer} adına kesildi",
+        "issueDate": "Fatura tarihi",
+        "dueDate": "Vade tarihi",
+        "order": "Sipariş",
+        "trigger": "Kesilme nedeni",
+        "paymentMethod": "Ödeme yöntemi",
+        "creditedInvoice": "İade edilen fatura",
+        "reason": "Neden",
+        "buyer": "Alıcı",
+        "orgNumber": "Sicil no.",
+        "vatNumber": "Vergi no.",
+        "reference": "Referans",
+        "email": "E-posta",
+        "vatSummary": "KDV özeti",
+        "rate": "Oran",
+        "net": "Net",
+        "vat": "KDV",
+        "gross": "Toplam",
+        "remaining": "İade edilebilecek kalan tutar",
+        "creditNote": "İade faturası oluştur",
+        "downloadPdf": "PDF indir",
+        "triggers": {
+          "PAYMENT": "Ödeme",
+          "COD_CREATED": "Kapıda ödemeli sipariş verildi",
+          "COD_DELIVERED": "Kapıda ödemeli sipariş teslim edildi",
+          "MANUAL": "Elle kesildi",
+          "REFUND": "İade",
+          "CANCELLATION": "İptal"
+        },
+        "pdfUnavailable": "PDF henüz kullanılamıyor."
+      },
+      "backlog": {
+        "title": "Faturası olmayan siparişler",
+        "description": "Henüz faturası olmayan ödenmiş siparişler (ve teslim edilmiş kapıda ödemeli siparişler); örneğin uygulama açılmadan önce verilen siparişler.",
+        "issueAll": "Tümünü kes",
+        "issuingAll": "Kesiliyor…",
+        "issue": "Kes",
+        "issuing": "Kesiliyor…",
+        "empty": "Ödenmiş tüm siparişlerin faturası var.",
+        "count": "{count, plural, one {# siparişin faturası yok} other {# siparişin faturası yok}}",
+        "moreHidden": "{count} siparişten {shown} tanesi gösteriliyor. \"Tümünü kes\" tüm siparişleri kapsar.",
+        "result": "{issued} kesildi, {skipped} atlandı.",
+        "resultErrors": "{count, plural, one {# sipariş başarısız:} other {# sipariş başarısız:}}",
+        "confirmTitle": "Eksik tüm faturalar kesilsin mi?",
+        "confirmDescription": "{count, plural, one {# sipariş için fatura kesilecek.} other {# sipariş için fatura kesilecek.}} Fatura numaraları sırayla verilir ve geri alınamaz; hatalar iade faturasıyla düzeltilir.",
+        "columns": {
+          "order": "Sipariş",
+          "date": "Tarih",
+          "payment": "Ödeme",
+          "total": "Toplam"
+        },
+        "bulkLimitHint": "Her çalıştırmada en fazla {max} sipariş faturalanır. {count} siparişin kalanı için \"Tümünü kes\"i yeniden çalıştırın."
+      },
+      "profile": {
+        "groups": {
+          "identity": "Şirket bilgileri",
+          "identityHint": "Her faturada ve sipariş e-postalarında satıcı olarak yazdırılır.",
+          "address": "Adres",
+          "contact": "İletişim",
+          "bank": "Banka bilgileri",
+          "bankHint": "Ödenmemiş faturalarda gösterilir; böylece alıcı havale ile ödeyebilir. Bankgiro, Plusgiro veya IBAN zorunludur.",
+          "document": "Fatura düzeni"
+        },
+        "fields": {
+          "legal_name": "Ticari unvan",
+          "brand_name": "Marka adı",
+          "org_number": "Şirket sicil numarası",
+          "vat_number": "Vergi numarası",
+          "address_line1": "Adres satırı 1",
+          "address_line2": "Adres satırı 2",
+          "postal_code": "Posta kodu",
+          "city": "Şehir",
+          "country_code": "Ülke",
+          "registered_office": "Şirket merkezi",
+          "email": "E-posta",
+          "phone": "Telefon",
+          "website": "Web sitesi",
+          "bankgiro": "Bankgiro",
+          "plusgiro": "Plusgiro",
+          "iban": "IBAN",
+          "bic": "BIC / SWIFT",
+          "bank_name": "Banka",
+          "logo_url": "Logo",
+          "f_tax_approved": "F-skatt onaylı (İsveç)",
+          "due_days": "Ödeme vadesi (gün)",
+          "footer_note": "Alt bilgi notu",
+          "timezone": "Saat dilimi"
+        },
+        "hints": {
+          "brand_name": "Ticari unvanın üzerinde gösterilen isteğe bağlı marka adı.",
+          "vat_number": "KDV uyguluyorsanız zorunludur, ör. SE556036079301.",
+          "registered_office": "Şirketin kayıtlı olduğu belediye (İsveç anonim şirketleri).",
+          "f_tax_approved": "Faturaya \"Godkänd för F-skatt\" ibaresini yazdırır (İsveç).",
+          "due_days": "Ödenmemiş faturalar için geçerlidir; ödenmiş faturaların vadesi fatura tarihidir.",
+          "timezone": "Gece yarısı civarında fatura tarihini belirler.",
+          "footer_note": "Örneğin ödeme koşulları veya gecikme faizi."
+        },
+        "selectCountry": "Ülke seçin",
+        "logoFallback": "Mağaza logosu kullanılır",
+        "uploadLogo": "Logo yükle",
+        "removeLogo": "Kaldır",
+        "checklistTitle": "Faturalamaya hazır mı?",
+        "complete": "Satıcı profiliniz tamam. Fatura kesilebilir.",
+        "incomplete": "Hâlâ eksik:",
+        "checklistHint": "Değişiklikler bundan sonra kesilen faturalar için geçerlidir; kesilmiş faturalar asla değişmez.",
+        "saved": "Kaydedildi",
+        "invalidEmail": "Geçerli bir e-posta adresi girin.",
+        "invalidWebsite": "https:// ile başlayan tam bir adres girin.",
+        "invalidDueDays": "0 ile 120 arasında bir gün sayısı girin.",
+        "fixErrors": "Lütfen işaretli alanları düzeltin.",
+        "logoUploadFailed": "Logo yüklenemedi. Lütfen tekrar deneyin."
+      },
+      "numbering": {
+        "description": "Faturaların ve iade faturalarının her birinin boşluksuz kendi numara serisi vardır. Önek ve dolgu her zaman değiştirilebilir.",
+        "lockedExplanation": "Bir seride ilk belge kesildikten sonra seri kaldığı yerden devam eder; sonraki numara artık değiştirilemez.",
+        "notConfigured": "Önce satıcı profilini kaydedin; numara serileri onunla birlikte oluşturulur.",
+        "invoiceSeries": "Faturalar",
+        "creditNoteSeries": "İade faturaları",
+        "issuedCount": "{count, plural, =0 {Henüz kesilmedi} one {# kesildi} other {# kesildi}}",
+        "lockedBadge": "Kilitli",
+        "prefix": "Önek",
+        "prefixHint": "İsteğe bağlı; harf veya simgeyle bitmelidir, ör. FTR-",
+        "invalidPrefix": "En fazla 12 karakter (harf, rakam . _ / -), rakamla bitmemeli.",
+        "nextNumber": "Sonraki numara",
+        "nextNumberHint": "Mevcut bir seriye devam edin, ör. önceki mağazanızdan.",
+        "lockedHint": "Bu seride belge kesildiği için kilitli.",
+        "invalidNextNumber": "1 veya daha büyük bir tam sayı girin.",
+        "padding": "En az basamak sayısı",
+        "paddingHint": "Başa sıfır ekler (0 = yok).",
+        "invalidPadding": "0 ile {max} arasında bir sayı girin.",
+        "preview": "Sonraki numara",
+        "saved": "Kaydedildi",
+        "fixErrors": "Lütfen işaretli alanları düzeltin."
+      },
+      "card": {
+        "title": "Faturalar",
+        "empty": "Bu sipariş için henüz fatura kesilmedi.",
+        "download": "PDF indir",
+        "remaining": "İade edilebilecek kalan tutar",
+        "issue": "Fatura kes",
+        "issuing": "Kesiliyor…",
+        "creditNote": "İade faturası oluştur",
+        "disabledHint": "Faturalar uygulaması kapalı; mevcut belgeler erişilebilir kalır.",
+        "pdfUnavailable": "PDF henüz kullanılamıyor."
+      },
+      "creditDialog": {
+        "title": "{number} için iade faturası",
+        "description": "İade faturası, faturanın tamamını veya bir kısmını iptal eder. Tutar, faturadaki KDV oranlarına otomatik olarak dağıtılır.",
+        "remaining": "İade edilebilecek kalan tutar",
+        "mode": "Ne iade edilecek?",
+        "full": "Kalan tutarın tamamı",
+        "amount": "Belirli bir tutar",
+        "amountLabel": "KDV dahil tutar ({currency})",
+        "amountHint": "En fazla {max}.",
+        "invalidAmount": "0’dan büyük ve en fazla {max} olan bir tutar girin.",
+        "reason": "Neden (isteğe bağlı)",
+        "reasonPlaceholder": "ör. Hasarlı ürün, iyi niyet indirimi",
+        "submit": "İade faturası kes",
+        "submitting": "Kesiliyor…"
+      },
+      "profileLoadFailed": "Satıcı profili yüklenemedi.",
+      "retry": "Tekrar dene",
+      "profileVatOnly": "KDV uyguluyorsanız vergi numarası ekleyin."
     }
   },
   "components": {
@@ -2396,7 +2898,58 @@
     "PRODUCT_FAQ_NOT_FOUND": "SSS bulunamadı",
     "PAGE_BUILDER_PAGE_NOT_FOUND": "Sayfa bulunamadı",
     "CUSTOM_FIELD_PRODUCT_NOT_FOUND": "Ürün bulunamadı",
-    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Öznitelik şablonu bulunamadı"
+    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Öznitelik şablonu bulunamadı",
+    "STORE_APP_UNKNOWN": "Bilinmeyen mağaza uygulaması",
+    "STORE_APP_NOT_AVAILABLE": "Bu uygulama mağazanız için kullanılabilir değil",
+    "STORE_APP_REQUIRES_INDEPENDENT": "Bu uygulama bağımsız bir mağaza gerektirir",
+    "STORE_APP_DEPENDENCY_MISSING": "Önce gerekli uygulamayı etkinleştirin",
+    "STORE_APP_DEPENDENCY_IN_USE": "Etkin başka bir uygulama buna bağlı; önce onu devre dışı bırakın",
+    "STORE_APP_NOT_ENABLED": "Bu uygulama mağazanız için etkin değil",
+    "MARKET_NOT_FOUND": "Pazar bulunamadı",
+    "MARKET_KEY_TAKEN": "Bu anahtara sahip bir pazar zaten var",
+    "MARKET_DEFAULT_UNDELETABLE": "Varsayılan pazar silinemez",
+    "MARKET_DEFAULT_LOCALE_IN_LOCALES": "Varsayılan dil aynı zamanda ek dil olamaz",
+    "MARKET_LOCALE_UNSUPPORTED": "Bu dil mağaza vitrini tarafından desteklenmiyor",
+    "MARKET_CURRENCY_UNSUPPORTED": "Bu para birimi desteklenmiyor",
+    "MARKET_COUNTRY_OVERLAP": "Bir ülke yalnızca tek bir yayındaki pazara ait olabilir",
+    "MARKET_PAYMENT_CHECK_FAILED": "Henüz hiçbir ödeme sağlayıcısı bu para birimini desteklemiyor",
+    "MARKET_DOMAIN_RESERVED": "Bu ana makine adı ayrılmış",
+    "MARKET_DOMAIN_TAKEN": "Bu ana makine adı zaten kullanımda",
+    "MARKET_DOMAIN_VERIFY_FAILED": "DNS doğrulaması başarısız. CNAME kaydını kontrol edip tekrar deneyin.",
+    "MARKET_NOT_LIVE": "Bu pazar yayında değil",
+    "MARKET_FX_RATE_MISSING": "Bu para birimi çifti için kur yok — manuel bir kur girin veya platformdan eklemesini isteyin",
+    "MARKET_DEFAULT_LOCKED": "Varsayılan pazarın anahtarı değiştirilemez ve taslağa alınamaz",
+    "MARKET_DOMAIN_INVALID": "Bu ana makine adı geçerli değil",
+    "MARKET_DOMAIN_REDIRECT_INVALID": "Yönlendirme hedefi aynı pazardaki başka bir ana makine adı olmalıdır",
+    "MARKET_DOMAIN_NOT_FOUND": "Alan adı bulunamadı",
+    "MARKET_PRODUCT_NOT_FOUND": "Ürün bulunamadı",
+    "MARKET_PRIMARY_DOMAIN_REQUIRED": "Pazarı yayına almadan önce bir ana makine adı ekleyin ve etkinleştirilmesini sağlayın",
+    "FX_RATE_NOT_FOUND": "Bu para birimi çifti için platform kuru yok",
+    "FX_RATE_IN_USE": "Bu kur yayındaki bir pazar tarafından kullanılıyor ve kaldırılamaz",
+    "MARKET_DOMAIN_IN_USE": "Bu, yayındaki bir pazarın etkin birincil ana makine adı — önce başka bir birincil belirleyin veya pazarı taslağa alın",
+    "STORE_CUSTOM_DOMAIN_MANAGED_BY_MARKETS": "Pazarlar uygulaması etkinken alan adları Pazarlar sayfasından yönetilir",
+    "B2B_COMPANY_NOT_ALLOWED": "Bu mağazada şirket alımları etkin değil",
+    "B2B_COMPANY_NAME_REQUIRED": "Şirket adı gerekli",
+    "B2B_ORG_NUMBER_REQUIRED": "Kuruluş numarası gerekli",
+    "B2B_ORG_NUMBER_INVALID": "Kuruluş numarasının biçimi geçersiz",
+    "B2B_VAT_NUMBER_REQUIRED": "Vergi numarası gerekli",
+    "B2B_VAT_NUMBER_INVALID": "Vergi numarasının biçimi geçersiz",
+    "STORE_APP_SETTINGS_INVALID": "Uygulama ayarları geçersiz",
+    "INVOICE_PROFILE_INCOMPLETE": "Satıcı profiliniz eksik. Fatura kesmeden önce eksik alanları doldurun.",
+    "INVOICE_SEQUENCE_LOCKED": "Bu seride belge kesildikten sonra sonraki numara değiştirilemez.",
+    "INVOICE_NUMBERING_INVALID": "Numaralandırma ayarları geçersiz.",
+    "INVOICE_ORDER_NOT_ELIGIBLE": "Bu sipariş faturalanamaz (iptal edilmiş, başarısız veya iade edilmiş).",
+    "INVOICE_ALREADY_ISSUED": "Bu sipariş için zaten fatura kesilmiş.",
+    "INVOICE_NOT_FOUND": "Fatura bulunamadı.",
+    "INVOICE_CREDIT_EXCEEDS": "Tutar, bu faturada iade edilebilecek kalan tutardan yüksek.",
+    "INVOICE_CREDIT_NOTHING_LEFT": "Bu faturanın tamamı zaten iade edilmiş.",
+    "INVOICE_PDF_UNAVAILABLE": "PDF şu anda oluşturulamıyor. Lütfen daha sonra tekrar deneyin.",
+    "INVOICE_IBAN_INVALID": "IBAN geçersiz.",
+    "INVOICE_BANKGIRO_INVALID": "Bankgiro numarası geçersiz (biçim 1234-5678).",
+    "INVOICE_BIC_INVALID": "BIC / SWIFT kodu geçersiz.",
+    "INVOICE_VAT_NUMBER_INVALID": "Vergi numarası geçersiz.",
+    "INVOICE_TIMEZONE_INVALID": "Saat dilimi geçersiz.",
+    "INVOICE_SNAPSHOT_INVALID": "Tutarları birbirini tutmadığı (veya birleşik vergi oranları kullandığı) için bu sipariş otomatik olarak faturalanamıyor. Lütfen destekle iletişime geçin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

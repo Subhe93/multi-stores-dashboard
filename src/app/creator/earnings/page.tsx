@@ -20,6 +20,9 @@ interface CommissionSummary {
   this_month: number;
   pending: number;
   total_orders?: number;
+  // Markets app: per-currency split (M1). The cross-currency totals above
+  // are meaningless when more than one currency is present (L14).
+  by_currency?: Array<{ currency: string; orders: number; total_earnings: number; pending: number; paid: number }>;
 }
 
 interface OrderCommission {
@@ -124,6 +127,16 @@ export default function CreatorEarnings() {
       .finally(() => setLoading(false));
   }, [token, page]);
 
+  const byCurrency = summary?.by_currency ?? [];
+  const multiCurrency = byCurrency.length > 1;
+  const fmtIn = (currency: string, amount: number | string | null | undefined) => {
+    try {
+      return new Intl.NumberFormat('en', { style: 'currency', currency }).format(Number(amount ?? 0));
+    } catch {
+      return `${Number(amount ?? 0).toFixed(2)} ${currency}`;
+    }
+  };
+
   const COMMISSION_COLUMNS = [
     {
       key: 'order_number',
@@ -226,29 +239,52 @@ export default function CreatorEarnings() {
         </div>
       )}
 
+      {/* Per-currency cards (Markets app with several currencies): the mixed
+          totals are hidden because summing SEK and EUR is meaningless. */}
+      {multiCurrency && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">{t('earnings.byCurrency.mixedHidden')}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {byCurrency.map((row) => (
+              <StatCard
+                key={row.currency}
+                title={t('earnings.byCurrency.title', { currency: row.currency })}
+                value={fmtIn(row.currency, row.total_earnings)}
+                subtitle={`${t('earnings.orderCount', { count: row.orders })} · ${t('earnings.byCurrency.pending', { amount: fmtIn(row.currency, row.pending) })}`}
+                icon={<DollarSign className="w-4 h-4" />}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title={t('earnings.totalEarnings')}
-          value={summary == null ? '...' : fmt(Number(summary.total_earnings ?? 0))}
-          subtitle={
-            summary?.total_orders != null
-              ? t('earnings.orderCount', { count: summary.total_orders })
-              : undefined
-          }
-          icon={<DollarSign className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('earnings.thisMonth')}
-          value={summary == null ? '...' : fmt(Number(summary.this_month ?? 0))}
-          trend="up"
-          icon={<TrendingUp className="w-4 h-4" />}
-        />
-        <StatCard
-          title={isIndependent ? t('earnings.revenuePending') : t('earnings.pending')}
-          value={summary == null ? '...' : fmt(Number(summary.pending ?? 0))}
-          icon={<Clock className="w-4 h-4" />}
-        />
+        {!multiCurrency && (
+          <>
+            <StatCard
+              title={t('earnings.totalEarnings')}
+              value={summary == null ? '...' : fmt(Number(summary.total_earnings ?? 0))}
+              subtitle={
+                summary?.total_orders != null
+                  ? t('earnings.orderCount', { count: summary.total_orders })
+                  : undefined
+              }
+              icon={<DollarSign className="w-4 h-4" />}
+            />
+            <StatCard
+              title={t('earnings.thisMonth')}
+              value={summary == null ? '...' : fmt(Number(summary.this_month ?? 0))}
+              trend="up"
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            <StatCard
+              title={isIndependent ? t('earnings.revenuePending') : t('earnings.pending')}
+              value={summary == null ? '...' : fmt(Number(summary.pending ?? 0))}
+              icon={<Clock className="w-4 h-4" />}
+            />
+          </>
+        )}
         <StatCard
           title={t('earnings.stripe')}
           value={

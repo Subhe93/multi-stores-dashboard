@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
+import { AdminFxRatesCard } from '@/components/markets/AdminFxRatesCard';
 
 interface PlatformConfig {
   commission_type: string;
@@ -689,6 +690,9 @@ export default function AdminSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Platform FX rates for the Markets app (saved by its own button). */}
+      <AdminFxRatesCard />
 
       <div className="flex items-center gap-3 justify-end">
         {saved && <span className="text-xs text-emerald-600 font-medium">{t('settingsSavedSuccessfully')}</span>}

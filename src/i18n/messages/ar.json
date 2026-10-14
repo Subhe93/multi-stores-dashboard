@@ -307,7 +307,10 @@
     "notificationTemplates": "قوالب الإشعارات",
     "email": "البريد",
     "guide": "الدليل",
-    "emailLog": "سجل البريد"
+    "emailLog": "سجل البريد",
+    "apps": "التطبيقات",
+    "markets": "الأسواق",
+    "invoices": "الفواتير"
   },
   "table": {
     "searchPlaceholder": "بحث...",
@@ -731,7 +734,42 @@
     "kustomPartnerId": "معرّف شريك Kustom",
     "kustomPartnerIdHint": "اختياري. يُرسَل كترويسة Kustom-Partner مع كل طلب إلى واجهة Kustom للمتاجر المستقلة. اتركه فارغاً إن لم يكن للمنصة اتفاقية شراكة مع Kustom.",
     "stripeConnectWebhookMissing": "{count} متجر مستقل يشحن على حساب سترايب الخاص به. بدون هذا السرّ، الاستردادات التي يجرونها في سترايب لن تُزامَن مع الطلب إطلاقاً.",
-    "storeTypeGuideLink": "كيفية تحويل المتجر: افتح الدليل"
+    "storeTypeGuideLink": "كيفية تحويل المتجر: افتح الدليل",
+    "storeApps": {
+      "title": "تطبيقات المتجر",
+      "available": "متاح",
+      "creatorEnabled": "مفعّل من المؤثر",
+      "creatorDisabled": "غير مفعّل من المؤثر",
+      "updateFailed": "تعذّر تحديث إتاحة التطبيق.",
+      "loadFailed": "تعذّر تحميل تطبيقات المتجر."
+    },
+    "fxRates": {
+      "title": "أسعار الصرف (الأسواق)",
+      "subtitle": "أسعار المنصة التي تستخدمها الأسواق ذات المصدر «سعر المنصة».",
+      "empty": "لا توجد أسعار بعد.",
+      "base": "من",
+      "quote": "إلى",
+      "rate": "السعر",
+      "remove": "إزالة",
+      "removeConfirm": "إزالة سعر الصرف {pair}؟ ستفقد الأسواق التي تستخدم سعر المنصة لهذا الزوج أسعارها التلقائية.",
+      "add": "إضافة سعر",
+      "saved": "تم حفظ الأسعار",
+      "save": "حفظ الأسعار"
+    },
+    "domains": {
+      "title": "نطاقات الأسواق",
+      "subtitle": "اجعل النطاق نشطاً بعد إتمام خطوة Cloudflare؛ لا تُخدم إلا النطاقات النشطة.",
+      "updated": "تم تحديث حالة النطاق.",
+      "verifiedAt": "تم التحقق في {date}",
+      "loadFailed": "تعذّر تحميل النطاقات.",
+      "status": {
+        "PENDING": "قيد الانتظار",
+        "VERIFIED": "تم التحقق",
+        "ACTIVE": "نشط"
+      }
+    },
+    "orderStatus_INVOICE_ISSUED": "صدرت الفاتورة",
+    "orderStatus_CREDIT_NOTE_ISSUED": "صدر إشعار دائن"
   },
   "guide": {
     "title": "دليل العمليات",
@@ -1157,7 +1195,12 @@
       "revenueBreakdown": "تفاصيل الإيرادات",
       "independentBannerTitle": "مدفوعات مباشرة",
       "independentBannerDesc": "متجرك مستقل: يُدفع كل طلب مباشرة إلى حساب سترايب المرتبط بك ولا تأخذ المنصة أي عمولة.",
-      "independentBannerLink": "عرض تفاصيل التحويلات في لوحة تحكم سترايب"
+      "independentBannerLink": "عرض تفاصيل التحويلات في لوحة تحكم سترايب",
+      "byCurrency": {
+        "title": "الأرباح بعملة {currency}",
+        "mixedHidden": "طلباتك بعدة عملات، لذلك تُعرض الإجماليات لكل عملة على حدة.",
+        "pending": "قيد الانتظار {amount}"
+      }
     },
     "independent": {
       "notAvailableTitle": "غير متاح للمتاجر المستقلة",
@@ -1184,7 +1227,18 @@
       "tabDelivered": "تم التسليم",
       "tabCancelled": "ملغي",
       "loadFailed": "فشل تحميل الطلبات. يرجى المحاولة مرة أخرى.",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "market": "السوق",
+      "marketFilter": "تصفية حسب السوق",
+      "marketAll": "كل الأسواق",
+      "marketHostname": "النطاق",
+      "marketLocale": "اللغة",
+      "marketFxRate": "سعر الصرف",
+      "companyBadge": "شركة",
+      "buyerFilter": "تصفية حسب المشتري",
+      "buyerAll": "كل المشترين",
+      "buyerCompany": "الشركات",
+      "buyerPerson": "الأشخاص الطبيعيون"
     },
     "products": {
       "title": "المنتجات",
@@ -1201,7 +1255,26 @@
       "noProductsHint": "أضف منتجات من كتالوج المورّدين أو أنشئ منتجاتك الخاصة.",
       "base": "الأساس",
       "draft": "مسودة",
-      "edit": "تعديل"
+      "edit": "تعديل",
+      "marketPrices": {
+        "tab": "الأسعار حسب السوق",
+        "detailsTab": "المنتج",
+        "title": "الأسعار حسب السوق",
+        "subtitle": "الأسعار الأساسية بعملة {currency}. اترك الحقل فارغاً لاستخدام السعر المحوَّل.",
+        "save": "حفظ الأسعار",
+        "saved": "تم حفظ الأسعار",
+        "noMarkets": "لا توجد أسواق بعد.",
+        "available": "متاح في هذا السوق",
+        "hiddenWarning": "لا يوجد سعر صرف ولا سعر يدوي: هذا المنتج مخفي في هذا السوق.",
+        "colAuto": "السعر المحوَّل",
+        "rateNote": "سعر الصرف {rate}",
+        "noRate": "بلا سعر صرف",
+        "colOverride": "سعر يدوي",
+        "manual": "يدوي",
+        "resetToAuto": "إعادة إلى التلقائي",
+        "colCompareAt": "سعر المقارنة",
+        "variants": "المتغيرات ({count})"
+      }
     },
     "browseCatalog": {
       "title": "كتالوج المورّدين",
@@ -2090,7 +2163,14 @@
       "independentEarningsNote": "تُدفع مباشرة إلى حسابك في سترايب — بدون عمولة للمنصة.",
       "updateFailed": "فشل تحديث حالة الطلب. يرجى المحاولة مرة أخرى.",
       "loadFailed": "فشل تحميل هذا الطلب. يرجى المحاولة مرة أخرى.",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "company": "شركة",
+      "orgNumber": "رقم المنشأة",
+      "vatNumber": "الرقم الضريبي",
+      "reference": "المرجع",
+      "customerDefaults": "البيانات الافتراضية للعميل",
+      "netTotal": "الإجمالي الصافي",
+      "totalInclVat": "الإجمالي شامل الضريبة"
     },
     "orderStatus": {
       "PENDING": "قيد الانتظار",
@@ -2102,7 +2182,9 @@
       "DELIVERED": "تم التسليم",
       "RETURNED": "مُرتجع",
       "CANCELLED": "ملغي",
-      "REFUNDED": "مُسترد"
+      "REFUNDED": "مُسترد",
+      "INVOICE_ISSUED": "صدرت الفاتورة",
+      "CREDIT_NOTE_ISSUED": "صدر إشعار دائن"
     },
     "email": {
       "title": "البريد",
@@ -2165,6 +2247,426 @@
         "templates": "القوالب",
         "log": "سجل البريد"
       }
+    },
+    "apps": {
+      "title": "التطبيقات",
+      "subtitle": "فعّل أو عطّل الميزات الاختيارية لمتجرك.",
+      "empty": "لا توجد تطبيقات بعد. يتيح مدير المنصة التطبيقات للمتاجر.",
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "requiresIndependent": "للمتاجر المستقلة فقط",
+      "dependsOn": "يتطلب: {apps}",
+      "blockedRequiresIndependent": "لا يمكن تفعيل هذا التطبيق إلا في متجر مستقل.",
+      "blockedDependencyMissing": "فعّل {apps} أولاً.",
+      "saveFailed": "تعذّر تحديث التطبيق.",
+      "items": {
+        "markets": {
+          "name": "الأسواق",
+          "description": "بِع عبر عدة نطاقات، لكل منها عملته ولغته وتسعيره الخاص."
+        },
+        "b2b": {
+          "name": "عملاء الأعمال (B2B)",
+          "description": "حسابات شركات برقم ضريبي وأسعار صافية للمشترين من الشركات."
+        },
+        "invoices": {
+          "name": "الفواتير",
+          "description": "أنشئ وأرسل فواتير لطلباتك."
+        },
+        "importer": {
+          "name": "مستورد WooCommerce",
+          "description": "استورد المنتجات والتصنيفات من متجر WooCommerce قائم."
+        }
+      },
+      "b2b": {
+        "settings": {
+          "title": "إعدادات B2B",
+          "allowCompany": "السماح بمشتريات الشركات",
+          "defaultBuyerType": "نوع المشتري الافتراضي",
+          "person": "شخص طبيعي",
+          "company": "شركة",
+          "requireVat": "اشتراط الرقم الضريبي",
+          "orgCountries": "التحقق من صيغة رقم المنشأة في",
+          "orgCountriesHint": "توجد قواعد صيغة صارمة للسويد وفنلندا والدنمارك والنرويج؛ أما بقية الدول فيُطبّق عليها تحقق عام. الافتراضي: السويد.",
+          "kustomNote": "يجب تفعيل مشتريات المنشآت في حساب Kustom الخاص بك — تأكّد من ذلك مع دعم Kustom قبل تفعيل هذا الخيار للمشترين من الشركات.",
+          "saved": "تم الحفظ",
+          "saveFailed": "تعذّر حفظ إعدادات B2B."
+        }
+      },
+      "invoices": {
+        "settings": {
+          "title": "إعدادات الفواتير",
+          "openInvoices": "ملف البائع والترقيم",
+          "autoIssue": "إصدار الفواتير تلقائياً",
+          "autoIssueHint": "تُصدر فاتورة طلبات البطاقة وKustom فور تأكيد الدفع.",
+          "codIssueOn": "إصدار فواتير طلبات الدفع عند الاستلام",
+          "codIssueOnHint": "يُحصَّل المبلغ عادةً عند التسليم، لذا هذا هو الخيار الافتراضي.",
+          "codDelivered": "عند تسليم الطلب",
+          "codCreated": "عند إنشاء الطلب",
+          "attachPdf": "إرفاق ملف PDF برسائل الطلب",
+          "attachPdfHint": "تُرفق الفاتورة أو الإشعار الدائن بأول رسالة طلب تالية يتلقاها العميل.",
+          "creditOnCancel": "إصدار إشعار دائن تلقائياً عند الإلغاء",
+          "creditOnCancelHint": "يُصدر إشعار دائن بكامل المبلغ عند إلغاء طلب صدرت فاتورته.",
+          "saved": "تم الحفظ",
+          "saveFailed": "تعذّر حفظ إعدادات الفواتير."
+        }
+      }
+    },
+    "markets": {
+      "title": "الأسواق",
+      "subtitle": "بِع في كل دولة بنطاق وعملة ولغات وأسعار خاصة بها.",
+      "addMarket": "إضافة سوق",
+      "empty": "لا توجد أسواق بعد.",
+      "notEnabled": "تطبيق الأسواق غير مفعّل لمتجرك.",
+      "notEnabledLink": "فتح التطبيقات",
+      "managedHint": "يُدار من صفحة الأسواق ما دام تطبيق الأسواق مفعّلاً.",
+      "managedLink": "فتح الأسواق",
+      "defaultBadge": "افتراضي",
+      "status": {
+        "DRAFT": "مسودة",
+        "LIVE": "نشط"
+      },
+      "list": {
+        "edit": "تعديل",
+        "allCountries": "بقية الدول",
+        "locales": "اللغات",
+        "primaryDomain": "النطاق الرئيسي"
+      },
+      "form": {
+        "newTitle": "سوق جديد",
+        "newSubtitle": "تتاح النطاقات وفحص الدفع بعد الحفظ.",
+        "general": "عام",
+        "name": "الاسم",
+        "namePlaceholder": "أوروبا",
+        "key": "المفتاح",
+        "keyHint": "معرّف قصير يُستخدم في الروابط وواجهة البرمجة (حروف لاتينية وأرقام وشرطات).",
+        "keyLocked": "لا يمكن تغيير المفتاح بعد الإنشاء.",
+        "keyInvalid": "المفتاح: من 1 إلى 16 حرفاً لاتينياً صغيراً أو رقماً أو شرطة، ولا يبدأ أو ينتهي بشرطة.",
+        "rateRequired": "أدخل سعر صرف أكبر من 0 لقاعدة التحويل اليدوية.",
+        "countries": "الدول",
+        "countriesHint": "لا يمكن أن تنتمي الدولة إلا إلى سوق نشط واحد.",
+        "defaultLocale": "اللغة الافتراضية",
+        "currency": "العملة",
+        "defaultCurrencyHint": "السوق الافتراضي يتبع عملة متجرك.",
+        "locales": "لغات إضافية",
+        "defaultBadge": "افتراضية",
+        "pricing": "التسعير",
+        "pricingHint": "تُدخل أسعار المنتجات بعملة {currency}؛ هذه القاعدة تحوّلها لهذا السوق.",
+        "save": "حفظ السوق",
+        "create": "إنشاء السوق",
+        "saved": "تم حفظ السوق",
+        "deleteMarket": "حذف السوق",
+        "deleteConfirm": "حذف السوق \"{name}\"؟ ستُزال نطاقاته وأسعاره اليدوية.",
+        "deleteWarnOrders": "حذف السوق يُبقي طلباته، لكنها تفقد الإشارة إلى السوق فقط."
+      },
+      "rule": {
+        "sameCurrency": "يستخدم هذا السوق عملة متجرك ({currency})؛ تُستخدم الأسعار كما أُدخلت.",
+        "mode": "الوضع",
+        "modeConvert": "تحويل تلقائي",
+        "modeConvertDesc": "السعر الأساسي × سعر الصرف ثم التقريب",
+        "modeFixed": "أسعار ثابتة",
+        "modeFixedDesc": "أسعار يدوية فقط لكل منتج",
+        "fixedWarning": "الوضع الثابت: المنتجات بلا سعر يدوي تعود إلى سعر الصرف أدناه؛ ومن دون سعر صرف تُخفى في هذا السوق.",
+        "source": "مصدر سعر الصرف",
+        "sourceManual": "سعر يدوي",
+        "sourceManualDesc": "تُدخل سعر الصرف بنفسك",
+        "sourcePlatform": "سعر المنصة",
+        "sourcePlatformDesc": "تحدّده المنصة",
+        "rate": "سعر الصرف ({from} ← {to})",
+        "ratePlatformMissing": "لا يوجد سعر منصة لهذا الزوج",
+        "ratePlatformHint": "سعر المنصة: {rate}",
+        "increment": "التقريب إلى",
+        "incrementNone": "بلا تقريب",
+        "ending": "نهاية السعر",
+        "endingNone": "بلا",
+        "example": "مثال: {from} ← {to}",
+        "exampleNoRate": "أدخل سعر صرف لمعاينة التحويل."
+      },
+      "domains": {
+        "title": "النطاقات",
+        "subtitle": "أسماء المضيف التي تخدم هذا السوق. وجّه كلاً منها إلى المنصة بسجل CNAME.",
+        "platformHost": "عنوان المنصة",
+        "copy": "نسخ",
+        "primary": "رئيسي",
+        "redirectsTo": "يُعاد توجيهه إلى {host}",
+        "verify": "تحقق",
+        "setPrimary": "جعله رئيسياً",
+        "remove": "إزالة",
+        "removeConfirm": "إزالة {host} من هذا السوق؟",
+        "removePrimaryConfirm": "{host} هو اسم المضيف الرئيسي لهذا السوق. هل تريد إزالته على أي حال؟",
+        "wwwFailed": "أُضيف اسم المضيف الرئيسي، لكن تعذّرت إضافة www.{host}: {error}",
+        "hostname": "اسم المضيف",
+        "add": "إضافة",
+        "redirectWww": "إضافة www.{host} أيضاً",
+        "redirectWwwDesc": "يُعيد توجيه www إلى اسم المضيف الرئيسي (301).",
+        "activationNote": "بعد \"تحقق\" تصبح الحالة «تم التحقق». تُفعّل المنصة النطاق بعد إتمام إعداد Cloudflare؛ ولا تُخدم إلا النطاقات النشطة.",
+        "dnsNotConfigured": "لم تنشر المنصة هدف DNS بعد — تواصل مع الدعم قبل إضافة النطاقات",
+        "status": {
+          "PENDING": "قيد الانتظار",
+          "VERIFIED": "تم التحقق",
+          "ACTIVE": "نشط"
+        },
+        "dns": {
+          "type": "النوع",
+          "name": "الاسم",
+          "value": "القيمة",
+          "observed": "المرصود",
+          "observedNone": "لم يُعثر على سجل",
+          "intro": "سجل DNS المطلوب إضافته:"
+        }
+      },
+      "check": {
+        "title": "الدفع",
+        "never": "لم يُفحص بعد",
+        "checkedAt": "فُحص في {date}",
+        "recheck": "إعادة الفحص",
+        "setLive": "تنشيط",
+        "setDraft": "تحويل إلى مسودة",
+        "setLiveBlocked": "يجب أن يدعم مزوّد دفع واحد على الأقل هذه العملة قبل تنشيط السوق.",
+        "state": {
+          "ok": "جاهز",
+          "missing": "غير متاح",
+          "unknown": "غير معروف"
+        },
+        "stripe": {
+          "label": "سترايب",
+          "ok": "يستطيع حساب سترايب الخاص بك التحصيل بهذه العملة.",
+          "missing": "لا يستطيع سترايب التحصيل بهذه العملة.",
+          "unknown": "تعذّر فحص سترايب. حاول لاحقاً.",
+          "no_standard_account": "اربط حساب سترايب من الإعدادات أولاً.",
+          "account_not_ready": "حساب سترايب الخاص بك غير جاهز لمدفوعات البطاقات بعد. أكمل إعداد سترايب.",
+          "currency_not_supported_by_stripe": "سترايب لا يدعم هذه العملة.",
+          "settlement_conversion_note": "تُحوَّل المدفوعات بعملة {currency} إلى عملة التحويلات في حساب سترايب الخاص بك."
+        },
+        "kustom": {
+          "label": "Kustom",
+          "ok": "يدعم Kustom هذه العملة للدول المحددة.",
+          "missing": "لا يمكن استخدام Kustom لهذا السوق.",
+          "unknown": "تعذّر تحديد دعم Kustom. تأكد مع دعم Kustom أن حسابك يغطي هذه الدول.",
+          "not_configured": "Kustom غير مُعدّ في الإعدادات.",
+          "currency_mismatch": "يتوقع Kustom العملة {expected} للدولة {country}.",
+          "unknown_country": "لا توجد بيانات Kustom للدولة {country}. تأكد مع دعم Kustom.",
+          "currency_not_supported": "Kustom لا يدعم هذه العملة."
+        }
+      }
+    },
+    "invoices": {
+      "title": "الفواتير",
+      "subtitle": "الفواتير والإشعارات الدائنة الصادرة لطلباتك.",
+      "notEnabled": "تطبيق الفواتير متوقف. تبقى الفواتير الصادرة سابقاً متاحة هنا لسجلاتك المحاسبية.",
+      "notEnabledLink": "فتح التطبيقات",
+      "profileIncomplete": "ملف البائع غير مكتمل، لذا لا يمكن إصدار فواتير بعد.",
+      "profileIncompleteLink": "إكمال ملف البائع",
+      "paidBadge": "مدفوعة",
+      "unpaidBadge": "غير مدفوعة",
+      "loading": "جارٍ التحميل…",
+      "empty": "لا توجد فواتير.",
+      "resultCount": "عدد المستندات: {count}",
+      "creditFor": "عن",
+      "download": "تنزيل PDF",
+      "creditNoteAction": "إنشاء إشعار دائن",
+      "exportCsv": "تصدير CSV",
+      "exporting": "جارٍ التصدير…",
+      "exportFailed": "فشل التصدير.",
+      "tabs": {
+        "invoices": "الفواتير",
+        "backlog": "طلبات بلا فاتورة",
+        "profile": "ملف البائع",
+        "numbering": "الترقيم"
+      },
+      "kind": {
+        "INVOICE": "فاتورة",
+        "CREDIT_NOTE": "إشعار دائن"
+      },
+      "filters": {
+        "search": "بحث",
+        "searchPlaceholder": "الرقم أو الطلب أو المشتري",
+        "kind": "النوع",
+        "allKinds": "كل الأنواع",
+        "paid": "الدفع",
+        "paidAll": "الكل",
+        "from": "من",
+        "to": "إلى",
+        "clear": "مسح عوامل التصفية"
+      },
+      "columns": {
+        "number": "الرقم",
+        "kind": "النوع",
+        "date": "التاريخ",
+        "order": "الطلب",
+        "buyer": "المشتري",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "paymentMethods": {
+        "STRIPE": "بطاقة",
+        "KUSTOM": "Kustom",
+        "COD": "الدفع عند الاستلام"
+      },
+      "detail": {
+        "subtitle": "صادرة إلى {buyer}",
+        "issueDate": "تاريخ الفاتورة",
+        "dueDate": "تاريخ الاستحقاق",
+        "order": "الطلب",
+        "trigger": "سبب الإصدار",
+        "paymentMethod": "طريقة الدفع",
+        "creditedInvoice": "الفاتورة المعنية",
+        "reason": "السبب",
+        "buyer": "المشتري",
+        "orgNumber": "رقم السجل التجاري",
+        "vatNumber": "الرقم الضريبي",
+        "reference": "المرجع",
+        "email": "البريد الإلكتروني",
+        "vatSummary": "ملخص ضريبة القيمة المضافة",
+        "rate": "النسبة",
+        "net": "الصافي",
+        "vat": "الضريبة",
+        "gross": "الإجمالي",
+        "remaining": "المتبقي القابل للإشعار الدائن",
+        "creditNote": "إنشاء إشعار دائن",
+        "downloadPdf": "تنزيل PDF",
+        "triggers": {
+          "PAYMENT": "الدفع",
+          "COD_CREATED": "إنشاء طلب دفع عند الاستلام",
+          "COD_DELIVERED": "تسليم طلب دفع عند الاستلام",
+          "MANUAL": "إصدار يدوي",
+          "REFUND": "استرداد",
+          "CANCELLATION": "إلغاء"
+        },
+        "pdfUnavailable": "ملف PDF غير متاح بعد."
+      },
+      "backlog": {
+        "title": "طلبات بلا فاتورة",
+        "description": "طلبات مدفوعة (وطلبات دفع عند الاستلام تم تسليمها) لا فاتورة لها بعد، مثل الطلبات التي سبقت تفعيل التطبيق.",
+        "issueAll": "إصدار الكل",
+        "issuingAll": "جارٍ الإصدار…",
+        "issue": "إصدار",
+        "issuing": "جارٍ الإصدار…",
+        "empty": "لكل الطلبات المدفوعة فواتير.",
+        "count": "طلبات بلا فاتورة: {count}",
+        "moreHidden": "يُعرض {shown} من {count}. يشمل \"إصدار الكل\" جميع الطلبات.",
+        "result": "صدر: {issued}، وتم تخطي: {skipped}.",
+        "resultErrors": "طلبات فشل إصدارها: {count}",
+        "confirmTitle": "إصدار كل الفواتير الناقصة؟",
+        "confirmDescription": "سيتم إصدار فواتير لعدد {count} من الطلبات. تُمنح أرقام الفواتير بالتسلسل ولا يمكن التراجع عنها؛ وتُصحَّح الأخطاء بإشعار دائن.",
+        "columns": {
+          "order": "الطلب",
+          "date": "التاريخ",
+          "payment": "الدفع",
+          "total": "الإجمالي"
+        },
+        "bulkLimitHint": "يُصدر {max} طلب كحد أقصى في كل مرة. شغّل \"إصدار الكل\" مجدداً لبقية الطلبات البالغ عددها {count}."
+      },
+      "profile": {
+        "groups": {
+          "identity": "بيانات الشركة",
+          "identityHint": "تُطبع بوصفها بيانات البائع على كل فاتورة وفي رسائل الطلبات.",
+          "address": "العنوان",
+          "contact": "التواصل",
+          "bank": "البيانات المصرفية",
+          "bankHint": "تظهر على الفواتير غير المدفوعة ليتمكن المشتري من الدفع بالتحويل. يلزم Bankgiro أو Plusgiro أو IBAN.",
+          "document": "تنسيق الفاتورة"
+        },
+        "fields": {
+          "legal_name": "الاسم القانوني",
+          "brand_name": "الاسم التجاري",
+          "org_number": "رقم السجل التجاري",
+          "vat_number": "الرقم الضريبي",
+          "address_line1": "سطر العنوان 1",
+          "address_line2": "سطر العنوان 2",
+          "postal_code": "الرمز البريدي",
+          "city": "المدينة",
+          "country_code": "الدولة",
+          "registered_office": "المقر المسجّل",
+          "email": "البريد الإلكتروني",
+          "phone": "الهاتف",
+          "website": "الموقع الإلكتروني",
+          "bankgiro": "Bankgiro",
+          "plusgiro": "Plusgiro",
+          "iban": "IBAN",
+          "bic": "BIC / SWIFT",
+          "bank_name": "اسم البنك",
+          "logo_url": "الشعار",
+          "f_tax_approved": "معتمد لضريبة F (السويد)",
+          "due_days": "مهلة الدفع (أيام)",
+          "footer_note": "ملاحظة التذييل",
+          "timezone": "المنطقة الزمنية"
+        },
+        "hints": {
+          "brand_name": "اسم تجاري اختياري يظهر فوق الاسم القانوني.",
+          "vat_number": "مطلوب إذا كنت تفرض ضريبة القيمة المضافة، مثل SE556036079301.",
+          "registered_office": "البلدية المسجّلة فيها الشركة (للشركات المساهمة السويدية).",
+          "f_tax_approved": "يطبع عبارة \"Godkänd för F-skatt\" على الفاتورة (السويد).",
+          "due_days": "تنطبق على الفواتير غير المدفوعة؛ أما المدفوعة فتستحق في تاريخ الفاتورة.",
+          "timezone": "تحدد تاريخ الفاتورة قرب منتصف الليل.",
+          "footer_note": "مثل شروط الدفع أو فوائد التأخير."
+        },
+        "selectCountry": "اختر الدولة",
+        "logoFallback": "يُستخدم شعار المتجر",
+        "uploadLogo": "رفع الشعار",
+        "removeLogo": "إزالة",
+        "checklistTitle": "هل أنت جاهز للفوترة؟",
+        "complete": "ملف البائع مكتمل. يمكن إصدار الفواتير.",
+        "incomplete": "ما زال ناقصاً:",
+        "checklistHint": "تسري التغييرات على الفواتير التي تصدر من الآن؛ ولا تتغير الفواتير الصادرة أبداً.",
+        "saved": "تم الحفظ",
+        "invalidEmail": "أدخل بريداً إلكترونياً صالحاً.",
+        "invalidWebsite": "أدخل عنواناً كاملاً يبدأ بـ https://",
+        "invalidDueDays": "أدخل عدد أيام بين 0 و120.",
+        "fixErrors": "يرجى تصحيح الحقول المحددة.",
+        "logoUploadFailed": "تعذّر رفع الشعار. يرجى المحاولة مجدداً."
+      },
+      "numbering": {
+        "description": "للفواتير والإشعارات الدائنة سلسلة أرقام مستقلة لكل منهما بلا فجوات. يمكن تغيير البادئة والحشو في أي وقت.",
+        "lockedExplanation": "بعد إصدار أول مستند في السلسلة تستمر في العد من موضعها، ولا يعود بالإمكان تغيير الرقم التالي.",
+        "notConfigured": "احفظ ملف البائع أولاً؛ إذ تُنشأ سلاسل الأرقام معه.",
+        "invoiceSeries": "الفواتير",
+        "creditNoteSeries": "الإشعارات الدائنة",
+        "issuedCount": "عدد الصادر: {count}",
+        "lockedBadge": "مقفلة",
+        "prefix": "البادئة",
+        "prefixHint": "اختيارية؛ يجب أن تنتهي بحرف أو رمز، مثل INV-",
+        "invalidPrefix": "12 حرفاً كحد أقصى (حروف وأرقام . _ / -) ولا تنتهي برقم.",
+        "nextNumber": "الرقم التالي",
+        "nextNumberHint": "تابع سلسلة قائمة، مثل سلسلة متجرك السابق.",
+        "lockedHint": "مقفل لأن مستندات صدرت في هذه السلسلة.",
+        "invalidNextNumber": "أدخل عدداً صحيحاً يبدأ من 1.",
+        "padding": "الحد الأدنى لعدد الخانات",
+        "paddingHint": "يضيف أصفاراً في البداية (0 = بلا حشو).",
+        "invalidPadding": "أدخل رقماً بين 0 و{max}.",
+        "preview": "سيكون الرقم التالي",
+        "saved": "تم الحفظ",
+        "fixErrors": "يرجى تصحيح الحقول المحددة."
+      },
+      "card": {
+        "title": "الفواتير",
+        "empty": "لم تصدر فاتورة لهذا الطلب بعد.",
+        "download": "تنزيل PDF",
+        "remaining": "المتبقي القابل للإشعار الدائن",
+        "issue": "إصدار فاتورة",
+        "issuing": "جارٍ الإصدار…",
+        "creditNote": "إنشاء إشعار دائن",
+        "disabledHint": "تطبيق الفواتير متوقف؛ وتبقى المستندات الحالية متاحة.",
+        "pdfUnavailable": "ملف PDF غير متاح بعد."
+      },
+      "creditDialog": {
+        "title": "إشعار دائن للفاتورة {number}",
+        "description": "يلغي الإشعار الدائن الفاتورة كلياً أو جزئياً. ويُوزَّع المبلغ تلقائياً على نسب الضريبة في الفاتورة.",
+        "remaining": "المتبقي القابل للإشعار الدائن",
+        "mode": "ما الذي سيُلغى؟",
+        "full": "كامل المبلغ المتبقي",
+        "amount": "مبلغ محدد",
+        "amountLabel": "المبلغ شاملاً الضريبة ({currency})",
+        "amountHint": "الحد الأقصى {max}.",
+        "invalidAmount": "أدخل مبلغاً أكبر من 0 ولا يتجاوز {max}.",
+        "reason": "السبب (اختياري)",
+        "reasonPlaceholder": "مثل: منتج تالف، خصم ترضية",
+        "submit": "إصدار إشعار دائن",
+        "submitting": "جارٍ الإصدار…"
+      },
+      "profileLoadFailed": "تعذّر تحميل ملف البائع.",
+      "retry": "إعادة المحاولة",
+      "profileVatOnly": "أضف الرقم الضريبي إذا كنت تفرض ضريبة القيمة المضافة."
     }
   },
   "components": {
@@ -2396,7 +2898,58 @@
     "PRODUCT_FAQ_NOT_FOUND": "السؤال الشائع غير موجود",
     "PAGE_BUILDER_PAGE_NOT_FOUND": "الصفحة غير موجودة",
     "CUSTOM_FIELD_PRODUCT_NOT_FOUND": "المنتج غير موجود",
-    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "قالب السمة غير موجود"
+    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "قالب السمة غير موجود",
+    "STORE_APP_UNKNOWN": "تطبيق متجر غير معروف",
+    "STORE_APP_NOT_AVAILABLE": "هذا التطبيق غير متاح لمتجرك",
+    "STORE_APP_REQUIRES_INDEPENDENT": "يتطلب هذا التطبيق متجراً مستقلاً",
+    "STORE_APP_DEPENDENCY_MISSING": "فعّل التطبيق المطلوب أولاً",
+    "STORE_APP_DEPENDENCY_IN_USE": "يعتمد تطبيق مفعّل آخر على هذا التطبيق؛ عطّله أولاً",
+    "STORE_APP_NOT_ENABLED": "هذا التطبيق غير مفعّل لمتجرك",
+    "MARKET_NOT_FOUND": "السوق غير موجود",
+    "MARKET_KEY_TAKEN": "يوجد سوق بهذا المفتاح مسبقاً",
+    "MARKET_DEFAULT_UNDELETABLE": "لا يمكن حذف السوق الافتراضي",
+    "MARKET_DEFAULT_LOCALE_IN_LOCALES": "لا يمكن أن تكون اللغة الافتراضية لغة إضافية أيضاً",
+    "MARKET_LOCALE_UNSUPPORTED": "هذه اللغة غير مدعومة في واجهة المتجر",
+    "MARKET_CURRENCY_UNSUPPORTED": "هذه العملة غير مدعومة",
+    "MARKET_COUNTRY_OVERLAP": "لا يمكن أن تنتمي الدولة إلا إلى سوق نشط واحد",
+    "MARKET_PAYMENT_CHECK_FAILED": "لا يدعم أي مزوّد دفع هذه العملة بعد",
+    "MARKET_DOMAIN_RESERVED": "اسم المضيف هذا محجوز",
+    "MARKET_DOMAIN_TAKEN": "اسم المضيف هذا مستخدم مسبقاً",
+    "MARKET_DOMAIN_VERIFY_FAILED": "فشل التحقق من DNS. تحقق من سجل CNAME وحاول مجدداً.",
+    "MARKET_NOT_LIVE": "هذا السوق غير نشط",
+    "MARKET_FX_RATE_MISSING": "لا يوجد سعر صرف لزوج العملات هذا — أدخل سعراً يدوياً أو اطلب من المنصة إضافته",
+    "MARKET_DEFAULT_LOCKED": "لا يمكن تغيير مفتاح السوق الافتراضي ولا تحويله إلى مسودة",
+    "MARKET_DOMAIN_INVALID": "اسم المضيف هذا غير صالح",
+    "MARKET_DOMAIN_REDIRECT_INVALID": "يجب أن يكون هدف إعادة التوجيه اسم مضيف آخر في السوق نفسه",
+    "MARKET_DOMAIN_NOT_FOUND": "النطاق غير موجود",
+    "MARKET_PRODUCT_NOT_FOUND": "المنتج غير موجود",
+    "MARKET_PRIMARY_DOMAIN_REQUIRED": "أضف اسم مضيف لهذا السوق وانتظر تفعيله قبل تنشيط السوق",
+    "FX_RATE_NOT_FOUND": "لا يوجد سعر منصة لزوج العملات هذا",
+    "FX_RATE_IN_USE": "سعر الصرف هذا مستخدم في سوق نشط ولا يمكن إزالته",
+    "MARKET_DOMAIN_IN_USE": "هذا هو اسم المضيف الرئيسي النشط لسوق نشط — اجعل اسم مضيف آخر رئيسياً أو حوّل السوق إلى مسودة أولاً",
+    "STORE_CUSTOM_DOMAIN_MANAGED_BY_MARKETS": "تُدار النطاقات من صفحة الأسواق ما دام تطبيق الأسواق مفعّلاً",
+    "B2B_COMPANY_NOT_ALLOWED": "مشتريات الشركات غير مفعّلة لهذا المتجر",
+    "B2B_COMPANY_NAME_REQUIRED": "اسم الشركة مطلوب",
+    "B2B_ORG_NUMBER_REQUIRED": "رقم المنشأة مطلوب",
+    "B2B_ORG_NUMBER_INVALID": "صيغة رقم المنشأة غير صحيحة",
+    "B2B_VAT_NUMBER_REQUIRED": "الرقم الضريبي مطلوب",
+    "B2B_VAT_NUMBER_INVALID": "صيغة الرقم الضريبي غير صحيحة",
+    "STORE_APP_SETTINGS_INVALID": "إعدادات التطبيق غير صالحة",
+    "INVOICE_PROFILE_INCOMPLETE": "ملف البائع غير مكتمل. أكمل الحقول الناقصة قبل إصدار الفواتير.",
+    "INVOICE_SEQUENCE_LOCKED": "لا يمكن تغيير الرقم التالي بعد إصدار مستندات في هذه السلسلة.",
+    "INVOICE_NUMBERING_INVALID": "إعدادات الترقيم غير صالحة.",
+    "INVOICE_ORDER_NOT_ELIGIBLE": "لا يمكن إصدار فاتورة لهذا الطلب (ملغى أو فاشل أو مُسترد).",
+    "INVOICE_ALREADY_ISSUED": "صدرت فاتورة لهذا الطلب مسبقاً.",
+    "INVOICE_NOT_FOUND": "الفاتورة غير موجودة.",
+    "INVOICE_CREDIT_EXCEEDS": "المبلغ أكبر من المتبقي القابل للإشعار الدائن في هذه الفاتورة.",
+    "INVOICE_CREDIT_NOTHING_LEFT": "صدر إشعار دائن بكامل مبلغ هذه الفاتورة مسبقاً.",
+    "INVOICE_PDF_UNAVAILABLE": "تعذّر إنشاء ملف PDF حالياً. يرجى المحاولة لاحقاً.",
+    "INVOICE_IBAN_INVALID": "رقم IBAN غير صالح.",
+    "INVOICE_BANKGIRO_INVALID": "رقم Bankgiro غير صالح (الصيغة 1234-5678).",
+    "INVOICE_BIC_INVALID": "رمز BIC / SWIFT غير صالح.",
+    "INVOICE_VAT_NUMBER_INVALID": "الرقم الضريبي غير صالح.",
+    "INVOICE_TIMEZONE_INVALID": "المنطقة الزمنية غير صالحة.",
+    "INVOICE_SNAPSHOT_INVALID": "لا يمكن إصدار فاتورة لهذا الطلب تلقائياً لأن مبالغه غير متطابقة (أو لأنه يستخدم ضرائب متراكبة). يرجى التواصل مع الدعم."
   },
   "builder": {
     "failedToLoadPage": "تعذّر تحميل الصفحة",

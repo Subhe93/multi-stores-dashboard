@@ -28,6 +28,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { setCachedStoreType } from '@/lib/useStoreType';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
 
 // ---------------------------------------------------------------------------
@@ -293,6 +294,20 @@ function DnsRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Shown in place of the domain field / above the languages card while the
+// Markets app owns both (the API rejects custom_domain changes meanwhile).
+function ManagedInMarketsHint() {
+  const t = useTranslations('creator');
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+      <span>{t('markets.managedHint')}</span>
+      <Link href="/creator/markets" className="shrink-0 font-medium underline underline-offset-2 hover:text-sky-900">
+        {t('markets.managedLink')}
+      </Link>
+    </div>
+  );
+}
+
 function CustomDomainInstructions({ domain }: { domain: string }) {
   const t = useTranslations('creator');
   const parsed = parseDomainZone(domain);
@@ -337,6 +352,10 @@ export default function CreatorStorePage() {
   const t = useTranslations('creator');
   const tcom = useTranslations('common');
   const { pickAndUpload, uploading: heroUploading } = useImageUpload(token);
+  // While the Markets app is enabled, domains and languages are owned by the
+  // Markets page: the custom-domain field is hidden and languages are read-only.
+  const { apps } = useStoreApps();
+  const marketsEnabled = isAppEnabled(apps, 'markets');
 
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
@@ -551,11 +570,12 @@ export default function CreatorStorePage() {
           description: primaryTrans.description || '',
           logo_url: form.logo_url,
           favicon_url: form.favicon_url,
+          // The API rejects custom_domain while the Markets app owns domains.
           // An empty custom_domain means "clear it" server-side, so only send
           // the field when the creator actually changed it — otherwise a save
           // made before the store fetch populated the form would silently
           // wipe the domain.
-          ...(store && form.custom_domain !== (store.custom_domain ?? '')
+          ...(store && !marketsEnabled && form.custom_domain !== (store.custom_domain ?? '')
             ? { custom_domain: form.custom_domain }
             : {}),
           is_active: form.is_active,
@@ -579,12 +599,18 @@ export default function CreatorStorePage() {
       });
       await api('/stores/my/languages', {
         method: 'PUT', token,
-        body: JSON.stringify({
-          primary_locale: form.primary_locale,
-          // Never persist the primary inside the secondary list.
-          secondary_locales: form.secondary_locales.filter((l) => l !== form.primary_locale),
-          auto_translate: form.auto_translate,
-        }),
+        // While the Markets app owns the locales, only the auto-translate
+        // flag is sent so the default market's languages are not overwritten.
+        body: JSON.stringify(
+          marketsEnabled
+            ? { auto_translate: form.auto_translate }
+            : {
+                primary_locale: form.primary_locale,
+                // Never persist the primary inside the secondary list.
+                secondary_locales: form.secondary_locales.filter((l) => l !== form.primary_locale),
+                auto_translate: form.auto_translate,
+              },
+        ),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -875,13 +901,19 @@ export default function CreatorStorePage() {
             <>
               <div className="space-y-2">
                 <Label className="text-xs">{t('myStore.customDomain')}</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={form.custom_domain}
-                  onChange={(e) => setField('custom_domain', e.target.value.trim().toLowerCase())}
-                  placeholder={t('myStore.customDomainPlaceholder')}
-                />
-                {form.custom_domain && <CustomDomainInstructions domain={form.custom_domain} />}
+                {marketsEnabled ? (
+                  <ManagedInMarketsHint />
+                ) : (
+                  <>
+                    <Input
+                      className="h-8 text-sm"
+                      value={form.custom_domain}
+                      onChange={(e) => setField('custom_domain', e.target.value.trim().toLowerCase())}
+                      placeholder={t('myStore.customDomainPlaceholder')}
+                    />
+                    {form.custom_domain && <CustomDomainInstructions domain={form.custom_domain} />}
+                  </>
+                )}
               </div>
               <Separator />
               <div className="flex items-center justify-between py-1">
@@ -965,8 +997,12 @@ export default function CreatorStorePage() {
       <Card className="shadow-none">
         <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('myStore.languages')}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {marketsEnabled && <ManagedInMarketsHint />}
           <div className="space-y-1.5">
             <Label className="text-xs">{t('myStore.primaryLanguage')}</Label>
+            {marketsEnabled ? (
+              <Input className="h-8 text-sm" value={LOCALE_LABELS[form.primary_locale] || form.primary_locale} disabled readOnly />
+            ) : (
             <SearchableSelect
               value={form.primary_locale}
               onChange={(v) => {
@@ -987,6 +1023,7 @@ export default function CreatorStorePage() {
               placeholder={t('myStore.selectLanguage')}
               options={LOCALES}
             />
+            )}
           </div>
           <div className="space-y-2">
             <Label className="text-xs">{t('myStore.secondaryLanguages')}</Label>
@@ -996,8 +1033,8 @@ export default function CreatorStorePage() {
                 const isPrimary = form.primary_locale === locale.value;
                 return (
                   <button key={locale.value} type="button"
-                    onClick={() => { if (!isPrimary) toggleSecondaryLocale(locale.value); }}
-                    disabled={isPrimary}
+                    onClick={() => { if (!isPrimary && !marketsEnabled) toggleSecondaryLocale(locale.value); }}
+                    disabled={isPrimary || marketsEnabled}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition-colors ${isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'} ${isPrimary ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                   >
                     {locale.label}

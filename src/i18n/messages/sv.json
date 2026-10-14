@@ -307,7 +307,10 @@
     "notificationTemplates": "Aviseringsmallar",
     "email": "E-post",
     "guide": "Guide",
-    "emailLog": "E-postlogg"
+    "emailLog": "E-postlogg",
+    "apps": "Appar",
+    "markets": "Marknader",
+    "invoices": "Fakturor"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -731,7 +734,42 @@
     "kustomPartnerId": "Kustom partner-ID",
     "kustomPartnerIdHint": "Valfritt. Skickas som Kustom-Partner-header vid varje anrop till Kustoms API för fristående butiker. Lämna tomt om plattformen saknar partneravtal med Kustom.",
     "stripeConnectWebhookMissing": "{count} fristående butik(er) debiterar via sitt eget Stripe-konto. Utan den här hemligheten synkas återbetalningar de gör i Stripe aldrig tillbaka till ordern.",
-    "storeTypeGuideLink": "Så omvandlas en butik: öppna guiden"
+    "storeTypeGuideLink": "Så omvandlas en butik: öppna guiden",
+    "storeApps": {
+      "title": "Butiksappar",
+      "available": "Tillgänglig",
+      "creatorEnabled": "Aktiverad av skaparen",
+      "creatorDisabled": "Inte aktiverad",
+      "updateFailed": "Det gick inte att uppdatera appens tillgänglighet.",
+      "loadFailed": "Det gick inte att läsa in butiksapparna."
+    },
+    "fxRates": {
+      "title": "Växelkurser (Marknader)",
+      "subtitle": "Plattformskurser som används av marknader med källan \"plattformskurs\".",
+      "empty": "Inga kurser ännu.",
+      "base": "Från",
+      "quote": "Till",
+      "rate": "Kurs",
+      "remove": "Ta bort",
+      "removeConfirm": "Ta bort kursen {pair}? Marknader som använder plattformskursen för paret förlorar sina automatiska priser.",
+      "add": "Lägg till kurs",
+      "saved": "Kurserna sparades",
+      "save": "Spara kurser"
+    },
+    "domains": {
+      "title": "Marknadsdomäner",
+      "subtitle": "Sätt en domän till Aktiv efter Cloudflare-steget; endast aktiva domäner levereras.",
+      "updated": "Domänstatus uppdaterad.",
+      "verifiedAt": "verifierad {date}",
+      "loadFailed": "Det gick inte att läsa in domänerna.",
+      "status": {
+        "PENDING": "Väntar",
+        "VERIFIED": "Verifierad",
+        "ACTIVE": "Aktiv"
+      }
+    },
+    "orderStatus_INVOICE_ISSUED": "Faktura utfärdad",
+    "orderStatus_CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad"
   },
   "guide": {
     "title": "Driftguide",
@@ -1157,7 +1195,12 @@
       "revenueBreakdown": "Intäktsöversikt",
       "independentBannerTitle": "Direktbetalningar",
       "independentBannerDesc": "Din butik är fristående: varje beställning betalas direkt till ditt anslutna Stripe-konto och plattformen tar ingen provision.",
-      "independentBannerLink": "Se utbetalningsdetaljer i din Stripe-panel"
+      "independentBannerLink": "Se utbetalningsdetaljer i din Stripe-panel",
+      "byCurrency": {
+        "title": "Intäkter i {currency}",
+        "mixedHidden": "Dina ordrar är i flera valutor, så summorna visas per valuta.",
+        "pending": "Väntande {amount}"
+      }
     },
     "independent": {
       "notAvailableTitle": "Inte tillgängligt för fristående butiker",
@@ -1184,7 +1227,18 @@
       "tabDelivered": "Levererad",
       "tabCancelled": "Avbruten",
       "loadFailed": "Det gick inte att ladda ordrarna. Försök igen.",
-      "retry": "Försök igen"
+      "retry": "Försök igen",
+      "market": "Marknad",
+      "marketFilter": "Filtrera på marknad",
+      "marketAll": "Alla marknader",
+      "marketHostname": "Domän",
+      "marketLocale": "Språk",
+      "marketFxRate": "Växelkurs",
+      "companyBadge": "Företag",
+      "buyerFilter": "Filtrera på köpare",
+      "buyerAll": "Alla köpare",
+      "buyerCompany": "Företag",
+      "buyerPerson": "Privatpersoner"
     },
     "products": {
       "title": "Produkter",
@@ -1201,7 +1255,26 @@
       "noProductsHint": "Lägg till produkter från leverantörskatalogen eller skapa egna.",
       "base": "Bas",
       "draft": "Utkast",
-      "edit": "Redigera"
+      "edit": "Redigera",
+      "marketPrices": {
+        "tab": "Priser per marknad",
+        "detailsTab": "Produkt",
+        "title": "Priser per marknad",
+        "subtitle": "Grundpriserna är i {currency}. Lämna ett fält tomt för att använda det omräknade priset.",
+        "save": "Spara priser",
+        "saved": "Priserna sparades",
+        "noMarkets": "Inga marknader ännu.",
+        "available": "Tillgänglig på den här marknaden",
+        "hiddenWarning": "Ingen kurs och inget manuellt pris: produkten är dold på den här marknaden.",
+        "colAuto": "Omräknat pris",
+        "rateNote": "Kurs {rate}",
+        "noRate": "Ingen kurs",
+        "colOverride": "Manuellt pris",
+        "manual": "Manuellt",
+        "resetToAuto": "Återställ till automatiskt",
+        "colCompareAt": "Jämförpris",
+        "variants": "Varianter ({count})"
+      }
     },
     "browseCatalog": {
       "title": "Leverantörskatalog",
@@ -2090,7 +2163,14 @@
       "independentEarningsNote": "Betalas direkt till ditt Stripe-konto — ingen plattformsprovision.",
       "updateFailed": "Det gick inte att uppdatera orderstatusen. Försök igen.",
       "loadFailed": "Det gick inte att ladda den här ordern. Försök igen.",
-      "retry": "Försök igen"
+      "retry": "Försök igen",
+      "company": "Företag",
+      "orgNumber": "Organisationsnummer",
+      "vatNumber": "Momsregistreringsnummer",
+      "reference": "Referens",
+      "customerDefaults": "Kundens standarduppgifter",
+      "netTotal": "Nettosumma",
+      "totalInclVat": "Totalt inkl. moms"
     },
     "orderStatus": {
       "PENDING": "Väntar",
@@ -2102,7 +2182,9 @@
       "DELIVERED": "Levererad",
       "RETURNED": "Returnerad",
       "CANCELLED": "Avbruten",
-      "REFUNDED": "Återbetald"
+      "REFUNDED": "Återbetald",
+      "INVOICE_ISSUED": "Faktura utfärdad",
+      "CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad"
     },
     "email": {
       "title": "E-post",
@@ -2165,6 +2247,426 @@
         "templates": "Mallar",
         "log": "E-postlogg"
       }
+    },
+    "apps": {
+      "title": "Appar",
+      "subtitle": "Slå på eller av valfria funktioner för din butik.",
+      "empty": "Inga appar ännu. Appar görs tillgängliga av plattformens administratör.",
+      "enabled": "Aktiverad",
+      "disabled": "Inaktiverad",
+      "requiresIndependent": "Endast fristående butiker",
+      "dependsOn": "Kräver: {apps}",
+      "blockedRequiresIndependent": "Den här appen kan bara aktiveras i en fristående butik.",
+      "blockedDependencyMissing": "Aktivera {apps} först.",
+      "saveFailed": "Det gick inte att uppdatera appen.",
+      "items": {
+        "markets": {
+          "name": "Marknader",
+          "description": "Sälj på flera domäner, var och en med egen valuta, eget språk och egen prissättning."
+        },
+        "b2b": {
+          "name": "Företagskunder (B2B)",
+          "description": "Företagskonton med momsregistreringsnummer och nettopriser för företagsköpare."
+        },
+        "invoices": {
+          "name": "Fakturor",
+          "description": "Skapa och skicka fakturor för dina beställningar."
+        },
+        "importer": {
+          "name": "WooCommerce-import",
+          "description": "Importera produkter och kategorier från en befintlig WooCommerce-butik."
+        }
+      },
+      "b2b": {
+        "settings": {
+          "title": "B2B-inställningar",
+          "allowCompany": "Tillåt företagsköp",
+          "defaultBuyerType": "Standardköpartyp",
+          "person": "Privatperson",
+          "company": "Företag",
+          "requireVat": "Kräv momsregistreringsnummer",
+          "orgCountries": "Kontrollera organisationsnummerformat för",
+          "orgCountriesHint": "Strikta formatregler finns för Sverige, Finland, Danmark och Norge; övriga länder får en generell kontroll. Standard: Sverige.",
+          "kustomNote": "Organisationsköp måste vara aktiverade på ditt Kustom-konto — stäm av med Kustoms support innan du slår på detta för företagsköpare.",
+          "saved": "Sparat",
+          "saveFailed": "Det gick inte att spara B2B-inställningarna."
+        }
+      },
+      "invoices": {
+        "settings": {
+          "title": "Fakturainställningar",
+          "openInvoices": "Säljaruppgifter och numrering",
+          "autoIssue": "Utfärda fakturor automatiskt",
+          "autoIssueHint": "Kort- och Kustom-beställningar faktureras så snart betalningen är bekräftad.",
+          "codIssueOn": "Fakturera postförskottsbeställningar",
+          "codIssueOnHint": "Betalningen tas oftast emot vid leverans, därför är det standardvalet.",
+          "codDelivered": "När beställningen har levererats",
+          "codCreated": "När beställningen läggs",
+          "attachPdf": "Bifoga PDF i orderbekräftelser",
+          "attachPdfHint": "Fakturan eller kreditfakturan bifogas nästa ordermejl som kunden får.",
+          "creditOnCancel": "Kreditera avbrutna beställningar automatiskt",
+          "creditOnCancelHint": "En fullständig kreditfaktura utfärdas när en fakturerad beställning avbryts.",
+          "saved": "Sparat",
+          "saveFailed": "Det gick inte att spara fakturainställningarna."
+        }
+      }
+    },
+    "markets": {
+      "title": "Marknader",
+      "subtitle": "Sälj per land med egen domän, valuta, språk och priser.",
+      "addMarket": "Lägg till marknad",
+      "empty": "Inga marknader ännu.",
+      "notEnabled": "Appen Marknader är inte aktiverad för din butik.",
+      "notEnabledLink": "Öppna appar",
+      "managedHint": "Hanteras under Marknader så länge appen Marknader är aktiverad.",
+      "managedLink": "Öppna marknader",
+      "defaultBadge": "Standard",
+      "status": {
+        "DRAFT": "Utkast",
+        "LIVE": "Live"
+      },
+      "list": {
+        "edit": "Redigera",
+        "allCountries": "Alla övriga länder",
+        "locales": "Språk",
+        "primaryDomain": "Primär domän"
+      },
+      "form": {
+        "newTitle": "Ny marknad",
+        "newSubtitle": "Domäner och betalningskontroll blir tillgängliga efter att du sparat.",
+        "general": "Allmänt",
+        "name": "Namn",
+        "namePlaceholder": "Europa",
+        "key": "Nyckel",
+        "keyHint": "Kort identifierare som används i webbadresser och API:et (bokstäver, siffror, bindestreck).",
+        "keyLocked": "Nyckeln kan inte ändras efter att marknaden skapats.",
+        "keyInvalid": "Nyckel: 1–16 små bokstäver, siffror eller bindestreck, inte i början eller slutet.",
+        "rateRequired": "Ange en kurs större än 0 för en manuell omräkningsregel.",
+        "countries": "Länder",
+        "countriesHint": "Ett land kan bara tillhöra en live-marknad.",
+        "defaultLocale": "Standardspråk",
+        "currency": "Valuta",
+        "defaultCurrencyHint": "Standardmarknaden följer din butiksvaluta.",
+        "locales": "Ytterligare språk",
+        "defaultBadge": "standard",
+        "pricing": "Prissättning",
+        "pricingHint": "Produktpriser anges i {currency}; den här regeln räknar om dem för marknaden.",
+        "save": "Spara marknad",
+        "create": "Skapa marknad",
+        "saved": "Marknaden sparades",
+        "deleteMarket": "Ta bort marknad",
+        "deleteConfirm": "Ta bort marknaden \"{name}\"? Dess domäner och manuella priser tas bort.",
+        "deleteWarnOrders": "Om en marknad tas bort finns dess ordrar kvar; de förlorar bara kopplingen till marknaden."
+      },
+      "rule": {
+        "sameCurrency": "Den här marknaden använder din butiksvaluta ({currency}); priserna används som de angetts.",
+        "mode": "Läge",
+        "modeConvert": "Räkna om automatiskt",
+        "modeConvertDesc": "Grundpris × kurs, sedan avrundning",
+        "modeFixed": "Fasta priser",
+        "modeFixedDesc": "Endast manuella priser per produkt",
+        "fixedWarning": "Fast läge: produkter utan manuellt pris använder kursen nedan; utan kurs döljs de på den här marknaden.",
+        "source": "Kurskälla",
+        "sourceManual": "Manuell kurs",
+        "sourceManualDesc": "Du anger kursen",
+        "sourcePlatform": "Plattformskurs",
+        "sourcePlatformDesc": "Underhålls av plattformen",
+        "rate": "Kurs ({from} → {to})",
+        "ratePlatformMissing": "Ingen plattformskurs för det här paret",
+        "ratePlatformHint": "Plattformskurs: {rate}",
+        "increment": "Avrunda till",
+        "incrementNone": "Ingen avrundning",
+        "ending": "Prisändelse",
+        "endingNone": "Ingen",
+        "example": "Exempel: {from} → {to}",
+        "exampleNoRate": "Ange en kurs för att förhandsgranska en omräkning."
+      },
+      "domains": {
+        "title": "Domäner",
+        "subtitle": "Värdnamn som levererar den här marknaden. Peka vart och ett mot plattformen med en CNAME-post.",
+        "platformHost": "Plattformsadress",
+        "copy": "Kopiera",
+        "primary": "Primär",
+        "redirectsTo": "Omdirigerar till {host}",
+        "verify": "Verifiera",
+        "setPrimary": "Gör till primär",
+        "remove": "Ta bort",
+        "removeConfirm": "Ta bort {host} från den här marknaden?",
+        "removePrimaryConfirm": "{host} är marknadens primära värdnamn. Ta bort det ändå?",
+        "wwwFailed": "Huvudvärdnamnet lades till, men www.{host} kunde inte läggas till: {error}",
+        "hostname": "Värdnamn",
+        "add": "Lägg till",
+        "redirectWww": "Lägg även till www.{host}",
+        "redirectWwwDesc": "Omdirigerar www till huvudvärdnamnet (301).",
+        "activationNote": "Efter \"Verifiera\" blir statusen Verifierad. Plattformen aktiverar domänen när Cloudflare-konfigurationen är klar; endast aktiva domäner levereras.",
+        "dnsNotConfigured": "Plattformen har inte publicerat något DNS-mål ännu – kontakta supporten innan du lägger till domäner",
+        "status": {
+          "PENDING": "Väntar",
+          "VERIFIED": "Verifierad",
+          "ACTIVE": "Aktiv"
+        },
+        "dns": {
+          "type": "Typ",
+          "name": "Namn",
+          "value": "Värde",
+          "observed": "Observerat",
+          "observedNone": "ingen post hittades",
+          "intro": "DNS-post att lägga till:"
+        }
+      },
+      "check": {
+        "title": "Betalningar",
+        "never": "Inte kontrollerad ännu",
+        "checkedAt": "Kontrollerad {date}",
+        "recheck": "Kontrollera igen",
+        "setLive": "Publicera",
+        "setDraft": "Gör till utkast",
+        "setLiveBlocked": "Minst en betalleverantör måste stödja den här valutan innan marknaden kan publiceras.",
+        "state": {
+          "ok": "redo",
+          "missing": "inte tillgänglig",
+          "unknown": "okänd"
+        },
+        "stripe": {
+          "label": "Stripe",
+          "ok": "Ditt Stripe-konto kan ta betalt i den här valutan.",
+          "missing": "Stripe kan inte ta betalt i den här valutan.",
+          "unknown": "Stripe kunde inte kontrolleras. Försök igen senare.",
+          "no_standard_account": "Anslut först ett Stripe-konto under Inställningar.",
+          "account_not_ready": "Ditt Stripe-konto är inte redo för kortbetalningar ännu. Slutför Stripe-registreringen.",
+          "currency_not_supported_by_stripe": "Stripe stöder inte den här valutan.",
+          "settlement_conversion_note": "Betalningar i {currency} räknas om till din utbetalningsvaluta hos Stripe."
+        },
+        "kustom": {
+          "label": "Kustom",
+          "ok": "Kustom stöder den här valutan för de valda länderna.",
+          "missing": "Kustom kan inte användas för den här marknaden.",
+          "unknown": "Kustom-stödet kunde inte fastställas. Bekräfta med Kustoms support att ditt konto täcker de här länderna.",
+          "not_configured": "Kustom är inte konfigurerat under Inställningar.",
+          "currency_mismatch": "Kustom förväntar sig {expected} för {country}.",
+          "unknown_country": "Inga Kustom-uppgifter för {country}. Bekräfta med Kustoms support.",
+          "currency_not_supported": "Kustom stöder inte den här valutan."
+        }
+      }
+    },
+    "invoices": {
+      "title": "Fakturor",
+      "subtitle": "Fakturor och kreditfakturor som utfärdats för dina beställningar.",
+      "notEnabled": "Appen Fakturor är avstängd. Redan utfärdade fakturor finns kvar här för din bokföring.",
+      "notEnabledLink": "Öppna Appar",
+      "profileIncomplete": "Dina säljaruppgifter är ofullständiga, så inga fakturor kan utfärdas ännu.",
+      "profileIncompleteLink": "Komplettera säljaruppgifterna",
+      "paidBadge": "Betald",
+      "unpaidBadge": "Obetald",
+      "loading": "Laddar…",
+      "empty": "Inga fakturor hittades.",
+      "resultCount": "{count, plural, one {# dokument} other {# dokument}}",
+      "creditFor": "för",
+      "download": "Ladda ner PDF",
+      "creditNoteAction": "Skapa kreditfaktura",
+      "exportCsv": "Exportera CSV",
+      "exporting": "Exporterar…",
+      "exportFailed": "Exporten misslyckades.",
+      "tabs": {
+        "invoices": "Fakturor",
+        "backlog": "Ej fakturerat",
+        "profile": "Säljaruppgifter",
+        "numbering": "Numrering"
+      },
+      "kind": {
+        "INVOICE": "Faktura",
+        "CREDIT_NOTE": "Kreditfaktura"
+      },
+      "filters": {
+        "search": "Sök",
+        "searchPlaceholder": "Nummer, order eller köpare",
+        "kind": "Typ",
+        "allKinds": "Alla typer",
+        "paid": "Betalning",
+        "paidAll": "Alla",
+        "from": "Från",
+        "to": "Till",
+        "clear": "Rensa filter"
+      },
+      "columns": {
+        "number": "Nummer",
+        "kind": "Typ",
+        "date": "Datum",
+        "order": "Order",
+        "buyer": "Köpare",
+        "total": "Totalt",
+        "status": "Status",
+        "actions": "Åtgärder"
+      },
+      "paymentMethods": {
+        "STRIPE": "Kort",
+        "KUSTOM": "Kustom",
+        "COD": "Postförskott"
+      },
+      "detail": {
+        "subtitle": "Utfärdad till {buyer}",
+        "issueDate": "Fakturadatum",
+        "dueDate": "Förfallodatum",
+        "order": "Order",
+        "trigger": "Utfärdad på grund av",
+        "paymentMethod": "Betalningssätt",
+        "creditedInvoice": "Krediterar faktura",
+        "reason": "Orsak",
+        "buyer": "Köpare",
+        "orgNumber": "Org.nr",
+        "vatNumber": "Momsreg.nr",
+        "reference": "Referens",
+        "email": "E-post",
+        "vatSummary": "Momsspecifikation",
+        "rate": "Momssats",
+        "net": "Netto",
+        "vat": "Moms",
+        "gross": "Totalt",
+        "remaining": "Kvar att kreditera",
+        "creditNote": "Skapa kreditfaktura",
+        "downloadPdf": "Ladda ner PDF",
+        "triggers": {
+          "PAYMENT": "Betalning",
+          "COD_CREATED": "Postförskottsorder lagd",
+          "COD_DELIVERED": "Postförskottsorder levererad",
+          "MANUAL": "Utfärdad manuellt",
+          "REFUND": "Återbetalning",
+          "CANCELLATION": "Avbeställning"
+        },
+        "pdfUnavailable": "PDF:en är inte tillgänglig än."
+      },
+      "backlog": {
+        "title": "Beställningar utan faktura",
+        "description": "Betalda beställningar (och levererade postförskottsbeställningar) som ännu saknar faktura, till exempel beställningar från innan appen aktiverades.",
+        "issueAll": "Utfärda alla",
+        "issuingAll": "Utfärdar…",
+        "issue": "Utfärda",
+        "issuing": "Utfärdar…",
+        "empty": "Alla betalda beställningar har en faktura.",
+        "count": "{count, plural, one {# beställning saknar faktura} other {# beställningar saknar faktura}}",
+        "moreHidden": "Visar {shown} av {count}. \"Utfärda alla\" omfattar samtliga beställningar.",
+        "result": "{issued} utfärdade, {skipped} hoppades över.",
+        "resultErrors": "{count, plural, one {# beställning misslyckades:} other {# beställningar misslyckades:}}",
+        "confirmTitle": "Utfärda alla saknade fakturor?",
+        "confirmDescription": "{count, plural, one {En faktura utfärdas för # beställning.} other {Fakturor utfärdas för # beställningar.}} Fakturanumren tilldelas i ordning och kan inte ångras; fel rättas med en kreditfaktura.",
+        "columns": {
+          "order": "Order",
+          "date": "Datum",
+          "payment": "Betalning",
+          "total": "Totalt"
+        },
+        "bulkLimitHint": "Högst {max} beställningar faktureras per körning. Kör \"Utfärda alla\" igen för resten av de {count}."
+      },
+      "profile": {
+        "groups": {
+          "identity": "Företagsuppgifter",
+          "identityHint": "Skrivs ut som säljare på varje faktura och i ordermejl.",
+          "address": "Adress",
+          "contact": "Kontakt",
+          "bank": "Betalningsuppgifter",
+          "bankHint": "Visas på obetalda fakturor så att köparen kan betala via överföring. Bankgiro, plusgiro eller IBAN krävs.",
+          "document": "Fakturans utseende"
+        },
+        "fields": {
+          "legal_name": "Företagsnamn",
+          "brand_name": "Varumärke",
+          "org_number": "Org.nr",
+          "vat_number": "Momsreg.nr",
+          "address_line1": "Adressrad 1",
+          "address_line2": "Adressrad 2",
+          "postal_code": "Postnummer",
+          "city": "Ort",
+          "country_code": "Land",
+          "registered_office": "Styrelsens säte",
+          "email": "E-post",
+          "phone": "Telefon",
+          "website": "Webbplats",
+          "bankgiro": "Bankgiro",
+          "plusgiro": "Plusgiro",
+          "iban": "IBAN",
+          "bic": "BIC / SWIFT",
+          "bank_name": "Bank",
+          "logo_url": "Logotyp",
+          "f_tax_approved": "Godkänd för F-skatt",
+          "due_days": "Betalningsvillkor (dagar)",
+          "footer_note": "Sidfotstext",
+          "timezone": "Tidszon"
+        },
+        "hints": {
+          "brand_name": "Valfritt handelsnamn som visas ovanför företagsnamnet.",
+          "vat_number": "Krävs om du tar ut moms, t.ex. SE556036079301.",
+          "registered_office": "Kommunen där bolaget är registrerat (krav för aktiebolag).",
+          "f_tax_approved": "Skriver ut \"Godkänd för F-skatt\" på fakturan.",
+          "due_days": "Gäller obetalda fakturor; betalda fakturor förfaller på fakturadatumet.",
+          "timezone": "Avgör fakturadatumet kring midnatt.",
+          "footer_note": "Till exempel betalningsvillkor eller dröjsmålsränta."
+        },
+        "selectCountry": "Välj land",
+        "logoFallback": "Butikens logotyp används",
+        "uploadLogo": "Ladda upp logotyp",
+        "removeLogo": "Ta bort",
+        "checklistTitle": "Redo att fakturera?",
+        "complete": "Dina säljaruppgifter är kompletta. Fakturor kan utfärdas.",
+        "incomplete": "Saknas fortfarande:",
+        "checklistHint": "Ändringar gäller fakturor som utfärdas från och med nu; utfärdade fakturor ändras aldrig.",
+        "saved": "Sparat",
+        "invalidEmail": "Ange en giltig e-postadress.",
+        "invalidWebsite": "Ange en fullständig adress som börjar med https://",
+        "invalidDueDays": "Ange ett antal dagar mellan 0 och 120.",
+        "fixErrors": "Rätta de markerade fälten.",
+        "logoUploadFailed": "Logotypen kunde inte laddas upp. Försök igen."
+      },
+      "numbering": {
+        "description": "Fakturor och kreditfakturor har var sin nummerserie utan luckor. Prefix och utfyllnad kan alltid ändras.",
+        "lockedExplanation": "En serie där första dokumentet har utfärdats fortsätter räkna där den är; nästa nummer kan inte längre ändras.",
+        "notConfigured": "Spara säljaruppgifterna först; nummerserierna skapas samtidigt.",
+        "invoiceSeries": "Fakturor",
+        "creditNoteSeries": "Kreditfakturor",
+        "issuedCount": "{count, plural, =0 {Inget utfärdat ännu} one {# utfärdad} other {# utfärdade}}",
+        "lockedBadge": "Låst",
+        "prefix": "Prefix",
+        "prefixHint": "Valfritt; måste sluta med en bokstav eller ett tecken, t.ex. INV-",
+        "invalidPrefix": "Högst 12 tecken (bokstäver, siffror . _ / -) som inte slutar med en siffra.",
+        "nextNumber": "Nästa nummer",
+        "nextNumberHint": "Fortsätt en befintlig serie, t.ex. från din tidigare butik.",
+        "lockedHint": "Låst eftersom dokument har utfärdats i serien.",
+        "invalidNextNumber": "Ange ett heltal från 1.",
+        "padding": "Minsta antal siffror",
+        "paddingHint": "Fyller ut med inledande nollor (0 = ingen).",
+        "invalidPadding": "Ange ett tal mellan 0 och {max}.",
+        "preview": "Nästa nummer blir",
+        "saved": "Sparat",
+        "fixErrors": "Rätta de markerade fälten."
+      },
+      "card": {
+        "title": "Fakturor",
+        "empty": "Ingen faktura har utfärdats för den här beställningen ännu.",
+        "download": "Ladda ner PDF",
+        "remaining": "Kvar att kreditera",
+        "issue": "Utfärda faktura",
+        "issuing": "Utfärdar…",
+        "creditNote": "Skapa kreditfaktura",
+        "disabledHint": "Appen Fakturor är avstängd; befintliga dokument finns kvar.",
+        "pdfUnavailable": "PDF:en är inte tillgänglig än."
+      },
+      "creditDialog": {
+        "title": "Kreditfaktura för {number}",
+        "description": "En kreditfaktura krediterar hela eller delar av fakturan. Beloppet fördelas automatiskt på fakturans momssatser.",
+        "remaining": "Kvar att kreditera",
+        "mode": "Vad ska krediteras",
+        "full": "Hela återstoden",
+        "amount": "Ett belopp",
+        "amountLabel": "Belopp inkl. moms ({currency})",
+        "amountHint": "Högst {max}.",
+        "invalidAmount": "Ange ett belopp större än 0 och högst {max}.",
+        "reason": "Orsak (valfritt)",
+        "reasonPlaceholder": "t.ex. Skadad vara, goodwillrabatt",
+        "submit": "Utfärda kreditfaktura",
+        "submitting": "Utfärdar…"
+      },
+      "profileLoadFailed": "Säljaruppgifterna kunde inte laddas.",
+      "retry": "Försök igen",
+      "profileVatOnly": "Lägg till ett momsreg.nr om du tar ut moms."
     }
   },
   "components": {
@@ -2396,7 +2898,58 @@
     "PRODUCT_FAQ_NOT_FOUND": "Vanliga frågan hittades inte",
     "PAGE_BUILDER_PAGE_NOT_FOUND": "Sidan hittades inte",
     "CUSTOM_FIELD_PRODUCT_NOT_FOUND": "Produkten hittades inte",
-    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Attributmallen hittades inte"
+    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Attributmallen hittades inte",
+    "STORE_APP_UNKNOWN": "Okänd butiksapp",
+    "STORE_APP_NOT_AVAILABLE": "Den här appen är inte tillgänglig för din butik",
+    "STORE_APP_REQUIRES_INDEPENDENT": "Den här appen kräver en fristående butik",
+    "STORE_APP_DEPENDENCY_MISSING": "Aktivera den nödvändiga appen först",
+    "STORE_APP_DEPENDENCY_IN_USE": "En annan aktiverad app är beroende av den här; inaktivera den först",
+    "STORE_APP_NOT_ENABLED": "Den här appen är inte aktiverad för din butik",
+    "MARKET_NOT_FOUND": "Marknaden hittades inte",
+    "MARKET_KEY_TAKEN": "En marknad med den här nyckeln finns redan",
+    "MARKET_DEFAULT_UNDELETABLE": "Standardmarknaden kan inte tas bort",
+    "MARKET_DEFAULT_LOCALE_IN_LOCALES": "Standardspråket kan inte också vara ett ytterligare språk",
+    "MARKET_LOCALE_UNSUPPORTED": "Det här språket stöds inte av butiken",
+    "MARKET_CURRENCY_UNSUPPORTED": "Den här valutan stöds inte",
+    "MARKET_COUNTRY_OVERLAP": "Ett land kan bara tillhöra en live-marknad",
+    "MARKET_PAYMENT_CHECK_FAILED": "Ingen betalleverantör stöder den här valutan ännu",
+    "MARKET_DOMAIN_RESERVED": "Det här värdnamnet är reserverat",
+    "MARKET_DOMAIN_TAKEN": "Det här värdnamnet används redan",
+    "MARKET_DOMAIN_VERIFY_FAILED": "DNS-verifieringen misslyckades. Kontrollera CNAME-posten och försök igen.",
+    "MARKET_NOT_LIVE": "Den här marknaden är inte live",
+    "MARKET_FX_RATE_MISSING": "Ingen kurs finns för det här valutaparet – ange en manuell kurs eller be plattformen lägga till en",
+    "MARKET_DEFAULT_LOCKED": "Standardmarknadens nyckel kan inte ändras och marknaden kan inte göras till utkast",
+    "MARKET_DOMAIN_INVALID": "Det här värdnamnet är ogiltigt",
+    "MARKET_DOMAIN_REDIRECT_INVALID": "Omdirigeringsmålet måste vara ett annat värdnamn på samma marknad",
+    "MARKET_DOMAIN_NOT_FOUND": "Domänen hittades inte",
+    "MARKET_PRODUCT_NOT_FOUND": "Produkten hittades inte",
+    "MARKET_PRIMARY_DOMAIN_REQUIRED": "Lägg till ett värdnamn för marknaden och låt det aktiveras innan du publicerar den",
+    "FX_RATE_NOT_FOUND": "Det finns ingen plattformskurs för det här valutaparet",
+    "FX_RATE_IN_USE": "Den här kursen används av en live-marknad och kan inte tas bort",
+    "MARKET_DOMAIN_IN_USE": "Det här är det aktiva primära värdnamnet för en live-marknad – ange ett annat primärt värdnamn eller gör marknaden till utkast först",
+    "STORE_CUSTOM_DOMAIN_MANAGED_BY_MARKETS": "Domäner hanteras under Marknader så länge appen Marknader är aktiverad",
+    "B2B_COMPANY_NOT_ALLOWED": "Företagsköp är inte aktiverade för den här butiken",
+    "B2B_COMPANY_NAME_REQUIRED": "Företagsnamn krävs",
+    "B2B_ORG_NUMBER_REQUIRED": "Organisationsnummer krävs",
+    "B2B_ORG_NUMBER_INVALID": "Organisationsnumret har ett ogiltigt format",
+    "B2B_VAT_NUMBER_REQUIRED": "Momsregistreringsnummer krävs",
+    "B2B_VAT_NUMBER_INVALID": "Momsregistreringsnumret har ett ogiltigt format",
+    "STORE_APP_SETTINGS_INVALID": "Appens inställningar är ogiltiga",
+    "INVOICE_PROFILE_INCOMPLETE": "Dina säljaruppgifter är ofullständiga. Fyll i de saknade fälten innan du utfärdar fakturor.",
+    "INVOICE_SEQUENCE_LOCKED": "Nästa nummer kan inte ändras efter att dokument har utfärdats i serien.",
+    "INVOICE_NUMBERING_INVALID": "Numreringsinställningarna är ogiltiga.",
+    "INVOICE_ORDER_NOT_ELIGIBLE": "Beställningen kan inte faktureras (den är avbruten, misslyckad eller återbetald).",
+    "INVOICE_ALREADY_ISSUED": "En faktura har redan utfärdats för den här beställningen.",
+    "INVOICE_NOT_FOUND": "Fakturan hittades inte.",
+    "INVOICE_CREDIT_EXCEEDS": "Beloppet är högre än det som återstår att kreditera på fakturan.",
+    "INVOICE_CREDIT_NOTHING_LEFT": "Fakturan är redan helt krediterad.",
+    "INVOICE_PDF_UNAVAILABLE": "PDF:en kan inte skapas just nu. Försök igen senare.",
+    "INVOICE_IBAN_INVALID": "IBAN-numret är ogiltigt.",
+    "INVOICE_BANKGIRO_INVALID": "Bankgironumret är ogiltigt (format 1234-5678).",
+    "INVOICE_BIC_INVALID": "BIC/SWIFT-koden är ogiltig.",
+    "INVOICE_VAT_NUMBER_INVALID": "Momsreg.nr är ogiltigt.",
+    "INVOICE_TIMEZONE_INVALID": "Tidszonen är ogiltig.",
+    "INVOICE_SNAPSHOT_INVALID": "Beställningen kan inte faktureras automatiskt eftersom beloppen inte stämmer (eller den använder staplade skattesatser). Kontakta supporten."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

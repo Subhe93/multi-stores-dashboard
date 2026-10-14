@@ -12,8 +12,11 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
+import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
-import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
+import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
+import type { CustomerB2bDefaults, OrderB2bSnapshot } from '@/lib/b2b';
+import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 import Link from 'next/link';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
@@ -62,7 +65,8 @@ interface TimelineEntry {
   note?: string | null;
 }
 
-interface AdminOrder extends KustomOrderFields {
+// OrderB2bSnapshot: the five company columns written by the b2b app.
+interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot {
   id: string;
   order_number: string;
   status: string;
@@ -78,6 +82,7 @@ interface AdminOrder extends KustomOrderFields {
   tax_lines?: TaxLine[] | null;
   tax_rate_bp?: number | null;
   tax_amount?: number | string | null;
+  shipping_tax_amount?: number | string | null;
   tax_pricing_mode?: TaxPricingMode | null;
   // Payment details.
   card_brand?: string | null;
@@ -85,7 +90,7 @@ interface AdminOrder extends KustomOrderFields {
   paid_at?: string | null;
   payment_failure_message?: string | null;
   receipt_url?: string | null;
-  customer?: { first_name?: string | null; last_name?: string | null; phone?: string | null } | null;
+  customer?: ({ first_name?: string | null; last_name?: string | null; phone?: string | null } & CustomerB2bDefaults) | null;
   address?: {
     full_name?: string | null;
     line1?: string | null;
@@ -135,6 +140,9 @@ const STATUS_LABELS: Record<string, string> = {
   RETURNED: 'Returned',
   CANCELLED: 'Cancelled',
   REFUNDED: 'Refunded',
+  // Invoices app timeline rows (labels come from admin.orderStatus_*).
+  INVOICE_ISSUED: 'Invoice issued',
+  CREDIT_NOTE_ISSUED: 'Credit note issued',
 };
 
 const statusFlow = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
@@ -180,6 +188,8 @@ function paymentStatusInfo(
 export default function OrderDetailPage() {
   const t = useTranslations('admin');
   const tp = useTranslations('payments');
+  // Company wording is shared with the creator order page (b2b app).
+  const tb = useTranslations('creator.orderDetail');
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const { fmt, currency } = useCurrency();
@@ -364,11 +374,15 @@ export default function OrderDetailPage() {
                 <span>{fmt(Number(order.shipping_cost))}</span>
               </div>
               {Number(order.discount_amount) > 0 && <div className="flex justify-between text-xs text-emerald-600"><span>{t('discount')}</span><span>-{fmt(Number(order.discount_amount))}</span></div>}
+              {/* Company orders (b2b app): net total before the VAT rows, gross labelled "incl. VAT". */}
+              {order.customer_type === 'COMPANY' && (
+                <div className="flex justify-between text-xs font-medium"><span>{tb('netTotal')}</span><span>{formatAmountIn(deriveNetTotals(order).net_total, order.currency || currency)}</span></div>
+              )}
               {/* Itemised tax lines (one row per rate) in the order's own currency;
                   inclusive orders show what the total already contains. */}
               <OrderTaxLines order={order} currency={order.currency || currency} rowClassName="text-xs" />
               <Separator />
-              <div className="flex justify-between font-semibold"><span>{t('total')}</span><span>{fmt(Number(order.total))}</span></div>
+              <div className="flex justify-between font-semibold"><span>{order.customer_type === 'COMPANY' ? tb('totalInclVat') : t('total')}</span><span>{formatAmountIn(order.total, order.currency || currency)}</span></div>
             </div>
           </CardContent>
         </Card>
@@ -380,8 +394,13 @@ export default function OrderDetailPage() {
             <CardContent className="text-xs space-y-1">
               <p className="font-medium">{order.customer?.first_name} {order.customer?.last_name}</p>
               <p className="text-muted-foreground">{order.customer?.phone || '—'}</p>
+              {/* Company snapshot (b2b app); renders nothing for person orders. */}
+              <OrderCompanyLines order={order} customer={order.customer} />
             </CardContent>
           </Card>
+
+          {/* Invoices app (read-only): renders only when the order has documents. */}
+          {token && <OrderInvoiceCard orderId={id} token={token} readOnly />}
 
           <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('shippingAddress')}</CardTitle></CardHeader>

@@ -9,9 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { AdminStoreDomainsCard } from '@/components/markets/AdminStoreDomainsCard';
 import { ArrowLeft, Mail, Phone, CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminStoreAppView, StoreAppKey } from '@/lib/storeApps.registry';
 import { countryName } from '@/lib/taxCountries';
 import type { TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
@@ -49,6 +52,8 @@ function storeUrl(slug: string): string {
 
 export default function CreatorDetailPage() {
   const t = useTranslations('admin');
+  // Root translator so API error codes can be resolved under `errors.<code>`.
+  const tRoot = useTranslations();
   const locale = useLocale();
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
@@ -63,6 +68,15 @@ export default function CreatorDetailPage() {
   const [storeType, setStoreType] = useState<StoreType>('MARKETPLACE');
   const [savingType, setSavingType] = useState(false);
   const [typeMsg, setTypeMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  // Store apps allowlist (admin side): which optional apps this store may
+  // enable. Null until the store is known; empty when the request failed.
+  const [storeApps, setStoreApps] = useState<AdminStoreAppView[] | null>(null);
+  const [savingApp, setSavingApp] = useState<StoreAppKey | null>(null);
+  const [appsMsg, setAppsMsg] = useState<string | null>(null);
+  // True when the apps GET failed; translated at render time so the effect
+  // doesn't depend on the translator.
+  const [appsLoadFailed, setAppsLoadFailed] = useState(false);
 
   const fetchCreator = () => {
     if (!token || !id) return;
@@ -86,8 +100,38 @@ export default function CreatorDetailPage() {
       api<Store>(`/stores/by-creator/${id}`, { token })
         .then((s) => { setStore(s); setSlug(s.slug); setStoreType(s.store_type ?? 'MARKETPLACE'); })
         .catch(() => setStore(null)),
+      api<AdminStoreAppView[]>(`/stores/by-creator/${id}/apps`, { token })
+        .then((list) => setStoreApps(Array.isArray(list) ? list : []))
+        .catch(() => { setStoreApps([]); setAppsLoadFailed(true); }),
     ]).finally(() => setLoading(false));
   }, [token, id]);
+
+  const handleToggleAppAvailable = async (app: AdminStoreAppView, next: boolean) => {
+    if (!token || !storeApps || savingApp) return;
+    setSavingApp(app.key);
+    setAppsMsg(null);
+    // Optimistic update — revert on failure. `enabled` is the creator's raw
+    // toggle and is left untouched; the API response is authoritative.
+    const previous = storeApps;
+    setStoreApps(previous.map((a) => (a.key === app.key ? { ...a, available: next } : a)));
+    try {
+      const refreshed = await api<AdminStoreAppView[]>(`/stores/by-creator/${id}/apps/${app.key}/available`, {
+        method: 'PUT', token,
+        body: JSON.stringify({ available: next }),
+      });
+      if (Array.isArray(refreshed)) setStoreApps(refreshed);
+    } catch (err) {
+      setStoreApps(previous);
+      const code = err instanceof ApiError ? err.code : undefined;
+      setAppsMsg(
+        code && tRoot.has(`errors.${code}`)
+          ? tRoot(`errors.${code}`)
+          : (err instanceof Error && err.message) || t('storeApps.updateFailed'),
+      );
+    } finally {
+      setSavingApp(null);
+    }
+  };
 
   const handleVerify = async () => {
     if (!token) return;
@@ -292,6 +336,43 @@ export default function CreatorDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Store apps allowlist — hidden until the creator has a store */}
+      {store && storeApps && (
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">{t('storeApps.title')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {storeApps.map((app) => (
+              <div key={app.key} className="flex items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-sm font-medium">{tRoot(`creator.apps.items.${app.key}.name`)}</p>
+                  <p className="text-[11px] text-muted-foreground">{tRoot(`creator.apps.items.${app.key}.description`)}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {app.enabled
+                    ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">{t('storeApps.creatorEnabled')}</Badge>
+                    : <Badge variant="outline" className="text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200">{t('storeApps.creatorDisabled')}</Badge>}
+                  <ToggleSwitch
+                    checked={app.available}
+                    disabled={savingApp !== null}
+                    onChange={(next) => handleToggleAppAvailable(app, next)}
+                    label={t('storeApps.available')}
+                  />
+                </div>
+              </div>
+            ))}
+            {appsLoadFailed && <p className="text-[11px] text-red-600">{t('storeApps.loadFailed')}</p>}
+            {appsMsg && <p className="text-[11px] text-red-600">{appsMsg}</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Market domains: admin activates hosts after the Cloudflare step (markets app only). */}
+      {store && storeApps?.some((a) => a.key === 'markets' && a.available && a.enabled) && (
+        <AdminStoreDomainsCard creatorId={id} />
+      )}
     </div>
   );
 }

@@ -307,7 +307,10 @@
     "notificationTemplates": "Modèles de notifications",
     "email": "E-mail",
     "guide": "Guide",
-    "emailLog": "Journal des e-mails"
+    "emailLog": "Journal des e-mails",
+    "apps": "Applications",
+    "markets": "Marchés",
+    "invoices": "Factures"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -731,7 +734,42 @@
     "kustomPartnerId": "ID partenaire Kustom",
     "kustomPartnerIdHint": "Facultatif. Envoyé dans l’en-tête Kustom-Partner à chaque appel à l’API Kustom pour les boutiques indépendantes. Laissez vide si la plateforme n’a pas d’accord de partenariat Kustom.",
     "stripeConnectWebhookMissing": "{count} boutique(s) indépendante(s) encaissent sur leur propre compte Stripe. Sans ce secret, les remboursements qu'elles effectuent dans Stripe ne sont jamais répercutés sur la commande.",
-    "storeTypeGuideLink": "Comment convertir une boutique : ouvrir le guide"
+    "storeTypeGuideLink": "Comment convertir une boutique : ouvrir le guide",
+    "storeApps": {
+      "title": "Applications de la boutique",
+      "available": "Disponible",
+      "creatorEnabled": "Activée par le créateur",
+      "creatorDisabled": "Non activée",
+      "updateFailed": "Impossible de mettre à jour la disponibilité de l’application.",
+      "loadFailed": "Impossible de charger les applications de la boutique."
+    },
+    "fxRates": {
+      "title": "Taux de change (Marchés)",
+      "subtitle": "Taux de la plateforme utilisés par les marchés dont la source est « taux de la plateforme ».",
+      "empty": "Aucun taux pour le moment.",
+      "base": "De",
+      "quote": "Vers",
+      "rate": "Taux",
+      "remove": "Retirer",
+      "removeConfirm": "Retirer le taux {pair} ? Les marchés utilisant le taux de la plateforme pour cette paire perdent leurs prix automatiques.",
+      "add": "Ajouter un taux",
+      "saved": "Taux enregistrés",
+      "save": "Enregistrer les taux"
+    },
+    "domains": {
+      "title": "Domaines des marchés",
+      "subtitle": "Passez un domaine en « Actif » après l'étape Cloudflare ; seuls les domaines actifs sont servis.",
+      "updated": "Statut du domaine mis à jour.",
+      "verifiedAt": "vérifié le {date}",
+      "loadFailed": "Impossible de charger les domaines.",
+      "status": {
+        "PENDING": "En attente",
+        "VERIFIED": "Vérifié",
+        "ACTIVE": "Actif"
+      }
+    },
+    "orderStatus_INVOICE_ISSUED": "Facture émise",
+    "orderStatus_CREDIT_NOTE_ISSUED": "Avoir émis"
   },
   "guide": {
     "title": "Guide des opérations",
@@ -1157,7 +1195,12 @@
       "revenueBreakdown": "Détail des revenus",
       "independentBannerTitle": "Paiements directs",
       "independentBannerDesc": "Votre boutique est indépendante : chaque commande est payée directement sur votre compte Stripe connecté et la plateforme ne prélève aucune commission.",
-      "independentBannerLink": "Voir les détails des versements dans votre tableau de bord Stripe"
+      "independentBannerLink": "Voir les détails des versements dans votre tableau de bord Stripe",
+      "byCurrency": {
+        "title": "Revenus en {currency}",
+        "mixedHidden": "Vos commandes sont dans plusieurs devises ; les totaux sont donc affichés par devise.",
+        "pending": "En attente {amount}"
+      }
     },
     "independent": {
       "notAvailableTitle": "Indisponible pour les boutiques indépendantes",
@@ -1184,7 +1227,18 @@
       "tabDelivered": "Livrées",
       "tabCancelled": "Annulées",
       "loadFailed": "Impossible de charger les commandes. Veuillez réessayer.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "market": "Marché",
+      "marketFilter": "Filtrer par marché",
+      "marketAll": "Tous les marchés",
+      "marketHostname": "Domaine",
+      "marketLocale": "Langue",
+      "marketFxRate": "Taux de change",
+      "companyBadge": "Entreprise",
+      "buyerFilter": "Filtrer par acheteur",
+      "buyerAll": "Tous les acheteurs",
+      "buyerCompany": "Entreprises",
+      "buyerPerson": "Particuliers"
     },
     "products": {
       "title": "Produits",
@@ -1201,7 +1255,26 @@
       "noProductsHint": "Ajoutez des produits depuis le catalogue fournisseur ou créez les vôtres.",
       "base": "Base",
       "draft": "Brouillon",
-      "edit": "Modifier"
+      "edit": "Modifier",
+      "marketPrices": {
+        "tab": "Prix par marché",
+        "detailsTab": "Produit",
+        "title": "Prix par marché",
+        "subtitle": "Les prix de base sont en {currency}. Laissez un champ vide pour utiliser le prix converti.",
+        "save": "Enregistrer les prix",
+        "saved": "Prix enregistrés",
+        "noMarkets": "Aucun marché pour le moment.",
+        "available": "Disponible sur ce marché",
+        "hiddenWarning": "Aucun taux ni prix manuel : ce produit est masqué sur ce marché.",
+        "colAuto": "Prix converti",
+        "rateNote": "Taux {rate}",
+        "noRate": "Aucun taux",
+        "colOverride": "Prix manuel",
+        "manual": "Manuel",
+        "resetToAuto": "Revenir au prix automatique",
+        "colCompareAt": "Prix barré",
+        "variants": "Variantes ({count})"
+      }
     },
     "browseCatalog": {
       "title": "Catalogue fournisseur",
@@ -2090,7 +2163,14 @@
       "independentEarningsNote": "Versé directement sur votre compte Stripe — sans commission de la plateforme.",
       "updateFailed": "Échec de la mise à jour du statut de la commande. Veuillez réessayer.",
       "loadFailed": "Impossible de charger cette commande. Veuillez réessayer.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "company": "Entreprise",
+      "orgNumber": "N° d’organisation",
+      "vatNumber": "N° de TVA",
+      "reference": "Référence",
+      "customerDefaults": "Valeurs par défaut du client",
+      "netTotal": "Total HT",
+      "totalInclVat": "Total TTC"
     },
     "orderStatus": {
       "PENDING": "En attente",
@@ -2102,7 +2182,9 @@
       "DELIVERED": "Livrée",
       "RETURNED": "Retournée",
       "CANCELLED": "Annulée",
-      "REFUNDED": "Remboursée"
+      "REFUNDED": "Remboursée",
+      "INVOICE_ISSUED": "Facture émise",
+      "CREDIT_NOTE_ISSUED": "Avoir émis"
     },
     "email": {
       "title": "E-mail",
@@ -2165,6 +2247,426 @@
         "templates": "Modèles",
         "log": "Journal des e-mails"
       }
+    },
+    "apps": {
+      "title": "Applications",
+      "subtitle": "Activez ou désactivez les fonctionnalités optionnelles de votre boutique.",
+      "empty": "Aucune application pour le moment. Les applications sont mises à disposition par l’administrateur de la plateforme.",
+      "enabled": "Activée",
+      "disabled": "Désactivée",
+      "requiresIndependent": "Boutiques indépendantes uniquement",
+      "dependsOn": "Nécessite : {apps}",
+      "blockedRequiresIndependent": "Cette application ne peut être activée que sur une boutique indépendante.",
+      "blockedDependencyMissing": "Activez d’abord {apps}.",
+      "saveFailed": "Impossible de mettre à jour l’application.",
+      "items": {
+        "markets": {
+          "name": "Marchés",
+          "description": "Vendez sur plusieurs domaines, chacun avec sa devise, sa langue et sa tarification."
+        },
+        "b2b": {
+          "name": "Clients professionnels (B2B)",
+          "description": "Comptes entreprise avec numéro de TVA et prix hors taxes pour les acheteurs professionnels."
+        },
+        "invoices": {
+          "name": "Factures",
+          "description": "Générez et envoyez des factures pour vos commandes."
+        },
+        "importer": {
+          "name": "Importateur WooCommerce",
+          "description": "Importez les produits et catégories d’une boutique WooCommerce existante."
+        }
+      },
+      "b2b": {
+        "settings": {
+          "title": "Paramètres B2B",
+          "allowCompany": "Autoriser les achats par des entreprises",
+          "defaultBuyerType": "Type d’acheteur par défaut",
+          "person": "Particulier",
+          "company": "Entreprise",
+          "requireVat": "Exiger le numéro de TVA",
+          "orgCountries": "Vérifier le format du numéro d’organisation pour",
+          "orgCountriesHint": "Des règles de format strictes existent pour la Suède, la Finlande, le Danemark et la Norvège ; les autres pays passent par une vérification générique. Par défaut : Suède.",
+          "kustomNote": "Les achats par des organisations doivent être activés sur votre compte Kustom — vérifiez auprès du support Kustom avant d’activer cette option pour les acheteurs professionnels.",
+          "saved": "Enregistré",
+          "saveFailed": "Impossible d’enregistrer les paramètres B2B."
+        }
+      },
+      "invoices": {
+        "settings": {
+          "title": "Paramètres de facturation",
+          "openInvoices": "Profil vendeur et numérotation",
+          "autoIssue": "Émettre les factures automatiquement",
+          "autoIssueHint": "Les commandes par carte et Kustom sont facturées dès la confirmation du paiement.",
+          "codIssueOn": "Facturer les commandes en paiement à la livraison",
+          "codIssueOnHint": "Le paiement est généralement encaissé à la livraison, c’est donc le choix par défaut.",
+          "codDelivered": "Lorsque la commande est livrée",
+          "codCreated": "Lorsque la commande est passée",
+          "attachPdf": "Joindre le PDF aux e-mails de commande",
+          "attachPdfHint": "La facture ou l’avoir est joint au prochain e-mail de commande reçu par le client.",
+          "creditOnCancel": "Émettre un avoir automatiquement en cas d’annulation",
+          "creditOnCancelHint": "Un avoir total est émis lorsqu’une commande facturée est annulée.",
+          "saved": "Enregistré",
+          "saveFailed": "Impossible d’enregistrer les paramètres de facturation."
+        }
+      }
+    },
+    "markets": {
+      "title": "Marchés",
+      "subtitle": "Vendez par pays avec un domaine, une devise, des langues et des prix propres.",
+      "addMarket": "Ajouter un marché",
+      "empty": "Aucun marché pour le moment.",
+      "notEnabled": "L'application Marchés n'est pas activée pour votre boutique.",
+      "notEnabledLink": "Ouvrir les applications",
+      "managedHint": "Géré dans Marchés tant que l'application Marchés est activée.",
+      "managedLink": "Ouvrir les marchés",
+      "defaultBadge": "Par défaut",
+      "status": {
+        "DRAFT": "Brouillon",
+        "LIVE": "En ligne"
+      },
+      "list": {
+        "edit": "Modifier",
+        "allCountries": "Tous les autres pays",
+        "locales": "Langues",
+        "primaryDomain": "Domaine principal"
+      },
+      "form": {
+        "newTitle": "Nouveau marché",
+        "newSubtitle": "Les domaines et la vérification des paiements seront disponibles après l'enregistrement.",
+        "general": "Général",
+        "name": "Nom",
+        "namePlaceholder": "Europe",
+        "key": "Clé",
+        "keyHint": "Identifiant court utilisé dans les URL et l'API (lettres, chiffres, tirets).",
+        "keyLocked": "La clé ne peut plus être modifiée après la création.",
+        "keyInvalid": "Clé : 1 à 16 lettres minuscules, chiffres ou tirets, sans tiret au début ni à la fin.",
+        "rateRequired": "Saisissez un taux supérieur à 0 pour une règle de conversion manuelle.",
+        "countries": "Pays",
+        "countriesHint": "Un pays ne peut appartenir qu'à un seul marché en ligne.",
+        "defaultLocale": "Langue par défaut",
+        "currency": "Devise",
+        "defaultCurrencyHint": "Le marché par défaut suit la devise de votre boutique.",
+        "locales": "Langues supplémentaires",
+        "defaultBadge": "par défaut",
+        "pricing": "Tarification",
+        "pricingHint": "Les prix des produits sont saisis en {currency} ; cette règle les convertit pour ce marché.",
+        "save": "Enregistrer le marché",
+        "create": "Créer le marché",
+        "saved": "Marché enregistré",
+        "deleteMarket": "Supprimer le marché",
+        "deleteConfirm": "Supprimer le marché « {name} » ? Ses domaines et prix manuels seront retirés.",
+        "deleteWarnOrders": "La suppression d'un marché conserve ses commandes ; elles perdent seulement la référence au marché."
+      },
+      "rule": {
+        "sameCurrency": "Ce marché utilise la devise de votre boutique ({currency}) ; les prix sont utilisés tels quels.",
+        "mode": "Mode",
+        "modeConvert": "Convertir automatiquement",
+        "modeConvertDesc": "Prix de base × taux, puis arrondi",
+        "modeFixed": "Prix fixes",
+        "modeFixedDesc": "Uniquement des prix manuels par produit",
+        "fixedWarning": "Mode fixe : les produits sans prix manuel utilisent le taux ci-dessous ; sans taux, ils sont masqués sur ce marché.",
+        "source": "Source du taux",
+        "sourceManual": "Taux manuel",
+        "sourceManualDesc": "Vous saisissez le taux",
+        "sourcePlatform": "Taux de la plateforme",
+        "sourcePlatformDesc": "Géré par la plateforme",
+        "rate": "Taux ({from} → {to})",
+        "ratePlatformMissing": "Aucun taux de plateforme pour cette paire",
+        "ratePlatformHint": "Taux de la plateforme : {rate}",
+        "increment": "Arrondir à",
+        "incrementNone": "Sans arrondi",
+        "ending": "Terminaison du prix",
+        "endingNone": "Aucune",
+        "example": "Exemple : {from} → {to}",
+        "exampleNoRate": "Saisissez un taux pour prévisualiser une conversion."
+      },
+      "domains": {
+        "title": "Domaines",
+        "subtitle": "Noms d’hôte qui servent ce marché. Pointez chacun vers la plateforme avec un enregistrement CNAME.",
+        "platformHost": "Adresse de la plateforme",
+        "copy": "Copier",
+        "primary": "Principal",
+        "redirectsTo": "Redirige vers {host}",
+        "verify": "Vérifier",
+        "setPrimary": "Définir comme principal",
+        "remove": "Retirer",
+        "removeConfirm": "Retirer {host} de ce marché ?",
+        "removePrimaryConfirm": "{host} est le nom d’hôte principal de ce marché. Le retirer quand même ?",
+        "wwwFailed": "Le nom d’hôte principal a été ajouté, mais www.{host} n’a pas pu l’être : {error}",
+        "hostname": "Nom d’hôte",
+        "add": "Ajouter",
+        "redirectWww": "Ajouter aussi www.{host}",
+        "redirectWwwDesc": "Redirige www vers le nom d’hôte principal (301).",
+        "activationNote": "Après « Vérifier », le statut passe à Vérifié. La plateforme active le domaine une fois la configuration Cloudflare terminée ; seuls les domaines actifs sont servis.",
+        "dnsNotConfigured": "La plateforme n’a pas encore publié de cible DNS — contactez le support avant d’ajouter des domaines",
+        "status": {
+          "PENDING": "En attente",
+          "VERIFIED": "Vérifié",
+          "ACTIVE": "Actif"
+        },
+        "dns": {
+          "type": "Type",
+          "name": "Nom",
+          "value": "Valeur",
+          "observed": "Observé",
+          "observedNone": "aucun enregistrement trouvé",
+          "intro": "Enregistrement DNS à ajouter :"
+        }
+      },
+      "check": {
+        "title": "Paiements",
+        "never": "Pas encore vérifié",
+        "checkedAt": "Vérifié le {date}",
+        "recheck": "Revérifier",
+        "setLive": "Mettre en ligne",
+        "setDraft": "Repasser en brouillon",
+        "setLiveBlocked": "Au moins un prestataire de paiement doit prendre en charge cette devise avant la mise en ligne du marché.",
+        "state": {
+          "ok": "prêt",
+          "missing": "indisponible",
+          "unknown": "inconnu"
+        },
+        "stripe": {
+          "label": "Stripe",
+          "ok": "Votre compte Stripe peut encaisser dans cette devise.",
+          "missing": "Stripe ne peut pas encaisser dans cette devise.",
+          "unknown": "Stripe n'a pas pu être vérifié. Réessayez plus tard.",
+          "no_standard_account": "Connectez d'abord un compte Stripe dans les paramètres.",
+          "account_not_ready": "Votre compte Stripe n'est pas encore prêt pour les paiements par carte. Terminez l'intégration Stripe.",
+          "currency_not_supported_by_stripe": "Stripe ne prend pas en charge cette devise.",
+          "settlement_conversion_note": "Les paiements en {currency} sont convertis dans votre devise de versement Stripe."
+        },
+        "kustom": {
+          "label": "Kustom",
+          "ok": "Kustom prend en charge cette devise pour les pays sélectionnés.",
+          "missing": "Kustom ne peut pas être utilisé pour ce marché.",
+          "unknown": "La prise en charge Kustom n'a pas pu être déterminée. Confirmez auprès du support Kustom que votre compte couvre ces pays.",
+          "not_configured": "Kustom n'est pas configuré dans les paramètres.",
+          "currency_mismatch": "Kustom attend {expected} pour {country}.",
+          "unknown_country": "Aucune donnée Kustom pour {country}. Confirmez auprès du support Kustom.",
+          "currency_not_supported": "Kustom ne prend pas en charge cette devise."
+        }
+      }
+    },
+    "invoices": {
+      "title": "Factures",
+      "subtitle": "Factures et avoirs émis pour vos commandes.",
+      "notEnabled": "L’application Factures est désactivée. Les factures déjà émises restent disponibles ici pour votre comptabilité.",
+      "notEnabledLink": "Ouvrir les applications",
+      "profileIncomplete": "Votre profil vendeur est incomplet ; aucune facture ne peut encore être émise.",
+      "profileIncompleteLink": "Compléter le profil vendeur",
+      "paidBadge": "Payée",
+      "unpaidBadge": "Impayée",
+      "loading": "Chargement…",
+      "empty": "Aucune facture trouvée.",
+      "resultCount": "{count, plural, one {# document} other {# documents}}",
+      "creditFor": "pour",
+      "download": "Télécharger le PDF",
+      "creditNoteAction": "Créer un avoir",
+      "exportCsv": "Exporter en CSV",
+      "exporting": "Export en cours…",
+      "exportFailed": "L’export a échoué.",
+      "tabs": {
+        "invoices": "Factures",
+        "backlog": "À facturer",
+        "profile": "Profil vendeur",
+        "numbering": "Numérotation"
+      },
+      "kind": {
+        "INVOICE": "Facture",
+        "CREDIT_NOTE": "Avoir"
+      },
+      "filters": {
+        "search": "Rechercher",
+        "searchPlaceholder": "Numéro, commande ou acheteur",
+        "kind": "Type",
+        "allKinds": "Tous les types",
+        "paid": "Paiement",
+        "paidAll": "Tous",
+        "from": "Du",
+        "to": "Au",
+        "clear": "Effacer les filtres"
+      },
+      "columns": {
+        "number": "Numéro",
+        "kind": "Type",
+        "date": "Date",
+        "order": "Commande",
+        "buyer": "Acheteur",
+        "total": "Total",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "paymentMethods": {
+        "STRIPE": "Carte",
+        "KUSTOM": "Kustom",
+        "COD": "Paiement à la livraison"
+      },
+      "detail": {
+        "subtitle": "Émise à {buyer}",
+        "issueDate": "Date de facture",
+        "dueDate": "Date d’échéance",
+        "order": "Commande",
+        "trigger": "Émise suite à",
+        "paymentMethod": "Mode de paiement",
+        "creditedInvoice": "Avoir sur la facture",
+        "reason": "Motif",
+        "buyer": "Acheteur",
+        "orgNumber": "N° d’immatriculation",
+        "vatNumber": "N° de TVA",
+        "reference": "Référence",
+        "email": "E-mail",
+        "vatSummary": "Récapitulatif TVA",
+        "rate": "Taux",
+        "net": "HT",
+        "vat": "TVA",
+        "gross": "TTC",
+        "remaining": "Reste à créditer",
+        "creditNote": "Créer un avoir",
+        "downloadPdf": "Télécharger le PDF",
+        "triggers": {
+          "PAYMENT": "Paiement",
+          "COD_CREATED": "Commande en paiement à la livraison passée",
+          "COD_DELIVERED": "Commande en paiement à la livraison livrée",
+          "MANUAL": "Émise manuellement",
+          "REFUND": "Remboursement",
+          "CANCELLATION": "Annulation"
+        },
+        "pdfUnavailable": "Le PDF n’est pas encore disponible."
+      },
+      "backlog": {
+        "title": "Commandes sans facture",
+        "description": "Commandes payées (et commandes en paiement à la livraison livrées) qui n’ont pas encore de facture, par exemple celles passées avant l’activation de l’application.",
+        "issueAll": "Tout émettre",
+        "issuingAll": "Émission…",
+        "issue": "Émettre",
+        "issuing": "Émission…",
+        "empty": "Toutes les commandes payées ont une facture.",
+        "count": "{count, plural, one {# commande sans facture} other {# commandes sans facture}}",
+        "moreHidden": "{shown} sur {count} affichées. « Tout émettre » couvre toutes les commandes.",
+        "result": "{issued} émise(s), {skipped} ignorée(s).",
+        "resultErrors": "{count, plural, one {# commande en échec :} other {# commandes en échec :}}",
+        "confirmTitle": "Émettre toutes les factures manquantes ?",
+        "confirmDescription": "{count, plural, one {Une facture sera émise pour # commande.} other {Des factures seront émises pour # commandes.}} Les numéros sont attribués dans l’ordre et ne peuvent pas être annulés ; les erreurs se corrigent par un avoir.",
+        "columns": {
+          "order": "Commande",
+          "date": "Date",
+          "payment": "Paiement",
+          "total": "Total"
+        },
+        "bulkLimitHint": "{max} commandes au plus sont facturées par exécution. Relancez « Tout émettre » pour le reste des {count}."
+      },
+      "profile": {
+        "groups": {
+          "identity": "Identité de l’entreprise",
+          "identityHint": "Imprimée comme vendeur sur chaque facture et dans les e-mails de commande.",
+          "address": "Adresse",
+          "contact": "Contact",
+          "bank": "Coordonnées bancaires",
+          "bankHint": "Affichées sur les factures impayées pour permettre un paiement par virement. Bankgiro, Plusgiro ou IBAN obligatoire.",
+          "document": "Mise en page de la facture"
+        },
+        "fields": {
+          "legal_name": "Raison sociale",
+          "brand_name": "Nom commercial",
+          "org_number": "Numéro d’immatriculation",
+          "vat_number": "Numéro de TVA",
+          "address_line1": "Adresse ligne 1",
+          "address_line2": "Adresse ligne 2",
+          "postal_code": "Code postal",
+          "city": "Ville",
+          "country_code": "Pays",
+          "registered_office": "Siège social",
+          "email": "E-mail",
+          "phone": "Téléphone",
+          "website": "Site web",
+          "bankgiro": "Bankgiro",
+          "plusgiro": "Plusgiro",
+          "iban": "IBAN",
+          "bic": "BIC / SWIFT",
+          "bank_name": "Banque",
+          "logo_url": "Logo",
+          "f_tax_approved": "Agréé F-skatt (Suède)",
+          "due_days": "Délai de paiement (jours)",
+          "footer_note": "Texte de pied de page",
+          "timezone": "Fuseau horaire"
+        },
+        "hints": {
+          "brand_name": "Nom commercial facultatif affiché au-dessus de la raison sociale.",
+          "vat_number": "Obligatoire si vous facturez la TVA, par ex. SE556036079301.",
+          "registered_office": "La commune où la société est immatriculée (sociétés anonymes suédoises).",
+          "f_tax_approved": "Imprime « Godkänd för F-skatt » sur la facture (Suède).",
+          "due_days": "S’applique aux factures impayées ; les factures payées sont échues à la date de facture.",
+          "timezone": "Détermine la date de facture autour de minuit.",
+          "footer_note": "Par exemple les conditions de paiement ou les pénalités de retard."
+        },
+        "selectCountry": "Choisir un pays",
+        "logoFallback": "Le logo de la boutique est utilisé",
+        "uploadLogo": "Téléverser un logo",
+        "removeLogo": "Supprimer",
+        "checklistTitle": "Prêt à facturer ?",
+        "complete": "Votre profil vendeur est complet. Les factures peuvent être émises.",
+        "incomplete": "Il manque encore :",
+        "checklistHint": "Les modifications s’appliquent aux factures émises à partir de maintenant ; les factures émises ne changent jamais.",
+        "saved": "Enregistré",
+        "invalidEmail": "Saisissez une adresse e-mail valide.",
+        "invalidWebsite": "Saisissez une adresse complète commençant par https://",
+        "invalidDueDays": "Saisissez un nombre de jours entre 0 et 120.",
+        "fixErrors": "Veuillez corriger les champs signalés.",
+        "logoUploadFailed": "Le logo n’a pas pu être téléversé. Veuillez réessayer."
+      },
+      "numbering": {
+        "description": "Les factures et les avoirs ont chacun leur propre série, sans trou. Le préfixe et le remplissage peuvent toujours être modifiés.",
+        "lockedExplanation": "Une fois le premier document d’une série émis, celle-ci continue à partir de sa position ; le numéro suivant ne peut plus être modifié.",
+        "notConfigured": "Enregistrez d’abord le profil vendeur ; les séries de numéros sont créées avec lui.",
+        "invoiceSeries": "Factures",
+        "creditNoteSeries": "Avoirs",
+        "issuedCount": "{count, plural, =0 {Rien d’émis pour l’instant} one {# émis} other {# émis}}",
+        "lockedBadge": "Verrouillée",
+        "prefix": "Préfixe",
+        "prefixHint": "Facultatif ; doit se terminer par une lettre ou un symbole, par ex. FAC-",
+        "invalidPrefix": "12 caractères au plus (lettres, chiffres . _ / -), sans chiffre à la fin.",
+        "nextNumber": "Numéro suivant",
+        "nextNumberHint": "Poursuivez une série existante, par ex. celle de votre ancienne boutique.",
+        "lockedHint": "Verrouillé car des documents ont été émis dans cette série.",
+        "invalidNextNumber": "Saisissez un nombre entier à partir de 1.",
+        "padding": "Nombre minimal de chiffres",
+        "paddingHint": "Complète avec des zéros en tête (0 = aucun).",
+        "invalidPadding": "Saisissez un nombre entre 0 et {max}.",
+        "preview": "Le prochain numéro sera",
+        "saved": "Enregistré",
+        "fixErrors": "Veuillez corriger les champs signalés."
+      },
+      "card": {
+        "title": "Factures",
+        "empty": "Aucune facture n’a encore été émise pour cette commande.",
+        "download": "Télécharger le PDF",
+        "remaining": "Reste à créditer",
+        "issue": "Émettre la facture",
+        "issuing": "Émission…",
+        "creditNote": "Créer un avoir",
+        "disabledHint": "L’application Factures est désactivée ; les documents existants restent disponibles.",
+        "pdfUnavailable": "Le PDF n’est pas encore disponible."
+      },
+      "creditDialog": {
+        "title": "Avoir pour {number}",
+        "description": "Un avoir annule tout ou partie de la facture. Le montant est réparti automatiquement sur les taux de TVA de la facture.",
+        "remaining": "Reste à créditer",
+        "mode": "Que créditer ?",
+        "full": "Tout le restant",
+        "amount": "Un montant",
+        "amountLabel": "Montant TTC ({currency})",
+        "amountHint": "{max} au maximum.",
+        "invalidAmount": "Saisissez un montant supérieur à 0 et d’au plus {max}.",
+        "reason": "Motif (facultatif)",
+        "reasonPlaceholder": "ex. Article endommagé, geste commercial",
+        "submit": "Émettre l’avoir",
+        "submitting": "Émission…"
+      },
+      "profileLoadFailed": "Impossible de charger le profil vendeur.",
+      "retry": "Réessayer",
+      "profileVatOnly": "Ajoutez un numéro de TVA si vous facturez la TVA."
     }
   },
   "components": {
@@ -2396,7 +2898,58 @@
     "PRODUCT_FAQ_NOT_FOUND": "FAQ introuvable",
     "PAGE_BUILDER_PAGE_NOT_FOUND": "Page introuvable",
     "CUSTOM_FIELD_PRODUCT_NOT_FOUND": "Produit introuvable",
-    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Modèle d'attribut introuvable"
+    "ATTRIBUTE_TEMPLATE_NOT_FOUND": "Modèle d'attribut introuvable",
+    "STORE_APP_UNKNOWN": "Application de boutique inconnue",
+    "STORE_APP_NOT_AVAILABLE": "Cette application n’est pas disponible pour votre boutique",
+    "STORE_APP_REQUIRES_INDEPENDENT": "Cette application nécessite une boutique indépendante",
+    "STORE_APP_DEPENDENCY_MISSING": "Activez d’abord l’application requise",
+    "STORE_APP_DEPENDENCY_IN_USE": "Une autre application activée dépend de celle-ci ; désactivez-la d’abord",
+    "STORE_APP_NOT_ENABLED": "Cette application n’est pas activée pour votre boutique",
+    "MARKET_NOT_FOUND": "Marché introuvable",
+    "MARKET_KEY_TAKEN": "Un marché avec cette clé existe déjà",
+    "MARKET_DEFAULT_UNDELETABLE": "Le marché par défaut ne peut pas être supprimé",
+    "MARKET_DEFAULT_LOCALE_IN_LOCALES": "La langue par défaut ne peut pas aussi être une langue supplémentaire",
+    "MARKET_LOCALE_UNSUPPORTED": "Cette langue n'est pas prise en charge par la boutique",
+    "MARKET_CURRENCY_UNSUPPORTED": "Cette devise n'est pas prise en charge",
+    "MARKET_COUNTRY_OVERLAP": "Un pays ne peut appartenir qu'à un seul marché en ligne",
+    "MARKET_PAYMENT_CHECK_FAILED": "Aucun prestataire de paiement ne prend encore en charge cette devise",
+    "MARKET_DOMAIN_RESERVED": "Ce nom d’hôte est réservé",
+    "MARKET_DOMAIN_TAKEN": "Ce nom d’hôte est déjà utilisé",
+    "MARKET_DOMAIN_VERIFY_FAILED": "La vérification DNS a échoué. Vérifiez l'enregistrement CNAME et réessayez.",
+    "MARKET_NOT_LIVE": "Ce marché n'est pas en ligne",
+    "MARKET_FX_RATE_MISSING": "Aucun taux disponible pour cette paire de devises — définissez un taux manuel ou demandez à la plateforme d’en ajouter un",
+    "MARKET_DEFAULT_LOCKED": "La clé du marché par défaut ne peut pas être modifiée et le marché ne peut pas repasser en brouillon",
+    "MARKET_DOMAIN_INVALID": "Ce nom d’hôte n’est pas valide",
+    "MARKET_DOMAIN_REDIRECT_INVALID": "La cible de redirection doit être un autre nom d’hôte du même marché",
+    "MARKET_DOMAIN_NOT_FOUND": "Domaine introuvable",
+    "MARKET_PRODUCT_NOT_FOUND": "Produit introuvable",
+    "MARKET_PRIMARY_DOMAIN_REQUIRED": "Ajoutez un nom d’hôte à ce marché et faites-le activer avant de le mettre en ligne",
+    "FX_RATE_NOT_FOUND": "Aucun taux de plateforme pour cette paire de devises",
+    "FX_RATE_IN_USE": "Ce taux est utilisé par un marché en ligne et ne peut pas être retiré",
+    "MARKET_DOMAIN_IN_USE": "Il s’agit du nom d’hôte principal actif d’un marché en ligne — définissez d’abord un autre nom principal ou repassez le marché en brouillon",
+    "STORE_CUSTOM_DOMAIN_MANAGED_BY_MARKETS": "Les domaines sont gérés dans Marchés tant que l'application Marchés est activée",
+    "B2B_COMPANY_NOT_ALLOWED": "Les achats par des entreprises ne sont pas activés pour cette boutique",
+    "B2B_COMPANY_NAME_REQUIRED": "Le nom de l’entreprise est requis",
+    "B2B_ORG_NUMBER_REQUIRED": "Le numéro d’organisation est requis",
+    "B2B_ORG_NUMBER_INVALID": "Le format du numéro d’organisation est invalide",
+    "B2B_VAT_NUMBER_REQUIRED": "Le numéro de TVA est requis",
+    "B2B_VAT_NUMBER_INVALID": "Le format du numéro de TVA est invalide",
+    "STORE_APP_SETTINGS_INVALID": "Les paramètres de l’application sont invalides",
+    "INVOICE_PROFILE_INCOMPLETE": "Votre profil vendeur est incomplet. Renseignez les champs manquants avant d’émettre des factures.",
+    "INVOICE_SEQUENCE_LOCKED": "Le numéro suivant ne peut plus être modifié une fois que des documents ont été émis dans cette série.",
+    "INVOICE_NUMBERING_INVALID": "Les paramètres de numérotation sont invalides.",
+    "INVOICE_ORDER_NOT_ELIGIBLE": "Cette commande ne peut pas être facturée (annulée, en échec ou remboursée).",
+    "INVOICE_ALREADY_ISSUED": "Une facture a déjà été émise pour cette commande.",
+    "INVOICE_NOT_FOUND": "Facture introuvable.",
+    "INVOICE_CREDIT_EXCEEDS": "Le montant dépasse le reste à créditer sur cette facture.",
+    "INVOICE_CREDIT_NOTHING_LEFT": "Cette facture a déjà été entièrement créditée.",
+    "INVOICE_PDF_UNAVAILABLE": "Le PDF ne peut pas être généré pour le moment. Veuillez réessayer plus tard.",
+    "INVOICE_IBAN_INVALID": "L’IBAN n’est pas valide.",
+    "INVOICE_BANKGIRO_INVALID": "Le numéro Bankgiro n’est pas valide (format 1234-5678).",
+    "INVOICE_BIC_INVALID": "Le code BIC / SWIFT n’est pas valide.",
+    "INVOICE_VAT_NUMBER_INVALID": "Le numéro de TVA n’est pas valide.",
+    "INVOICE_TIMEZONE_INVALID": "Le fuseau horaire n’est pas valide.",
+    "INVOICE_SNAPSHOT_INVALID": "Cette commande ne peut pas être facturée automatiquement car ses montants ne concordent pas (ou elle utilise des taxes cumulées). Veuillez contacter le support."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
