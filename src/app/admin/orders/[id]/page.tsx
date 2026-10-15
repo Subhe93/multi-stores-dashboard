@@ -15,7 +15,8 @@ import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
 import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
-import type { CustomerB2bDefaults, OrderB2bSnapshot } from '@/lib/b2b';
+import type { CustomerB2bDefaults, OrderB2bSnapshot, OrderTaxExemptionFields } from '@/lib/b2b';
+import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/OrderTaxExemptionCard';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 import Link from 'next/link';
 
@@ -65,8 +66,9 @@ interface TimelineEntry {
   note?: string | null;
 }
 
-// OrderB2bSnapshot: the five company columns written by the b2b app.
-interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot {
+// OrderB2bSnapshot: the five company columns written by the b2b app;
+// OrderTaxExemptionFields: reverse charge / exemption snapshot (M2.5).
+interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFields {
   id: string;
   order_number: string;
   status: string;
@@ -249,7 +251,10 @@ export default function OrderDetailPage() {
             <p className="text-sm text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
           </div>
         </div>
-        <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{statusLabel(order.status)}</Badge>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
+          <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{statusLabel(order.status)}</Badge>
+        </div>
       </div>
 
       {/* Status actions */}
@@ -382,7 +387,7 @@ export default function OrderDetailPage() {
                   inclusive orders show what the total already contains. */}
               <OrderTaxLines order={order} currency={order.currency || currency} rowClassName="text-xs" />
               <Separator />
-              <div className="flex justify-between font-semibold"><span>{order.customer_type === 'COMPANY' ? tb('totalInclVat') : t('total')}</span><span>{formatAmountIn(order.total, order.currency || currency)}</span></div>
+              <div className="flex justify-between font-semibold"><span>{order.customer_type === 'COMPANY' && !order.tax_exempt_reason ? tb('totalInclVat') : t('total')}</span><span>{formatAmountIn(order.total, order.currency || currency)}</span></div>
             </div>
           </CardContent>
         </Card>
@@ -398,6 +403,9 @@ export default function OrderDetailPage() {
               <OrderCompanyLines order={order} customer={order.customer} />
             </CardContent>
           </Card>
+
+          {/* Read-only reverse-charge / exemption evidence (b2b app M2.5). */}
+          <OrderTaxExemptionCard order={order} />
 
           {/* Invoices app (read-only): renders only when the order has documents. */}
           {token && <OrderInvoiceCard orderId={id} token={token} readOnly />}

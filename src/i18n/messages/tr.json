@@ -2170,7 +2170,55 @@
       "reference": "Referans",
       "customerDefaults": "Müşteri varsayılanları",
       "netTotal": "Net toplam",
-      "totalInclVat": "KDV dahil toplam"
+      "totalInclVat": "KDV dahil toplam",
+      "taxExemption": {
+        "title": "Vergi muafiyeti",
+        "reverseCharge": "Ters ifa",
+        "customerExempt": "Vergiden muaf",
+        "vatZeroReverseCharge": "KDV %0 — Ters ifa",
+        "vatZeroExempt": "KDV %0 — Vergiden muaf",
+        "reverseChargeSummary": "KDV alınmadı: alıcı, KDV numarası VIES ile doğrulanmış bir AB şirketidir ve ürünler başka bir AB ülkesine gönderilmiştir. KDV’yi alıcı beyan eder.",
+        "customerExemptSummary": "Müşteri vergiden muaf olduğu için KDV alınmadı.",
+        "manualSummary": "Bu müşteri için tanımladığınız vergi muafiyeti nedeniyle KDV alınmadı.",
+        "vatNumber": "KDV numarası",
+        "vatCountry": "KDV numarasının ülkesi",
+        "destination": "Gönderildiği yer",
+        "viesStatus": "VIES sonucu",
+        "viesValid": "Geçerli",
+        "viesNotValid": "Geçersiz",
+        "viesName": "Ad (VIES)",
+        "viesAddress": "Adres (VIES)",
+        "checkedAt": "Kontrol tarihi",
+        "viesRef": "Sorgu numarası",
+        "viesRefNone": "Yok (talep eden yok)",
+        "exemptionKind": "Muafiyet",
+        "kindReverseCharge": "Ters ifa",
+        "kindFull": "Vergi tahsil etme",
+        "appliedAt": "Uygulanma tarihi",
+        "note": "Not",
+        "countryMismatch": "KDV numarası {vatCountry} ülkesine ait ancak ürünler {destination} ülkesine gönderildi. Buna izin verilir, ancak sevkiyat belgelerini saklayın.",
+        "exemptCustomer": "Bu müşteriyi KDV’den muaf tut…",
+        "exemptSince": "{date} tarihinden beri muaf",
+        "removeExemption": "Muafiyeti kaldır",
+        "removeConfirm": "Bu muafiyet kaldırılsın mı?",
+        "remove": "Kaldır",
+        "cancel": "İptal",
+        "guestNoExemption": "Misafir siparişi: vergi muafiyeti için müşteri hesabı gerekir.",
+        "dialog": {
+          "title": "Bu müşteriyi KDV’den muaf tut",
+          "description": "Müşteri ödeme sırasında oturum açtığında gelecekteki siparişlerine uygulanır. Geçmiş siparişler değişmez.",
+          "kind": "Muafiyet türü",
+          "kindReverseChargeHint": "VIES numarayı onaylayamadığında bir AB şirketi için. KDV yalnızca ürünler sizinkinden farklı bir AB ülkesine gönderildiğinde kaldırılır.",
+          "kindFullHint": "Ürünler nereye gönderilirse gönderilsin bu müşterinin hiçbir siparişinde vergi yok.",
+          "vatNumber": "KDV numarası",
+          "vatNumberHint": "Bu siparişten önceden dolduruldu. Ülke önekini ekleyin, ör. DE123456789.",
+          "vatRequired": "Müşterinin AB KDV numarasını ülke önekiyle girin.",
+          "note": "Not (isteğe bağlı)",
+          "notePlaceholder": "ör. VIES 15/10’da erişilemedi, belge dosyada",
+          "scopeNote": "Muafiyetler, B2B uygulaması ayarlarında ters ifa açık olduğu sürece geçerlidir.",
+          "submit": "Muafiyeti kaydet"
+        }
+      }
     },
     "orderStatus": {
       "PENDING": "Beklemede",
@@ -2289,8 +2337,32 @@
           "orgCountriesHint": "İsveç, Finlandiya, Danimarka ve Norveç için katı biçim kuralları vardır; diğer ülkelerde genel bir kontrol uygulanır. Varsayılan: İsveç.",
           "kustomNote": "Kuruluş alımlarının Kustom hesabınızda etkin olması gerekir — kurumsal alıcılar için bu seçeneği açmadan önce Kustom desteğiyle teyit edin.",
           "saved": "Kaydedildi",
-          "saveFailed": "B2B ayarları kaydedilemedi."
-        }
+          "saveFailed": "B2B ayarları kaydedilemedi.",
+          "reverseCharge": "Doğrulanmış AB kurumsal müşterileri için KDV’yi kaldır (ters ifa)",
+          "reverseChargeHint": "VIES tarafından geçerli onaylanan bir KDV numarasına sahip ve başka bir AB ülkesine gönderim yapılan AB şirketleri %0 KDV öder ve KDV’yi kendileri beyan eder. VIES numarayı onaylayamazsa (geçersiz veya erişilemez) KDV her zamanki gibi alınır.",
+          "reverseChargeOwnership": "VIES bir numaranın geçerli olduğunu onaylar, alıcıya ait olduğunu değil. Her kontrol siparişte kanıt olarak saklanır.",
+          "reverseChargeEuNote": "Ters ifa yalnızca mağazanızın vergi ülkesi AB içindeyse uygulanır.",
+          "reverseChargeNotEu": "Vergi ülkeniz ({country}) AB dışında olduğundan ters ifa hiçbir zaman uygulanmaz. Vergi ülkesini Vergiler sayfasından değiştirin.",
+          "reverseChargeIndependentOnly": "Ters ifa yalnızca bağımsız mağazalar için kullanılabilir (vergi mükellefi mağaza olmalıdır).",
+          "rcPricing": "Ters ifa müşterileri için fiyat",
+          "rcPricingNet": "Net — şirket KDV hariç fiyatı öder (önerilen)",
+          "rcPricingNetHint": "Fiyatlarınıza dahil olan KDV düşülür.",
+          "rcPricingGross": "Brüt — tüketicilerle aynı fiyat",
+          "rcPricingGrossHint": "Fiyat aynı kalır ve KDV satırı %0 gösterir (Shopify davranışı).",
+          "rcPricingExampleTitle": "Örnek: %25 KDV dahil 125 fiyatlı bir ürün",
+          "rcPricingExampleNet": "Net: şirket 100 öder (KDV %0).",
+          "rcPricingExampleGross": "Brüt: şirket 125 öder (KDV %0).",
+          "viesRequester": "VIES talep eden KDV numarası (isteğe bağlı)",
+          "viesRequesterHint": "Varsayılan olarak fatura profilinizdeki satıcı KDV numarası kullanılır. Talep eden numarayla VIES, kanıt olarak saklayabileceğiniz bir sorgu numarası döndürür.",
+          "exemptions": {
+            "title": "Vergiden muaf müşteriler",
+            "hint": "Bir sipariş sayfasından KDV’den muaf tuttuğunuz müşteriler. Muafiyet, müşteri ödeme sırasında oturum açmışsa uygulanır.",
+            "empty": "Henüz vergiden muaf müşteri yok.",
+            "refresh": "Yenile"
+          }
+        },
+        "ecSalesTitle": "AB içi satış listesi",
+        "ecSalesOnInvoices": "AB içi satış listesini Faturalar sayfasında aç"
       },
       "invoices": {
         "settings": {
@@ -2471,7 +2543,8 @@
         "invoices": "Faturalar",
         "backlog": "Faturalanmamış",
         "profile": "Satıcı profili",
-        "numbering": "Numaralandırma"
+        "numbering": "Numaralandırma",
+        "ecSales": "AB içi satış listesi"
       },
       "kind": {
         "INVOICE": "Fatura",
@@ -2667,6 +2740,33 @@
       "profileLoadFailed": "Satıcı profili yüklenemedi.",
       "retry": "Tekrar dene",
       "profileVatOnly": "KDV uyguluyorsanız vergi numarası ekleyin."
+    },
+    "taxes": {
+      "tabEcSales": "AB içi satış listesi",
+      "ecSales": {
+        "title": "AB içi satış listesi (periodisk sammanställning)",
+        "description": "AB kurumsal müşterilerine ters ifa satışları, alıcının KDV numarası ve döneme göre — vergi dairesine sunduğunuz AB içi satış listesinin rakamları.",
+        "from": "Başlangıç",
+        "to": "Bitiş",
+        "period": "Dönem",
+        "periodMonth": "Ay",
+        "periodQuarter": "Çeyrek",
+        "run": "Raporu çalıştır",
+        "preview": "Önizleme",
+        "previewRange": "{from} – {to}",
+        "downloadCsv": "CSV indir",
+        "downloadFailed": "Rapor indirilemedi.",
+        "ordersSourceBanner": "Siparişlerden oluşturuldu: kısmi iadeler dahil değildir. Fatura ve alacak dekontlarından kesin rakamlar için Faturalar uygulamasını etkinleştirin.",
+        "colPeriod": "Dönem",
+        "colCountry": "Ülke",
+        "colVatNumber": "Alıcının KDV numarası",
+        "colBuyer": "Alıcı",
+        "colAmount": "Tutar (sipariş para birimi)",
+        "colAmountStore": "Tutar (mağaza para birimi)",
+        "colDocuments": "Belgeler",
+        "empty": "Bu dönemde ters ifa satışı yok.",
+        "totalRow": "Toplam"
+      }
     }
   },
   "components": {
@@ -2949,7 +3049,13 @@
     "INVOICE_BIC_INVALID": "BIC / SWIFT kodu geçersiz.",
     "INVOICE_VAT_NUMBER_INVALID": "Vergi numarası geçersiz.",
     "INVOICE_TIMEZONE_INVALID": "Saat dilimi geçersiz.",
-    "INVOICE_SNAPSHOT_INVALID": "Tutarları birbirini tutmadığı (veya birleşik vergi oranları kullandığı) için bu sipariş otomatik olarak faturalanamıyor. Lütfen destekle iletişime geçin."
+    "INVOICE_SNAPSHOT_INVALID": "Tutarları birbirini tutmadığı (veya birleşik vergi oranları kullandığı) için bu sipariş otomatik olarak faturalanamıyor. Lütfen destekle iletişime geçin.",
+    "B2B_REVERSE_CHARGE_NOT_CONFIRMED": "KDV numarası doğrulanamadı, bu nedenle bu siparişe KDV uygulanır.",
+    "B2B_EXEMPTION_NOT_FOUND": "Bu vergi muafiyeti artık mevcut değil.",
+    "B2B_EXEMPTION_CUSTOMER_NOT_FOUND": "Bu müşterinin mağazanızda siparişi yok.",
+    "B2B_EXEMPTION_VAT_REQUIRED": "Ters ifa muafiyeti için geçerli bir AB KDV numarası gerekir.",
+    "B2B_EXEMPTION_EXISTS": "Bu müşterinin zaten etkin bir vergi muafiyeti var.",
+    "TAX_REPORT_RANGE_INVALID": "Başlangıç tarihi bitiş tarihinden önce veya aynı gün olmalıdır."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

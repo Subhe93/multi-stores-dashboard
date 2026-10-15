@@ -5,7 +5,7 @@
 // snapshot the resolved lines in `Order.tax_lines` and keep `tax_rate_bp` as
 // the headline (highest) rate with `tax_amount` as the tax total.
 
-import { API_URL } from '@/lib/api';
+import { API_URL, ApiError } from '@/lib/api';
 
 export type TaxPricingMode = 'INCLUSIVE' | 'EXCLUSIVE';
 export type TaxBasis = 'SHIPPING' | 'BILLING' | 'STORE';
@@ -44,6 +44,8 @@ export interface TaxLine {
   rate_bp: number;
   taxable_amount: number;
   tax_amount: number;
+  // Set only on the synthetic 0 % row of a reverse-charge / exempt order (M2.5).
+  exempt_reason?: 'REVERSE_CHARGE' | 'CUSTOMER_EXEMPT';
 }
 
 export interface TaxReportRow {
@@ -122,7 +124,10 @@ export function orderTaxLines(order: {
   total?: number | string | null;
 }): TaxLine[] {
   if (Array.isArray(order.tax_lines) && order.tax_lines.length > 0) {
-    return order.tax_lines.filter((line) => Number(line.tax_amount) > 0 || Number(line.rate_bp) > 0);
+    // The 0 % row of an exempt order is kept: it explains why there is no VAT.
+    return order.tax_lines.filter(
+      (line) => Number(line.tax_amount) > 0 || Number(line.rate_bp) > 0 || !!line.exempt_reason,
+    );
   }
   const taxAmount = Number(order.tax_amount ?? 0);
   const rateBp = Number(order.tax_rate_bp ?? 0);
@@ -178,19 +183,24 @@ export function toDateInputValue(date: Date): string {
 
 // Downloads an authenticated CSV endpoint and saves it through a temporary
 // object URL. `api()` only handles JSON, so the fetch is done directly here.
+// Failures throw an ApiError carrying the API `code`, so callers can translate
+// `errors.<code>` (useApiError) instead of showing the raw English message.
 export async function downloadCsv(endpoint: string, token: string, filename: string): Promise<void> {
   const res = await fetch(`${API_URL}${endpoint}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    let message = 'Download failed';
+    const err = new ApiError('Download failed');
+    err.status = res.status;
     try {
       const json = await res.json();
-      if (json?.message) message = Array.isArray(json.message) ? json.message.join(' · ') : json.message;
+      if (json?.message) err.message = Array.isArray(json.message) ? json.message.join(' · ') : json.message;
+      if (typeof json?.code === 'string') err.code = json.code;
+      if (json && typeof json === 'object') err.payload = json;
     } catch {
       // Non-JSON error body; keep the generic message.
     }
-    throw new Error(message);
+    throw err;
   }
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

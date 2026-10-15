@@ -2170,7 +2170,55 @@
       "reference": "Reference",
       "customerDefaults": "Customer defaults",
       "netTotal": "Net total",
-      "totalInclVat": "Total incl. VAT"
+      "totalInclVat": "Total incl. VAT",
+      "taxExemption": {
+        "title": "Tax exemption",
+        "reverseCharge": "Reverse charge",
+        "customerExempt": "Tax exempt",
+        "vatZeroReverseCharge": "VAT 0 % — Reverse charge",
+        "vatZeroExempt": "VAT 0 % — Tax exempt",
+        "reverseChargeSummary": "No VAT was charged: the buyer is an EU company with a VIES-validated VAT number and the goods were shipped to another EU country. The buyer accounts for the VAT.",
+        "customerExemptSummary": "No VAT was charged because the customer is exempt from tax.",
+        "manualSummary": "No VAT was charged because of a tax exemption you set on this customer.",
+        "vatNumber": "VAT number",
+        "vatCountry": "VAT number country",
+        "destination": "Shipped to",
+        "viesStatus": "VIES result",
+        "viesValid": "Valid",
+        "viesNotValid": "Not valid",
+        "viesName": "Name (VIES)",
+        "viesAddress": "Address (VIES)",
+        "checkedAt": "Checked at",
+        "viesRef": "Consultation number",
+        "viesRefNone": "None (no requester)",
+        "exemptionKind": "Exemption",
+        "kindReverseCharge": "Reverse charge",
+        "kindFull": "Don't collect tax",
+        "appliedAt": "Applied at",
+        "note": "Note",
+        "countryMismatch": "The VAT number is from {vatCountry} but the goods were shipped to {destination}. This is allowed, but keep the shipping documents.",
+        "exemptCustomer": "Exempt this customer from VAT…",
+        "exemptSince": "Exempt since {date}",
+        "removeExemption": "Remove exemption",
+        "removeConfirm": "Remove this exemption?",
+        "remove": "Remove",
+        "cancel": "Cancel",
+        "guestNoExemption": "Guest order: tax exemptions need a customer account.",
+        "dialog": {
+          "title": "Exempt this customer from VAT",
+          "description": "Applies to this customer’s future orders when they are signed in at checkout. Past orders are not changed.",
+          "kind": "Type of exemption",
+          "kindReverseChargeHint": "For an EU company when VIES cannot confirm its number. VAT is removed only when the goods ship to another EU country than yours.",
+          "kindFullHint": "No tax on any order of this customer, wherever the goods are shipped.",
+          "vatNumber": "VAT number",
+          "vatNumberHint": "Prefilled from this order. Include the country prefix, e.g. DE123456789.",
+          "vatRequired": "Enter the customer’s EU VAT number with its country prefix.",
+          "note": "Note (optional)",
+          "notePlaceholder": "e.g. VIES unavailable on 15/10, certificate on file",
+          "scopeNote": "Exemptions take effect while reverse charge is switched on in the B2B app settings.",
+          "submit": "Save exemption"
+        }
+      }
     },
     "orderStatus": {
       "PENDING": "Pending",
@@ -2289,8 +2337,32 @@
           "orgCountriesHint": "Strict format rules exist for Sweden, Finland, Denmark and Norway; other countries use a generic check. Default: Sweden.",
           "kustomNote": "Organisation purchases must be enabled on your Kustom account — confirm with Kustom support before switching this on for business buyers.",
           "saved": "Saved",
-          "saveFailed": "Failed to save the B2B settings."
-        }
+          "saveFailed": "Failed to save the B2B settings.",
+          "reverseCharge": "Remove VAT for validated EU business customers (reverse charge)",
+          "reverseChargeHint": "EU companies with a VAT number that VIES confirms as valid, shipping to another EU country, pay 0 % VAT and account for the VAT themselves. If VIES cannot confirm the number (invalid or unavailable), VAT is charged as usual.",
+          "reverseChargeOwnership": "VIES confirms that a number is valid, not that it belongs to the buyer. Every check is stored as evidence on the order.",
+          "reverseChargeEuNote": "Reverse charge only applies when your store's tax country is in the EU.",
+          "reverseChargeNotEu": "Your tax country ({country}) is outside the EU, so reverse charge will never apply. Change the tax country on the Taxes page.",
+          "reverseChargeIndependentOnly": "Reverse charge is only available for independent stores (the store must be the tax registrant).",
+          "rcPricing": "Price for reverse-charge customers",
+          "rcPricingNet": "Net — the company pays the price excl. VAT (recommended)",
+          "rcPricingNetHint": "The VAT included in your prices is deducted.",
+          "rcPricingGross": "Gross — same price as consumers",
+          "rcPricingGrossHint": "The price stays the same and the VAT line shows 0 % (Shopify behaviour).",
+          "rcPricingExampleTitle": "Example: an item priced 125 incl. 25 % VAT",
+          "rcPricingExampleNet": "Net: the company pays 100 (VAT 0 %).",
+          "rcPricingExampleGross": "Gross: the company pays 125 (VAT 0 %).",
+          "viesRequester": "VIES requester VAT number (optional)",
+          "viesRequesterHint": "Defaults to the seller VAT number in your invoice profile. With a requester, VIES returns a consultation number you can keep as proof.",
+          "exemptions": {
+            "title": "Tax-exempt customers",
+            "hint": "Customers you exempted from VAT from an order page. Exemptions apply when the customer is signed in at checkout.",
+            "empty": "No tax-exempt customers yet.",
+            "refresh": "Refresh"
+          }
+        },
+        "ecSalesTitle": "EC sales list",
+        "ecSalesOnInvoices": "Open the EC sales list on the Invoices page"
       },
       "invoices": {
         "settings": {
@@ -2471,7 +2543,8 @@
         "invoices": "Invoices",
         "backlog": "Backlog",
         "profile": "Seller profile",
-        "numbering": "Numbering"
+        "numbering": "Numbering",
+        "ecSales": "EC sales list"
       },
       "kind": {
         "INVOICE": "Invoice",
@@ -2667,6 +2740,33 @@
       "profileLoadFailed": "The seller profile could not be loaded.",
       "retry": "Retry",
       "profileVatOnly": "Add a VAT number if you charge VAT."
+    },
+    "taxes": {
+      "tabEcSales": "EC sales list",
+      "ecSales": {
+        "title": "EC sales list (periodisk sammanställning)",
+        "description": "Reverse-charge sales to EU business customers per buyer VAT number and period — the figures for the EC sales list you file with the tax agency.",
+        "from": "From",
+        "to": "To",
+        "period": "Period",
+        "periodMonth": "Month",
+        "periodQuarter": "Quarter",
+        "run": "Run report",
+        "preview": "Preview",
+        "previewRange": "{from} – {to}",
+        "downloadCsv": "Download CSV",
+        "downloadFailed": "Failed to download the report.",
+        "ordersSourceBanner": "Built from orders: partial refunds are not included. Enable the Invoices app for exact figures from invoices and credit notes.",
+        "colPeriod": "Period",
+        "colCountry": "Country",
+        "colVatNumber": "Buyer VAT number",
+        "colBuyer": "Buyer",
+        "colAmount": "Amount (order currency)",
+        "colAmountStore": "Amount (store currency)",
+        "colDocuments": "Documents",
+        "empty": "No reverse-charge sales in this period.",
+        "totalRow": "Total"
+      }
     }
   },
   "components": {
@@ -2949,7 +3049,13 @@
     "INVOICE_BIC_INVALID": "The BIC / SWIFT code is not valid.",
     "INVOICE_VAT_NUMBER_INVALID": "The VAT number is not valid.",
     "INVOICE_TIMEZONE_INVALID": "The time zone is not valid.",
-    "INVOICE_SNAPSHOT_INVALID": "This order can't be invoiced automatically because its amounts don't add up (or it uses stacked tax rates). Please contact support."
+    "INVOICE_SNAPSHOT_INVALID": "This order can't be invoiced automatically because its amounts don't add up (or it uses stacked tax rates). Please contact support.",
+    "B2B_REVERSE_CHARGE_NOT_CONFIRMED": "The VAT number could not be confirmed, so VAT applies to this order.",
+    "B2B_EXEMPTION_NOT_FOUND": "This tax exemption no longer exists.",
+    "B2B_EXEMPTION_CUSTOMER_NOT_FOUND": "This customer has no orders in your store.",
+    "B2B_EXEMPTION_VAT_REQUIRED": "A reverse-charge exemption needs a valid EU VAT number.",
+    "B2B_EXEMPTION_EXISTS": "This customer already has an active tax exemption.",
+    "TAX_REPORT_RANGE_INVALID": "The start date must be on or before the end date."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

@@ -21,9 +21,11 @@ interface OrderTaxLinesProps {
 
 // Itemised tax rows for an order total block. INCLUSIVE orders list the tax
 // already contained in the total ("Includes VAT 25 %"); EXCLUSIVE orders list
-// the tax added on top of the net lines ("VAT 25 %").
+// the tax added on top of the net lines ("VAT 25 %"). Reverse-charge / exempt
+// orders (b2b app M2.5) show their 0 % row with the exemption reason.
 export function OrderTaxLines({ order, currency, rowClassName = '' }: OrderTaxLinesProps) {
   const tp = useTranslations('payments');
+  const tx = useTranslations('creator.orderDetail.taxExemption');
   const lines = orderTaxLines(order);
   if (lines.length === 0) return null;
   const exclusive = order.tax_pricing_mode === 'EXCLUSIVE';
@@ -35,9 +37,12 @@ export function OrderTaxLines({ order, currency, rowClassName = '' }: OrderTaxLi
           className={`flex justify-between ${exclusive ? '' : 'text-muted-foreground'} ${rowClassName}`}
         >
           <span>
-            {exclusive
-              ? tp('taxAddedLine', { label: line.label, rate: formatTaxRateLabel(line.rate_bp) })
-              : tp('includesTaxLine', { label: line.label, rate: formatTaxRateLabel(line.rate_bp) })}
+            {/* Exempt orders carry one synthetic 0 % row ("VAT 0 % — Reverse charge"). */}
+            {line.exempt_reason
+              ? tx(line.exempt_reason === 'REVERSE_CHARGE' ? 'vatZeroReverseCharge' : 'vatZeroExempt')
+              : exclusive
+                ? tp('taxAddedLine', { label: line.label, rate: formatTaxRateLabel(line.rate_bp) })
+                : tp('includesTaxLine', { label: line.label, rate: formatTaxRateLabel(line.rate_bp) })}
           </span>
           <span>{formatAmountIn(line.tax_amount, currency)}</span>
         </div>

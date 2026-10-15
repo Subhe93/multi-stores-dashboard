@@ -2170,7 +2170,55 @@
       "reference": "Referens",
       "customerDefaults": "Kundens standarduppgifter",
       "netTotal": "Nettosumma",
-      "totalInclVat": "Totalt inkl. moms"
+      "totalInclVat": "Totalt inkl. moms",
+      "taxExemption": {
+        "title": "Momsbefrielse",
+        "reverseCharge": "Omvänd skattskyldighet",
+        "customerExempt": "Momsbefriad",
+        "vatZeroReverseCharge": "Moms 0 % — Omvänd skattskyldighet",
+        "vatZeroExempt": "Moms 0 % — Momsbefriad",
+        "reverseChargeSummary": "Ingen moms debiterades: köparen är ett EU-företag med ett momsregistreringsnummer validerat i VIES och varorna skickades till ett annat EU-land. Köparen redovisar momsen.",
+        "customerExemptSummary": "Ingen moms debiterades eftersom kunden är befriad från skatt.",
+        "manualSummary": "Ingen moms debiterades på grund av en momsbefrielse som du har lagt på kunden.",
+        "vatNumber": "Momsregistreringsnummer",
+        "vatCountry": "Momsnumrets land",
+        "destination": "Levererat till",
+        "viesStatus": "VIES-resultat",
+        "viesValid": "Giltigt",
+        "viesNotValid": "Ogiltigt",
+        "viesName": "Namn (VIES)",
+        "viesAddress": "Adress (VIES)",
+        "checkedAt": "Kontrollerat",
+        "viesRef": "Konsultationsnummer",
+        "viesRefNone": "Inget (inget frågande nummer)",
+        "exemptionKind": "Befrielse",
+        "kindReverseCharge": "Omvänd skattskyldighet",
+        "kindFull": "Ta inte ut skatt",
+        "appliedAt": "Tillämpad",
+        "note": "Anteckning",
+        "countryMismatch": "Momsregistreringsnumret är från {vatCountry} men varorna skickades till {destination}. Det är tillåtet, men spara fraktdokumenten.",
+        "exemptCustomer": "Befria kunden från moms…",
+        "exemptSince": "Befriad sedan {date}",
+        "removeExemption": "Ta bort befrielse",
+        "removeConfirm": "Ta bort den här befrielsen?",
+        "remove": "Ta bort",
+        "cancel": "Avbryt",
+        "guestNoExemption": "Gästorder: momsbefrielse kräver ett kundkonto.",
+        "dialog": {
+          "title": "Befria kunden från moms",
+          "description": "Gäller kundens framtida ordrar när kunden är inloggad i kassan. Tidigare ordrar ändras inte.",
+          "kind": "Typ av befrielse",
+          "kindReverseChargeHint": "För ett EU-företag när VIES inte kan bekräfta numret. Momsen tas bara bort när varorna skickas till ett annat EU-land än ditt.",
+          "kindFullHint": "Ingen skatt på någon av kundens ordrar, oavsett vart varorna skickas.",
+          "vatNumber": "Momsregistreringsnummer",
+          "vatNumberHint": "Förifyllt från den här ordern. Ange landsprefixet, t.ex. DE123456789.",
+          "vatRequired": "Ange kundens EU-momsregistreringsnummer med landsprefix.",
+          "note": "Anteckning (valfritt)",
+          "notePlaceholder": "t.ex. VIES otillgängligt 15/10, intyg finns",
+          "scopeNote": "Befrielser gäller medan omvänd skattskyldighet är påslagen i B2B-appens inställningar.",
+          "submit": "Spara befrielse"
+        }
+      }
     },
     "orderStatus": {
       "PENDING": "Väntar",
@@ -2289,8 +2337,32 @@
           "orgCountriesHint": "Strikta formatregler finns för Sverige, Finland, Danmark och Norge; övriga länder får en generell kontroll. Standard: Sverige.",
           "kustomNote": "Organisationsköp måste vara aktiverade på ditt Kustom-konto — stäm av med Kustoms support innan du slår på detta för företagsköpare.",
           "saved": "Sparat",
-          "saveFailed": "Det gick inte att spara B2B-inställningarna."
-        }
+          "saveFailed": "Det gick inte att spara B2B-inställningarna.",
+          "reverseCharge": "Ta bort moms för validerade EU-företagskunder (omvänd skattskyldighet)",
+          "reverseChargeHint": "EU-företag med ett momsregistreringsnummer som VIES bekräftar som giltigt och leverans till ett annat EU-land betalar 0 % moms och redovisar momsen själva. Om VIES inte kan bekräfta numret (ogiltigt eller otillgängligt) debiteras moms som vanligt.",
+          "reverseChargeOwnership": "VIES bekräftar att ett nummer är giltigt, inte att det tillhör köparen. Varje kontroll sparas som underlag på ordern.",
+          "reverseChargeEuNote": "Omvänd skattskyldighet gäller bara när butikens skatteland ligger i EU.",
+          "reverseChargeNotEu": "Ditt skatteland ({country}) ligger utanför EU, så omvänd skattskyldighet tillämpas aldrig. Ändra skattelandet på sidan Skatter.",
+          "reverseChargeIndependentOnly": "Omvänd skattskyldighet är bara tillgänglig för fristående butiker (butiken måste vara skatteregistrerad).",
+          "rcPricing": "Pris för kunder med omvänd skattskyldighet",
+          "rcPricingNet": "Netto — företaget betalar priset exkl. moms (rekommenderas)",
+          "rcPricingNetHint": "Momsen som ingår i dina priser dras av.",
+          "rcPricingGross": "Brutto — samma pris som för konsumenter",
+          "rcPricingGrossHint": "Priset är oförändrat och momsraden visar 0 % (som Shopify).",
+          "rcPricingExampleTitle": "Exempel: en vara som kostar 125 inkl. 25 % moms",
+          "rcPricingExampleNet": "Netto: företaget betalar 100 (moms 0 %).",
+          "rcPricingExampleGross": "Brutto: företaget betalar 125 (moms 0 %).",
+          "viesRequester": "Momsregistreringsnummer för VIES-förfrågan (valfritt)",
+          "viesRequesterHint": "Standard är säljarens momsregistreringsnummer i fakturaprofilen. Med ett frågande nummer returnerar VIES ett konsultationsnummer som du kan spara som bevis.",
+          "exemptions": {
+            "title": "Momsbefriade kunder",
+            "hint": "Kunder som du har befriat från moms via en ordersida. Befrielsen gäller när kunden är inloggad i kassan.",
+            "empty": "Inga momsbefriade kunder ännu.",
+            "refresh": "Uppdatera"
+          }
+        },
+        "ecSalesTitle": "Periodisk sammanställning",
+        "ecSalesOnInvoices": "Öppna periodisk sammanställning på sidan Fakturor"
       },
       "invoices": {
         "settings": {
@@ -2471,7 +2543,8 @@
         "invoices": "Fakturor",
         "backlog": "Ej fakturerat",
         "profile": "Säljaruppgifter",
-        "numbering": "Numrering"
+        "numbering": "Numrering",
+        "ecSales": "Periodisk sammanställning"
       },
       "kind": {
         "INVOICE": "Faktura",
@@ -2667,6 +2740,33 @@
       "profileLoadFailed": "Säljaruppgifterna kunde inte laddas.",
       "retry": "Försök igen",
       "profileVatOnly": "Lägg till ett momsreg.nr om du tar ut moms."
+    },
+    "taxes": {
+      "tabEcSales": "Periodisk sammanställning",
+      "ecSales": {
+        "title": "Periodisk sammanställning",
+        "description": "Försäljning med omvänd skattskyldighet till EU-företag per köparens momsregistreringsnummer och period — underlaget för den periodiska sammanställningen till Skatteverket.",
+        "from": "Från",
+        "to": "Till",
+        "period": "Period",
+        "periodMonth": "Månad",
+        "periodQuarter": "Kvartal",
+        "run": "Kör rapport",
+        "preview": "Förhandsgranska",
+        "previewRange": "{from} – {to}",
+        "downloadCsv": "Ladda ner CSV",
+        "downloadFailed": "Det gick inte att ladda ner rapporten.",
+        "ordersSourceBanner": "Byggd från ordrar: delåterbetalningar ingår inte. Aktivera appen Fakturor för exakta siffror från fakturor och kreditnotor.",
+        "colPeriod": "Period",
+        "colCountry": "Land",
+        "colVatNumber": "Köparens momsregistreringsnummer",
+        "colBuyer": "Köpare",
+        "colAmount": "Belopp (ordervaluta)",
+        "colAmountStore": "Belopp (butiksvaluta)",
+        "colDocuments": "Dokument",
+        "empty": "Ingen försäljning med omvänd skattskyldighet under perioden.",
+        "totalRow": "Totalt"
+      }
     }
   },
   "components": {
@@ -2949,7 +3049,13 @@
     "INVOICE_BIC_INVALID": "BIC/SWIFT-koden är ogiltig.",
     "INVOICE_VAT_NUMBER_INVALID": "Momsreg.nr är ogiltigt.",
     "INVOICE_TIMEZONE_INVALID": "Tidszonen är ogiltig.",
-    "INVOICE_SNAPSHOT_INVALID": "Beställningen kan inte faktureras automatiskt eftersom beloppen inte stämmer (eller den använder staplade skattesatser). Kontakta supporten."
+    "INVOICE_SNAPSHOT_INVALID": "Beställningen kan inte faktureras automatiskt eftersom beloppen inte stämmer (eller den använder staplade skattesatser). Kontakta supporten.",
+    "B2B_REVERSE_CHARGE_NOT_CONFIRMED": "Momsregistreringsnumret kunde inte bekräftas, så moms tillkommer på ordern.",
+    "B2B_EXEMPTION_NOT_FOUND": "Momsbefrielsen finns inte längre.",
+    "B2B_EXEMPTION_CUSTOMER_NOT_FOUND": "Kunden har inga ordrar i din butik.",
+    "B2B_EXEMPTION_VAT_REQUIRED": "En befrielse med omvänd skattskyldighet kräver ett giltigt EU-momsregistreringsnummer.",
+    "B2B_EXEMPTION_EXISTS": "Kunden har redan en aktiv momsbefrielse.",
+    "TAX_REPORT_RANGE_INVALID": "Startdatumet måste vara samma dag som eller före slutdatumet."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

@@ -21,14 +21,45 @@ export interface B2bSettings {
   // ISO 3166-1 alpha-2 codes whose organisation-number format is validated
   // strictly (SE/FI/DK/NO have rules; other listed codes use the generic rule).
   org_number_countries: string[];
+  // M2.5: remove VAT for VIES-validated EU business buyers shipping to
+  // another EU country (reverse charge). Off by default.
+  reverse_charge_enabled: boolean;
+  // INCLUSIVE stores only: 'net' = the company pays the price excluding VAT,
+  // 'gross' = the company pays the consumer price with a 0 % VAT line.
+  reverse_charge_pricing: ReverseChargePricing;
+  // VAT number sent to VIES as the requester (null = the invoices seller VAT
+  // number); a requester makes VIES return a consultation number.
+  vies_requester_vat: string | null;
 }
+
+export type ReverseChargePricing = 'net' | 'gross';
+export const REVERSE_CHARGE_PRICINGS: readonly ReverseChargePricing[] = ['net', 'gross'] as const;
 
 export const DEFAULT_B2B_SETTINGS: B2bSettings = {
   allow_company: true,
   default_buyer_type: 'PERSON',
   require_vat_number: false,
   org_number_countries: ['SE'],
+  reverse_charge_enabled: false,
+  reverse_charge_pricing: 'net',
+  vies_requester_vat: null,
 };
+
+export function isReverseChargePricing(value: unknown): value is ReverseChargePricing {
+  return value === 'net' || value === 'gross';
+}
+
+// Uppercase without spaces, dots or dashes ("se 5560-36079301" -> "SE556036079301").
+export function normalizeVatNumber(value: string | null | undefined): string {
+  return (value ?? '').toUpperCase().replace(/[\s.\-]/g, '');
+}
+
+// ISO country of a VAT number prefix (EL is Greece's VIES code).
+export function vatNumberCountry(vat: string | null | undefined): string | null {
+  const prefix = normalizeVatNumber(vat).slice(0, 2);
+  if (!/^[A-Z]{2}$/.test(prefix)) return null;
+  return prefix === 'EL' ? 'GR' : prefix;
+}
 
 export function isBuyerType(value: unknown): value is BuyerType {
   return value === 'PERSON' || value === 'COMPANY';
@@ -48,6 +79,17 @@ export function normalizeB2bSettings(raw: unknown): B2bSettings {
     require_vat_number:
       typeof src.require_vat_number === 'boolean' ? src.require_vat_number : DEFAULT_B2B_SETTINGS.require_vat_number,
     org_number_countries: Array.from(new Set(countries)),
+    reverse_charge_enabled:
+      typeof src.reverse_charge_enabled === 'boolean'
+        ? src.reverse_charge_enabled
+        : DEFAULT_B2B_SETTINGS.reverse_charge_enabled,
+    reverse_charge_pricing: isReverseChargePricing(src.reverse_charge_pricing)
+      ? src.reverse_charge_pricing
+      : DEFAULT_B2B_SETTINGS.reverse_charge_pricing,
+    vies_requester_vat:
+      typeof src.vies_requester_vat === 'string' && src.vies_requester_vat.trim()
+        ? normalizeVatNumber(src.vies_requester_vat)
+        : null,
   };
 }
 
@@ -89,4 +131,72 @@ export function customerDefaultsDiffer(
     norm(customer.org_number) !== norm(order.org_number) ||
     norm(customer.vat_number) !== norm(order.vat_number)
   );
+}
+
+// ── Reverse charge / tax exemptions (M2.5) ─────────────────────────────
+
+// Why an order carries no VAT. Null/absent = taxed normally.
+export type TaxExemptReason = 'REVERSE_CHARGE' | 'CUSTOMER_EXEMPT';
+export type TaxExemptionKind = 'REVERSE_CHARGE' | 'FULL';
+export const TAX_EXEMPTION_KINDS: readonly TaxExemptionKind[] = ['REVERSE_CHARGE', 'FULL'] as const;
+export type VatCheckStatus = 'valid' | 'invalid' | 'unavailable' | 'format_invalid' | 'not_eu';
+
+// Evidence snapshot on `Order.vat_validation` (VIES result or manual exemption).
+export interface VatEvidence {
+  source: 'VIES' | 'MANUAL';
+  vat_number: string;
+  country_code: string;
+  status: VatCheckStatus;
+  valid: boolean;
+  name: string | null;
+  address: string | null;
+  request_identifier: string | null;
+  requester: string | null;
+  checked_at: string;
+  check_id: string | null;
+  error_code?: string | null;
+  seller_country?: string;
+  destination_country?: string;
+  vat_country_matches_destination?: boolean;
+  exemption_id?: string;
+  exemption_kind?: TaxExemptionKind;
+  // ISO time the manual exemption was created (MANUAL evidence only). The
+  // merchant's note is not on the order; it lives on the exemption record.
+  exemption_created_at?: string;
+}
+
+// Order columns written when the order was priced without VAT.
+export interface OrderTaxExemptionFields {
+  tax_exempt_reason?: TaxExemptReason | null;
+  vat_validation?: VatEvidence | null;
+}
+
+// GET /b2b/my/tax-exemptions rows.
+export interface TaxExemptionView {
+  id: string;
+  customer: { id: string; first_name: string | null; last_name: string | null; email: string | null };
+  kind: TaxExemptionKind;
+  vat_number: string | null;
+  note: string | null;
+  created_at: string;
+  created_by: string;
+  revoked_at: string | null;
+}
+
+export interface CreateTaxExemptionInput {
+  customer_id?: string;
+  order_id?: string;
+  kind: TaxExemptionKind;
+  vat_number?: string | null;
+  note?: string | null;
+}
+
+// True when the evidence's VAT-number country differs from where the goods
+// were shipped (allowed, Shopify rule, but worth flagging to the merchant).
+export function vatCountryMismatch(evidence: VatEvidence | null | undefined): boolean {
+  if (!evidence) return false;
+  if (evidence.vat_country_matches_destination === false) return true;
+  if (evidence.vat_country_matches_destination === true) return false;
+  const vatCountry = vatNumberCountry(evidence.vat_number) ?? (evidence.country_code === 'EL' ? 'GR' : evidence.country_code);
+  return !!evidence.destination_country && !!vatCountry && vatCountry !== evidence.destination_country.toUpperCase();
 }

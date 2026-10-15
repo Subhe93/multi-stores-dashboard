@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Blocks } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -13,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { B2bSettingsCard } from '@/components/apps/B2bSettingsCard';
 import { InvoicesSettingsCard } from '@/components/apps/InvoicesSettingsCard';
+import { B2bExemptionsList } from '@/components/apps/B2bExemptionsList';
+import { EcSalesReportPanel } from '@/components/taxes/EcSalesReportPanel';
+import { normalizeB2bSettings } from '@/lib/b2b';
 
 export default function CreatorAppsPage() {
   const t = useTranslations('creator.apps');
@@ -96,6 +100,8 @@ export default function CreatorAppsPage() {
   // The API returns every registry key; only apps the admin made available
   // are shown to the creator.
   const visibleApps = (apps ?? []).filter((a) => a.available);
+  // The EC sales list lives on the Invoices page while that app is on.
+  const invoicesOn = (apps ?? []).some((a) => a.key === 'invoices' && a.enabled);
 
   const blockedText = (app: MyStoreAppView): string | null => {
     if (app.can_enable || app.enabled) return null;
@@ -188,14 +194,32 @@ export default function CreatorAppsPage() {
                   {error && <p className="text-[11px] text-red-600">{error}</p>}
                   {/* Per-app settings live under the card while the app is on. */}
                   {app.key === 'b2b' && app.enabled && token && (
-                    <B2bSettingsCard
-                      app={app}
-                      token={token}
-                      onSaved={(refreshed) => {
-                        setApps(refreshed);
-                        setCachedStoreApps(refreshed);
-                      }}
-                    />
+                    <>
+                      <B2bSettingsCard
+                        app={app}
+                        token={token}
+                        onSaved={(refreshed) => {
+                          setApps(refreshed);
+                          setCachedStoreApps(refreshed);
+                        }}
+                      />
+                      {/* Reverse charge (M2.5): customer exemptions and the EC sales list. */}
+                      {/* Exemptions only take effect while reverse charge is on. */}
+                      {normalizeB2bSettings(app.settings).reverse_charge_enabled && <B2bExemptionsList token={token} />}
+                      {invoicesOn ? (
+                        <div className="space-y-1 border-t pt-4">
+                          <p className="text-xs font-semibold">{t('b2b.ecSalesTitle')}</p>
+                          <Link
+                            href="/creator/invoices?tab=ecSales"
+                            className="text-[11px] font-medium text-primary underline underline-offset-2"
+                          >
+                            {t('b2b.ecSalesOnInvoices')}
+                          </Link>
+                        </div>
+                      ) : (
+                        <EcSalesReportPanel token={token} variant="compact" />
+                      )}
+                    </>
                   )}
                   {app.key === 'invoices' && app.enabled && token && (
                     <InvoicesSettingsCard

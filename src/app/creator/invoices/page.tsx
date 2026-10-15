@@ -17,8 +17,9 @@ import { InvoiceBacklogTab } from '@/components/invoices/InvoiceBacklogTab';
 import { LegalProfileForm } from '@/components/invoices/LegalProfileForm';
 import { NumberingForm } from '@/components/invoices/NumberingForm';
 import { ProfileMissingNotice } from '@/components/invoices/InvoiceBits';
+import { EcSalesReportPanel } from '@/components/taxes/EcSalesReportPanel';
 
-const TABS = ['invoices', 'backlog', 'profile', 'numbering'] as const;
+const TABS = ['invoices', 'backlog', 'profile', 'numbering', 'ecSales'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function CreatorInvoicesPage() {
@@ -27,6 +28,8 @@ export default function CreatorInvoicesPage() {
   const describeError = useApiError();
   const { apps, loading: appsLoading } = useStoreApps();
   const enabled = isAppEnabled(apps, 'invoices');
+  // EC sales list (reverse charge) only matters for stores with the b2b app.
+  const ecSalesOn = enabled && isAppEnabled(apps, 'b2b');
 
   // Active tab, mirrored in ?tab= so links (Apps page, order card) land on it.
   const [tab, setTab] = useState<Tab>('invoices');
@@ -84,7 +87,7 @@ export default function CreatorInvoicesPage() {
   if (!token) return null;
 
   // With the app off only the read-only list remains (L1 retention).
-  const activeTab: Tab = enabled ? tab : 'invoices';
+  const activeTab: Tab = !enabled || (tab === 'ecSales' && !ecSalesOn) ? 'invoices' : tab;
   const profileIncomplete = enabled && profileLoaded && !!profile && !profile.complete;
 
   // The profile forms render only from a successfully loaded server copy, so a
@@ -162,6 +165,12 @@ export default function CreatorInvoicesPage() {
               {t('tabs.numbering')}
             </TabsTrigger>
           )}
+          {/* EC sales list of reverse-charge sales (b2b app M2.5), built from invoices. */}
+          {ecSalesOn && (
+            <TabsTrigger value="ecSales" className="flex-none px-3">
+              {t('tabs.ecSales')}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="invoices" className="pt-4">
@@ -206,6 +215,12 @@ export default function CreatorInvoicesPage() {
                   onSaved={setProfile}
                 />
               ))}
+          </TabsContent>
+        )}
+
+        {ecSalesOn && (
+          <TabsContent value="ecSales" className="pt-4">
+            <EcSalesReportPanel token={token} />
           </TabsContent>
         )}
       </Tabs>

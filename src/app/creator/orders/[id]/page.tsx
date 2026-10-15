@@ -17,7 +17,9 @@ import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
 import { useStoreType } from '@/lib/useStoreType';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
 import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
-import type { CustomerB2bDefaults, OrderB2bSnapshot } from '@/lib/b2b';
+import { normalizeB2bSettings, type CustomerB2bDefaults, type OrderB2bSnapshot, type OrderTaxExemptionFields } from '@/lib/b2b';
+import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/OrderTaxExemptionCard';
+import { CustomerTaxExemption } from '@/components/apps/CustomerTaxExemption';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 
@@ -110,9 +112,11 @@ interface OrderAddress {
   country_code?: string | null;
 }
 
-// OrderB2bSnapshot: the five company columns written by the b2b app.
-interface Order extends KustomOrderFields, OrderB2bSnapshot {
+// OrderB2bSnapshot: the five company columns written by the b2b app;
+// OrderTaxExemptionFields: reverse charge / exemption snapshot (M2.5).
+interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFields {
   id: string;
+  customer_id?: string | null;
   order_number: string;
   status: string;
   created_at?: string | null;
@@ -138,7 +142,7 @@ interface Order extends KustomOrderFields, OrderB2bSnapshot {
   // Legacy orders carry a single commission object; newer ones an array.
   commission?: OrderCommission | OrderCommission[] | null;
   // Customer account; the b2b defaults are prefill, the order snapshot wins.
-  customer?: ({ first_name?: string | null; last_name?: string | null; email?: string | null } & CustomerB2bDefaults) | null;
+  customer?: ({ id?: string; first_name?: string | null; last_name?: string | null; email?: string | null } & CustomerB2bDefaults) | null;
   address?: OrderAddress | null;
   payouts?: { status?: string | null }[] | null;
 }
@@ -208,6 +212,10 @@ export default function CreatorOrderDetailPage() {
   // there are no documents and nothing may be written.
   const { apps } = useStoreApps();
   const invoicesEnabled = isAppEnabled(apps, 'invoices');
+  // Customer exemptions only take effect while reverse charge is on (M2.5).
+  const reverseChargeOn =
+    isAppEnabled(apps, 'b2b') &&
+    normalizeB2bSettings(apps?.find((a) => a.key === 'b2b')?.settings).reverse_charge_enabled;
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
   const STATUS_LABELS = statusLabels(t);
@@ -354,12 +362,16 @@ export default function CreatorOrderDetailPage() {
             )}
           </div>
         </div>
-        <Badge
-          variant="outline"
-          className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
-        >
-          {STATUS_LABELS[order.status] || order.status}
-        </Badge>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {/* Reverse charge / tax exempt (b2b app M2.5), from the order snapshot. */}
+          <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
+          <Badge
+            variant="outline"
+            className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
+          >
+            {STATUS_LABELS[order.status] || order.status}
+          </Badge>
+        </div>
       </div>
 
       {/* 2-column grid */}
@@ -567,7 +579,7 @@ export default function CreatorOrderDetailPage() {
                 <OrderTaxLines order={order} currency={order.currency || currency} />
                 <Separator />
                 <div className="flex justify-between font-semibold text-base pt-1">
-                  <span>{order.customer_type === 'COMPANY' ? t('orderDetail.totalInclVat') : t('orderDetail.total')}</span>
+                  <span>{order.customer_type === 'COMPANY' && !order.tax_exempt_reason ? t('orderDetail.totalInclVat') : t('orderDetail.total')}</span>
                   {/* Order currency (market orders can differ from the store currency). */}
                   <span>{formatAmountIn(order.total, order.currency || currency)}</span>
                 </div>
@@ -696,8 +708,20 @@ export default function CreatorOrderDetailPage() {
               <p className="text-muted-foreground">{order.customer?.email ?? '—'}</p>
               {/* Company snapshot (b2b app); renders nothing for person orders. */}
               <OrderCompanyLines order={order} customer={order.customer} />
+              {/* Customer tax exemption (b2b app, D4/L7): active one or the action. */}
+              {reverseChargeOn && token && (
+                <CustomerTaxExemption
+                  token={token}
+                  orderId={id}
+                  customerId={order.customer_id ?? order.customer?.id ?? null}
+                  vatNumber={order.vat_validation?.vat_number ?? order.vat_number ?? null}
+                />
+              )}
             </CardContent>
           </Card>
+
+          {/* Why this order carries no VAT (VIES evidence / manual exemption). */}
+          <OrderTaxExemptionCard order={order} />
 
           {/* Invoices app: documents of this order, manual issue and credit notes. */}
           {token && (

@@ -2170,7 +2170,55 @@
       "reference": "Referenz",
       "customerDefaults": "Kundenvorgaben",
       "netTotal": "Nettosumme",
-      "totalInclVat": "Gesamt inkl. MwSt."
+      "totalInclVat": "Gesamt inkl. MwSt.",
+      "taxExemption": {
+        "title": "Steuerbefreiung",
+        "reverseCharge": "Steuerschuldnerschaft des Leistungsempfängers",
+        "customerExempt": "Steuerbefreit",
+        "vatZeroReverseCharge": "MwSt. 0 % — Steuerschuldnerschaft des Leistungsempfängers",
+        "vatZeroExempt": "MwSt. 0 % — Steuerbefreit",
+        "reverseChargeSummary": "Es wurde keine MwSt. berechnet: Der Käufer ist ein EU-Unternehmen mit einer von VIES validierten USt-IdNr. und die Ware wurde in ein anderes EU-Land geliefert. Der Käufer führt die Steuer ab.",
+        "customerExemptSummary": "Es wurde keine MwSt. berechnet, da der Kunde steuerbefreit ist.",
+        "manualSummary": "Es wurde keine MwSt. berechnet, weil Sie für diesen Kunden eine Steuerbefreiung hinterlegt haben.",
+        "vatNumber": "USt-IdNr.",
+        "vatCountry": "Land der USt-IdNr.",
+        "destination": "Geliefert nach",
+        "viesStatus": "VIES-Ergebnis",
+        "viesValid": "Gültig",
+        "viesNotValid": "Ungültig",
+        "viesName": "Name (VIES)",
+        "viesAddress": "Adresse (VIES)",
+        "checkedAt": "Geprüft am",
+        "viesRef": "Abfragenummer",
+        "viesRefNone": "Keine (kein Anfragender)",
+        "exemptionKind": "Befreiung",
+        "kindReverseCharge": "Steuerschuldnerschaft des Leistungsempfängers",
+        "kindFull": "Keine Steuer erheben",
+        "appliedAt": "Angewendet am",
+        "note": "Notiz",
+        "countryMismatch": "Die USt-IdNr. stammt aus {vatCountry}, die Ware wurde aber nach {destination} geliefert. Das ist zulässig, bewahren Sie jedoch die Versanddokumente auf.",
+        "exemptCustomer": "Diesen Kunden von der MwSt. befreien…",
+        "exemptSince": "Befreit seit {date}",
+        "removeExemption": "Befreiung entfernen",
+        "removeConfirm": "Diese Befreiung entfernen?",
+        "remove": "Entfernen",
+        "cancel": "Abbrechen",
+        "guestNoExemption": "Gastbestellung: Steuerbefreiungen erfordern ein Kundenkonto.",
+        "dialog": {
+          "title": "Diesen Kunden von der MwSt. befreien",
+          "description": "Gilt für künftige Bestellungen dieses Kunden, wenn er beim Checkout angemeldet ist. Frühere Bestellungen bleiben unverändert.",
+          "kind": "Art der Befreiung",
+          "kindReverseChargeHint": "Für ein EU-Unternehmen, wenn VIES die Nummer nicht bestätigen kann. Die MwSt. entfällt nur bei Lieferung in ein anderes EU-Land als Ihres.",
+          "kindFullHint": "Keine Steuer auf Bestellungen dieses Kunden, unabhängig vom Lieferort.",
+          "vatNumber": "USt-IdNr.",
+          "vatNumberHint": "Aus dieser Bestellung vorausgefüllt. Mit Länderpräfix, z. B. DE123456789.",
+          "vatRequired": "Geben Sie die EU-USt-IdNr. des Kunden mit Länderpräfix ein.",
+          "note": "Notiz (optional)",
+          "notePlaceholder": "z. B. VIES am 15.10. nicht erreichbar, Nachweis liegt vor",
+          "scopeNote": "Befreiungen gelten, solange die Steuerschuldnerschaft des Leistungsempfängers in den Einstellungen der B2B-App aktiviert ist.",
+          "submit": "Befreiung speichern"
+        }
+      }
     },
     "orderStatus": {
       "PENDING": "Ausstehend",
@@ -2289,8 +2337,32 @@
           "orgCountriesHint": "Strenge Formatregeln gibt es für Schweden, Finnland, Dänemark und Norwegen; andere Länder werden allgemein geprüft. Standard: Schweden.",
           "kustomNote": "Käufe durch Organisationen müssen in Ihrem Kustom-Konto freigeschaltet sein — klären Sie dies mit dem Kustom-Support, bevor Sie die Option für gewerbliche Käufer aktivieren.",
           "saved": "Gespeichert",
-          "saveFailed": "Die B2B-Einstellungen konnten nicht gespeichert werden."
-        }
+          "saveFailed": "Die B2B-Einstellungen konnten nicht gespeichert werden.",
+          "reverseCharge": "MwSt. für validierte EU-Geschäftskunden entfernen (Steuerschuldnerschaft des Leistungsempfängers)",
+          "reverseChargeHint": "EU-Unternehmen mit einer von VIES als gültig bestätigten USt-IdNr. und Lieferung in ein anderes EU-Land zahlen 0 % MwSt. und führen die Steuer selbst ab. Kann VIES die Nummer nicht bestätigen (ungültig oder nicht erreichbar), wird wie gewohnt MwSt. berechnet.",
+          "reverseChargeOwnership": "VIES bestätigt, dass eine Nummer gültig ist, nicht dass sie dem Käufer gehört. Jede Prüfung wird als Nachweis an der Bestellung gespeichert.",
+          "reverseChargeEuNote": "Die Steuerschuldnerschaft des Leistungsempfängers gilt nur, wenn das Steuerland Ihres Shops in der EU liegt.",
+          "reverseChargeNotEu": "Ihr Steuerland ({country}) liegt außerhalb der EU, daher wird die Steuerschuldnerschaft des Leistungsempfängers nie angewendet. Ändern Sie das Steuerland auf der Seite Steuern.",
+          "reverseChargeIndependentOnly": "Die Steuerschuldnerschaft des Leistungsempfängers ist nur für unabhängige Shops verfügbar (der Shop muss steuerlich registriert sein).",
+          "rcPricing": "Preis für Kunden mit Steuerschuldnerschaft des Leistungsempfängers",
+          "rcPricingNet": "Netto — das Unternehmen zahlt den Preis ohne MwSt. (empfohlen)",
+          "rcPricingNetHint": "Die in Ihren Preisen enthaltene MwSt. wird abgezogen.",
+          "rcPricingGross": "Brutto — gleicher Preis wie für Verbraucher",
+          "rcPricingGrossHint": "Der Preis bleibt gleich und die MwSt.-Zeile zeigt 0 % (Verhalten wie bei Shopify).",
+          "rcPricingExampleTitle": "Beispiel: ein Artikel für 125 inkl. 25 % MwSt.",
+          "rcPricingExampleNet": "Netto: das Unternehmen zahlt 100 (MwSt. 0 %).",
+          "rcPricingExampleGross": "Brutto: das Unternehmen zahlt 125 (MwSt. 0 %).",
+          "viesRequester": "USt-IdNr. des Anfragenden für VIES (optional)",
+          "viesRequesterHint": "Standardmäßig die USt-IdNr. des Verkäufers aus Ihrem Rechnungsprofil. Mit einem Anfragenden liefert VIES eine Abfragenummer, die Sie als Nachweis aufbewahren können.",
+          "exemptions": {
+            "title": "Steuerbefreite Kunden",
+            "hint": "Kunden, die Sie auf einer Bestellseite von der MwSt. befreit haben. Die Befreiung gilt, wenn der Kunde beim Checkout angemeldet ist.",
+            "empty": "Noch keine steuerbefreiten Kunden.",
+            "refresh": "Aktualisieren"
+          }
+        },
+        "ecSalesTitle": "Zusammenfassende Meldung",
+        "ecSalesOnInvoices": "Zusammenfassende Meldung auf der Seite Rechnungen öffnen"
       },
       "invoices": {
         "settings": {
@@ -2471,7 +2543,8 @@
         "invoices": "Rechnungen",
         "backlog": "Nicht abgerechnet",
         "profile": "Verkäuferprofil",
-        "numbering": "Nummerierung"
+        "numbering": "Nummerierung",
+        "ecSales": "Zusammenfassende Meldung"
       },
       "kind": {
         "INVOICE": "Rechnung",
@@ -2667,6 +2740,33 @@
       "profileLoadFailed": "Das Verkäuferprofil konnte nicht geladen werden.",
       "retry": "Erneut versuchen",
       "profileVatOnly": "Fügen Sie eine USt-IdNr. hinzu, wenn Sie Umsatzsteuer berechnen."
+    },
+    "taxes": {
+      "tabEcSales": "Zusammenfassende Meldung",
+      "ecSales": {
+        "title": "Zusammenfassende Meldung (periodisk sammanställning)",
+        "description": "Umsätze mit Steuerschuldnerschaft des Leistungsempfängers an EU-Geschäftskunden je USt-IdNr. des Käufers und Zeitraum — die Angaben für die Zusammenfassende Meldung an die Steuerbehörde.",
+        "from": "Von",
+        "to": "Bis",
+        "period": "Zeitraum",
+        "periodMonth": "Monat",
+        "periodQuarter": "Quartal",
+        "run": "Bericht erstellen",
+        "preview": "Vorschau",
+        "previewRange": "{from} – {to}",
+        "downloadCsv": "CSV herunterladen",
+        "downloadFailed": "Der Bericht konnte nicht heruntergeladen werden.",
+        "ordersSourceBanner": "Aus Bestellungen erstellt: Teilerstattungen sind nicht enthalten. Aktivieren Sie die App Rechnungen für exakte Zahlen aus Rechnungen und Gutschriften.",
+        "colPeriod": "Zeitraum",
+        "colCountry": "Land",
+        "colVatNumber": "USt-IdNr. des Käufers",
+        "colBuyer": "Käufer",
+        "colAmount": "Betrag (Bestellwährung)",
+        "colAmountStore": "Betrag (Shopwährung)",
+        "colDocuments": "Belege",
+        "empty": "Keine Umsätze mit Steuerschuldnerschaft des Leistungsempfängers in diesem Zeitraum.",
+        "totalRow": "Summe"
+      }
     }
   },
   "components": {
@@ -2949,7 +3049,13 @@
     "INVOICE_BIC_INVALID": "Der BIC/SWIFT-Code ist ungültig.",
     "INVOICE_VAT_NUMBER_INVALID": "Die USt-IdNr. ist ungültig.",
     "INVOICE_TIMEZONE_INVALID": "Die Zeitzone ist ungültig.",
-    "INVOICE_SNAPSHOT_INVALID": "Diese Bestellung kann nicht automatisch abgerechnet werden, da ihre Beträge nicht aufgehen (oder sie gestaffelte Steuersätze verwendet). Bitte wenden Sie sich an den Support."
+    "INVOICE_SNAPSHOT_INVALID": "Diese Bestellung kann nicht automatisch abgerechnet werden, da ihre Beträge nicht aufgehen (oder sie gestaffelte Steuersätze verwendet). Bitte wenden Sie sich an den Support.",
+    "B2B_REVERSE_CHARGE_NOT_CONFIRMED": "Die USt-IdNr. konnte nicht bestätigt werden, daher fällt für diese Bestellung MwSt. an.",
+    "B2B_EXEMPTION_NOT_FOUND": "Diese Steuerbefreiung existiert nicht mehr.",
+    "B2B_EXEMPTION_CUSTOMER_NOT_FOUND": "Dieser Kunde hat keine Bestellungen in Ihrem Shop.",
+    "B2B_EXEMPTION_VAT_REQUIRED": "Eine Befreiung mit Steuerschuldnerschaft des Leistungsempfängers erfordert eine gültige EU-USt-IdNr.",
+    "B2B_EXEMPTION_EXISTS": "Für diesen Kunden besteht bereits eine aktive Steuerbefreiung.",
+    "TAX_REPORT_RANGE_INVALID": "Das Startdatum muss am oder vor dem Enddatum liegen."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

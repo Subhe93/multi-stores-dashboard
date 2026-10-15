@@ -2170,7 +2170,55 @@
       "reference": "Référence",
       "customerDefaults": "Valeurs par défaut du client",
       "netTotal": "Total HT",
-      "totalInclVat": "Total TTC"
+      "totalInclVat": "Total TTC",
+      "taxExemption": {
+        "title": "Exonération de taxe",
+        "reverseCharge": "Autoliquidation",
+        "customerExempt": "Exonéré de taxe",
+        "vatZeroReverseCharge": "TVA 0 % — Autoliquidation",
+        "vatZeroExempt": "TVA 0 % — Exonéré de taxe",
+        "reverseChargeSummary": "Aucune TVA facturée : l’acheteur est une entreprise de l’UE dont le numéro de TVA a été validé par VIES et les marchandises ont été expédiées dans un autre pays de l’UE. L’acheteur autoliquide la TVA.",
+        "customerExemptSummary": "Aucune TVA facturée car le client est exonéré de taxe.",
+        "manualSummary": "Aucune TVA facturée en raison d’une exonération que vous avez définie pour ce client.",
+        "vatNumber": "Numéro de TVA",
+        "vatCountry": "Pays du numéro de TVA",
+        "destination": "Expédié vers",
+        "viesStatus": "Résultat VIES",
+        "viesValid": "Valide",
+        "viesNotValid": "Non valide",
+        "viesName": "Nom (VIES)",
+        "viesAddress": "Adresse (VIES)",
+        "checkedAt": "Vérifié le",
+        "viesRef": "Numéro de consultation",
+        "viesRefNone": "Aucun (pas de demandeur)",
+        "exemptionKind": "Exonération",
+        "kindReverseCharge": "Autoliquidation",
+        "kindFull": "Ne pas percevoir de taxe",
+        "appliedAt": "Appliquée le",
+        "note": "Note",
+        "countryMismatch": "Le numéro de TVA provient de {vatCountry} mais les marchandises ont été expédiées vers {destination}. C’est autorisé, mais conservez les documents d’expédition.",
+        "exemptCustomer": "Exonérer ce client de TVA…",
+        "exemptSince": "Exonéré depuis le {date}",
+        "removeExemption": "Supprimer l’exonération",
+        "removeConfirm": "Supprimer cette exonération ?",
+        "remove": "Supprimer",
+        "cancel": "Annuler",
+        "guestNoExemption": "Commande invité : les exonérations nécessitent un compte client.",
+        "dialog": {
+          "title": "Exonérer ce client de TVA",
+          "description": "S’applique aux futures commandes de ce client lorsqu’il est connecté au paiement. Les commandes passées ne sont pas modifiées.",
+          "kind": "Type d’exonération",
+          "kindReverseChargeHint": "Pour une entreprise de l’UE lorsque VIES ne peut pas confirmer son numéro. La TVA n’est supprimée que si les marchandises sont expédiées vers un autre pays de l’UE que le vôtre.",
+          "kindFullHint": "Aucune taxe sur les commandes de ce client, quelle que soit la destination.",
+          "vatNumber": "Numéro de TVA",
+          "vatNumberHint": "Prérempli depuis cette commande. Incluez le préfixe pays, p. ex. DE123456789.",
+          "vatRequired": "Saisissez le numéro de TVA intracommunautaire du client avec son préfixe pays.",
+          "note": "Note (facultatif)",
+          "notePlaceholder": "p. ex. VIES indisponible le 15/10, attestation au dossier",
+          "scopeNote": "Les exonérations s’appliquent tant que l’autoliquidation est activée dans les réglages de l’app B2B.",
+          "submit": "Enregistrer l’exonération"
+        }
+      }
     },
     "orderStatus": {
       "PENDING": "En attente",
@@ -2289,8 +2337,32 @@
           "orgCountriesHint": "Des règles de format strictes existent pour la Suède, la Finlande, le Danemark et la Norvège ; les autres pays passent par une vérification générique. Par défaut : Suède.",
           "kustomNote": "Les achats par des organisations doivent être activés sur votre compte Kustom — vérifiez auprès du support Kustom avant d’activer cette option pour les acheteurs professionnels.",
           "saved": "Enregistré",
-          "saveFailed": "Impossible d’enregistrer les paramètres B2B."
-        }
+          "saveFailed": "Impossible d’enregistrer les paramètres B2B.",
+          "reverseCharge": "Supprimer la TVA pour les clients professionnels UE validés (autoliquidation)",
+          "reverseChargeHint": "Les entreprises de l’UE dont le numéro de TVA est confirmé valide par VIES et livrées dans un autre pays de l’UE paient 0 % de TVA et autoliquident la taxe. Si VIES ne peut pas confirmer le numéro (invalide ou indisponible), la TVA est facturée normalement.",
+          "reverseChargeOwnership": "VIES confirme qu’un numéro est valide, pas qu’il appartient à l’acheteur. Chaque vérification est conservée comme justificatif sur la commande.",
+          "reverseChargeEuNote": "L’autoliquidation ne s’applique que si le pays fiscal de votre boutique est dans l’UE.",
+          "reverseChargeNotEu": "Votre pays fiscal ({country}) est hors de l’UE : l’autoliquidation ne s’appliquera jamais. Modifiez le pays fiscal sur la page Taxes.",
+          "reverseChargeIndependentOnly": "L’autoliquidation n’est disponible que pour les boutiques indépendantes (la boutique doit être l’assujetti enregistré).",
+          "rcPricing": "Prix pour les clients en autoliquidation",
+          "rcPricingNet": "HT — l’entreprise paie le prix hors TVA (recommandé)",
+          "rcPricingNetHint": "La TVA incluse dans vos prix est déduite.",
+          "rcPricingGross": "TTC — même prix que pour les particuliers",
+          "rcPricingGrossHint": "Le prix reste identique et la ligne de TVA affiche 0 % (comportement Shopify).",
+          "rcPricingExampleTitle": "Exemple : un article à 125 TTC (TVA 25 %)",
+          "rcPricingExampleNet": "HT : l’entreprise paie 100 (TVA 0 %).",
+          "rcPricingExampleGross": "TTC : l’entreprise paie 125 (TVA 0 %).",
+          "viesRequester": "Numéro de TVA du demandeur VIES (facultatif)",
+          "viesRequesterHint": "Par défaut, le numéro de TVA vendeur de votre profil de facturation. Avec un demandeur, VIES renvoie un numéro de consultation à conserver comme preuve.",
+          "exemptions": {
+            "title": "Clients exonérés de taxe",
+            "hint": "Clients que vous avez exonérés de TVA depuis une page de commande. L’exonération s’applique lorsque le client est connecté au paiement.",
+            "empty": "Aucun client exonéré pour le moment.",
+            "refresh": "Actualiser"
+          }
+        },
+        "ecSalesTitle": "État récapitulatif",
+        "ecSalesOnInvoices": "Ouvrir l’état récapitulatif sur la page Factures"
       },
       "invoices": {
         "settings": {
@@ -2471,7 +2543,8 @@
         "invoices": "Factures",
         "backlog": "À facturer",
         "profile": "Profil vendeur",
-        "numbering": "Numérotation"
+        "numbering": "Numérotation",
+        "ecSales": "État récapitulatif"
       },
       "kind": {
         "INVOICE": "Facture",
@@ -2667,6 +2740,33 @@
       "profileLoadFailed": "Impossible de charger le profil vendeur.",
       "retry": "Réessayer",
       "profileVatOnly": "Ajoutez un numéro de TVA si vous facturez la TVA."
+    },
+    "taxes": {
+      "tabEcSales": "État récapitulatif",
+      "ecSales": {
+        "title": "État récapitulatif (periodisk sammanställning)",
+        "description": "Ventes en autoliquidation à des clients professionnels de l’UE par numéro de TVA de l’acheteur et par période — les montants de l’état récapitulatif à déposer auprès de l’administration fiscale.",
+        "from": "Du",
+        "to": "Au",
+        "period": "Période",
+        "periodMonth": "Mois",
+        "periodQuarter": "Trimestre",
+        "run": "Générer le rapport",
+        "preview": "Aperçu",
+        "previewRange": "{from} – {to}",
+        "downloadCsv": "Télécharger le CSV",
+        "downloadFailed": "Échec du téléchargement du rapport.",
+        "ordersSourceBanner": "Établi à partir des commandes : les remboursements partiels ne sont pas inclus. Activez l’app Factures pour des chiffres exacts issus des factures et avoirs.",
+        "colPeriod": "Période",
+        "colCountry": "Pays",
+        "colVatNumber": "N° de TVA de l’acheteur",
+        "colBuyer": "Acheteur",
+        "colAmount": "Montant (devise de la commande)",
+        "colAmountStore": "Montant (devise de la boutique)",
+        "colDocuments": "Documents",
+        "empty": "Aucune vente en autoliquidation sur cette période.",
+        "totalRow": "Total"
+      }
     }
   },
   "components": {
@@ -2949,7 +3049,13 @@
     "INVOICE_BIC_INVALID": "Le code BIC / SWIFT n’est pas valide.",
     "INVOICE_VAT_NUMBER_INVALID": "Le numéro de TVA n’est pas valide.",
     "INVOICE_TIMEZONE_INVALID": "Le fuseau horaire n’est pas valide.",
-    "INVOICE_SNAPSHOT_INVALID": "Cette commande ne peut pas être facturée automatiquement car ses montants ne concordent pas (ou elle utilise des taxes cumulées). Veuillez contacter le support."
+    "INVOICE_SNAPSHOT_INVALID": "Cette commande ne peut pas être facturée automatiquement car ses montants ne concordent pas (ou elle utilise des taxes cumulées). Veuillez contacter le support.",
+    "B2B_REVERSE_CHARGE_NOT_CONFIRMED": "Le numéro de TVA n’a pas pu être confirmé ; la TVA s’applique donc à cette commande.",
+    "B2B_EXEMPTION_NOT_FOUND": "Cette exonération de taxe n’existe plus.",
+    "B2B_EXEMPTION_CUSTOMER_NOT_FOUND": "Ce client n’a aucune commande dans votre boutique.",
+    "B2B_EXEMPTION_VAT_REQUIRED": "Une exonération en autoliquidation nécessite un numéro de TVA intracommunautaire valide.",
+    "B2B_EXEMPTION_EXISTS": "Ce client a déjà une exonération de taxe active.",
+    "TAX_REPORT_RANGE_INVALID": "La date de début doit être antérieure ou égale à la date de fin."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

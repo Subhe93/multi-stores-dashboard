@@ -32,6 +32,10 @@ export interface InvoiceSummary {
   pdf_available: boolean;
   // INVOICE only: gross amount that can still be credited.
   remaining_creditable?: number | null;
+  // Tax exemption recorded at issue time; null on taxed documents.
+  tax_exempt_reason?: 'REVERSE_CHARGE' | 'CUSTOMER_EXEMPT' | null;
+  buyer_vat_number?: string | null;
+  buyer_country?: string | null;
 }
 
 // VAT summary row of the snapshot (§3.2).
