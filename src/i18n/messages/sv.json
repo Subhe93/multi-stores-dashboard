@@ -278,6 +278,7 @@
     "users": "Användare",
     "providers": "Leverantörer",
     "creators": "Skapare",
+    "storeApps": "Butiksappar",
     "products": "Produkter",
     "categories": "Kategorier",
     "attributes": "Attribut",
@@ -310,7 +311,8 @@
     "emailLog": "E-postlogg",
     "apps": "Appar",
     "markets": "Marknader",
-    "invoices": "Fakturor"
+    "invoices": "Fakturor",
+    "b2b": "B2B"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -741,7 +743,26 @@
       "creatorEnabled": "Aktiverad av skaparen",
       "creatorDisabled": "Inte aktiverad",
       "updateFailed": "Det gick inte att uppdatera appens tillgänglighet.",
-      "loadFailed": "Det gick inte att läsa in butiksapparna."
+      "loadFailed": "Det gick inte att läsa in butiksapparna.",
+      "overviewHint": "Hantera apparna för alla butiker på ett ställe:",
+      "overviewLink": "Översikt över butiksappar"
+    },
+    "storeAppsPage": {
+      "title": "Butiksappar",
+      "subtitle": "Välj vilka tillvalsappar varje butik får använda.",
+      "introAdmin": "Slå på ”Tillgänglig” för att göra en app tillgänglig för en butik. Ingenting ändras i butiken förrän skaparen själv aktiverar appen.",
+      "introCreator": "Skaparen aktiverar den sedan i sin panel under Min butik → Appar; märket ”Aktiverad av skaparen” visar var det har skett. Om du drar tillbaka en app stängs den även av i butiken.",
+      "introIndependent": "Vissa appar kräver en fristående butik och kan inte göras tillgängliga för marknadsplatsbutiker.",
+      "searchPlaceholder": "Sök på butik, slug eller skapare…",
+      "typeAll": "Alla butikstyper",
+      "columnStore": "Butik",
+      "columnCreator": "Skapare",
+      "availableFor": "{app} tillgänglig för {store}",
+      "requiresIndependent": "Kräver en fristående butik",
+      "enabledByCreator": "Aktiverad av skaparen",
+      "empty": "Inga butiker hittades.",
+      "loading": "Laddar...",
+      "loadFailed": "Det gick inte att läsa in butikerna."
     },
     "fxRates": {
       "title": "Växelkurser (Marknader)",
@@ -2307,6 +2328,12 @@
       "blockedRequiresIndependent": "Den här appen kan bara aktiveras i en fristående butik.",
       "blockedDependencyMissing": "Aktivera {apps} först.",
       "saveFailed": "Det gick inte att uppdatera appen.",
+      "openSettings": "Öppna inställningar",
+      "turnedOff": {
+        "title": "Den här appen är avstängd",
+        "body": "Slå på den på sidan Appar för att använda dess inställningar.",
+        "link": "Öppna Appar"
+      },
       "items": {
         "markets": {
           "name": "Marknader",
@@ -2360,14 +2387,11 @@
             "empty": "Inga momsbefriade kunder ännu.",
             "refresh": "Uppdatera"
           }
-        },
-        "ecSalesTitle": "Periodisk sammanställning",
-        "ecSalesOnInvoices": "Öppna periodisk sammanställning på sidan Fakturor"
+        }
       },
       "invoices": {
         "settings": {
           "title": "Fakturainställningar",
-          "openInvoices": "Säljaruppgifter och numrering",
           "autoIssue": "Utfärda fakturor automatiskt",
           "autoIssueHint": "Kort- och Kustom-beställningar faktureras så snart betalningen är bekräftad.",
           "codIssueOn": "Fakturera postförskottsbeställningar",
@@ -2383,13 +2407,26 @@
         }
       }
     },
+    "b2b": {
+      "title": "Företagskunder (B2B)",
+      "subtitle": "Företagsköp, momsregistreringsnummer, omvänd skattskyldighet och periodisk sammanställning.",
+      "tabs": {
+        "settings": "Inställningar",
+        "reverseCharge": "Omvänd skattskyldighet",
+        "exemptions": "Momsbefrielser",
+        "ecSales": "Periodisk sammanställning"
+      },
+      "exemptionsOff": {
+        "title": "Omvänd skattskyldighet är avstängd",
+        "body": "Momsbefrielser för kunder gäller bara när omvänd skattskyldighet är påslagen.",
+        "action": "Gå till inställningar för omvänd skattskyldighet"
+      }
+    },
     "markets": {
       "title": "Marknader",
       "subtitle": "Sälj per land med egen domän, valuta, språk och priser.",
       "addMarket": "Lägg till marknad",
       "empty": "Inga marknader ännu.",
-      "notEnabled": "Appen Marknader är inte aktiverad för din butik.",
-      "notEnabledLink": "Öppna appar",
       "managedHint": "Hanteras under Marknader så länge appen Marknader är aktiverad.",
       "managedLink": "Öppna marknader",
       "defaultBadge": "Standard",
@@ -2544,8 +2581,9 @@
         "backlog": "Ej fakturerat",
         "profile": "Säljaruppgifter",
         "numbering": "Numrering",
-        "ecSales": "Periodisk sammanställning"
+        "settings": "Inställningar"
       },
+      "ecSalesOnB2b": "Den periodiska sammanställningen finns nu på B2B-sidan",
       "kind": {
         "INVOICE": "Faktura",
         "CREDIT_NOTE": "Kreditfaktura"
@@ -2752,8 +2790,6 @@
         "periodMonth": "Månad",
         "periodQuarter": "Kvartal",
         "run": "Kör rapport",
-        "preview": "Förhandsgranska",
-        "previewRange": "{from} – {to}",
         "downloadCsv": "Ladda ner CSV",
         "downloadFailed": "Det gick inte att ladda ner rapporten.",
         "ordersSourceBanner": "Byggd från ordrar: delåterbetalningar ingår inte. Aktivera appen Fakturor för exakta siffror från fakturor och kreditnotor.",

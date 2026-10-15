@@ -278,6 +278,7 @@
     "users": "Users",
     "providers": "Providers",
     "creators": "Creators",
+    "storeApps": "Store apps",
     "products": "Products",
     "categories": "Categories",
     "attributes": "Attributes",
@@ -310,7 +311,8 @@
     "emailLog": "Email log",
     "apps": "Apps",
     "markets": "Markets",
-    "invoices": "Invoices"
+    "invoices": "Invoices",
+    "b2b": "B2B"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -741,7 +743,26 @@
       "creatorEnabled": "Enabled by creator",
       "creatorDisabled": "Not enabled",
       "updateFailed": "Failed to update app availability.",
-      "loadFailed": "Failed to load store apps."
+      "loadFailed": "Failed to load store apps.",
+      "overviewHint": "Manage the apps of every store in one place:",
+      "overviewLink": "Store apps overview"
+    },
+    "storeAppsPage": {
+      "title": "Store apps",
+      "subtitle": "Choose which optional apps each store may use.",
+      "introAdmin": "Switch “Available” on to make an app available to a store. Nothing changes for the store until its creator switches the app on.",
+      "introCreator": "The creator then enables it in their dashboard under My Store → Apps; the badge “Enabled by creator” shows where that has happened. Withdrawing an app also switches it off for the store.",
+      "introIndependent": "Some apps need an independent store and cannot be made available to marketplace stores.",
+      "searchPlaceholder": "Search by store, slug or creator…",
+      "typeAll": "All store types",
+      "columnStore": "Store",
+      "columnCreator": "Creator",
+      "availableFor": "{app} available for {store}",
+      "requiresIndependent": "Requires an independent store",
+      "enabledByCreator": "Enabled by creator",
+      "empty": "No stores found.",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load the stores."
     },
     "fxRates": {
       "title": "FX rates (Markets)",
@@ -2307,6 +2328,12 @@
       "blockedRequiresIndependent": "This app can only be enabled on an independent store.",
       "blockedDependencyMissing": "Enable {apps} first.",
       "saveFailed": "Failed to update the app.",
+      "openSettings": "Open settings",
+      "turnedOff": {
+        "title": "This app is turned off",
+        "body": "Turn it on from the Apps page to use its settings.",
+        "link": "Open Apps"
+      },
       "items": {
         "markets": {
           "name": "Markets",
@@ -2360,14 +2387,11 @@
             "empty": "No tax-exempt customers yet.",
             "refresh": "Refresh"
           }
-        },
-        "ecSalesTitle": "EC sales list",
-        "ecSalesOnInvoices": "Open the EC sales list on the Invoices page"
+        }
       },
       "invoices": {
         "settings": {
           "title": "Invoice settings",
-          "openInvoices": "Seller profile & numbering",
           "autoIssue": "Issue invoices automatically",
           "autoIssueHint": "Card and Kustom orders are invoiced as soon as payment is confirmed.",
           "codIssueOn": "Invoice cash-on-delivery orders",
@@ -2383,13 +2407,26 @@
         }
       }
     },
+    "b2b": {
+      "title": "Business customers (B2B)",
+      "subtitle": "Company purchases, VAT numbers, reverse charge and the EC sales list.",
+      "tabs": {
+        "settings": "Settings",
+        "reverseCharge": "Reverse charge",
+        "exemptions": "Tax exemptions",
+        "ecSales": "EC sales list"
+      },
+      "exemptionsOff": {
+        "title": "Reverse charge is off",
+        "body": "Customer tax exemptions only apply while reverse charge is turned on.",
+        "action": "Go to reverse charge settings"
+      }
+    },
     "markets": {
       "title": "Markets",
       "subtitle": "Sell per country with its own domain, currency, languages and prices.",
       "addMarket": "Add market",
       "empty": "No markets yet.",
-      "notEnabled": "The Markets app is not enabled for your store.",
-      "notEnabledLink": "Open Apps",
       "managedHint": "Managed in Markets while the Markets app is enabled.",
       "managedLink": "Open Markets",
       "defaultBadge": "Default",
@@ -2544,8 +2581,9 @@
         "backlog": "Backlog",
         "profile": "Seller profile",
         "numbering": "Numbering",
-        "ecSales": "EC sales list"
+        "settings": "Settings"
       },
+      "ecSalesOnB2b": "The EC sales list has moved to the B2B page",
       "kind": {
         "INVOICE": "Invoice",
         "CREDIT_NOTE": "Credit note"
@@ -2752,8 +2790,6 @@
         "periodMonth": "Month",
         "periodQuarter": "Quarter",
         "run": "Run report",
-        "preview": "Preview",
-        "previewRange": "{from} – {to}",
         "downloadCsv": "Download CSV",
         "downloadFailed": "Failed to download the report.",
         "ordersSourceBanner": "Built from orders: partial refunds are not included. Enable the Invoices app for exact figures from invoices and credit notes.",

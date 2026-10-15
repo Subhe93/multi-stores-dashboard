@@ -3,21 +3,28 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Blocks } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, Blocks, Building2, Download, FileText, Globe, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { sanitizeStoreApps, setCachedStoreApps } from '@/lib/useStoreApps';
-import type { MyStoreAppView, StoreAppKey } from '@/lib/storeApps.registry';
+import { STORE_APP_HREFS, isHiddenApp, type MyStoreAppView, type StoreAppKey } from '@/lib/storeApps.registry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
-import { B2bSettingsCard } from '@/components/apps/B2bSettingsCard';
-import { InvoicesSettingsCard } from '@/components/apps/InvoicesSettingsCard';
-import { B2bExemptionsList } from '@/components/apps/B2bExemptionsList';
-import { EcSalesReportPanel } from '@/components/taxes/EcSalesReportPanel';
-import { normalizeB2bSettings } from '@/lib/b2b';
 
+const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
+  markets: Globe,
+  b2b: Building2,
+  invoices: FileText,
+  importer: Download,
+};
+
+/**
+ * Store-app catalog: one card per app with its enable switch. Settings live
+ * on each app's own page, reached through "Open settings" once enabled.
+ */
 export default function CreatorAppsPage() {
   const t = useTranslations('creator.apps');
   // Root translator so API error codes can be resolved under `errors.<code>`.
@@ -98,10 +105,8 @@ export default function CreatorAppsPage() {
   const appName = (key: StoreAppKey) => t(`items.${key}.name`);
 
   // The API returns every registry key; only apps the admin made available
-  // are shown to the creator.
-  const visibleApps = (apps ?? []).filter((a) => a.available);
-  // The EC sales list lives on the Invoices page while that app is on.
-  const invoicesOn = (apps ?? []).some((a) => a.key === 'invoices' && a.enabled);
+  // (and that are not hidden as unfinished) are shown to the creator.
+  const visibleApps = (apps ?? []).filter((a) => a.available && !isHiddenApp(a.key));
 
   const blockedText = (app: MyStoreAppView): string | null => {
     if (app.can_enable || app.enabled) return null;
@@ -154,21 +159,28 @@ export default function CreatorAppsPage() {
             // Switching off is always allowed; switching on needs can_enable.
             const disabled = isSaving || saving !== null || (!app.enabled && !app.can_enable);
             const error = errors[app.key];
+            const Icon = APP_ICONS[app.key];
+            const href = STORE_APP_HREFS[app.key];
             return (
               <Card key={app.key} className="shadow-none">
                 <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3 space-y-0">
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle className="text-sm font-semibold">{t(`items.${app.key}.name`)}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{t(`items.${app.key}.description`)}</p>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-white">
+                      <Icon className="size-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <CardTitle className="text-sm font-semibold">{appName(app.key)}</CardTitle>
+                      <p className="text-xs text-muted-foreground">{t(`items.${app.key}.description`)}</p>
+                    </div>
                   </div>
                   <ToggleSwitch
                     checked={app.enabled}
                     disabled={disabled}
                     onChange={(next) => handleToggle(app, next)}
-                    label={t(`items.${app.key}.name`)}
+                    label={appName(app.key)}
                   />
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {app.enabled ? (
                       <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
@@ -192,44 +204,15 @@ export default function CreatorAppsPage() {
                   </div>
                   {blocked && <p className="text-[11px] text-amber-700">{blocked}</p>}
                   {error && <p className="text-[11px] text-red-600">{error}</p>}
-                  {/* Per-app settings live under the card while the app is on. */}
-                  {app.key === 'b2b' && app.enabled && token && (
-                    <>
-                      <B2bSettingsCard
-                        app={app}
-                        token={token}
-                        onSaved={(refreshed) => {
-                          setApps(refreshed);
-                          setCachedStoreApps(refreshed);
-                        }}
-                      />
-                      {/* Reverse charge (M2.5): customer exemptions and the EC sales list. */}
-                      {/* Exemptions only take effect while reverse charge is on. */}
-                      {normalizeB2bSettings(app.settings).reverse_charge_enabled && <B2bExemptionsList token={token} />}
-                      {invoicesOn ? (
-                        <div className="space-y-1 border-t pt-4">
-                          <p className="text-xs font-semibold">{t('b2b.ecSalesTitle')}</p>
-                          <Link
-                            href="/creator/invoices?tab=ecSales"
-                            className="text-[11px] font-medium text-primary underline underline-offset-2"
-                          >
-                            {t('b2b.ecSalesOnInvoices')}
-                          </Link>
-                        </div>
-                      ) : (
-                        <EcSalesReportPanel token={token} variant="compact" />
-                      )}
-                    </>
-                  )}
-                  {app.key === 'invoices' && app.enabled && token && (
-                    <InvoicesSettingsCard
-                      app={app}
-                      token={token}
-                      onSaved={(refreshed) => {
-                        setApps(refreshed);
-                        setCachedStoreApps(refreshed);
-                      }}
-                    />
+                  {app.enabled && href && (
+                    <div className="flex justify-end border-t pt-3">
+                      <Link href={href}>
+                        <Button size="sm">
+                          {t('openSettings')}
+                          <ArrowUpRight className="rtl:-scale-x-100" />
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </CardContent>
               </Card>

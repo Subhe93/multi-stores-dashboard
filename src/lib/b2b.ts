@@ -93,6 +93,27 @@ export function normalizeB2bSettings(raw: unknown): B2bSettings {
   };
 }
 
+export function sameB2bSettings(a: B2bSettings, b: B2bSettings): boolean {
+  return (
+    a.allow_company === b.allow_company &&
+    a.default_buyer_type === b.default_buyer_type &&
+    a.require_vat_number === b.require_vat_number &&
+    a.org_number_countries.join(',') === b.org_number_countries.join(',') &&
+    a.reverse_charge_enabled === b.reverse_charge_enabled &&
+    a.reverse_charge_pricing === b.reverse_charge_pricing &&
+    (a.vies_requester_vat ?? '') === (b.vies_requester_vat ?? '')
+  );
+}
+
+// Form copy sent to the API: the requester VAT number goes out normalised
+// ("se 5560…" -> "SE5560…") or null when blank.
+export function prepareB2bSettings(form: B2bSettings): B2bSettings {
+  return {
+    ...form,
+    vies_requester_vat: form.vies_requester_vat ? normalizeVatNumber(form.vies_requester_vat) || null : null,
+  };
+}
+
 // Company snapshot columns written on an order placed as a company
 // (all null for person orders / orders placed before the app existed).
 export interface OrderB2bSnapshot {

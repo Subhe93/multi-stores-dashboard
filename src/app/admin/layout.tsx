@@ -23,6 +23,7 @@ import {
   MailCheck,
   BookOpen,
   DatabaseBackup,
+  Blocks,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: t('backups'), href: '/admin/backups', icon: <DatabaseBackup className="w-4 h-4" /> },
         { label: t('providers'), href: '/admin/providers', icon: <Factory className="w-4 h-4" /> },
         { label: t('creators'), href: '/admin/creators', icon: <Palette className="w-4 h-4" /> },
+        { label: t('storeApps'), href: '/admin/store-apps', icon: <Blocks className="w-4 h-4" /> },
       ],
     },
     {

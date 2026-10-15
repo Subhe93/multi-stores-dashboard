@@ -14,7 +14,7 @@ import { AdminStoreDomainsCard } from '@/components/markets/AdminStoreDomainsCar
 import { ArrowLeft, Mail, Phone, CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
-import type { AdminStoreAppView, StoreAppKey } from '@/lib/storeApps.registry';
+import { isHiddenApp, type AdminStoreAppView, type StoreAppKey } from '@/lib/storeApps.registry';
 import { countryName } from '@/lib/taxCountries';
 import type { TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
@@ -344,7 +344,13 @@ export default function CreatorDetailPage() {
             <CardTitle className="text-sm font-semibold">{t('storeApps.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {storeApps.map((app) => (
+            <p className="text-[11px] text-muted-foreground">
+              {t('storeApps.overviewHint')}{' '}
+              <Link href="/admin/store-apps" className="font-medium text-foreground underline underline-offset-2">
+                {t('storeApps.overviewLink')}
+              </Link>
+            </p>
+            {storeApps.filter((app) => !isHiddenApp(app.key)).map((app) => (
               <div key={app.key} className="flex items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0">
                 <div className="min-w-0 space-y-0.5">
                   <p className="text-sm font-medium">{tRoot(`creator.apps.items.${app.key}.name`)}</p>

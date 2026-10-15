@@ -278,6 +278,7 @@
     "users": "Benutzer",
     "providers": "Anbieter",
     "creators": "Kreative",
+    "storeApps": "Shop-Apps",
     "products": "Produkte",
     "categories": "Kategorien",
     "attributes": "Attribute",
@@ -310,7 +311,8 @@
     "emailLog": "E-Mail-Protokoll",
     "apps": "Apps",
     "markets": "Märkte",
-    "invoices": "Rechnungen"
+    "invoices": "Rechnungen",
+    "b2b": "B2B"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -741,7 +743,26 @@
       "creatorEnabled": "Vom Creator aktiviert",
       "creatorDisabled": "Nicht aktiviert",
       "updateFailed": "Die App-Verfügbarkeit konnte nicht aktualisiert werden.",
-      "loadFailed": "Die Shop-Apps konnten nicht geladen werden."
+      "loadFailed": "Die Shop-Apps konnten nicht geladen werden.",
+      "overviewHint": "Verwalten Sie die Apps aller Shops an einem Ort:",
+      "overviewLink": "Übersicht der Shop-Apps"
+    },
+    "storeAppsPage": {
+      "title": "Shop-Apps",
+      "subtitle": "Legen Sie fest, welche optionalen Apps jeder Shop nutzen darf.",
+      "introAdmin": "Schalten Sie „Verfügbar“ ein, um eine App für einen Shop freizugeben. Für den Shop ändert sich nichts, bis der Creator die App selbst aktiviert.",
+      "introCreator": "Der Creator aktiviert sie anschließend in seinem Dashboard unter Mein Shop → Apps; das Abzeichen „Vom Creator aktiviert“ zeigt, wo das geschehen ist. Wenn Sie eine App zurückziehen, wird sie auch im Shop deaktiviert.",
+      "introIndependent": "Einige Apps erfordern einen unabhängigen Shop und können für Marktplatz-Shops nicht freigegeben werden.",
+      "searchPlaceholder": "Nach Shop, Slug oder Creator suchen…",
+      "typeAll": "Alle Shop-Typen",
+      "columnStore": "Shop",
+      "columnCreator": "Creator",
+      "availableFor": "{app} für {store} verfügbar",
+      "requiresIndependent": "Erfordert einen unabhängigen Shop",
+      "enabledByCreator": "Vom Creator aktiviert",
+      "empty": "Keine Shops gefunden.",
+      "loading": "Wird geladen...",
+      "loadFailed": "Die Shops konnten nicht geladen werden."
     },
     "fxRates": {
       "title": "Wechselkurse (Märkte)",
@@ -2307,6 +2328,12 @@
       "blockedRequiresIndependent": "Diese App kann nur in einem unabhängigen Shop aktiviert werden.",
       "blockedDependencyMissing": "Aktivieren Sie zuerst {apps}.",
       "saveFailed": "Die App konnte nicht aktualisiert werden.",
+      "openSettings": "Einstellungen öffnen",
+      "turnedOff": {
+        "title": "Diese App ist deaktiviert",
+        "body": "Aktivieren Sie sie auf der Seite „Apps“, um ihre Einstellungen zu nutzen.",
+        "link": "Apps öffnen"
+      },
       "items": {
         "markets": {
           "name": "Märkte",
@@ -2360,14 +2387,11 @@
             "empty": "Noch keine steuerbefreiten Kunden.",
             "refresh": "Aktualisieren"
           }
-        },
-        "ecSalesTitle": "Zusammenfassende Meldung",
-        "ecSalesOnInvoices": "Zusammenfassende Meldung auf der Seite Rechnungen öffnen"
+        }
       },
       "invoices": {
         "settings": {
           "title": "Rechnungseinstellungen",
-          "openInvoices": "Verkäuferprofil & Nummerierung",
           "autoIssue": "Rechnungen automatisch ausstellen",
           "autoIssueHint": "Karten- und Kustom-Bestellungen werden abgerechnet, sobald die Zahlung bestätigt ist.",
           "codIssueOn": "Nachnahme-Bestellungen abrechnen",
@@ -2383,13 +2407,26 @@
         }
       }
     },
+    "b2b": {
+      "title": "Geschäftskunden (B2B)",
+      "subtitle": "Firmenkäufe, USt-IdNr., Reverse Charge und die Zusammenfassende Meldung.",
+      "tabs": {
+        "settings": "Einstellungen",
+        "reverseCharge": "Reverse Charge",
+        "exemptions": "Steuerbefreiungen",
+        "ecSales": "Zusammenfassende Meldung"
+      },
+      "exemptionsOff": {
+        "title": "Reverse Charge ist deaktiviert",
+        "body": "Steuerbefreiungen für Kunden gelten nur, solange Reverse Charge aktiviert ist.",
+        "action": "Zu den Reverse-Charge-Einstellungen"
+      }
+    },
     "markets": {
       "title": "Märkte",
       "subtitle": "Verkaufen Sie pro Land mit eigener Domain, Währung, Sprachen und Preisen.",
       "addMarket": "Markt hinzufügen",
       "empty": "Noch keine Märkte.",
-      "notEnabled": "Die App „Märkte“ ist für Ihren Shop nicht aktiviert.",
-      "notEnabledLink": "Apps öffnen",
       "managedHint": "Wird unter „Märkte“ verwaltet, solange die App „Märkte“ aktiviert ist.",
       "managedLink": "Märkte öffnen",
       "defaultBadge": "Standard",
@@ -2544,8 +2581,9 @@
         "backlog": "Nicht abgerechnet",
         "profile": "Verkäuferprofil",
         "numbering": "Nummerierung",
-        "ecSales": "Zusammenfassende Meldung"
+        "settings": "Einstellungen"
       },
+      "ecSalesOnB2b": "Die Zusammenfassende Meldung finden Sie jetzt auf der B2B-Seite",
       "kind": {
         "INVOICE": "Rechnung",
         "CREDIT_NOTE": "Gutschrift"
@@ -2752,8 +2790,6 @@
         "periodMonth": "Monat",
         "periodQuarter": "Quartal",
         "run": "Bericht erstellen",
-        "preview": "Vorschau",
-        "previewRange": "{from} – {to}",
         "downloadCsv": "CSV herunterladen",
         "downloadFailed": "Der Bericht konnte nicht heruntergeladen werden.",
         "ordersSourceBanner": "Aus Bestellungen erstellt: Teilerstattungen sind nicht enthalten. Aktivieren Sie die App Rechnungen für exakte Zahlen aus Rechnungen und Gutschriften.",

@@ -278,6 +278,7 @@
     "users": "Kullanıcılar",
     "providers": "Tedarikçiler",
     "creators": "Tasarımcılar",
+    "storeApps": "Mağaza uygulamaları",
     "products": "Ürünler",
     "categories": "Kategoriler",
     "attributes": "Özellikler",
@@ -310,7 +311,8 @@
     "emailLog": "E-posta kaydı",
     "apps": "Uygulamalar",
     "markets": "Pazarlar",
-    "invoices": "Faturalar"
+    "invoices": "Faturalar",
+    "b2b": "B2B"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -741,7 +743,26 @@
       "creatorEnabled": "Mağaza sahibi etkinleştirdi",
       "creatorDisabled": "Etkin değil",
       "updateFailed": "Uygulama kullanılabilirliği güncellenemedi.",
-      "loadFailed": "Mağaza uygulamaları yüklenemedi."
+      "loadFailed": "Mağaza uygulamaları yüklenemedi.",
+      "overviewHint": "Tüm mağazaların uygulamalarını tek bir yerden yönetin:",
+      "overviewLink": "Mağaza uygulamalarına genel bakış"
+    },
+    "storeAppsPage": {
+      "title": "Mağaza uygulamaları",
+      "subtitle": "Her mağazanın hangi isteğe bağlı uygulamaları kullanabileceğini seçin.",
+      "introAdmin": "Bir uygulamayı bir mağazanın kullanımına açmak için “Kullanılabilir” seçeneğini açın. Mağaza sahibi uygulamayı etkinleştirene kadar mağazada hiçbir şey değişmez.",
+      "introCreator": "Mağaza sahibi daha sonra uygulamayı panelinde Mağazam → Uygulamalar altından etkinleştirir; “Mağaza sahibi etkinleştirdi” rozeti bunun nerede yapıldığını gösterir. Bir uygulamayı geri çekmek onu mağazada da kapatır.",
+      "introIndependent": "Bazı uygulamalar bağımsız bir mağaza gerektirir ve pazar yeri mağazalarının kullanımına açılamaz.",
+      "searchPlaceholder": "Mağaza, slug veya mağaza sahibine göre ara…",
+      "typeAll": "Tüm mağaza türleri",
+      "columnStore": "Mağaza",
+      "columnCreator": "Mağaza sahibi",
+      "availableFor": "{app}, {store} için kullanılabilir",
+      "requiresIndependent": "Bağımsız bir mağaza gerektirir",
+      "enabledByCreator": "Mağaza sahibi etkinleştirdi",
+      "empty": "Mağaza bulunamadı.",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Mağazalar yüklenemedi."
     },
     "fxRates": {
       "title": "Döviz kurları (Pazarlar)",
@@ -2307,6 +2328,12 @@
       "blockedRequiresIndependent": "Bu uygulama yalnızca bağımsız bir mağazada etkinleştirilebilir.",
       "blockedDependencyMissing": "Önce {apps} uygulamasını etkinleştirin.",
       "saveFailed": "Uygulama güncellenemedi.",
+      "openSettings": "Ayarları aç",
+      "turnedOff": {
+        "title": "Bu uygulama kapalı",
+        "body": "Ayarlarını kullanmak için Uygulamalar sayfasından açın.",
+        "link": "Uygulamaları aç"
+      },
       "items": {
         "markets": {
           "name": "Pazarlar",
@@ -2360,14 +2387,11 @@
             "empty": "Henüz vergiden muaf müşteri yok.",
             "refresh": "Yenile"
           }
-        },
-        "ecSalesTitle": "AB içi satış listesi",
-        "ecSalesOnInvoices": "AB içi satış listesini Faturalar sayfasında aç"
+        }
       },
       "invoices": {
         "settings": {
           "title": "Fatura ayarları",
-          "openInvoices": "Satıcı profili ve numaralandırma",
           "autoIssue": "Faturaları otomatik kes",
           "autoIssueHint": "Kart ve Kustom siparişleri ödeme onaylanır onaylanmaz faturalanır.",
           "codIssueOn": "Kapıda ödemeli siparişleri faturala",
@@ -2383,13 +2407,26 @@
         }
       }
     },
+    "b2b": {
+      "title": "Kurumsal müşteriler (B2B)",
+      "subtitle": "Kurumsal alımlar, KDV numaraları, ters ifa ve AB içi satış listesi.",
+      "tabs": {
+        "settings": "Ayarlar",
+        "reverseCharge": "Ters ifa",
+        "exemptions": "Vergi muafiyetleri",
+        "ecSales": "AB içi satış listesi"
+      },
+      "exemptionsOff": {
+        "title": "Ters ifa kapalı",
+        "body": "Müşteri vergi muafiyetleri yalnızca ters ifa açıkken uygulanır.",
+        "action": "Ters ifa ayarlarına git"
+      }
+    },
     "markets": {
       "title": "Pazarlar",
       "subtitle": "Her ülkede kendi alan adı, para birimi, dilleri ve fiyatlarıyla satış yapın.",
       "addMarket": "Pazar ekle",
       "empty": "Henüz pazar yok.",
-      "notEnabled": "Pazarlar uygulaması mağazanız için etkin değil.",
-      "notEnabledLink": "Uygulamaları aç",
       "managedHint": "Pazarlar uygulaması etkinken Pazarlar sayfasından yönetilir.",
       "managedLink": "Pazarları aç",
       "defaultBadge": "Varsayılan",
@@ -2544,8 +2581,9 @@
         "backlog": "Faturalanmamış",
         "profile": "Satıcı profili",
         "numbering": "Numaralandırma",
-        "ecSales": "AB içi satış listesi"
+        "settings": "Ayarlar"
       },
+      "ecSalesOnB2b": "AB içi satış listesi B2B sayfasına taşındı",
       "kind": {
         "INVOICE": "Fatura",
         "CREDIT_NOTE": "İade faturası"
@@ -2752,8 +2790,6 @@
         "periodMonth": "Ay",
         "periodQuarter": "Çeyrek",
         "run": "Raporu çalıştır",
-        "preview": "Önizleme",
-        "previewRange": "{from} – {to}",
         "downloadCsv": "CSV indir",
         "downloadFailed": "Rapor indirilemedi.",
         "ordersSourceBanner": "Siparişlerden oluşturuldu: kısmi iadeler dahil değildir. Fatura ve alacak dekontlarından kesin rakamlar için Faturalar uygulamasını etkinleştirin.",

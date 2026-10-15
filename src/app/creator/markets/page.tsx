@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { AlertCircle, Globe, Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MarketsNotEnabled } from '@/components/markets/MarketsNotEnabled';
+import { AppPageHeader } from '@/components/apps/AppPageHeader';
+import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
 import { localeLabel } from '@/components/markets/MarketForm';
 import { MARKET_STATUS_CLASS, ProviderDot, kustomCheckMessage, stripeCheckMessage } from '@/components/markets/PaymentCheckCard';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -33,9 +34,9 @@ export default function CreatorMarketsPage() {
 
   if (!appsLoading && !enabled) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-xl font-semibold tracking-tight">{t('title')}</h1>
-        <MarketsNotEnabled />
+      <div className="space-y-5">
+        <AppPageHeader icon={Globe} title={t('title')} subtitle={t('subtitle')} />
+        <AppTurnedOff icon={Globe} />
       </div>
     );
   }
@@ -57,16 +58,17 @@ export default function CreatorMarketsPage() {
   const loadError = errorCode && tErrors.has(errorCode) ? tErrors(errorCode) : errorMessage;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
-        </div>
-        <Link href="/creator/markets/new">
-          <Button size="sm"><Plus /> {t('addMarket')}</Button>
-        </Link>
-      </div>
+    <div className="space-y-5">
+      <AppPageHeader
+        icon={Globe}
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={
+          <Link href="/creator/markets/new">
+            <Button size="sm"><Plus /> {t('addMarket')}</Button>
+          </Link>
+        }
+      />
 
       {loading || appsLoading ? (
         <div className="grid gap-4 md:grid-cols-2">

@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Globe } from 'lucide-react';
 import { MarketForm } from '@/components/markets/MarketForm';
-import { MarketsNotEnabled } from '@/components/markets/MarketsNotEnabled';
+import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 
 export default function CreatorNewMarketPage() {
@@ -13,7 +13,7 @@ export default function CreatorNewMarketPage() {
   const router = useRouter();
   const { apps, loading } = useStoreApps();
 
-  if (!loading && !isAppEnabled(apps, 'markets')) return <MarketsNotEnabled />;
+  if (!loading && !isAppEnabled(apps, 'markets')) return <AppTurnedOff icon={Globe} />;
 
   return (
     <div className="max-w-3xl space-y-6">

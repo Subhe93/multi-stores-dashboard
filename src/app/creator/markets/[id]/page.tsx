@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, ArrowLeft, Loader2, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Globe, Loader2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MarketForm } from '@/components/markets/MarketForm';
 import { DomainsPanel } from '@/components/markets/DomainsPanel';
 import { MARKET_STATUS_CLASS, PaymentCheckCard } from '@/components/markets/PaymentCheckCard';
-import { MarketsNotEnabled } from '@/components/markets/MarketsNotEnabled';
+import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
 import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
@@ -39,7 +39,7 @@ export default function CreatorMarketDetailPage() {
   // Status-change failures are shown inside the payment card (they may not be payment problems).
   const [statusError, setStatusError] = useState<string | null>(null);
 
-  if (!appsLoading && !enabled) return <MarketsNotEnabled />;
+  if (!appsLoading && !enabled) return <AppTurnedOff icon={Globe} />;
 
   const loadError = errorCode && tErrors.has(errorCode) ? tErrors(errorCode) : errorMessage;
 

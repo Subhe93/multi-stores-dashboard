@@ -31,6 +31,7 @@ import {
   Palette,
   Blocks,
   Globe,
+  Building2,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -44,6 +45,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   // Store apps gate their own nav entries (markets only while enabled).
   const { apps } = useStoreApps();
   const marketsEnabled = isAppEnabled(apps, 'markets');
+  const b2bEnabled = isAppEnabled(apps, 'b2b');
   // Invoices stay reachable (read-only) while the app is merely available,
   // so issued documents remain accessible after it is switched off (L1).
   const invoicesVisible =
@@ -103,9 +105,13 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         // Every store type: order notifications address + delivery log. The
         // own-sender and template sections inside are independent-only.
         { label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> },
-        // Optional store apps (markets, B2B, invoices, importer) the admin
-        // made available; the creator switches them on here.
+        // Optional store apps the admin made available; the creator switches
+        // them on here and each enabled app gets its own page.
         { label: t('apps'), href: '/creator/apps', icon: <Blocks className="w-4 h-4" /> },
+        // B2B app: business-buyer settings, reverse charge, EC sales list.
+        ...(b2bEnabled
+          ? [{ label: t('b2b'), href: '/creator/b2b', icon: <Building2 className="w-4 h-4" /> }]
+          : []),
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],
     },

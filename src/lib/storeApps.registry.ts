@@ -52,6 +52,25 @@ export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
   },
 };
 
+// Apps not built yet: kept in the registry (the API still returns them) but
+// hidden from every dashboard surface (creator catalog, admin pages).
+export const HIDDEN_APPS: readonly StoreAppKey[] = ['importer'];
+
+export function isHiddenApp(key: StoreAppKey): boolean {
+  return HIDDEN_APPS.includes(key);
+}
+
+// Registry keys the dashboard renders (registry order, hidden apps removed).
+export const VISIBLE_STORE_APP_KEYS: readonly StoreAppKey[] = STORE_APP_KEYS.filter((key) => !isHiddenApp(key));
+
+// Dashboard page holding each app's own settings ("Open settings" target).
+export const STORE_APP_HREFS: Record<StoreAppKey, string | null> = {
+  markets: '/creator/markets',
+  b2b: '/creator/b2b',
+  invoices: '/creator/invoices?tab=settings',
+  importer: null,
+};
+
 export function isStoreAppKey(value: unknown): value is StoreAppKey {
   return typeof value === 'string' && (STORE_APP_KEYS as readonly string[]).includes(value);
 }

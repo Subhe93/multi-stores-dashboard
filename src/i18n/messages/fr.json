@@ -278,6 +278,7 @@
     "users": "Utilisateurs",
     "providers": "Fournisseurs",
     "creators": "Créateurs",
+    "storeApps": "Applications des boutiques",
     "products": "Produits",
     "categories": "Catégories",
     "attributes": "Attributs",
@@ -310,7 +311,8 @@
     "emailLog": "Journal des e-mails",
     "apps": "Applications",
     "markets": "Marchés",
-    "invoices": "Factures"
+    "invoices": "Factures",
+    "b2b": "B2B"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -741,7 +743,26 @@
       "creatorEnabled": "Activée par le créateur",
       "creatorDisabled": "Non activée",
       "updateFailed": "Impossible de mettre à jour la disponibilité de l’application.",
-      "loadFailed": "Impossible de charger les applications de la boutique."
+      "loadFailed": "Impossible de charger les applications de la boutique.",
+      "overviewHint": "Gérez les applications de toutes les boutiques au même endroit :",
+      "overviewLink": "Vue d’ensemble des applications"
+    },
+    "storeAppsPage": {
+      "title": "Applications des boutiques",
+      "subtitle": "Choisissez les applications optionnelles que chaque boutique peut utiliser.",
+      "introAdmin": "Activez « Disponible » pour rendre une application disponible pour une boutique. Rien ne change pour la boutique tant que son créateur n’a pas activé l’application.",
+      "introCreator": "Le créateur l’active ensuite dans son tableau de bord sous Ma boutique → Applications ; le badge « Activée par le créateur » indique où c’est le cas. Retirer une application la désactive aussi pour la boutique.",
+      "introIndependent": "Certaines applications nécessitent une boutique indépendante et ne peuvent pas être proposées aux boutiques marketplace.",
+      "searchPlaceholder": "Rechercher par boutique, slug ou créateur…",
+      "typeAll": "Tous les types de boutique",
+      "columnStore": "Boutique",
+      "columnCreator": "Créateur",
+      "availableFor": "{app} disponible pour {store}",
+      "requiresIndependent": "Nécessite une boutique indépendante",
+      "enabledByCreator": "Activée par le créateur",
+      "empty": "Aucune boutique trouvée.",
+      "loading": "Chargement...",
+      "loadFailed": "Impossible de charger les boutiques."
     },
     "fxRates": {
       "title": "Taux de change (Marchés)",
@@ -2307,6 +2328,12 @@
       "blockedRequiresIndependent": "Cette application ne peut être activée que sur une boutique indépendante.",
       "blockedDependencyMissing": "Activez d’abord {apps}.",
       "saveFailed": "Impossible de mettre à jour l’application.",
+      "openSettings": "Ouvrir les paramètres",
+      "turnedOff": {
+        "title": "Cette application est désactivée",
+        "body": "Activez-la depuis la page Applications pour utiliser ses paramètres.",
+        "link": "Ouvrir les applications"
+      },
       "items": {
         "markets": {
           "name": "Marchés",
@@ -2360,14 +2387,11 @@
             "empty": "Aucun client exonéré pour le moment.",
             "refresh": "Actualiser"
           }
-        },
-        "ecSalesTitle": "État récapitulatif",
-        "ecSalesOnInvoices": "Ouvrir l’état récapitulatif sur la page Factures"
+        }
       },
       "invoices": {
         "settings": {
           "title": "Paramètres de facturation",
-          "openInvoices": "Profil vendeur et numérotation",
           "autoIssue": "Émettre les factures automatiquement",
           "autoIssueHint": "Les commandes par carte et Kustom sont facturées dès la confirmation du paiement.",
           "codIssueOn": "Facturer les commandes en paiement à la livraison",
@@ -2383,13 +2407,26 @@
         }
       }
     },
+    "b2b": {
+      "title": "Clients professionnels (B2B)",
+      "subtitle": "Achats des entreprises, numéros de TVA, autoliquidation et état récapitulatif.",
+      "tabs": {
+        "settings": "Paramètres",
+        "reverseCharge": "Autoliquidation",
+        "exemptions": "Exonérations",
+        "ecSales": "État récapitulatif"
+      },
+      "exemptionsOff": {
+        "title": "L’autoliquidation est désactivée",
+        "body": "Les exonérations de TVA des clients ne s’appliquent que lorsque l’autoliquidation est activée.",
+        "action": "Aller aux paramètres d’autoliquidation"
+      }
+    },
     "markets": {
       "title": "Marchés",
       "subtitle": "Vendez par pays avec un domaine, une devise, des langues et des prix propres.",
       "addMarket": "Ajouter un marché",
       "empty": "Aucun marché pour le moment.",
-      "notEnabled": "L'application Marchés n'est pas activée pour votre boutique.",
-      "notEnabledLink": "Ouvrir les applications",
       "managedHint": "Géré dans Marchés tant que l'application Marchés est activée.",
       "managedLink": "Ouvrir les marchés",
       "defaultBadge": "Par défaut",
@@ -2544,8 +2581,9 @@
         "backlog": "À facturer",
         "profile": "Profil vendeur",
         "numbering": "Numérotation",
-        "ecSales": "État récapitulatif"
+        "settings": "Paramètres"
       },
+      "ecSalesOnB2b": "L’état récapitulatif se trouve désormais sur la page B2B",
       "kind": {
         "INVOICE": "Facture",
         "CREDIT_NOTE": "Avoir"
@@ -2752,8 +2790,6 @@
         "periodMonth": "Mois",
         "periodQuarter": "Trimestre",
         "run": "Générer le rapport",
-        "preview": "Aperçu",
-        "previewRange": "{from} – {to}",
         "downloadCsv": "Télécharger le CSV",
         "downloadFailed": "Échec du téléchargement du rapport.",
         "ordersSourceBanner": "Établi à partir des commandes : les remboursements partiels ne sont pas inclus. Activez l’app Factures pour des chiffres exacts issus des factures et avoirs.",

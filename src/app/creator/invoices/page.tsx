@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, FileText, Info, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, FileText, Info, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +11,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { useUrlTab } from '@/lib/useUrlTab';
 import { getBacklog, getLegalProfile, type LegalProfileView } from '@/lib/invoices.api';
 import { InvoicesListTab } from '@/components/invoices/InvoicesListTab';
 import { InvoiceBacklogTab } from '@/components/invoices/InvoiceBacklogTab';
 import { LegalProfileForm } from '@/components/invoices/LegalProfileForm';
 import { NumberingForm } from '@/components/invoices/NumberingForm';
 import { ProfileMissingNotice } from '@/components/invoices/InvoiceBits';
-import { EcSalesReportPanel } from '@/components/taxes/EcSalesReportPanel';
+import { AppPageHeader } from '@/components/apps/AppPageHeader';
+import { InvoicesSettingsCard } from '@/components/apps/InvoicesSettingsCard';
 
-const TABS = ['invoices', 'backlog', 'profile', 'numbering', 'ecSales'] as const;
+const TABS = ['invoices', 'backlog', 'profile', 'numbering', 'settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function CreatorInvoicesPage() {
@@ -28,22 +30,12 @@ export default function CreatorInvoicesPage() {
   const describeError = useApiError();
   const { apps, loading: appsLoading } = useStoreApps();
   const enabled = isAppEnabled(apps, 'invoices');
-  // EC sales list (reverse charge) only matters for stores with the b2b app.
-  const ecSalesOn = enabled && isAppEnabled(apps, 'b2b');
+  const app = apps?.find((a) => a.key === 'invoices');
+  // The EC sales list (reverse charge) lives on the B2B app page.
+  const b2bOn = isAppEnabled(apps, 'b2b');
 
-  // Active tab, mirrored in ?tab= so links (Apps page, order card) land on it.
-  const [tab, setTab] = useState<Tab>('invoices');
-  useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get('tab');
-    if (wanted && (TABS as readonly string[]).includes(wanted)) setTab(wanted as Tab);
-  }, []);
-  const changeTab = useCallback((value: string) => {
-    if (!(TABS as readonly string[]).includes(value)) return;
-    setTab(value as Tab);
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', value);
-    window.history.replaceState(null, '', url.toString());
-  }, []);
+  // Active tab, mirrored in ?tab= so links (Apps catalog, order card) land on it.
+  const [tab, changeTab] = useUrlTab(TABS, 'invoices');
 
   const [profile, setProfile] = useState<LegalProfileView | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
@@ -87,7 +79,7 @@ export default function CreatorInvoicesPage() {
   if (!token) return null;
 
   // With the app off only the read-only list remains (L1 retention).
-  const activeTab: Tab = !enabled || (tab === 'ecSales' && !ecSalesOn) ? 'invoices' : tab;
+  const activeTab: Tab = enabled ? tab : 'invoices';
   const profileIncomplete = enabled && profileLoaded && !!profile && !profile.complete;
 
   // The profile forms render only from a successfully loaded server copy, so a
@@ -110,15 +102,7 @@ export default function CreatorInvoicesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-white">
-          <FileText className="size-4 text-muted-foreground" />
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
-        </div>
-      </div>
+      <AppPageHeader icon={FileText} title={t('title')} subtitle={t('subtitle')} />
 
       {!appsLoading && !enabled && (
         <Card className="shadow-none">
@@ -165,10 +149,9 @@ export default function CreatorInvoicesPage() {
               {t('tabs.numbering')}
             </TabsTrigger>
           )}
-          {/* EC sales list of reverse-charge sales (b2b app M2.5), built from invoices. */}
-          {ecSalesOn && (
-            <TabsTrigger value="ecSales" className="flex-none px-3">
-              {t('tabs.ecSales')}
+          {enabled && (
+            <TabsTrigger value="settings" className="flex-none px-3">
+              {t('tabs.settings')}
             </TabsTrigger>
           )}
         </TabsList>
@@ -218,9 +201,19 @@ export default function CreatorInvoicesPage() {
           </TabsContent>
         )}
 
-        {ecSalesOn && (
-          <TabsContent value="ecSales" className="pt-4">
-            <EcSalesReportPanel token={token} />
+        {enabled && app && (
+          <TabsContent value="settings" className="space-y-4 pt-4">
+            <InvoicesSettingsCard app={app} token={token} />
+            {/* The EC sales list is built from invoices but lives on the B2B page. */}
+            {b2bOn && (
+              <Link
+                href="/creator/b2b?tab=ec-sales"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                {t('ecSalesOnB2b')}
+                <ArrowUpRight className="size-3.5 rtl:-scale-x-100" />
+              </Link>
+            )}
           </TabsContent>
         )}
       </Tabs>

@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertTriangle, Download, Eye, Loader2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Download, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ApiError } from '@/lib/api';
@@ -24,9 +23,6 @@ import {
 
 interface EcSalesReportPanelProps {
   token: string;
-  // 'full': controls + table inline (Invoices page tab).
-  // 'compact': controls with Preview (dialog) + CSV buttons (Apps page b2b card).
-  variant?: 'full' | 'compact';
 }
 
 /**
@@ -36,7 +32,7 @@ interface EcSalesReportPanelProps {
  * query. Built from invoices when the Invoices app is on, else from orders
  * (the API reports `source`; partial refunds are then not netted).
  */
-export function EcSalesReportPanel({ token, variant = 'full' }: EcSalesReportPanelProps) {
+export function EcSalesReportPanel({ token }: EcSalesReportPanelProps) {
   const t = useTranslations('creator.taxes.ecSales');
   const describeError = useApiError();
 
@@ -50,7 +46,6 @@ export function EcSalesReportPanel({ token, variant = 'full' }: EcSalesReportPan
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   const rangeValid = !!from && !!to && from <= to;
 
@@ -69,12 +64,11 @@ export function EcSalesReportPanel({ token, variant = 'full' }: EcSalesReportPan
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, from, to, period, rangeValid]);
 
-  // The full variant loads the default range on mount; the compact one waits
-  // for "Preview" so the Apps page does not run a report on every visit.
+  // Loads the default range (current month) on mount.
   useEffect(() => {
-    if (variant === 'full') void runReport();
+    void runReport();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, variant]);
+  }, [token]);
 
   const handleDownload = async () => {
     if (downloading || !rangeValid) return;
@@ -91,104 +85,51 @@ export function EcSalesReportPanel({ token, variant = 'full' }: EcSalesReportPan
     }
   };
 
-  const handlePreview = () => {
-    setPreviewOpen(true);
-    void runReport();
-  };
-
   const periodOptions = [
     { value: 'month', label: t('periodMonth') },
     { value: 'quarter', label: t('periodQuarter') },
   ];
 
-  const compact = variant === 'compact';
-
   const controls = (
-    <div className={compact ? 'grid gap-2 sm:grid-cols-3' : 'flex flex-wrap items-end gap-3'}>
+    <div className="flex flex-wrap items-end gap-3">
       <div className="space-y-1">
-        <Label className="text-xs" htmlFor={`ec-sales-from-${variant}`}>{t('from')}</Label>
+        <Label className="text-xs" htmlFor="ec-sales-from">{t('from')}</Label>
         <Input
-          id={`ec-sales-from-${variant}`}
+          id="ec-sales-from"
           type="date"
-          className={`h-8 text-sm ${compact ? 'w-full' : 'w-40'}`}
+          className="h-8 w-40 text-sm"
           value={from}
           max={to}
           onChange={(e) => setFrom(e.target.value)}
         />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs" htmlFor={`ec-sales-to-${variant}`}>{t('to')}</Label>
+        <Label className="text-xs" htmlFor="ec-sales-to">{t('to')}</Label>
         <Input
-          id={`ec-sales-to-${variant}`}
+          id="ec-sales-to"
           type="date"
-          className={`h-8 text-sm ${compact ? 'w-full' : 'w-40'}`}
+          className="h-8 w-40 text-sm"
           value={to}
           min={from}
           onChange={(e) => setTo(e.target.value)}
         />
       </div>
-      <div className={`space-y-1 ${compact ? '' : 'w-40'}`}>
+      <div className="w-40 space-y-1">
         <Label className="text-xs">{t('period')}</Label>
         <SearchableSelect value={period} onChange={(v) => setPeriod(v === 'quarter' ? 'quarter' : 'month')} options={periodOptions} />
       </div>
-      {!compact && (
-        <div className="ms-auto flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={runReport} disabled={loading || !rangeValid}>
-            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-            {t('run')}
-          </Button>
-          <Button size="sm" onClick={handleDownload} disabled={downloading || !rangeValid}>
-            {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-            {t('downloadCsv')}
-          </Button>
-        </div>
-      )}
+      <div className="ms-auto flex items-center gap-2">
+        <Button size="sm" variant="outline" onClick={runReport} disabled={loading || !rangeValid}>
+          {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+          {t('run')}
+        </Button>
+        <Button size="sm" onClick={handleDownload} disabled={downloading || !rangeValid}>
+          {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+          {t('downloadCsv')}
+        </Button>
+      </div>
     </div>
   );
-
-  const body = (
-    <>
-      {report?.source === 'orders' && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
-          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-          <span>{t('ordersSourceBanner')}</span>
-        </div>
-      )}
-      <EcSalesTable rows={report?.rows ?? []} loading={loading} />
-    </>
-  );
-
-  if (compact) {
-    return (
-      <div className="space-y-2 border-t pt-4">
-        <p className="text-xs font-semibold">{t('title')}</p>
-        <p className="text-[11px] text-muted-foreground">{t('description')}</p>
-        {controls}
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={handlePreview} disabled={!rangeValid}>
-            <Eye className="size-3.5" /> {t('preview')}
-          </Button>
-          <Button size="sm" onClick={handleDownload} disabled={downloading || !rangeValid}>
-            {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
-            {t('downloadCsv')}
-          </Button>
-        </div>
-        {error && !previewOpen && <p className="text-[11px] text-red-600">{error}</p>}
-        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-          <DialogContent className="sm:max-w-5xl">
-            <DialogHeader>
-              <DialogTitle>{t('title')}</DialogTitle>
-              <DialogDescription>{t('previewRange', { from, to })}</DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[70vh] space-y-3 overflow-y-auto">
-              {error && <p className="text-xs text-red-600">{error}</p>}
-              {body}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -198,7 +139,13 @@ export function EcSalesReportPanel({ token, variant = 'full' }: EcSalesReportPan
       </div>
       {controls}
       {error && <p className="text-[11px] text-red-600">{error}</p>}
-      {body}
+      {report?.source === 'orders' && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
+          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+          <span>{t('ordersSourceBanner')}</span>
+        </div>
+      )}
+      <EcSalesTable rows={report?.rows ?? []} loading={loading} />
     </div>
   );
 }
