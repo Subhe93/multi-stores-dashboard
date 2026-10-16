@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } fr
 import type { CustomerB2bDefaults, OrderB2bSnapshot, OrderTaxExemptionFields } from '@/lib/b2b';
 import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/OrderTaxExemptionCard';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
+import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
+import type { OrderFieldValueRow } from '@/lib/customFields';
 import Link from 'next/link';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
@@ -40,15 +42,8 @@ interface OrderItem {
     mockup_images?: ImageRef[];
     product?: { images?: ImageRef[] } | null;
   } | null;
-  custom_field_values?: CustomFieldValue[];
-}
-
-interface CustomFieldValue {
-  id: string;
-  custom_field_id: string;
-  value?: string | null;
-  file_url?: string | null;
-  custom_field?: { translations?: { label: string }[] } | null;
+  // Snapshot rows (M4.0): labels survive renames and deleted fields.
+  custom_field_values?: OrderFieldValueRow[];
 }
 
 interface Payout {
@@ -74,6 +69,8 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   status: string;
   created_at: string;
   currency?: string | null;
+  // Customer's storefront locale; second choice for personalization labels.
+  locale?: string | null;
   subtotal: number | string;
   shipping_cost: number | string;
   discount_amount?: number | string | null;
@@ -154,6 +151,7 @@ const FULFILLMENT_TO_FLOW: Record<string, string> = {
   PENDING:       'PENDING',
   PROCESSING:    'PROCESSING',
   MANUFACTURING: 'MANUFACTURING',
+  QUALITY_CHECK: 'QUALITY_CHECK',
   SHIPPED:       'SHIPPED',
   DELIVERED:     'DELIVERED',
 };
@@ -192,6 +190,7 @@ export default function OrderDetailPage() {
   const tp = useTranslations('payments');
   // Company wording is shared with the creator order page (b2b app).
   const tb = useTranslations('creator.orderDetail');
+  const uiLocale = useLocale();
   const { id } = useParams<{ id: string }>();
   const { token } = useAuth();
   const { fmt, currency } = useCurrency();
@@ -292,8 +291,6 @@ export default function OrderDetailPage() {
                 const variantLabel = variantOpts
                   ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
                   : null;
-                const textFields = (item.custom_field_values || []).filter((fv) => !fv.file_url && fv.value);
-                const fileFields = (item.custom_field_values || []).filter((fv) => fv.file_url);
 
                 return (
                   <div key={item.id} className="py-3 space-y-2">
@@ -332,29 +329,13 @@ export default function OrderDetailPage() {
                       </div>
                     </div>
 
-                    {textFields.length > 0 && (
-                      <div className="ml-17 pl-3 border-l-2 border-muted space-y-0.5">
-                        {textFields.map((fv) => (
-                          <p key={fv.id} className="text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">
-                              {fv.custom_field?.translations?.[0]?.label || fv.custom_field_id}:
-                            </span>{' '}{fv.value}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-
-                    {fileFields.length > 0 && (
-                      <div className="ml-17 flex flex-wrap gap-2">
-                        {fileFields.map((fv) => (
-                          <a key={fv.id} href={fv.file_url ?? undefined} target="_blank" rel="noreferrer"
-                            className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
-                            title={fv.custom_field?.translations?.[0]?.label || t('file')}>
-                            <img src={fv.file_url ?? undefined} alt="" className="w-full h-full object-contain p-0.5" />
-                          </a>
-                        ))}
-                      </div>
-                    )}
+                    {/* Custom field values (order snapshot; files with original download) */}
+                    <GroupedOrderFieldValues
+                      values={item.custom_field_values}
+                      locale={uiLocale}
+                      primaryLocale={order.locale || 'en'}
+                      token={token}
+                    />
 
                     {item.design_notes && (
                       <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>

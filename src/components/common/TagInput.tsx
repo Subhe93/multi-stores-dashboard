@@ -9,9 +9,11 @@ interface TagInputProps {
   tags: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  /** Id of the text input, for a `<Label htmlFor>`. */
+  id?: string;
 }
 
-export function TagInput({ tags, onChange, placeholder }: TagInputProps) {
+export function TagInput({ tags, onChange, placeholder, id }: TagInputProps) {
   const t = useTranslations('components');
   const resolvedPlaceholder = placeholder ?? t('tagInputPlaceholder');
   const [input, setInput] = useState('');
@@ -38,6 +40,7 @@ export function TagInput({ tags, onChange, placeholder }: TagInputProps) {
         </Badge>
       ))}
       <input
+        id={id}
         className="flex-1 min-w-[100px] text-sm bg-transparent outline-none placeholder:text-muted-foreground px-1"
         placeholder={tags.length === 0 ? resolvedPlaceholder : ''}
         value={input}

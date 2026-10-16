@@ -19,6 +19,8 @@ interface SearchableSelectProps {
   onChange?: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
+  /** Id of the trigger button, for a `<Label htmlFor>`. */
+  id?: string;
 }
 
 export function SearchableSelect({
@@ -27,6 +29,7 @@ export function SearchableSelect({
   onChange,
   placeholder,
   searchPlaceholder,
+  id,
 }: SearchableSelectProps) {
   const t = useTranslations('common');
   const placeholderText = placeholder ?? t('select');
@@ -97,6 +100,7 @@ export function SearchableSelect({
   return (
     <div className="relative">
       <Button
+        id={id}
         ref={buttonRef}
         type="button"
         variant="outline"

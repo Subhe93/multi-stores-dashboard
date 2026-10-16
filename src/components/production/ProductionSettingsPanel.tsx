@@ -1,0 +1,342 @@
+'use client';
+
+import { useEffect, useId, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { Info, Loader2, RefreshCw, Wand2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { TagInput } from '@/components/common/TagInput';
+import { AppSettingsFooter } from '@/components/apps/AppSettingsFooter';
+import { useStoreAppSettingsForm } from '@/components/apps/useStoreAppSettingsForm';
+import { useApiError } from '@/lib/useApiError';
+import { FIELD_TYPES } from '@/lib/customFields';
+import { cn } from '@/lib/utils';
+import type { MyStoreAppView } from '@/lib/storeApps.registry';
+import {
+  PRODUCTION_LIMITS,
+  applyProductionPreset,
+  normalizeProductionSettings,
+  prepareProductionSettings,
+  productionApi,
+  sameProductionSettings,
+  type ProductionCompleteTarget,
+  type ProductionOnComplete,
+  type ProductionSettings,
+} from './production.api';
+
+// Field types a check can come from (core + personalization-app types).
+const EXCLUDABLE_FIELD_TYPES: readonly string[] = [...FIELD_TYPES, 'CHECKBOX_GROUP', 'COLOR_PALETTE', 'REPEATER'];
+
+// `customField.type*` labels already exist for most types (FONT has none).
+const FIELD_TYPE_LABEL_KEY: Record<string, string> = {
+  TEXT: 'typeText',
+  TEXTAREA: 'typeTextarea',
+  NUMBER: 'typeNumber',
+  IMAGE: 'typeImage',
+  FILE: 'typeFile',
+  SELECT: 'typeSelect',
+  COLOR: 'typeColor',
+  DATE: 'typeDate',
+  MULTI_IMAGE: 'typeMultiImage',
+  CHECKBOX_GROUP: 'typeCheckboxGroup',
+  COLOR_PALETTE: 'typeColorPalette',
+  REPEATER: 'typeRepeater',
+};
+
+interface ProductionSettingsPanelProps {
+  app: MyStoreAppView;
+  token: string;
+}
+
+/** "Settings" tab of the production app: checklist sources, automation, preset and backfill. */
+export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelProps) {
+  const t = useTranslations('creator.production.settings');
+  const uid = useId();
+  const tStatus = useTranslations('creator.orderStatus');
+  const tField = useTranslations('customField');
+  const apiError = useApiError();
+  const { form, update, saving, dirty, save, error, saved } = useStoreAppSettingsForm<ProductionSettings>({
+    app,
+    token,
+    normalize: normalizeProductionSettings,
+    same: sameProductionSettings,
+    prepare: prepareProductionSettings,
+    fallbackError: t('saveFailed'),
+  });
+
+  const [presets, setPresets] = useState<Record<string, Partial<ProductionSettings>> | null>(null);
+  const [presetApplied, setPresetApplied] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [backfillError, setBackfillError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    productionApi
+      .settings(token)
+      .then((res) => {
+        if (!cancelled) setPresets(res?.presets ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setPresets({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const namez = presets?.namez;
+
+  const applyNamez = () => {
+    const next = applyProductionPreset(form, namez);
+    (Object.keys(next) as (keyof ProductionSettings)[]).forEach((key) => {
+      if (JSON.stringify(next[key]) !== JSON.stringify(form[key])) update(key, next[key]);
+    });
+    setPresetApplied(true);
+  };
+
+  const runBackfill = async () => {
+    if (backfilling) return;
+    setBackfilling(true);
+    setBackfillError(null);
+    setBackfillResult(null);
+    try {
+      const res = await productionApi.backfill(token);
+      setBackfillResult(t('backfillDone', { count: res?.synced ?? 0 }));
+    } catch (err) {
+      setBackfillError(apiError(err));
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
+  const fieldTypeLabel = (type: string) => {
+    const key = FIELD_TYPE_LABEL_KEY[type];
+    if (key && tField.has(key)) return tField(key);
+    return type === 'FONT' ? t('fontType') : type;
+  };
+
+  const toggleFieldType = (type: string) => {
+    const has = form.exclude_field_types.includes(type);
+    update('exclude_field_types', has ? form.exclude_field_types.filter((x) => x !== type) : [...form.exclude_field_types, type]);
+  };
+
+  const onCompleteOptions = [
+    { value: 'none', label: t('onComplete.none'), description: t('onComplete.noneHint') },
+    { value: 'suggest', label: t('onComplete.suggest'), description: t('onComplete.suggestHint') },
+    // Automatic shipping is never allowed (payment capture + shipped email without tracking).
+    ...(form.complete_target === 'SHIPPED'
+      ? []
+      : [{ value: 'auto', label: t('onComplete.auto'), description: t('onComplete.autoHint') }]),
+  ];
+
+  const targetOptions = [
+    { value: 'QUALITY_CHECK', label: tStatus('QUALITY_CHECK') },
+    { value: 'SHIPPED', label: tStatus('SHIPPED') },
+  ];
+
+  const setTarget = (value: string) => {
+    const target = value as ProductionCompleteTarget;
+    update('complete_target', target);
+    if (target === 'SHIPPED' && form.on_complete === 'auto') update('on_complete', 'suggest');
+  };
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <div className="space-y-4 lg:col-span-2">
+        {/* What becomes a check */}
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">{t('sourcesTitle')}</CardTitle>
+            <CardDescription>{t('sourcesHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${uid}-variant-options`} className="text-sm font-normal">{t('includeVariantOptions')}</Label>
+                <p className="text-xs text-muted-foreground">{t('includeVariantOptionsHint')}</p>
+              </div>
+              <ToggleSwitch
+                id={`${uid}-variant-options`}
+                checked={form.include_variant_options}
+                disabled={saving}
+                onChange={(next) => update('include_variant_options', next)}
+                label={t('includeVariantOptions')}
+              />
+            </div>
+
+            {form.include_variant_options && (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${uid}-exclude-options`} className="text-sm font-normal">{t('excludeOptionNames')}</Label>
+                <TagInput
+                  id={`${uid}-exclude-options`}
+                  tags={form.exclude_option_names}
+                  onChange={(tags) => update('exclude_option_names', tags.slice(0, PRODUCTION_LIMITS.exclude_option_names))}
+                  placeholder={t('excludeOptionNamesPlaceholder')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('excludeOptionNamesHint', { max: PRODUCTION_LIMITS.exclude_option_names })}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label id={`${uid}-exclude-types`} className="text-sm font-normal">{t('excludeFieldTypes')}</Label>
+              <div role="group" aria-labelledby={`${uid}-exclude-types`} className="flex flex-wrap gap-1.5">
+                {EXCLUDABLE_FIELD_TYPES.map((type) => {
+                  const active = form.exclude_field_types.includes(type);
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => toggleFieldType(type)}
+                      className={cn(
+                        'rounded-full border px-2.5 py-1 text-xs transition-colors',
+                        active ? 'border-red-200 bg-red-50 text-red-700 line-through' : 'border-border bg-background hover:bg-muted',
+                      )}
+                    >
+                      {fieldTypeLabel(type)}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">{t('excludeFieldTypesHint')}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`${uid}-exclude-fields`} className="text-sm font-normal">{t('excludeFieldNames')}</Label>
+              <TagInput
+                id={`${uid}-exclude-fields`}
+                tags={form.exclude_field_names}
+                onChange={(tags) => update('exclude_field_names', tags.slice(0, PRODUCTION_LIMITS.exclude_field_names))}
+                placeholder={t('excludeFieldNamesPlaceholder')}
+              />
+              <p className="text-xs text-muted-foreground">{t('excludeFieldNamesHint')}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`${uid}-custom-items`} className="text-sm font-normal">{t('defaultCustomItems')}</Label>
+              <TagInput
+                id={`${uid}-custom-items`}
+                tags={form.default_custom_items}
+                onChange={(tags) =>
+                  update(
+                    'default_custom_items',
+                    tags.map((s) => s.slice(0, PRODUCTION_LIMITS.label)).slice(0, PRODUCTION_LIMITS.default_custom_items),
+                  )
+                }
+                placeholder={t('defaultCustomItemsPlaceholder')}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t('defaultCustomItemsHint', { max: PRODUCTION_LIMITS.default_custom_items })}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status automation */}
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">{t('automationTitle')}</CardTitle>
+            <CardDescription>{t('automationHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${uid}-on-complete`} className="text-sm font-normal">{t('onCompleteLabel')}</Label>
+                <SearchableSelect
+                  id={`${uid}-on-complete`}
+                  value={form.on_complete}
+                  onChange={(v) => update('on_complete', v as ProductionOnComplete)}
+                  options={onCompleteOptions}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${uid}-complete-target`} className="text-sm font-normal">{t('completeTarget')}</Label>
+                <SearchableSelect id={`${uid}-complete-target`} value={form.complete_target} onChange={setTarget} options={targetOptions} />
+              </div>
+            </div>
+            {form.complete_target === 'SHIPPED' && (
+              <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                <Info className="mt-0.5 size-3.5 shrink-0" />
+                <span>{t('shippedNeverAuto')}</span>
+              </div>
+            )}
+
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${uid}-first-check`} className="text-sm font-normal">{t('startOnFirstCheck')}</Label>
+                <p className="text-xs text-muted-foreground">{t('startOnFirstCheckHint')}</p>
+              </div>
+              <ToggleSwitch
+                id={`${uid}-first-check`}
+                checked={form.start_on_first_check}
+                disabled={saving}
+                onChange={(next) => update('start_on_first_check', next)}
+                label={t('startOnFirstCheck')}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${uid}-quality-check`} className="text-sm font-normal">{t('useQualityCheck')}</Label>
+                <p className="text-xs text-muted-foreground">{t('useQualityCheckHint')}</p>
+              </div>
+              <ToggleSwitch
+                id={`${uid}-quality-check`}
+                checked={form.use_quality_check}
+                disabled={saving}
+                onChange={(next) => update('use_quality_check', next)}
+                label={t('useQualityCheck')}
+              />
+            </div>
+
+            <AppSettingsFooter error={error} saved={saved} savedLabel={t('saved')} saving={saving} dirty={dirty} onSave={save} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-4">
+        {namez && (
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                <Wand2 className="size-4 text-muted-foreground" />
+                {t('presetTitle')}
+              </CardTitle>
+              <CardDescription>{t('presetHint')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button type="button" variant="outline" size="sm" className="w-full" disabled={saving} onClick={applyNamez}>
+                {t('applyNamezPreset')}
+              </Button>
+              {presetApplied && dirty && <p className="text-xs text-muted-foreground">{t('presetAppliedHint')}</p>}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <RefreshCw className="size-4 text-muted-foreground" />
+              {t('backfillTitle')}
+            </CardTitle>
+            <CardDescription>{t('backfillHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button type="button" variant="outline" size="sm" className="w-full" disabled={backfilling} onClick={runBackfill}>
+              {backfilling ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+              {t('backfillAction')}
+            </Button>
+            {backfillResult && <p className="text-xs font-medium text-emerald-600">{backfillResult}</p>}
+            {backfillError && <p className="text-xs text-red-600">{backfillError}</p>}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

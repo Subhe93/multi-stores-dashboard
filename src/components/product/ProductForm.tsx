@@ -22,6 +22,10 @@ import { ImageGallery } from './ImageGallery';
 import { TagInput } from '@/components/common/TagInput';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { flattenFieldTree, readConfigIssues, readErrorParamList } from '@/lib/personalization';
+import { useConfigIssueText } from '@/components/apps/personalization/useConfigIssueText';
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
@@ -89,6 +93,8 @@ interface ProductTranslationRow {
   locale: string;
   title?: string | null;
   description?: string | null;
+  // M4.4: null for products that never had one; absent on older API builds.
+  short_description?: string | null;
   slug?: string | null;
   meta_title?: string | null;
   meta_desc?: string | null;
@@ -155,20 +161,33 @@ interface ProductFormProps {
 
 // Translation state per locale. Each locale has its own slug — secondary
 // locales can have a custom URL slug, otherwise we derive one (see save logic).
-type LocaleTranslation = { title: string; description: string; slug: string };
+// `short_description` stays undefined until it was loaded or edited: the API
+// keeps the stored value of a locale whose payload omits it (M4.4 X19).
+type LocaleTranslation = { title: string; description: string; slug: string; short_description?: string };
+
+/** Tiptap leaves `<p></p>` behind when cleared; treat markup without text as empty. */
+const isBlankHtml = (html: string) => !html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() && !/<img\b/i.test(html);
 
 export function ProductForm({ mode, productId, backUrl, postCreateUrl }: ProductFormProps) {
   const t = useTranslations();
+  const apiError = useApiError();
+  const describeIssues = useConfigIssueText();
   const { currency } = useCurrency();
   const { token, user } = useAuth();
   const isCreator = user?.role === 'CREATOR';
   const router = useRouter();
+  // Personalization app (M4.1): only for the creator's own products (D2).
+  const { apps: storeApps } = useStoreApps();
+  const personalizationOn = isCreator && isAppEnabled(storeApps, 'personalization');
 
   // ── UI state ──────────────────────────────────────────────
   const [loading, setLoading] = useState(mode === 'edit');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState('');
   const [error, setError] = useState('');
+  // Product option issues of a save (config errors, option still used by fields),
+  // repeated next to the options card the form scrolls to.
+  const [optionsError, setOptionsError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // ── Language config ───────────────────────────────────────
@@ -311,7 +330,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setTags(p.tags?.map((t) => t.tag) || []);
       setStatus(p.status || 'DRAFT');
       setImages((p.images || []).filter((img) => !img.variant_id));
-      setCustomFields(p.custom_fields || []);
+      // Repeater children may arrive nested or flat; the editor works on a flat list.
+      setCustomFields(flattenFieldTree(p.custom_fields));
       setFaqs(p.faqs || []);
       setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
       // Pre-fill creator collections. API returns links of the shape
@@ -329,7 +349,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setTranslations(prev => {
         const next = { ...prev };
         (p.translations || []).forEach((t) => {
-          next[t.locale] = { title: t.title || '', description: t.description || '', slug: t.slug || '' };
+          next[t.locale] = {
+            title: t.title || '',
+            description: t.description || '',
+            slug: t.slug || '',
+            ...('short_description' in t ? { short_description: t.short_description || '' } : {}),
+          };
         });
         return next;
       });
@@ -452,13 +477,22 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     return true;
   };
 
+  // Scrolls to the product options card (variant options / variation cards).
+  const jumpToOptions = () => {
+    setTimeout(() => document.getElementById('product-options')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
+
   // ── Save ──────────────────────────────────────────────────
   const handleSave = async (publishNow = false) => {
     if (!token) return;
     if (!validate()) return;
     setSaving(true);
     setError('');
+    setOptionsError('');
     setFieldErrors({});
+    // Path prefix of the create-mode custom field being written, so a config
+    // error names that field instead of an anonymous one.
+    let failedFieldPrefix = '';
 
     try {
       const finalStatus = publishNow ? 'PUBLISHED' : status;
@@ -489,6 +523,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             locale,
             title: t.title,
             description: t.description || '',
+            // Only when loaded or edited, so an untouched locale keeps its stored value.
+            ...(t.short_description !== undefined
+              ? { short_description: isBlankHtml(t.short_description) ? '' : t.short_description }
+              : {}),
             slug: locale === primaryLocale ? primarySlug : resolved,
             ...(locale === primaryLocale
               ? { meta_title: metaTitle || undefined, meta_desc: metaDesc || undefined }
@@ -564,13 +602,40 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       // In edit mode these write through their own managers immediately, so we
       // skip them here to avoid duplicates.
       if (pid && mode === 'create') {
-        for (let i = 0; i < customFields.length; i++) {
-          const { id: _tempId, sort_order: _so, ...rest } = customFields[i]!;
+        // Parents first so repeater children can point at their real id
+        // (children carry the parent's temp id until then).
+        const realIds = new Map<string, string>();
+        // Local-only keys (temp id, order, parent link) and read-only preset keys are not sent.
+        const dtoOf = (f: CustomField): Record<string, unknown> => {
+          const copy: Record<string, unknown> = { ...f };
+          for (const key of ['id', 'sort_order', 'parent_id', 'preset_key', 'preset_ref']) delete copy[key];
+          return copy;
+        };
+        const topLevel = customFields.filter(f => !f.parent_id);
+        for (let i = 0; i < topLevel.length; i++) {
+          const field = topLevel[i]!;
+          failedFieldPrefix = field.name;
+          const created = await api<{ id?: string } | null>(`/products/${pid}/custom-fields`, {
+            method: 'POST', token,
+            body: JSON.stringify({ ...dtoOf(field), sort_order: i }),
+          });
+          if (field.id && created?.id) realIds.set(field.id, created.id);
+        }
+        // A sub-field's sort_order is its index within its own parent.
+        const childIndex = new Map<string, number>();
+        for (const field of customFields.filter(f => f.parent_id)) {
+          const parentId = field.parent_id ? realIds.get(field.parent_id) : undefined;
+          if (!parentId) continue;
+          const index = childIndex.get(parentId) ?? 0;
+          childIndex.set(parentId, index + 1);
+          const parentName = customFields.find(f => f.id === field.parent_id)?.name;
+          failedFieldPrefix = parentName ? `${parentName}.children[${index}]` : field.name;
           await api(`/products/${pid}/custom-fields`, {
             method: 'POST', token,
-            body: JSON.stringify({ ...rest, sort_order: i }),
+            body: JSON.stringify({ ...dtoOf(field), parent_id: parentId, sort_order: index }),
           });
         }
+        failedFieldPrefix = '';
         for (let i = 0; i < faqs.length; i++) {
           const faq = faqs[i]!;
           if (faq.id) continue;
@@ -588,18 +653,49 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setTimeout(() => setSaved(''), 3000);
       }
     } catch (err) {
-      if (err instanceof ApiError && Array.isArray(err.errors)) setError(err.errors.join(' · '));
+      // Coded API errors (e.g. a custom field rejected while persisting the
+      // create-mode fields) are translated; class-validator lists stay as-is.
+      if (err instanceof ApiError && err.code === 'PERSONALIZATION_CONFIG_INVALID') {
+        const issues = readConfigIssues(err.payload).map(issue => ({
+          ...issue,
+          path: failedFieldPrefix && issue.path ? `${failedFieldPrefix}.${issue.path}` : issue.path,
+        }));
+        const { lines, firstArea } = describeIssues(issues, { optionNames: variantOptions.map(o => o.name) });
+        const text = [apiError(err), ...lines].join('\n');
+        setError(text);
+        if (firstArea === 'productOptions') {
+          setOptionsError(text);
+          jumpToOptions();
+        }
+      } else if (err instanceof ApiError && err.code === 'PERSONALIZATION_OPTION_IN_USE') {
+        const fields = readErrorParamList(err.payload, 'fields');
+        const options = readErrorParamList(err.payload, 'options');
+        const detail = fields.length > 0
+          ? t('product.optionInUseDetail', { options: options.join(', ') || '—', fields: fields.join(', ') })
+          : '';
+        const text = [apiError(err), detail].filter(Boolean).join('\n');
+        setError(text);
+        setOptionsError(text);
+        jumpToOptions();
+      } else if (err instanceof ApiError && err.code) setError(apiError(err));
+      else if (err instanceof ApiError && Array.isArray(err.errors)) setError(err.errors.join(' · '));
       else setError((err instanceof Error && err.message) || t('product.failedToSave'));
     } finally {
       setSaving(false);
     }
   };
 
+  // Re-reads the fields after a write (edit mode); children are flattened.
+  const reloadCustomFields = async () => {
+    if (!productId || !token) return;
+    const p = await api<Pick<ProductResponse, 'custom_fields'>>(`/products/${productId}`, { token });
+    setCustomFields(flattenFieldTree(p.custom_fields));
+  };
+
   const handleAddCustomField = async (field: Omit<CustomField, 'sort_order'>) => {
     if (mode === 'edit' && productId && token) {
       await api(`/products/${productId}/custom-fields`, { method: 'POST', token: token ?? undefined, body: JSON.stringify(field) });
-      const p = await api<Pick<ProductResponse, 'custom_fields'>>(`/products/${productId}`, { token });
-      setCustomFields(p.custom_fields || []);
+      await reloadCustomFields();
     } else {
       setCustomFields(prev => [...prev, { ...field, id: `temp-${Date.now()}`, sort_order: prev.length }]);
     }
@@ -609,8 +705,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     if (token && !fid.startsWith('temp-')) {
       await api(`/custom-fields/${fid}`, { method: 'PUT', token, body: JSON.stringify(field) });
       if (productId) {
-        const p = await api<Pick<ProductResponse, 'custom_fields'>>(`/products/${productId}`, { token });
-        setCustomFields(p.custom_fields || []);
+        await reloadCustomFields();
         return;
       }
     }
@@ -622,7 +717,33 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     if (token && !fid.startsWith('temp-')) {
       await api(`/custom-fields/${fid}`, { method: 'DELETE', token });
     }
-    setCustomFields(prev => prev.filter(f => f.id !== fid));
+    // Deleting a repeater also removes its children (cascade on the server).
+    setCustomFields(prev => prev.filter(f => f.id !== fid && f.parent_id !== fid));
+  };
+
+  // New order of one sibling set (top-level fields or one repeater's children).
+  // Applied optimistically; a refused order (e.g. PERSONALIZATION_CONFIG_INVALID
+  // for a forward reference) restores the previous one and rethrows.
+  const handleReorderCustomFields = async (orderedIds: string[]) => {
+    const previous = customFields;
+    const rank = new Map(orderedIds.map((id, i) => [id, i]));
+    // Keep the array order in step too: create mode persists in array order.
+    const slots = previous.flatMap((f, i) => (f.id && rank.has(f.id) ? [i] : []));
+    const next = [...previous];
+    orderedIds.forEach((id, i) => {
+      const field = previous.find(f => f.id === id);
+      if (field && slots[i] !== undefined) next[slots[i]!] = { ...field, sort_order: i };
+    });
+    setCustomFields(next);
+    if (mode !== 'edit' || !productId || !token || orderedIds.some(id => id.startsWith('temp-'))) return;
+    try {
+      await api(`/products/${productId}/custom-fields/sort`, {
+        method: 'PUT', token, body: JSON.stringify({ field_ids: orderedIds }),
+      });
+    } catch (err) {
+      setCustomFields(previous);
+      throw err;
+    }
   };
 
   if (loading) return (
@@ -658,7 +779,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         </div>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg border border-red-200 mb-4">{error}</div>}
+      {error && <div role="alert" className="bg-red-50 text-red-600 text-xs p-3 rounded-lg border border-red-200 mb-4 whitespace-pre-line">{error}</div>}
 
       <div className="grid grid-cols-3 gap-6">
         {/* LEFT COLUMN */}
@@ -756,6 +877,17 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 />
               </div>
 
+              {/* Short description per locale (M4.4), shown near add-to-cart on the storefront */}
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.shortDescription')}</Label>
+                <RichTextEditor
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  content={translations[activeLocale]?.short_description || ''}
+                  onChange={val => setTransField(activeLocale, 'short_description', val)}
+                  placeholder={t('product.shortDescriptionPlaceholder')}
+                />
+              </div>
+
               {/* URL slug per locale — kept ASCII (the storefront URL segment).
                   Leaving it empty for a secondary locale reuses the primary slug. */}
               <div className="space-y-1.5">
@@ -793,15 +925,19 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           />
 
           {/* Variants */}
-          <VariantManager
-            options={variantOptions}
-            onOptionsChange={setVariantOptions}
-            variants={variants}
-            onVariantsChange={setVariants}
-            basePrice={parseFloat(basePrice) || 0}
-            onPickImage={() => pickAndUpload('products', false)}
-            uploading={uploading}
-          />
+          <div id="product-options" className="scroll-mt-4">
+            {optionsError && <div role="alert" className="bg-red-50 text-red-600 text-xs p-3 rounded-lg border border-red-200 mb-3 whitespace-pre-line">{optionsError}</div>}
+            <VariantManager
+              options={variantOptions}
+              onOptionsChange={setVariantOptions}
+              variants={variants}
+              onVariantsChange={setVariants}
+              basePrice={parseFloat(basePrice) || 0}
+              onPickImage={() => pickAndUpload('products', false)}
+              uploading={uploading}
+              personalization={personalizationOn}
+            />
+          </div>
 
           {/* Dynamic Attributes */}
           {categoryAttrs.length > 0 && (
@@ -858,8 +994,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             onAdd={handleAddCustomField}
             onUpdate={handleUpdateCustomField}
             onDelete={handleDeleteCustomField}
+            onReorder={handleReorderCustomFields}
             locales={allLocales}
             primaryLocale={primaryLocale}
+            personalization={personalizationOn}
+            variantOptions={variantOptions}
+            productId={mode === 'edit' ? productId : undefined}
+            onFieldsChanged={reloadCustomFields}
           />
 
           {/* FAQ */}

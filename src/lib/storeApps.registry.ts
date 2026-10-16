@@ -5,7 +5,7 @@
 // describes each app so the dashboard can render names, badges and
 // dependency hints without an extra request.
 
-export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer'] as const;
+export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer'] as const;
 
 export type StoreAppKey = (typeof STORE_APP_KEYS)[number];
 
@@ -50,11 +50,33 @@ export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
     requiresIndependent: true,
     dependsOn: ['markets'],
   },
+  personalization: {
+    key: 'personalization',
+    nameKey: 'creator.apps.items.personalization.name',
+    descriptionKey: 'creator.apps.items.personalization.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
+  production: {
+    key: 'production',
+    nameKey: 'creator.apps.items.production.name',
+    descriptionKey: 'creator.apps.items.production.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
+  designer: {
+    key: 'designer',
+    nameKey: 'creator.apps.items.designer.name',
+    descriptionKey: 'creator.apps.items.designer.description',
+    requiresIndependent: true,
+    dependsOn: [],
+  },
 };
 
 // Apps not built yet: kept in the registry (the API still returns them) but
-// hidden from every dashboard surface (creator catalog, admin pages).
-export const HIDDEN_APPS: readonly StoreAppKey[] = ['importer'];
+// hidden from every dashboard surface (creator catalog, admin pages). Empty
+// since M4.4 (the importer is visible; admins still make it available per store).
+export const HIDDEN_APPS: readonly StoreAppKey[] = [];
 
 export function isHiddenApp(key: StoreAppKey): boolean {
   return HIDDEN_APPS.includes(key);
@@ -68,7 +90,10 @@ export const STORE_APP_HREFS: Record<StoreAppKey, string | null> = {
   markets: '/creator/markets',
   b2b: '/creator/b2b',
   invoices: '/creator/invoices?tab=settings',
-  importer: null,
+  importer: '/creator/importer',
+  personalization: '/creator/personalization',
+  production: '/creator/production?tab=settings',
+  designer: '/creator/designer?tab=settings',
 };
 
 export function isStoreAppKey(value: unknown): value is StoreAppKey {

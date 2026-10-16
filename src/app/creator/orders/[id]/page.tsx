@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,10 @@ import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/
 import { CustomerTaxExemption } from '@/components/apps/CustomerTaxExemption';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
+import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
+import { ProductionChecklist } from '@/components/production/ProductionChecklist';
+import { OrderDesignCard } from '@/components/designer/OrderDesignCard';
+import type { OrderFieldValueRow } from '@/lib/customFields';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -52,15 +56,6 @@ interface ProductSummary {
   images?: { url?: string | null }[] | null;
 }
 
-interface OrderItemCustomFieldValue {
-  value?: string | null;
-  file_url?: string | null;
-  custom_field?: {
-    name?: string | null;
-    translations?: { locale: string; label?: string | null }[] | null;
-  } | null;
-}
-
 interface OrderItemBundleOffer {
   quantity: number;
   translations?: { locale: string; title?: string | null; label?: string | null }[] | null;
@@ -86,7 +81,8 @@ interface OrderItem {
     | null;
   product?: ProductSummary | null;
   variant?: { options?: Record<string, string> | null; product?: ProductSummary | null } | null;
-  custom_field_values?: OrderItemCustomFieldValue[] | null;
+  // Snapshot rows (M4.0): labels survive renames and deleted fields.
+  custom_field_values?: OrderFieldValueRow[] | null;
   bundle_offer?: OrderItemBundleOffer | null;
 }
 
@@ -164,17 +160,20 @@ function statusLabels(t: Translator): Record<string, string> {
     // Invoices app timeline rows.
     INVOICE_ISSUED: t('orderStatus.INVOICE_ISSUED'),
     CREDIT_NOTE_ISSUED: t('orderStatus.CREDIT_NOTE_ISSUED'),
+    // Production app timeline row (internal, checklist reached 100 %).
+    PRODUCTION_COMPLETED: t('orderStatus.PRODUCTION_COMPLETED'),
   };
 }
 
 // Order lifecycle flow; QUALITY_CHECK is an optional middle step.
 const STATUS_FLOW = ['PENDING', 'CONFIRMED', 'PROCESSING', 'MANUFACTURING', 'QUALITY_CHECK', 'SHIPPED', 'DELIVERED'];
 
-// FulfillmentStatus is a smaller enum (no CONFIRMED/QC). Map onto STATUS_FLOW for comparison.
+// FulfillmentStatus is a smaller enum (no CONFIRMED). Map onto STATUS_FLOW for comparison.
 const FULFILLMENT_TO_FLOW: Record<string, string> = {
   PENDING:       'PENDING',
   PROCESSING:    'PROCESSING',
   MANUFACTURING: 'MANUFACTURING',
+  QUALITY_CHECK: 'QUALITY_CHECK',
   SHIPPED:       'SHIPPED',
   DELIVERED:     'DELIVERED',
 };
@@ -191,11 +190,16 @@ function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): s
   return orderIdx > itemIdx ? orderStatus : itemStatus;
 }
 
-function statusOptions(t: Translator) {
+// QUALITY_CHECK is offered only when the production app is enabled with its
+// quality-check step on (M4.3 §4.7); other stores keep today's dropdown.
+function statusOptions(t: Translator, withQualityCheck: boolean) {
   return [
     { value: 'CONFIRMED', label: t('orderStatus.CONFIRMED') },
     { value: 'PROCESSING', label: t('orderStatus.PROCESSING') },
     { value: 'MANUFACTURING', label: t('orderStatus.MANUFACTURING') },
+    ...(withQualityCheck
+      ? [{ value: 'QUALITY_CHECK', label: t('orderStatus.QUALITY_CHECK') }]
+      : []),
     { value: 'SHIPPED', label: t('orderStatus.SHIPPED') },
     { value: 'DELIVERED', label: t('orderStatus.DELIVERED') },
   ];
@@ -218,8 +222,21 @@ export default function CreatorOrderDetailPage() {
     normalizeB2bSettings(apps?.find((a) => a.key === 'b2b')?.settings).reverse_charge_enabled;
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
+  const uiLocale = useLocale();
   const STATUS_LABELS = statusLabels(t);
-  const STATUS_OPTIONS = statusOptions(t);
+  // Designer app (M4.2): the design card stays readable while the app is
+  // off (downloads only); it hides itself when the order has no designs.
+  const designerEnabled = isAppEnabled(apps, 'designer');
+  const designerAvailable = !!apps?.find((a) => a.key === 'designer')?.available;
+  // Production app (M4.3): checklist card; `use_quality_check` defaults to true.
+  const productionEnabled = isAppEnabled(apps, 'production');
+  const qualityCheckEnabled =
+    productionEnabled &&
+    (apps?.find((a) => a.key === 'production')?.settings as
+      | { use_quality_check?: unknown }
+      | null
+      | undefined)?.use_quality_check !== false;
+  const STATUS_OPTIONS = statusOptions(t, qualityCheckEnabled);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -378,6 +395,13 @@ export default function CreatorOrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column (main) */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Production checklist (production app, creator-fulfilled lines only).
+              Keyed by status: a change from the status card remounts the card so
+              the suggestion banner and the closed state never go stale. */}
+          {productionEnabled && canUpdateStatus && token && (
+            <ProductionChecklist key={order.status} orderId={id} token={token} onOrderStatusChanged={() => fetchOrder()} />
+          )}
+
           {/* Order items */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
@@ -415,21 +439,6 @@ export default function CreatorOrderDetailPage() {
                     const variantLabel = variantOpts
                       ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
                       : null;
-
-                    // Custom field values
-                    const fieldValues: { label: string; value: string }[] = [];
-                    if (item.custom_field_values?.length) {
-                      for (const fv of item.custom_field_values) {
-                        const label =
-                          fv.custom_field?.translations?.find((t) => t.locale === primaryLocale)?.label ??
-                          fv.custom_field?.translations?.[0]?.label ??
-                          fv.custom_field?.name ?? '—';
-                        fieldValues.push({
-                          label,
-                          value: fv.value || (fv.file_url ? t('orderDetail.fileUploaded') : '—'),
-                        });
-                      }
-                    }
 
                     const bundleOffer = item.bundle_offer ?? null;
                     const bundleTr =
@@ -519,16 +528,13 @@ export default function CreatorOrderDetailPage() {
                           </div>
                         </div>
 
-                        {/* Custom field values */}
-                        {fieldValues.length > 0 && (
-                          <div className="ml-17 pl-3 border-l-2 border-muted space-y-0.5">
-                            {fieldValues.map((fv, i) => (
-                              <p key={i} className="text-xs text-muted-foreground">
-                                <span className="font-medium text-foreground">{fv.label}:</span>{' '}{fv.value}
-                              </p>
-                            ))}
-                          </div>
-                        )}
+                        {/* Custom field values (order snapshot; files with original download) */}
+                        <GroupedOrderFieldValues
+                          values={item.custom_field_values}
+                          locale={uiLocale}
+                          primaryLocale={primaryLocale}
+                          token={token}
+                        />
 
                         {/* Design notes */}
                         {item.design_notes && (
@@ -586,6 +592,26 @@ export default function CreatorOrderDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Designer app (M4.2): proofs, texts, photos and print files of the
+              designed lines; renders nothing when the order has no designs. */}
+          {token && designerAvailable && (
+            <OrderDesignCard
+              orderId={id}
+              token={token}
+              appEnabled={designerEnabled}
+              itemTitles={Object.fromEntries(
+                (order.items ?? []).map((item) => [
+                  item.id,
+                  item.product?.translations?.find((tr) => tr.locale === primaryLocale)?.title ??
+                    item.product?.translations?.[0]?.title ??
+                    item.variant?.product?.translations?.find((tr) => tr.locale === primaryLocale)?.title ??
+                    item.variant?.product?.translations?.[0]?.title ??
+                    '',
+                ]),
+              )}
+            />
+          )}
 
           {/* Timeline */}
           <Card className="shadow-none">

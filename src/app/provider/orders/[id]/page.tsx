@@ -21,7 +21,11 @@ import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
 import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
+import { useApiError } from '@/lib/useApiError';
+import { downloadCustomerUploadOriginal } from '@/lib/customerUploads.api';
+import { snapshotLabel, sortValueRows, type OrderFieldValueRow } from '@/lib/customFields';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -39,14 +43,6 @@ interface ProductRef {
   name?: string | null;
   translations?: LocalizedTitle[] | null;
   images?: { url: string }[] | null;
-}
-
-interface CustomFieldValue {
-  id: string;
-  custom_field_id?: string;
-  value?: string | null;
-  file_url?: string;
-  custom_field?: { translations?: { label?: string | null }[] | null } | null;
 }
 
 interface OrderItem {
@@ -69,7 +65,8 @@ interface OrderItem {
     mockup_images?: { url: string }[] | null;
     product?: ProductRef | null;
   } | null;
-  custom_field_values?: CustomFieldValue[] | null;
+  // Snapshot rows (M4.0): labels survive renames and deleted fields.
+  custom_field_values?: OrderFieldValueRow[] | null;
 }
 
 interface TimelineEntry {
@@ -85,6 +82,8 @@ interface OrderDetail {
   status: string;
   created_at: string;
   currency?: string | null;
+  // Customer's storefront locale; second choice for personalization labels.
+  locale?: string | null;
   subtotal: number | string;
   shipping_cost: number | string;
   shipping_method_name?: string | null;
@@ -166,6 +165,7 @@ const FULFILLMENT_TO_FLOW: Record<string, string> = {
   PENDING:       'PENDING',
   PROCESSING:    'PROCESSING',
   MANUFACTURING: 'MANUFACTURING',
+  QUALITY_CHECK: 'QUALITY_CHECK',
   SHIPPED:       'SHIPPED',
   DELIVERED:     'DELIVERED',
 };
@@ -191,6 +191,8 @@ export default function ProviderOrderDetail() {
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const tp = useTranslations('payments');
+  // Personalization file wording is shared with the creator order page.
+  const tod = useTranslations('creator.orderDetail');
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -198,6 +200,24 @@ export default function ProviderOrderDetail() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [trackingUrl, setTrackingUrl] = useState('');
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const uiLocale = useLocale();
+  const apiError = useApiError();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState('');
+
+  // Private original of a customer upload (M4.0); the preview stays public.
+  const handleDownloadOriginal = async (uploadId: string, name?: string | null) => {
+    if (!token || downloadingId) return;
+    setDownloadingId(uploadId);
+    setDownloadError('');
+    try {
+      await downloadCustomerUploadOriginal(token, uploadId, name);
+    } catch (err) {
+      setDownloadError(apiError(err));
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const fetchOrder = () => {
     if (!token || !id) return;
@@ -262,16 +282,20 @@ export default function ProviderOrderDetail() {
   const hasCreatorItems = items.some((it) => it.fulfiller_type === 'CREATOR');
 
   // Collect all design/image files from custom field values
-  const designFiles: { label: string; url: string; itemTitle: string }[] = [];
+  // Purged uploads (retention) have no preview left and are listed inline only.
+  const designFiles: { label: string; url: string; itemTitle: string; uploadId?: string; originalName?: string | null }[] = [];
   order.items?.forEach((item) => {
     const title = item.product?.translations?.[0]?.title || item.product?.name || item.product_id;
-    item.custom_field_values?.forEach((fv) => {
-      if (fv.file_url) {
+    sortValueRows(item.custom_field_values).forEach((fv) => {
+      const fileUrl = fv.upload?.preview_url || fv.file_url;
+      if (fileUrl && !fv.upload?.purged_at) {
         designFiles.push({
-          label: fv.custom_field?.translations?.[0]?.label || fv.custom_field_id || t('file'),
+          label: snapshotLabel(fv, uiLocale, order.locale || 'en').label,
           // Customer uploads live on the API host; make the path absolute.
-          url: resolveMediaUrl(fv.file_url) || fv.file_url,
+          url: resolveMediaUrl(fileUrl) || fileUrl,
           itemTitle: title,
+          uploadId: fv.upload?.id ?? fv.upload_id ?? undefined,
+          originalName: fv.upload?.original_name,
         });
       }
     });
@@ -396,18 +420,30 @@ export default function ProviderOrderDetail() {
                     </div>
                   </button>
                   <p className="text-[10px] text-center text-muted-foreground truncate">{f.label}</p>
-                  <a
-                    href={f.url}
-                    download
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block text-center text-[10px] text-blue-600 hover:underline"
-                  >
-                    {t('download')}
-                  </a>
+                  {f.uploadId ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadOriginal(f.uploadId!, f.originalName)}
+                      disabled={downloadingId !== null}
+                      className="block w-full text-center text-[10px] text-blue-600 hover:underline disabled:opacity-50"
+                    >
+                      {downloadingId === f.uploadId ? '…' : tod('downloadOriginal')}
+                    </button>
+                  ) : (
+                    <a
+                      href={f.url}
+                      download
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block text-center text-[10px] text-blue-600 hover:underline"
+                    >
+                      {t('download')}
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
+            {downloadError && <p className="mt-2 text-xs text-red-600">{downloadError}</p>}
           </CardContent>
         </Card>
       )}
@@ -440,8 +476,6 @@ export default function ProviderOrderDetail() {
                 const variantLabel = variantOpts
                   ? Object.entries(variantOpts).map(([k, v]) => `${k}: ${v}`).join(' · ')
                   : null;
-                const textFields = (item.custom_field_values || []).filter((fv) => !fv.file_url && fv.value);
-                const fileFields = (item.custom_field_values || []).filter((fv) => fv.file_url);
 
                 return (
                   <div key={item.id} className="py-3 space-y-2">
@@ -479,31 +513,13 @@ export default function ProviderOrderDetail() {
                       </div>
                     </div>
 
-                    {/* Inline custom field text values */}
-                    {textFields.length > 0 && (
-                      <div className="ml-17 pl-3 border-l-2 border-muted space-y-0.5">
-                        {textFields.map((fv) => (
-                          <p key={fv.id} className="text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">
-                              {fv.custom_field?.translations?.[0]?.label || fv.custom_field_id}:
-                            </span>{' '}{fv.value}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Inline file thumbnails */}
-                    {fileFields.length > 0 && (
-                      <div className="ml-17 flex flex-wrap gap-2">
-                        {fileFields.map((fv) => (
-                          <a key={fv.id} href={fv.file_url} target="_blank" rel="noreferrer"
-                            className="block w-12 h-12 rounded border overflow-hidden bg-zinc-50 hover:opacity-80 transition"
-                            title={fv.custom_field?.translations?.[0]?.label || t('file')}>
-                            <img src={fv.file_url} alt="" className="w-full h-full object-contain p-0.5" />
-                          </a>
-                        ))}
-                      </div>
-                    )}
+                    {/* Custom field values (order snapshot; files with original download) */}
+                    <GroupedOrderFieldValues
+                      values={item.custom_field_values}
+                      locale={uiLocale}
+                      primaryLocale={order.locale || 'en'}
+                      token={token}
+                    />
 
                     {item.design_notes && (
                       <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>

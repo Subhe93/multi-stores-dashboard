@@ -13,12 +13,19 @@ import { useCurrency } from '@/lib/useCurrency';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useMarkets } from '@/lib/useMarkets';
 import type { BuyerType } from '@/lib/b2b';
+import { ProductionProgressBar } from '@/components/production/ProductionProgressBar';
+import {
+  PRODUCTION_FILTERS,
+  productionApi,
+  type ProductionSummaries,
+} from '@/components/production/production.api';
 
 const statusColors: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
   CONFIRMED: 'bg-blue-50 text-blue-700 border-blue-200',
   PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   MANUFACTURING: 'bg-purple-50 text-purple-700 border-purple-200',
+  QUALITY_CHECK: 'bg-orange-50 text-orange-700 border-orange-200',
   SHIPPED: 'bg-sky-50 text-sky-700 border-sky-200',
   DELIVERED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   CANCELLED: 'bg-red-50 text-red-700 border-red-200',
@@ -26,6 +33,10 @@ const statusColors: Record<string, string> = {
 };
 
 const TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+// Production app: extra status tabs after "Processing".
+const PRODUCTION_TABS = ['All', 'Pending', 'Processing', 'Manufacturing', 'QualityCheck', 'Shipped', 'Delivered', 'Cancelled'];
+// Tab → `?status=` value (tabs are PascalCase i18n suffixes).
+const TAB_STATUS: Record<string, string> = { QualityCheck: 'QUALITY_CHECK' };
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -94,6 +105,16 @@ export default function CreatorOrdersPage() {
   // The API only knows the filter when the b2b app is on; drop it otherwise.
   // Kept as a string so the first `apps` arrival doesn't refetch an unfiltered list.
   const buyerParam = b2bEnabled && buyer ? `&buyer=${encodeURIComponent(buyer)}` : '';
+  // Production app: `?production=in_production|ready|not_started` filter,
+  // extra status tabs and a progress column (summaries fetched per page).
+  const productionEnabled = isAppEnabled(apps, 'production');
+  const production = searchParams.get('production') ?? '';
+  const productionParam =
+    productionEnabled && (PRODUCTION_FILTERS as readonly string[]).includes(production)
+      ? `&production=${encodeURIComponent(production)}`
+      : '';
+  const tabs = productionEnabled ? PRODUCTION_TABS : TABS;
+  const [summaries, setSummaries] = useState<ProductionSummaries>({});
 
   const setMarketKey = (key: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -111,6 +132,14 @@ export default function CreatorOrdersPage() {
     router.replace(qs ? `/creator/orders?${qs}` : '/creator/orders');
   };
 
+  const setProduction = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set('production', value);
+    else params.delete('production');
+    const qs = params.toString();
+    router.replace(qs ? `/creator/orders?${qs}` : '/creator/orders');
+  };
+
   // Status filtering happens server-side so tabs cover ALL orders,
   // not just the currently fetched page.
   const fetchOrders = async (page = 1, tab = activeTab) => {
@@ -118,9 +147,9 @@ export default function CreatorOrdersPage() {
     setLoading(true);
     setLoadError(false);
     try {
-      const statusParam = tab === 'All' ? '' : `&status=${tab.toUpperCase()}`;
+      const statusParam = tab === 'All' ? '' : `&status=${TAB_STATUS[tab] ?? tab.toUpperCase()}`;
       const marketParam = marketKey ? `&market=${encodeURIComponent(marketKey)}` : '';
-      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${marketParam}${buyerParam}`, { token });
+      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${marketParam}${buyerParam}${productionParam}`, { token });
       setOrders(res?.data ?? []);
       setMeta(res?.meta ?? null);
     } catch (err) {
@@ -135,7 +164,24 @@ export default function CreatorOrdersPage() {
     // Refetch from page 1 whenever the active tab or a filter changes.
     fetchOrders(1, activeTab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, activeTab, marketKey, buyerParam]);
+  }, [token, activeTab, marketKey, buyerParam, productionParam]);
+
+  // Production progress of the visible page (production app only).
+  useEffect(() => {
+    if (!token || !productionEnabled || orders.length === 0) return;
+    let cancelled = false;
+    productionApi
+      .summaries(token, orders.map((o) => o.id))
+      .then((res) => {
+        if (!cancelled) setSummaries(res ?? {});
+      })
+      .catch(() => {
+        // Progress is decorative here; the list stays usable without it.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, productionEnabled, orders]);
 
   // Market orders are charged in the market currency, which can differ from
   // the store currency `fmt` formats in.
@@ -158,7 +204,7 @@ export default function CreatorOrdersPage() {
         <button
           type="button"
           onClick={() => router.push(`/creator/orders/${item.id}`)}
-          className="text-sm font-mono font-medium hover:underline text-left"
+          className="text-sm font-mono font-medium hover:underline text-start"
         >
           {item.order_number}
         </button>
@@ -218,6 +264,21 @@ export default function CreatorOrdersPage() {
             ),
         }]
       : []),
+    // Production column only for stores running the production app.
+    ...(productionEnabled
+      ? [{
+          key: 'production',
+          label: t('orders.colProduction'),
+          render: (item: OrderRow) => {
+            const s = summaries[item.id];
+            return s ? (
+              <ProductionProgressBar className="w-36" done={s.done} total={s.total} />
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            );
+          },
+        }]
+      : []),
     {
       key: 'status',
       label: tc('status'),
@@ -267,7 +328,7 @@ export default function CreatorOrdersPage() {
       {/* Tab filters */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-1.5 flex-wrap">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Button
               key={tab}
               variant={activeTab === tab ? 'default' : 'ghost'}
@@ -279,7 +340,7 @@ export default function CreatorOrdersPage() {
             </Button>
           ))}
         </div>
-        {(marketsEnabled || b2bEnabled) && (
+        {(marketsEnabled || b2bEnabled || productionEnabled) && (
           <div className="flex flex-wrap items-center gap-2">
             {marketsEnabled && markets && markets.length > 0 && (
               <div className="w-56">
@@ -290,6 +351,21 @@ export default function CreatorOrdersPage() {
                   options={[
                     { value: '', label: t('orders.marketAll') },
                     ...markets.map((m) => ({ value: m.key, label: m.name, description: `${m.key} · ${m.currency}` })),
+                  ]}
+                />
+              </div>
+            )}
+            {productionEnabled && (
+              <div className="w-48">
+                <SearchableSelect
+                  value={productionParam ? production : ''}
+                  onChange={setProduction}
+                  placeholder={t('orders.productionFilter')}
+                  options={[
+                    { value: '', label: t('orders.productionAll') },
+                    { value: 'in_production', label: t('orders.productionInProgress') },
+                    { value: 'not_started', label: t('orders.productionNotStarted') },
+                    { value: 'ready', label: t('orders.productionReady') },
                   ]}
                 />
               </div>

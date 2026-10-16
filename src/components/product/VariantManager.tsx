@@ -13,16 +13,20 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import {
   Plus, Trash2, X, ImageIcon, Pencil, Package, Loader2,
-  ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
+  ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid,
 } from 'lucide-react';
 import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
+import type { ValueMeta } from '@/lib/personalization';
+import { ValueMetaDialog } from '@/components/apps/personalization/ValueMetaDialog';
 
 type Translator = ReturnType<typeof useTranslations>;
 
 export interface VariantOption {
   name: string;
-  style: 'text' | 'color' | 'image';
+  // 'card' = variation cards of the personalization app (M4.1 D9); the
+  // storefront falls back to text while the app is off.
+  style: 'text' | 'color' | 'image' | 'card';
   values: string[];
   colorMap?: Record<string, string>;
   dualColorMap?: Record<string, [string, string]>;
@@ -30,6 +34,11 @@ export interface VariantOption {
   // color), shared by every variant with that value. Persisted inside
   // variant_option_config, so no schema change and no duplicated image rows.
   imageMap?: Record<string, string>;
+  // Swatch-only image per value (C38): never switches the product photo.
+  swatchMap?: Record<string, string>;
+  // Per-value card data and repeat count (M4.1 D9). Edited only while the
+  // personalization app is on; always kept as-is otherwise.
+  valueMeta?: Record<string, ValueMeta>;
 }
 
 export interface GeneratedVariant {
@@ -52,6 +61,8 @@ interface VariantManagerProps {
   basePrice?: number;
   onPickImage?: () => Promise<UploadedImage[]>;
   uploading?: boolean;
+  /** Personalization app on for this product: card style and value details. */
+  personalization?: boolean;
 }
 
 /**
@@ -300,8 +311,10 @@ function ColorEditorPopover({
   );
 }
 
-export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage, uploading = false }: VariantManagerProps) {
+export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage, uploading = false, personalization = false }: VariantManagerProps) {
   const t = useTranslations();
+  // Option whose value details dialog is open (personalization app).
+  const [metaOption, setMetaOption] = useState<number | null>(null);
   const { currency } = useCurrency();
   const [newValue, setNewValue] = useState<Record<number, string>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -538,6 +551,17 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
       const { [val]: _, ...rest } = updated.imageMap;
       updated.imageMap = rest;
     }
+    // Per-value maps must only hold existing values (the API validates valueMeta keys).
+    if (updated.swatchMap?.[val] !== undefined) {
+      const swatchMap = { ...updated.swatchMap };
+      delete swatchMap[val];
+      updated.swatchMap = swatchMap;
+    }
+    if (updated.valueMeta?.[val] !== undefined) {
+      const valueMeta = { ...updated.valueMeta };
+      delete valueMeta[val];
+      updated.valueMeta = valueMeta;
+    }
     u[oi] = updated;
     onOptionsChange(u);
   };
@@ -657,7 +681,21 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                 <option value="text">{t('variant.styleText')}</option>
                 <option value="color">{t('variant.styleColor')}</option>
                 <option value="image">{t('variant.styleImage')}</option>
+                {/* Shown while the app is off too when already stored, so the value is not blanked. */}
+                {(personalization || option.style === 'card') && <option value="card">{t('variant.styleCard')}</option>}
               </select>
+              {personalization && option.values.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setMetaOption(oi)}
+                  className="flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+                >
+                  <LayoutGrid className="w-3 h-3" /> {t('variant.valueMeta.open')}
+                  {option.valueMeta && Object.keys(option.valueMeta).length > 0 && (
+                    <span className="text-muted-foreground">({Object.keys(option.valueMeta).length})</span>
+                  )}
+                </button>
+              )}
             </div>
             <div className="flex-1 space-y-1">
               <label className="text-[10px] font-medium text-muted-foreground">{t('variant.optionValues')}</label>
@@ -1159,6 +1197,28 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Value details of the personalization app (cards, repeat count, swatch) */}
+      {personalization && (
+        <ValueMetaDialog
+          open={metaOption !== null}
+          onOpenChange={(open) => !open && setMetaOption(null)}
+          option={metaOption !== null ? options[metaOption] ?? null : null}
+          uploading={uploading}
+          onPickImage={onPickImage ? async () => (await onPickImage())[0]?.url ?? null : undefined}
+          onSave={({ valueMeta, swatchMap }) => {
+            if (metaOption === null || !options[metaOption]) return;
+            const u = [...options];
+            const next: VariantOption = { ...options[metaOption]! };
+            if (valueMeta) next.valueMeta = valueMeta;
+            else delete next.valueMeta;
+            if (swatchMap) next.swatchMap = swatchMap;
+            else delete next.swatchMap;
+            u[metaOption] = next;
+            onOptionsChange(u);
+          }}
+        />
+      )}
     </Card>
   );
 }

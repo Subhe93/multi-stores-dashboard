@@ -25,6 +25,8 @@ import { Badge } from '@/components/ui/badge';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { TagInput } from '@/components/common/TagInput';
+import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { Textarea } from '@/components/ui/textarea';
 import {
   ProductMultiSelect,
   type ProductOption,
@@ -53,7 +55,23 @@ interface CategoryTranslation {
   locale: string;
   name: string;
   description?: string;
+  // SEO overrides (M4.4); absent on older API builds.
+  meta_title?: string | null;
+  meta_desc?: string | null;
 }
+
+// Per-locale form state. `meta_title`/`meta_desc` stay undefined until loaded
+// or edited: the API keeps the stored value of a locale that omits them (X19).
+interface LocaleFields {
+  name: string;
+  description: string;
+  meta_title?: string;
+  meta_desc?: string;
+}
+
+/** Search-result lengths the counters warn about. */
+const META_TITLE_MAX = 60;
+const META_DESC_MAX = 160;
 
 interface CategoryNode {
   id: string;
@@ -71,6 +89,7 @@ interface CategoryDetail {
   match_rule: MatchRule;
   match_tags: string[];
   is_active: boolean;
+  noindex_when_empty?: boolean;
   sort_order: number;
   translations: CategoryTranslation[];
   products?: { product: { id: string } }[];
@@ -182,9 +201,9 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
 
   // Form fields
-  const [translations, setTranslations] = useState<
-    Record<string, { name: string; description: string }>
-  >({ en: { name: '', description: '' } });
+  const [translations, setTranslations] = useState<Record<string, LocaleFields>>({
+    en: { name: '', description: '' },
+  });
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [parentId, setParentId] = useState<string | null>(null);
@@ -193,6 +212,10 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
   const [matchTags, setMatchTags] = useState<string[]>([]);
   const [productIds, setProductIds] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+  // undefined = not loaded (older API): the field is then left out of the save.
+  const [noindexWhenEmpty, setNoindexWhenEmpty] = useState<boolean | undefined>(
+    mode === 'create' ? false : undefined,
+  );
 
   // Reference data
   const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
@@ -221,7 +244,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         setAllLocales(all);
         setActiveLocale((curr) => (all.includes(curr) ? curr : primary));
         setTranslations((prev) => {
-          const next: Record<string, { name: string; description: string }> = {};
+          const next: Record<string, LocaleFields> = {};
           all.forEach((l) => {
             next[l] = prev[l] ?? { name: '', description: '' };
           });
@@ -283,6 +306,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         setMatchRule(detail.match_rule);
         setMatchTags(detail.match_tags ?? []);
         setIsActive(detail.is_active);
+        if (typeof detail.noindex_when_empty === 'boolean') setNoindexWhenEmpty(detail.noindex_when_empty);
         setProductIds([
           ...(detail.products ?? []).map((p) => `p:${p.product.id}`),
           ...(detail.custom_products ?? []).map(
@@ -290,13 +314,15 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           ),
         ]);
         setTranslations((prev) => {
-          const next: Record<string, { name: string; description: string }> = {
+          const next: Record<string, LocaleFields> = {
             ...prev,
           };
           for (const t of detail.translations || []) {
             next[t.locale] = {
               name: t.name || '',
               description: t.description || '',
+              ...('meta_title' in t ? { meta_title: t.meta_title || '' } : {}),
+              ...('meta_desc' in t ? { meta_desc: t.meta_desc || '' } : {}),
             };
           }
           return next;
@@ -405,7 +431,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
   const setTransField = (
     locale: string,
-    field: 'name' | 'description',
+    field: keyof LocaleFields,
     value: string,
   ) => {
     setTranslations((prev) => ({
@@ -462,6 +488,9 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
           locale,
           name: t.name.trim(),
           description: t.description?.trim() || undefined,
+          // Only when loaded or edited, so an untouched locale keeps its stored SEO.
+          ...(t.meta_title !== undefined ? { meta_title: t.meta_title.trim() } : {}),
+          ...(t.meta_desc !== undefined ? { meta_desc: t.meta_desc.trim() } : {}),
         }));
 
       // The picker uses prefixed IDs to distinguish own products (`p:`) from
@@ -483,6 +512,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         match_rule: matchRule,
         match_tags: matchRule === 'TAGS' ? matchTags : [],
         is_active: isActive,
+        ...(noindexWhenEmpty !== undefined ? { noindex_when_empty: noindexWhenEmpty } : {}),
         translations: translationsPayload,
         product_ids: ownIds,
         custom_product_ids: customIds,
@@ -751,6 +781,94 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               {slugError && (
                 <p className="text-[11px] text-red-500">{slugError}</p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Search engine listing (M4.4): per-locale SEO overrides + noindex */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">
+                {t('creator.collections.form.seo')}
+                {hasMultipleLocales && (
+                  <span className="ms-1.5 text-[11px] font-normal text-muted-foreground">
+                    ({LOCALE_LABELS[activeLocale] || activeLocale.toUpperCase()})
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              {/* Preview of the search result, falling back like the storefront does */}
+              <div className="rounded-md border bg-zinc-50/60 px-3 py-2" dir={isRtl ? 'rtl' : 'ltr'}>
+                <p className="truncate text-sm text-blue-700">
+                  {translations[activeLocale]?.meta_title?.trim() ||
+                    translations[activeLocale]?.name?.trim() ||
+                    t('creator.collections.form.seoPreviewEmpty')}
+                </p>
+                <p className="line-clamp-2 text-xs text-muted-foreground">
+                  {translations[activeLocale]?.meta_desc?.trim() || t('creator.collections.form.seoDescFallback')}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="collection-meta-title" className="text-xs font-medium">
+                    {t('creator.collections.form.metaTitle')}
+                  </Label>
+                  <span
+                    className={`text-[11px] tabular-nums ${
+                      (translations[activeLocale]?.meta_title?.length ?? 0) > META_TITLE_MAX ? 'text-amber-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {translations[activeLocale]?.meta_title?.length ?? 0}/{META_TITLE_MAX}
+                  </span>
+                </div>
+                <Input
+                  id="collection-meta-title"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  className="h-9 text-sm"
+                  value={translations[activeLocale]?.meta_title ?? ''}
+                  onChange={(e) => setTransField(activeLocale, 'meta_title', e.target.value)}
+                  placeholder={translations[activeLocale]?.name || ''}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="collection-meta-desc" className="text-xs font-medium">
+                    {t('creator.collections.form.metaDesc')}
+                  </Label>
+                  <span
+                    className={`text-[11px] tabular-nums ${
+                      (translations[activeLocale]?.meta_desc?.length ?? 0) > META_DESC_MAX ? 'text-amber-600' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {translations[activeLocale]?.meta_desc?.length ?? 0}/{META_DESC_MAX}
+                  </span>
+                </div>
+                <Textarea
+                  id="collection-meta-desc"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  rows={3}
+                  className="text-sm"
+                  value={translations[activeLocale]?.meta_desc ?? ''}
+                  onChange={(e) => setTransField(activeLocale, 'meta_desc', e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">{t('creator.collections.form.metaHint')}</p>
+              </div>
+              <div className="flex items-start justify-between gap-3 border-t pt-3">
+                <div>
+                  <Label htmlFor="collection-noindex-empty" className="text-sm font-normal">
+                    {t('creator.collections.form.noindexWhenEmpty')}
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('creator.collections.form.noindexWhenEmptyHint')}
+                  </p>
+                </div>
+                <ToggleSwitch
+                  id="collection-noindex-empty"
+                  checked={!!noindexWhenEmpty}
+                  onChange={setNoindexWhenEmpty}
+                  label={t('creator.collections.form.noindexWhenEmpty')}
+                />
+              </div>
             </CardContent>
           </Card>
 

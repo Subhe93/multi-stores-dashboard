@@ -3,7 +3,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, ArrowUpRight, Blocks, Building2, Download, FileText, Globe, type LucideIcon } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowUpRight,
+  Blocks,
+  Building2,
+  Download,
+  FileText,
+  Globe,
+  ListChecks,
+  PenLine,
+  PenTool,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { sanitizeStoreApps, setCachedStoreApps } from '@/lib/useStoreApps';
@@ -19,6 +31,9 @@ const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
   b2b: Building2,
   invoices: FileText,
   importer: Download,
+  personalization: PenLine,
+  production: ListChecks,
+  designer: PenTool,
 };
 
 /**

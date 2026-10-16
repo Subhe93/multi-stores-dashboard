@@ -7,11 +7,14 @@ interface ToggleSwitchProps {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   label?: string;
+  /** Lets a `<Label htmlFor>` point at the switch. */
+  id?: string;
 }
 
-export function ToggleSwitch({ checked, onChange, disabled, label }: ToggleSwitchProps) {
+export function ToggleSwitch({ checked, onChange, disabled, label, id }: ToggleSwitchProps) {
   return (
     <button
+      id={id}
       type="button"
       role="switch"
       aria-checked={checked}

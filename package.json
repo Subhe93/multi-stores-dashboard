@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:personalization-mirror": "node scripts/check-personalization-mirror.mjs",
+    "check:config-issue-paths": "node scripts/check-config-issue-paths.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
