@@ -10,12 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
-  ArrowLeft, Clock, Truck, CheckCircle2,
-  XCircle, FileImage, ExternalLink, Package, Info,
+  ArrowLeft, Truck, CheckCircle2,
+  XCircle, ExternalLink, Package, Info,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { resolveMediaUrl } from '@/lib/media';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -23,9 +22,7 @@ import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
-import { useApiError } from '@/lib/useApiError';
-import { downloadCustomerUploadOriginal } from '@/lib/customerUploads.api';
-import { snapshotLabel, sortValueRows, type OrderFieldValueRow } from '@/lib/customFields';
+import type { OrderFieldValueRow } from '@/lib/customFields';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -191,33 +188,13 @@ export default function ProviderOrderDetail() {
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const tp = useTranslations('payments');
-  // Personalization file wording is shared with the creator order page.
-  const tod = useTranslations('creator.orderDetail');
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showTracking, setShowTracking] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [trackingUrl, setTrackingUrl] = useState('');
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const uiLocale = useLocale();
-  const apiError = useApiError();
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [downloadError, setDownloadError] = useState('');
-
-  // Private original of a customer upload (M4.0); the preview stays public.
-  const handleDownloadOriginal = async (uploadId: string, name?: string | null) => {
-    if (!token || downloadingId) return;
-    setDownloadingId(uploadId);
-    setDownloadError('');
-    try {
-      await downloadCustomerUploadOriginal(token, uploadId, name);
-    } catch (err) {
-      setDownloadError(apiError(err));
-    } finally {
-      setDownloadingId(null);
-    }
-  };
 
   const fetchOrder = () => {
     if (!token || !id) return;
@@ -281,26 +258,8 @@ export default function ProviderOrderDetail() {
     items.some((it) => it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId);
   const hasCreatorItems = items.some((it) => it.fulfiller_type === 'CREATOR');
 
-  // Collect all design/image files from custom field values
-  // Purged uploads (retention) have no preview left and are listed inline only.
-  const designFiles: { label: string; url: string; itemTitle: string; uploadId?: string; originalName?: string | null }[] = [];
-  order.items?.forEach((item) => {
-    const title = item.product?.translations?.[0]?.title || item.product?.name || item.product_id;
-    sortValueRows(item.custom_field_values).forEach((fv) => {
-      const fileUrl = fv.upload?.preview_url || fv.file_url;
-      if (fileUrl && !fv.upload?.purged_at) {
-        designFiles.push({
-          label: snapshotLabel(fv, uiLocale, order.locale || 'en').label,
-          // Customer uploads live on the API host; make the path absolute.
-          url: resolveMediaUrl(fileUrl) || fileUrl,
-          itemTitle: title,
-          uploadId: fv.upload?.id ?? fv.upload_id ?? undefined,
-          originalName: fv.upload?.original_name,
-        });
-      }
-    });
-  });
-
+  // Customer files (previews, original downloads, purged notes) are shown per
+  // line by GroupedOrderFieldValues; the separate gallery card was a duplicate.
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
@@ -398,56 +357,6 @@ export default function ProviderOrderDetail() {
         </Card>
       )}
 
-      {/* Design / File Previews */}
-      {designFiles.length > 0 && (
-        <Card className="shadow-none border-blue-100">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <FileImage className="w-4 h-4 text-blue-500" /> {t('customerDesignFiles')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {designFiles.map((f, i) => (
-                <div key={i} className="space-y-1">
-                  <button
-                    onClick={() => setLightboxImg(f.url)}
-                    className="w-full aspect-square rounded-lg border overflow-hidden bg-zinc-50 hover:opacity-90 transition relative group"
-                  >
-                    <img src={f.url} alt={f.label} className="w-full h-full object-contain p-1" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
-                      <ExternalLink className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition" />
-                    </div>
-                  </button>
-                  <p className="text-[10px] text-center text-muted-foreground truncate">{f.label}</p>
-                  {f.uploadId ? (
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadOriginal(f.uploadId!, f.originalName)}
-                      disabled={downloadingId !== null}
-                      className="block w-full text-center text-[10px] text-blue-600 hover:underline disabled:opacity-50"
-                    >
-                      {downloadingId === f.uploadId ? '…' : tod('downloadOriginal')}
-                    </button>
-                  ) : (
-                    <a
-                      href={f.url}
-                      download
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block text-center text-[10px] text-blue-600 hover:underline"
-                    >
-                      {t('download')}
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-            {downloadError && <p className="mt-2 text-xs text-red-600">{downloadError}</p>}
-          </CardContent>
-        </Card>
-      )}
-
       <div className="grid grid-cols-3 gap-4">
         {/* Order Items */}
         <Card className="shadow-none col-span-2">
@@ -493,7 +402,7 @@ export default function ProviderOrderDetail() {
                           {(() => {
                             const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
                             return (
-                              <Badge variant="outline" className={`text-[10px] font-semibold shrink-0 ${
+                              <Badge variant="outline" className={`text-[11px] font-semibold shrink-0 ${
                                 STATUS_COLORS[itemStatus] || 'bg-zinc-100 text-zinc-600'
                               }`}>
                                 {statusLabel(t, itemStatus)}
@@ -522,7 +431,7 @@ export default function ProviderOrderDetail() {
                     />
 
                     {item.design_notes && (
-                      <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
+                      <p className="ms-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
                     )}
                   </div>
                 );
@@ -541,7 +450,7 @@ export default function ProviderOrderDetail() {
                   {t('shipping')}
                   {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
                   {order.shipping_method_type === 'PICKUP' && (
-                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{tp('pickup')}</Badge>
+                    <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
                   )}
                 </span>
                 <span>{fmt(Number(order.shipping_cost))}</span>
@@ -582,11 +491,11 @@ export default function ProviderOrderDetail() {
                       <div className="flex items-center justify-between text-xs border-t pt-2 mt-1">
                         <span className="text-muted-foreground">{tp('yourPayout')}</span>
                         {myPayout ? (
-                          <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                          <Badge variant="outline" className={`text-[11px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
+                          <Badge variant="outline" className="text-[11px] bg-zinc-100 text-zinc-600 border-zinc-200">
                             {order.payment_status === 'paid' ? tp('statusPending') : tp('statusAwaiting')}
                           </Badge>
                         )}
@@ -665,8 +574,8 @@ export default function ProviderOrderDetail() {
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
                       <div>
                         <p className="text-[11px] font-medium">{statusLabel(t, e.status)}</p>
-                        {e.note && <p className="text-[10px] text-muted-foreground">{e.note}</p>}
-                        <p className="text-[9px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
+                        {e.note && <p className="text-[11px] text-muted-foreground">{e.note}</p>}
+                        <p className="text-[11px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
                       </div>
                     </div>
                   ))}
@@ -712,15 +621,6 @@ export default function ProviderOrderDetail() {
               {updating ? t('shippingInProgress') : t('markAsShipped')}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image lightbox */}
-      <Dialog open={!!lightboxImg} onOpenChange={() => setLightboxImg(null)}>
-        <DialogContent className="max-w-2xl p-2 bg-black/95 border-zinc-700">
-          {lightboxImg && (
-            <img src={lightboxImg} alt={t('designPreview')} className="w-full max-h-[80vh] object-contain rounded" />
-          )}
         </DialogContent>
       </Dialog>
     </div>

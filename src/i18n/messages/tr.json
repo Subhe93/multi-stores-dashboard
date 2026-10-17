@@ -2608,6 +2608,7 @@
         "insertIntoProduct": "Ürüne ekle…",
         "rename": "Yeniden adlandır",
         "delete": "Sil",
+        "deleteTitle": "Şablonu sil",
         "confirmDelete": "“{name}” şablonu silinsin mi? Onu kullanan ürünler alanlarını korur.",
         "insertedNotice": "{count, plural, one {# alan eklendi} other {# alan eklendi}}.",
         "openProduct": "Ürünü aç",
@@ -2617,6 +2618,10 @@
       }
     },
     "importer": {
+      "techDetails": {
+        "show": "Teknik ayrıntıları göster",
+        "hide": "Teknik ayrıntıları gizle"
+      },
       "title": "WooCommerce içe aktarıcı",
       "subtitle": "Mevcut bir WooCommerce mağazasından ürünleri, koleksiyonları ve yönlendirmeleri içe aktarın.",
       "tabs": {
@@ -3020,7 +3025,8 @@
           "attributes": "Seçenekler ve adlar",
           "faq": "SSS soruları",
           "shipping": "Kargo",
-          "handoff": "Kişiselleştirme ve ekstralar"
+          "handoff": "Kişiselleştirme ve ekstralar",
+          "conflict": "Ürün zaten varsa"
         },
         "categoryPlaceholder": "Bir kategori seçin",
         "categoryHint": "İçe aktarılan her ürün bu platform kategorisine yerleştirilir. Zorunlu.",
@@ -3102,7 +3108,21 @@
           "daysOrder": "“En az”, “en çok” değerinden büyük olamaz.",
           "overrideIncomplete": "İki sütunu da doldurun veya satırı kaldırın.",
           "sectionInvalid": "“{section}” içindeki bir değer geçerli değil. Değerleri kontrol edin.",
+          "duplicateKey": "Bu anahtar iki kez kullanılıyor.",
           "fixBeforeSave": "Önce işaretli bölümleri düzeltin."
+        },
+        "advanced": "Gelişmiş ayarlar",
+        "advancedHint": "Ürün durumları, seçenek adları, SSS soruları, kargo ve ekstralar. Varsayılanlar çoğu mağaza için uygundur.",
+        "unsavedTitle": "Kaydedilmemiş eşleme değişiklikleri",
+        "unsavedBody": "Eşleme değişiklikleriniz henüz kaydedilmedi. Ayrılıp bunları atmak istiyor musunuz?",
+        "unsavedLeave": "Değişiklikleri at",
+        "manualRef": "Referansla atla",
+        "manualRefHint": "Rapordan bir ürün referansı yapıştırın, örneğin woo:example.com:product:123.",
+        "skipLoading": "Ürünler yükleniyor…",
+        "methods": {
+          "flat_rate": "Sabit ücret",
+          "local_pickup": "Yerinden teslim",
+          "free_shipping": "Ücretsiz kargo"
         },
         "categoryOptionalHint": "Yalnızca ürünler içe aktarılırken gereklidir.",
         "stockOnUpdate": "Daha önce içe aktarılan ürünlerin stoğu",
@@ -3129,6 +3149,18 @@
         "active": "Aktif",
         "inactive": "Pasif",
         "empty": "Henüz yönlendirme yok.",
+        "csvImport": {
+          "button": "CSV içe aktar",
+          "title": "Yönlendirmeleri CSV’den içe aktar",
+          "body": "Her satırda bir yönlendirme: from_path,to_path,status. Durum isteğe bağlıdır (varsayılan 301). En fazla 5000 satır; zaten kullanılan yollar çakışma olarak bildirilir.",
+          "file": "CSV dosyası",
+          "run": "İçe aktar",
+          "result": "{created, plural, one {# yönlendirme oluşturuldu} other {# yönlendirme oluşturuldu}} · {conflicts, plural, =0 {çakışma yok} one {# çakışma} other {# çakışma}}",
+          "conflictsTitle": "Çakışmalar",
+          "tooMany": "Dosyada 5000’den fazla satır var.",
+          "invalidLine": "{line}. satır geçerli bir yönlendirme değil.",
+          "empty": "Dosyada yönlendirme yok."
+        },
         "emptyFiltered": "Filtrelerle eşleşen yönlendirme yok.",
         "columns": {
           "paths": "Kaynak → hedef",
@@ -3318,6 +3350,8 @@
         "emptyTitle": "Burada bir şey yok",
         "emptyBody": "Açık siparişler kontrol listesi ilerlemesiyle burada görünür. Uygulama açılmadan önce verilen siparişler için Ayarlar altındaki Kontrol listeleri oluştur'u kullanın.",
         "openOrder": "Sipariş",
+        "search": "Sipariş numarası ara…",
+        "searchEmpty": "Yüklü siparişlerden eşleşen yok. Daha fazla aramak için daha fazla yükleyin.",
         "loadMore": "Daha fazla yükle"
       },
       "settings": {
@@ -3623,7 +3657,10 @@
         },
         "linkedProducts": "{count, plural, one {# ürün hâlâ bu şablonu kullanıyor. Önce şablonu o üründen kaldırın.} other {# ürün hâlâ bu şablonu kullanıyor. Önce şablonu bu ürünlerden kaldırın.}}",
         "linkedShow": "Bağlı ürünleri göster",
-        "linkedOpenProducts": "Ürünleri aç"
+        "linkedOpenProducts": "Ürünleri aç",
+        "leaveTitle": "Kaydedilmemiş değişiklikler",
+        "leaveBody": "Bu şablonda kaydedilmemiş değişiklikler var. Düzenleyiciden çıkıp bunları atmak istiyor musunuz?",
+        "leaveConfirm": "Kaydetmeden çık"
       },
       "assets": {
         "warningsTitle": "Bu dosyayı kullanmadan önce kontrol edin",
@@ -5115,6 +5152,9 @@
     "maxChecked": "En fazla işaretli",
     "checkedInvalid": "0 ile {max} arasında bir tam sayı girin.",
     "repeaterRequiredHint": "Tekrarlanan ürünlerin zorunlu işareti yoktur; bunu gruptaki alanlarda ayarlayın.",
+    "editor": {
+      "tabHasError": "(hata)"
+    },
     "tabs": {
       "basics": "Temel",
       "visibility": "Görünürlük",

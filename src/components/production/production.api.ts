@@ -3,7 +3,8 @@
 // STORE_APP_NOT_ENABLED while the app is off) plus the settings helpers used
 // by the settings tab (saved through PUT /stores/my/apps/production).
 
-import { api, API_URL, ApiError } from '@/lib/api';
+import { api } from '@/lib/api';
+import { qs } from '@/lib/http';
 
 export type ProductionState = 'NONE' | 'NOT_STARTED' | 'IN_PROGRESS' | 'READY';
 export type ProductionCheckSource = 'FIELD_VALUE' | 'VARIANT_OPTION' | 'DESIGN' | 'CUSTOM';
@@ -190,13 +191,8 @@ export const productionApi = {
   workspace: (token: string, orderId: string) =>
     api<ProductionWorkspace>(`${BASE}/orders/${encodeURIComponent(orderId)}`, { token }),
   /** Newest first; `page` 1-based, `limit` at most 200 (API default 50). */
-  events: (token: string, orderId: string, q: { page?: number; limit?: number } = {}) => {
-    const sp = new URLSearchParams();
-    if (q.page) sp.set('page', String(q.page));
-    if (q.limit) sp.set('limit', String(q.limit));
-    const query = sp.toString();
-    return api<ProductionEvent[]>(`${BASE}/orders/${encodeURIComponent(orderId)}/events${query ? `?${query}` : ''}`, { token });
-  },
+  events: (token: string, orderId: string, q: { page?: number; limit?: number } = {}) =>
+    api<ProductionEvent[]>(`${BASE}/orders/${encodeURIComponent(orderId)}/events${qs(q)}`, { token }),
   setCheck: (token: string, checkId: string, done: boolean) =>
     api<ProductionWriteResult>(`${BASE}/checks/${encodeURIComponent(checkId)}`, {
       method: 'PUT',
@@ -214,24 +210,9 @@ export const productionApi = {
       `${BASE}/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/checks`,
       { method: 'POST', token, body: JSON.stringify({ label }) },
     ),
-  /** 204 No Content: `api()` always parses JSON, so this one uses fetch directly. */
-  removeCustom: async (token: string, checkId: string): Promise<void> => {
-    const res = await fetch(`${API_URL}${BASE}/checks/${encodeURIComponent(checkId)}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) return;
-    const err = new ApiError('Request failed');
-    err.status = res.status;
-    try {
-      const json = await res.json();
-      if (json?.message) err.message = Array.isArray(json.message) ? json.message.join(' · ') : json.message;
-      if (typeof json?.code === 'string') err.code = json.code;
-    } catch {
-      // Non-JSON error body; keep the generic message.
-    }
-    throw err;
-  },
+  /** 204 No Content: `api()` resolves with `undefined` on 204. */
+  removeCustom: (token: string, checkId: string): Promise<void> =>
+    api<void>(`${BASE}/checks/${encodeURIComponent(checkId)}`, { method: 'DELETE', token }),
 };
 
 // ── Settings helpers (lenient parse, like the API's normalizeProductionSettings) ──

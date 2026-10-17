@@ -2608,6 +2608,7 @@
         "insertIntoProduct": "In Produkt einfügen…",
         "rename": "Umbenennen",
         "delete": "Löschen",
+        "deleteTitle": "Vorlage löschen",
         "confirmDelete": "Vorlage „{name}“ löschen? Produkte, die sie verwenden, behalten ihre Felder.",
         "insertedNotice": "{count, plural, one {# Feld eingefügt} other {# Felder eingefügt}}.",
         "openProduct": "Produkt öffnen",
@@ -2617,6 +2618,10 @@
       }
     },
     "importer": {
+      "techDetails": {
+        "show": "Technische Details anzeigen",
+        "hide": "Technische Details ausblenden"
+      },
       "title": "WooCommerce-Importer",
       "subtitle": "Importieren Sie Produkte, Kollektionen und Weiterleitungen aus einem bestehenden WooCommerce-Shop.",
       "tabs": {
@@ -3020,7 +3025,8 @@
           "attributes": "Optionen und Namen",
           "faq": "FAQ-Fragen",
           "shipping": "Versand",
-          "handoff": "Personalisierung und Extras"
+          "handoff": "Personalisierung und Extras",
+          "conflict": "Wenn ein Produkt bereits existiert"
         },
         "categoryPlaceholder": "Kategorie wählen",
         "categoryHint": "Alle importierten Produkte kommen in diese Plattformkategorie. Pflichtfeld.",
@@ -3102,7 +3108,21 @@
           "daysOrder": "„Ab“ darf nicht größer als „bis“ sein.",
           "overrideIncomplete": "Füllen Sie beide Spalten aus oder entferne die Zeile.",
           "sectionInvalid": "Etwas in „{section}“ ist ungültig. Prüfen Sie die Werte.",
+          "duplicateKey": "Dieser Schlüssel wird zweimal verwendet.",
           "fixBeforeSave": "Korrigieren Sie zuerst die markierten Abschnitte."
+        },
+        "advanced": "Erweiterte Einstellungen",
+        "advancedHint": "Produktstatus, Optionsnamen, FAQ-Fragen, Versand und Extras. Die Standardwerte passen für die meisten Shops.",
+        "unsavedTitle": "Ungespeicherte Zuordnungsänderungen",
+        "unsavedBody": "Ihre Änderungen an der Zuordnung sind noch nicht gespeichert. Verlassen und verwerfen?",
+        "unsavedLeave": "Änderungen verwerfen",
+        "manualRef": "Nach Referenz überspringen",
+        "manualRefHint": "Fügen Sie eine Produktreferenz aus dem Bericht ein, z. B. woo:example.com:product:123.",
+        "skipLoading": "Produkte werden geladen …",
+        "methods": {
+          "flat_rate": "Pauschale",
+          "local_pickup": "Abholung vor Ort",
+          "free_shipping": "Kostenloser Versand"
         },
         "categoryOptionalHint": "Nur nötig, wenn Produkte importiert werden.",
         "stockOnUpdate": "Bestand bereits importierter Produkte",
@@ -3129,6 +3149,18 @@
         "active": "Aktiv",
         "inactive": "Inaktiv",
         "empty": "Noch keine Weiterleitungen.",
+        "csvImport": {
+          "button": "CSV importieren",
+          "title": "Weiterleitungen aus CSV importieren",
+          "body": "Eine Weiterleitung pro Zeile: from_path,to_path,status. Der Status ist optional (Standard 301). Bis zu 5000 Zeilen; bereits verwendete Pfade werden als Konflikte gemeldet.",
+          "file": "CSV-Datei",
+          "run": "Importieren",
+          "result": "{created, plural, one {# Weiterleitung erstellt} other {# Weiterleitungen erstellt}} · {conflicts, plural, =0 {keine Konflikte} one {# Konflikt} other {# Konflikte}}",
+          "conflictsTitle": "Konflikte",
+          "tooMany": "Die Datei hat mehr als 5000 Zeilen.",
+          "invalidLine": "Zeile {line} ist keine gültige Weiterleitung.",
+          "empty": "Die Datei enthält keine Weiterleitungen."
+        },
         "emptyFiltered": "Keine Weiterleitungen entsprechen den Filtern.",
         "columns": {
           "paths": "Von → nach",
@@ -3318,6 +3350,8 @@
         "emptyTitle": "Nichts zu tun",
         "emptyBody": "Offene Bestellungen erscheinen hier mit dem Fortschritt ihrer Checkliste. Für Bestellungen vor der Aktivierung der App nutzen Sie „Checklisten erzeugen“ unter Einstellungen.",
         "openOrder": "Bestellung",
+        "search": "Bestellnummer suchen …",
+        "searchEmpty": "Keine geladene Bestellung passt. Laden Sie mehr, um weiterzusuchen.",
         "loadMore": "Mehr laden"
       },
       "settings": {
@@ -3623,7 +3657,10 @@
         },
         "linkedProducts": "{count, plural, one {# Produkt verwendet diese Vorlage noch. Entfernen Sie die Vorlage zuerst von diesem Produkt.} other {# Produkte verwenden diese Vorlage noch. Entfernen Sie die Vorlage zuerst von diesen Produkten.}}",
         "linkedShow": "Verknüpfte Produkte anzeigen",
-        "linkedOpenProducts": "Produkte öffnen"
+        "linkedOpenProducts": "Produkte öffnen",
+        "leaveTitle": "Ungespeicherte Änderungen",
+        "leaveBody": "Diese Vorlage hat ungespeicherte Änderungen. Editor verlassen und sie verwerfen?",
+        "leaveConfirm": "Ohne Speichern verlassen"
       },
       "assets": {
         "warningsTitle": "Vor der Verwendung dieser Datei prüfen",
@@ -5115,6 +5152,9 @@
     "maxChecked": "Max. angehakt",
     "checkedInvalid": "Geben Sie eine ganze Zahl von 0 bis {max} ein.",
     "repeaterRequiredHint": "Wiederholte Artikel haben keine Pflichtangabe; legen Sie sie bei den Feldern der Gruppe fest.",
+    "editor": {
+      "tabHasError": "(Fehler)"
+    },
     "tabs": {
       "basics": "Grundlagen",
       "visibility": "Sichtbarkeit",

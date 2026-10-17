@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, CircleCheck, CircleSlash, FlaskConical, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, CircleCheck, CircleSlash, FileUp, FlaskConical, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,12 +14,17 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { useApiError } from '@/lib/useApiError';
 import {
+  REDIRECT_BULK_MAX,
   REDIRECT_STATUS_CODES,
+  bulkCreateRedirects,
   createRedirect,
   deleteRedirect,
   listRedirects,
+  probeRedirectBulk,
   testRedirect,
   updateRedirect,
+  type RedirectBulkResult,
+  type RedirectBulkRow,
   type RedirectListResponse,
   type RedirectSource,
   type RedirectStatusCode,
@@ -42,9 +47,9 @@ function pathProblem(value: string): 'required' | 'slash' | 'scheme' | 'tooLong'
 }
 
 /**
- * Redirects manager (§13): search, source filter, add / edit / delete, and
- * "Test a URL". With the importer app off (`readOnly`) only listing and
- * deleting stay available, like the API.
+ * Redirects manager (§13): search, source filter, add / edit / delete, CSV
+ * import and "Test a URL". With the importer app off (`readOnly`) only
+ * listing and deleting stay available, like the API.
  */
 export function RedirectsTab({ token, readOnly = false }: { token: string; readOnly?: boolean }) {
   const t = useTranslations('creator.importer.redirects');
@@ -63,6 +68,9 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
   const [deleting, setDeleting] = useState<RedirectView | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // CSV import (W1-B bulk route): hidden until one probe says the route exists.
+  const [bulkAvailable, setBulkAvailable] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   // Debounce the search so typing doesn't fire a request per key.
   useEffect(() => {
@@ -89,6 +97,17 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    let cancelled = false;
+    probeRedirectBulk(token).then((ok) => {
+      if (!cancelled) setBulkAvailable(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, readOnly]);
 
   const confirmDelete = async () => {
     if (!deleting) return;
@@ -158,7 +177,7 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
             <Button
               variant="ghost"
               size="icon"
-              className="size-7"
+              className="size-9 max-sm:size-11"
               onClick={() => {
                 setEditing(r);
                 setDialogOpen(true);
@@ -172,7 +191,7 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-destructive hover:text-destructive"
+            className="size-9 text-destructive hover:text-destructive max-sm:size-11"
             onClick={() => {
               setDeleteError(null);
               setDeleting(r);
@@ -224,16 +243,24 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
             />
           </div>
           {!readOnly && (
-            <Button
-              size="sm"
-              onClick={() => {
-                setEditing(null);
-                setDialogOpen(true);
-              }}
-            >
-              <Plus />
-              {t('add')}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {bulkAvailable && (
+                <Button size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+                  <FileUp />
+                  {t('csvImport.button')}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditing(null);
+                  setDialogOpen(true);
+                }}
+              >
+                <Plus />
+                {t('add')}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -269,6 +296,18 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
         }}
       />
 
+      {bulkAvailable && (
+        <CsvImportDialog
+          token={token}
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          onImported={() => {
+            setPage(1);
+            load();
+          }}
+        />
+      )}
+
       <ConfirmDialog
         open={!!deleting}
         title={t('deleteTitle')}
@@ -281,6 +320,154 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
         onOpenChange={(o) => !o && setDeleting(null)}
       />
     </div>
+  );
+}
+
+// ─── CSV import ──────────────────────────────────────────────────────────────
+
+type CsvParse = { rows: RedirectBulkRow[] } | { error: 'tooMany' | 'empty' } | { error: 'invalidLine'; line: number };
+
+/** `from_path,to_path[,status]` per line; a header line and blank lines are skipped. */
+function parseRedirectCsv(text: string): CsvParse {
+  const lines = text.split(/\r?\n/);
+  const rows: RedirectBulkRow[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]!.trim();
+    if (!raw) continue;
+    const cells = raw.split(/[,;\t]/).map((c) => c.trim().replace(/^"|"$/g, ''));
+    if (i === 0 && /^from[_ ]?path$/i.test(cells[0] ?? '')) continue;
+    const [from, to, status] = cells;
+    if (!from || !to || pathProblem(from) || pathProblem(to) || from === to) return { error: 'invalidLine', line: i + 1 };
+    let code: RedirectStatusCode | undefined;
+    if (status) {
+      const n = Number(status);
+      if (!(REDIRECT_STATUS_CODES as readonly number[]).includes(n)) return { error: 'invalidLine', line: i + 1 };
+      code = n as RedirectStatusCode;
+    }
+    rows.push(code ? { from_path: from, to_path: to, status_code: code } : { from_path: from, to_path: to });
+    if (rows.length > REDIRECT_BULK_MAX) return { error: 'tooMany' };
+  }
+  return rows.length ? { rows } : { error: 'empty' };
+}
+
+function CsvImportDialog({
+  token,
+  open,
+  onOpenChange,
+  onImported,
+}: {
+  token: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onImported: () => void;
+}) {
+  const t = useTranslations('creator.importer.redirects.csvImport');
+  const tc = useTranslations('common');
+  const describeError = useApiError();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [rows, setRows] = useState<RedirectBulkRow[] | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [problem, setProblem] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<RedirectBulkResult | null>(null);
+
+  const reset = () => {
+    setRows(null);
+    setFileName('');
+    setProblem(null);
+    setResult(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const pick = async (file: File | undefined) => {
+    setResult(null);
+    setProblem(null);
+    setRows(null);
+    if (!file) return;
+    setFileName(file.name);
+    const parsed = parseRedirectCsv(await file.text());
+    if ('error' in parsed) {
+      setProblem(parsed.error === 'invalidLine' ? t('invalidLine', { line: parsed.line }) : t(parsed.error));
+      return;
+    }
+    setRows(parsed.rows);
+  };
+
+  const run = async () => {
+    if (!rows || busy) return;
+    setBusy(true);
+    setProblem(null);
+    try {
+      const res = await bulkCreateRedirects(token, rows);
+      setResult(res);
+      setRows(null);
+      onImported();
+    } catch (err) {
+      setProblem(describeError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (busy) return;
+        if (!o) reset();
+        onOpenChange(o);
+      }}
+    >
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('body')}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="redirect-csv" className="text-xs">
+              {t('file')}
+            </Label>
+            <Input id="redirect-csv" ref={fileRef} type="file" accept=".csv,text/csv,text/plain" onChange={(e) => void pick(e.target.files?.[0])} />
+            {fileName && rows && (
+              <p className="text-[11px] text-muted-foreground">
+                {fileName} · {rows.length}
+              </p>
+            )}
+          </div>
+          {problem && <ErrorBanner message={problem} />}
+          {result && (
+            <div className="space-y-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              <p>{t('result', { created: result.created, conflicts: result.conflicts?.length ?? 0 })}</p>
+              {result.conflicts?.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium">{t('conflictsTitle')}</p>
+                  <ul className="max-h-40 overflow-y-auto font-mono text-xs" dir="ltr">
+                    {result.conflicts.map((c, i) => (
+                      <li key={`${c.from_path}:${i}`} className="break-all">
+                        {c.from_path}
+                        {c.reason ? ` — ${c.reason}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+            {result ? tc('close') : tc('cancel')}
+          </Button>
+          {!result && (
+            <Button onClick={run} disabled={busy || !rows}>
+              {busy ? <Loader2 className="animate-spin" /> : <FileUp />}
+              {t('run')}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

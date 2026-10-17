@@ -26,6 +26,7 @@ import {
   ErrorBanner,
   RunStatusBadge,
   SpinnerBlock,
+  TechDetailsToggle,
   formatBytes,
   runLabel,
   useDateTimeFormat,
@@ -156,6 +157,7 @@ export function RunDialog({ token, runId, sourceNames, onOpenChange, onChanged, 
           <DialogTitle className="flex flex-wrap items-center gap-2">
             {t('title', { label: run ? runLabel(run) : '' })}
             {run && <RunStatusBadge status={run.status} />}
+            <TechDetailsToggle className="ms-auto me-6 font-normal" />
           </DialogTitle>
           <DialogDescription>
             {run

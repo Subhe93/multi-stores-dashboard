@@ -309,12 +309,12 @@ export default function OrderDetailPage() {
                             {(() => {
                               const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
                               return (
-                                <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[itemStatus] || 'bg-zinc-100 text-zinc-600'}`}>
+                                <Badge variant="outline" className={`text-[11px] font-semibold ${statusColors[itemStatus] || 'bg-zinc-100 text-zinc-600'}`}>
                                   {statusLabel(itemStatus)}
                                 </Badge>
                               );
                             })()}
-                            <Badge variant="outline" className="text-[9px]">{item.fulfiller_type}</Badge>
+                            <Badge variant="outline" className="text-[11px]">{item.fulfiller_type}</Badge>
                           </div>
                         </div>
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
@@ -338,7 +338,7 @@ export default function OrderDetailPage() {
                     />
 
                     {item.design_notes && (
-                      <p className="ml-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
+                      <p className="ms-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
                     )}
                   </div>
                 );
@@ -354,7 +354,7 @@ export default function OrderDetailPage() {
                   {t('shipping')}
                   {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
                   {order.shipping_method_type === 'PICKUP' && (
-                    <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{tp('pickup')}</Badge>
+                    <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
                   )}
                 </span>
                 <span>{fmt(Number(order.shipping_cost))}</span>
@@ -420,7 +420,7 @@ export default function OrderDetailPage() {
                 <CardTitle className="text-sm font-semibold">{tp('payment')}</CardTitle>
                 {(() => {
                   const info = paymentStatusInfo(order.payment_status, tp);
-                  return <Badge variant="outline" className={`text-[10px] font-semibold ${info.cls}`}>{info.label}</Badge>;
+                  return <Badge variant="outline" className={`text-[11px] font-semibold ${info.cls}`}>{info.label}</Badge>;
                 })()}
               </div>
             </CardHeader>
@@ -474,13 +474,13 @@ export default function OrderDetailPage() {
                       <span className="text-muted-foreground">{p.recipient_type === 'PROVIDER' ? tp('provider') : tp('creator')}</span>
                       <span className="flex items-center gap-2">
                         <span className="font-medium">{fmt(Number(p.amount))}</span>
-                        <Badge variant="outline" className={`text-[9px] ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                        <Badge variant="outline" className={`text-[11px] ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                           {p.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
                         </Badge>
                       </span>
                     </div>
                     {p.status !== 'paid' && p.error && (
-                      <p className="text-[10px] text-red-600 leading-snug">{p.error}</p>
+                      <p className="text-[11px] text-red-600 leading-snug">{p.error}</p>
                     )}
                   </div>
                 ))}
@@ -501,7 +501,7 @@ export default function OrderDetailPage() {
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">{statusLabel(entry.status)}</p>
-                    <p className="text-[10px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
+                    <p className="text-[11px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
                   </div>
                 </div>
               ))}

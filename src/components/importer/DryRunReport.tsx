@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ArrowRight, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { SUMMARY_ACTIONS, SUMMARY_ENTITY_TYPES, type DryRunSummary } from '@/lib/importer.api';
-import { SectionTitle, StatTile, useErrorCodeText } from '@/components/importer/ImporterBits';
+import { SectionTitle, StatTile, TechDetail, useErrorCodeText } from '@/components/importer/ImporterBits';
 import { WarningGroups } from '@/components/importer/WarningGroups';
 
 /** Redirect rows shown in the preview (§13: first 50). */
@@ -129,11 +129,9 @@ export function DryRunReport({ summary }: DryRunReportProps) {
           <SectionTitle>{t('skippedTitle', { count: summary.skipped.length })}</SectionTitle>
           <div className="divide-y rounded-lg border bg-white text-sm">
             {summary.skipped.map((s) => (
-              <div key={s.external_ref} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
-                <span className="font-medium">{s.title || '—'}</span>
-                <span className="font-mono text-[11px] text-muted-foreground" dir="ltr">
-                  {s.external_ref}
-                </span>
+              <div key={s.external_ref} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2" title={s.external_ref}>
+                <span className="font-medium">{s.title || s.external_ref}</span>
+                <TechDetail value={s.external_ref} />
                 <Badge variant="outline" className="ms-auto">
                   {t.has(`skipReasons.${s.reason}`) ? t(`skipReasons.${s.reason}`) : s.reason}
                 </Badge>
@@ -271,8 +269,8 @@ export function DryRunReport({ summary }: DryRunReportProps) {
           <p className="text-xs text-muted-foreground">{t('unmappedHint')}</p>
           <div className="flex flex-wrap gap-1.5">
             {unmapped.map(([prefix, count]) => (
-              <Badge key={prefix} variant="outline" className="font-mono font-normal" dir="ltr">
-                {prefix} · {count}
+              <Badge key={prefix} variant="outline" className="font-normal" title={prefix}>
+                <TechDetail value={prefix} /> {count}
               </Badge>
             ))}
           </div>
@@ -283,6 +281,12 @@ export function DryRunReport({ summary }: DryRunReportProps) {
 }
 
 /** Before → after rows of the attribute/term name cleanup (D22). */
+/** Readable name of a WooCommerce taxonomy ("pa_size" → "Size"); the raw id stays in `title=` / technical details. */
+function taxonomyLabel(taxonomy: string): string {
+  const words = taxonomy.replace(/^pa_/, '').replace(/[_-]+/g, ' ').trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : taxonomy;
+}
+
 export function TermCleanupTable({ rows }: { rows: NonNullable<DryRunSummary['term_cleanup']> }) {
   const t = useTranslations('creator.importer.report');
   return (
@@ -299,8 +303,9 @@ export function TermCleanupTable({ rows }: { rows: NonNullable<DryRunSummary['te
         <tbody>
           {rows.map((row) => (
             <tr key={`${row.taxonomy}:${row.slug}`} className="border-b last:border-0 align-top">
-              <td className="px-3 py-1.5 font-mono text-muted-foreground" dir="ltr">
-                {row.taxonomy}
+              <td className="px-3 py-1.5 text-muted-foreground" title={row.taxonomy}>
+                {taxonomyLabel(row.taxonomy)}
+                <TechDetail value={row.taxonomy} block />
               </td>
               <td className="px-3 py-1.5 text-muted-foreground line-through decoration-zinc-300">{row.before}</td>
               <td className="px-3 py-1.5 font-medium">{row.after}</td>
@@ -481,14 +486,14 @@ function RollbackResult({ rollback }: { rollback: NonNullable<DryRunSummary['rol
           <p className="text-xs font-medium">{t(`rollbackLists.${key}`, { count: list!.length })}</p>
           <ul className="max-h-48 divide-y overflow-y-auto rounded-lg border bg-white text-xs">
             {list!.map((ent, i) => (
-              <li key={`${ent.external_ref ?? ent.target_id ?? ''}:${i}`} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5">
+              <li
+                key={`${ent.external_ref ?? ent.target_id ?? ''}:${i}`}
+                className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5"
+                title={ent.external_ref ?? undefined}
+              >
                 <span className="font-medium">{ent.title || ent.external_ref || ent.target_id || '—'}</span>
                 {ent.entity_type && <Badge variant="outline" className="font-normal">{ent.entity_type}</Badge>}
-                {ent.external_ref && ent.title && (
-                  <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
-                    {ent.external_ref}
-                  </span>
-                )}
+                {ent.external_ref && ent.title && <TechDetail value={ent.external_ref} />}
               </li>
             ))}
           </ul>

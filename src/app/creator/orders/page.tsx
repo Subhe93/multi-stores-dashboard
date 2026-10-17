@@ -223,7 +223,7 @@ export default function CreatorOrdersPage() {
           {/* Company orders (b2b app) show the company bought under. */}
           {item.customer_type === 'COMPANY' && (
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-              <Badge variant="outline" className="text-[10px] font-medium bg-violet-50 text-violet-700 border-violet-200">
+              <Badge variant="outline" className="text-[11px] font-medium bg-violet-50 text-violet-700 border-violet-200">
                 {t('orders.companyBadge')}
               </Badge>
               {item.company_name && <span className="text-xs text-muted-foreground">{item.company_name}</span>}
@@ -256,7 +256,7 @@ export default function CreatorOrdersPage() {
           label: t('orders.market'),
           render: (item: OrderRow) =>
             item.market ? (
-              <Badge variant="outline" className="text-[10px] font-medium bg-sky-50 text-sky-700 border-sky-200">
+              <Badge variant="outline" className="text-[11px] font-medium bg-sky-50 text-sky-700 border-sky-200">
                 {item.market.name} · {item.market.currency}
               </Badge>
             ) : (
@@ -286,7 +286,7 @@ export default function CreatorOrdersPage() {
       render: (item: OrderRow) => (
         <Badge
           variant="outline"
-          className={`text-[10px] font-semibold ${statusColors[item.status] ?? ''}`}
+          className={`text-[11px] font-semibold ${statusColors[item.status] ?? ''}`}
         >
           {STATUS_LABELS[item.status] || item.status}
         </Badge>
@@ -309,7 +309,7 @@ export default function CreatorOrdersPage() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 text-[10px]"
+          className="h-6 text-[11px]"
           onClick={() => router.push(`/creator/orders/${item.id}`)}
         >
           {t('orders.view')}

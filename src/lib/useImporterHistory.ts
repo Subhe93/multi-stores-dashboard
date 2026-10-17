@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { listRuns } from '@/lib/importer.api';
 import { listRedirects } from '@/lib/redirects.api';
+import { useStoreType } from '@/lib/useStoreType';
 
 const cacheKey = (userId: string | null | undefined) => `importer-history:${userId ?? ''}`;
 
@@ -16,9 +17,13 @@ export function useImporterHistory(token: string | null | undefined, userId: str
   // Keyed by user so another account in the same tab never reuses the answer.
   const [state, setState] = useState<{ key: string; has: boolean } | null>(null);
   const key = cacheKey(userId);
+  // The importer only exists for independent stores: marketplace stores never
+  // have runs or redirects, so the probe is skipped for them.
+  const { storeType } = useStoreType();
+  const active = check && storeType === 'INDEPENDENT';
 
   useEffect(() => {
-    if (!check || !token || !userId) return;
+    if (!active || !token || !userId) return;
     let cancelled = false;
     let cached: string | null = null;
     try {
@@ -49,7 +54,7 @@ export function useImporterHistory(token: string | null | undefined, userId: str
     return () => {
       cancelled = true;
     };
-  }, [token, userId, key, check]);
+  }, [token, userId, key, active]);
 
-  return check && state?.key === key ? state.has : false;
+  return active && state?.key === key ? state.has : false;
 }

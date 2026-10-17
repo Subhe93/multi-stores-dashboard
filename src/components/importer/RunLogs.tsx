@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useApiError } from '@/lib/useApiError';
 import { listRunLogs, type ImportLogLevel, type ImportRunLogView, type Paged } from '@/lib/importer.api';
-import { ErrorBanner, isLabelledWarningCode, useDateTimeFormat, useWarningLabel } from '@/components/importer/ImporterBits';
+import { ErrorBanner, TechDetail, humanizeCode, isLabelledWarningCode, useDateTimeFormat, useWarningLabel } from '@/components/importer/ImporterBits';
 
 const PAGE_SIZE = 50;
 
@@ -109,23 +109,25 @@ export function RunLogs({ token, runId, version }: { token: string; runId: strin
                       {t.has(`levels.${log.level}`) ? t(`levels.${log.level}`) : log.level}
                     </Badge>
                   </td>
-                  <td className="px-3 py-1.5">
-                    <span className="block font-mono text-[10px]" dir="ltr">
-                      {log.code}
-                    </span>
-                    {isLabelledWarningCode(log.code) && <span className="text-muted-foreground">{warningLabel(log.code)}</span>}
+                  <td className="px-3 py-1.5" title={log.code}>
+                    {isLabelledWarningCode(log.code) ? (
+                      <span className="text-muted-foreground">{warningLabel(log.code)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">{humanizeCode(log.code)}</span>
+                    )}
+                    <TechDetail value={log.code} block />
                     {(() => {
                       const refs = warningRefs(log.data);
                       if (!refs.elementId && !refs.key) return null;
                       return (
                         <span className="mt-0.5 flex flex-wrap gap-1">
                           {refs.elementId && (
-                            <Badge variant="outline" className="text-[10px] font-normal">
+                            <Badge variant="outline" className="text-[11px] font-normal">
                               {t('dataElement')} <bdi className="font-mono" dir="ltr">{refs.elementId}</bdi>
                             </Badge>
                           )}
                           {refs.key && (
-                            <Badge variant="outline" className="text-[10px] font-normal">
+                            <Badge variant="outline" className="text-[11px] font-normal">
                               {t('dataKey')} <bdi className="font-mono" dir="ltr">{refs.key}</bdi>
                             </Badge>
                           )}
@@ -133,13 +135,9 @@ export function RunLogs({ token, runId, version }: { token: string; runId: strin
                       );
                     })()}
                   </td>
-                  <td className="px-3 py-1.5 break-words">
+                  <td className="px-3 py-1.5 break-words" title={log.external_ref ?? undefined}>
                     {log.message}
-                    {log.external_ref && (
-                      <span className="ms-2 font-mono text-[10px] text-muted-foreground" dir="ltr">
-                        {log.external_ref}
-                      </span>
-                    )}
+                    <TechDetail value={log.external_ref} className="ms-2" />
                   </td>
                 </tr>
               ))

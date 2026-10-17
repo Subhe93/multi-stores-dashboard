@@ -46,15 +46,17 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    (quiet = false) => {
+    async (quiet = false) => {
       if (!quiet) setLoading(true);
-      listRuns(token, { page, limit: PAGE_SIZE })
-        .then((res) => {
-          setData(res);
-          setError(null);
-        })
-        .catch((err: unknown) => setError(describeError(err)))
-        .finally(() => setLoading(false));
+      try {
+        const res = await listRuns(token, { page, limit: PAGE_SIZE });
+        setData(res);
+        setError(null);
+      } catch (err) {
+        setError(describeError(err));
+      } finally {
+        setLoading(false);
+      }
     },
     // describeError only reads stable translators.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -62,15 +64,32 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
   );
 
   useEffect(() => {
-    load();
+    void load();
   }, [load, version]);
 
-  // Keep statuses fresh while a run on this page is working.
+  // Keep statuses fresh while a run on this page is working (E13): a timeout
+  // chain, so a slow answer never stacks requests, paused while the tab is
+  // hidden and refreshed once it becomes visible again.
   const anyActive = !!data?.items.some((r) => isActiveRun(r.status));
   useEffect(() => {
     if (!anyActive) return;
-    const timer = setInterval(() => load(true), LIST_POLL_MS);
-    return () => clearInterval(timer);
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      if (stopped) return;
+      if (document.visibilityState === 'visible') await load(true);
+      if (!stopped) timer = setTimeout(tick, LIST_POLL_MS);
+    };
+    timer = setTimeout(tick, LIST_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void load(true);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [anyActive, load]);
 
   const nf = new Intl.NumberFormat(locale);
@@ -97,6 +116,8 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
     return run.counts && run.counts_phase === 'PLAN' ? t('countsPlanned', { counts: text }) : text;
   };
 
+  // Sortable columns sort the loaded page client-side (DataTable reads the
+  // row field named by `key`: ISO dates and status strings sort as-is).
   const columns = [
     {
       key: 'id',
@@ -108,7 +129,7 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
       ),
     },
     {
-      key: 'source',
+      key: 'source_id',
       label: t('columns.source'),
       render: (run: ImportRunView) => (
         <span className="block max-w-48 truncate">{run.source?.name ?? sourceNames[run.source_id] ?? '—'}</span>
@@ -117,10 +138,11 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
     {
       key: 'status',
       label: t('columns.status'),
+      sortable: true,
       render: (run: ImportRunView) => <RunStatusBadge status={run.status} />,
     },
     {
-      key: 'created_by',
+      key: 'created_by_role',
       label: t('columns.createdBy'),
       render: (run: ImportRunView) => (
         <span className="text-muted-foreground">
@@ -135,11 +157,13 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
     {
       key: 'created_at',
       label: t('columns.created'),
+      sortable: true,
       render: (run: ImportRunView) => <span className="whitespace-nowrap">{formatDate(run.created_at)}</span>,
     },
     {
       key: 'finished_at',
       label: t('columns.finished'),
+      sortable: true,
       render: (run: ImportRunView) => <span className="whitespace-nowrap">{formatDate(run.finished_at)}</span>,
     },
     {

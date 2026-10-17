@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/importer/ImporterBits';
 import { useApiError } from '@/lib/useApiError';
 import {
   deleteTemplate,
@@ -41,6 +42,9 @@ export function LibraryPanel({ token, primaryLocale }: LibraryPanelProps) {
   const [newName, setNewName] = useState('');
   const [busy, setBusy] = useState(false);
   const [dialogError, setDialogError] = useState('');
+  const [deleting, setDeleting] = useState<PersonalizationTemplate | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [inserting, setInserting] = useState<string | null>(null);
   const [inserted, setInserted] = useState<{ productId: string; count: number } | null>(null);
 
@@ -80,14 +84,20 @@ export function LibraryPanel({ token, primaryLocale }: LibraryPanelProps) {
     }
   };
 
-  const handleDelete = async (tpl: PersonalizationTemplate) => {
-    if (!window.confirm(t('confirmDelete', { name: tpl.name }))) return;
-    setError('');
+  // E8: the destructive confirm is a dialog (not `window.confirm`), with the
+  // error shown inside it so a failed delete never closes silently.
+  const confirmDelete = async () => {
+    if (!deleting || deleteBusy) return;
+    setDeleteBusy(true);
+    setDeleteError(null);
     try {
-      await deleteTemplate(token, tpl.id);
+      await deleteTemplate(token, deleting.id);
+      setDeleting(null);
       load();
     } catch (err) {
-      setError(apiError(err));
+      setDeleteError(apiError(err));
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -138,36 +148,49 @@ export function LibraryPanel({ token, primaryLocale }: LibraryPanelProps) {
                 <div key={tpl.id} className="group flex items-center gap-3 px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium">{tpl.name}</p>
-                      {field?.type && <Badge variant="secondary" className="text-[9px]">{typeLabel(field.type)}</Badge>}
+                      <p className="truncate text-sm font-medium" title={field?.name}>
+                        {tpl.name}
+                      </p>
+                      {field?.type && <Badge variant="secondary" className="text-[11px]">{typeLabel(field.type)}</Badge>}
                       {children.length > 0 && (
-                        <Badge variant="outline" className="text-[9px]">{t('childrenCount', { count: children.length })}</Badge>
+                        <Badge variant="outline" className="text-[11px]">{t('childrenCount', { count: children.length })}</Badge>
                       )}
                     </div>
-                    <p className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                    <p className="font-mono text-[11px] text-muted-foreground" dir="ltr">
                       {field?.name}
                       {tpl.updated_at || tpl.created_at ? ` · ${fmtDate(tpl.updated_at || tpl.created_at)}` : ''}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setInserting(tpl.id)}>
+                    <Button size="sm" variant="outline" className="h-9 text-xs max-sm:h-11" onClick={() => setInserting(tpl.id)}>
                       {t('insertIntoProduct')}
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-7 text-zinc-500"
+                      className="size-9 text-zinc-500 max-sm:size-11"
                       aria-label={t('rename')}
+                      title={t('rename')}
                       onClick={() => {
                         setRenaming(tpl);
                         setNewName(tpl.name);
                         setDialogError('');
                       }}
                     >
-                      <Pencil className="size-3.5" />
+                      <Pencil className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="size-7 text-red-500" aria-label={t('delete')} onClick={() => handleDelete(tpl)}>
-                      <Trash2 className="size-3.5" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 text-red-500 max-sm:size-11"
+                      aria-label={t('delete')}
+                      title={t('delete')}
+                      onClick={() => {
+                        setDeleteError(null);
+                        setDeleting(tpl);
+                      }}
+                    >
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
                 </div>
@@ -206,6 +229,18 @@ export function LibraryPanel({ token, primaryLocale }: LibraryPanelProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title={t('deleteTitle')}
+        description={deleting ? t('confirmDelete', { name: deleting.name }) : undefined}
+        confirmLabel={t('delete')}
+        destructive
+        busy={deleteBusy}
+        error={deleteError}
+        onConfirm={confirmDelete}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      />
 
       <InsertTemplateDialog
         open={inserting !== null}

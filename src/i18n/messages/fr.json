@@ -2608,6 +2608,7 @@
         "insertIntoProduct": "Insérer dans un produit…",
         "rename": "Renommer",
         "delete": "Supprimer",
+        "deleteTitle": "Supprimer le modèle",
         "confirmDelete": "Supprimer le modèle « {name} » ? Les produits qui l’utilisent gardent leurs champs.",
         "insertedNotice": "{count, plural, one {# champ inséré} other {# champs insérés}}.",
         "openProduct": "Ouvrir le produit",
@@ -2617,6 +2618,10 @@
       }
     },
     "importer": {
+      "techDetails": {
+        "show": "Afficher les détails techniques",
+        "hide": "Masquer les détails techniques"
+      },
       "title": "Importateur WooCommerce",
       "subtitle": "Importez les produits, collections et redirections d’une boutique WooCommerce existante.",
       "tabs": {
@@ -3020,7 +3025,8 @@
           "attributes": "Options et noms",
           "faq": "Questions de la FAQ",
           "shipping": "Livraison",
-          "handoff": "Personnalisation et extras"
+          "handoff": "Personnalisation et extras",
+          "conflict": "Quand un produit existe déjà"
         },
         "categoryPlaceholder": "Choisir une catégorie",
         "categoryHint": "Chaque produit importé est placé dans cette catégorie de la plateforme. Obligatoire.",
@@ -3102,7 +3108,21 @@
           "daysOrder": "« De » ne peut pas dépasser « à ».",
           "overrideIncomplete": "Remplissez les deux colonnes ou retirez la ligne.",
           "sectionInvalid": "Un élément de « {section} » n’est pas valide. Vérifiez les valeurs.",
+          "duplicateKey": "Cette clé est utilisée deux fois.",
           "fixBeforeSave": "Corrigez d’abord les sections signalées."
+        },
+        "advanced": "Paramètres avancés",
+        "advancedHint": "Statuts des produits, noms des options, questions FAQ, livraison et extras. Les valeurs par défaut conviennent à la plupart des boutiques.",
+        "unsavedTitle": "Modifications de correspondance non enregistrées",
+        "unsavedBody": "Vos modifications de la correspondance ne sont pas encore enregistrées. Quitter et les abandonner ?",
+        "unsavedLeave": "Abandonner les modifications",
+        "manualRef": "Ignorer par référence",
+        "manualRefHint": "Collez une référence produit du rapport, par exemple woo:example.com:product:123.",
+        "skipLoading": "Chargement des produits…",
+        "methods": {
+          "flat_rate": "Tarif forfaitaire",
+          "local_pickup": "Retrait sur place",
+          "free_shipping": "Livraison gratuite"
         },
         "categoryOptionalHint": "Nécessaire uniquement lorsque des produits sont importés.",
         "stockOnUpdate": "Stock des produits déjà importés",
@@ -3129,6 +3149,18 @@
         "active": "Active",
         "inactive": "Inactive",
         "empty": "Aucune redirection pour le moment.",
+        "csvImport": {
+          "button": "Importer un CSV",
+          "title": "Importer des redirections depuis un CSV",
+          "body": "Une redirection par ligne : from_path,to_path,status. Le statut est facultatif (301 par défaut). Jusqu’à 5000 lignes ; les chemins déjà utilisés sont signalés comme conflits.",
+          "file": "Fichier CSV",
+          "run": "Importer",
+          "result": "{created, plural, one {# redirection créée} other {# redirections créées}} · {conflicts, plural, =0 {aucun conflit} one {# conflit} other {# conflits}}",
+          "conflictsTitle": "Conflits",
+          "tooMany": "Le fichier dépasse 5000 lignes.",
+          "invalidLine": "La ligne {line} n’est pas une redirection valide.",
+          "empty": "Le fichier ne contient aucune redirection."
+        },
         "emptyFiltered": "Aucune redirection ne correspond aux filtres.",
         "columns": {
           "paths": "De → vers",
@@ -3318,6 +3350,8 @@
         "emptyTitle": "Rien ici",
         "emptyBody": "Les commandes ouvertes apparaissent ici avec la progression de leur liste de contrôle. Pour les commandes antérieures à l’activation de l’application, utilisez « Générer les listes » dans les réglages.",
         "openOrder": "Commande",
+        "search": "Rechercher un numéro de commande…",
+        "searchEmpty": "Aucune commande chargée ne correspond. Chargez-en plus pour continuer.",
         "loadMore": "Charger plus"
       },
       "settings": {
@@ -3623,7 +3657,10 @@
         },
         "linkedProducts": "{count, plural, one {# produit utilise encore ce modèle. Retirez d'abord le modèle de ce produit.} other {# produits utilisent encore ce modèle. Retirez d'abord le modèle de ces produits.}}",
         "linkedShow": "Afficher les produits liés",
-        "linkedOpenProducts": "Ouvrir les produits"
+        "linkedOpenProducts": "Ouvrir les produits",
+        "leaveTitle": "Modifications non enregistrées",
+        "leaveBody": "Ce modèle contient des modifications non enregistrées. Quitter l’éditeur et les abandonner ?",
+        "leaveConfirm": "Quitter sans enregistrer"
       },
       "assets": {
         "warningsTitle": "À vérifier avant d'utiliser ce fichier",
@@ -5115,6 +5152,9 @@
     "maxChecked": "Max. cochés",
     "checkedInvalid": "Saisissez un nombre entier de 0 à {max}.",
     "repeaterRequiredHint": "Les articles répétés n’ont pas d’indicateur obligatoire ; définissez-le sur les champs du groupe.",
+    "editor": {
+      "tabHasError": "(erreur)"
+    },
     "tabs": {
       "basics": "Général",
       "visibility": "Visibilité",

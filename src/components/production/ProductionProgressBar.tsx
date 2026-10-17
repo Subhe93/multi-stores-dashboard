@@ -47,7 +47,7 @@ export function ProductionProgressBar({ done, total, showReady = true, className
         {done}/{total}
       </span>
       {showReady && tone === 'green' && (
-        <Badge variant="outline" className="shrink-0 border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700">
+        <Badge variant="outline" className="shrink-0 border-emerald-200 bg-emerald-50 text-[11px] font-semibold text-emerald-700">
           {t('readyBadge')}
         </Badge>
       )}

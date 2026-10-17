@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Download, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Download, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
@@ -24,6 +24,16 @@ import { PrintStatusBadge, usePrintErrorText } from '@/components/designer/Desig
 const ALL = '__all__';
 const PAGE_SIZE = 25;
 
+/** Columns the loaded page can be sorted by (client-side, within the page). */
+type SortKey = 'order_number' | 'print_status' | 'print_attempts' | 'print_requested_at' | 'print_rendered_at';
+const SORT_COLUMNS: { key: SortKey; label: 'colOrder' | 'colStatus' | 'colAttempts' | 'colRequested' | 'colRendered' }[] = [
+  { key: 'order_number', label: 'colOrder' },
+  { key: 'print_status', label: 'colStatus' },
+  { key: 'print_attempts', label: 'colAttempts' },
+  { key: 'print_requested_at', label: 'colRequested' },
+  { key: 'print_rendered_at', label: 'colRendered' },
+];
+
 /** "Print queue" tab: status filter, retry all failed, per-row download / regenerate. */
 export function PrintQueueTab({ token }: { token: string }) {
   const t = useTranslations('creator.designer.queue');
@@ -39,6 +49,25 @@ export function PrintQueueTab({ token }: { token: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; text: string } | null>(null);
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' } | null>(null);
+
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => (s?.key === key ? (s.dir === 'asc' ? { key, dir: 'desc' } : null) : { key, dir: 'asc' }));
+
+  const sortedRows = useMemo(() => {
+    const rows = data?.items ?? [];
+    if (!sort) return rows;
+    const value = (r: PrintQueueRow): string | number => {
+      const v = r[sort.key];
+      return typeof v === 'number' ? v : (v ?? '');
+    };
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const av = value(a);
+      const bv = value(b);
+      return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
+    });
+  }, [data, sort]);
 
   const load = useCallback(() => {
     setError(null);
@@ -139,16 +168,28 @@ export function PrintQueueTab({ token }: { token: string }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b bg-zinc-50 text-muted-foreground">
-                    <th className="px-3 py-2 text-start font-medium">{t('colOrder')}</th>
-                    <th className="px-3 py-2 text-start font-medium">{t('colStatus')}</th>
-                    <th className="px-3 py-2 text-start font-medium">{t('colAttempts')}</th>
-                    <th className="px-3 py-2 text-start font-medium">{t('colRequested')}</th>
-                    <th className="px-3 py-2 text-start font-medium">{t('colRendered')}</th>
+                    {SORT_COLUMNS.map((col) => (
+                      <th key={col.key} className="px-3 py-2 text-start font-medium">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort(col.key)}
+                          className="inline-flex items-center gap-1 hover:text-foreground"
+                          aria-sort={sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
+                        >
+                          {t(col.label)}
+                          {sort?.key === col.key ? (
+                            sort.dir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />
+                          ) : (
+                            <ArrowUpDown className="size-3 opacity-50" />
+                          )}
+                        </button>
+                      </th>
+                    ))}
                     <th className="px-3 py-2 text-end font-medium" />
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((row) => {
+                  {sortedRows.map((row) => {
                     const file = row.print_files.find((f) => f.surface === 'front') ?? row.print_files[0];
                     const purged = !!row.files_purged_at || row.print_status === 'PURGED';
                     return (

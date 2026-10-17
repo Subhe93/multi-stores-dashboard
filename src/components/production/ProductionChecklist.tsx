@@ -57,6 +57,13 @@ interface ProductionChecklistProps {
   mode?: 'card' | 'workspace';
   /** Called after the order status changed (automation or the suggestion banner). */
   onOrderStatusChanged?: (status: string) => void;
+  /**
+   * Order status known to the parent (E3). When it changes to something the
+   * card has not seen (e.g. the status card next to it moved the order), the
+   * workspace is reloaded quietly instead of remounting the card, so the
+   * "moved automatically" notice stays until dismissed.
+   */
+  orderStatus?: string | null;
   /** Lets the parent show the order header (status, number) from the same payload. */
   onLoaded?: (workspace: ProductionWorkspace) => void;
 }
@@ -100,7 +107,7 @@ function patchChecks(
  * after every write, and the status automation (suggestion banner,
  * auto-advance notice) follows the write result.
  */
-export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStatusChanged, onLoaded }: ProductionChecklistProps) {
+export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStatusChanged, onLoaded, orderStatus }: ProductionChecklistProps) {
   const t = useTranslations('creator.production');
   const tc = useTranslations('creator');
   const tCommon = useTranslations('common');
@@ -159,6 +166,14 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
   useEffect(() => {
     void load();
   }, [load]);
+
+  // E3: the parent's status moved (status card, automation elsewhere) → refresh
+  // the checklist in place; `statusRef` holds the last status this card saw.
+  useEffect(() => {
+    if (!orderStatus || !statusRef.current || orderStatus === statusRef.current) return;
+    statusRef.current = orderStatus;
+    void load(true);
+  }, [orderStatus, load]);
 
   const closed = !!ws && CLOSED_ORDER_STATUSES.includes(ws.order.status);
 
@@ -371,7 +386,7 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
           </p>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
             {c.stale && (
-              <Badge variant="outline" className="border-zinc-200 bg-zinc-100 text-[10px] text-zinc-600">
+              <Badge variant="outline" className="border-zinc-200 bg-zinc-100 text-[11px] text-zinc-600">
                 {t('stale')}
               </Badge>
             )}

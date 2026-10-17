@@ -123,7 +123,9 @@ function SourceForm({ token, open, source, onOpenChange, onSaved }: SourceDialog
       if (!BASE_RE.test(value.trim().replace(/^\/+|\/+$/g, ''))) errs[field] = t('errors.baseInvalid');
     }
     if (currency.trim() && !/^[A-Za-z]{3}$/.test(currency.trim())) errs.currency = t('errors.currencyInvalid');
-    if (kind === 'WC_REST' && !(editing && source?.has_credentials)) {
+    // E4: REST credentials are not collected until REST runs are supported
+    // (`isRunnableKind`); the saved keys of an older REST source are kept.
+    if (kind === 'WC_REST' && isRunnableKind(kind) && !(editing && source?.has_credentials)) {
       if (!consumerKey.trim()) errs.consumer_key = t('errors.keyRequired');
       if (!consumerSecret.trim()) errs.consumer_secret = t('errors.secretRequired');
     }
@@ -220,11 +222,15 @@ function SourceForm({ token, open, source, onOpenChange, onSaved }: SourceDialog
               {(['WP_BUNDLE', 'WC_REST'] as const).map((k) => {
                 const Icon = k === 'WP_BUNDLE' ? Archive : Globe;
                 const selected = kind === k;
+                // E4: kinds that cannot run yet are shown but not selectable.
+                const unavailable = !isRunnableKind(k);
                 return (
                   <button
                     key={k}
                     type="button"
-                    disabled={editing}
+                    disabled={editing || unavailable}
+                    aria-disabled={unavailable || undefined}
+                    title={unavailable ? t('later') : undefined}
                     onClick={() => setKind(k)}
                     className={`flex items-start gap-3 rounded-lg border p-3 text-start transition disabled:cursor-not-allowed ${
                       selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:bg-zinc-50/60 disabled:opacity-50'
@@ -234,8 +240,8 @@ function SourceForm({ token, open, source, onOpenChange, onSaved }: SourceDialog
                     <span>
                       <span className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                         {t(`kinds.${k}.title`)}
-                        {!isRunnableKind(k) && (
-                          <span className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-px text-[10px] font-normal text-zinc-500">
+                        {unavailable && (
+                          <span className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-px text-[11px] font-normal text-zinc-500">
                             {t('later')}
                           </span>
                         )}
@@ -344,7 +350,7 @@ function SourceForm({ token, open, source, onOpenChange, onSaved }: SourceDialog
             </div>
           </div>
 
-          {kind === 'WC_REST' && (
+          {kind === 'WC_REST' && isRunnableKind(kind) && (
             <div className="space-y-3 rounded-lg border p-3">
               <div className="flex items-start gap-2">
                 <KeyRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

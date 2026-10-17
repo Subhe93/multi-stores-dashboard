@@ -48,27 +48,35 @@ interface OrderDesignCardProps {
  * template images come from the libraries; when those refuse (app off) the
  * preview still draws with fallback fonts and without template images.
  */
-function ProofFallback({ item, token }: { item: OrderDesignItem; token: string }) {
-  const t = useTranslations('creator.designer.order');
-  const spec = item.template_spec ?? null;
-  const [fonts, setFonts] = useState<DesignerFontView[]>([]);
-  const [library, setLibrary] = useState<DesignerAssetView[]>([]);
+interface DesignLibraries {
+  fonts: DesignerFontView[];
+  assets: DesignerAssetView[];
+}
 
+/** Fonts and template images of the store, loaded once per card (E10) and shared by every fallback proof. */
+function useDesignLibraries(token: string, needed: boolean): DesignLibraries {
+  const [libs, setLibs] = useState<DesignLibraries>({ fonts: [], assets: [] });
   useEffect(() => {
-    if (!spec) return;
+    if (!needed) return;
     let cancelled = false;
     Promise.all([
       listFonts(token).catch(() => [] as DesignerFontView[]),
       listAssets(token, { limit: 200 }).catch(() => ({ items: [] as DesignerAssetView[] })),
     ]).then(([f, lib]) => {
       if (cancelled) return;
-      setFonts(Array.isArray(f) ? f : []);
-      setLibrary(lib.items);
+      setLibs({ fonts: Array.isArray(f) ? f : [], assets: lib.items });
     });
     return () => {
       cancelled = true;
     };
-  }, [token, spec]);
+  }, [token, needed]);
+  return libs;
+}
+
+function ProofFallback({ item, libraries }: { item: OrderDesignItem; libraries: DesignLibraries }) {
+  const t = useTranslations('creator.designer.order');
+  const spec = item.template_spec ?? null;
+  const { fonts, assets: library } = libraries;
 
   const exactCrop = !!item.state?.photos && Object.keys(item.state.photos).length > 0;
 
@@ -122,7 +130,7 @@ function ProofFallback({ item, token }: { item: OrderDesignItem; token: string }
   return (
     <div className="space-y-1">
       <DesignPreviewCanvas spec={spec} state={state} mode="proof" assetUrls={assetUrls} fonts={previewFonts} maxWidth={220} />
-      <p className="text-center text-[10px] text-muted-foreground">{exactCrop ? t('livePreview') : t('liveFallback')}</p>
+      <p className="text-center text-[11px] text-muted-foreground">{exactCrop ? t('livePreview') : t('liveFallback')}</p>
     </div>
   );
 }
@@ -168,6 +176,11 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
   useEffect(() => {
     load();
   }, [load]);
+
+  // Libraries are fetched once per card, and only when some line needs the
+  // client-side proof fallback (no server proof yet).
+  const needsFallback = !!data?.items.some((item) => !item.proof_url && !!item.template_spec);
+  const libraries = useDesignLibraries(token, needsFallback);
 
   if (hidden) return null;
   if (!data && !error) return null;
@@ -284,7 +297,7 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                   ) : filesPurged ? (
                     <p className="py-6 text-center text-[11px] text-muted-foreground">{t('proofPurged')}</p>
                   ) : (
-                    <ProofFallback item={item} token={token} />
+                    <ProofFallback item={item} libraries={libraries} />
                   )}
                 </div>
 
@@ -324,17 +337,17 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                                 )}
                               </div>
                               {p.width && p.height ? (
-                                <p className="text-[10px] text-muted-foreground" dir="ltr">
+                                <p className="text-[11px] text-muted-foreground" dir="ltr">
                                   {p.width}×{p.height}
                                   {p.effective_dpi ? ` · ${Math.round(p.effective_dpi)} DPI` : ''}
                                 </p>
                               ) : null}
                               {p.low_res && (
-                                <p className="flex items-center gap-1 text-[10px] text-amber-700">
+                                <p className="flex items-center gap-1 text-[11px] text-amber-700">
                                   <AlertTriangle className="size-3" /> {t('lowRes')}
                                 </p>
                               )}
-                              <p className="text-[10px] text-muted-foreground">
+                              <p className="text-[11px] text-muted-foreground">
                                 {p.original_available ? t('originalKept') : t('originalGone')}
                               </p>
                               {p.original_available && p.asset_id && (
@@ -342,7 +355,7 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                                   type="button"
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 w-full px-1.5 text-[10px] max-sm:min-h-11"
+                                  className="h-7 w-full px-1.5 text-[11px] max-sm:min-h-11"
                                   disabled={busy === `orig-${item.order_item_id}-${p.asset_id}`}
                                   onClick={() => downloadOriginal(item, p)}
                                 >

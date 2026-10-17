@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Loader2, Plus, RefreshCw, Save, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { ChevronDown, Loader2, Plus, RefreshCw, Save, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,21 +29,25 @@ import {
   type StockOnUpdate,
   type TargetProductStatus,
 } from '@/lib/importer.api';
-import { ErrorBanner, RunStatusBadge, SpinnerBlock, runLabel, useDateTimeFormat } from '@/components/importer/ImporterBits';
+import { ErrorBanner, RunStatusBadge, SpinnerBlock, TechDetail, runLabel, useDateTimeFormat } from '@/components/importer/ImporterBits';
 import { RunProgress } from '@/components/importer/RunProgress';
 import { TermCleanupTable } from '@/components/importer/DryRunReport';
 
 /** Sections of the review, also the targets of "jump to the problem". */
-type Section = 'category' | 'scopes' | 'products' | 'attributes' | 'faq' | 'shipping' | 'handoff';
+type Section = 'category' | 'scopes' | 'conflict' | 'products' | 'attributes' | 'faq' | 'shipping' | 'handoff';
+
+/** Sections folded under "Advanced settings" (E2). */
+const ADVANCED_SECTIONS: readonly Section[] = ['products', 'attributes', 'faq', 'shipping', 'handoff'];
+const isAdvanced = (s: Section) => ADVANCED_SECTIONS.includes(s);
 
 /** Option key (first path segment of a validator message) → section. */
 const SECTION_OF_OPTION: Record<string, Section> = {
   platform_category_id: 'category',
   scopes: 'scopes',
+  conflict_policy: 'conflict',
   include_drafts: 'products',
   status_map: 'products',
   skip_ext_ids: 'products',
-  conflict_policy: 'products',
   on_source_removed: 'products',
   match_existing: 'products',
   stock_on_update: 'products',
@@ -57,8 +61,8 @@ const SECTION_OF_OPTION: Record<string, Section> = {
   verify_media: 'handoff',
 };
 
-/** Shipping method ids whose display names can be overridden (D26). */
-const METHOD_IDS = ['flat_rate', 'local_pickup', 'free_shipping'];
+/** Shipping method ids whose display names can be overridden (D26); labelled through `methods.<id>`. */
+const METHOD_IDS = ['flat_rate', 'local_pickup', 'free_shipping'] as const;
 /** Product items fetched for the skip list (pages of 200). */
 const ITEM_PAGE = 200;
 const ITEM_PAGES_MAX = 10;
@@ -105,20 +109,24 @@ interface MappingReviewTabProps {
   onSelectRun: (runId: string | null) => void;
   onOpenRun: (run: ImportRunView) => void;
   onChanged: () => void;
+  /** E1: tells the page whether the form holds unsaved edits (tab/run switch guard, beforeunload). */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /** Mapping review (§13) of a planned run; saving re-plans the run. */
-export function MappingReviewTab({ token, runId, focus, onSelectRun, onOpenRun, onChanged }: MappingReviewTabProps) {
+export function MappingReviewTab({ token, runId, focus, onSelectRun, onOpenRun, onChanged, onDirtyChange }: MappingReviewTabProps) {
   const t = useTranslations('creator.importer.mapping');
   const formatDate = useDateTimeFormat();
   const [candidates, setCandidates] = useState<ImportRunView[] | null>(null);
 
+  // The candidate list is loaded once per mount, not on every run change:
+  // the selected run is merged in below when it is not part of the list.
   useEffect(() => {
     let cancelled = false;
     listRuns(token, { page: 1, limit: 50 })
       .then((res) => {
         if (cancelled) return;
-        const list = (res.items ?? []).filter((r) => canEditOptions(r.status) || isActiveRun(r.status) || r.id === runId);
+        const list = (res.items ?? []).filter((r) => canEditOptions(r.status) || isActiveRun(r.status));
         setCandidates(list);
         if (!runId) {
           const first = list.find((r) => canEditOptions(r.status));
@@ -131,9 +139,9 @@ export function MappingReviewTab({ token, runId, focus, onSelectRun, onOpenRun, 
     return () => {
       cancelled = true;
     };
-    // onSelectRun is stable for the page's lifetime.
+    // Only on mount / token change; `runId` and `onSelectRun` are read once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, runId]);
+  }, [token]);
 
   const { run, loading, error, setRun } = useImporterRun(token, runId, onChanged);
   const describeError = useApiError();
@@ -181,10 +189,17 @@ export function MappingReviewTab({ token, runId, focus, onSelectRun, onOpenRun, 
 
       {run && canEditOptions(run.status) && (
         // Remount on every new plan so the form starts from the saved options.
-        <MappingForm key={`${run.id}:${run.plan_fingerprint ?? run.planned_at ?? run.status}`} token={token} run={run} focus={focus} onSaved={(next) => {
+        <MappingForm
+          key={`${run.id}:${run.plan_fingerprint ?? run.planned_at ?? run.status}`}
+          token={token}
+          run={run}
+          focus={focus}
+          onDirtyChange={onDirtyChange}
+          onSaved={(next) => {
             if (next?.id) setRun(next);
             onChanged();
-          }} />
+          }}
+        />
       )}
     </div>
   );
@@ -197,11 +212,13 @@ function MappingForm({
   run,
   focus,
   onSaved,
+  onDirtyChange,
 }: {
   token: string;
   run: ImportRunView;
   focus: string | null;
   onSaved: (run: ImportRunView) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const t = useTranslations('creator.importer.mapping');
   const tc = useTranslations('common');
@@ -220,11 +237,24 @@ function MappingForm({
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  // Key/value editors report duplicate keys (E12); saving is blocked until fixed.
+  const [kvDuplicates, setKvDuplicates] = useState<{ attributes: boolean; faq: boolean }>({ attributes: false, faq: false });
 
   const update = (patch: Partial<ImportRunOptions>) => {
     setOpts((o) => ({ ...o, ...patch }));
     setDirty(true);
   };
+
+  // E1: report the dirty state to the page; a remount (new plan) resets it.
+  const dirtyRef = useRef(onDirtyChange);
+  useEffect(() => {
+    dirtyRef.current = onDirtyChange;
+  }, [onDirtyChange]);
+  useEffect(() => {
+    dirtyRef.current?.(dirty);
+  }, [dirty]);
+  useEffect(() => () => dirtyRef.current?.(false), []);
 
   // Scroll to the field a jump asked for (e.g. from a failed confirm).
   useEffect(() => {
@@ -256,9 +286,11 @@ function MappingForm({
       .catch(() => setCategories([]));
   }, [locale]);
 
-  // ── Source products for the skip list (plan items) ──
-  const [products, setProducts] = useState<{ ref: string; title: string }[]>([]);
+  // ── Source products for the skip list (plan items), loaded lazily when the
+  // advanced section opens (the list can be thousands of rows).
+  const [products, setProducts] = useState<{ ref: string; title: string }[] | null>(null);
   useEffect(() => {
+    if (!advancedOpen || products !== null) return;
     let cancelled = false;
     (async () => {
       const out: { ref: string; title: string }[] = [];
@@ -277,12 +309,12 @@ function MappingForm({
     return () => {
       cancelled = true;
     };
-  }, [token, run.id]);
+  }, [token, run.id, advancedOpen, products]);
 
   const titleOf = useMemo(() => {
     const map: Record<string, string> = {};
     for (const s of summary?.skipped ?? []) map[s.external_ref] = s.title;
-    for (const p of products) map[p.ref] = p.title;
+    for (const p of products ?? []) map[p.ref] = p.title;
     return map;
   }, [products, summary]);
 
@@ -312,15 +344,19 @@ function MappingForm({
       errs.days = t('errors.daysOrder');
     }
     const emptyKey = (rec: Record<string, string> | undefined) => Object.entries(rec ?? {}).some(([k, v]) => !k.trim() || !String(v).trim());
-    if (emptyKey(opts.label_overrides)) errs.attributes = t('errors.overrideIncomplete');
-    if (emptyKey(opts.faq_labels)) errs.faq = t('errors.overrideIncomplete');
+    if (kvDuplicates.attributes) errs.attributes = t('errors.duplicateKey');
+    else if (emptyKey(opts.label_overrides)) errs.attributes = t('errors.overrideIncomplete');
+    if (kvDuplicates.faq) errs.faq = t('errors.duplicateKey');
+    else if (emptyKey(opts.faq_labels)) errs.faq = t('errors.overrideIncomplete');
     return errs;
   };
 
   const sectionOfError = (key: string): Section =>
     key === 'platform_category_id' ? 'category' : key === 'days' ? 'shipping' : (key as Section);
 
+  // Sections inside "Advanced" are opened before the scroll (next frame).
   const jumpTo = (section: Section) => {
+    if (isAdvanced(section)) setAdvancedOpen(true);
     requestAnimationFrame(() => {
       document.getElementById(`importer-section-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -370,20 +406,33 @@ function MappingForm({
   };
 
   const sectionError = (s: Section) => errors[s] && <ErrorBanner message={errors[s]!} />;
+  const sectionHasError = (s: Section) =>
+    !!errors[s] || (s === 'category' && !!errors.platform_category_id) || (s === 'shipping' && !!errors.days);
+  const advancedHasError = ADVANCED_SECTIONS.some(sectionHasError);
+
+  const sectionCard = (id: Section, children: React.ReactNode, extraCls = '') => (
+    <Card id={`importer-section-${id}`} className={`scroll-mt-4 shadow-none ${extraCls}`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-semibold">
+          {t(`sections.${id}`)} {id === 'category' && needsPlatformCategory(opts) && <span className="text-red-500">*</span>}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        {sectionError(id)}
+        {children}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
       <div className="space-y-4">
         {run.status === 'PLAN_FAILED' && <ErrorBanner message={t('planFailed')} />}
 
-        {/* Platform category */}
-        <Card id="importer-section-category" className={`scroll-mt-4 shadow-none ${errors.platform_category_id ? 'border-red-300' : ''}`}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">
-              {t('sections.category')} {needsPlatformCategory(opts) && <span className="text-red-500">*</span>}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1.5 pt-0">
+        {/* 1. Platform category (required) */}
+        {sectionCard(
+          'category',
+          <div className="space-y-1.5">
             <SearchableSelect
               id="importer-platform-category"
               options={categories}
@@ -401,366 +450,390 @@ function MappingForm({
                 {needsPlatformCategory(opts) ? t('categoryHint') : t('categoryOptionalHint')}
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>,
+          errors.platform_category_id ? 'border-red-300' : '',
+        )}
 
-        {/* Scopes */}
-        <Card id="importer-section-scopes" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.scopes')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0">
-            {sectionError('scopes')}
-            <div className="grid gap-2 sm:grid-cols-2">
-              {IMPORT_SCOPES.map((scope) => (
-                <label key={scope} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
-                  <span>{t(`scopes.${scope}`)}</span>
-                  <ToggleSwitch
-                    checked={opts.scopes?.[scope] !== false}
-                    onChange={(v) => update({ scopes: { ...opts.scopes, [scope]: v } })}
-                    label={t(`scopes.${scope}`)}
-                  />
-                </label>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* 2. What to import */}
+        {sectionCard(
+          'scopes',
+          <div className="grid gap-2 sm:grid-cols-2">
+            {IMPORT_SCOPES.map((scope) => (
+              <label key={scope} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+                <span>{t(`scopes.${scope}`)}</span>
+                <ToggleSwitch
+                  checked={opts.scopes?.[scope] !== false}
+                  onChange={(v) => update({ scopes: { ...opts.scopes, [scope]: v } })}
+                  label={t(`scopes.${scope}`)}
+                />
+              </label>
+            ))}
+          </div>,
+        )}
 
-        {/* Products */}
-        <Card id="importer-section-products" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.products')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            {sectionError('products')}
-            <label className="flex items-center justify-between gap-3 text-sm">
-              <span>
-                <span className="block">{t('includeDrafts')}</span>
-                <span className="block text-xs text-muted-foreground">{t('includeDraftsHint')}</span>
-              </span>
-              <ToggleSwitch checked={opts.include_drafts !== false} onChange={(v) => update({ include_drafts: v })} label={t('includeDrafts')} />
-            </label>
+        {/* 3. When a product already exists */}
+        {sectionCard(
+          'conflict',
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(['SKIP_MODIFIED', 'OVERWRITE'] as const).map((policy) => {
+              const selected = (opts.conflict_policy ?? 'SKIP_MODIFIED') === policy;
+              return (
+                <button
+                  key={policy}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => update({ conflict_policy: policy })}
+                  className={`rounded-lg border p-3 text-start transition ${selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:bg-zinc-50/60'}`}
+                >
+                  <span className="block text-sm font-medium">{t(`conflict.${policy}`)}</span>
+                  <span className="block text-xs text-muted-foreground">{t(`conflict.${policy}_hint`)}</span>
+                </button>
+              );
+            })}
+          </div>,
+        )}
 
-            <div className="space-y-2">
-              <Label className="text-xs">{t('statusMap')}</Label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {SOURCE_PRODUCT_STATUSES.map((s) => (
-                  <div key={s} className="flex items-center gap-2">
-                    <span className="w-24 shrink-0 text-sm text-muted-foreground">{ts(s)}</span>
-                    <div className="flex-1">
+        {/* Advanced (collapsed by default) */}
+        <div id="importer-section-advanced" className="scroll-mt-4 space-y-4">
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen((o) => !o)}
+            aria-expanded={advancedOpen}
+            className={`flex w-full items-center gap-3 rounded-lg border bg-white px-4 py-3 text-start hover:bg-zinc-50 ${advancedHasError ? 'border-red-300' : ''}`}
+          >
+            <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1">
+              <span className={`block text-sm font-semibold ${advancedHasError ? 'text-red-600' : ''}`}>{t('advanced')}</span>
+              <span className="block text-xs text-muted-foreground">{t('advancedHint')}</span>
+            </span>
+            <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {advancedOpen && (
+            <>
+              {/* Products */}
+              {sectionCard(
+                'products',
+                <>
+                  <label className="flex items-center justify-between gap-3 text-sm">
+                    <span>
+                      <span className="block">{t('includeDrafts')}</span>
+                      <span className="block text-xs text-muted-foreground">{t('includeDraftsHint')}</span>
+                    </span>
+                    <ToggleSwitch checked={opts.include_drafts !== false} onChange={(v) => update({ include_drafts: v })} label={t('includeDrafts')} />
+                  </label>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">{t('statusMap')}</Label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {SOURCE_PRODUCT_STATUSES.map((s) => (
+                        <div key={s} className="flex items-center gap-2">
+                          <span className="w-24 shrink-0 text-sm text-muted-foreground">{ts(s)}</span>
+                          <div className="flex-1">
+                            <SearchableSelect
+                              options={TARGET_PRODUCT_STATUSES.map((v) => ({ value: v, label: tp(v) }))}
+                              value={opts.status_map?.[s] ?? ''}
+                              onChange={(v) => update({ status_map: { ...opts.status_map, [s]: (v || 'DRAFT') as TargetProductStatus } })}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('onSourceRemoved')}</Label>
                       <SearchableSelect
-                        options={TARGET_PRODUCT_STATUSES.map((v) => ({ value: v, label: tp(v) }))}
-                        value={opts.status_map?.[s] ?? ''}
-                        onChange={(v) => update({ status_map: { ...opts.status_map, [s]: (v || 'DRAFT') as TargetProductStatus } })}
+                        options={(['keep', 'draft', 'archive'] as const).map((v) => ({ value: v, label: t(`removed.${v}`) }))}
+                        value={opts.on_source_removed ?? 'keep'}
+                        onChange={(v) => update({ on_source_removed: (v || 'keep') as ImportRunOptions['on_source_removed'] })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('matchCategories')}</Label>
+                      <SearchableSelect
+                        options={[
+                          { value: 'slug', label: t('match.slug') },
+                          { value: 'none', label: t('match.none') },
+                        ]}
+                        value={opts.match_existing?.categories ?? 'slug'}
+                        onChange={(v) => update({ match_existing: { ...opts.match_existing, categories: (v || 'slug') as 'slug' | 'none' } })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('stockOnUpdate')}</Label>
+                      <SearchableSelect
+                        options={(['keep', 'overwrite'] as const).map((v) => ({
+                          value: v,
+                          label: t(`stock.${v}`),
+                          description: t(`stock.${v}_hint`),
+                        }))}
+                        value={opts.stock_on_update ?? 'keep'}
+                        onChange={(v) => update({ stock_on_update: (v || 'keep') as StockOnUpdate })}
                       />
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('conflictPolicy')}</Label>
-                <SearchableSelect
-                  options={[
-                    { value: 'SKIP_MODIFIED', label: t('conflict.SKIP_MODIFIED'), description: t('conflict.SKIP_MODIFIED_hint') },
-                    { value: 'OVERWRITE', label: t('conflict.OVERWRITE'), description: t('conflict.OVERWRITE_hint') },
-                  ]}
-                  value={opts.conflict_policy ?? 'SKIP_MODIFIED'}
-                  onChange={(v) => update({ conflict_policy: (v || 'SKIP_MODIFIED') as ImportRunOptions['conflict_policy'] })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('onSourceRemoved')}</Label>
-                <SearchableSelect
-                  options={(['keep', 'draft', 'archive'] as const).map((v) => ({ value: v, label: t(`removed.${v}`) }))}
-                  value={opts.on_source_removed ?? 'keep'}
-                  onChange={(v) => update({ on_source_removed: (v || 'keep') as ImportRunOptions['on_source_removed'] })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('matchCategories')}</Label>
-                <SearchableSelect
-                  options={[
-                    { value: 'slug', label: t('match.slug') },
-                    { value: 'none', label: t('match.none') },
-                  ]}
-                  value={opts.match_existing?.categories ?? 'slug'}
-                  onChange={(v) => update({ match_existing: { ...opts.match_existing, categories: (v || 'slug') as 'slug' | 'none' } })}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">{t('stockOnUpdate')}</Label>
-                <SearchableSelect
-                  options={(['keep', 'overwrite'] as const).map((v) => ({
-                    value: v,
-                    label: t(`stock.${v}`),
-                    description: t(`stock.${v}_hint`),
-                  }))}
-                  value={opts.stock_on_update ?? 'keep'}
-                  onChange={(v) => update({ stock_on_update: (v || 'keep') as StockOnUpdate })}
-                />
-              </div>
-            </div>
-
-            {/* Skip list */}
-            <div className="space-y-2">
-              <Label className="text-xs">{t('skipList')}</Label>
-              <div className="flex flex-wrap gap-2">
-                <div className="min-w-56 flex-1">
-                  <SearchableSelect
-                    options={products.filter((p) => !skip.includes(p.ref)).map((p) => ({ value: p.ref, label: p.title, description: p.ref }))}
-                    value=""
-                    onChange={(v) => v && addSkip(v)}
-                    placeholder={t('skipSearch')}
-                    searchPlaceholder={t('skipSearchPlaceholder')}
-                  />
-                </div>
-                <Input
-                  dir="ltr"
-                  className="h-8 w-56 font-mono text-xs"
-                  value={manualRef}
-                  onChange={(e) => setManualRef(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addSkip(manualRef);
-                      setManualRef('');
-                    }
-                  }}
-                  placeholder="woo:example.com:product:123"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    addSkip(manualRef);
-                    setManualRef('');
-                  }}
-                  disabled={!manualRef.trim()}
-                >
-                  <Plus />
-                  {tc('add')}
-                </Button>
-              </div>
-              {skip.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {skip.map((ref) => (
-                    <Badge key={ref} variant="outline" className="h-auto gap-1.5 py-1 font-normal">
-                      <span>{titleOf[ref] ?? ref}</span>
-                      {titleOf[ref] && (
-                        <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
-                          {ref}
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => update({ skip_ext_ids: skip.filter((r) => r !== ref) })}
-                        aria-label={tc('remove')}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[11px] text-muted-foreground">{t('skipEmpty')}</p>
+                  {/* Skip list */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">{t('skipList')}</Label>
+                    {products === null ? (
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="size-3.5 animate-spin" />
+                        {t('skipLoading')}
+                      </p>
+                    ) : (
+                      <SearchableSelect
+                        options={products.filter((p) => !skip.includes(p.ref)).map((p) => ({ value: p.ref, label: p.title, description: p.ref }))}
+                        value=""
+                        onChange={(v) => v && addSkip(v)}
+                        placeholder={t('skipSearch')}
+                        searchPlaceholder={t('skipSearchPlaceholder')}
+                      />
+                    )}
+                    {skip.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {skip.map((ref) => (
+                          <Badge key={ref} variant="outline" className="h-auto gap-1.5 py-1 font-normal" title={ref}>
+                            <span>{titleOf[ref] ?? ref}</span>
+                            {titleOf[ref] && <TechDetail value={ref} />}
+                            <button
+                              type="button"
+                              onClick={() => update({ skip_ext_ids: skip.filter((r) => r !== ref) })}
+                              aria-label={tc('remove')}
+                              className="-m-1 inline-flex size-7 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground">{t('skipEmpty')}</p>
+                    )}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('manualRef')}</Label>
+                      <div className="flex flex-wrap gap-2">
+                        <Input
+                          dir="ltr"
+                          className="h-8 w-64 font-mono text-xs"
+                          value={manualRef}
+                          onChange={(e) => setManualRef(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSkip(manualRef);
+                              setManualRef('');
+                            }
+                          }}
+                          placeholder="woo:example.com:product:123"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            addSkip(manualRef);
+                            setManualRef('');
+                          }}
+                          disabled={!manualRef.trim()}
+                        >
+                          <Plus />
+                          {tc('add')}
+                        </Button>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">{t('manualRefHint')}</p>
+                    </div>
+                  </div>
+                </>,
               )}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Attributes and terms */}
-        <Card id="importer-section-attributes" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.attributes')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            {sectionError('attributes')}
-            <div className="grid gap-2 sm:grid-cols-3">
-              {(['unicode', 'strip_price_suffix', 'strip_trailing_colon'] as const).map((rule) => (
-                <label key={rule} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
-                  <span>{t(`cleanup.${rule}`)}</span>
-                  <ToggleSwitch
-                    checked={opts.term_cleanup?.[rule] !== false}
-                    onChange={(v) => update({ term_cleanup: { ...opts.term_cleanup, [rule]: v } })}
-                    label={t(`cleanup.${rule}`)}
-                  />
-                </label>
-              ))}
-            </div>
-            {summary?.term_cleanup && summary.term_cleanup.length > 0 ? (
-              <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">{t('cleanupPreview')}</p>
-                <TermCleanupTable rows={summary.term_cleanup} />
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">{t('cleanupNone')}</p>
-            )}
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('labelOverrides')}</Label>
-              <p className="text-[11px] text-muted-foreground">{t('labelOverridesHint')}</p>
-              <KeyValueEditor
-                value={opts.label_overrides ?? {}}
-                onChange={(v) => update({ label_overrides: v })}
-                keyPlaceholder="pa_size"
-                valuePlaceholder={t('labelPlaceholder')}
-                suggestions={taxonomies}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* FAQ labels */}
-        <Card id="importer-section-faq" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.faq')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-0">
-            {sectionError('faq')}
-            <p className="text-[11px] text-muted-foreground">{t('faqHint')}</p>
-            <KeyValueEditor
-              value={opts.faq_labels ?? {}}
-              onChange={(v) => update({ faq_labels: v })}
-              keyPlaceholder="product_delivery"
-              valuePlaceholder={t('faqPlaceholder')}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Shipping */}
-        <Card id="importer-section-shipping" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.shipping')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            {sectionError('shipping')}
-            {summary?.shipping && !summary.shipping.zones_available ? (
-              <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">{t('shippingMissing')}</p>
-            ) : (
-              summary?.shipping && (
-                <p className="text-xs text-muted-foreground">
-                  {t('shippingSummary', {
-                    zones: summary.shipping.zones ?? 0,
-                    methods: summary.shipping.methods_enabled ?? 0,
-                    classes: (summary.shipping.classes_used ?? []).join(', ') || '—',
-                  })}
-                </p>
-              )
-            )}
-            <div className="space-y-2">
-              {METHOD_IDS.concat(Object.keys(opts.shipping?.method_names ?? {}).filter((k) => !METHOD_IDS.includes(k))).map((id) => (
-                <div key={id} className="grid items-center gap-2 sm:grid-cols-[10rem_minmax(0,1fr)]">
-                  <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                    {id}
-                  </span>
-                  <Input
-                    className="h-8 text-sm"
-                    value={opts.shipping?.method_names?.[id] ?? ''}
-                    placeholder={t('methodNamePlaceholder')}
-                    onChange={(e) => {
-                      const names = { ...(opts.shipping?.method_names ?? {}) };
-                      if (e.target.value) names[id] = e.target.value;
-                      else delete names[id];
-                      update({ shipping: { ...opts.shipping, method_names: names } });
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {(['min', 'max'] as const).map((k) => (
-                <div key={k} className="space-y-1.5">
-                  <Label className="text-xs">{t(`days.${k}`)}</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    className={`h-8 text-sm ${errors.days ? 'border-red-400' : ''}`}
-                    value={opts.shipping?.default_days?.[k] ?? ''}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      const days = { ...(opts.shipping?.default_days ?? {}) };
-                      if (raw === '') delete days[k];
-                      else days[k] = Number(raw);
-                      update({ shipping: { ...opts.shipping, default_days: days } });
-                    }}
-                  />
-                </div>
-              ))}
-              <label className="flex items-end justify-between gap-3 pb-1 text-sm">
-                <span>{t('freeThreshold')}</span>
-                <ToggleSwitch
-                  checked={opts.shipping?.free_shipping_as_threshold !== false}
-                  onChange={(v) => update({ shipping: { ...opts.shipping, free_shipping_as_threshold: v } })}
-                  label={t('freeThreshold')}
-                />
-              </label>
-            </div>
-            {errors.days && <p className="text-[11px] text-red-600">{errors.days}</p>}
-            <p className="text-[11px] text-muted-foreground">{t('freeThresholdHint')}</p>
-          </CardContent>
-        </Card>
-
-        {/* Personalization, templates and other hand-offs */}
-        <Card id="importer-section-handoff" className="scroll-mt-4 shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">{t('sections.handoff')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            {sectionError('handoff')}
-            {summary?.personalization && (
-              <div className="space-y-2">
-                <p className="text-sm">
-                  {t('presetsLine', { presets: summary.personalization.presets, products: summary.personalization.products })}
-                  {summary.personalization.staged && (
-                    <Badge variant="outline" className="ms-2 border-indigo-200 bg-indigo-50 text-indigo-700">
-                      {t('staged')}
-                    </Badge>
+              {/* Attributes and terms */}
+              {sectionCard(
+                'attributes',
+                <>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {(['unicode', 'strip_price_suffix', 'strip_trailing_colon'] as const).map((rule) => (
+                      <label key={rule} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+                        <span>{t(`cleanup.${rule}`)}</span>
+                        <ToggleSwitch
+                          checked={opts.term_cleanup?.[rule] !== false}
+                          onChange={(v) => update({ term_cleanup: { ...opts.term_cleanup, [rule]: v } })}
+                          label={t(`cleanup.${rule}`)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {summary?.term_cleanup && summary.term_cleanup.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-muted-foreground">{t('cleanupPreview')}</p>
+                      <TermCleanupTable rows={summary.term_cleanup} />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{t('cleanupNone')}</p>
                   )}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {Object.entries(summary.personalization.by_key ?? {}).map(([key, count]) => (
-                    <Badge key={key} variant="outline" className="font-mono font-normal" dir="ltr">
-                      {key} · {count}
-                    </Badge>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('labelOverrides')}</Label>
+                    <p className="text-[11px] text-muted-foreground">{t('labelOverridesHint')}</p>
+                    <KeyValueEditor
+                      value={opts.label_overrides ?? {}}
+                      onChange={(v) => update({ label_overrides: v })}
+                      onDuplicate={(has) => setKvDuplicates((d) => (d.attributes === has ? d : { ...d, attributes: has }))}
+                      keyPlaceholder="pa_size"
+                      valuePlaceholder={t('labelPlaceholder')}
+                      suggestions={taxonomies}
+                    />
+                  </div>
+                </>,
+              )}
+
+              {/* FAQ labels */}
+              {sectionCard(
+                'faq',
+                <>
+                  <p className="text-[11px] text-muted-foreground">{t('faqHint')}</p>
+                  <KeyValueEditor
+                    value={opts.faq_labels ?? {}}
+                    onChange={(v) => update({ faq_labels: v })}
+                    onDuplicate={(has) => setKvDuplicates((d) => (d.faq === has ? d : { ...d, faq: has }))}
+                    keyPlaceholder="product_delivery"
+                    valuePlaceholder={t('faqPlaceholder')}
+                  />
+                </>,
+              )}
+
+              {/* Shipping */}
+              {sectionCard(
+                'shipping',
+                <>
+                  {summary?.shipping && !summary.shipping.zones_available ? (
+                    <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">{t('shippingMissing')}</p>
+                  ) : (
+                    summary?.shipping && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('shippingSummary', {
+                          zones: summary.shipping.zones ?? 0,
+                          methods: summary.shipping.methods_enabled ?? 0,
+                          classes: (summary.shipping.classes_used ?? []).join(', ') || '—',
+                        })}
+                      </p>
+                    )
+                  )}
+                  <div className="space-y-2">
+                    {(METHOD_IDS as readonly string[])
+                      .concat(Object.keys(opts.shipping?.method_names ?? {}).filter((k) => !(METHOD_IDS as readonly string[]).includes(k)))
+                      .map((id) => {
+                        // "Flat rate (flat_rate)": readable label with the method id.
+                        const label = t.has(`methods.${id}`) ? `${t(`methods.${id}`)} (${id})` : id;
+                        return (
+                          <div key={id} className="grid items-center gap-2 sm:grid-cols-[12rem_minmax(0,1fr)]">
+                            <span className="text-sm text-muted-foreground" title={id}>
+                              {label}
+                            </span>
+                            <Input
+                              className="h-8 text-sm"
+                              value={opts.shipping?.method_names?.[id] ?? ''}
+                              placeholder={t('methodNamePlaceholder')}
+                              onChange={(e) => {
+                                const names = { ...(opts.shipping?.method_names ?? {}) };
+                                if (e.target.value) names[id] = e.target.value;
+                                else delete names[id];
+                                update({ shipping: { ...opts.shipping, method_names: names } });
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {(['min', 'max'] as const).map((k) => (
+                      <div key={k} className="space-y-1.5">
+                        <Label className="text-xs">{t(`days.${k}`)}</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          className={`h-8 text-sm ${errors.days ? 'border-red-400' : ''}`}
+                          value={opts.shipping?.default_days?.[k] ?? ''}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const days = { ...(opts.shipping?.default_days ?? {}) };
+                            if (raw === '') delete days[k];
+                            else days[k] = Number(raw);
+                            update({ shipping: { ...opts.shipping, default_days: days } });
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <label className="flex items-end justify-between gap-3 pb-1 text-sm">
+                      <span>{t('freeThreshold')}</span>
+                      <ToggleSwitch
+                        checked={opts.shipping?.free_shipping_as_threshold !== false}
+                        onChange={(v) => update({ shipping: { ...opts.shipping, free_shipping_as_threshold: v } })}
+                        label={t('freeThreshold')}
+                      />
+                    </label>
+                  </div>
+                  {errors.days && <p className="text-[11px] text-red-600">{errors.days}</p>}
+                  <p className="text-[11px] text-muted-foreground">{t('freeThresholdHint')}</p>
+                </>,
+              )}
+
+              {/* Personalization, templates and other hand-offs */}
+              {sectionCard(
+                'handoff',
+                <>
+                  {summary?.personalization && (
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        {t('presetsLine', { presets: summary.personalization.presets, products: summary.personalization.products })}
+                        {summary.personalization.staged && (
+                          <Badge variant="outline" className="ms-2 border-indigo-200 bg-indigo-50 text-indigo-700">
+                            {t('staged')}
+                          </Badge>
+                        )}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Object.entries(summary.personalization.by_key ?? {}).map(([key, count]) => (
+                          <TechDetail key={key} value={`${key} · ${count}`} className="rounded border px-1.5 py-0.5" />
+                        ))}
+                        {(summary.personalization.broken ?? 0) > 0 && (
+                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                            {t('broken', { count: summary.personalization.broken ?? 0 })}
+                          </Badge>
+                        )}
+                      </div>
+                      {summary.personalization.staged && <p className="text-[11px] text-muted-foreground">{t('stagedHint')}</p>}
+                    </div>
+                  )}
+                  {summary?.designer && (summary.designer.templates ?? 0) > 0 && (
+                    <p className="text-sm">
+                      {t('templatesLine', {
+                        templates: summary.designer.templates ?? 0,
+                        linked: summary.designer.products_linked ?? 0,
+                        fields: summary.designer.fallback_fields ?? 0,
+                      })}
+                    </p>
+                  )}
+                  {(
+                    [
+                      ['designer_fallback_fields', 'fallbackFields'],
+                      ['redirect_skipped', 'redirectSkipped'],
+                      ['verify_media', 'verifyMedia'],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <label key={key} className="flex items-center justify-between gap-3 text-sm">
+                      <span>
+                        <span className="block">{t(label)}</span>
+                        <span className="block text-xs text-muted-foreground">{t(`${label}Hint`)}</span>
+                      </span>
+                      <ToggleSwitch checked={opts[key] !== false} onChange={(v) => update({ [key]: v })} label={t(label)} />
+                    </label>
                   ))}
-                  {(summary.personalization.broken ?? 0) > 0 && (
-                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-                      {t('broken', { count: summary.personalization.broken ?? 0 })}
-                    </Badge>
-                  )}
-                </div>
-                {summary.personalization.staged && <p className="text-[11px] text-muted-foreground">{t('stagedHint')}</p>}
-              </div>
-            )}
-            {summary?.designer && (summary.designer.templates ?? 0) > 0 && (
-              <p className="text-sm">
-                {t('templatesLine', {
-                  templates: summary.designer.templates ?? 0,
-                  linked: summary.designer.products_linked ?? 0,
-                  fields: summary.designer.fallback_fields ?? 0,
-                })}
-              </p>
-            )}
-            {(
-              [
-                ['designer_fallback_fields', 'fallbackFields'],
-                ['redirect_skipped', 'redirectSkipped'],
-                ['verify_media', 'verifyMedia'],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key} className="flex items-center justify-between gap-3 text-sm">
-                <span>
-                  <span className="block">{t(label)}</span>
-                  <span className="block text-xs text-muted-foreground">{t(`${label}Hint`)}</span>
-                </span>
-                <ToggleSwitch checked={opts[key] !== false} onChange={(v) => update({ [key]: v })} label={t(label)} />
-              </label>
-            ))}
-          </CardContent>
-        </Card>
+                </>,
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Side panel: save */}
@@ -776,20 +849,37 @@ function MappingForm({
               {dirty ? t('saveReplan') : t('replan')}
             </Button>
             <nav className="space-y-0.5 border-t pt-3 text-xs">
-              {(['category', 'scopes', 'products', 'attributes', 'faq', 'shipping', 'handoff'] as const).map((s) => (
+              {(['category', 'scopes', 'conflict'] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => jumpTo(s)}
-                  className={`block w-full rounded px-2 py-1 text-start hover:bg-zinc-50 ${
-                    errors[s] || (s === 'category' && errors.platform_category_id) || (s === 'shipping' && errors.days)
-                      ? 'font-medium text-red-600'
-                      : 'text-muted-foreground'
-                  }`}
+                  className={`block w-full rounded px-2 py-1 text-start hover:bg-zinc-50 ${sectionHasError(s) ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
                 >
                   {t(`sections.${s}`)}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setAdvancedOpen(true);
+                  requestAnimationFrame(() => document.getElementById('importer-section-advanced')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+                }}
+                className={`block w-full rounded px-2 py-1 text-start hover:bg-zinc-50 ${advancedHasError ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
+              >
+                {t('advanced')}
+              </button>
+              {advancedOpen &&
+                ADVANCED_SECTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => jumpTo(s)}
+                    className={`block w-full rounded px-2 py-1 ps-5 text-start hover:bg-zinc-50 ${sectionHasError(s) ? 'font-medium text-red-600' : 'text-muted-foreground'}`}
+                  >
+                    {t(`sections.${s}`)}
+                  </button>
+                ))}
             </nav>
           </CardContent>
         </Card>
@@ -800,23 +890,53 @@ function MappingForm({
 
 // ─── Key/value editor (label overrides, FAQ labels) ─────────────────────────
 
+interface KvRow {
+  id: number;
+  k: string;
+  v: string;
+}
+
+/** Stable row ids across every editor on the page (React keys, not persisted). */
+let kvRowSeq = 0;
+const nextKvRowId = () => ++kvRowSeq;
+
 function KeyValueEditor({
   value,
   onChange,
+  onDuplicate,
   keyPlaceholder,
   valuePlaceholder,
   suggestions = [],
 }: {
   value: Record<string, string>;
   onChange: (value: Record<string, string>) => void;
+  /** Reports whether two rows share a key (E12); the parent blocks saving. */
+  onDuplicate?: (has: boolean) => void;
   keyPlaceholder: string;
   valuePlaceholder: string;
   suggestions?: string[];
 }) {
   const t = useTranslations('creator.importer.mapping');
-  // Rows keep their order and allow a temporarily empty key while typing.
-  const [rows, setRows] = useState<{ k: string; v: string }[]>(() => Object.entries(value).map(([k, v]) => ({ k, v })));
-  const commit = (next: { k: string; v: string }[]) => {
+  // Rows keep a stable id (React key) and their order, and allow a
+  // temporarily empty key while typing.
+  const [rows, setRows] = useState<KvRow[]>(() => Object.entries(value).map(([k, v]) => ({ id: nextKvRowId(), k, v })));
+  const duplicates = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const r of rows) {
+      const k = r.k.trim();
+      if (k) seen.set(k, (seen.get(k) ?? 0) + 1);
+    }
+    return new Set(Array.from(seen.entries()).filter(([, n]) => n > 1).map(([k]) => k));
+  }, [rows]);
+  const dupRef = useRef(onDuplicate);
+  useEffect(() => {
+    dupRef.current = onDuplicate;
+  }, [onDuplicate]);
+  useEffect(() => {
+    dupRef.current?.(duplicates.size > 0);
+  }, [duplicates]);
+
+  const commit = (next: KvRow[]) => {
     setRows(next);
     const rec: Record<string, string> = {};
     for (const r of next) rec[r.k] = r.v;
@@ -826,27 +946,41 @@ function KeyValueEditor({
 
   return (
     <div className="space-y-2">
-      {rows.map((row, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <Input
-            dir="ltr"
-            list={suggestions.length ? listId : undefined}
-            className="h-8 w-48 font-mono text-xs"
-            value={row.k}
-            placeholder={keyPlaceholder}
-            onChange={(e) => commit(rows.map((r, j) => (j === i ? { ...r, k: e.target.value } : r)))}
-          />
-          <Input
-            className="h-8 flex-1 text-sm"
-            value={row.v}
-            placeholder={valuePlaceholder}
-            onChange={(e) => commit(rows.map((r, j) => (j === i ? { ...r, v: e.target.value } : r)))}
-          />
-          <Button variant="ghost" size="icon" className="size-8" onClick={() => commit(rows.filter((_, j) => j !== i))} aria-label={t('removeRow')}>
-            <Trash2 />
-          </Button>
-        </div>
-      ))}
+      {rows.map((row) => {
+        const dup = !!row.k.trim() && duplicates.has(row.k.trim());
+        return (
+          <div key={row.id} className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Input
+                dir="ltr"
+                list={suggestions.length ? listId : undefined}
+                className={`h-8 w-48 font-mono text-xs ${dup ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
+                value={row.k}
+                placeholder={keyPlaceholder}
+                aria-invalid={dup || undefined}
+                onChange={(e) => commit(rows.map((r) => (r.id === row.id ? { ...r, k: e.target.value } : r)))}
+              />
+              <Input
+                className="h-8 flex-1 text-sm"
+                value={row.v}
+                placeholder={valuePlaceholder}
+                onChange={(e) => commit(rows.map((r) => (r.id === row.id ? { ...r, v: e.target.value } : r)))}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 max-sm:size-11"
+                onClick={() => commit(rows.filter((r) => r.id !== row.id))}
+                aria-label={t('removeRow')}
+                title={t('removeRow')}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+            {dup && <p className="text-[11px] text-red-600">{t('errors.duplicateKey')}</p>}
+          </div>
+        );
+      })}
       {suggestions.length > 0 && (
         <datalist id={listId}>
           {suggestions.map((s) => (
@@ -854,7 +988,7 @@ function KeyValueEditor({
           ))}
         </datalist>
       )}
-      <Button variant="outline" size="sm" onClick={() => setRows([...rows, { k: '', v: '' }])}>
+      <Button variant="outline" size="sm" onClick={() => setRows([...rows, { id: nextKvRowId(), k: '', v: '' }])}>
         <Plus />
         {t('addRow')}
       </Button>

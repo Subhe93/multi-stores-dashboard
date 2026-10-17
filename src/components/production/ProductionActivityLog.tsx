@@ -135,7 +135,7 @@ export function ProductionActivityLog({ token, orderId, version }: ProductionAct
                   <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-zinc-300" />
                   <div className="min-w-0">
                     <p className="break-words">{describe(e)}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {/* Sync-driven rows (e.g. COMPLETED after a resync) have no actor. */}
                       {e.actor_name || (e.actor_id ? t('someone') : t('system'))} · {new Date(e.created_at).toLocaleString(locale)}
                     </p>

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronRight, Clock, ExternalLink, Inbox, Loader2 } from 'lucide-react';
+import { ChevronRight, Clock, ExternalLink, Inbox, Loader2, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,8 @@ const PAGE_SIZE = 20;
 /**
  * "Queue" tab: open orders in production (or ready / not started), as
  * mobile-first cards with the checklist progress; a card opens the
- * full-screen workspace.
+ * full-screen workspace. The order-number search filters the loaded pages
+ * (`GET /orders` has no search parameter).
  */
 export function ProductionQueue({ token }: { token: string }) {
   const t = useTranslations('creator.production');
@@ -47,6 +49,7 @@ export function ProductionQueue({ token }: { token: string }) {
   const apiError = useApiError();
   const locale = useLocale();
   const [filter, setFilter] = useState<ProductionFilter>('in_production');
+  const [search, setSearch] = useState('');
   const [orders, setOrders] = useState<QueueOrder[]>([]);
   const [meta, setMeta] = useState<OrdersMeta | null>(null);
   const [summaries, setSummaries] = useState<ProductionSummaries>({});
@@ -93,6 +96,8 @@ export function ProductionQueue({ token }: { token: string }) {
   }, [load]);
 
   const hasMore = !!meta && meta.page < meta.totalPages;
+  const needle = search.trim().toLowerCase().replace(/^#/, '');
+  const visible = needle ? orders.filter((o) => o.order_number.toLowerCase().includes(needle)) : orders;
 
   return (
     <div className="space-y-4">
@@ -110,7 +115,18 @@ export function ProductionQueue({ token }: { token: string }) {
             {t(f.key)}
           </Button>
         ))}
-        {meta && <span className="ms-auto text-xs text-muted-foreground">{t('queue.count', { count: meta.total })}</span>}
+        <div className="relative ms-auto w-full sm:w-56">
+          <Search className="pointer-events-none absolute inset-s-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('queue.search')}
+            aria-label={t('queue.search')}
+            className="h-11 ps-8 text-sm"
+          />
+        </div>
+        {meta && <span className="w-full text-xs text-muted-foreground sm:w-auto">{t('queue.count', { count: meta.total })}</span>}
       </div>
 
       {error ? (
@@ -136,8 +152,9 @@ export function ProductionQueue({ token }: { token: string }) {
         </Card>
       ) : (
         <>
+          {visible.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">{t('queue.searchEmpty')}</p>}
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {orders.map((o) => {
+            {visible.map((o) => {
               const s = summaries[o.id];
               const customer = [o.customer?.first_name, o.customer?.last_name].filter(Boolean).join(' ');
               return (
@@ -153,7 +170,7 @@ export function ProductionQueue({ token }: { token: string }) {
                         </Link>
                         <p className="truncate text-xs text-muted-foreground">{customer || '—'}</p>
                       </div>
-                      <Badge variant="outline" className="shrink-0 text-[10px] font-semibold">
+                      <Badge variant="outline" className="shrink-0 text-[11px] font-semibold">
                         {tc.has(`orderStatus.${o.status}`) ? tc(`orderStatus.${o.status}`) : o.status}
                       </Badge>
                     </div>

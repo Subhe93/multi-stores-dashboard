@@ -23,9 +23,19 @@ import { CustomerTaxExemption } from '@/components/apps/CustomerTaxExemption';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
-import { ProductionChecklist } from '@/components/production/ProductionChecklist';
-import { OrderDesignCard } from '@/components/designer/OrderDesignCard';
+import dynamic from 'next/dynamic';
+import { useApiError } from '@/lib/useApiError';
 import type { OrderFieldValueRow } from '@/lib/customFields';
+
+// E14: the production checklist and the designer card (renderer mirror,
+// canvas preview) load on demand, only when their app is available.
+const ProductionChecklist = dynamic(
+  () => import('@/components/production/ProductionChecklist').then((m) => m.ProductionChecklist),
+  { ssr: false },
+);
+const OrderDesignCard = dynamic(() => import('@/components/designer/OrderDesignCard').then((m) => m.OrderDesignCard), {
+  ssr: false,
+});
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -245,6 +255,7 @@ export default function CreatorOrderDetailPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
   const [primaryLocale, setPrimaryLocale] = useState('en');
+  const describeError = useApiError();
 
   useEffect(() => {
     if (!token) return;
@@ -288,8 +299,8 @@ export default function CreatorOrderDetailPage() {
       setStatusNotes('');
       fetchOrder();
     } catch (err) {
-      console.error(err);
-      setStatusError((err instanceof Error && err.message) || t('orderDetail.updateFailed'));
+      // Localized by error code when the API sends one; else its message.
+      setStatusError(describeError(err) || t('orderDetail.updateFailed'));
     } finally {
       setUpdatingStatus(false);
     }
@@ -367,7 +378,7 @@ export default function CreatorOrderDetailPage() {
             {/* Market context (Markets app): market, hostname, locale, FX rate used. */}
             {order.market && (
               <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">
+                <Badge variant="outline" className="text-[11px] bg-sky-50 text-sky-700 border-sky-200">
                   {t('orders.market')}: {order.market.name} · {order.market.currency}
                 </Badge>
                 {order.hostname && <span dir="ltr">{t('orders.marketHostname')}: {order.hostname}</span>}
@@ -396,10 +407,10 @@ export default function CreatorOrderDetailPage() {
         {/* Left column (main) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Production checklist (production app, creator-fulfilled lines only).
-              Keyed by status: a change from the status card remounts the card so
-              the suggestion banner and the closed state never go stale. */}
+              `orderStatus` lets the card refresh itself when the status card
+              moves the order (E3), without remounting it. */}
           {productionEnabled && canUpdateStatus && token && (
-            <ProductionChecklist key={order.status} orderId={id} token={token} onOrderStatusChanged={() => fetchOrder()} />
+            <ProductionChecklist orderId={id} token={token} orderStatus={order.status} onOrderStatusChanged={() => fetchOrder()} />
           )}
 
           {/* Order items */}
@@ -475,7 +486,7 @@ export default function CreatorOrderDetailPage() {
                                 return (
                                   <Badge
                                     variant="outline"
-                                    className={`text-[10px] font-semibold shrink-0 ${
+                                    className={`text-[11px] font-semibold shrink-0 ${
                                       statusColors[itemStatus] ?? 'bg-zinc-100 text-zinc-600'
                                     }`}
                                   >
@@ -492,7 +503,7 @@ export default function CreatorOrderDetailPage() {
 
                             {/* Bundle badge */}
                             {bundleOffer && (
-                              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                              <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
                                 <Tag className="w-3 h-3" />
                                 <span>
                                   {bundleNameTr?.name ? `${bundleNameTr.name} · ` : ''}
@@ -519,7 +530,7 @@ export default function CreatorOrderDetailPage() {
                                   {fmt(lineTotal)}
                                 </span>
                                 {originalLineTotal !== null && originalLineTotal > lineTotal && (
-                                  <span className="text-[10px] line-through text-muted-foreground/70 tabular-nums">
+                                  <span className="text-[11px] line-through text-muted-foreground/70 tabular-nums">
                                     {fmt(originalLineTotal)}
                                   </span>
                                 )}
@@ -538,7 +549,7 @@ export default function CreatorOrderDetailPage() {
 
                         {/* Design notes */}
                         {item.design_notes && (
-                          <p className="ml-17 text-xs text-muted-foreground italic">{t('orderDetail.note')}: {item.design_notes}</p>
+                          <p className="ms-17 text-xs text-muted-foreground italic">{t('orderDetail.note')}: {item.design_notes}</p>
                         )}
                       </div>
                     );
@@ -560,7 +571,7 @@ export default function CreatorOrderDetailPage() {
                       {t('orderDetail.shipping')}
                       {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
                       {order.shipping_method_type === 'PICKUP' && (
-                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{tp('pickup')}</Badge>
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
                       )}
                     </span>
                     <span>{fmt(Number(order.shipping_cost ?? 0))}</span>
@@ -626,7 +637,7 @@ export default function CreatorOrderDetailPage() {
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
                         <p className="text-sm font-medium">{STATUS_LABELS[entry.status] || entry.status}</p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {entry.created_at
                             ? new Date(entry.created_at).toLocaleString()
                             : '—'}
@@ -643,7 +654,7 @@ export default function CreatorOrderDetailPage() {
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium">{t('orderDetail.orderCreated')}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}
                     </p>
                   </div>
@@ -800,7 +811,7 @@ export default function CreatorOrderDetailPage() {
                   <span className="text-muted-foreground">{tp('payment')}</span>
                   <Badge
                     variant="outline"
-                    className={`text-[9px] ${
+                    className={`text-[11px] ${
                       order.payment_status === 'paid'
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : order.payment_status === 'refunded'
@@ -828,11 +839,11 @@ export default function CreatorOrderDetailPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">{tp('yourPayout')}</span>
                         {myPayout ? (
-                          <Badge variant="outline" className={`text-[9px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                          <Badge variant="outline" className={`text-[11px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[9px] bg-zinc-100 text-zinc-600 border-zinc-200">
+                          <Badge variant="outline" className="text-[11px] bg-zinc-100 text-zinc-600 border-zinc-200">
                             {order.payment_status === 'paid'
                               ? tp('statusPending')
                               : order.payment_status === 'refunded'

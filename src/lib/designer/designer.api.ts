@@ -3,7 +3,10 @@
 // Every route lives under `/designer/my/*` (creator JWT, app enabled).
 
 import { api, API_URL, ApiError } from '@/lib/api';
+import { downloadAuthed, qs, type Paged } from '@/lib/http';
 import type { TemplateSpecV1 } from '@/lib/designer/design-renderer';
+
+export type { Paged } from '@/lib/http';
 
 // ─── Shared shapes ──────────────────────────────────────────────────────────
 
@@ -22,13 +25,6 @@ export const PRINT_STATUSES: readonly PrintStatus[] = ['PENDING', 'RENDERING', '
 /** Upload caps of the creator routes (API: TEMPLATE_ASSET_MAX_BYTES, FONT_MAX_BYTES). */
 export const TEMPLATE_ASSET_MAX_MB = 40;
 export const FONT_MAX_MB = 10;
-
-export interface Paged<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-}
 
 // ─── Assets ─────────────────────────────────────────────────────────────────
 
@@ -287,13 +283,6 @@ export function designerFileUrl(path: string | null | undefined): string | null 
 
 const BASE = '/designer/my';
 
-function qs(params: Record<string, string | number | undefined | null>): string {
-  const sp = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
-  const s = sp.toString();
-  return s ? `?${s}` : '';
-}
-
 /**
  * Multipart POST through fetch (the JSON `api()` helper forces a JSON
  * content type). Errors become ApiError with the API `code` and payload.
@@ -432,52 +421,14 @@ export const purgeOrderItemFiles = (token: string, orderId: string, itemId: stri
     token,
   });
 
-/** Content-Disposition file name (RFC 5987 `filename*` first). */
-function dispositionName(header: string | null): string | null {
-  if (!header) return null;
-  const star = /filename\*=UTF-8''([^;]+)/i.exec(header);
-  if (star) {
-    try {
-      return decodeURIComponent(star[1]);
-    } catch {
-      // Fall through to the plain form.
-    }
-  }
-  const plain = /filename="?([^";]+)"?/i.exec(header);
-  return plain ? plain[1] : null;
-}
-
 /**
  * Authenticated GET of a designer file saved through a temporary link. 409
  * DESIGNER_PRINT_NOT_READY, 410 DESIGNER_FILES_PURGED become ApiError codes.
  */
-async function downloadDesignerFile(token: string, endpoint: string, fallbackName: string): Promise<void> {
-  const res = await fetch(`${API_URL}${endpoint}`, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) {
-    const err = new ApiError('Download failed');
-    err.status = res.status;
-    try {
-      const json = await res.json();
-      if (json?.message) err.message = Array.isArray(json.message) ? json.message.join(' · ') : json.message;
-      if (typeof json?.code === 'string') err.code = json.code;
-      if (json && typeof json === 'object') err.payload = json;
-    } catch {
-      // Non-JSON body: keep the generic message.
-    }
-    if (!err.code && res.status === 409) err.code = 'DESIGNER_PRINT_NOT_READY';
-    if (!err.code && res.status === 410) err.code = 'DESIGNER_FILES_PURGED';
-    throw err;
-  }
-  const name = dispositionName(res.headers.get('content-disposition')) || fallbackName;
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+function downloadDesignerFile(token: string, endpoint: string, fallbackName: string): Promise<void> {
+  return downloadAuthed(endpoint, token, fallbackName, {
+    statusCodes: { 409: 'DESIGNER_PRINT_NOT_READY', 410: 'DESIGNER_FILES_PURGED' },
+  });
 }
 
 /** Downloads the print PNG (`<order_number>-<n>-front.png`). */

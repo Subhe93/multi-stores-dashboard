@@ -82,13 +82,13 @@ export function SourceCard({ token, source, latestRun, busy, onEdit, onDelete, o
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="size-8" onClick={onEdit} aria-label={t('edit')} title={t('edit')}>
+            <Button variant="ghost" size="icon" className="size-9 max-sm:size-11" onClick={onEdit} aria-label={t('edit')} title={t('edit')}>
               <Pencil />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 text-destructive hover:text-destructive"
+              className="size-9 text-destructive hover:text-destructive max-sm:size-11"
               onClick={onDelete}
               disabled={busy}
               aria-label={t('delete')}
@@ -123,6 +123,13 @@ export function SourceCard({ token, source, latestRun, busy, onEdit, onDelete, o
               onUpload={(files, onProgress) => onStartRun(files, onProgress)}
             />
           </div>
+        ) : !isRunnableKind(source.kind) ? (
+          // E4: REST sources cannot run yet. No key fields, no verify, no
+          // dry run: a plain "coming later" note until the API supports them.
+          <div className="flex items-start gap-2 rounded-lg border border-dashed bg-zinc-50/40 p-3 text-sm text-muted-foreground">
+            <Clock className="mt-0.5 size-4 shrink-0" />
+            <span>{t('rest.comingLater')}</span>
+          </div>
         ) : (
           <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-zinc-50/40 p-3 text-sm">
             <span className="flex items-center gap-1.5">
@@ -149,19 +156,11 @@ export function SourceCard({ token, source, latestRun, busy, onEdit, onDelete, o
                 {working === 'verify' ? <Loader2 className="animate-spin" /> : <BadgeCheck />}
                 {t('rest.verify')}
               </Button>
-              {isRunnableKind(source.kind) && (
-                <Button size="sm" onClick={() => run('run', () => onStartRun(null))} disabled={!!working || busy || !source.has_credentials}>
-                  {working === 'run' ? <Loader2 className="animate-spin" /> : <Play className="rtl:-scale-x-100" />}
-                  {t('rest.startDryRun')}
-                </Button>
-              )}
+              <Button size="sm" onClick={() => run('run', () => onStartRun(null))} disabled={!!working || busy || !source.has_credentials}>
+                {working === 'run' ? <Loader2 className="animate-spin" /> : <Play className="rtl:-scale-x-100" />}
+                {t('rest.startDryRun')}
+              </Button>
             </div>
-            {!isRunnableKind(source.kind) && (
-              <p className="flex w-full items-start gap-1.5 text-xs text-muted-foreground">
-                <Clock className="mt-0.5 size-3.5 shrink-0" />
-                {t('rest.comingLater')}
-              </p>
-            )}
           </div>
         )}
 

@@ -105,7 +105,7 @@ export function RunProgress({ run }: { run: ImportRunView }) {
               {APPLY_PHASES.map((p, i) => (
                 <span
                   key={p}
-                  className={`rounded px-1.5 py-0.5 text-[10px] ${
+                  className={`rounded px-1.5 py-0.5 text-[11px] ${
                     i < phaseIndex
                       ? 'bg-emerald-50 text-emerald-700'
                       : i === phaseIndex

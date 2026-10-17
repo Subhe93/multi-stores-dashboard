@@ -6,7 +6,9 @@
 // multi-stores-api/src/modules/importer/importer-creator.controller.ts.
 
 import { api, API_URL, ApiError } from '@/lib/api';
-import { parseContentDispositionFilename } from '@/lib/backups';
+import { downloadAuthed, qs, type Paged } from '@/lib/http';
+
+export type { Paged } from '@/lib/http';
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
@@ -429,13 +431,6 @@ export interface ImportRunView {
   updated_at?: string;
 }
 
-export interface Paged<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 export interface ImportRunItemView {
   id: string;
   phase: ImportItemPhase;
@@ -507,50 +502,10 @@ export function parseRunError(error: ImportRunView['error']): ParsedRunError | n
 
 const enc = encodeURIComponent;
 
-function qs(params: Record<string, string | number | undefined | null>): string {
-  const p = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null && v !== '') p.set(k, String(v));
-  }
-  const s = p.toString();
-  return s ? `?${s}` : '';
-}
-
 /** Lists come either as a bare array or as `{items}`; both are accepted. */
 function asArray<T>(res: T[] | { items?: T[] } | null | undefined): T[] {
   if (Array.isArray(res)) return res;
   return res?.items ?? [];
-}
-
-/** Error with `code`/`status` like `api()`, for the non-JSON helpers below. */
-async function toApiError(res: Response, fallback: string): Promise<ApiError> {
-  const err = new ApiError(fallback);
-  err.status = res.status;
-  try {
-    const json = await res.json();
-    if (json?.message) err.message = Array.isArray(json.message) ? json.message.join(' · ') : json.message;
-    if (Array.isArray(json?.message)) err.errors = json.message;
-    if (typeof json?.code === 'string') err.code = json.code;
-    if (json && typeof json === 'object') err.payload = json;
-  } catch {
-    // Non-JSON body; keep the fallback message.
-  }
-  return err;
-}
-
-async function downloadAuthed(endpoint: string, token: string, fallbackName: string): Promise<void> {
-  const res = await fetch(`${API_URL}${endpoint}`, { headers: { Authorization: `Bearer ${token}` } });
-  if (!res.ok) throw await toApiError(res, 'Download failed');
-  const filename = parseContentDispositionFilename(res.headers.get('content-disposition')) || fallbackName;
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 // ─── Sources endpoints ───────────────────────────────────────────────────────

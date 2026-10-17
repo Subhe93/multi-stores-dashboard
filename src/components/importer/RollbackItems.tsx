@@ -74,7 +74,7 @@ export function RollbackItems({ token, runId, version }: RollbackItemsProps) {
                   <td className="px-3 py-1.5 whitespace-nowrap">{te.has(it.entity_type) ? te(it.entity_type) : it.entity_type}</td>
                   <td className="px-3 py-1.5 break-words">
                     {it.title || (
-                      <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                      <span className="font-mono text-[11px] text-muted-foreground" dir="ltr">
                         {it.external_ref}
                       </span>
                     )}

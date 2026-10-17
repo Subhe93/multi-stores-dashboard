@@ -31,6 +31,10 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
     headers,
   });
 
+  // 204 No Content (e.g. DELETE routes) has no body: resolve with `undefined`
+  // instead of failing on `res.json()`.
+  if (res.status === 204) return undefined as T;
+
   const json = await res.json();
 
   if (!res.ok) {

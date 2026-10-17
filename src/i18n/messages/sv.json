@@ -2608,6 +2608,7 @@
         "insertIntoProduct": "Infoga i produkt…",
         "rename": "Byt namn",
         "delete": "Radera",
+        "deleteTitle": "Radera mall",
         "confirmDelete": "Radera mallen ”{name}”? Produkter som använder den behåller sina fält.",
         "insertedNotice": "{count, plural, one {# fält infogat} other {# fält infogade}}.",
         "openProduct": "Öppna produkt",
@@ -2617,6 +2618,10 @@
       }
     },
     "importer": {
+      "techDetails": {
+        "show": "Visa tekniska detaljer",
+        "hide": "Dölj tekniska detaljer"
+      },
       "title": "WooCommerce-import",
       "subtitle": "Importera produkter, kollektioner och omdirigeringar från en befintlig WooCommerce-butik.",
       "tabs": {
@@ -3020,7 +3025,8 @@
           "attributes": "Alternativ och namn",
           "faq": "FAQ-frågor",
           "shipping": "Frakt",
-          "handoff": "Personalisering och extra"
+          "handoff": "Personalisering och extra",
+          "conflict": "När en produkt redan finns"
         },
         "categoryPlaceholder": "Välj en kategori",
         "categoryHint": "Alla importerade produkter placeras i den här plattformskategorin. Obligatoriskt.",
@@ -3102,7 +3108,21 @@
           "daysOrder": "”Från” kan inte vara större än ”till”.",
           "overrideIncomplete": "Fyll i båda kolumnerna eller ta bort raden.",
           "sectionInvalid": "Något i ”{section}” är inte giltigt. Kontrollera värdena.",
+          "duplicateKey": "Den här nyckeln används två gånger.",
           "fixBeforeSave": "Rätta de markerade avsnitten först."
+        },
+        "advanced": "Avancerade inställningar",
+        "advancedHint": "Produktstatus, alternativnamn, FAQ-frågor, frakt och extra. Standardvärdena passar de flesta butiker.",
+        "unsavedTitle": "Osparade ändringar i mappningen",
+        "unsavedBody": "Dina ändringar i mappningen är inte sparade än. Lämna och kasta dem?",
+        "unsavedLeave": "Kasta ändringar",
+        "manualRef": "Hoppa över via referens",
+        "manualRefHint": "Klistra in en produktreferens från rapporten, till exempel woo:example.com:product:123.",
+        "skipLoading": "Laddar produkter…",
+        "methods": {
+          "flat_rate": "Fast pris",
+          "local_pickup": "Hämta i butik",
+          "free_shipping": "Fri frakt"
         },
         "categoryOptionalHint": "Behövs bara när produkter importeras.",
         "stockOnUpdate": "Lager för tidigare importerade produkter",
@@ -3129,6 +3149,18 @@
         "active": "Aktiv",
         "inactive": "Inaktiv",
         "empty": "Inga omdirigeringar ännu.",
+        "csvImport": {
+          "button": "Importera CSV",
+          "title": "Importera omdirigeringar från CSV",
+          "body": "En omdirigering per rad: from_path,to_path,status. Status är valfri (301 som standard). Upp till 5000 rader; sökvägar som redan används rapporteras som konflikter.",
+          "file": "CSV-fil",
+          "run": "Importera",
+          "result": "{created, plural, one {# omdirigering skapad} other {# omdirigeringar skapade}} · {conflicts, plural, =0 {inga konflikter} one {# konflikt} other {# konflikter}}",
+          "conflictsTitle": "Konflikter",
+          "tooMany": "Filen har fler än 5000 rader.",
+          "invalidLine": "Rad {line} är inte en giltig omdirigering.",
+          "empty": "Filen innehåller inga omdirigeringar."
+        },
         "emptyFiltered": "Inga omdirigeringar matchar filtren.",
         "columns": {
           "paths": "Från → till",
@@ -3318,6 +3350,8 @@
         "emptyTitle": "Inget här",
         "emptyBody": "Öppna ordrar visas här med checklistans förlopp. För ordrar från innan appen aktiverades, använd Skapa checklistor under Inställningar.",
         "openOrder": "Order",
+        "search": "Sök ordernummer…",
+        "searchEmpty": "Ingen laddad order matchar. Ladda fler för att söka vidare.",
         "loadMore": "Visa fler"
       },
       "settings": {
@@ -3623,7 +3657,10 @@
         },
         "linkedProducts": "{count, plural, one {# produkt använder fortfarande den här mallen. Ta först bort mallen från den produkten.} other {# produkter använder fortfarande den här mallen. Ta först bort mallen från de produkterna.}}",
         "linkedShow": "Visa kopplade produkter",
-        "linkedOpenProducts": "Öppna produkter"
+        "linkedOpenProducts": "Öppna produkter",
+        "leaveTitle": "Osparade ändringar",
+        "leaveBody": "Mallen har osparade ändringar. Vill du lämna redigeraren och kasta dem?",
+        "leaveConfirm": "Lämna utan att spara"
       },
       "assets": {
         "warningsTitle": "Kontrollera innan du använder den här filen",
@@ -5115,6 +5152,9 @@
     "maxChecked": "Max. ikryssade",
     "checkedInvalid": "Ange ett heltal från 0 till {max}.",
     "repeaterRequiredHint": "Upprepade artiklar har ingen obligatorisk-flagga; ange den på fälten i gruppen.",
+    "editor": {
+      "tabHasError": "(fel)"
+    },
     "tabs": {
       "basics": "Grunder",
       "visibility": "Synlighet",

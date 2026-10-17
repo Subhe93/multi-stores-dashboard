@@ -231,6 +231,12 @@ export function ConfirmDialog({
   );
 }
 
+// ─── Technical details (E6) ──────────────────────────────────────────────────
+
+// Lives in `components/common/TechDetail`; re-exported so the importer files
+// keep one import for their shared bits.
+export { TechDetail, TechDetailsProvider, TechDetailsToggle, useTechDetails } from '@/components/common/TechDetail';
+
 // ─── Small layout helpers ────────────────────────────────────────────────────
 
 export function StatTile({

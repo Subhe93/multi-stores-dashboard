@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { ChevronDown, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { DryRunSummary } from '@/lib/importer.api';
-import { useWarningLabel } from '@/components/importer/ImporterBits';
+import { TechDetail, useWarningLabel } from '@/components/importer/ImporterBits';
 
 interface WarningGroupsProps {
   warnings: NonNullable<DryRunSummary['warnings']>;
@@ -40,11 +40,9 @@ export function WarningGroups({ warnings }: WarningGroupsProps) {
               className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-zinc-50 disabled:cursor-default disabled:hover:bg-transparent"
             >
               <TriangleAlert className="size-4 shrink-0 text-amber-500" />
-              <span className="min-w-0 flex-1">
+              <span className="min-w-0 flex-1" title={code}>
                 <span className="block text-sm font-medium">{label(code)}</span>
-                <span className="block font-mono text-[10px] text-muted-foreground" dir="ltr">
-                  {code}
-                </span>
+                <TechDetail value={code} block />
               </span>
               <Badge variant="outline" className="tabular-nums">
                 {group.count}
@@ -66,8 +64,8 @@ export function WarningGroups({ warnings }: WarningGroupsProps) {
                   <tbody>
                     {samples.map((s, i) => (
                       <tr key={i} className="align-top">
-                        <td className="py-1 pe-3 font-mono whitespace-nowrap" dir="ltr">
-                          {s.external_ref ?? '—'}
+                        <td className="py-1 pe-3 whitespace-nowrap" title={s.external_ref ?? undefined}>
+                          {s.title ? <TechDetail value={s.external_ref} /> : <span className="font-mono" dir="ltr">{s.external_ref ?? '—'}</span>}
                         </td>
                         <td className="py-1 pe-3">{s.title ?? '—'}</td>
                         <td className="py-1 break-words">{s.message}</td>

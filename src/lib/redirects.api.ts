@@ -80,6 +80,42 @@ export function deleteRedirect(token: string, id: string): Promise<{ deleted: tr
   return api<{ deleted: true }>(`/redirects/my/${encodeURIComponent(id)}`, { method: 'DELETE', token });
 }
 
+// ─── Bulk CSV import (W1-B `POST redirects/my/bulk`) ─────────────────────────
+
+export interface RedirectBulkRow {
+  from_path: string;
+  to_path: string;
+  status_code?: RedirectStatusCode;
+}
+
+export interface RedirectBulkResult {
+  created: number;
+  /** Rows the API refused (path already redirected, loop, invalid). */
+  conflicts: { from_path: string; to_path?: string; reason?: string }[];
+}
+
+/** API limit on rows per bulk call. */
+export const REDIRECT_BULK_MAX = 5000;
+
+/**
+ * Creates many redirects at once (rows parsed client-side from a CSV
+ * `from_path,to_path,status`). A 404 means the API does not offer the route
+ * yet; the UI hides the feature after one probe (`probeRedirectBulk`).
+ */
+export function bulkCreateRedirects(token: string, rows: RedirectBulkRow[]): Promise<RedirectBulkResult> {
+  return api<RedirectBulkResult>('/redirects/my/bulk', { method: 'POST', token, body: JSON.stringify({ rows }) });
+}
+
+/** True when the bulk route exists (anything but 404, an empty payload is a no-op). */
+export async function probeRedirectBulk(token: string): Promise<boolean> {
+  try {
+    await bulkCreateRedirects(token, []);
+    return true;
+  } catch (err) {
+    return (err as { status?: number } | null)?.status !== 404;
+  }
+}
+
 /** "Test a URL": what the storefront would do with this path right now. */
 export function testRedirect(token: string, path: string): Promise<RedirectTestResult> {
   return api<RedirectTestResult>('/redirects/my/test', { method: 'POST', token, body: JSON.stringify({ path }) });

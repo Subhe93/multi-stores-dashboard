@@ -240,7 +240,7 @@ export function AssetsPanel({ token }: { token: string }) {
                         <td className="py-2 pe-3">
                           <span className="block">{tk.has(a.kind) ? tk(a.kind) : a.kind}</span>
                           {warnings.length > 0 && (
-                            <Badge variant="outline" className="mt-1 border-amber-200 bg-amber-50 text-[10px] text-amber-700">
+                            <Badge variant="outline" className="mt-1 border-amber-200 bg-amber-50 text-[11px] text-amber-700">
                               {t('warningsBadge', { count: warnings.length })}
                             </Badge>
                           )}
@@ -268,8 +268,17 @@ export function AssetsPanel({ token }: { token: string }) {
                             >
                               <Replace className="size-3.5" /> {t('replace')}
                             </Button>
-                            <Button type="button" size="sm" variant="ghost" className="h-7 text-xs text-red-600" disabled={busy} onClick={() => askDelete(a)}>
-                              <Trash2 className="size-3.5" />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="size-9 text-red-600 max-sm:size-11"
+                              disabled={busy}
+                              aria-label={t('delete')}
+                              title={t('delete')}
+                              onClick={() => askDelete(a)}
+                            >
+                              <Trash2 className="size-4" />
                             </Button>
                           </div>
                         </td>

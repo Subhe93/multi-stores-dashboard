@@ -2608,6 +2608,7 @@
         "insertIntoProduct": "Insert into product…",
         "rename": "Rename",
         "delete": "Delete",
+        "deleteTitle": "Delete template",
         "confirmDelete": "Delete the template “{name}”? Products that use it keep their fields.",
         "insertedNotice": "{count, plural, one {# field inserted} other {# fields inserted}}.",
         "openProduct": "Open product",
@@ -2617,6 +2618,10 @@
       }
     },
     "importer": {
+      "techDetails": {
+        "show": "Show technical details",
+        "hide": "Hide technical details"
+      },
       "title": "WooCommerce importer",
       "subtitle": "Import products, collections and redirects from an existing WooCommerce shop.",
       "tabs": {
@@ -3020,7 +3025,8 @@
           "attributes": "Options and names",
           "faq": "FAQ questions",
           "shipping": "Shipping",
-          "handoff": "Personalization and extras"
+          "handoff": "Personalization and extras",
+          "conflict": "When a product already exists"
         },
         "categoryPlaceholder": "Choose a category",
         "categoryHint": "Every imported product is placed in this platform category. Required.",
@@ -3102,7 +3108,21 @@
           "daysOrder": "“From” cannot be more than “to”.",
           "overrideIncomplete": "Fill in both columns or remove the row.",
           "sectionInvalid": "Something in “{section}” is not valid. Check the values.",
+          "duplicateKey": "This key is used twice.",
           "fixBeforeSave": "Fix the marked sections first."
+        },
+        "advanced": "Advanced settings",
+        "advancedHint": "Product statuses, option names, FAQ questions, shipping and extras. The defaults suit most shops.",
+        "unsavedTitle": "Unsaved mapping changes",
+        "unsavedBody": "Your mapping changes are not saved yet. Leave and discard them?",
+        "unsavedLeave": "Discard changes",
+        "manualRef": "Skip by reference",
+        "manualRefHint": "Paste a product reference from the report, for example woo:example.com:product:123.",
+        "skipLoading": "Loading products…",
+        "methods": {
+          "flat_rate": "Flat rate",
+          "local_pickup": "Local pickup",
+          "free_shipping": "Free shipping"
         },
         "categoryOptionalHint": "Only needed when products are imported.",
         "stockOnUpdate": "Stock of products imported before",
@@ -3129,6 +3149,18 @@
         "active": "Active",
         "inactive": "Inactive",
         "empty": "No redirects yet.",
+        "csvImport": {
+          "button": "Import CSV",
+          "title": "Import redirects from CSV",
+          "body": "One redirect per line: from_path,to_path,status. The status is optional (301 by default). Up to 5000 lines; paths already in use are reported as conflicts.",
+          "file": "CSV file",
+          "run": "Import",
+          "result": "{created, plural, one {# redirect created} other {# redirects created}} · {conflicts, plural, =0 {no conflicts} one {# conflict} other {# conflicts}}",
+          "conflictsTitle": "Conflicts",
+          "tooMany": "The file has more than 5000 lines.",
+          "invalidLine": "Line {line} is not a valid redirect.",
+          "empty": "The file has no redirects."
+        },
         "emptyFiltered": "No redirects match the filters.",
         "columns": {
           "paths": "From → to",
@@ -3318,6 +3350,8 @@
         "emptyTitle": "Nothing here",
         "emptyBody": "Open orders appear here with their checklist progress. For orders placed before the app was turned on, use Generate checklists under Settings.",
         "openOrder": "Order",
+        "search": "Search order number…",
+        "searchEmpty": "No loaded order matches. Load more to search further.",
         "loadMore": "Load more"
       },
       "settings": {
@@ -3623,7 +3657,10 @@
         },
         "linkedProducts": "{count, plural, one {# product still uses this template. Remove the template from that product first.} other {# products still use this template. Remove the template from those products first.}}",
         "linkedShow": "Show linked products",
-        "linkedOpenProducts": "Open products"
+        "linkedOpenProducts": "Open products",
+        "leaveTitle": "Unsaved changes",
+        "leaveBody": "This template has unsaved changes. Leave the editor and discard them?",
+        "leaveConfirm": "Leave without saving"
       },
       "assets": {
         "warningsTitle": "Check before using this file",
@@ -5115,6 +5152,9 @@
     "maxChecked": "Max. checked",
     "checkedInvalid": "Use a whole number from 0 to {max}.",
     "repeaterRequiredHint": "Repeated items have no required flag; set it on the fields inside the group.",
+    "editor": {
+      "tabHasError": "(error)"
+    },
     "tabs": {
       "basics": "Basics",
       "visibility": "Visibility",
