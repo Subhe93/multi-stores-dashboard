@@ -7,6 +7,9 @@ import { useApiError } from '@/lib/useApiError';
 import { cn } from '@/lib/utils';
 import { productionApi, type ProductionEvent } from './production.api';
 
+/** Rows per page of GET …/events (API limit at most 200). */
+const PAGE_SIZE = 50;
+
 const KNOWN_ACTIONS = ['CHECK', 'UNCHECK', 'ADD', 'REMOVE', 'BULK', 'VALUE_CHANGED', 'STALE', 'COMPLETED', 'AUTO_ADVANCE'];
 
 interface ProductionActivityLogProps {
@@ -28,18 +31,26 @@ export function ProductionActivityLog({ token, orderId, version }: ProductionAct
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [events, setEvents] = useState<ProductionEvent[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // First page; reloaded after every write (`version`) so the newest rows
+  // come first again and paging restarts.
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
     setLoading(true);
     productionApi
-      .events(token, orderId)
+      .events(token, orderId, { page: 1, limit: PAGE_SIZE })
       .then((rows) => {
         if (!cancelled) {
-          setEvents(rows ?? []);
+          const list = rows ?? [];
+          setEvents(list);
+          setPage(1);
+          setHasMore(list.length >= PAGE_SIZE);
           setError(null);
         }
       })
@@ -54,6 +65,27 @@ export function ProductionActivityLog({ token, orderId, version }: ProductionAct
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- apiError is a fresh closure each render
   }, [open, token, orderId, version]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const next = page + 1;
+    try {
+      const rows = (await productionApi.events(token, orderId, { page: next, limit: PAGE_SIZE })) ?? [];
+      setEvents((prev) => {
+        // A write between two pages shifts the offset: drop rows already shown.
+        const seen = new Set((prev ?? []).map((e) => e.id));
+        return [...(prev ?? []), ...rows.filter((e) => !seen.has(e.id))];
+      });
+      setPage(next);
+      setHasMore(rows.length >= PAGE_SIZE);
+      setError(null);
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const describe = (e: ProductionEvent): string => {
     const p = e.payload ?? {};
@@ -104,12 +136,24 @@ export function ProductionActivityLog({ token, orderId, version }: ProductionAct
                   <div className="min-w-0">
                     <p className="break-words">{describe(e)}</p>
                     <p className="text-[10px] text-muted-foreground">
+                      {/* Sync-driven rows (e.g. COMPLETED after a resync) have no actor. */}
                       {e.actor_name || (e.actor_id ? t('someone') : t('system'))} · {new Date(e.created_at).toLocaleString(locale)}
                     </p>
                   </div>
                 </li>
               ))}
             </ol>
+          )}
+          {hasMore && !error && (
+            <button
+              type="button"
+              disabled={loadingMore}
+              onClick={loadMore}
+              className="mt-1 flex min-h-11 w-full items-center justify-center gap-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-60"
+            >
+              {loadingMore && <Loader2 className="size-3.5 animate-spin" />}
+              {t('activityLoadMore')}
+            </button>
           )}
         </div>
       )}

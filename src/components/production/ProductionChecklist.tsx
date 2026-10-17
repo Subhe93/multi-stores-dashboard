@@ -29,6 +29,7 @@ import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useApiError } from '@/lib/useApiError';
 import { downloadCustomerUploadOriginal } from '@/lib/customerUploads.api';
+import { downloadPrintFile } from '@/lib/designer/designer.api';
 import { cn } from '@/lib/utils';
 import { ProductionProgressBar } from './ProductionProgressBar';
 import { ProductionActivityLog } from './ProductionActivityLog';
@@ -38,6 +39,7 @@ import {
   productionApi,
   type ProductionCheck,
   type ProductionLine,
+  type ProductionPrintFile,
   type ProductionSummary,
   type ProductionWorkspace,
   type ProductionWriteResult,
@@ -272,6 +274,20 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
     setDownloading(check.id);
     try {
       await downloadCustomerUploadOriginal(token, check.upload_id, check.value);
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  // `print_files[].url` is a Bearer-protected route (a plain link answers
+  // 401): fetched with the token and saved like OrderDesignCard does.
+  const downloadPrint = async (file: ProductionPrintFile) => {
+    if (downloading) return;
+    setDownloading(`print-${file.order_item_id}`);
+    try {
+      await downloadPrintFile(token, orderId, file.order_item_id);
     } catch (err) {
       setError(apiError(err));
     } finally {
@@ -628,11 +644,21 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
         {ws.print_files.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="text-muted-foreground">{t('printFiles')}:</span>
-            {ws.print_files.map((f) => (
-              <a key={`${f.order_item_id}-${f.url}`} href={resolveMediaUrl(f.url)} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
-                {f.label}
-              </a>
-            ))}
+            {ws.print_files.map((f) => {
+              const busy = downloading === `print-${f.order_item_id}`;
+              return (
+                <button
+                  key={`${f.order_item_id}-${f.url}`}
+                  type="button"
+                  disabled={!!downloading}
+                  onClick={() => downloadPrint(f)}
+                  className="inline-flex min-h-11 items-center gap-1 font-medium text-primary hover:underline disabled:opacity-60"
+                >
+                  {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
+                  {f.label}
+                </button>
+              );
+            })}
           </div>
         )}
 

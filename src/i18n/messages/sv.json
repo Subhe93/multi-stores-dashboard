@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "Detaljer för alternativvärden importerades inte",
         "W_HELP_IMAGE_REJECTED": "Hjälpbilden kommer inte från källbutiken och importerades inte",
         "W_WEIGHT_CONVERTED": "Vikten omräknad från uns till pund",
-        "W_ROLLBACK_TARGET_MODIFIED": "Du ändrade detta efter importen, så återställningen lämnade det orört"
+        "W_ROLLBACK_TARGET_MODIFIED": "Du ändrade detta efter importen, så återställningen lämnade det orört",
+        "W_IMAGE_FROM_TEMPLATE": "Produktbild hämtad från designmallen",
+        "W_REDIRECT_UNREACHABLE": "Omdirigeringens sökväg är reserverad av butiken och utlöses aldrig"
       }
     },
     "production": {
@@ -3263,7 +3265,7 @@
       "retry": "Försök igen",
       "doneBy": "✓ {name}, {time}",
       "someone": "Någon",
-      "system": "System",
+      "system": "Automatiskt",
       "stale": "Finns inte längre i ordern",
       "customItem": "Egen punkt",
       "fileRemoved": "Filen har tagits bort (lagringstiden har gått ut)",
@@ -3282,6 +3284,7 @@
       "openWorkspace": "Arbetsvy",
       "printSheet": "Skriv ut produktionsblad",
       "printFiles": "Tryckfiler",
+      "downloadPrintFile": "Ladda ner fil",
       "backToOrder": "Tillbaka till ordern",
       "closedNotice": "Den här ordern är stängd; checklistan är skrivskyddad.",
       "autoMoved": "Allt klart – ordern flyttades automatiskt till {status}.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "Aktivitet",
       "activityEmpty": "Ingen aktivitet ännu.",
+      "activityLoadMore": "Visa fler",
       "events": {
         "CHECK": "Bockade av {label}",
         "UNCHECK": "Avmarkerade {label}",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "Skapa checklistor",
         "backfillHint": "Skapar checklistor för öppna ordrar som lades innan appen aktiverades (de 1000 senaste).",
         "backfillAction": "Skapa för öppna ordrar",
-        "backfillDone": "{count, plural, one {# order synkad} other {# ordrar synkade}}"
+        "backfillResult": "{synced, plural, one {# order synkad} other {# ordrar synkade}} · {failed, plural, =0 {inga misslyckade} one {# misslyckad} other {# misslyckade}} · {remaining, plural, =0 {inga kvar} one {# kvar} other {# kvar}}",
+        "backfillContinue": "Fortsätt ({remaining} kvar)"
       },
       "sheet": {
         "title": "Produktionsblad",

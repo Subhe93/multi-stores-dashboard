@@ -22,6 +22,8 @@ export interface ProductionCheck {
   upload_id: string | null;
   file_removed: boolean;
   sort_order: number;
+  /** Line quantity (how many times the value must be produced). */
+  quantity: number;
   done: boolean;
   done_at: string | null;
   done_by: string | null;
@@ -46,6 +48,7 @@ export interface ProductionLine {
   title: string;
   image_url: string | null;
   quantity: number;
+  /** From the order snapshot (frozen at order time), not the live variant. */
   variant_label: string | null;
   fulfillment_status: string;
   fulfiller_type: string;
@@ -88,7 +91,25 @@ export interface ProductionWorkspace {
     use_quality_check: boolean;
     start_on_first_check: boolean;
   };
-  print_files: { order_item_id: string; url: string; label: string }[];
+  /**
+   * `url` is the Bearer-protected creator route
+   * `/api/designer/my/orders/:orderId/items/:itemId/print`: never render it
+   * as a plain link (401); download it with `downloadPrintFile()`.
+   */
+  print_files: ProductionPrintFile[];
+}
+
+export interface ProductionPrintFile {
+  order_item_id: string;
+  url: string;
+  label: string;
+}
+
+/** `POST production/my/backfill`: `remaining` > 0 means press again. */
+export interface ProductionBackfillResult {
+  synced: number;
+  failed: number;
+  remaining: number;
 }
 
 export interface ProductionWriteResult {
@@ -105,6 +126,7 @@ export interface ProductionEvent {
   order_id: string;
   check_id: string | null;
   action: string;
+  /** Null on sync-driven rows (e.g. COMPLETED after a resync): shown as "System". */
   actor_id: string | null;
   actor_name: string | null;
   payload: Record<string, unknown> | null;
@@ -164,11 +186,17 @@ export const productionApi = {
   settings: (token: string) => api<ProductionSettingsResponse>(`${BASE}/settings`, { token }),
   summaries: (token: string, orderIds: string[]) =>
     api<ProductionSummaries>(`${BASE}/summaries?order_ids=${orderIds.map(encodeURIComponent).join(',')}`, { token }),
-  backfill: (token: string) => api<{ synced: number }>(`${BASE}/backfill`, { method: 'POST', token }),
+  backfill: (token: string) => api<ProductionBackfillResult>(`${BASE}/backfill`, { method: 'POST', token }),
   workspace: (token: string, orderId: string) =>
     api<ProductionWorkspace>(`${BASE}/orders/${encodeURIComponent(orderId)}`, { token }),
-  events: (token: string, orderId: string) =>
-    api<ProductionEvent[]>(`${BASE}/orders/${encodeURIComponent(orderId)}/events`, { token }),
+  /** Newest first; `page` 1-based, `limit` at most 200 (API default 50). */
+  events: (token: string, orderId: string, q: { page?: number; limit?: number } = {}) => {
+    const sp = new URLSearchParams();
+    if (q.page) sp.set('page', String(q.page));
+    if (q.limit) sp.set('limit', String(q.limit));
+    const query = sp.toString();
+    return api<ProductionEvent[]>(`${BASE}/orders/${encodeURIComponent(orderId)}/events${query ? `?${query}` : ''}`, { token });
+  },
   setCheck: (token: string, checkId: string, done: boolean) =>
     api<ProductionWriteResult>(`${BASE}/checks/${encodeURIComponent(checkId)}`, {
       method: 'PUT',

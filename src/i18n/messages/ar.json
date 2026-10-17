@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "لم تُستورد تفاصيل قيم الخيارات",
         "W_HELP_IMAGE_REJECTED": "صورة المساعدة ليست من المتجر المصدر، فلم تُستورد",
         "W_WEIGHT_CONVERTED": "حُوِّل الوزن من الأونصة إلى الرطل",
-        "W_ROLLBACK_TARGET_MODIFIED": "عدّلته بعد الاستيراد، فتركه التراجع كما هو"
+        "W_ROLLBACK_TARGET_MODIFIED": "عدّلته بعد الاستيراد، فتركه التراجع كما هو",
+        "W_IMAGE_FROM_TEMPLATE": "صورة المنتج مأخوذة من قالب التصميم",
+        "W_REDIRECT_UNREACHABLE": "مسار إعادة التوجيه محجوز للمتجر ولن يعمل"
       }
     },
     "production": {
@@ -3282,6 +3284,7 @@
       "openWorkspace": "مساحة العمل",
       "printSheet": "طباعة الورقة",
       "printFiles": "ملفات الطباعة",
+      "downloadPrintFile": "تنزيل الملف",
       "backToOrder": "العودة إلى الطلب",
       "closedNotice": "هذا الطلب مغلق؛ قائمة التدقيق للقراءة فقط.",
       "autoMoved": "اكتمل كل شيء — نُقل الطلب تلقائياً إلى {status}.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "النشاط",
       "activityEmpty": "لا يوجد نشاط بعد.",
+      "activityLoadMore": "تحميل المزيد",
       "events": {
         "CHECK": "تم تحديد {label}",
         "UNCHECK": "أُلغي تحديد {label}",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "إنشاء قوائم التدقيق",
         "backfillHint": "ينشئ قوائم تدقيق للطلبات المفتوحة التي سبقت تفعيل التطبيق (أحدث 1000).",
         "backfillAction": "إنشاء للطلبات المفتوحة",
-        "backfillDone": "{count, plural, zero {لم تتم مزامنة أي طلب} one {تمت مزامنة طلب واحد} two {تمت مزامنة طلبين} few {تمت مزامنة # طلبات} many {تمت مزامنة # طلباً} other {تمت مزامنة # طلب}}"
+        "backfillResult": "{synced, plural, zero {لم تتم مزامنة أي طلب} one {تمت مزامنة طلب واحد} two {تمت مزامنة طلبين} few {تمت مزامنة # طلبات} many {تمت مزامنة # طلباً} other {تمت مزامنة # طلب}} · {failed, plural, zero {لا إخفاقات} one {إخفاق واحد} two {إخفاقان} few {# إخفاقات} many {# إخفاقاً} other {# إخفاق}} · {remaining, plural, zero {لا يتبقى شيء} one {يتبقى طلب واحد} two {يتبقى طلبان} few {تتبقى # طلبات} many {يتبقى # طلباً} other {يتبقى # طلب}}",
+        "backfillContinue": "متابعة (المتبقي {remaining})"
       },
       "sheet": {
         "title": "ورقة الإنتاج",

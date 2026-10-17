@@ -10,9 +10,15 @@ import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useApiError } from '@/lib/useApiError';
 import { downloadCustomerUploadOriginal } from '@/lib/customerUploads.api';
+import { downloadPrintFile } from '@/lib/designer/designer.api';
 import { cn } from '@/lib/utils';
 import { ProductionRouteGuard } from '@/components/production/ProductionRouteGuard';
-import { productionApi, type ProductionCheck, type ProductionWorkspace } from '@/components/production/production.api';
+import {
+  productionApi,
+  type ProductionCheck,
+  type ProductionPrintFile,
+  type ProductionWorkspace,
+} from '@/components/production/production.api';
 
 const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i;
 
@@ -60,6 +66,20 @@ function Sheet({ orderId, token }: { orderId: string; token: string }) {
     setDownloading(c.id);
     try {
       await downloadCustomerUploadOriginal(token, c.upload_id, c.value);
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  // `print_files[].url` is a Bearer-protected route (a plain link answers
+  // 401): fetched with the token like OrderDesignCard does.
+  const downloadPrint = async (f: ProductionPrintFile) => {
+    if (downloading) return;
+    setDownloading(`print-${f.order_item_id}`);
+    try {
+      await downloadPrintFile(token, orderId, f.order_item_id);
     } catch (err) {
       setError(apiError(err));
     } finally {
@@ -154,16 +174,26 @@ function Sheet({ orderId, token }: { orderId: string; token: string }) {
           <section className="border-b py-3 text-sm">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">{tp('printFiles')}</p>
             <ul className="space-y-0.5">
-              {ws.print_files.map((f) => (
-                <li key={`${f.order_item_id}-${f.url}`}>
-                  <a href={resolveMediaUrl(f.url)} target="_blank" rel="noreferrer" className="font-medium underline">
-                    {f.label}
-                  </a>
-                  <span className="ms-2 hidden break-all text-xs text-zinc-500 print:inline" dir="ltr">
-                    {resolveMediaUrl(f.url)}
-                  </span>
-                </li>
-              ))}
+              {ws.print_files.map((f) => {
+                const busy = downloading === `print-${f.order_item_id}`;
+                return (
+                  <li key={`${f.order_item_id}-${f.url}`} className="flex flex-wrap items-center gap-2">
+                    {/* Printed: the file name only (the URL needs a token). */}
+                    <span className="font-medium">{f.label}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="print:hidden"
+                      disabled={!!downloading}
+                      onClick={() => downloadPrint(f)}
+                    >
+                      {busy ? <Loader2 className="animate-spin" /> : <Download />}
+                      {tp('downloadPrintFile')}
+                    </Button>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}

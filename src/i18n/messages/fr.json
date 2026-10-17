@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "Détails des valeurs d’option non importés",
         "W_HELP_IMAGE_REJECTED": "Image d’aide hors de la boutique source, non importée",
         "W_WEIGHT_CONVERTED": "Poids converti d’onces en livres",
-        "W_ROLLBACK_TARGET_MODIFIED": "Modifié par vous après l’import, donc laissé tel quel par l’annulation"
+        "W_ROLLBACK_TARGET_MODIFIED": "Modifié par vous après l’import, donc laissé tel quel par l’annulation",
+        "W_IMAGE_FROM_TEMPLATE": "Image du produit reprise de son modèle de design",
+        "W_REDIRECT_UNREACHABLE": "Chemin de redirection réservé par la boutique, jamais déclenché"
       }
     },
     "production": {
@@ -3282,6 +3284,7 @@
       "openWorkspace": "Espace atelier",
       "printSheet": "Imprimer la fiche",
       "printFiles": "Fichiers d’impression",
+      "downloadPrintFile": "Télécharger le fichier",
       "backToOrder": "Retour à la commande",
       "closedNotice": "Cette commande est clôturée ; la liste de contrôle est en lecture seule.",
       "autoMoved": "Tout est fait — la commande est passée automatiquement à {status}.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "Activité",
       "activityEmpty": "Aucune activité pour l’instant.",
+      "activityLoadMore": "Charger plus",
       "events": {
         "CHECK": "{label} coché",
         "UNCHECK": "{label} décoché",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "Générer les listes",
         "backfillHint": "Crée les listes de contrôle des commandes ouvertes passées avant l’activation de l’application (les 1000 plus récentes).",
         "backfillAction": "Générer pour les commandes ouvertes",
-        "backfillDone": "{count, plural, one {# commande synchronisée} other {# commandes synchronisées}}"
+        "backfillResult": "{synced, plural, one {# commande synchronisée} other {# commandes synchronisées}} · {failed, plural, =0 {aucun échec} one {# échec} other {# échecs}} · {remaining, plural, =0 {aucune restante} one {# restante} other {# restantes}}",
+        "backfillContinue": "Continuer ({remaining} restantes)"
       },
       "sheet": {
         "title": "Fiche de production",

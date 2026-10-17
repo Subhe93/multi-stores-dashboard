@@ -22,6 +22,7 @@ import {
   prepareProductionSettings,
   productionApi,
   sameProductionSettings,
+  type ProductionBackfillResult,
   type ProductionCompleteTarget,
   type ProductionOnComplete,
   type ProductionSettings,
@@ -58,6 +59,9 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
   const tStatus = useTranslations('creator.orderStatus');
   const tField = useTranslations('customField');
   const apiError = useApiError();
+  // PUT /stores/my/apps/production rejects unknown keys
+  // (STORE_APP_SETTINGS_INVALID): `prepare` rebuilds the payload from the
+  // known keys only, so stray keys of an older saved object never go back.
   const { form, update, saving, dirty, save, error, saved } = useStoreAppSettingsForm<ProductionSettings>({
     app,
     token,
@@ -70,7 +74,7 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
   const [presets, setPresets] = useState<Record<string, Partial<ProductionSettings>> | null>(null);
   const [presetApplied, setPresetApplied] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
-  const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [backfillResult, setBackfillResult] = useState<ProductionBackfillResult | null>(null);
   const [backfillError, setBackfillError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -105,7 +109,12 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
     setBackfillResult(null);
     try {
       const res = await productionApi.backfill(token);
-      setBackfillResult(t('backfillDone', { count: res?.synced ?? 0 }));
+      // Each call handles one batch; `remaining` > 0 offers "Continue".
+      setBackfillResult({
+        synced: res?.synced ?? 0,
+        failed: res?.failed ?? 0,
+        remaining: res?.remaining ?? 0,
+      });
     } catch (err) {
       setBackfillError(apiError(err));
     } finally {
@@ -332,7 +341,23 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
               {backfilling ? <Loader2 className="animate-spin" /> : <RefreshCw />}
               {t('backfillAction')}
             </Button>
-            {backfillResult && <p className="text-xs font-medium text-emerald-600">{backfillResult}</p>}
+            {backfillResult && (
+              <div className="space-y-2">
+                <p className={cn('text-xs font-medium', backfillResult.failed > 0 ? 'text-amber-700' : 'text-emerald-600')}>
+                  {t('backfillResult', {
+                    synced: backfillResult.synced,
+                    failed: backfillResult.failed,
+                    remaining: backfillResult.remaining,
+                  })}
+                </p>
+                {backfillResult.remaining > 0 && (
+                  <Button type="button" size="sm" className="w-full" disabled={backfilling} onClick={runBackfill}>
+                    {backfilling ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                    {t('backfillContinue', { remaining: backfillResult.remaining })}
+                  </Button>
+                )}
+              </div>
+            )}
             {backfillError && <p className="text-xs text-red-600">{backfillError}</p>}
           </CardContent>
         </Card>

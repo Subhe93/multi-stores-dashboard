@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "Option value details not imported",
         "W_HELP_IMAGE_REJECTED": "Help image not from the source shop, not imported",
         "W_WEIGHT_CONVERTED": "Weight converted from ounces to pounds",
-        "W_ROLLBACK_TARGET_MODIFIED": "You edited this after the import, so the rollback left it"
+        "W_ROLLBACK_TARGET_MODIFIED": "You edited this after the import, so the rollback left it",
+        "W_IMAGE_FROM_TEMPLATE": "Product image taken from its design template",
+        "W_REDIRECT_UNREACHABLE": "Redirect path is reserved by the storefront and will never trigger"
       }
     },
     "production": {
@@ -3282,6 +3284,7 @@
       "openWorkspace": "Workspace",
       "printSheet": "Print sheet",
       "printFiles": "Print files",
+      "downloadPrintFile": "Download file",
       "backToOrder": "Back to order",
       "closedNotice": "This order is closed; the checklist is read-only.",
       "autoMoved": "All done — the order was moved to {status} automatically.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "Activity",
       "activityEmpty": "No activity yet.",
+      "activityLoadMore": "Load more",
       "events": {
         "CHECK": "Checked {label}",
         "UNCHECK": "Unchecked {label}",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "Generate checklists",
         "backfillHint": "Creates checklists for open orders placed before the app was turned on (newest 1000).",
         "backfillAction": "Generate for open orders",
-        "backfillDone": "{count, plural, one {# order synced} other {# orders synced}}"
+        "backfillResult": "{synced, plural, one {# order synced} other {# orders synced}} · {failed, plural, =0 {none failed} one {# failed} other {# failed}} · {remaining, plural, =0 {nothing left} one {# left} other {# left}}",
+        "backfillContinue": "Continue ({remaining} left)"
       },
       "sheet": {
         "title": "Production sheet",

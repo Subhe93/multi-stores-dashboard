@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "Seçenek değeri ayrıntıları içe aktarılmadı",
         "W_HELP_IMAGE_REJECTED": "Yardım görseli kaynak mağazadan değil, içe aktarılmadı",
         "W_WEIGHT_CONVERTED": "Ağırlık onstan pounda çevrildi",
-        "W_ROLLBACK_TARGET_MODIFIED": "İçe aktarmadan sonra siz düzenlediğiniz için geri alma bunu olduğu gibi bıraktı"
+        "W_ROLLBACK_TARGET_MODIFIED": "İçe aktarmadan sonra siz düzenlediğiniz için geri alma bunu olduğu gibi bıraktı",
+        "W_IMAGE_FROM_TEMPLATE": "Ürün görseli tasarım şablonundan alındı",
+        "W_REDIRECT_UNREACHABLE": "Yönlendirme yolu mağaza tarafından ayrılmış, hiç tetiklenmez"
       }
     },
     "production": {
@@ -3282,6 +3284,7 @@
       "openWorkspace": "Çalışma ekranı",
       "printSheet": "Üretim föyünü yazdır",
       "printFiles": "Baskı dosyaları",
+      "downloadPrintFile": "Dosyayı indir",
       "backToOrder": "Siparişe dön",
       "closedNotice": "Bu sipariş kapalı; kontrol listesi salt okunur.",
       "autoMoved": "Her şey tamam — sipariş otomatik olarak {status} durumuna taşındı.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "Etkinlik",
       "activityEmpty": "Henüz etkinlik yok.",
+      "activityLoadMore": "Daha fazla yükle",
       "events": {
         "CHECK": "{label} işaretlendi",
         "UNCHECK": "{label} işareti kaldırıldı",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "Kontrol listeleri oluştur",
         "backfillHint": "Uygulama açılmadan önce verilen açık siparişler için kontrol listeleri oluşturur (en yeni 1000).",
         "backfillAction": "Açık siparişler için oluştur",
-        "backfillDone": "{count, plural, one {# sipariş eşitlendi} other {# sipariş eşitlendi}}"
+        "backfillResult": "{synced, plural, one {# sipariş eşitlendi} other {# sipariş eşitlendi}} · {failed, plural, =0 {başarısız yok} one {# başarısız} other {# başarısız}} · {remaining, plural, =0 {kalan yok} one {# kaldı} other {# kaldı}}",
+        "backfillContinue": "Devam et ({remaining} kaldı)"
       },
       "sheet": {
         "title": "Üretim föyü",

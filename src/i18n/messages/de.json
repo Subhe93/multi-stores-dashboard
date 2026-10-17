@@ -3246,7 +3246,9 @@
         "W_VALUE_META_DROPPED": "Details zu Optionswerten nicht importiert",
         "W_HELP_IMAGE_REJECTED": "Hilfebild stammt nicht aus dem Quellshop, nicht importiert",
         "W_WEIGHT_CONVERTED": "Gewicht von Unzen in Pfund umgerechnet",
-        "W_ROLLBACK_TARGET_MODIFIED": "Von Ihnen nach dem Import bearbeitet, daher beim Zurücksetzen belassen"
+        "W_ROLLBACK_TARGET_MODIFIED": "Von Ihnen nach dem Import bearbeitet, daher beim Zurücksetzen belassen",
+        "W_IMAGE_FROM_TEMPLATE": "Produktbild aus der Designvorlage übernommen",
+        "W_REDIRECT_UNREACHABLE": "Weiterleitungspfad ist vom Shop reserviert und wird nie ausgelöst"
       }
     },
     "production": {
@@ -3282,6 +3284,7 @@
       "openWorkspace": "Arbeitsansicht",
       "printSheet": "Produktionsblatt drucken",
       "printFiles": "Druckdateien",
+      "downloadPrintFile": "Datei herunterladen",
       "backToOrder": "Zurück zur Bestellung",
       "closedNotice": "Diese Bestellung ist abgeschlossen; die Checkliste ist schreibgeschützt.",
       "autoMoved": "Alles erledigt – die Bestellung wurde automatisch auf {status} gesetzt.",
@@ -3295,6 +3298,7 @@
       },
       "activity": "Aktivität",
       "activityEmpty": "Noch keine Aktivität.",
+      "activityLoadMore": "Mehr laden",
       "events": {
         "CHECK": "{label} abgehakt",
         "UNCHECK": "{label} zurückgesetzt",
@@ -3359,7 +3363,8 @@
         "backfillTitle": "Checklisten erzeugen",
         "backfillHint": "Erstellt Checklisten für offene Bestellungen, die vor der Aktivierung der App eingegangen sind (die neuesten 1000).",
         "backfillAction": "Für offene Bestellungen erzeugen",
-        "backfillDone": "{count, plural, one {# Bestellung synchronisiert} other {# Bestellungen synchronisiert}}"
+        "backfillResult": "{synced, plural, one {# Bestellung synchronisiert} other {# Bestellungen synchronisiert}} · {failed, plural, =0 {keine fehlgeschlagen} one {# fehlgeschlagen} other {# fehlgeschlagen}} · {remaining, plural, =0 {keine übrig} one {# übrig} other {# übrig}}",
+        "backfillContinue": "Fortsetzen ({remaining} übrig)"
       },
       "sheet": {
         "title": "Produktionsblatt",
