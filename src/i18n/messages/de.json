@@ -5861,7 +5861,12 @@
     "active": "Aktiv",
     "inactive": "Inaktiv",
     "defaultMethodSection": "Standard-Versandmethode",
-    "defaultMethodHint": "Wird zusammen mit der Zone erstellt. Weitere Methoden können Sie danach hinzufügen."
+    "defaultMethodHint": "Wird zusammen mit der Zone erstellt. Weitere Methoden können Sie danach hinzufügen.",
+    "hideOthersWhenFree": "Nur kostenlosen Versand anzeigen, wenn er gilt",
+    "hideOthersWhenFreeHint": "Wenn eine Bestellung für kostenlosen Versand qualifiziert ist, werden andere Methoden wie Abholung ausgeblendet – wie bei WooCommerce 'Hide shipping methods'.",
+    "hideOthersBadge": "Nur kostenlos, wenn er gilt",
+    "renameProfile": "Profil umbenennen",
+    "profileNameRequired": "Gib einen Profilnamen ein (max. 120 Zeichen)."
   },
   "emailLog": {
     "title": "E-Mail-Protokoll",

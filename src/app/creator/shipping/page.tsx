@@ -7,12 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle, Check, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
 import {
   ZoneMethods,
+  HideOthersWhenFreeField,
   MethodFormFields,
   emptyMethodForm,
   isMethodFormValid,
@@ -36,6 +37,7 @@ interface ShippingZone {
   free_threshold?: number | string | null;
   estimated_days_min?: number;
   estimated_days_max?: number;
+  hide_others_when_free?: boolean;
 }
 
 interface ShippingProfile {
@@ -135,11 +137,16 @@ export default function CreatorShipping() {
   // Zone form state
   const [zoneName, setZoneName] = useState('');
   const [zoneCountries, setZoneCountries] = useState<string[]>([]);
+  const [zoneHideOthers, setZoneHideOthers] = useState(false);
   // Default method created together with a new zone (one-step flow).
   const [methodForm, setMethodForm] = useState<MethodFormState>(emptyMethodForm());
 
   // Profile form state
   const [profileName, setProfileName] = useState('');
+  // Inline rename: the profile being renamed and its draft name.
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState('');
+  const [renaming, setRenaming] = useState(false);
 
   const fetchProfiles = async () => {
     if (!token) return;
@@ -169,6 +176,7 @@ export default function CreatorShipping() {
   const resetZoneForm = () => {
     setZoneName('');
     setZoneCountries([]);
+    setZoneHideOthers(false);
     setMethodForm(emptyMethodForm());
     setFormError('');
   };
@@ -206,6 +214,7 @@ export default function CreatorShipping() {
         body: JSON.stringify({
           name: zoneName,
           countries: zoneCountries,
+          hide_others_when_free: zoneHideOthers,
           methods: [methodFormToBody(methodForm)],
         }),
       });
@@ -228,6 +237,7 @@ export default function CreatorShipping() {
         ? zone.countries
         : (zone.countries || '').split(',').map((c: string) => c.trim()).filter(Boolean),
     );
+    setZoneHideOthers(zone.hide_others_when_free === true);
   };
 
   const handleUpdateZone = async () => {
@@ -237,7 +247,11 @@ export default function CreatorShipping() {
     try {
       await api(`/shipping/zones/${editingZone.id}`, {
         method: 'PUT', token,
-        body: JSON.stringify({ name: zoneName, countries: zoneCountries }),
+        body: JSON.stringify({
+          name: zoneName,
+          countries: zoneCountries,
+          hide_others_when_free: zoneHideOthers,
+        }),
       });
       setEditingZone(null);
       resetZoneForm();
@@ -247,6 +261,41 @@ export default function CreatorShipping() {
       setFormError((err instanceof Error && err.message) || t('saveFailed'));
     }
     finally { setSaving(false); }
+  };
+
+  const startRename = (profile: ShippingProfile) => {
+    setPageError('');
+    setRenamingId(profile.id);
+    setRenameDraft(profile.name);
+  };
+
+  const cancelRename = () => {
+    setRenamingId(null);
+    setRenameDraft('');
+  };
+
+  const renameValid = renameDraft.trim().length > 0 && renameDraft.trim().length <= 120;
+
+  const handleRename = async () => {
+    if (!token || !renamingId) return;
+    if (!renameValid) {
+      setPageError(t('profileNameRequired'));
+      return;
+    }
+    setRenaming(true);
+    setPageError('');
+    try {
+      await api(`/shipping/profiles/${renamingId}`, {
+        method: 'PUT', token,
+        body: JSON.stringify({ name: renameDraft.trim() }),
+      });
+      cancelRename();
+      await fetchProfiles();
+    } catch (err) {
+      console.error(err);
+      setPageError((err instanceof Error && err.message) || t('saveFailed'));
+    }
+    finally { setRenaming(false); }
   };
 
   const handleSetDefault = async (profileId: string) => {
@@ -323,7 +372,59 @@ export default function CreatorShipping() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-semibold">{profile.name}</CardTitle>
+                  {renamingId === profile.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        autoFocus
+                        className="h-7 w-48 text-sm"
+                        maxLength={120}
+                        aria-label={t('renameProfile')}
+                        value={renameDraft}
+                        onChange={e => setRenameDraft(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleRename();
+                          if (e.key === 'Escape') cancelRename();
+                        }}
+                        disabled={renaming}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-emerald-600"
+                        title={tc('save')}
+                        aria-label={tc('save')}
+                        disabled={renaming || !renameValid}
+                        onClick={handleRename}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title={tc('cancel')}
+                        aria-label={tc('cancel')}
+                        disabled={renaming}
+                        onClick={cancelRename}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <CardTitle className="text-sm font-semibold">{profile.name}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground"
+                        title={t('renameProfile')}
+                        aria-label={t('renameProfile')}
+                        onClick={() => startRename(profile)}
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                    </>
+                  )}
                   {profile.is_default && (
                     <Badge variant="secondary" className="text-[10px] gap-1">
                       <Star className="w-2.5 h-2.5" /> {t('default')}
@@ -385,6 +486,9 @@ export default function CreatorShipping() {
                           <span className="text-[10px] text-muted-foreground">
                             {t('countryCount', { count: codes.length })}
                           </span>
+                          {zone.hide_others_when_free && (
+                            <Badge variant="outline" className="text-[10px]">{t('hideOthersBadge')}</Badge>
+                          )}
                         </div>
                         <div className="flex gap-0.5">
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditZone(zone)}>
@@ -492,6 +596,7 @@ export default function CreatorShipping() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{t('addShippingZone')}</DialogTitle></DialogHeader>
           {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
+          <HideOthersWhenFreeField checked={zoneHideOthers} onChange={setZoneHideOthers} />
           <div className="rounded-lg border bg-zinc-50/60 p-3 space-y-3">
             <div>
               <p className="text-xs font-medium">{t('defaultMethodSection')}</p>
@@ -523,6 +628,7 @@ export default function CreatorShipping() {
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>{t('editZone', { name: editingZone?.name ?? '' })}</DialogTitle></DialogHeader>
           {zoneFormFields(zoneName, setZoneName, zoneCountries, setZoneCountries, t)}
+          <HideOthersWhenFreeField checked={zoneHideOthers} onChange={setZoneHideOthers} />
           {formError && (
             <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />

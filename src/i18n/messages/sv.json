@@ -5861,7 +5861,12 @@
     "active": "Aktiv",
     "inactive": "Inaktiv",
     "defaultMethodSection": "Standardfraktmetod",
-    "defaultMethodHint": "Skapas tillsammans med zonen. Du kan lägga till fler metoder efteråt."
+    "defaultMethodHint": "Skapas tillsammans med zonen. Du kan lägga till fler metoder efteråt.",
+    "hideOthersWhenFree": "Visa endast fri frakt när den gäller",
+    "hideOthersWhenFreeHint": "När en order kvalificerar för fri frakt döljs andra sätt som upphämtning — som WooCommerce 'Hide shipping methods'.",
+    "hideOthersBadge": "Endast fri frakt när den gäller",
+    "renameProfile": "Byt namn på profil",
+    "profileNameRequired": "Ange ett profilnamn (max 120 tecken)."
   },
   "emailLog": {
     "title": "E-postlogg",

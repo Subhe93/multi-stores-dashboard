@@ -5861,7 +5861,12 @@
     "active": "Actif",
     "inactive": "Inactif",
     "defaultMethodSection": "Mode de livraison par défaut",
-    "defaultMethodHint": "Créé en même temps que la zone. Vous pourrez ajouter d'autres modes ensuite."
+    "defaultMethodHint": "Créé en même temps que la zone. Vous pourrez ajouter d'autres modes ensuite.",
+    "hideOthersWhenFree": "Afficher uniquement la livraison gratuite lorsqu'elle s'applique",
+    "hideOthersWhenFreeHint": "Lorsqu'une commande donne droit à la livraison gratuite, les autres modes comme le retrait sont masqués — comme « Hide shipping methods » de WooCommerce.",
+    "hideOthersBadge": "Gratuite uniquement si elle s'applique",
+    "renameProfile": "Renommer le profil",
+    "profileNameRequired": "Saisissez un nom de profil (120 caractères max.)."
   },
   "emailLog": {
     "title": "Journal des e-mails",

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -289,6 +289,44 @@ function ErrorBanner({ message }: { message: string }) {
     <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
       <AlertCircle className="mt-0.5 size-4 shrink-0" />
       {message}
+    </div>
+  );
+}
+
+interface HideOthersWhenFreeFieldProps {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}
+
+/**
+ * Zone setting `hide_others_when_free`: once a method's free-shipping
+ * threshold is met, checkout offers only the free method(s).
+ */
+export function HideOthersWhenFreeField({ checked, onChange }: HideOthersWhenFreeFieldProps) {
+  const t = useTranslations('shipping');
+  const labelId = useId();
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+      <div className="space-y-0.5">
+        <p id={labelId} className="text-xs font-medium">{t('hideOthersWhenFree')}</p>
+        <p className="text-[10px] text-muted-foreground">{t('hideOthersWhenFreeHint')}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={labelId}
+        onClick={() => onChange(!checked)}
+        className={`relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+          checked ? 'bg-emerald-500' : 'bg-zinc-300'
+        }`}
+      >
+        <span
+          className={`inline-block size-4 transform rounded-full bg-white transition-transform ${
+            checked ? 'translate-x-4 rtl:-translate-x-4' : 'translate-x-0.5 rtl:-translate-x-0.5'
+          }`}
+        />
+      </button>
     </div>
   );
 }

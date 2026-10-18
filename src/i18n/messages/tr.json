@@ -5861,7 +5861,12 @@
     "active": "Etkin",
     "inactive": "Devre dışı",
     "defaultMethodSection": "Varsayılan kargo yöntemi",
-    "defaultMethodHint": "Bölgeyle birlikte oluşturulur. Daha sonra başka yöntemler ekleyebilirsiniz."
+    "defaultMethodHint": "Bölgeyle birlikte oluşturulur. Daha sonra başka yöntemler ekleyebilirsiniz.",
+    "hideOthersWhenFree": "Geçerli olduğunda yalnızca ücretsiz kargoyu göster",
+    "hideOthersWhenFreeHint": "Sipariş ücretsiz kargoya hak kazandığında, mağazadan teslim alma gibi diğer yöntemler gizlenir — WooCommerce'teki 'Hide shipping methods' gibi.",
+    "hideOthersBadge": "Geçerliyse yalnızca ücretsiz",
+    "renameProfile": "Profili yeniden adlandır",
+    "profileNameRequired": "Bir profil adı girin (en fazla 120 karakter)."
   },
   "emailLog": {
     "title": "E-posta kaydı",

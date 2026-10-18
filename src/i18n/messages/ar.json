@@ -5861,7 +5861,12 @@
     "active": "مفعّلة",
     "inactive": "معطّلة",
     "defaultMethodSection": "طريقة الشحن الافتراضية",
-    "defaultMethodHint": "تُنشأ مع المنطقة. يمكنك إضافة طرق أخرى لاحقاً."
+    "defaultMethodHint": "تُنشأ مع المنطقة. يمكنك إضافة طرق أخرى لاحقاً.",
+    "hideOthersWhenFree": "إظهار الشحن المجاني فقط عند تطبيقه",
+    "hideOthersWhenFreeHint": "عندما يستحق الطلب الشحن المجاني، تُخفى الطرق الأخرى مثل الاستلام من المتجر — مثل إضافة 'Hide shipping methods' في WooCommerce.",
+    "hideOthersBadge": "المجاني فقط عند تطبيقه",
+    "renameProfile": "إعادة تسمية الملف",
+    "profileNameRequired": "أدخل اسم الملف (120 حرفاً كحد أقصى)."
   },
   "emailLog": {
     "title": "سجل البريد",

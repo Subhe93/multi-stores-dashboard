@@ -5861,7 +5861,12 @@
     "active": "Active",
     "inactive": "Inactive",
     "defaultMethodSection": "Default shipping method",
-    "defaultMethodHint": "Created together with the zone. You can add more methods afterwards."
+    "defaultMethodHint": "Created together with the zone. You can add more methods afterwards.",
+    "hideOthersWhenFree": "Show only free shipping when it applies",
+    "hideOthersWhenFreeHint": "When an order qualifies for free shipping, other methods such as pickup are hidden — like WooCommerce's 'Hide shipping methods'.",
+    "hideOthersBadge": "Free only when it applies",
+    "renameProfile": "Rename profile",
+    "profileNameRequired": "Enter a profile name (max 120 characters)."
   },
   "emailLog": {
     "title": "Email log",
