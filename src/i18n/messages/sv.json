@@ -3608,7 +3608,19 @@
         "newBody": "Ett tomt utkast på 500×700 mm skapas. Bakgrund, texter och fotoplatser lägger du till i redigeraren.",
         "name": "Namn",
         "nameRequired": "Ange ett namn för mallen.",
-        "create": "Skapa"
+        "create": "Skapa",
+        "search": "Sök mallar",
+        "noMatch": "Ingen mall matchar din sökning.",
+        "duplicate": "Duplicera",
+        "copyOf": "Kopia av {name}",
+        "checklist": {
+          "title": "Gör designern redo",
+          "intro": "Fyra steg innan kunder kan designa; varje steg öppnar rätt plats.",
+          "fonts": "Ladda upp typsnitten dina mallar använder",
+          "backgrounds": "Ladda upp en webbakgrundsbild",
+          "publish": "Bygg en mall och publicera den",
+          "link": "Koppla mallen till en produkt"
+        }
       },
       "editor": {
         "back": "Tillbaka till mallar",
@@ -3766,14 +3778,57 @@
           "borderColorHint": "Visas bara medan kunden redigerar.",
           "photoRequired": "Foto krävs",
           "decorationImage": "Bild",
-          "changeImage": "Byt bild"
+          "changeImage": "Byt bild",
+          "copyToAll": "Kopiera till alla språk",
+          "copyToAllHint": "Kopierar det första språkets text till alla andra språk."
         },
         "linkedProducts": "{count, plural, one {# produkt använder fortfarande den här mallen. Ta först bort mallen från den produkten.} other {# produkter använder fortfarande den här mallen. Ta först bort mallen från de produkterna.}}",
         "linkedShow": "Visa kopplade produkter",
         "linkedOpenProducts": "Öppna produkter",
         "leaveTitle": "Osparade ändringar",
         "leaveBody": "Mallen har osparade ändringar. Vill du lämna redigeraren och kasta dem?",
-        "leaveConfirm": "Lämna utan att spara"
+        "leaveConfirm": "Lämna utan att spara",
+        "undo": "Ångra (Ctrl+Z)",
+        "redo": "Gör om (Ctrl+Skift+Z / Ctrl+Y)",
+        "saveShortcut": "Spara som ny version (Ctrl+S)",
+        "statusLive": "Live · v{version}",
+        "statusDraft": "Utkast v{version} sparat · inte live (kunder ser v{live})",
+        "statusNeverPublished": "v{version} sparad · inte publicerad än",
+        "statusLiveHint": "Kunderna designar med den senaste versionen.",
+        "statusDraftHint": "Den senaste versionen är sparad men kunderna ser fortfarande den publicerade versionen.",
+        "publishNow": "Publicera nu",
+        "publishNowBody": "Version {version} är sparad men inte live: kunderna designar fortfarande med version {live}.",
+        "publishNowBodyFirst": "Version {version} är sparad. Publicera den så att produkter kan använda mallen.",
+        "removedElement": "\"{name}\" togs bort.",
+        "canvas": {
+          "zoom": "Zoom",
+          "zoomIn": "Zooma in",
+          "zoomOut": "Zooma ut",
+          "zoomFit": "Anpassa",
+          "zoomFitHint": "Visa hela mallen",
+          "locked": "Låst",
+          "rotate": "Rotera (Skift låser till 15°)",
+          "hint": "Klicka för att välja · Dra för att flytta · Handtag ändrar storlek (Skift behåller proportioner, Alt från mitten) · Piltangenter knuffar 0,5 mm (Skift 5 mm) · Alt under dragning stänger av snäppning · Ctrl+hjul zoomar, Mellanslag+dra panorerar · Del tar bort, Ctrl+Z ångrar",
+          "a11y": {
+            "label": "Mallyta: välj, flytta, ändra storlek på och rotera element",
+            "selected": "Valt {name}: x {x}, y {y}, {w} × {h} mm",
+            "none": "Inget element valt"
+          }
+        },
+        "align": {
+          "title": "Justera och ordna",
+          "left": "Vänsterjustera",
+          "centerX": "Centrera vågrätt",
+          "right": "Högerjustera",
+          "top": "Justera uppåt",
+          "centerY": "Centrera lodrätt",
+          "bottom": "Justera nedåt",
+          "center": "Centrera på ytan",
+          "front": "Lägg överst",
+          "forward": "Flytta framåt",
+          "backward": "Flytta bakåt",
+          "back": "Lägg underst"
+        }
       },
       "assets": {
         "warningsTitle": "Kontrollera innan du använder den här filen",

@@ -3608,7 +3608,19 @@
         "newBody": "Boş bir 500×700 mm taslak oluşturulur. Arka planı, metinleri ve fotoğraf alanlarını düzenleyicide eklersiniz.",
         "name": "Ad",
         "nameRequired": "Şablon için bir ad girin.",
-        "create": "Oluştur"
+        "create": "Oluştur",
+        "search": "Şablonlarda ara",
+        "noMatch": "Aramanızla eşleşen şablon yok.",
+        "duplicate": "Çoğalt",
+        "copyOf": "{name} kopyası",
+        "checklist": {
+          "title": "Tasarımcıyı hazırlayın",
+          "intro": "Müşteriler tasarlamadan önce dört adım; her biri doğru yeri açar.",
+          "fonts": "Şablonlarınızın kullandığı yazı tiplerini yükleyin",
+          "backgrounds": "Bir web arka plan görseli yükleyin",
+          "publish": "Bir şablon oluşturup yayınlayın",
+          "link": "Şablonu bir ürüne bağlayın"
+        }
       },
       "editor": {
         "back": "Şablonlara dön",
@@ -3766,14 +3778,57 @@
           "borderColorHint": "Yalnızca müşteri düzenlerken gösterilir.",
           "photoRequired": "Fotoğraf zorunlu",
           "decorationImage": "Görsel",
-          "changeImage": "Görseli değiştir"
+          "changeImage": "Görseli değiştir",
+          "copyToAll": "Tüm dillere kopyala",
+          "copyToAllHint": "İlk dilin metnini diğer tüm dillere kopyalar."
         },
         "linkedProducts": "{count, plural, one {# ürün hâlâ bu şablonu kullanıyor. Önce şablonu o üründen kaldırın.} other {# ürün hâlâ bu şablonu kullanıyor. Önce şablonu bu ürünlerden kaldırın.}}",
         "linkedShow": "Bağlı ürünleri göster",
         "linkedOpenProducts": "Ürünleri aç",
         "leaveTitle": "Kaydedilmemiş değişiklikler",
         "leaveBody": "Bu şablonda kaydedilmemiş değişiklikler var. Düzenleyiciden çıkıp bunları atmak istiyor musunuz?",
-        "leaveConfirm": "Kaydetmeden çık"
+        "leaveConfirm": "Kaydetmeden çık",
+        "undo": "Geri al (Ctrl+Z)",
+        "redo": "Yinele (Ctrl+Shift+Z / Ctrl+Y)",
+        "saveShortcut": "Yeni sürüm olarak kaydet (Ctrl+S)",
+        "statusLive": "Yayında · s{version}",
+        "statusDraft": "Taslak s{version} kaydedildi · yayında değil (müşteriler s{live} görüyor)",
+        "statusNeverPublished": "s{version} kaydedildi · henüz yayınlanmadı",
+        "statusLiveHint": "Müşteriler en son sürümle tasarlıyor.",
+        "statusDraftHint": "En son sürüm kaydedildi ama müşteriler hâlâ yayındaki sürümü görüyor.",
+        "publishNow": "Şimdi yayınla",
+        "publishNowBody": "Sürüm {version} kaydedildi ama yayında değil: müşteriler hâlâ sürüm {live} ile tasarlıyor.",
+        "publishNowBodyFirst": "Sürüm {version} kaydedildi. Ürünlerin bu şablonu kullanabilmesi için yayınlayın.",
+        "removedElement": "\"{name}\" kaldırıldı.",
+        "canvas": {
+          "zoom": "Yakınlaştırma",
+          "zoomIn": "Yakınlaştır",
+          "zoomOut": "Uzaklaştır",
+          "zoomFit": "Sığdır",
+          "zoomFitHint": "Şablonun tamamını göster",
+          "locked": "Kilitli",
+          "rotate": "Döndür (Shift 15° adımlar)",
+          "hint": "Seçmek için tıklayın · Taşımak için sürükleyin · Boyut için tutamaçlar (Shift oranı korur, Alt merkezden) · Ok tuşları 0,5 mm (Shift 5 mm) · Sürüklerken Alt hizalamayı kapatır · Ctrl+tekerlek yakınlaştırır, Boşluk+sürükleme kaydırır · Del siler, Ctrl+Z geri alır",
+          "a11y": {
+            "label": "Şablon tuvali: öğeleri seçin, taşıyın, boyutlandırın ve döndürün",
+            "selected": "Seçili {name}: x {x}, y {y}, {w} × {h} mm",
+            "none": "Seçili öğe yok"
+          }
+        },
+        "align": {
+          "title": "Hizala ve sırala",
+          "left": "Sola hizala",
+          "centerX": "Yatay ortala",
+          "right": "Sağa hizala",
+          "top": "Üste hizala",
+          "centerY": "Dikey ortala",
+          "bottom": "Alta hizala",
+          "center": "Tuvalde ortala",
+          "front": "En öne getir",
+          "forward": "Bir öne getir",
+          "backward": "Bir arkaya gönder",
+          "back": "En arkaya gönder"
+        }
       },
       "assets": {
         "warningsTitle": "Bu dosyayı kullanmadan önce kontrol edin",

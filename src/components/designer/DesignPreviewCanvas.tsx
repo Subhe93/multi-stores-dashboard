@@ -31,8 +31,14 @@ interface DesignPreviewCanvasProps {
   assetUrls: Record<string, string>;
   fonts: PreviewFont[];
   locale?: string;
-  /** CSS width cap of the canvas, px. */
+  /** CSS width cap of the canvas, px (ignored when `pxPerMm` is given). */
   maxWidth?: number;
+  /**
+   * Editor zoom: CSS pixels per template mm. The canvas then takes exactly
+   * `spec.width × pxPerMm` CSS px and is drawn at device resolution (≤ 4
+   * px/mm) so a 200 % zoom stays crisp.
+   */
+  pxPerMm?: number;
   /** Element outlined as the current selection (editor only). */
   selectedId?: string | null;
   emptySlotText?: string;
@@ -115,6 +121,7 @@ export function DesignPreviewCanvas({
   fonts,
   locale,
   maxWidth = 520,
+  pxPerMm,
   selectedId,
   emptySlotText,
   onReport,
@@ -182,8 +189,10 @@ export function DesignPreviewCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fontKey]);
 
-  const scale = Math.min(2, maxWidth * 2 / Math.max(1, spec.width));
+  const dpr = typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio || 1) : 1;
+  const scale = pxPerMm ? Math.min(4, Math.max(0.5, pxPerMm * dpr)) : Math.min(2, maxWidth * 2 / Math.max(1, spec.width));
   const size = canvasSize(spec, scale);
+  const cssSize = pxPerMm ? { width: spec.width * pxPerMm, height: spec.height * pxPerMm } : null;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -221,7 +230,7 @@ export function DesignPreviewCanvas({
       width={size.width}
       height={size.height}
       className={className ?? 'h-auto w-full rounded-md border bg-[repeating-conic-gradient(#f4f4f5_0%_25%,#fff_0%_50%)] bg-[length:16px_16px]'}
-      style={{ maxWidth, aspectRatio: `${spec.width} / ${spec.height}` }}
+      style={cssSize ? { width: cssSize.width, height: cssSize.height, maxWidth: 'none' } : { maxWidth, aspectRatio: `${spec.width} / ${spec.height}` }}
     />
   );
 }

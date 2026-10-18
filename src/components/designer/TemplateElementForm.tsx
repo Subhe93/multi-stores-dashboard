@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,11 +86,28 @@ function I18nInputs({
   maxLength?: number;
   error?: string;
 }) {
+  const t = useTranslations('creator.designer.editor.element');
+  const first = value?.[locales[0]] ?? '';
+  const copyToAll = () => {
+    const next: I18n = { ...(value ?? {}) };
+    for (const loc of locales) {
+      if (first) next[loc] = first;
+      else delete next[loc];
+    }
+    onChange(next);
+  };
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs">
-        {label}
-      </Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id} className="text-xs">
+          {label}
+        </Label>
+        {locales.length > 1 && (
+          <Button type="button" variant="ghost" size="sm" className="h-6 px-1.5 text-[11px] pointer-coarse:h-11" disabled={!first} onClick={copyToAll} title={t('copyToAllHint')}>
+            <Languages className="size-3" /> {t('copyToAll')}
+          </Button>
+        )}
+      </div>
       {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
       <div className="space-y-1.5">
         {locales.map((loc, i) => (

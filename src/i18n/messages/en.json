@@ -3608,7 +3608,19 @@
         "newBody": "A blank 500×700 mm draft is created. You add the background, texts and photo slots in the editor.",
         "name": "Name",
         "nameRequired": "Enter a name for the template.",
-        "create": "Create"
+        "create": "Create",
+        "search": "Search templates",
+        "noMatch": "No template matches your search.",
+        "duplicate": "Duplicate",
+        "copyOf": "Copy of {name}",
+        "checklist": {
+          "title": "Get your designer ready",
+          "intro": "Four steps before customers can design: each one opens the right place.",
+          "fonts": "Upload the fonts your templates use",
+          "backgrounds": "Upload a web background image",
+          "publish": "Build a template and publish it",
+          "link": "Link the template to a product"
+        }
       },
       "editor": {
         "back": "Back to templates",
@@ -3766,14 +3778,57 @@
           "borderColorHint": "Only shown while the customer edits.",
           "photoRequired": "Photo required",
           "decorationImage": "Image",
-          "changeImage": "Change image"
+          "changeImage": "Change image",
+          "copyToAll": "Copy to all languages",
+          "copyToAllHint": "Copies the first language's text into every other language."
         },
         "linkedProducts": "{count, plural, one {# product still uses this template. Remove the template from that product first.} other {# products still use this template. Remove the template from those products first.}}",
         "linkedShow": "Show linked products",
         "linkedOpenProducts": "Open products",
         "leaveTitle": "Unsaved changes",
         "leaveBody": "This template has unsaved changes. Leave the editor and discard them?",
-        "leaveConfirm": "Leave without saving"
+        "leaveConfirm": "Leave without saving",
+        "undo": "Undo (Ctrl+Z)",
+        "redo": "Redo (Ctrl+Shift+Z / Ctrl+Y)",
+        "saveShortcut": "Save as new version (Ctrl+S)",
+        "statusLive": "Live · v{version}",
+        "statusDraft": "Draft v{version} saved · not live (customers see v{live})",
+        "statusNeverPublished": "v{version} saved · not published yet",
+        "statusLiveHint": "The latest version is the one customers design with.",
+        "statusDraftHint": "The latest version is saved but customers still see the live version.",
+        "publishNow": "Publish now",
+        "publishNowBody": "Version {version} is saved but not live: customers still design with version {live}.",
+        "publishNowBodyFirst": "Version {version} is saved. Publish it so products can use this template.",
+        "removedElement": "\"{name}\" removed.",
+        "canvas": {
+          "zoom": "Zoom",
+          "zoomIn": "Zoom in",
+          "zoomOut": "Zoom out",
+          "zoomFit": "Fit",
+          "zoomFitHint": "Fit the whole template in view",
+          "locked": "Locked",
+          "rotate": "Rotate (Shift snaps to 15°)",
+          "hint": "Click to select · Drag to move · Handles to resize (Shift keeps proportions, Alt from centre) · Arrows nudge 0.5 mm (Shift 5 mm) · Alt while dragging disables snapping · Ctrl+wheel zooms, Space+drag pans · Del removes, Ctrl+Z undoes",
+          "a11y": {
+            "label": "Template canvas: select, move, resize and rotate elements",
+            "selected": "Selected {name}: x {x}, y {y}, {w} by {h} mm",
+            "none": "No element selected"
+          }
+        },
+        "align": {
+          "title": "Align and arrange",
+          "left": "Align left",
+          "centerX": "Centre horizontally",
+          "right": "Align right",
+          "top": "Align top",
+          "centerY": "Centre vertically",
+          "bottom": "Align bottom",
+          "center": "Centre on canvas",
+          "front": "Bring to front",
+          "forward": "Bring forward",
+          "backward": "Send backward",
+          "back": "Send to back"
+        }
       },
       "assets": {
         "warningsTitle": "Check before using this file",

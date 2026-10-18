@@ -3608,7 +3608,19 @@
         "newBody": "Es wird ein leerer Entwurf im Format 500×700 mm erstellt. Hintergrund, Texte und Fotofelder fügen Sie im Editor hinzu.",
         "name": "Name",
         "nameRequired": "Geben Sie einen Namen für die Vorlage ein.",
-        "create": "Erstellen"
+        "create": "Erstellen",
+        "search": "Vorlagen durchsuchen",
+        "noMatch": "Keine Vorlage passt zu Ihrer Suche.",
+        "duplicate": "Duplizieren",
+        "copyOf": "Kopie von {name}",
+        "checklist": {
+          "title": "Designer einrichten",
+          "intro": "Vier Schritte, bevor Kunden gestalten können; jeder öffnet die richtige Stelle.",
+          "fonts": "Schriften hochladen, die Ihre Vorlagen nutzen",
+          "backgrounds": "Ein Web-Hintergrundbild hochladen",
+          "publish": "Eine Vorlage bauen und veröffentlichen",
+          "link": "Die Vorlage mit einem Produkt verknüpfen"
+        }
       },
       "editor": {
         "back": "Zurück zu den Vorlagen",
@@ -3766,14 +3778,57 @@
           "borderColorHint": "Wird nur angezeigt, während der Kunde bearbeitet.",
           "photoRequired": "Foto erforderlich",
           "decorationImage": "Bild",
-          "changeImage": "Bild ändern"
+          "changeImage": "Bild ändern",
+          "copyToAll": "In alle Sprachen kopieren",
+          "copyToAllHint": "Kopiert den Text der ersten Sprache in alle anderen Sprachen."
         },
         "linkedProducts": "{count, plural, one {# Produkt verwendet diese Vorlage noch. Entfernen Sie die Vorlage zuerst von diesem Produkt.} other {# Produkte verwenden diese Vorlage noch. Entfernen Sie die Vorlage zuerst von diesen Produkten.}}",
         "linkedShow": "Verknüpfte Produkte anzeigen",
         "linkedOpenProducts": "Produkte öffnen",
         "leaveTitle": "Ungespeicherte Änderungen",
         "leaveBody": "Diese Vorlage hat ungespeicherte Änderungen. Editor verlassen und sie verwerfen?",
-        "leaveConfirm": "Ohne Speichern verlassen"
+        "leaveConfirm": "Ohne Speichern verlassen",
+        "undo": "Rückgängig (Strg+Z)",
+        "redo": "Wiederholen (Strg+Umschalt+Z / Strg+Y)",
+        "saveShortcut": "Als neue Version speichern (Strg+S)",
+        "statusLive": "Live · v{version}",
+        "statusDraft": "Entwurf v{version} gespeichert · nicht live (Kunden sehen v{live})",
+        "statusNeverPublished": "v{version} gespeichert · noch nicht veröffentlicht",
+        "statusLiveHint": "Mit der neuesten Version gestalten die Kunden.",
+        "statusDraftHint": "Die neueste Version ist gespeichert, Kunden sehen aber weiter die Live-Version.",
+        "publishNow": "Jetzt veröffentlichen",
+        "publishNowBody": "Version {version} ist gespeichert, aber nicht live: Kunden gestalten weiter mit Version {live}.",
+        "publishNowBodyFirst": "Version {version} ist gespeichert. Veröffentlichen Sie sie, damit Produkte diese Vorlage nutzen können.",
+        "removedElement": "„{name}“ entfernt.",
+        "canvas": {
+          "zoom": "Zoom",
+          "zoomIn": "Vergrößern",
+          "zoomOut": "Verkleinern",
+          "zoomFit": "Einpassen",
+          "zoomFitHint": "Die ganze Vorlage anzeigen",
+          "locked": "Gesperrt",
+          "rotate": "Drehen (Umschalt rastet bei 15° ein)",
+          "hint": "Klicken zum Auswählen · Ziehen zum Verschieben · Griffe zum Skalieren (Umschalt hält die Proportion, Alt von der Mitte) · Pfeile schieben 0,5 mm (Umschalt 5 mm) · Alt beim Ziehen schaltet das Einrasten aus · Strg+Rad zoomt, Leertaste+Ziehen verschiebt · Entf löscht, Strg+Z macht rückgängig",
+          "a11y": {
+            "label": "Vorlagenfläche: Elemente auswählen, verschieben, skalieren und drehen",
+            "selected": "Ausgewählt {name}: x {x}, y {y}, {w} × {h} mm",
+            "none": "Kein Element ausgewählt"
+          }
+        },
+        "align": {
+          "title": "Ausrichten und anordnen",
+          "left": "Links ausrichten",
+          "centerX": "Horizontal zentrieren",
+          "right": "Rechts ausrichten",
+          "top": "Oben ausrichten",
+          "centerY": "Vertikal zentrieren",
+          "bottom": "Unten ausrichten",
+          "center": "Auf der Fläche zentrieren",
+          "front": "In den Vordergrund",
+          "forward": "Eine Ebene nach vorn",
+          "backward": "Eine Ebene nach hinten",
+          "back": "In den Hintergrund"
+        }
       },
       "assets": {
         "warningsTitle": "Vor der Verwendung dieser Datei prüfen",

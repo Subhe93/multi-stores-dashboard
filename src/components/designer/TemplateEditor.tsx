@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, ArrowLeft, Loader2, Save, Send, Trash2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, Redo2, Save, Send, Trash2, Undo2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { alignBox, sendInStack, type AlignKind, type Box } from '@/lib/designer/editorGeometry';
+import { HISTORY_LIMIT } from './template-editor/history';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -38,6 +40,7 @@ import {
 import {
   cloneSpec,
   moveInStack,
+  stackOrder,
   newElementId,
   newImageElement,
   newSlotElement,
@@ -47,7 +50,7 @@ import {
   type IssueLocation,
 } from '@/lib/designer/templateSpec';
 import { useDateTimeFormat } from '@/components/importer/ImporterBits';
-import { DesignPreviewCanvas, SAMPLE_PHOTO_ID, SAMPLE_PHOTO_SIZE, type PreviewFont } from '@/components/designer/DesignPreviewCanvas';
+import { SAMPLE_PHOTO_ID, SAMPLE_PHOTO_SIZE, type PreviewFont } from '@/components/designer/DesignPreviewCanvas';
 import { AssetPickerDialog } from '@/components/designer/AssetPickerDialog';
 import { TemplateStatusBadge } from '@/components/designer/DesignerBits';
 import { elementFieldId } from '@/components/designer/TemplateElementForm';
@@ -55,6 +58,8 @@ import { GeneralPanel } from './template-editor/GeneralPanel';
 import { BackgroundPanel } from './template-editor/BackgroundPanel';
 import { ElementsPanel } from './template-editor/ElementsPanel';
 import { VersionsPanel } from './template-editor/VersionsPanel';
+import { EditorCanvas } from './template-editor/EditorCanvas';
+import { AlignToolbar, type StackMove } from './template-editor/AlignToolbar';
 import {
   areaFieldId,
   groupIssues,
@@ -68,6 +73,9 @@ import {
 import { elementsUpdater, useTemplateEditorState, type SideTab, type TemplateEditorPatch } from './template-editor/useTemplateEditorState';
 
 const BACK_HREF = '/creator/designer?tab=templates';
+
+/** Rank of an element from the bottom of the stack (0 = drawn first). */
+const stackPos = (els: DesignElement[], index: number) => stackOrder(els).reverse().indexOf(index);
 const FONTS_HREF = '/creator/designer?tab=assets';
 const PRODUCTS_HREF = '/creator/products/own';
 
@@ -95,7 +103,17 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
   const {
     detail, loadError, spec, baseJson, name, sizeDrafts, sideTab, selected, issues, busy, actionError, picker,
     confirmDelete, linkedCount, loadingVersion, previewPrint, samplePhoto, sampleTexts, previewProblems, leaveTo,
+    past, future,
   } = state;
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+  /**
+   * The element just removed (confirm-free remove; undo restores it). `depth`
+   * is the history length right after the removal: the banner's Undo only
+   * makes sense while the removal is still the latest step.
+   */
+  const [removed, setRemoved] = useState<{ name: string; depth: number } | null>(null);
+  const removedName = removed !== null && removed.depth === past.length ? removed.name : null;
   const patch = useCallback((p: TemplateEditorPatch) => dispatch({ type: 'patch', patch: p }), [dispatch]);
 
   // Library data (assets, fonts) and the store locales: loaded once, not edited.
@@ -209,16 +227,48 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
     return { v: 1, texts: sampleTexts, photos };
   }, [elements, samplePhoto, sampleTexts]);
 
+  const elementName = (el: DesignElement) => {
+    if (el.type === 'image') return t('types.image');
+    const label = el.label?.[primaryLocale] || Object.values(el.label ?? {}).find(Boolean);
+    return label || el.id;
+  };
+  const sel = selected !== null && selected < elements.length ? selected : null;
+
   // ─── Mutations of the working spec ───────────────────────────────────────
 
-  const updateSpec = (fn: (s: TemplateSpecV1) => TemplateSpecV1) => dispatch({ type: 'updateSpec', fn });
-  const setElements = (fn: (els: DesignElement[]) => DesignElement[]) => updateSpec(elementsUpdater(fn));
+  const updateSpec = (fn: (s: TemplateSpecV1) => TemplateSpecV1, coalesce?: string) => dispatch({ type: 'updateSpec', fn, coalesce });
+  const setElements = (fn: (els: DesignElement[]) => DesignElement[], coalesce?: string) => updateSpec(elementsUpdater(fn), coalesce);
+  const undo = useCallback(() => dispatch({ type: 'undo' }), [dispatch]);
+  const redo = useCallback(() => dispatch({ type: 'redo' }), [dispatch]);
+  const sealHistory = () => dispatch({ type: 'sealHistory' });
   const clearIssues = (pred: (i: Issue) => boolean) => dispatch({ type: 'clearIssues', pred });
   const setSelected = (index: number | null) => patch({ selected: index });
 
   const updateElement = (index: number, next: DesignElement) => {
-    setElements((els) => els.map((e, i) => (i === index ? next : e)));
+    // Typing in the form coalesces per element + changed field (one undo step per edit run).
+    const prev = elements[index];
+    const changed = prev ? (Object.keys(next) as (keyof DesignElement)[]).find((k) => prev[k] !== next[k]) : undefined;
+    setElements((els) => els.map((e, i) => (i === index ? next : e)), changed ? `form:${index}:${String(changed)}` : undefined);
     clearIssues((i) => i.loc.elementIndex === index);
+  };
+
+  /** Canvas gesture: geometry of one element (x, y, w, h, rot). */
+  const changeBox = (index: number, box: Box, coalesce: string) => {
+    setElements((els) => els.map((e, i) => (i === index ? { ...e, x: box.x, y: box.y, w: box.w, h: box.h, rot: box.rot } : e)), coalesce);
+    clearIssues((i) => i.loc.elementIndex === index && i.loc.field === 'geometry');
+  };
+
+  const alignSelected = (kind: AlignKind) => {
+    if (sel === null || !spec) return;
+    const el = elements[sel];
+    const box = alignBox({ x: el.x, y: el.y, w: el.w, h: el.h, rot: el.rot || 0 }, spec, kind);
+    changeBox(sel, box, `align:${el.id}:${kind}:${Date.now()}`);
+  };
+
+  const stackSelected = (move: StackMove) => {
+    if (sel === null) return;
+    if (move === 'front' || move === 'back') setElements((els) => sendInStack(els, sel, move));
+    else setElements((els) => moveInStack(els, sel, move === 'forward' ? 'up' : 'down'));
   };
 
   const addElement = (kind: 'text' | 'slot') => {
@@ -229,8 +279,29 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
   };
 
   const removeElement = (index: number) => {
+    const el = elements[index];
+    if (!el) return;
     setElements((els) => els.filter((_, i) => i !== index));
     patch({ selected: null, issues: [] });
+    // The removal push (keyless) always adds one step.
+    setRemoved({ name: elementName(el), depth: Math.min(past.length + 1, HISTORY_LIMIT) });
+  };
+  useEffect(() => {
+    if (removed === null) return;
+    const id = window.setTimeout(() => setRemoved(null), 8000);
+    return () => window.clearTimeout(id);
+  }, [removed]);
+
+  /** Double-click on a text element: open its form and focus the default text. */
+  const editText = (index: number) => {
+    patch({ sideTab: 'elements', selected: index });
+    window.setTimeout(() => {
+      const node = document.getElementById(elementFieldId(index, 'default_text')) as HTMLInputElement | null;
+      if (!node) return;
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      node.focus({ preventScroll: true });
+      node.select?.();
+    }, 80);
   };
 
   const duplicateElement = (index: number) => {
@@ -324,6 +395,43 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
     }
   };
 
+  // Page-wide shortcuts: Ctrl/Cmd+S saves, Ctrl/Cmd+Z / Shift+Z / Y undo and
+  // redo (inside text fields undo / redo stay with the browser; none while a
+  // dialog of the editor is open or an action is running).
+  const dialogOpen = !!picker || confirmDelete || leaveTo !== null;
+  const shortcutsRef = useRef<{ save: () => void; blocked: boolean }>({ save: () => {}, blocked: false });
+  shortcutsRef.current = {
+    save: () => {
+      if (dirty && !busy) void save();
+    },
+    blocked: dialogOpen || !!busy,
+  };
+  useEffect(() => {
+    const handler = (e: globalThis.KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      if (shortcutsRef.current.blocked) return;
+      const key = e.key.toLowerCase();
+      if (key === 's') {
+        e.preventDefault();
+        shortcutsRef.current.save();
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      const inField = !!target && (target.matches('input, textarea, select, [contenteditable="true"]') || target.isContentEditable);
+      if (inField) return;
+      if (key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if (key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
+
   const publish = async (versionId: string) => {
     if (!detail || busy) return;
     patch({ busy: 'publish', actionError: null, linkedCount: null });
@@ -411,14 +519,9 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
   const bg = spec.surfaces[0].background;
   const latest = detail.latest_version;
   const latestIsCurrent = !!latest && latest.id === detail.current_version_id;
+  const liveVersion = detail.versions.find((v) => v.current) ?? null;
   const grouped = groupIssues(issues, issueText);
   const printPx = printPxOf(spec);
-  const elementName = (el: DesignElement) => {
-    if (el.type === 'image') return t('types.image');
-    const label = el.label?.[primaryLocale] || Object.values(el.label ?? {}).find(Boolean);
-    return label || el.id;
-  };
-  const sel = selected !== null && selected < elements.length ? selected : null;
 
   return (
     <div className="space-y-4">
@@ -433,9 +536,17 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
             <TemplateStatusBadge status={detail.status} />
             {detail.source === 'npp' && <Badge variant="outline">NPP</Badge>}
             {latest && (
-              <span className="text-xs text-muted-foreground">
-                {t('versionLabel', { version: latest.version })}
-                {latestIsCurrent ? ` · ${t('live')}` : detail.current_version_id ? ` · ${t('notLive')}` : ''}
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                  latestIsCurrent ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-800'
+                }`}
+                title={latestIsCurrent ? t('statusLiveHint') : t('statusDraftHint')}
+              >
+                {latestIsCurrent
+                  ? t('statusLive', { version: latest.version })
+                  : liveVersion
+                    ? t('statusDraft', { version: latest.version, live: liveVersion.version })
+                    : t('statusNeverPublished', { version: latest.version })}
               </span>
             )}
           </div>
@@ -443,7 +554,15 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
         <div className="flex flex-wrap items-center gap-2">
           {saved && <span className="text-xs font-medium text-emerald-600">{t('saved')}</span>}
           {dirty && <span className="text-xs text-amber-700">{t('unsaved')}</span>}
-          <Button type="button" variant="outline" size="sm" disabled={!dirty || !!busy} onClick={save}>
+          <div className="inline-flex items-center rounded-md border bg-white">
+            <Button type="button" variant="ghost" size="icon" className="size-8 pointer-coarse:size-11" disabled={!canUndo} onClick={undo} title={t('undo')} aria-label={t('undo')}>
+              <Undo2 className="size-4 rtl:-scale-x-100" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="size-8 pointer-coarse:size-11" disabled={!canRedo} onClick={redo} title={t('redo')} aria-label={t('redo')}>
+              <Redo2 className="size-4 rtl:-scale-x-100" />
+            </Button>
+          </div>
+          <Button type="button" variant="outline" size="sm" disabled={!dirty || !!busy} onClick={save} title={t('saveShortcut')}>
             {busy === 'save' ? <Loader2 className="animate-spin" /> : <Save />} {t('saveVersion')}
           </Button>
           <Button
@@ -457,6 +576,37 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
           </Button>
         </div>
       </div>
+
+      {/* Saved but not live: one prominent step left. */}
+      {latest && !latestIsCurrent && !dirty && detail.status !== 'ARCHIVED' && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+          <Send className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">
+            {liveVersion ? t('publishNowBody', { version: latest.version, live: liveVersion.version }) : t('publishNowBodyFirst', { version: latest.version })}
+          </span>
+          <Button type="button" size="sm" className="max-sm:min-h-11" disabled={!!busy} onClick={() => publish(latest.id)}>
+            {busy === 'publish' ? <Loader2 className="animate-spin" /> : <Send />} {t('publishNow')}
+          </Button>
+        </div>
+      )}
+
+      {removedName !== null && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border bg-zinc-50 p-2.5 text-sm" role="status">
+          <span className="min-w-0 flex-1">{t('removedElement', { name: removedName })}</span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="max-sm:min-h-11"
+            onClick={() => {
+              undo();
+              setRemoved(null);
+            }}
+          >
+            <Undo2 className="rtl:-scale-x-100" /> {t('undo')}
+          </Button>
+        </div>
+      )}
 
       {actionError && (
         <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -526,39 +676,62 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
         <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
           <Card className="shadow-none">
             <CardContent className="space-y-3 pt-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="inline-flex rounded-md border bg-zinc-50 p-0.5" role="radiogroup" aria-label={t('previewBackground')}>
-                  {(['web', 'print'] as const).map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      role="radio"
-                      aria-checked={previewPrint === (k === 'print')}
-                      onClick={() => patch({ previewPrint: k === 'print' })}
-                      className={`rounded px-2.5 py-1 text-xs ${previewPrint === (k === 'print') ? 'bg-white font-medium shadow-sm' : 'text-muted-foreground'}`}
-                    >
-                      {t(k === 'web' ? 'previewWeb' : 'previewPrint')}
-                    </button>
-                  ))}
-                </div>
-                <label className="flex items-center gap-2 text-xs">
-                  <ToggleSwitch checked={samplePhoto} onChange={(v) => patch({ samplePhoto: v })} label={t('samplePhoto')} />
-                  {t('samplePhoto')}
-                </label>
-              </div>
-              <div className="flex justify-center">
-                <DesignPreviewCanvas
-                  spec={spec}
-                  state={previewState}
-                  mode={previewPrint ? 'print' : 'edit'}
-                  assetUrls={assetUrls}
-                  fonts={previewFonts}
-                  locale={primaryLocale}
-                  selectedId={sel !== null ? elements[sel]?.id : null}
-                  emptySlotText={t('emptySlot')}
-                  onReport={(r) => dispatch({ type: 'previewReport', missing: r.missing, fonts: r.fontsFailed })}
-                />
-              </div>
+              <EditorCanvas
+                spec={spec}
+                state={previewState}
+                mode={previewPrint ? 'print' : 'edit'}
+                assetUrls={assetUrls}
+                fonts={previewFonts}
+                locale={primaryLocale}
+                emptySlotText={t('emptySlot')}
+                onReport={(r) => dispatch({ type: 'previewReport', missing: r.missing, fonts: r.fontsFailed })}
+                selected={sel}
+                elementName={elementName}
+                onSelect={(i) => {
+                  setSelected(i);
+                  if (i !== null && sideTab !== 'elements') patch({ sideTab: 'elements' });
+                }}
+                onChangeBox={changeBox}
+                onGestureEnd={sealHistory}
+                onEditText={editText}
+                onDelete={removeElement}
+                onDuplicate={duplicateElement}
+                toolbarStart={
+                  <>
+                    <div className="inline-flex rounded-md border bg-zinc-50 p-0.5" role="radiogroup" aria-label={t('previewBackground')}>
+                      {(['web', 'print'] as const).map((k) => (
+                        <button
+                          key={k}
+                          type="button"
+                          role="radio"
+                          aria-checked={previewPrint === (k === 'print')}
+                          onClick={() => patch({ previewPrint: k === 'print' })}
+                          className={`rounded px-2.5 py-1 text-xs pointer-coarse:min-h-11 ${previewPrint === (k === 'print') ? 'bg-white font-medium shadow-sm' : 'text-muted-foreground'}`}
+                        >
+                          {t(k === 'web' ? 'previewWeb' : 'previewPrint')}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="flex items-center gap-2 text-xs">
+                      <ToggleSwitch checked={samplePhoto} onChange={(v) => patch({ samplePhoto: v })} label={t('samplePhoto')} />
+                      {t('samplePhoto')}
+                    </label>
+                  </>
+                }
+              >
+                {sel !== null && elements[sel] && (
+                  <AlignToolbar
+                    name={elementName(elements[sel])}
+                    locked={elements[sel].locked}
+                    canForward={stackPos(elements, sel) < elements.length - 1}
+                    canBackward={stackPos(elements, sel) > 0}
+                    onAlign={alignSelected}
+                    onStack={stackSelected}
+                    onDuplicate={() => duplicateElement(sel)}
+                    onRemove={() => removeElement(sel)}
+                  />
+                )}
+              </EditorCanvas>
               <p className="text-center text-[11px] text-muted-foreground">
                 {t('previewNote', { width: spec.width, height: spec.height, pw: printPx.w, ph: printPx.h })}
               </p>

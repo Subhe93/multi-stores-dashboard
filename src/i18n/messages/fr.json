@@ -3608,7 +3608,19 @@
         "newBody": "Un brouillon vierge de 500×700 mm est créé. Vous ajoutez le fond, les textes et les emplacements photo dans l'éditeur.",
         "name": "Nom",
         "nameRequired": "Saisissez un nom pour le modèle.",
-        "create": "Créer"
+        "create": "Créer",
+        "search": "Rechercher des modèles",
+        "noMatch": "Aucun modèle ne correspond à votre recherche.",
+        "duplicate": "Dupliquer",
+        "copyOf": "Copie de {name}",
+        "checklist": {
+          "title": "Préparez votre designer",
+          "intro": "Quatre étapes avant que les clients puissent créer ; chacune ouvre le bon endroit.",
+          "fonts": "Téléversez les polices utilisées par vos modèles",
+          "backgrounds": "Téléversez une image de fond web",
+          "publish": "Créez un modèle et publiez-le",
+          "link": "Liez le modèle à un produit"
+        }
       },
       "editor": {
         "back": "Retour aux modèles",
@@ -3766,14 +3778,57 @@
           "borderColorHint": "Affiché uniquement pendant que le client modifie.",
           "photoRequired": "Photo obligatoire",
           "decorationImage": "Image",
-          "changeImage": "Changer l'image"
+          "changeImage": "Changer l'image",
+          "copyToAll": "Copier dans toutes les langues",
+          "copyToAllHint": "Copie le texte de la première langue dans toutes les autres."
         },
         "linkedProducts": "{count, plural, one {# produit utilise encore ce modèle. Retirez d'abord le modèle de ce produit.} other {# produits utilisent encore ce modèle. Retirez d'abord le modèle de ces produits.}}",
         "linkedShow": "Afficher les produits liés",
         "linkedOpenProducts": "Ouvrir les produits",
         "leaveTitle": "Modifications non enregistrées",
         "leaveBody": "Ce modèle contient des modifications non enregistrées. Quitter l’éditeur et les abandonner ?",
-        "leaveConfirm": "Quitter sans enregistrer"
+        "leaveConfirm": "Quitter sans enregistrer",
+        "undo": "Annuler (Ctrl+Z)",
+        "redo": "Rétablir (Ctrl+Maj+Z / Ctrl+Y)",
+        "saveShortcut": "Enregistrer comme nouvelle version (Ctrl+S)",
+        "statusLive": "En ligne · v{version}",
+        "statusDraft": "Brouillon v{version} enregistré · pas en ligne (les clients voient la v{live})",
+        "statusNeverPublished": "v{version} enregistrée · pas encore publiée",
+        "statusLiveHint": "Les clients créent avec la dernière version.",
+        "statusDraftHint": "La dernière version est enregistrée mais les clients voient toujours la version en ligne.",
+        "publishNow": "Publier maintenant",
+        "publishNowBody": "La version {version} est enregistrée mais pas en ligne : les clients créent toujours avec la version {live}.",
+        "publishNowBodyFirst": "La version {version} est enregistrée. Publiez-la pour que des produits puissent utiliser ce modèle.",
+        "removedElement": "« {name} » supprimé.",
+        "canvas": {
+          "zoom": "Zoom",
+          "zoomIn": "Agrandir",
+          "zoomOut": "Réduire",
+          "zoomFit": "Ajuster",
+          "zoomFitHint": "Afficher tout le modèle",
+          "locked": "Verrouillé",
+          "rotate": "Pivoter (Maj aligne sur 15°)",
+          "hint": "Cliquez pour sélectionner · Glissez pour déplacer · Poignées pour redimensionner (Maj garde les proportions, Alt depuis le centre) · Flèches : 0,5 mm (Maj : 5 mm) · Alt pendant le glissement désactive le magnétisme · Ctrl+molette zoome, Espace+glisser déplace la vue · Suppr efface, Ctrl+Z annule",
+          "a11y": {
+            "label": "Plan du modèle : sélectionner, déplacer, redimensionner et pivoter les éléments",
+            "selected": "Sélection {name} : x {x}, y {y}, {w} × {h} mm",
+            "none": "Aucun élément sélectionné"
+          }
+        },
+        "align": {
+          "title": "Aligner et ordonner",
+          "left": "Aligner à gauche",
+          "centerX": "Centrer horizontalement",
+          "right": "Aligner à droite",
+          "top": "Aligner en haut",
+          "centerY": "Centrer verticalement",
+          "bottom": "Aligner en bas",
+          "center": "Centrer sur le plan",
+          "front": "Mettre au premier plan",
+          "forward": "Avancer d'un niveau",
+          "backward": "Reculer d'un niveau",
+          "back": "Mettre à l'arrière-plan"
+        }
       },
       "assets": {
         "warningsTitle": "À vérifier avant d'utiliser ce fichier",
