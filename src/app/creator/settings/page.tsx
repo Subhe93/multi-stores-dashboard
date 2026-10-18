@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CheckoutSettingsCard } from '@/components/settings/CheckoutSettingsCard';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveAvatarUrl(url?: string | null): string {
@@ -52,6 +53,10 @@ interface StoreInfo {
   // Presentment currency. Null means the platform default; only independent
   // stores may set it (they charge on their own connected account).
   currency?: string | null;
+  // Checkout behaviour overrides (M5.1); null = platform defaults.
+  checkout_settings?: unknown;
+  // Content locales: the pay button label is editable per locale.
+  language_config?: { primary_locale: string; secondary_locales: string[] } | null;
 }
 
 // Editable subset of GET /taxes/my/settings (the PUT body).
@@ -1000,6 +1005,19 @@ export default function CreatorSettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Checkout behaviour (M5.1): after-add-to-cart, phone, pay button, coupon links. */}
+        {token && store && (
+          <CheckoutSettingsCard
+            token={token}
+            value={store.checkout_settings ?? null}
+            locales={[
+              store.language_config?.primary_locale || 'en',
+              ...(store.language_config?.secondary_locales || []),
+            ].filter((l, i, all) => all.indexOf(l) === i)}
+            onSaved={(settings) => setStore((s) => (s ? { ...s, checkout_settings: settings } : s))}
+          />
+        )}
       </TabsContent>
 
       <TabsContent value="taxes" className="max-w-2xl space-y-4 pt-4">

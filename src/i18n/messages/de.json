@@ -316,7 +316,8 @@
     "b2b": "B2B",
     "personalization": "Personalisierung",
     "designer": "Designer",
-    "production": "Produktion"
+    "production": "Produktion",
+    "feeds": "Feeds"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -2173,6 +2174,45 @@
         "taxes": "Steuern",
         "payments": "Zahlungen",
         "security": "Sicherheit"
+      },
+      "checkout": {
+        "title": "Verhalten im Checkout",
+        "subtitle": "Wie sich der Shop nach \"In den Warenkorb\", im Checkout und bei Kampagnenlinks verhält. Alles unverändert lassen, um das Standardverhalten zu behalten.",
+        "afterAdd": {
+          "label": "Nach \"In den Warenkorb\"",
+          "stay": "Auf der Produktseite bleiben",
+          "stayHint": "Zeigt eine Bestätigung mit dem Link \"Warenkorb ansehen\" (Standard).",
+          "cart": "Zum Warenkorb",
+          "cartHint": "Öffnet sofort den Warenkorb.",
+          "checkout": "Direkt zum Checkout",
+          "checkoutHint": "Überspringt den Warenkorb und öffnet den Checkout."
+        },
+        "phoneRequired": "Telefonnummer im Checkout verlangen",
+        "phoneRequiredOn": "Kunden müssen eine Telefonnummer angeben.",
+        "phoneRequiredOff": "Optional — Kunden können das Telefonfeld leer lassen (Standard).",
+        "payLabel": "Text des Bezahl-Buttons",
+        "payLabelHint": "Text des Kartenzahlungs-Buttons je Shopsprache (max. {max} Zeichen). Leer lassen für den Standardtext. Die Vorschau zeigt, was Kunden sehen.",
+        "payLabelTooLong": "Max. {max} Zeichen.",
+        "payLabelPreview": "Button-Vorschau",
+        "couponAutoapply": "Rabattcodes aus Links übernehmen",
+        "couponAutoapplyOn": "Ein Link wie ?coupon=CODE legt den Code automatisch in den Warenkorb.",
+        "couponAutoapplyOff": "Links übernehmen keine Rabattcodes (Standard).",
+        "couponParam": "Link-Parameter",
+        "couponParamHint": "Query-Schlüssel, die den Code tragen, durch Kommas getrennt. \"coupon\" ist der Standard; alte Namen (z. B. coupon1) ergänzen, damit bestehende Kampagnenlinks weiter funktionieren.",
+        "couponParamInvalid": "\"{key}\" ist kein gültiger Parametername (nur Buchstaben, Ziffern, - und _).",
+        "namez": {
+          "title": "Empfohlen für Namez (namez.se)",
+          "body": "Diese Werte bilden das frühere iWings-Plugin nach:",
+          "afterAdd": "Nach \"In den Warenkorb\": direkt zum Checkout",
+          "phone": "Telefonnummer: optional",
+          "payLabel": "Bezahl-Button (Schwedisch): \"Betala med kort\"",
+          "coupon": "Rabattcodes aus Links: an, Parameter \"coupon, coupon1\"",
+          "apply": "Namez-Werte eintragen"
+        },
+        "saved": "Checkout-Einstellungen gespeichert.",
+        "saveFailed": "Die Checkout-Einstellungen konnten nicht gespeichert werden.",
+        "unsaved": "Ungespeicherte Änderungen",
+        "save": "Speichern"
       }
     },
     "orderDetail": {
@@ -2387,6 +2427,10 @@
         "designer": {
           "name": "Produktdesigner",
           "description": "Kunden gestalten ihr Produkt live auf Basis Ihrer Vorlagen (Foto, Namen); Druckdateien werden auf dem Server erstellt."
+        },
+        "feeds": {
+          "name": "Produkt-Feeds",
+          "description": "Google-Merchant- und Meta-Katalog-Feeds (Facebook / Instagram) mit geheimen URLs, einer je Markt."
         }
       },
       "b2b": {
@@ -2661,6 +2705,7 @@
         "products": "Produkte",
         "templates": "Designvorlagen",
         "redirects": "Weiterleitungen",
+        "pages": "Seiten werden angelegt",
         "finalize": "Abschluss",
         "rollback": "Wird zurückgesetzt",
         "planning": "Export wird gelesen und geplant",
@@ -2683,7 +2728,8 @@
         "SHIPPING_PROFILE": "Versandprofile",
         "SHIPPING_ZONE": "Versandzonen",
         "SHIPPING_METHOD": "Versandarten",
-        "REDIRECT": "Weiterleitungen"
+        "REDIRECT": "Weiterleitungen",
+        "PAGE": "Seiten"
       },
       "itemActions": {
         "CREATE": "Neu",
@@ -3013,6 +3059,38 @@
         "later": "Kommt später"
       },
       "mapping": {
+        "content": {
+          "intro": "Jede alte Seiten- und Beitrags-URL braucht ein Ziel, sonst sehen Besucher und Suchmaschinen „Seite nicht gefunden“. Wähle pro Zeile ein Ziel. Die Shop-Pfade (/shop/, /my-account/, Feeds, Sitemaps) werden automatisch weitergeleitet.",
+          "none": "Der Export enthält keine Seiten oder Beiträge.",
+          "mode": "Seiten und Beiträge ohne Ziel",
+          "modes": {
+            "map": "Offen lassen (als Warnung aufgeführt)",
+            "home": "Zur Startseite leiten",
+            "skip": "Keine Weiterleitung (Seite nicht gefunden)"
+          },
+          "summary": "{pages} Seiten · {posts} Beiträge · {unmapped} ohne Ziel",
+          "filter": {
+            "label": "Anzeigen",
+            "all": "Alle",
+            "unmapped": "Ohne Ziel"
+          },
+          "kind": {
+            "page": "Seite",
+            "post": "Beitrag"
+          },
+          "targets": {
+            "home": "Startseite",
+            "skip": "Keine Weiterleitung",
+            "import": "Als Entwurfsseite importieren",
+            "collection": "Kollektion: {name}",
+            "page": "Seite: {title}",
+            "custom": "Anderer Pfad…"
+          },
+          "targetPlaceholder": "Ziel wählen",
+          "importHint": "„Als Entwurfsseite importieren“ braucht die Option „Seiten (als Entwürfe)“ unter „Was importiert wird“. Importierte Seiten werden als Entwürfe angelegt; veröffentliche sie nach der Prüfung unter Seiten.",
+          "loading": "Kollektionen und Seiten werden geladen…",
+          "pageOf": "Seite {page} von {pages}"
+        },
         "emptyTitle": "Nichts zu prüfen",
         "emptyBody": "Die Zuordnungsprüfung öffnet sich für einen fertigen Testlauf. Laden Sie zuerst auf dem Tab Quellen einen Export hoch.",
         "openReport": "Bericht öffnen",
@@ -3026,7 +3104,8 @@
           "faq": "FAQ-Fragen",
           "shipping": "Versand",
           "handoff": "Personalisierung und Extras",
-          "conflict": "Wenn ein Produkt bereits existiert"
+          "conflict": "Wenn ein Produkt bereits existiert",
+          "content": "Alte Seiten und Beiträge"
         },
         "categoryPlaceholder": "Kategorie wählen",
         "categoryHint": "Alle importierten Produkte kommen in diese Plattformkategorie. Pflichtfeld.",
@@ -3037,7 +3116,8 @@
           "shipping": "Versand",
           "personalization": "Personalisierung",
           "templates": "Designvorlagen",
-          "redirects": "Weiterleitungen"
+          "redirects": "Weiterleitungen",
+          "pages": "Seiten (als Entwürfe)"
         },
         "includeDrafts": "Entwürfe importieren",
         "includeDraftsHint": "Entwurfsprodukte werden als Entwurf importiert und erhalten keine Weiterleitungen.",
@@ -3258,6 +3338,9 @@
         "W_UNKNOWN_PLUGIN_META": "Unbekannte Plugin-Daten",
         "W_TARGET_MODIFIED_SKIPPED": "Von Ihnen bearbeitet, daher nicht aktualisiert",
         "W_REDIRECT_CONFLICT": "Weiterleitung kollidiert mit einer vorhandenen",
+        "W_CONTENT_UNMAPPED": "Alte Seite oder Beitrag ohne Ziel",
+        "W_PAGE_SLUG_CONFLICT": "Seiten-Slug wird bereits von einer anderen importierten Seite verwendet",
+        "W_CONTENT_PATH_UNKNOWN": "Alte URL eines Beitrags konnte nicht berechnet werden",
         "W_SITE_HOST_MISMATCH": "Export stammt von einer anderen Domain",
         "W_OPTION_UNREADABLE": "Shop-Einstellung nicht lesbar",
         "W_TSV_ROW_INVALID": "Unlesbare Zeile im Export",
@@ -3326,7 +3409,13 @@
         "note": "Produktions-Checkliste abgeschlossen",
         "confirmTitle": "Bestellung auf {status} setzen?",
         "confirmBody": "Ihre Positionen dieser Bestellung wechseln den Status genau wie bei der Auswahl unter „Status aktualisieren“.",
-        "confirmShipped": "Als versendet markieren benachrichtigt den Kunden und zieht bei Kustom-Bestellungen die Zahlung ein."
+        "confirmShipped": "Als versendet markieren benachrichtigt den Kunden und zieht bei Kustom-Bestellungen die Zahlung ein.",
+        "carrier": "Versanddienstleister",
+        "carrierPlaceholder": "z. B. DHL",
+        "trackingNumber": "Sendungsnummer",
+        "trackingPlaceholder": "Sendungsnummer des Versanddienstleisters",
+        "trackingRequiredHint": "Eine Sendungsnummer ist erforderlich, bevor die Bestellung als versendet markiert werden kann.",
+        "trackingOptionalHint": "Optional: Die Sendungsnummer wird in die Versand-E-Mail an den Kunden aufgenommen."
       },
       "activity": "Aktivität",
       "activityEmpty": "Noch keine Aktivität.",
@@ -3340,7 +3429,8 @@
         "VALUE_CHANGED": "Wert geändert auf {label} (Haken zurückgesetzt)",
         "STALE": "{label} ist nicht mehr in der Bestellung",
         "COMPLETED": "Checkliste abgeschlossen",
-        "AUTO_ADVANCE": "Bestellung automatisch auf {status} gesetzt"
+        "AUTO_ADVANCE": "Bestellung automatisch auf {status} gesetzt",
+        "AUTO_ADVANCE_PRINT_READY": "Druckdateien fertig: automatisch auf {status} gesetzt"
       },
       "queue": {
         "inProduction": "In Produktion",
@@ -3398,7 +3488,29 @@
         "backfillHint": "Erstellt Checklisten für offene Bestellungen, die vor der Aktivierung der App eingegangen sind (die neuesten 1000).",
         "backfillAction": "Für offene Bestellungen erzeugen",
         "backfillResult": "{synced, plural, one {# Bestellung synchronisiert} other {# Bestellungen synchronisiert}} · {failed, plural, =0 {keine fehlgeschlagen} one {# fehlgeschlagen} other {# fehlgeschlagen}} · {remaining, plural, =0 {keine übrig} one {# übrig} other {# übrig}}",
-        "backfillContinue": "Fortsetzen ({remaining} übrig)"
+        "backfillContinue": "Fortsetzen ({remaining} übrig)",
+        "onPrintReadyLabel": "Wenn die Druckdateien fertig sind",
+        "onPrintReady": {
+          "none": "Nichts tun",
+          "moveTo": "Auf {status} setzen"
+        },
+        "onPrintReadyHint": "Designer-App: Sobald alle Druckdateien der Bestellung gerendert sind, rückt die Bestellung einmal vor (nie zurück, nie auf Versendet).",
+        "shipPromptLabel": "Vor dem Versand",
+        "shipPrompt": {
+          "none": "Nur bestätigen",
+          "tracking_optional": "Nach Sendungsnummer fragen (optional)",
+          "tracking_required": "Sendungsnummer verlangen"
+        },
+        "shipPromptHint": "Was das Banner „Auf Versendet setzen“ abfragt. Die Sendungsnummer landet in der Versand-E-Mail des Kunden.",
+        "notificationsTitle": "Benachrichtigungen fürs Team",
+        "notificationsHint": "E-Mails an die Personen, die die Bestellungen produzieren.",
+        "notifyNewOrder": "E-Mail bei jeder neuen Bestellung zur Produktion",
+        "notifyNewOrderHint": "Eine E-Mail pro Bestellung mit der Anzahl der Positionen und Prüfpunkte.",
+        "notifyEmail": "Senden an",
+        "notifyEmailPlaceholder": "Benachrichtigungsadresse des Shops",
+        "notifyEmailHint": "Leer lassen, um die Benachrichtigungsadresse des Shops zu verwenden (Einstellungen → E-Mail).",
+        "notifyDailyDigest": "Tägliche Übersicht um 07:00 Uhr",
+        "notifyDailyDigestHint": "Jeden Morgen eine E-Mail (Shop-Zeit) mit den noch offenen Bestellungen. Ohne offene Bestellungen wird nichts gesendet."
       },
       "sheet": {
         "title": "Produktionsblatt",
@@ -3410,7 +3522,8 @@
         "notes": "Bestellnotizen",
         "workspaceUrl": "Arbeitsansicht",
         "printedAt": "Gedruckt {time}"
-      }
+      },
+      "autoMovedPrintReady": "Druckdateien fertig – die Bestellung wurde automatisch auf {status} gesetzt."
     },
     "designer": {
       "title": "Designer",
@@ -4272,6 +4385,58 @@
         "empty": "Keine Umsätze mit Steuerschuldnerschaft des Leistungsempfängers in diesem Zeitraum.",
         "totalRow": "Summe"
       }
+    },
+    "feeds": {
+      "title": "Produkt-Feeds",
+      "subtitle": "Google-Merchant- und Meta-Katalog-Feeds für deine Anzeigen.",
+      "saveFailed": "Die Feed-Einstellungen konnten nicht gespeichert werden.",
+      "settings": {
+        "title": "Feed-Einstellungen",
+        "subtitle": "Welche Feeds ausgeliefert werden und die Standardwerte für jeden Artikel.",
+        "google": "Google-Merchant-Feed",
+        "googleHint": "RSS 2.0 mit dem g:-Namensraum (Google Shopping, kostenlose Einträge).",
+        "facebook": "Meta-Katalog-Feed",
+        "facebookHint": "CSV für Facebook- und Instagram-Kataloge.",
+        "includeVariants": "Ein Artikel je Variante",
+        "includeVariantsHint": "Jede Variante wird ein Artikel, gruppiert unter ihrem Produkt; aus = ein Artikel je Produkt.",
+        "defaultBrand": "Standardmarke",
+        "defaultBrandHint": "Für Produkte ohne eigene Marke (Feeds ohne Marke werden abgelehnt).",
+        "shippingLabel": "Versandbezeichnung",
+        "shippingLabelPlaceholder": "z. B. Standard",
+        "shippingLabelHint": "Google-Versanddienstname für jedes Marktland; leer lassen, um den Versand im Merchant Center zu konfigurieren.",
+        "saved": "Gespeichert"
+      },
+      "urls": {
+        "title": "Feed-URLs",
+        "subtitle": "In Merchant Center / Commerce Manager einfügen. Das Token in der URL ist der einzige Schutz – bei einem Leck erneuern.",
+        "google": "Google (XML)",
+        "facebook": "Meta (CSV)",
+        "copy": "Kopieren",
+        "singleMarket": "Standardmarkt",
+        "allOff": "Beide Feeds sind oben ausgeschaltet.",
+        "hint": "Feeds werden höchstens alle 10 Minuten neu erstellt. Entwürfe, im Markt ausgeblendete Produkte und mit „Aus Feeds ausschließen“ markierte Produkte fehlen; personalisierte Produkte stehen mit ihrem Grundpreis drin.",
+        "rotate": "Token erneuern",
+        "rotateTitle": "Feed-Token erneuern?",
+        "rotateBody": "Alle aktuellen Feed-URLs funktionieren sofort nicht mehr. Die URL muss im Merchant Center und Commerce Manager aktualisiert werden."
+      },
+      "validate": {
+        "title": "Prüfen",
+        "subtitle": "Erstellt den Feed auf dem Server und listet, was die Werbeplattformen ablehnen würden.",
+        "run": "Feed prüfen",
+        "market": "Markt",
+        "empty": "Prüfung ausführen, um Artikelzahlen und fehlende Kennungen zu sehen.",
+        "counts": {
+          "products": "Produkte",
+          "items": "Artikel",
+          "excluded": "Ausgeschlossen",
+          "hidden": "Im Markt ausgeblendet"
+        },
+        "ok": "Jedes Produkt hat eine GTIN und eine Marke ({currency}).",
+        "issues": "{gtin} ohne GTIN, {brand} ohne Marke, {bare} ganz ohne Kennung gesendet.",
+        "missingGtin": "Produkte ohne GTIN",
+        "missingBrand": "Produkte ohne Marke",
+        "excludedList": "Aus Feeds ausgeschlossen"
+      }
     }
   },
   "components": {
@@ -4693,7 +4858,9 @@
     "DESIGNER_UPLOAD_QUOTA": "Zu viele Uploads in kurzer Zeit. Warten Sie einen Moment und versuchen Sie es erneut.",
     "DESIGNER_STORAGE_FULL": "Der Speicher des Servers ist gerade voll, daher können keine Dateien hochgeladen werden. Versuchen Sie es später erneut.",
     "DESIGNER_ORDER_TERMINAL": "Diese Bestellung wurde storniert, erstattet oder nie bezahlt; es wird nichts gedruckt.",
-    "DESIGNER_UPLOAD_BUSY": "Gerade werden zu viele Bilder verarbeitet. Bitte versuchen Sie es gleich noch einmal."
+    "DESIGNER_UPLOAD_BUSY": "Gerade werden zu viele Bilder verarbeitet. Bitte versuchen Sie es gleich noch einmal.",
+    "PRODUCT_GTIN_INVALID": "Die GTIN ist ungültig (Prüfziffer).",
+    "FEED_NOT_FOUND": "Feed nicht gefunden."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -5016,7 +5183,22 @@
     "collectionsHelp": "Fassen Sie dieses Produkt in eine oder mehrere Kollektionen",
     "optionInUseDetail": "Optionen: {options} · Verwendet von den Feldern: {fields}",
     "shortDescription": "Kurzbeschreibung",
-    "shortDescriptionPlaceholder": "Eine kurze Zusammenfassung neben der Schaltfläche „In den Warenkorb“…"
+    "shortDescriptionPlaceholder": "Eine kurze Zusammenfassung neben der Schaltfläche „In den Warenkorb“…",
+    "feedData": "Feed-Daten",
+    "feedDataHint": "Kennungen für Google-Shopping- / Meta-Katalog-Feeds. Optional; ein Feed ohne GTIN oder Marke wird meist abgelehnt.",
+    "feedGtin": "GTIN (EAN / UPC)",
+    "feedMpn": "MPN",
+    "feedBrand": "Marke",
+    "feedBrandHint": "Leer lassen, um die Standardmarke aus den Feed-Einstellungen zu verwenden.",
+    "feedGoogleCategory": "Google-Produktkategorie",
+    "feedGoogleCategoryHint": "Kategorie-ID oder vollständiger Pfad aus der Google-Taxonomie, z. B. 1604 oder „Apparel & Accessories > Clothing“.",
+    "feedCondition": "Zustand",
+    "feedConditionNew": "Neu",
+    "feedConditionRefurbished": "Generalüberholt",
+    "feedConditionUsed": "Gebraucht",
+    "feedExcluded": "Aus Feeds ausschließen",
+    "feedExcludedHint": "Das Produkt erscheint nie in den Google- / Meta-Feeds.",
+    "errGtinInvalid": "Die GTIN muss 8, 12, 13 oder 14 Ziffern mit gültiger Prüfziffer haben."
   },
   "customField": {
     "typeText": "Text",

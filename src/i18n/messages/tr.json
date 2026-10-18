@@ -316,7 +316,8 @@
     "b2b": "B2B",
     "personalization": "Kişiselleştirme",
     "designer": "Tasarımcı",
-    "production": "Üretim"
+    "production": "Üretim",
+    "feeds": "Feed'ler"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -2173,6 +2174,45 @@
         "taxes": "Vergiler",
         "payments": "Ödemeler",
         "security": "Güvenlik"
+      },
+      "checkout": {
+        "title": "Ödeme davranışı",
+        "subtitle": "Mağazanın \"sepete ekle\" sonrasında, ödeme sayfasında ve kampanya bağlantılarında nasıl davranacağı. Standart davranış için her şeyi olduğu gibi bırakın.",
+        "afterAdd": {
+          "label": "\"Sepete ekle\" sonrası",
+          "stay": "Ürün sayfasında kal",
+          "stayHint": "\"Sepeti gör\" bağlantılı bir onay gösterir (standart).",
+          "cart": "Sepete git",
+          "cartHint": "Sepeti hemen açar.",
+          "checkout": "Doğrudan ödemeye git",
+          "checkoutHint": "Sepeti atlar ve ödeme sayfasını açar."
+        },
+        "phoneRequired": "Ödemede telefon numarası zorunlu olsun",
+        "phoneRequiredOn": "Müşteriler bir telefon numarası girmek zorundadır.",
+        "phoneRequiredOff": "İsteğe bağlı — müşteriler telefon alanını boş bırakabilir (standart).",
+        "payLabel": "Ödeme düğmesi metni",
+        "payLabelHint": "Her mağaza dili için kartla ödeme düğmesinin metni (en fazla {max} karakter). Standart metin için boş bırakın. Önizleme müşterilerin göreceğini gösterir.",
+        "payLabelTooLong": "En fazla {max} karakter.",
+        "payLabelPreview": "Düğme önizlemesi",
+        "couponAutoapply": "Bağlantılardaki indirim kodlarını uygula",
+        "couponAutoapplyOn": "?coupon=KOD gibi bir bağlantı kodu sepete otomatik ekler.",
+        "couponAutoapplyOff": "Bağlantılar indirim kodu uygulamaz (standart).",
+        "couponParam": "Bağlantı parametreleri",
+        "couponParamHint": "Kodu taşıyan sorgu anahtarları, virgülle ayrılmış. \"coupon\" standarttır; mevcut kampanya bağlantıları çalışmaya devam etsin diye eski adları (ör. coupon1) ekleyin.",
+        "couponParamInvalid": "\"{key}\" geçerli bir parametre adı değil (yalnızca harf, rakam, - ve _).",
+        "namez": {
+          "title": "Namez (namez.se) için önerilen",
+          "body": "Bu değerler eski iWings eklentisinin davranışını yeniden oluşturur:",
+          "afterAdd": "\"Sepete ekle\" sonrası: doğrudan ödemeye",
+          "phone": "Telefon numarası: isteğe bağlı",
+          "payLabel": "Ödeme düğmesi (İsveççe): \"Betala med kort\"",
+          "coupon": "Bağlantılardan indirim kodları: açık, parametreler \"coupon, coupon1\"",
+          "apply": "Namez değerlerini doldur"
+        },
+        "saved": "Ödeme ayarları kaydedildi.",
+        "saveFailed": "Ödeme ayarları kaydedilemedi.",
+        "unsaved": "Kaydedilmemiş değişiklikler",
+        "save": "Kaydet"
       }
     },
     "orderDetail": {
@@ -2387,6 +2427,10 @@
         "designer": {
           "name": "Ürün tasarımcısı",
           "description": "Müşteriler ürünlerini şablonlarınızdan canlı olarak tasarlar (fotoğraf, isimler); baskı dosyaları sunucuda oluşturulur."
+        },
+        "feeds": {
+          "name": "Ürün feed'leri",
+          "description": "Pazar başına gizli URL'lerle Google Merchant ve Meta (Facebook / Instagram) katalog feed'leri."
         }
       },
       "b2b": {
@@ -2661,6 +2705,7 @@
         "products": "Ürünler",
         "templates": "Tasarım şablonları",
         "redirects": "Yönlendirmeler",
+        "pages": "Sayfalar oluşturuluyor",
         "finalize": "Tamamlanıyor",
         "rollback": "Geri alınıyor",
         "planning": "Dışa aktarma okunuyor ve planlanıyor",
@@ -2683,7 +2728,8 @@
         "SHIPPING_PROFILE": "Kargo profilleri",
         "SHIPPING_ZONE": "Kargo bölgeleri",
         "SHIPPING_METHOD": "Kargo yöntemleri",
-        "REDIRECT": "Yönlendirmeler"
+        "REDIRECT": "Yönlendirmeler",
+        "PAGE": "Sayfalar"
       },
       "itemActions": {
         "CREATE": "Yeni",
@@ -3013,6 +3059,38 @@
         "later": "Yakında"
       },
       "mapping": {
+        "content": {
+          "intro": "Her eski sayfa ve yazı adresinin bir hedefi olmalı; yoksa ziyaretçiler ve arama motorları “sayfa bulunamadı” görür. Her satır için bir hedef seçin. Mağaza yolları (/shop/, /my-account/, akışlar, site haritaları) otomatik yönlendirilir.",
+          "none": "Dışa aktarmada sayfa veya yazı yok.",
+          "mode": "Hedefi olmayan sayfalar ve yazılar",
+          "modes": {
+            "map": "Hedefsiz bırak (uyarı olarak listelenir)",
+            "home": "Ana sayfaya gönder",
+            "skip": "Yönlendirme yok (sayfa bulunamadı)"
+          },
+          "summary": "{pages} sayfa · {posts} yazı · {unmapped} hedefsiz",
+          "filter": {
+            "label": "Göster",
+            "all": "Tümü",
+            "unmapped": "Hedefsiz"
+          },
+          "kind": {
+            "page": "Sayfa",
+            "post": "Yazı"
+          },
+          "targets": {
+            "home": "Ana sayfa",
+            "skip": "Yönlendirme yok",
+            "import": "Taslak sayfa olarak içe aktar",
+            "collection": "Koleksiyon: {name}",
+            "page": "Sayfa: {title}",
+            "custom": "Başka yol…"
+          },
+          "targetPlaceholder": "Hedef seçin",
+          "importHint": "“Taslak sayfa olarak içe aktar” için “Ne içe aktarılsın” altındaki “Sayfalar (taslak olarak)” seçeneği gerekir. İçe aktarılan sayfalar taslak olarak oluşturulur; incelemeden sonra Sayfalar’dan yayınlayın.",
+          "loading": "Koleksiyonlarınız ve sayfalarınız yükleniyor…",
+          "pageOf": "Sayfa {page} / {pages}"
+        },
         "emptyTitle": "Kontrol edilecek bir şey yok",
         "emptyBody": "Eşleştirme kontrolü, tamamlanmış bir deneme çalıştırması için açılır. Önce Kaynaklar sekmesinden bir dışa aktarma yükleyin.",
         "openReport": "Raporu aç",
@@ -3026,7 +3104,8 @@
           "faq": "SSS soruları",
           "shipping": "Kargo",
           "handoff": "Kişiselleştirme ve ekstralar",
-          "conflict": "Ürün zaten varsa"
+          "conflict": "Ürün zaten varsa",
+          "content": "Eski sayfalar ve yazılar"
         },
         "categoryPlaceholder": "Bir kategori seçin",
         "categoryHint": "İçe aktarılan her ürün bu platform kategorisine yerleştirilir. Zorunlu.",
@@ -3037,7 +3116,8 @@
           "shipping": "Kargo",
           "personalization": "Kişiselleştirme",
           "templates": "Tasarım şablonları",
-          "redirects": "Yönlendirmeler"
+          "redirects": "Yönlendirmeler",
+          "pages": "Sayfalar (taslak olarak)"
         },
         "includeDrafts": "Taslakları içe aktar",
         "includeDraftsHint": "Taslak ürünler taslak olarak aktarılır ve yönlendirme almaz.",
@@ -3258,6 +3338,9 @@
         "W_UNKNOWN_PLUGIN_META": "Bilinmeyen eklenti verisi",
         "W_TARGET_MODIFIED_SKIPPED": "Siz düzenlediğiniz için güncellenmedi",
         "W_REDIRECT_CONFLICT": "Yönlendirme mevcut biriyle çakışıyor",
+        "W_CONTENT_UNMAPPED": "Hedefi olmayan eski sayfa veya yazı",
+        "W_PAGE_SLUG_CONFLICT": "Sayfa kısa adı başka bir içe aktarılan sayfada zaten kullanılıyor",
+        "W_CONTENT_PATH_UNKNOWN": "Bir yazının eski adresi hesaplanamadı",
         "W_SITE_HOST_MISMATCH": "Dışa aktarma başka bir alan adından",
         "W_OPTION_UNREADABLE": "Mağaza ayarı okunamadı",
         "W_TSV_ROW_INVALID": "Dışa aktarmada okunamayan satır",
@@ -3326,7 +3409,13 @@
         "note": "Üretim kontrol listesi tamamlandı",
         "confirmTitle": "Sipariş {status} durumuna taşınsın mı?",
         "confirmBody": "Bu siparişteki satırlarınız, Durumu güncelle altından seçtiğinizdeki gibi durum değiştirir.",
-        "confirmShipped": "Siparişi kargolandı olarak işaretlemek müşteriyi bilgilendirir ve Kustom siparişlerinde ödemeyi tahsil eder."
+        "confirmShipped": "Siparişi kargolandı olarak işaretlemek müşteriyi bilgilendirir ve Kustom siparişlerinde ödemeyi tahsil eder.",
+        "carrier": "Kargo firması",
+        "carrierPlaceholder": "örn. PostNord",
+        "trackingNumber": "Takip numarası",
+        "trackingPlaceholder": "Kargo firmasının takip numarası",
+        "trackingRequiredHint": "Sipariş gönderildi olarak işaretlenmeden önce bir takip numarası gerekir.",
+        "trackingOptionalHint": "İsteğe bağlı: takip numarası müşteriye giden kargo e-postasına eklenir."
       },
       "activity": "Etkinlik",
       "activityEmpty": "Henüz etkinlik yok.",
@@ -3340,7 +3429,8 @@
         "VALUE_CHANGED": "Değer {label} olarak değişti (işaret sıfırlandı)",
         "STALE": "{label} artık siparişte yok",
         "COMPLETED": "Kontrol listesi tamamlandı",
-        "AUTO_ADVANCE": "Sipariş otomatik olarak {status} durumuna taşındı"
+        "AUTO_ADVANCE": "Sipariş otomatik olarak {status} durumuna taşındı",
+        "AUTO_ADVANCE_PRINT_READY": "Baskı dosyaları hazır: otomatik olarak {status} durumuna taşındı"
       },
       "queue": {
         "inProduction": "Üretimde",
@@ -3398,7 +3488,29 @@
         "backfillHint": "Uygulama açılmadan önce verilen açık siparişler için kontrol listeleri oluşturur (en yeni 1000).",
         "backfillAction": "Açık siparişler için oluştur",
         "backfillResult": "{synced, plural, one {# sipariş eşitlendi} other {# sipariş eşitlendi}} · {failed, plural, =0 {başarısız yok} one {# başarısız} other {# başarısız}} · {remaining, plural, =0 {kalan yok} one {# kaldı} other {# kaldı}}",
-        "backfillContinue": "Devam et ({remaining} kaldı)"
+        "backfillContinue": "Devam et ({remaining} kaldı)",
+        "onPrintReadyLabel": "Baskı dosyaları hazır olduğunda",
+        "onPrintReady": {
+          "none": "Hiçbir şey yapma",
+          "moveTo": "{status} durumuna taşı"
+        },
+        "onPrintReadyHint": "Tasarımcı uygulaması: siparişin tüm baskı dosyaları oluşturulduğunda sipariş bir kez ileri taşınır (asla geri, asla Gönderildi durumuna değil).",
+        "shipPromptLabel": "Göndermeden önce",
+        "shipPrompt": {
+          "none": "Sadece onayla",
+          "tracking_optional": "Takip numarası sor (isteğe bağlı)",
+          "tracking_required": "Takip numarası zorunlu"
+        },
+        "shipPromptHint": "\"Gönderildi durumuna taşı\" şeridinin sorduğu bilgiler. Takip numarası müşterinin kargo e-postasına girer.",
+        "notificationsTitle": "Ekip bildirimleri",
+        "notificationsHint": "Siparişleri üreten kişilere giden e-postalar.",
+        "notifyNewOrder": "Üretilecek her yeni siparişte e-posta",
+        "notifyNewOrderHint": "Sipariş başına bir e-posta; kalem ve kontrol sayısıyla.",
+        "notifyEmail": "Alıcı",
+        "notifyEmailPlaceholder": "Mağazanın bildirim adresi",
+        "notifyEmailHint": "Mağazanın bildirim adresini kullanmak için boş bırakın (Ayarlar → E-posta).",
+        "notifyDailyDigest": "07:00'de günlük özet",
+        "notifyDailyDigestHint": "Her sabah (mağaza saati) tamamlanmamış siparişleri listeleyen bir e-posta. Sipariş yoksa gönderilmez."
       },
       "sheet": {
         "title": "Üretim föyü",
@@ -3410,7 +3522,8 @@
         "notes": "Sipariş notları",
         "workspaceUrl": "Çalışma ekranı",
         "printedAt": "Yazdırıldı: {time}"
-      }
+      },
+      "autoMovedPrintReady": "Baskı dosyaları hazır – sipariş otomatik olarak {status} durumuna taşındı."
     },
     "designer": {
       "title": "Tasarımcı",
@@ -4272,6 +4385,58 @@
         "empty": "Bu dönemde ters ifa satışı yok.",
         "totalRow": "Toplam"
       }
+    },
+    "feeds": {
+      "title": "Ürün feed'leri",
+      "subtitle": "Reklamlarınız için Google Merchant ve Meta katalog feed'leri.",
+      "saveFailed": "Feed ayarları kaydedilemedi.",
+      "settings": {
+        "title": "Feed ayarları",
+        "subtitle": "Hangi feed'lerin sunulacağı ve her öğeye uygulanan varsayılanlar.",
+        "google": "Google Merchant feed'i",
+        "googleHint": "g: ad alanlı RSS 2.0 (Google Shopping, ücretsiz listelemeler).",
+        "facebook": "Meta katalog feed'i",
+        "facebookHint": "Facebook ve Instagram katalogları için CSV.",
+        "includeVariants": "Varyant başına bir öğe",
+        "includeVariantsHint": "Her varyant, ürünü altında gruplanan bir öğe olur; kapalıyken ürün başına bir öğe.",
+        "defaultBrand": "Varsayılan marka",
+        "defaultBrandHint": "Kendi markası olmayan ürünler için kullanılır (markasız feed'ler reddedilir).",
+        "shippingLabel": "Kargo etiketi",
+        "shippingLabelPlaceholder": "örn. Standard",
+        "shippingLabelHint": "Her pazar ülkesi için gönderilen Google kargo hizmeti adı; kargoyu Merchant Center'da ayarlamak için boş bırakın.",
+        "saved": "Kaydedildi"
+      },
+      "urls": {
+        "title": "Feed URL'leri",
+        "subtitle": "Bunları Merchant Center / Commerce Manager'a yapıştırın. URL'deki jeton tek korumadır; sızarsa yenileyin.",
+        "google": "Google (XML)",
+        "facebook": "Meta (CSV)",
+        "copy": "Kopyala",
+        "singleMarket": "Varsayılan pazar",
+        "allOff": "Her iki feed de yukarıda kapalı.",
+        "hint": "Feed'ler en fazla 10 dakikada bir yeniden oluşturulur. Taslaklar, pazarda gizli ürünler ve “Feed'lerden hariç tut” işaretli ürünler dışarıda bırakılır; kişiselleştirilmiş ürünler temel fiyatıyla listelenir.",
+        "rotate": "Jetonu yenile",
+        "rotateTitle": "Feed jetonu yenilensin mi?",
+        "rotateBody": "Mevcut tüm feed URL'leri hemen çalışmayı durdurur. URL'yi Merchant Center ve Commerce Manager'da güncellemeniz gerekir."
+      },
+      "validate": {
+        "title": "Doğrula",
+        "subtitle": "Feed'i sunucuda oluşturur ve reklam platformlarının reddedeceklerini listeler.",
+        "run": "Feed'i doğrula",
+        "market": "Pazar",
+        "empty": "Öğe sayılarını ve eksik tanımlayıcıları görmek için doğrulama çalıştırın.",
+        "counts": {
+          "products": "Ürünler",
+          "items": "Öğeler",
+          "excluded": "Hariç",
+          "hidden": "Pazarda gizli"
+        },
+        "ok": "Her ürünün bir GTIN'i ve markası var ({currency}).",
+        "issues": "{gtin} GTIN'siz, {brand} markasız, {bare} hiç tanımlayıcısız gönderiliyor.",
+        "missingGtin": "GTIN'siz ürünler",
+        "missingBrand": "Markasız ürünler",
+        "excludedList": "Feed'lerden hariç"
+      }
     }
   },
   "components": {
@@ -4693,7 +4858,9 @@
     "DESIGNER_UPLOAD_QUOTA": "Kısa sürede çok fazla yükleme yapıldı. Biraz bekleyip tekrar deneyin.",
     "DESIGNER_STORAGE_FULL": "Sunucunun depolama alanı şu anda dolu, bu nedenle dosya yüklenemiyor. Daha sonra tekrar deneyin.",
     "DESIGNER_ORDER_TERMINAL": "Bu sipariş iptal edildi, iade edildi veya hiç ödenmedi; bu yüzden hiçbir şey basılmaz.",
-    "DESIGNER_UPLOAD_BUSY": "Şu anda çok fazla görsel işleniyor. Lütfen biraz sonra tekrar deneyin."
+    "DESIGNER_UPLOAD_BUSY": "Şu anda çok fazla görsel işleniyor. Lütfen biraz sonra tekrar deneyin.",
+    "PRODUCT_GTIN_INVALID": "GTIN geçerli değil (kontrol basamağı).",
+    "FEED_NOT_FOUND": "Feed bulunamadı."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -5016,7 +5183,22 @@
     "collectionsHelp": "Bu ürünü bir veya daha fazla koleksiyonda gruplandırın",
     "optionInUseDetail": "Seçenekler: {options} · Kullanan alanlar: {fields}",
     "shortDescription": "Kısa açıklama",
-    "shortDescriptionPlaceholder": "Sepete ekle düğmesinin yanında gösterilen kısa bir özet…"
+    "shortDescriptionPlaceholder": "Sepete ekle düğmesinin yanında gösterilen kısa bir özet…",
+    "feedData": "Feed verileri",
+    "feedDataHint": "Google Shopping / Meta katalog feed'leri için tanımlayıcılar. İsteğe bağlı; GTIN veya markası olmayan feed genellikle reddedilir.",
+    "feedGtin": "GTIN (EAN / UPC)",
+    "feedMpn": "MPN",
+    "feedBrand": "Marka",
+    "feedBrandHint": "Feed ayarlarındaki varsayılan markayı kullanmak için boş bırakın.",
+    "feedGoogleCategory": "Google ürün kategorisi",
+    "feedGoogleCategoryHint": "Google taksonomisinden kategori kimliği veya tam yol, örn. 1604 veya “Apparel & Accessories > Clothing”.",
+    "feedCondition": "Durum",
+    "feedConditionNew": "Yeni",
+    "feedConditionRefurbished": "Yenilenmiş",
+    "feedConditionUsed": "Kullanılmış",
+    "feedExcluded": "Feed'lerden hariç tut",
+    "feedExcludedHint": "Ürün Google / Meta feed'lerinde asla listelenmez.",
+    "errGtinInvalid": "GTIN, geçerli bir kontrol basamağıyla 8, 12, 13 veya 14 rakam olmalıdır."
   },
   "customField": {
     "typeText": "Metin",

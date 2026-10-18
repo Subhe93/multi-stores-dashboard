@@ -37,6 +37,7 @@ import {
   ListChecks,
   Import,
   PenTool,
+  Rss,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const b2bEnabled = isAppEnabled(apps, 'b2b');
   const personalizationEnabled = isAppEnabled(apps, 'personalization');
   const productionEnabled = isAppEnabled(apps, 'production');
+  const feedsEnabled = isAppEnabled(apps, 'feeds');
   // Invoices stay reachable (read-only) while the app is merely available,
   // so issued documents remain accessible after it is switched off (L1).
   const invoicesVisible =
@@ -143,6 +145,10 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         // B2B app: business-buyer settings, reverse charge, EC sales list.
         ...(b2bEnabled
           ? [{ label: t('b2b'), href: '/creator/b2b', icon: <Building2 className="w-4 h-4" /> }]
+          : []),
+        // Feeds app: Google Merchant / Meta catalog feed URLs and settings.
+        ...(feedsEnabled
+          ? [{ label: t('feeds'), href: '/creator/feeds', icon: <Rss className="w-4 h-4" /> }]
           : []),
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],

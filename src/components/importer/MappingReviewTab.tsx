@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronDown, Loader2, Plus, RefreshCw, Save, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw, Save, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { api } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { useImporterRun } from '@/lib/useImporterRun';
 import {
+  CONTENT_REDIRECT_MODES,
   DEFAULT_RUN_OPTIONS,
   IMPORT_SCOPES,
   SOURCE_PRODUCT_STATUSES,
@@ -24,6 +25,9 @@ import {
   listRuns,
   optionErrorsOf,
   updateRunOptions,
+  type ContentRedirectMode,
+  type ContentRow,
+  type DryRunSummary,
   type ImportRunOptions,
   type ImportRunView,
   type StockOnUpdate,
@@ -34,10 +38,10 @@ import { RunProgress } from '@/components/importer/RunProgress';
 import { TermCleanupTable } from '@/components/importer/DryRunReport';
 
 /** Sections of the review, also the targets of "jump to the problem". */
-type Section = 'category' | 'scopes' | 'conflict' | 'products' | 'attributes' | 'faq' | 'shipping' | 'handoff';
+type Section = 'category' | 'scopes' | 'conflict' | 'products' | 'attributes' | 'faq' | 'shipping' | 'handoff' | 'content';
 
 /** Sections folded under "Advanced settings" (E2). */
-const ADVANCED_SECTIONS: readonly Section[] = ['products', 'attributes', 'faq', 'shipping', 'handoff'];
+const ADVANCED_SECTIONS: readonly Section[] = ['products', 'attributes', 'faq', 'shipping', 'handoff', 'content'];
 const isAdvanced = (s: Section) => ADVANCED_SECTIONS.includes(s);
 
 /** Option key (first path segment of a validator message) → section. */
@@ -59,7 +63,10 @@ const SECTION_OF_OPTION: Record<string, Section> = {
   designer_fallback_fields: 'handoff',
   redirect_skipped: 'handoff',
   verify_media: 'handoff',
+  content_redirects: 'content',
 };
+/** Rows of "Old pages and posts" per page (M5 B17). */
+const CONTENT_PAGE_SIZE = 50;
 
 /** Shipping method ids whose display names can be overridden (D26); labelled through `methods.<id>`. */
 const METHOD_IDS = ['flat_rate', 'local_pickup', 'free_shipping'] as const;
@@ -93,6 +100,10 @@ function withDefaults(options: ImportRunOptions | null | undefined): ImportRunOp
       ...(o.shipping ?? {}),
       method_names: { ...(o.shipping?.method_names ?? {}) },
       default_days: { ...d.shipping?.default_days, ...(o.shipping?.default_days ?? {}) },
+    },
+    content_redirects: {
+      mode: o.content_redirects?.mode ?? d.content_redirects?.mode ?? 'map',
+      targets: { ...(o.content_redirects?.targets ?? {}) },
     },
   };
 }
@@ -778,6 +789,26 @@ function MappingForm({
                 </>,
               )}
 
+              {/* Old pages and posts (M5 B17) */}
+              {sectionCard(
+                'content',
+                <ContentSection
+                  token={token}
+                  summary={summary}
+                  open={advancedOpen}
+                  pagesScope={opts.scopes?.pages === true}
+                  mode={opts.content_redirects?.mode ?? 'map'}
+                  targets={opts.content_redirects?.targets ?? {}}
+                  onMode={(mode) => update({ content_redirects: { ...opts.content_redirects, mode } })}
+                  onTarget={(ref, target) => {
+                    const targets = { ...(opts.content_redirects?.targets ?? {}) };
+                    if (target) targets[ref] = target;
+                    else delete targets[ref];
+                    update({ content_redirects: { ...opts.content_redirects, targets } });
+                  }}
+                />,
+              )}
+
               {/* Personalization, templates and other hand-offs */}
               {sectionCard(
                 'handoff',
@@ -885,6 +916,249 @@ function MappingForm({
         </Card>
       </aside>
     </div>
+  );
+}
+
+// ─── Old pages and posts (M5 B17) ───────────────────────────────────────────
+
+const CUSTOM_TARGET = '__custom__';
+
+interface ContentSectionProps {
+  token: string;
+  summary: DryRunSummary | null;
+  /** The advanced block is open: load the store's collections and pages. */
+  open: boolean;
+  pagesScope: boolean;
+  mode: ContentRedirectMode;
+  targets: Record<string, string>;
+  onMode: (mode: ContentRedirectMode) => void;
+  /** `null` clears the target (back to the mode fallback). */
+  onTarget: (ref: string, target: string | null) => void;
+}
+
+interface CreatorCategoryNode {
+  id: string;
+  slug: string;
+  translations?: { locale: string; name: string }[];
+  children?: CreatorCategoryNode[];
+}
+
+interface StorePageRow {
+  id: string;
+  type: string;
+  slug: string | null;
+  status: 'DRAFT' | 'PUBLISHED';
+  translations?: { locale: string; title?: string | null }[];
+}
+
+/**
+ * Every old page / post URL with a target picker (home / import / skip /
+ * a collection / a store page / another path), paginated at 50 rows. The
+ * rows come from the dry-run summary (`content.items`, every page and
+ * post with its current target; older summaries only carry
+ * `content_unmapped`). Writes `content_redirects.targets`.
+ */
+function ContentSection({ token, summary, open, pagesScope, mode, targets, onMode, onTarget }: ContentSectionProps) {
+  const t = useTranslations('creator.importer.mapping.content');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState<'all' | 'unmapped'>('all');
+  const [customRow, setCustomRow] = useState<string | null>(null);
+  const [customPath, setCustomPath] = useState('');
+  const [collections, setCollections] = useState<{ slug: string; name: string }[] | null>(null);
+  const [pages, setPages] = useState<{ slug: string; title: string }[] | null>(null);
+
+  const rows: ContentRow[] = useMemo(() => {
+    if (summary?.content?.items?.length) return summary.content.items;
+    return (summary?.content_unmapped ?? []).map((r) => ({ ...r, target: null }));
+  }, [summary]);
+
+  // Store collections and pages for the picker, once the section is visible.
+  useEffect(() => {
+    if (!open || rows.length === 0 || collections !== null) return;
+    let cancelled = false;
+    api<CreatorCategoryNode[]>('/creator-categories', { token })
+      .then((tree) => {
+        if (cancelled) return;
+        const flat: { slug: string; name: string }[] = [];
+        const walk = (nodes: CreatorCategoryNode[], prefix: string) => {
+          for (const c of nodes) {
+            const name =
+              c.translations?.find((tr) => tr.locale === locale)?.name ||
+              c.translations?.find((tr) => tr.locale === 'en')?.name ||
+              c.translations?.[0]?.name ||
+              c.slug;
+            flat.push({ slug: c.slug, name: prefix + name });
+            if (c.children?.length) walk(c.children, `${prefix}— `);
+          }
+        };
+        walk(Array.isArray(tree) ? tree : [], '');
+        setCollections(flat);
+      })
+      .catch(() => {
+        if (!cancelled) setCollections([]);
+      });
+    api<StorePageRow[]>('/v2/pages/mine', { token })
+      .then((list) => {
+        if (cancelled) return;
+        setPages(
+          (Array.isArray(list) ? list : [])
+            .filter((p) => p.slug)
+            .map((p) => ({
+              slug: p.slug as string,
+              title:
+                p.translations?.find((tr) => tr.locale === locale)?.title ||
+                p.translations?.find((tr) => tr.locale === 'en')?.title ||
+                p.translations?.[0]?.title ||
+                (p.slug as string),
+            })),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setPages([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, rows.length, collections, token, locale]);
+
+  if (rows.length === 0) return <p className="text-xs text-muted-foreground">{t('none')}</p>;
+
+  const isUnmapped = (r: ContentRow) => targets[r.ref] === undefined && mode === 'map';
+  const visible = filter === 'unmapped' ? rows.filter(isUnmapped) : rows;
+  const pageCount = Math.max(1, Math.ceil(visible.length / CONTENT_PAGE_SIZE));
+  const current = Math.min(page, pageCount);
+  const slice = visible.slice((current - 1) * CONTENT_PAGE_SIZE, current * CONTENT_PAGE_SIZE);
+  const unmappedCount = rows.filter(isUnmapped).length;
+
+  /** Picker options: keywords first, then the store's collections and pages, then "other path". */
+  const optionsFor = (row: ContentRow) => {
+    const out: { value: string; label: string; description?: string }[] = [
+      { value: 'home', label: t('targets.home'), description: '/' },
+      ...(row.kind === 'page' ? [{ value: 'import', label: t('targets.import') }] : []),
+      { value: 'skip', label: t('targets.skip') },
+    ];
+    for (const c of collections ?? []) out.push({ value: `/collections/${c.slug}`, label: t('targets.collection', { name: c.name }), description: `/collections/${c.slug}` });
+    for (const p of pages ?? []) out.push({ value: `/${p.slug}`, label: t('targets.page', { title: p.title }), description: `/${p.slug}` });
+    const value = targets[row.ref];
+    if (value && !out.some((o) => o.value === value)) out.push({ value, label: value });
+    out.push({ value: CUSTOM_TARGET, label: t('targets.custom') });
+    return out;
+  };
+
+  const commitCustom = (ref: string) => {
+    const v = customPath.trim();
+    if (v.startsWith('/') && !v.startsWith('//')) onTarget(ref, v);
+    setCustomRow(null);
+    setCustomPath('');
+  };
+
+  return (
+    <>
+      <p className="text-[11px] text-muted-foreground">{t('intro')}</p>
+      <p className="text-xs">
+        {t('summary', { pages: summary?.content?.pages ?? rows.filter((r) => r.kind === 'page').length, posts: summary?.content?.posts ?? rows.filter((r) => r.kind === 'post').length, unmapped: unmappedCount })}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label className="text-xs">{t('mode')}</Label>
+          <SearchableSelect
+            options={CONTENT_REDIRECT_MODES.map((m) => ({ value: m, label: t(`modes.${m}`) }))}
+            value={mode}
+            onChange={(v) => onMode((v || 'map') as ContentRedirectMode)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">{t('filter.label')}</Label>
+          <SearchableSelect
+            options={[
+              { value: 'all', label: t('filter.all') },
+              { value: 'unmapped', label: t('filter.unmapped') },
+            ]}
+            value={filter}
+            onChange={(v) => {
+              setFilter((v || 'all') as 'all' | 'unmapped');
+              setPage(1);
+            }}
+          />
+        </div>
+      </div>
+      {!pagesScope && <p className="text-[11px] text-muted-foreground">{t('importHint')}</p>}
+      {collections === null && (
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="size-3.5 animate-spin" />
+          {t('loading')}
+        </p>
+      )}
+      <div className="space-y-2">
+        {slice.map((row) => {
+          const value = targets[row.ref];
+          const custom = customRow === row.ref;
+          return (
+            <div key={row.ref} className={`grid items-center gap-2 rounded-md border px-3 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] ${isUnmapped(row) ? 'border-amber-200 bg-amber-50/40' : ''}`}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="shrink-0 font-normal">
+                    {t(`kind.${row.kind}`)}
+                  </Badge>
+                  <span className="truncate text-sm" title={row.title}>
+                    {row.title || row.path}
+                  </span>
+                </div>
+                <TechDetail value={row.path} className="block truncate" />
+              </div>
+              <div className="space-y-1.5">
+                <SearchableSelect
+                  options={optionsFor(row)}
+                  value={custom ? CUSTOM_TARGET : (value ?? '')}
+                  onChange={(v) => {
+                    if (v === CUSTOM_TARGET) {
+                      setCustomRow(row.ref);
+                      setCustomPath(value && !['home', 'skip', 'import'].includes(value) ? value : '');
+                    } else {
+                      setCustomRow(null);
+                      onTarget(row.ref, v || null);
+                    }
+                  }}
+                  placeholder={!value && row.target === '/' ? t('targets.home') : !value && row.target === 'skip' ? t('targets.skip') : t('targetPlaceholder')}
+                />
+                {custom && (
+                  <Input
+                    dir="ltr"
+                    autoFocus
+                    className="h-8 font-mono text-xs"
+                    value={customPath}
+                    placeholder="/collections/..."
+                    onChange={(e) => setCustomPath(e.target.value)}
+                    onBlur={() => commitCustom(row.ref)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        commitCustom(row.ref);
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{t('pageOf', { page: current, pages: pageCount })}</span>
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" disabled={current <= 1} onClick={() => setPage(current - 1)} aria-label={tc('previous')}>
+              <ChevronLeft className="rtl:rotate-180" />
+            </Button>
+            <Button variant="outline" size="sm" disabled={current >= pageCount} onClick={() => setPage(current + 1)} aria-label={tc('next')}>
+              <ChevronRight className="rtl:rotate-180" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

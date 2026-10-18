@@ -316,7 +316,8 @@
     "b2b": "B2B",
     "personalization": "Personnalisation",
     "designer": "Designer",
-    "production": "Production"
+    "production": "Production",
+    "feeds": "Flux"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -2173,6 +2174,45 @@
         "taxes": "Taxes",
         "payments": "Paiements",
         "security": "Sécurité"
+      },
+      "checkout": {
+        "title": "Comportement du paiement",
+        "subtitle": "Comment la boutique se comporte après « ajouter au panier », au paiement et avec les liens de campagne. Laissez tout tel quel pour garder le comportement standard.",
+        "afterAdd": {
+          "label": "Après « ajouter au panier »",
+          "stay": "Rester sur la page produit",
+          "stayHint": "Affiche une confirmation avec le lien « Voir le panier » (standard).",
+          "cart": "Aller au panier",
+          "cartHint": "Ouvre le panier immédiatement.",
+          "checkout": "Aller directement au paiement",
+          "checkoutHint": "Ignore le panier et ouvre le paiement."
+        },
+        "phoneRequired": "Exiger un numéro de téléphone au paiement",
+        "phoneRequiredOn": "Les clients doivent saisir un numéro de téléphone.",
+        "phoneRequiredOff": "Facultatif — les clients peuvent laisser le champ vide (standard).",
+        "payLabel": "Texte du bouton de paiement",
+        "payLabelHint": "Texte du bouton de paiement par carte pour chaque langue de la boutique ({max} caractères max). Laissez vide pour le texte standard. L’aperçu montre ce que voient les clients.",
+        "payLabelTooLong": "{max} caractères max.",
+        "payLabelPreview": "Aperçu du bouton",
+        "couponAutoapply": "Appliquer les codes promo des liens",
+        "couponAutoapplyOn": "Un lien tel que ?coupon=CODE ajoute automatiquement le code au panier.",
+        "couponAutoapplyOff": "Les liens n’appliquent pas de codes promo (standard).",
+        "couponParam": "Paramètres de lien",
+        "couponParamHint": "Clés de requête qui portent le code, séparées par des virgules. « coupon » est la clé standard ; ajoutez les anciens noms (ex. coupon1) pour que les liens de campagne existants continuent de fonctionner.",
+        "couponParamInvalid": "« {key} » n’est pas un nom de paramètre valide (lettres, chiffres, - et _ uniquement).",
+        "namez": {
+          "title": "Recommandé pour Namez (namez.se)",
+          "body": "Ces valeurs reproduisent le comportement de l’ancien plugin iWings :",
+          "afterAdd": "Après « ajouter au panier » : directement au paiement",
+          "phone": "Numéro de téléphone : facultatif",
+          "payLabel": "Bouton de paiement (suédois) : « Betala med kort »",
+          "coupon": "Codes promo des liens : activé, paramètres « coupon, coupon1 »",
+          "apply": "Remplir les valeurs Namez"
+        },
+        "saved": "Paramètres de paiement enregistrés.",
+        "saveFailed": "Impossible d’enregistrer les paramètres de paiement.",
+        "unsaved": "Modifications non enregistrées",
+        "save": "Enregistrer"
       }
     },
     "orderDetail": {
@@ -2387,6 +2427,10 @@
         "designer": {
           "name": "Designer de produits",
           "description": "Vos clients personnalisent leur produit en direct à partir de vos modèles (photo, noms) ; les fichiers d'impression sont générés sur le serveur."
+        },
+        "feeds": {
+          "name": "Flux produits",
+          "description": "Flux Google Merchant et catalogue Meta (Facebook / Instagram) avec URL secrètes, un par marché."
         }
       },
       "b2b": {
@@ -2661,6 +2705,7 @@
         "products": "Produits",
         "templates": "Modèles de design",
         "redirects": "Redirections",
+        "pages": "Création des pages",
         "finalize": "Finalisation",
         "rollback": "Annulation en cours",
         "planning": "Lecture de l’export et planification",
@@ -2683,7 +2728,8 @@
         "SHIPPING_PROFILE": "Profils de livraison",
         "SHIPPING_ZONE": "Zones de livraison",
         "SHIPPING_METHOD": "Modes de livraison",
-        "REDIRECT": "Redirections"
+        "REDIRECT": "Redirections",
+        "PAGE": "Pages"
       },
       "itemActions": {
         "CREATE": "Nouveaux",
@@ -3013,6 +3059,38 @@
         "later": "Bientôt"
       },
       "mapping": {
+        "content": {
+          "intro": "Chaque ancienne URL de page ou d’article a besoin d’une destination, sinon les visiteurs et les moteurs de recherche verront « page introuvable ». Choisissez une destination par ligne. Les chemins de la boutique (/shop/, /my-account/, flux, sitemaps) sont redirigés automatiquement.",
+          "none": "L’export ne contient ni pages ni articles.",
+          "mode": "Pages et articles sans destination",
+          "modes": {
+            "map": "Laisser sans destination (signalé en avertissement)",
+            "home": "Rediriger vers la page d’accueil",
+            "skip": "Pas de redirection (page introuvable)"
+          },
+          "summary": "{pages} pages · {posts} articles · {unmapped} sans destination",
+          "filter": {
+            "label": "Afficher",
+            "all": "Tout",
+            "unmapped": "Sans destination"
+          },
+          "kind": {
+            "page": "Page",
+            "post": "Article"
+          },
+          "targets": {
+            "home": "Page d’accueil",
+            "skip": "Pas de redirection",
+            "import": "Importer comme page brouillon",
+            "collection": "Collection : {name}",
+            "page": "Page : {title}",
+            "custom": "Autre chemin…"
+          },
+          "targetPlaceholder": "Choisir une destination",
+          "importHint": "« Importer comme page brouillon » nécessite l’option « Pages (en brouillon) » dans « Quoi importer ». Les pages importées sont créées en brouillon ; publiez-les depuis Pages après relecture.",
+          "loading": "Chargement de vos collections et pages…",
+          "pageOf": "Page {page} sur {pages}"
+        },
         "emptyTitle": "Rien à vérifier",
         "emptyBody": "La vérification s’ouvre pour une simulation terminée. Envoyez d’abord un export dans l’onglet Sources.",
         "openReport": "Ouvrir le rapport",
@@ -3026,7 +3104,8 @@
           "faq": "Questions de la FAQ",
           "shipping": "Livraison",
           "handoff": "Personnalisation et extras",
-          "conflict": "Quand un produit existe déjà"
+          "conflict": "Quand un produit existe déjà",
+          "content": "Anciennes pages et articles"
         },
         "categoryPlaceholder": "Choisir une catégorie",
         "categoryHint": "Chaque produit importé est placé dans cette catégorie de la plateforme. Obligatoire.",
@@ -3037,7 +3116,8 @@
           "shipping": "Livraison",
           "personalization": "Personnalisation",
           "templates": "Modèles de design",
-          "redirects": "Redirections"
+          "redirects": "Redirections",
+          "pages": "Pages (en brouillon)"
         },
         "includeDrafts": "Importer les brouillons",
         "includeDraftsHint": "Les produits brouillons sont importés comme brouillons et n’ont pas de redirection.",
@@ -3258,6 +3338,9 @@
         "W_UNKNOWN_PLUGIN_META": "Données d’extension inconnues",
         "W_TARGET_MODIFIED_SKIPPED": "Modifié par vous, donc non mis à jour",
         "W_REDIRECT_CONFLICT": "Redirection en conflit avec une existante",
+        "W_CONTENT_UNMAPPED": "Ancienne page ou article sans destination",
+        "W_PAGE_SLUG_CONFLICT": "Slug de page déjà utilisé par une autre page importée",
+        "W_CONTENT_PATH_UNKNOWN": "L’ancienne URL d’un article n’a pas pu être calculée",
         "W_SITE_HOST_MISMATCH": "L’export provient d’un autre domaine",
         "W_OPTION_UNREADABLE": "Réglage de la boutique illisible",
         "W_TSV_ROW_INVALID": "Ligne illisible dans l’export",
@@ -3326,7 +3409,13 @@
         "note": "Liste de contrôle de production terminée",
         "confirmTitle": "Passer la commande à {status} ?",
         "confirmBody": "Vos lignes de cette commande changent de statut exactement comme en le choisissant sous « Mettre à jour le statut ».",
-        "confirmShipped": "Marquer la commande comme expédiée prévient le client et, pour les commandes Kustom, encaisse le paiement."
+        "confirmShipped": "Marquer la commande comme expédiée prévient le client et, pour les commandes Kustom, encaisse le paiement.",
+        "carrier": "Transporteur",
+        "carrierPlaceholder": "ex. Colissimo",
+        "trackingNumber": "Numéro de suivi",
+        "trackingPlaceholder": "Numéro de suivi du transporteur",
+        "trackingRequiredHint": "Un numéro de suivi est requis avant de marquer la commande comme expédiée.",
+        "trackingOptionalHint": "Facultatif : le numéro de suivi est inclus dans l'e-mail d'expédition envoyé au client."
       },
       "activity": "Activité",
       "activityEmpty": "Aucune activité pour l’instant.",
@@ -3340,7 +3429,8 @@
         "VALUE_CHANGED": "Valeur changée en {label} (case réinitialisée)",
         "STALE": "{label} ne figure plus dans la commande",
         "COMPLETED": "Liste de contrôle terminée",
-        "AUTO_ADVANCE": "Commande passée automatiquement à {status}"
+        "AUTO_ADVANCE": "Commande passée automatiquement à {status}",
+        "AUTO_ADVANCE_PRINT_READY": "Fichiers d'impression prêts : passage automatique à {status}"
       },
       "queue": {
         "inProduction": "En production",
@@ -3398,7 +3488,29 @@
         "backfillHint": "Crée les listes de contrôle des commandes ouvertes passées avant l’activation de l’application (les 1000 plus récentes).",
         "backfillAction": "Générer pour les commandes ouvertes",
         "backfillResult": "{synced, plural, one {# commande synchronisée} other {# commandes synchronisées}} · {failed, plural, =0 {aucun échec} one {# échec} other {# échecs}} · {remaining, plural, =0 {aucune restante} one {# restante} other {# restantes}}",
-        "backfillContinue": "Continuer ({remaining} restantes)"
+        "backfillContinue": "Continuer ({remaining} restantes)",
+        "onPrintReadyLabel": "Quand les fichiers d'impression sont prêts",
+        "onPrintReady": {
+          "none": "Ne rien faire",
+          "moveTo": "Passer à {status}"
+        },
+        "onPrintReadyHint": "App Designer : dès que tous les fichiers d'impression de la commande sont rendus, la commande avance une fois (jamais en arrière, jamais vers Expédiée).",
+        "shipPromptLabel": "Avant l'expédition",
+        "shipPrompt": {
+          "none": "Confirmer seulement",
+          "tracking_optional": "Demander le suivi (facultatif)",
+          "tracking_required": "Exiger un numéro de suivi"
+        },
+        "shipPromptHint": "Ce que demande la bannière « Passer à Expédiée ». Le numéro de suivi figure dans l'e-mail d'expédition du client.",
+        "notificationsTitle": "Notifications pour l'équipe",
+        "notificationsHint": "E-mails pour les personnes qui produisent les commandes.",
+        "notifyNewOrder": "E-mail à chaque nouvelle commande à produire",
+        "notifyNewOrderHint": "Un e-mail par commande avec le nombre d'articles et de points à vérifier.",
+        "notifyEmail": "Envoyer à",
+        "notifyEmailPlaceholder": "Adresse de notification de la boutique",
+        "notifyEmailHint": "Laisser vide pour utiliser l'adresse de notification de la boutique (Paramètres → E-mail).",
+        "notifyDailyDigest": "Récapitulatif quotidien à 07:00",
+        "notifyDailyDigestHint": "Un e-mail chaque matin (heure de la boutique) listant les commandes non terminées. Rien n'est envoyé s'il n'y en a aucune."
       },
       "sheet": {
         "title": "Fiche de production",
@@ -3410,7 +3522,8 @@
         "notes": "Notes de commande",
         "workspaceUrl": "Espace atelier",
         "printedAt": "Imprimé le {time}"
-      }
+      },
+      "autoMovedPrintReady": "Fichiers d'impression prêts – la commande est passée automatiquement à {status}."
     },
     "designer": {
       "title": "Designer",
@@ -4272,6 +4385,58 @@
         "empty": "Aucune vente en autoliquidation sur cette période.",
         "totalRow": "Total"
       }
+    },
+    "feeds": {
+      "title": "Flux produits",
+      "subtitle": "Flux Google Merchant et catalogue Meta pour vos publicités.",
+      "saveFailed": "Impossible d'enregistrer les paramètres des flux.",
+      "settings": {
+        "title": "Paramètres des flux",
+        "subtitle": "Quels flux sont servis et les valeurs par défaut appliquées à chaque article.",
+        "google": "Flux Google Merchant",
+        "googleHint": "RSS 2.0 avec l'espace de noms g: (Google Shopping, fiches gratuites).",
+        "facebook": "Flux catalogue Meta",
+        "facebookHint": "CSV pour les catalogues Facebook et Instagram.",
+        "includeVariants": "Un article par variante",
+        "includeVariantsHint": "Chaque variante devient un article groupé sous son produit ; désactivé = un article par produit.",
+        "defaultBrand": "Marque par défaut",
+        "defaultBrandHint": "Utilisée pour les produits sans marque (les flux sans marque sont rejetés).",
+        "shippingLabel": "Libellé de livraison",
+        "shippingLabelPlaceholder": "ex. Standard",
+        "shippingLabelHint": "Nom du service de livraison Google envoyé pour chaque pays du marché ; laissez vide pour configurer la livraison dans Merchant Center.",
+        "saved": "Enregistré"
+      },
+      "urls": {
+        "title": "URL des flux",
+        "subtitle": "À coller dans Merchant Center / Commerce Manager. Le jeton dans l'URL est la seule protection : renouvelez-le s'il fuite.",
+        "google": "Google (XML)",
+        "facebook": "Meta (CSV)",
+        "copy": "Copier",
+        "singleMarket": "Marché par défaut",
+        "allOff": "Les deux flux sont désactivés ci-dessus.",
+        "hint": "Les flux sont reconstruits au plus toutes les 10 minutes. Les brouillons, les produits masqués dans un marché et les produits « Exclure des flux » sont omis ; les produits personnalisés figurent à leur prix de base.",
+        "rotate": "Renouveler le jeton",
+        "rotateTitle": "Renouveler le jeton des flux ?",
+        "rotateBody": "Toutes les URL de flux actuelles cessent de fonctionner immédiatement. Il faudra mettre à jour l'URL dans Merchant Center et Commerce Manager."
+      },
+      "validate": {
+        "title": "Valider",
+        "subtitle": "Construit le flux sur le serveur et liste ce que les plateformes publicitaires rejetteraient.",
+        "run": "Valider le flux",
+        "market": "Marché",
+        "empty": "Lancez une validation pour voir le nombre d'articles et les identifiants manquants.",
+        "counts": {
+          "products": "Produits",
+          "items": "Articles",
+          "excluded": "Exclus",
+          "hidden": "Masqués dans le marché"
+        },
+        "ok": "Chaque produit a un GTIN et une marque ({currency}).",
+        "issues": "{gtin} sans GTIN, {brand} sans marque, {bare} envoyés sans aucun identifiant.",
+        "missingGtin": "Produits sans GTIN",
+        "missingBrand": "Produits sans marque",
+        "excludedList": "Exclus des flux"
+      }
     }
   },
   "components": {
@@ -4693,7 +4858,9 @@
     "DESIGNER_UPLOAD_QUOTA": "Trop de téléversements en peu de temps. Patientez un instant puis réessayez.",
     "DESIGNER_STORAGE_FULL": "L'espace de stockage du serveur est plein pour le moment, les fichiers ne peuvent donc pas être téléversés. Réessayez plus tard.",
     "DESIGNER_ORDER_TERMINAL": "Cette commande a été annulée, remboursée ou jamais payée ; rien n’est imprimé.",
-    "DESIGNER_UPLOAD_BUSY": "Trop d’images sont en cours de traitement. Veuillez réessayer dans un instant."
+    "DESIGNER_UPLOAD_BUSY": "Trop d’images sont en cours de traitement. Veuillez réessayer dans un instant.",
+    "PRODUCT_GTIN_INVALID": "Le GTIN n'est pas valide (clé de contrôle).",
+    "FEED_NOT_FOUND": "Flux introuvable."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -5016,7 +5183,22 @@
     "collectionsHelp": "Regroupez ce produit dans une ou plusieurs collections",
     "optionInUseDetail": "Options : {options} · Utilisées par les champs : {fields}",
     "shortDescription": "Description courte",
-    "shortDescriptionPlaceholder": "Un court résumé affiché à côté du bouton « Ajouter au panier »…"
+    "shortDescriptionPlaceholder": "Un court résumé affiché à côté du bouton « Ajouter au panier »…",
+    "feedData": "Données de flux",
+    "feedDataHint": "Identifiants pour les flux Google Shopping / catalogue Meta. Facultatif ; un flux sans GTIN ni marque est généralement rejeté.",
+    "feedGtin": "GTIN (EAN / UPC)",
+    "feedMpn": "MPN",
+    "feedBrand": "Marque",
+    "feedBrandHint": "Laissez vide pour utiliser la marque par défaut des paramètres des flux.",
+    "feedGoogleCategory": "Catégorie de produit Google",
+    "feedGoogleCategoryHint": "Identifiant ou chemin complet de la taxonomie Google, ex. 1604 ou « Apparel & Accessories > Clothing ».",
+    "feedCondition": "État",
+    "feedConditionNew": "Neuf",
+    "feedConditionRefurbished": "Reconditionné",
+    "feedConditionUsed": "Occasion",
+    "feedExcluded": "Exclure des flux",
+    "feedExcludedHint": "Le produit n'apparaît jamais dans les flux Google / Meta.",
+    "errGtinInvalid": "Le GTIN doit comporter 8, 12, 13 ou 14 chiffres avec une clé de contrôle valide."
   },
   "customField": {
     "typeText": "Texte",

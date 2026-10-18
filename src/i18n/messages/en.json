@@ -316,7 +316,8 @@
     "b2b": "B2B",
     "personalization": "Personalization",
     "designer": "Designer",
-    "production": "Production"
+    "production": "Production",
+    "feeds": "Feeds"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -2173,6 +2174,45 @@
         "taxes": "Taxes",
         "payments": "Payments",
         "security": "Security"
+      },
+      "checkout": {
+        "title": "Checkout behaviour",
+        "subtitle": "How the storefront behaves after \"add to cart\", at checkout and with campaign links. Leave everything as is to keep the standard behaviour.",
+        "afterAdd": {
+          "label": "After \"add to cart\"",
+          "stay": "Stay on the product page",
+          "stayHint": "Shows a confirmation with a \"View cart\" link (standard).",
+          "cart": "Go to the cart",
+          "cartHint": "Opens the cart right away.",
+          "checkout": "Go straight to checkout",
+          "checkoutHint": "Skips the cart and opens the checkout."
+        },
+        "phoneRequired": "Require a phone number at checkout",
+        "phoneRequiredOn": "Customers must enter a phone number.",
+        "phoneRequiredOff": "Optional — customers may leave the phone field empty (standard).",
+        "payLabel": "Pay button text",
+        "payLabelHint": "Text of the card payment button per store language (max {max} characters). Leave empty to use the standard text. The preview shows what customers see.",
+        "payLabelTooLong": "Max {max} characters.",
+        "payLabelPreview": "Button preview",
+        "couponAutoapply": "Apply discount codes from links",
+        "couponAutoapplyOn": "A link such as ?coupon=CODE adds the code to the cart automatically.",
+        "couponAutoapplyOff": "Links do not apply discount codes (standard).",
+        "couponParam": "Link parameters",
+        "couponParamHint": "Query keys that carry the code, separated by commas. \"coupon\" is the standard one; add old names (e.g. coupon1) so existing campaign links keep working.",
+        "couponParamInvalid": "\"{key}\" is not a valid parameter name (letters, digits, - and _ only).",
+        "namez": {
+          "title": "Recommended for Namez (namez.se)",
+          "body": "These values reproduce the former iWings plugin behaviour:",
+          "afterAdd": "After \"add to cart\": go straight to checkout",
+          "phone": "Phone number: optional",
+          "payLabel": "Pay button (Swedish): \"Betala med kort\"",
+          "coupon": "Discount codes from links: on, parameters \"coupon, coupon1\"",
+          "apply": "Fill in the Namez values"
+        },
+        "saved": "Checkout settings saved.",
+        "saveFailed": "Could not save the checkout settings.",
+        "unsaved": "Unsaved changes",
+        "save": "Save"
       }
     },
     "orderDetail": {
@@ -2387,6 +2427,10 @@
         "designer": {
           "name": "Product designer",
           "description": "Customers design their product live from your templates (photo, names); print files are rendered on the server."
+        },
+        "feeds": {
+          "name": "Product feeds",
+          "description": "Google Merchant and Meta (Facebook / Instagram) catalog feeds with secret URLs, one per market."
         }
       },
       "b2b": {
@@ -2661,6 +2705,7 @@
         "products": "Products",
         "templates": "Design templates",
         "redirects": "Redirects",
+        "pages": "Creating pages",
         "finalize": "Finishing",
         "rollback": "Rolling back",
         "planning": "Reading the export and planning",
@@ -2683,7 +2728,8 @@
         "SHIPPING_PROFILE": "Shipping profiles",
         "SHIPPING_ZONE": "Shipping zones",
         "SHIPPING_METHOD": "Shipping methods",
-        "REDIRECT": "Redirects"
+        "REDIRECT": "Redirects",
+        "PAGE": "Pages"
       },
       "itemActions": {
         "CREATE": "New",
@@ -3013,6 +3059,38 @@
         "later": "Coming later"
       },
       "mapping": {
+        "content": {
+          "intro": "Every old page and post URL needs somewhere to go, or visitors and search engines get a “page not found”. Choose a target per row. The shop paths (/shop/, /my-account/, feeds, sitemaps) are redirected automatically.",
+          "none": "The export has no pages or posts.",
+          "mode": "Pages and posts without a target",
+          "modes": {
+            "map": "Leave unmapped (listed as a warning)",
+            "home": "Send to the home page",
+            "skip": "No redirect (page not found)"
+          },
+          "summary": "{pages} pages · {posts} posts · {unmapped} without a target",
+          "filter": {
+            "label": "Show",
+            "all": "All",
+            "unmapped": "Without a target"
+          },
+          "kind": {
+            "page": "Page",
+            "post": "Post"
+          },
+          "targets": {
+            "home": "Home page",
+            "skip": "No redirect",
+            "import": "Import as a draft page",
+            "collection": "Collection: {name}",
+            "page": "Page: {title}",
+            "custom": "Other path…"
+          },
+          "targetPlaceholder": "Choose a target",
+          "importHint": "“Import as a draft page” needs the “Pages (as drafts)” option under “What to import”. Imported pages are created as drafts; publish them from Pages after review.",
+          "loading": "Loading your collections and pages…",
+          "pageOf": "Page {page} of {pages}"
+        },
         "emptyTitle": "Nothing to review",
         "emptyBody": "Mapping review opens for a finished dry run. Upload an export on the Sources tab first.",
         "openReport": "Open report",
@@ -3026,7 +3104,8 @@
           "faq": "FAQ questions",
           "shipping": "Shipping",
           "handoff": "Personalization and extras",
-          "conflict": "When a product already exists"
+          "conflict": "When a product already exists",
+          "content": "Old pages and posts"
         },
         "categoryPlaceholder": "Choose a category",
         "categoryHint": "Every imported product is placed in this platform category. Required.",
@@ -3037,7 +3116,8 @@
           "shipping": "Shipping",
           "personalization": "Personalization",
           "templates": "Design templates",
-          "redirects": "Redirects"
+          "redirects": "Redirects",
+          "pages": "Pages (as drafts)"
         },
         "includeDrafts": "Import drafts",
         "includeDraftsHint": "Draft products are imported as drafts and get no redirects.",
@@ -3258,6 +3338,9 @@
         "W_UNKNOWN_PLUGIN_META": "Unknown plugin data",
         "W_TARGET_MODIFIED_SKIPPED": "You edited this, so it was not updated",
         "W_REDIRECT_CONFLICT": "Redirect conflicts with an existing one",
+        "W_CONTENT_UNMAPPED": "Old page or post without a target",
+        "W_PAGE_SLUG_CONFLICT": "Page slug already used by another imported page",
+        "W_CONTENT_PATH_UNKNOWN": "Old URL of a post could not be computed",
         "W_SITE_HOST_MISMATCH": "Export comes from another domain",
         "W_OPTION_UNREADABLE": "Shop setting could not be read",
         "W_TSV_ROW_INVALID": "Unreadable row in the export",
@@ -3326,7 +3409,13 @@
         "note": "Production checklist completed",
         "confirmTitle": "Move the order to {status}?",
         "confirmBody": "Your lines of this order change status exactly as when you choose it under Update status.",
-        "confirmShipped": "Marking the order as shipped notifies the customer and, for Kustom orders, captures the payment."
+        "confirmShipped": "Marking the order as shipped notifies the customer and, for Kustom orders, captures the payment.",
+        "carrier": "Carrier",
+        "carrierPlaceholder": "e.g. PostNord",
+        "trackingNumber": "Tracking number",
+        "trackingPlaceholder": "Tracking number from the carrier",
+        "trackingRequiredHint": "A tracking number is required before the order can be marked as shipped.",
+        "trackingOptionalHint": "Optional: the tracking number is included in the shipping email to the customer."
       },
       "activity": "Activity",
       "activityEmpty": "No activity yet.",
@@ -3340,7 +3429,8 @@
         "VALUE_CHANGED": "Value changed to {label} (check reset)",
         "STALE": "{label} is no longer on the order",
         "COMPLETED": "Checklist completed",
-        "AUTO_ADVANCE": "Order moved to {status} automatically"
+        "AUTO_ADVANCE": "Order moved to {status} automatically",
+        "AUTO_ADVANCE_PRINT_READY": "Print files ready: moved automatically to {status}"
       },
       "queue": {
         "inProduction": "In production",
@@ -3398,7 +3488,29 @@
         "backfillHint": "Creates checklists for open orders placed before the app was turned on (newest 1000).",
         "backfillAction": "Generate for open orders",
         "backfillResult": "{synced, plural, one {# order synced} other {# orders synced}} · {failed, plural, =0 {none failed} one {# failed} other {# failed}} · {remaining, plural, =0 {nothing left} one {# left} other {# left}}",
-        "backfillContinue": "Continue ({remaining} left)"
+        "backfillContinue": "Continue ({remaining} left)",
+        "onPrintReadyLabel": "When the print files are ready",
+        "onPrintReady": {
+          "none": "Do nothing",
+          "moveTo": "Move to {status}"
+        },
+        "onPrintReadyHint": "Designer app: once every print file of the order is rendered, the order moves forward once (never back, never to Shipped).",
+        "shipPromptLabel": "Before shipping",
+        "shipPrompt": {
+          "none": "Confirm only",
+          "tracking_optional": "Ask for tracking (optional)",
+          "tracking_required": "Require a tracking number"
+        },
+        "shipPromptHint": "What the \"Move to Shipped\" banner asks for. The tracking number goes into the customer's shipping email.",
+        "notificationsTitle": "Staff notifications",
+        "notificationsHint": "Emails for the people who produce the orders.",
+        "notifyNewOrder": "Email on every new order to produce",
+        "notifyNewOrderHint": "One email per order with the number of items and checks.",
+        "notifyEmail": "Send to",
+        "notifyEmailPlaceholder": "Store notification address",
+        "notifyEmailHint": "Leave empty to use the store's notification address (Settings → Email).",
+        "notifyDailyDigest": "Daily digest at 07:00",
+        "notifyDailyDigestHint": "One email every morning (store time) listing orders not finished yet. Nothing is sent when there are none."
       },
       "sheet": {
         "title": "Production sheet",
@@ -3410,7 +3522,8 @@
         "notes": "Order notes",
         "workspaceUrl": "Workspace",
         "printedAt": "Printed {time}"
-      }
+      },
+      "autoMovedPrintReady": "Print files ready — the order was moved to {status} automatically."
     },
     "designer": {
       "title": "Designer",
@@ -4272,6 +4385,58 @@
         "empty": "No reverse-charge sales in this period.",
         "totalRow": "Total"
       }
+    },
+    "feeds": {
+      "title": "Product feeds",
+      "subtitle": "Google Merchant and Meta catalog feeds for your ads.",
+      "saveFailed": "Couldn't save the feed settings.",
+      "settings": {
+        "title": "Feed settings",
+        "subtitle": "Which feeds are served and the defaults applied to every item.",
+        "google": "Google Merchant feed",
+        "googleHint": "RSS 2.0 with the g: namespace (Google Shopping, free listings).",
+        "facebook": "Meta catalog feed",
+        "facebookHint": "CSV for Facebook and Instagram catalogs.",
+        "includeVariants": "One item per variant",
+        "includeVariantsHint": "Each variant becomes an item grouped under its product; off = one item per product.",
+        "defaultBrand": "Default brand",
+        "defaultBrandHint": "Used for products without their own brand (feeds without a brand are rejected).",
+        "shippingLabel": "Shipping label",
+        "shippingLabelPlaceholder": "e.g. Standard",
+        "shippingLabelHint": "Google shipping service name sent for every market country; leave empty to configure shipping in Merchant Center.",
+        "saved": "Saved"
+      },
+      "urls": {
+        "title": "Feed URLs",
+        "subtitle": "Paste these into Merchant Center / Commerce Manager. The token in the URL is the only protection: rotate it if it leaks.",
+        "google": "Google (XML)",
+        "facebook": "Meta (CSV)",
+        "copy": "Copy",
+        "singleMarket": "Default market",
+        "allOff": "Both feeds are switched off above.",
+        "hint": "Feeds are rebuilt at most every 10 minutes. Drafts, products hidden in a market and products marked “Exclude from feeds” are left out; personalised products are listed at their base price.",
+        "rotate": "Rotate token",
+        "rotateTitle": "Rotate the feed token?",
+        "rotateBody": "Every current feed URL stops working immediately. You will need to update the URL in Merchant Center and Commerce Manager."
+      },
+      "validate": {
+        "title": "Validate",
+        "subtitle": "Builds the feed on the server and lists what the ad platforms would reject.",
+        "run": "Validate feed",
+        "market": "Market",
+        "empty": "Run a validation to see the item counts and missing identifiers.",
+        "counts": {
+          "products": "Products",
+          "items": "Items",
+          "excluded": "Excluded",
+          "hidden": "Hidden in market"
+        },
+        "ok": "Every product has a GTIN and a brand ({currency}).",
+        "issues": "{gtin} without GTIN, {brand} without brand, {bare} sent with no identifier at all.",
+        "missingGtin": "Products without GTIN",
+        "missingBrand": "Products without brand",
+        "excludedList": "Excluded from feeds"
+      }
     }
   },
   "components": {
@@ -4693,7 +4858,9 @@
     "DESIGNER_UPLOAD_QUOTA": "Too many uploads in a short time. Wait a moment and try again.",
     "DESIGNER_STORAGE_FULL": "The server's storage is full right now, so files cannot be uploaded. Try again later.",
     "DESIGNER_ORDER_TERMINAL": "This order was cancelled, refunded or never paid, so nothing is printed.",
-    "DESIGNER_UPLOAD_BUSY": "Too many images are being processed right now. Please try again in a moment."
+    "DESIGNER_UPLOAD_BUSY": "Too many images are being processed right now. Please try again in a moment.",
+    "PRODUCT_GTIN_INVALID": "The GTIN is not valid (check digit).",
+    "FEED_NOT_FOUND": "Feed not found."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -5016,7 +5183,22 @@
     "collectionsHelp": "Group this product into one or more collections",
     "optionInUseDetail": "Options: {options} · Used by the fields: {fields}",
     "shortDescription": "Short description",
-    "shortDescriptionPlaceholder": "A short summary shown next to the add-to-cart button…"
+    "shortDescriptionPlaceholder": "A short summary shown next to the add-to-cart button…",
+    "feedData": "Feed data",
+    "feedDataHint": "Identifiers for Google Shopping / Meta catalog feeds. Optional; a feed without GTIN or brand is usually rejected.",
+    "feedGtin": "GTIN (EAN / UPC)",
+    "feedMpn": "MPN",
+    "feedBrand": "Brand",
+    "feedBrandHint": "Leave empty to use the default brand from the feed settings.",
+    "feedGoogleCategory": "Google product category",
+    "feedGoogleCategoryHint": "Category id or full path from Google's taxonomy, e.g. 1604 or “Apparel & Accessories > Clothing”.",
+    "feedCondition": "Condition",
+    "feedConditionNew": "New",
+    "feedConditionRefurbished": "Refurbished",
+    "feedConditionUsed": "Used",
+    "feedExcluded": "Exclude from feeds",
+    "feedExcludedHint": "The product is never listed in the Google / Meta feeds.",
+    "errGtinInvalid": "GTIN must be 8, 12, 13 or 14 digits with a valid check digit."
   },
   "customField": {
     "typeText": "Text",

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npm run check:personalization-mirror && npm run check:config-issue-paths && npm run test:unit",
-    "test:unit": "node --experimental-strip-types --test src/components/common/searchableSelectKeys.test.mjs",
+    "test:unit": "node --experimental-strip-types --test src/components/common/searchableSelectKeys.test.mjs src/lib/checkoutSettings.test.mjs",
     "prebuild": "npm test",
     "check:personalization-mirror": "node scripts/check-personalization-mirror.mjs",
     "check:config-issue-paths": "node scripts/check-config-issue-paths.mjs"

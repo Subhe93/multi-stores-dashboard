@@ -29,6 +29,7 @@ import { useConfigIssueText } from '@/components/apps/personalization/useConfigI
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
+import { isValidGtin } from '@/lib/gtin';
 
 // ─────────────────────────────────────────
 // Constants
@@ -137,6 +138,13 @@ interface ProductResponse {
   shipping_profile_id?: string | null;
   tax_class_id?: string | null;
   tax_exempt?: boolean | null;
+  // Feed data (feeds app, M5.6).
+  gtin?: string | null;
+  mpn?: string | null;
+  brand?: string | null;
+  google_product_category?: string | null;
+  condition?: string | null;
+  feed_excluded?: boolean | null;
   translations?: ProductTranslationRow[];
   variants?: ProductVariantRow[];
   variant_option_config?: VariantOption[] | null;
@@ -237,6 +245,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [taxClasses, setTaxClasses] = useState<TaxClass[]>([]);
   const [taxClassId, setTaxClassId] = useState('');
   const [taxExempt, setTaxExempt] = useState(false);
+  // Feed data (Google Merchant / Meta catalog): identifiers live on the
+  // product whatever apps are on; the feeds app reads them.
+  const [gtin, setGtin] = useState('');
+  const [mpn, setMpn] = useState('');
+  const [brand, setBrand] = useState('');
+  const [googleProductCategory, setGoogleProductCategory] = useState('');
+  const [condition, setCondition] = useState('new');
+  const [feedExcluded, setFeedExcluded] = useState(false);
 
   const { pickAndUpload, uploading } = useImageUpload(token);
   const uiLocale = useLocale();
@@ -344,6 +360,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setShippingProfileId(p.shipping_profile_id || '');
       setTaxClassId(p.tax_class_id || '');
       setTaxExempt(!!p.tax_exempt);
+      setGtin(p.gtin || '');
+      setMpn(p.mpn || '');
+      setBrand(p.brand || '');
+      setGoogleProductCategory(p.google_product_category || '');
+      setCondition(p.condition || 'new');
+      setFeedExcluded(!!p.feed_excluded);
 
       // Populate translations for all configured locales
       setTranslations(prev => {
@@ -463,6 +485,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                               errs.customizationType = t('product.errSelectCustomization');
     if (comparePrice && parseFloat(comparePrice) <= parseFloat(basePrice || '0'))
                               errs.comparePrice = t('product.errComparePrice');
+    if (gtin.trim() && !isValidGtin(gtin.trim()))
+                              errs.gtin = t('product.errGtinInvalid');
     categoryAttrs.filter(a => a.is_required).forEach(a => {
       const val = attrValues[a.id];
       if (val === '' || val == null || val === false)
@@ -570,6 +594,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         // null = default class of the scope (platform or store).
         tax_class_id: taxClassId || null,
         tax_exempt: taxExempt,
+        // Feed data: '' clears the stored value (null); "new" is the default.
+        gtin: gtin.trim() || null,
+        mpn: mpn.trim() || null,
+        brand: brand.trim() || null,
+        google_product_category: googleProductCategory.trim() || null,
+        condition: condition === 'new' ? null : condition,
+        feed_excluded: feedExcluded,
         status: finalStatus,
         translations: translationsPayload,
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
@@ -677,6 +708,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setError(text);
         setOptionsError(text);
         jumpToOptions();
+      } else if (err instanceof ApiError && err.code === 'PRODUCT_GTIN_INVALID') {
+        setFieldErrors(p => ({ ...p, gtin: t('product.errGtinInvalid') }));
+        setError(t('product.errGtinInvalid'));
       } else if (err instanceof ApiError && err.code) setError(apiError(err));
       else if (err instanceof ApiError && Array.isArray(err.errors)) setError(err.errors.join(' · '));
       else setError((err instanceof Error && err.message) || t('product.failedToSave'));
@@ -1245,6 +1279,53 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 <span className="text-xs font-medium">{t('product.taxExempt')}</span>
               </label>
               <p className="text-[10px] text-muted-foreground">{t('product.taxExemptHint')}</p>
+            </CardContent>
+          </Card>
+
+          {/* Feed data — identifiers the Google Merchant / Meta catalog feeds
+              need (feeds app). Stored on the product; empty = not set. */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.feedData')}</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-[10px] text-muted-foreground">{t('product.feedDataHint')}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('product.feedGtin')}</Label>
+                  <Input className="h-8 text-sm font-mono" inputMode="numeric" maxLength={14} value={gtin} onChange={e => { setGtin(e.target.value); if (fieldErrors.gtin) setFieldErrors(p => ({ ...p, gtin: '' })); }} placeholder="7310865004703" />
+                  <FieldError msg={fieldErrors.gtin} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('product.feedMpn')}</Label>
+                  <Input className="h-8 text-sm font-mono" maxLength={70} value={mpn} onChange={e => setMpn(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.feedBrand')}</Label>
+                <Input className="h-8 text-sm" maxLength={70} value={brand} onChange={e => setBrand(e.target.value)} />
+                <p className="text-[10px] text-muted-foreground">{t('product.feedBrandHint')}</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.feedGoogleCategory')}</Label>
+                <Input className="h-8 text-sm" maxLength={191} value={googleProductCategory} onChange={e => setGoogleProductCategory(e.target.value)} placeholder="1604" />
+                <p className="text-[10px] text-muted-foreground">{t('product.feedGoogleCategoryHint')}</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.feedCondition')}</Label>
+                <SearchableSelect
+                  value={condition}
+                  onChange={setCondition}
+                  options={[
+                    { value: 'new', label: t('product.feedConditionNew') },
+                    { value: 'refurbished', label: t('product.feedConditionRefurbished') },
+                    { value: 'used', label: t('product.feedConditionUsed') },
+                  ]}
+                />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="rounded accent-primary" checked={feedExcluded} onChange={e => setFeedExcluded(e.target.checked)} />
+                <span className="text-xs font-medium">{t('product.feedExcluded')}</span>
+              </label>
+              <p className="text-[10px] text-muted-foreground">{t('product.feedExcludedHint')}</p>
             </CardContent>
           </Card>
 

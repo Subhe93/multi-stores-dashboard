@@ -14,6 +14,7 @@ import {
   ListChecks,
   PenLine,
   PenTool,
+  Rss,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -34,6 +35,7 @@ const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
   personalization: PenLine,
   production: ListChecks,
   designer: PenTool,
+  feeds: Rss,
 };
 
 /**

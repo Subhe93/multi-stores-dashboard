@@ -316,7 +316,8 @@
     "b2b": "B2B",
     "personalization": "Personalisering",
     "designer": "Designer",
-    "production": "Produktion"
+    "production": "Produktion",
+    "feeds": "Flöden"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -2173,6 +2174,45 @@
         "taxes": "Skatter",
         "payments": "Betalningar",
         "security": "Säkerhet"
+      },
+      "checkout": {
+        "title": "Kassabeteende",
+        "subtitle": "Hur butiken beter sig efter \"lägg i varukorgen\", i kassan och med kampanjlänkar. Lämna allt som det är för standardbeteendet.",
+        "afterAdd": {
+          "label": "Efter \"lägg i varukorgen\"",
+          "stay": "Stanna på produktsidan",
+          "stayHint": "Visar en bekräftelse med länken \"Visa varukorg\" (standard).",
+          "cart": "Gå till varukorgen",
+          "cartHint": "Öppnar varukorgen direkt.",
+          "checkout": "Gå direkt till kassan",
+          "checkoutHint": "Hoppar över varukorgen och öppnar kassan."
+        },
+        "phoneRequired": "Kräv telefonnummer i kassan",
+        "phoneRequiredOn": "Kunderna måste ange ett telefonnummer.",
+        "phoneRequiredOff": "Valfritt — kunderna kan lämna telefonfältet tomt (standard).",
+        "payLabel": "Text på betalknappen",
+        "payLabelHint": "Text på kortbetalningsknappen per butiksspråk (max {max} tecken). Lämna tomt för standardtexten. Förhandsvisningen visar vad kunderna ser.",
+        "payLabelTooLong": "Max {max} tecken.",
+        "payLabelPreview": "Förhandsvisning av knappen",
+        "couponAutoapply": "Lägg till rabattkoder från länkar",
+        "couponAutoapplyOn": "En länk som ?coupon=KOD lägger till koden i varukorgen automatiskt.",
+        "couponAutoapplyOff": "Länkar lägger inte till rabattkoder (standard).",
+        "couponParam": "Länkparametrar",
+        "couponParamHint": "Frågenycklar som bär koden, separerade med komma. \"coupon\" är standard; lägg till gamla namn (t.ex. coupon1) så att befintliga kampanjlänkar fortsätter fungera.",
+        "couponParamInvalid": "\"{key}\" är inte ett giltigt parameternamn (endast bokstäver, siffror, - och _).",
+        "namez": {
+          "title": "Rekommenderat för Namez (namez.se)",
+          "body": "Dessa värden återskapar det tidigare iWings-pluginets beteende:",
+          "afterAdd": "Efter \"lägg i varukorgen\": gå direkt till kassan",
+          "phone": "Telefonnummer: valfritt",
+          "payLabel": "Betalknapp (svenska): \"Betala med kort\"",
+          "coupon": "Rabattkoder från länkar: på, parametrar \"coupon, coupon1\"",
+          "apply": "Fyll i Namez-värdena"
+        },
+        "saved": "Kassainställningarna sparades.",
+        "saveFailed": "Kunde inte spara kassainställningarna.",
+        "unsaved": "Osparade ändringar",
+        "save": "Spara"
       }
     },
     "orderDetail": {
@@ -2387,6 +2427,10 @@
         "designer": {
           "name": "Produktdesigner",
           "description": "Kunderna designar sin produkt direkt utifrån dina mallar (foto, namn); tryckfilerna skapas på servern."
+        },
+        "feeds": {
+          "name": "Produktflöden",
+          "description": "Google Merchant- och Meta-katalogflöden (Facebook / Instagram) med hemliga URL:er, ett per marknad."
         }
       },
       "b2b": {
@@ -2661,6 +2705,7 @@
         "products": "Produkter",
         "templates": "Designmallar",
         "redirects": "Omdirigeringar",
+        "pages": "Skapar sidor",
         "finalize": "Slutför",
         "rollback": "Återställer",
         "planning": "Läser exporten och planerar",
@@ -2683,7 +2728,8 @@
         "SHIPPING_PROFILE": "Fraktprofiler",
         "SHIPPING_ZONE": "Fraktzoner",
         "SHIPPING_METHOD": "Fraktsätt",
-        "REDIRECT": "Omdirigeringar"
+        "REDIRECT": "Omdirigeringar",
+        "PAGE": "Sidor"
       },
       "itemActions": {
         "CREATE": "Nya",
@@ -3013,6 +3059,38 @@
         "later": "Kommer senare"
       },
       "mapping": {
+        "content": {
+          "intro": "Varje gammal adress till en sida eller ett inlägg behöver ett mål, annars ser besökare och sökmotorer ”sidan hittades inte”. Välj ett mål per rad. Butikens sökvägar (/shop/, /my-account/, flöden, webbplatskartor) omdirigeras automatiskt.",
+          "none": "Exporten har inga sidor eller inlägg.",
+          "mode": "Sidor och inlägg utan mål",
+          "modes": {
+            "map": "Lämna utan mål (visas som varning)",
+            "home": "Skicka till startsidan",
+            "skip": "Ingen omdirigering (sidan hittades inte)"
+          },
+          "summary": "{pages} sidor · {posts} inlägg · {unmapped} utan mål",
+          "filter": {
+            "label": "Visa",
+            "all": "Alla",
+            "unmapped": "Utan mål"
+          },
+          "kind": {
+            "page": "Sida",
+            "post": "Inlägg"
+          },
+          "targets": {
+            "home": "Startsidan",
+            "skip": "Ingen omdirigering",
+            "import": "Importera som utkastsida",
+            "collection": "Kollektion: {name}",
+            "page": "Sida: {title}",
+            "custom": "Annan sökväg…"
+          },
+          "targetPlaceholder": "Välj mål",
+          "importHint": "”Importera som utkastsida” kräver alternativet ”Sidor (som utkast)” under ”Vad som importeras”. Importerade sidor skapas som utkast; publicera dem från Sidor efter granskning.",
+          "loading": "Laddar dina kollektioner och sidor…",
+          "pageOf": "Sida {page} av {pages}"
+        },
         "emptyTitle": "Inget att granska",
         "emptyBody": "Granska mappning öppnas för en färdig testkörning. Ladda först upp en export under fliken Källor.",
         "openReport": "Öppna rapporten",
@@ -3026,7 +3104,8 @@
           "faq": "FAQ-frågor",
           "shipping": "Frakt",
           "handoff": "Personalisering och extra",
-          "conflict": "När en produkt redan finns"
+          "conflict": "När en produkt redan finns",
+          "content": "Gamla sidor och inlägg"
         },
         "categoryPlaceholder": "Välj en kategori",
         "categoryHint": "Alla importerade produkter placeras i den här plattformskategorin. Obligatoriskt.",
@@ -3037,7 +3116,8 @@
           "shipping": "Frakt",
           "personalization": "Personalisering",
           "templates": "Designmallar",
-          "redirects": "Omdirigeringar"
+          "redirects": "Omdirigeringar",
+          "pages": "Sidor (som utkast)"
         },
         "includeDrafts": "Importera utkast",
         "includeDraftsHint": "Utkastprodukter importeras som utkast och får inga omdirigeringar.",
@@ -3258,6 +3338,9 @@
         "W_UNKNOWN_PLUGIN_META": "Okända plugindata",
         "W_TARGET_MODIFIED_SKIPPED": "Du har ändrat detta, så det uppdaterades inte",
         "W_REDIRECT_CONFLICT": "Omdirigeringen krockar med en befintlig",
+        "W_CONTENT_UNMAPPED": "Gammal sida eller inlägg utan mål",
+        "W_PAGE_SLUG_CONFLICT": "Sidans slug används redan av en annan importerad sida",
+        "W_CONTENT_PATH_UNKNOWN": "Den gamla adressen till ett inlägg kunde inte beräknas",
         "W_SITE_HOST_MISMATCH": "Exporten kommer från en annan domän",
         "W_OPTION_UNREADABLE": "Butiksinställning kunde inte läsas",
         "W_TSV_ROW_INVALID": "Oläslig rad i exporten",
@@ -3326,7 +3409,13 @@
         "note": "Produktionschecklistan är klar",
         "confirmTitle": "Flytta ordern till {status}?",
         "confirmBody": "Dina rader i ordern byter status precis som när du väljer den under Uppdatera status.",
-        "confirmShipped": "När ordern markeras som skickad meddelas kunden och för Kustom-ordrar dras betalningen."
+        "confirmShipped": "När ordern markeras som skickad meddelas kunden och för Kustom-ordrar dras betalningen.",
+        "carrier": "Transportör",
+        "carrierPlaceholder": "t.ex. PostNord",
+        "trackingNumber": "Spårningsnummer",
+        "trackingPlaceholder": "Spårningsnummer från transportören",
+        "trackingRequiredHint": "Ett spårningsnummer krävs innan ordern kan markeras som skickad.",
+        "trackingOptionalHint": "Valfritt: spårningsnumret tas med i leveransmejlet till kunden."
       },
       "activity": "Aktivitet",
       "activityEmpty": "Ingen aktivitet ännu.",
@@ -3340,7 +3429,8 @@
         "VALUE_CHANGED": "Värdet ändrades till {label} (bocken nollställd)",
         "STALE": "{label} finns inte längre i ordern",
         "COMPLETED": "Checklistan är klar",
-        "AUTO_ADVANCE": "Ordern flyttades automatiskt till {status}"
+        "AUTO_ADVANCE": "Ordern flyttades automatiskt till {status}",
+        "AUTO_ADVANCE_PRINT_READY": "Tryckfiler klara: flyttades automatiskt till {status}"
       },
       "queue": {
         "inProduction": "I produktion",
@@ -3398,7 +3488,29 @@
         "backfillHint": "Skapar checklistor för öppna ordrar som lades innan appen aktiverades (de 1000 senaste).",
         "backfillAction": "Skapa för öppna ordrar",
         "backfillResult": "{synced, plural, one {# order synkad} other {# ordrar synkade}} · {failed, plural, =0 {inga misslyckade} one {# misslyckad} other {# misslyckade}} · {remaining, plural, =0 {inga kvar} one {# kvar} other {# kvar}}",
-        "backfillContinue": "Fortsätt ({remaining} kvar)"
+        "backfillContinue": "Fortsätt ({remaining} kvar)",
+        "onPrintReadyLabel": "När tryckfilerna är klara",
+        "onPrintReady": {
+          "none": "Gör ingenting",
+          "moveTo": "Flytta till {status}"
+        },
+        "onPrintReadyHint": "Designer-appen: när alla orderns tryckfiler är renderade flyttas ordern framåt en gång (aldrig bakåt, aldrig till Skickad).",
+        "shipPromptLabel": "Före leverans",
+        "shipPrompt": {
+          "none": "Bara bekräfta",
+          "tracking_optional": "Fråga efter spårning (valfritt)",
+          "tracking_required": "Kräv spårningsnummer"
+        },
+        "shipPromptHint": "Vad bannern ”Flytta till Skickad” frågar efter. Spårningsnumret hamnar i kundens leveransmejl.",
+        "notificationsTitle": "Aviseringar till personalen",
+        "notificationsHint": "Mejl till dem som producerar ordrarna.",
+        "notifyNewOrder": "Mejl vid varje ny order att producera",
+        "notifyNewOrderHint": "Ett mejl per order med antal rader och moment.",
+        "notifyEmail": "Skicka till",
+        "notifyEmailPlaceholder": "Butikens aviseringsadress",
+        "notifyEmailHint": "Lämna tomt för att använda butikens aviseringsadress (Inställningar → E-post).",
+        "notifyDailyDigest": "Daglig sammanfattning kl. 07.00",
+        "notifyDailyDigestHint": "Ett mejl varje morgon (butikens tid) med ordrar som inte är klara. Inget skickas när det inte finns några."
       },
       "sheet": {
         "title": "Produktionsblad",
@@ -3410,7 +3522,8 @@
         "notes": "Ordernoteringar",
         "workspaceUrl": "Arbetsvy",
         "printedAt": "Utskrivet {time}"
-      }
+      },
+      "autoMovedPrintReady": "Tryckfilerna är klara – ordern flyttades automatiskt till {status}."
     },
     "designer": {
       "title": "Designer",
@@ -4272,6 +4385,58 @@
         "empty": "Ingen försäljning med omvänd skattskyldighet under perioden.",
         "totalRow": "Totalt"
       }
+    },
+    "feeds": {
+      "title": "Produktflöden",
+      "subtitle": "Google Merchant- och Meta-katalogflöden för dina annonser.",
+      "saveFailed": "Det gick inte att spara flödesinställningarna.",
+      "settings": {
+        "title": "Flödesinställningar",
+        "subtitle": "Vilka flöden som serveras och standardvärdena för varje artikel.",
+        "google": "Google Merchant-flöde",
+        "googleHint": "RSS 2.0 med g:-namnrymden (Google Shopping, gratisannonser).",
+        "facebook": "Meta-katalogflöde",
+        "facebookHint": "CSV för Facebook- och Instagram-kataloger.",
+        "includeVariants": "En artikel per variant",
+        "includeVariantsHint": "Varje variant blir en artikel grupperad under sin produkt; av = en artikel per produkt.",
+        "defaultBrand": "Standardvarumärke",
+        "defaultBrandHint": "Används för produkter utan eget varumärke (flöden utan varumärke avvisas).",
+        "shippingLabel": "Fraktetikett",
+        "shippingLabelPlaceholder": "t.ex. Standard",
+        "shippingLabelHint": "Googles frakttjänstnamn som skickas för varje marknadsland; lämna tomt för att ställa in frakt i Merchant Center.",
+        "saved": "Sparat"
+      },
+      "urls": {
+        "title": "Flödes-URL:er",
+        "subtitle": "Klistra in dessa i Merchant Center / Commerce Manager. Token i URL:en är det enda skyddet – byt den om den läcker.",
+        "google": "Google (XML)",
+        "facebook": "Meta (CSV)",
+        "copy": "Kopiera",
+        "singleMarket": "Standardmarknad",
+        "allOff": "Båda flödena är avstängda ovan.",
+        "hint": "Flöden byggs om högst var 10:e minut. Utkast, produkter dolda i en marknad och produkter märkta ”Uteslut från flöden” utelämnas; personaliserade produkter listas med sitt baspris.",
+        "rotate": "Byt token",
+        "rotateTitle": "Byta flödestoken?",
+        "rotateBody": "Alla nuvarande flödes-URL:er slutar fungera omedelbart. URL:en måste uppdateras i Merchant Center och Commerce Manager."
+      },
+      "validate": {
+        "title": "Validera",
+        "subtitle": "Bygger flödet på servern och listar vad annonsplattformarna skulle avvisa.",
+        "run": "Validera flöde",
+        "market": "Marknad",
+        "empty": "Kör en validering för att se antal artiklar och saknade identifierare.",
+        "counts": {
+          "products": "Produkter",
+          "items": "Artiklar",
+          "excluded": "Uteslutna",
+          "hidden": "Dolda i marknaden"
+        },
+        "ok": "Alla produkter har GTIN och varumärke ({currency}).",
+        "issues": "{gtin} utan GTIN, {brand} utan varumärke, {bare} skickas helt utan identifierare.",
+        "missingGtin": "Produkter utan GTIN",
+        "missingBrand": "Produkter utan varumärke",
+        "excludedList": "Uteslutna från flöden"
+      }
     }
   },
   "components": {
@@ -4693,7 +4858,9 @@
     "DESIGNER_UPLOAD_QUOTA": "För många uppladdningar på kort tid. Vänta en stund och försök igen.",
     "DESIGNER_STORAGE_FULL": "Serverns lagring är full just nu, så filer kan inte laddas upp. Försök igen senare.",
     "DESIGNER_ORDER_TERMINAL": "Ordern avbröts, återbetalades eller betalades aldrig, så inget skrivs ut.",
-    "DESIGNER_UPLOAD_BUSY": "För många bilder bearbetas just nu. Försök igen om en stund."
+    "DESIGNER_UPLOAD_BUSY": "För många bilder bearbetas just nu. Försök igen om en stund.",
+    "PRODUCT_GTIN_INVALID": "GTIN är inte giltigt (kontrollsiffra).",
+    "FEED_NOT_FOUND": "Flödet hittades inte."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -5016,7 +5183,22 @@
     "collectionsHelp": "Gruppera den här produkten i en eller flera kollektioner",
     "optionInUseDetail": "Alternativ: {options} · Används av fälten: {fields}",
     "shortDescription": "Kort beskrivning",
-    "shortDescriptionPlaceholder": "En kort sammanfattning som visas bredvid knappen Lägg i varukorgen…"
+    "shortDescriptionPlaceholder": "En kort sammanfattning som visas bredvid knappen Lägg i varukorgen…",
+    "feedData": "Flödesdata",
+    "feedDataHint": "Identifierare för Google Shopping- / Meta-katalogflöden. Valfritt; ett flöde utan GTIN eller varumärke avvisas oftast.",
+    "feedGtin": "GTIN (EAN / UPC)",
+    "feedMpn": "MPN",
+    "feedBrand": "Varumärke",
+    "feedBrandHint": "Lämna tomt för att använda standardvarumärket från flödesinställningarna.",
+    "feedGoogleCategory": "Google-produktkategori",
+    "feedGoogleCategoryHint": "Kategori-id eller fullständig sökväg från Googles taxonomi, t.ex. 1604 eller ”Apparel & Accessories > Clothing”.",
+    "feedCondition": "Skick",
+    "feedConditionNew": "Ny",
+    "feedConditionRefurbished": "Renoverad",
+    "feedConditionUsed": "Begagnad",
+    "feedExcluded": "Uteslut från flöden",
+    "feedExcludedHint": "Produkten listas aldrig i Google- / Meta-flödena.",
+    "errGtinInvalid": "GTIN måste vara 8, 12, 13 eller 14 siffror med giltig kontrollsiffra."
   },
   "customField": {
     "typeText": "Text",

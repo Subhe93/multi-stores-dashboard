@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Info, Loader2, RefreshCw, Wand2 } from 'lucide-react';
+import { Info, Loader2, Mail, RefreshCw, Wand2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
@@ -25,7 +26,9 @@ import {
   type ProductionBackfillResult,
   type ProductionCompleteTarget,
   type ProductionOnComplete,
+  type ProductionOnPrintReady,
   type ProductionSettings,
+  type ProductionShipPrompt,
 } from './production.api';
 
 // Field types a check can come from (core + personalization-app types).
@@ -153,6 +156,18 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
     if (target === 'SHIPPED' && form.on_complete === 'auto') update('on_complete', 'suggest');
   };
 
+  // M5.4: what the "move to Shipped" banner asks for.
+  const shipPromptOptions = (['none', 'tracking_optional', 'tracking_required'] as ProductionShipPrompt[]).map((value) => ({
+    value,
+    label: t(`shipPrompt.${value}`),
+  }));
+
+  // M5.4: designer print files rendered → move the order forward once.
+  const onPrintReadyOptions = (['none', 'PROCESSING', 'MANUFACTURING'] as ProductionOnPrintReady[]).map((value) => ({
+    value,
+    label: value === 'none' ? t('onPrintReady.none') : t('onPrintReady.moveTo', { status: tStatus(value) }),
+  }));
+
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
@@ -275,6 +290,29 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
                 <span>{t('shippedNeverAuto')}</span>
               </div>
             )}
+            {form.complete_target === 'SHIPPED' && form.on_complete !== 'none' && (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${uid}-ship-prompt`} className="text-sm font-normal">{t('shipPromptLabel')}</Label>
+                <SearchableSelect
+                  id={`${uid}-ship-prompt`}
+                  value={form.ship_prompt}
+                  onChange={(v) => update('ship_prompt', v as ProductionShipPrompt)}
+                  options={shipPromptOptions}
+                />
+                <p className="text-xs text-muted-foreground">{t('shipPromptHint')}</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`${uid}-print-ready`} className="text-sm font-normal">{t('onPrintReadyLabel')}</Label>
+              <SearchableSelect
+                id={`${uid}-print-ready`}
+                value={form.on_print_ready}
+                onChange={(v) => update('on_print_ready', v as ProductionOnPrintReady)}
+                options={onPrintReadyOptions}
+              />
+              <p className="text-xs text-muted-foreground">{t('onPrintReadyHint')}</p>
+            </div>
 
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
@@ -303,6 +341,64 @@ export function ProductionSettingsPanel({ app, token }: ProductionSettingsPanelP
                 label={t('useQualityCheck')}
               />
             </div>
+
+            <AppSettingsFooter error={error} saved={saved} savedLabel={t('saved')} saving={saving} dirty={dirty} onSave={save} />
+          </CardContent>
+        </Card>
+
+        {/* Staff notifications (M5.4) */}
+        <Card className="shadow-none">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <Mail className="size-4 text-muted-foreground" />
+              {t('notificationsTitle')}
+            </CardTitle>
+            <CardDescription>{t('notificationsHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${uid}-notify-new`} className="text-sm font-normal">{t('notifyNewOrder')}</Label>
+                <p className="text-xs text-muted-foreground">{t('notifyNewOrderHint')}</p>
+              </div>
+              <ToggleSwitch
+                id={`${uid}-notify-new`}
+                checked={form.notify_new_order}
+                disabled={saving}
+                onChange={(next) => update('notify_new_order', next)}
+                label={t('notifyNewOrder')}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${uid}-notify-digest`} className="text-sm font-normal">{t('notifyDailyDigest')}</Label>
+                <p className="text-xs text-muted-foreground">{t('notifyDailyDigestHint')}</p>
+              </div>
+              <ToggleSwitch
+                id={`${uid}-notify-digest`}
+                checked={form.notify_daily_digest}
+                disabled={saving}
+                onChange={(next) => update('notify_daily_digest', next)}
+                label={t('notifyDailyDigest')}
+              />
+            </div>
+
+            {(form.notify_new_order || form.notify_daily_digest) && (
+              <div className="space-y-1.5">
+                <Label htmlFor={`${uid}-notify-email`} className="text-sm font-normal">{t('notifyEmail')}</Label>
+                <Input
+                  id={`${uid}-notify-email`}
+                  type="email"
+                  autoComplete="email"
+                  value={form.notify_email ?? ''}
+                  onChange={(e) => update('notify_email', e.target.value.trim() ? e.target.value : null)}
+                  placeholder={t('notifyEmailPlaceholder')}
+                  disabled={saving}
+                />
+                <p className="text-xs text-muted-foreground">{t('notifyEmailHint')}</p>
+              </div>
+            )}
 
             <AppSettingsFooter error={error} saved={saved} savedLabel={t('saved')} saving={saving} dirty={dirty} onSave={save} />
           </CardContent>

@@ -102,6 +102,7 @@ export const APPLY_PHASES = [
   'shipping',
   'products',
   'templates',
+  'pages',
   'redirects',
   'finalize',
 ] as const;
@@ -151,7 +152,8 @@ export type ImportScope =
   | 'shipping'
   | 'personalization'
   | 'templates'
-  | 'redirects';
+  | 'redirects'
+  | 'pages';
 export const IMPORT_SCOPES: readonly ImportScope[] = [
   'categories',
   'products',
@@ -160,7 +162,21 @@ export const IMPORT_SCOPES: readonly ImportScope[] = [
   'personalization',
   'templates',
   'redirects',
+  'pages',
 ];
+
+/**
+ * M5 B17 content migration: where the old WordPress pages / posts go.
+ * `targets` is keyed by the page / post ref (`woo:<host>:page:<id>`); a value
+ * is an absolute path in the store, or `home` / `skip` / `import` (the last
+ * one needs `scopes.pages`). Unmapped refs follow `mode`.
+ */
+export type ContentRedirectMode = 'map' | 'home' | 'skip';
+export const CONTENT_REDIRECT_MODES: readonly ContentRedirectMode[] = ['map', 'home', 'skip'];
+export interface ContentRedirectOptions {
+  mode?: ContentRedirectMode;
+  targets?: Record<string, string>;
+}
 
 export type SourceProductStatus = 'publish' | 'draft' | 'private' | 'pending' | 'future';
 export const SOURCE_PRODUCT_STATUSES: readonly SourceProductStatus[] = ['publish', 'draft', 'private', 'pending', 'future'];
@@ -204,6 +220,7 @@ export interface ImportRunOptions {
   stock_on_update?: StockOnUpdate;
   /** Help images per preset key (`names_equal_length: {name_1, name_2, model_text}`); no editor, kept as stored. */
   preset_help_images?: Record<string, Record<string, string>>;
+  content_redirects?: ContentRedirectOptions;
   // The API rejects unknown option keys (IMPORT_RUN_OPTIONS_INVALID). Saving
   // spreads the stored options, so keys this UI has no editor for are sent
   // back unchanged; the index signature only lets them be spread generically.
@@ -220,6 +237,8 @@ export const DEFAULT_RUN_OPTIONS: ImportRunOptions = {
     personalization: true,
     templates: true,
     redirects: true,
+    // Same default as the API: imported pages are opt-in.
+    pages: false,
   },
   platform_category_id: null,
   skip_ext_ids: [],
@@ -237,7 +256,19 @@ export const DEFAULT_RUN_OPTIONS: ImportRunOptions = {
   // Same default as the API (`defaultRunOptions`): HEAD-checking every image is opt-in.
   verify_media: false,
   stock_on_update: 'keep',
+  content_redirects: { mode: 'map', targets: {} },
 };
+
+/** A WordPress page / post of the export with its current redirect target (summary `content.items`). */
+export interface ContentRow {
+  ref: string;
+  kind: 'page' | 'post';
+  /** Old URL path (`/om-oss/`). */
+  path: string;
+  title: string;
+  /** `content_redirects.targets[ref]`, the mode fallback, or null when unmapped. */
+  target: string | null;
+}
 
 // ─── Dry-run summary (`ImportRun.summary`, WP-B `DryRunSummary`) ─────────────
 
@@ -389,6 +420,9 @@ export interface DryRunSummary {
   warnings?: Record<string, { count: number; samples?: WarningSample[] }>;
   skipped?: { external_ref: string; title: string; reason: string }[];
   unmapped_meta_prefixes?: Record<string, number>;
+  /** M5 B17: old pages / posts and their targets (absent when the export has none). */
+  content?: { pages: number; posts: number; mapped: number; unmapped: number; imported: number; items?: ContentRow[] };
+  content_unmapped?: Omit<ContentRow, 'target'>[];
 }
 
 // ─── Runs ────────────────────────────────────────────────────────────────────

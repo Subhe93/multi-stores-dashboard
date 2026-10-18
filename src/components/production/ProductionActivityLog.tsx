@@ -99,7 +99,9 @@ export function ProductionActivityLog({ token, orderId, version }: ProductionAct
       }
       case 'AUTO_ADVANCE': {
         const status = str(p.to) ?? str(p.status) ?? '';
-        return t('events.AUTO_ADVANCE', { status: status && tc.has(`orderStatus.${status}`) ? tc(`orderStatus.${status}`) : status });
+        const label = status && tc.has(`orderStatus.${status}`) ? tc(`orderStatus.${status}`) : status;
+        // M5.4: the print-ready step of the designer worker.
+        return p.reason === 'print_ready' ? t('events.AUTO_ADVANCE_PRINT_READY', { status: label }) : t('events.AUTO_ADVANCE', { status: label });
       }
       default:
         return KNOWN_ACTIONS.includes(e.action) ? t(`events.${e.action}`, { label }) : e.action;

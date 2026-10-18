@@ -5,7 +5,7 @@
 // describes each app so the dashboard can render names, badges and
 // dependency hints without an extra request.
 
-export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer'] as const;
+export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer', 'feeds'] as const;
 
 export type StoreAppKey = (typeof STORE_APP_KEYS)[number];
 
@@ -71,6 +71,13 @@ export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
     requiresIndependent: true,
     dependsOn: [],
   },
+  feeds: {
+    key: 'feeds',
+    nameKey: 'creator.apps.items.feeds.name',
+    descriptionKey: 'creator.apps.items.feeds.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
 };
 
 // Apps not built yet: kept in the registry (the API still returns them) but
@@ -94,6 +101,7 @@ export const STORE_APP_HREFS: Record<StoreAppKey, string | null> = {
   personalization: '/creator/personalization',
   production: '/creator/production?tab=settings',
   designer: '/creator/designer?tab=settings',
+  feeds: '/creator/feeds',
 };
 
 export function isStoreAppKey(value: unknown): value is StoreAppKey {

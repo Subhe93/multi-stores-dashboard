@@ -10,6 +10,24 @@ export type ProductionState = 'NONE' | 'NOT_STARTED' | 'IN_PROGRESS' | 'READY';
 export type ProductionCheckSource = 'FIELD_VALUE' | 'VARIANT_OPTION' | 'DESIGN' | 'CUSTOM';
 export type ProductionOnComplete = 'none' | 'suggest' | 'auto';
 export type ProductionCompleteTarget = 'QUALITY_CHECK' | 'SHIPPED';
+/** M5.4: status the order moves to once its print files are rendered. */
+export type ProductionOnPrintReady = 'none' | 'PROCESSING' | 'MANUFACTURING';
+/** M5.4: what the "move to Shipped" banner asks for. */
+export type ProductionShipPrompt = 'none' | 'tracking_optional' | 'tracking_required';
+
+/** "All done — move to X?" of the API; the tracking flags apply to SHIPPED only. */
+export interface ProductionSuggestion {
+  next_status: ProductionCompleteTarget;
+  ask_tracking: boolean;
+  requires_tracking: boolean;
+}
+
+/** The order's latest automation move (`reason` `print_ready` for the M5.4 step). */
+export interface ProductionAutoAdvance {
+  to: string;
+  reason: string | null;
+  at: string;
+}
 
 export interface ProductionCheck {
   id: string;
@@ -85,7 +103,8 @@ export interface ProductionWorkspace {
   };
   lines: ProductionLine[];
   summary: ProductionSummary;
-  suggestion: { next_status: ProductionCompleteTarget } | null;
+  suggestion: ProductionSuggestion | null;
+  auto_advanced?: ProductionAutoAdvance | null;
   settings: {
     on_complete: ProductionOnComplete;
     complete_target: ProductionCompleteTarget;
@@ -117,7 +136,7 @@ export interface ProductionWriteResult {
   check: ProductionCheck | null;
   summary: ProductionSummary;
   changed: boolean;
-  suggestion: { next_status: ProductionCompleteTarget } | null;
+  suggestion: ProductionSuggestion | null;
   order_status: string | null;
   auto_advanced_to?: string;
 }
@@ -144,6 +163,12 @@ export interface ProductionSettings {
   complete_target: ProductionCompleteTarget;
   start_on_first_check: boolean;
   use_quality_check: boolean;
+  on_print_ready: ProductionOnPrintReady;
+  ship_prompt: ProductionShipPrompt;
+  notify_new_order: boolean;
+  /** Null = the store's notification address (then the owner login). */
+  notify_email: string | null;
+  notify_daily_digest: boolean;
 }
 
 export interface ProductionSettingsResponse {
@@ -179,6 +204,11 @@ export const DEFAULT_PRODUCTION_SETTINGS: ProductionSettings = {
   complete_target: 'QUALITY_CHECK',
   start_on_first_check: false,
   use_quality_check: true,
+  on_print_ready: 'none',
+  ship_prompt: 'tracking_optional',
+  notify_new_order: false,
+  notify_email: null,
+  notify_daily_digest: false,
 };
 
 const BASE = '/production/my';
@@ -247,6 +277,15 @@ export function normalizeProductionSettings(raw: unknown): ProductionSettings {
     complete_target: s.complete_target === 'SHIPPED' || s.complete_target === 'QUALITY_CHECK' ? s.complete_target : d.complete_target,
     start_on_first_check: bool(s.start_on_first_check, d.start_on_first_check),
     use_quality_check: bool(s.use_quality_check, d.use_quality_check),
+    on_print_ready:
+      s.on_print_ready === 'PROCESSING' || s.on_print_ready === 'MANUFACTURING' ? s.on_print_ready : d.on_print_ready,
+    ship_prompt:
+      s.ship_prompt === 'none' || s.ship_prompt === 'tracking_required' || s.ship_prompt === 'tracking_optional'
+        ? s.ship_prompt
+        : d.ship_prompt,
+    notify_new_order: bool(s.notify_new_order, d.notify_new_order),
+    notify_email: typeof s.notify_email === 'string' && s.notify_email.trim() ? s.notify_email.trim() : null,
+    notify_daily_digest: bool(s.notify_daily_digest, d.notify_daily_digest),
   };
 }
 

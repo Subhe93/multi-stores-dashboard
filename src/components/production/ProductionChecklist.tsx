@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useApiError } from '@/lib/useApiError';
@@ -46,6 +47,15 @@ import {
 } from './production.api';
 
 const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i;
+
+/** How long the "moved automatically (print files ready)" notice stays on the order. */
+const AUTO_NOTICE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+interface AutoMovedNotice {
+  status: string;
+  /** `print_ready` (M5.4 worker step) or null (checklist automation). */
+  reason: string | null;
+}
 
 interface ProductionChecklistProps {
   orderId: string;
@@ -121,7 +131,10 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Set<string>>(() => new Set());
   const [bulkBusy, setBulkBusy] = useState<string | null>(null);
-  const [autoMoved, setAutoMoved] = useState<string | null>(null);
+  const [autoMoved, setAutoMoved] = useState<AutoMovedNotice | null>(null);
+  // Ship prompt of the SHIPPED suggestion (M5.4 `ship_prompt`).
+  const [carrier, setCarrier] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [addLabel, setAddLabel] = useState('');
   const [addBusy, setAddBusy] = useState(false);
@@ -143,6 +156,16 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
     setWs(next);
     statusRef.current = next.order.status;
     onLoadedRef.current?.(next);
+    // The print-ready step runs in the worker: a recent move the order still
+    // sits in is announced on load (the banner is dismissable).
+    const auto = next.auto_advanced;
+    if (
+      auto?.reason === 'print_ready' &&
+      auto.to === next.order.status &&
+      Date.now() - new Date(auto.at).getTime() < AUTO_NOTICE_MAX_AGE_MS
+    ) {
+      setAutoMoved((prev) => prev ?? { status: auto.to, reason: auto.reason });
+    }
   }, []);
 
   const load = useCallback(
@@ -194,7 +217,7 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
         order: res.order_status ? { ...next.order, status: res.order_status } : next.order,
       };
     });
-    if (res.auto_advanced_to) setAutoMoved(res.auto_advanced_to);
+    if (res.auto_advanced_to) setAutoMoved({ status: res.auto_advanced_to, reason: null });
     if (res.order_status && res.order_status !== statusRef.current) {
       statusRef.current = res.order_status;
       onOrderStatusChanged?.(res.order_status);
@@ -311,19 +334,31 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
   };
 
   // "All done — move to X?" uses the normal status endpoint (timeline,
-  // emails and payment capture behave exactly like a manual change).
+  // emails and payment capture behave exactly like a manual change). The
+  // SHIPPED prompt (M5.4) adds carrier + tracking number to the same call.
+  const shipPrompt = !!ws?.suggestion && ws.suggestion.next_status === 'SHIPPED' && ws.suggestion.ask_tracking;
+  const trackingMissing = !!ws?.suggestion?.requires_tracking && !trackingNumber.trim();
+
   const applySuggestion = async () => {
-    if (!ws?.suggestion || applying) return;
+    if (!ws?.suggestion || applying || trackingMissing) return;
     const status = ws.suggestion.next_status;
     setApplying(true);
     setError(null);
     try {
+      const tracking = shipPrompt
+        ? {
+            ...(carrier.trim() ? { carrier: carrier.trim() } : {}),
+            ...(trackingNumber.trim() ? { tracking_number: trackingNumber.trim() } : {}),
+          }
+        : {};
       await api(`/orders/${encodeURIComponent(orderId)}/status`, {
         method: 'PUT',
         token,
-        body: JSON.stringify({ status, note: t('suggestion.note') }),
+        body: JSON.stringify({ status, note: t('suggestion.note'), ...tracking }),
       });
       setConfirmOpen(false);
+      setCarrier('');
+      setTrackingNumber('');
       await load(true);
       onOrderStatusChanged?.(status);
     } catch (err) {
@@ -617,7 +652,11 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
         {autoMoved && (
           <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />
-            <span className="flex-1">{t('autoMoved', { status: STATUS(autoMoved) })}</span>
+            <span className="flex-1">
+              {autoMoved.reason === 'print_ready'
+                ? t('autoMovedPrintReady', { status: STATUS(autoMoved.status) })
+                : t('autoMoved', { status: STATUS(autoMoved.status) })}
+            </span>
             <button
               type="button"
               aria-label={tCommon('close')}
@@ -690,11 +729,44 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
               {ws.suggestion?.next_status === 'SHIPPED' ? t('suggestion.confirmShipped') : t('suggestion.confirmBody')}
             </DialogDescription>
           </DialogHeader>
+          {shipPrompt && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${orderId}-ship-carrier`} className="text-sm font-normal">{t('suggestion.carrier')}</Label>
+                <Input
+                  id={`${orderId}-ship-carrier`}
+                  value={carrier}
+                  onChange={(e) => setCarrier(e.target.value)}
+                  placeholder={t('suggestion.carrierPlaceholder')}
+                  maxLength={80}
+                  disabled={applying}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${orderId}-ship-tracking`} className="text-sm font-normal">
+                  {t('suggestion.trackingNumber')}
+                  {ws.suggestion?.requires_tracking && <span className="text-destructive"> *</span>}
+                </Label>
+                <Input
+                  id={`${orderId}-ship-tracking`}
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder={t('suggestion.trackingPlaceholder')}
+                  maxLength={120}
+                  required={ws.suggestion?.requires_tracking}
+                  disabled={applying}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground sm:col-span-2">
+                {ws.suggestion?.requires_tracking ? t('suggestion.trackingRequiredHint') : t('suggestion.trackingOptionalHint')}
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>
               {tCommon('cancel')}
             </Button>
-            <Button type="button" disabled={applying} onClick={applySuggestion}>
+            <Button type="button" disabled={applying || trackingMissing} onClick={applySuggestion}>
               {applying && <Loader2 className="animate-spin" />}
               {ws.suggestion ? t('suggestion.action', { status: STATUS(ws.suggestion.next_status) }) : ''}
             </Button>
