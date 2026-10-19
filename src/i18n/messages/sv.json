@@ -3944,7 +3944,11 @@
         "nextAttempt": "Nästa försök {date}",
         "notPaid": "Inte betald ännu",
         "download": "Ladda ned",
-        "regenerate": "Rendera om"
+        "regenerate": "Rendera om",
+        "back": "baksida",
+        "downloadBack": "Baksida",
+        "downloadPdfBack": "PDF (baksida)",
+        "doubleSided": "Dubbelsidig"
       },
       "settings": {
         "saveFailed": "Inställningarna kunde inte sparas.",
@@ -4042,7 +4046,15 @@
           "errLabel": "Ange ett namn på minst ett språk.",
           "errPrice": "Ange ett pris från 0 till {max} med högst 2 decimaler.",
           "errMaxQty": "Ange ett heltal från 1 till {max}.",
-          "errFix": "Några tillval behöver rättas, se de markerade fälten."
+          "errFix": "Några tillval behöver rättas, se de markerade fälten.",
+          "enablesBack": "Aktiverar baksidan",
+          "enablesBackHint": "När kunden väljer tillvalet visas ett \"Baksida\"-block: samma design igen, eller en annan mall med egen bild och egna texter (en andra tryckfil renderas).",
+          "backTemplates": "Mallar för baksidan",
+          "backTemplatesHint": "Publicerade mallar som kunden kan välja för baksidan under \"Annan mall\". Lämna tomt för att bara erbjuda produktens egen mall.",
+          "backTemplatesAdd": "Lägg till en mall…",
+          "backTemplatesNone": "Inga andra publicerade mallar",
+          "backTemplatesOwn": "Produktens egen mall erbjuds alltid först.",
+          "backTemplatesRemove": "Ta bort {name}"
         }
       },
       "order": {
@@ -4090,7 +4102,16 @@
         "readOnly": "Designer-appen är avstängd, så designerna är skrivskyddade. Tryckfiler och originalfoton kan fortfarande laddas ner.",
         "readOnlyRefused": "Designer-appen är avstängd, så den här åtgärden är inte tillgänglig. Nedladdningar fungerar fortfarande.",
         "addons": "Tillval",
-        "addonsPerUnit": "{amount} per styck · × {quantity}"
+        "addonsPerUnit": "{amount} per styck · × {quantity}",
+        "back": "Baksida",
+        "backModeSame": "Samma design som framsidan",
+        "backModeOther": "Mall: {name}",
+        "backProofAlt": "Korrektur av baksidan",
+        "backTexts": "Baksidans texter",
+        "backPhotos": "Baksidans foton",
+        "backFile": "Tryckfil (baksida)",
+        "downloadPrintBack": "Ladda ner tryckfil (baksida)",
+        "downloadPdfBack": "Ladda ner PDF (baksida)"
       },
       "printErrors": {
         "WORKER_LOST": "Renderingen avbröts. Den görs om automatiskt.",

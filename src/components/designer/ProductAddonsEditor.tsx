@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ArrowDown, ArrowUp, CheckCircle2, Download, Loader2, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle2, Download, Loader2, Plus, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { loadStoreLocales } from '@/lib/personalization';
@@ -15,6 +16,7 @@ import {
   putProductAddons,
   type DesignerAddonItem,
   type ProductDesignerView,
+  type TemplateListItem,
 } from '@/lib/designer/designer.api';
 import { I18nInputs } from '@/components/designer/TemplateElementForm';
 import { FieldError } from '@/components/designer/DesignerBits';
@@ -49,6 +51,9 @@ function freeKey(items: Draft[]): string {
   }
 }
 
+/** M5.6: whether an item opens the back side (the NPP `double` key does by default). */
+const enablesBack = (i: Pick<DesignerAddonItem, 'key' | 'enables_back'>) => i.enables_back ?? i.key === 'double';
+
 /** The fields that matter for "unsaved changes" (order is the list order). */
 const comparable = (i: DesignerAddonItem) => ({
   key: i.key,
@@ -57,7 +62,10 @@ const comparable = (i: DesignerAddonItem) => ({
   price: i.price,
   max_qty: i.type === 'quantity' ? i.max_qty : undefined,
   enabled: i.enabled,
+  enables_back: enablesBack(i),
 });
+
+const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 const sameItems = (a: DesignerAddonItem[], b: DesignerAddonItem[]) =>
   JSON.stringify(a.map(comparable)) === JSON.stringify(b.map(comparable));
@@ -72,17 +80,24 @@ export function ProductAddonsEditor({
   productId,
   token,
   view,
+  templates = [],
   onSaved,
 }: {
   productId: string;
   token: string;
   view: ProductDesignerView;
+  /** The store's templates (published ones are offered as back templates, M5.6). */
+  templates?: TemplateListItem[];
   onSaved: (v: ProductDesignerView) => void;
 }) {
   const t = useTranslations('creator.designer.product.addons');
   const locale = useLocale();
   const describeError = useApiError();
   const saved = view.link?.addons?.items ?? [];
+  // M5.6: templates offered for the back besides the product's own.
+  const savedBackIds = useMemo(() => view.link?.back_template_ids ?? [], [view.link?.back_template_ids]);
+  const [backIds, setBackIds] = useState<string[]>(savedBackIds);
+  const [backPick, setBackPick] = useState('');
   const presets = useMemo(() => view.link?.addon_presets ?? [], [view.link?.addon_presets]);
   const [items, setItems] = useState<Draft[]>(() => toDraft(saved));
   const [locales, setLocales] = useState<string[]>(['en']);
@@ -95,12 +110,14 @@ export function ProductAddonsEditor({
   // The parent replaces `view` on every link save / unlink too; keying on the
   // object identity would wipe unsaved add-on edits each time the merchant
   // saves the link card above.
-  const serverJson = JSON.stringify(saved);
+  const serverJson = JSON.stringify({ saved, savedBackIds });
   const syncedJson = useRef(serverJson);
   useEffect(() => {
     if (syncedJson.current === serverJson) return;
     syncedJson.current = serverJson;
-    setItems(toDraft(JSON.parse(serverJson) as DesignerAddonItem[]));
+    const parsed = JSON.parse(serverJson) as { saved: DesignerAddonItem[]; savedBackIds: string[] };
+    setItems(toDraft(parsed.saved));
+    setBackIds(parsed.savedBackIds);
     setItemErrors({});
   }, [serverJson]);
 
@@ -116,8 +133,19 @@ export function ProductAddonsEditor({
     };
   }, [token]);
 
-  const dirty = !sameItems(items, saved);
+  const dirty = !sameItems(items, saved) || !sameIds(backIds, savedBackIds);
   const unusedPresets = useMemo(() => presets.filter((p) => !items.some((i) => i.key === p.key)), [presets, items]);
+  const anyEnablesBack = items.some(enablesBack);
+  const ownTemplateId = view.link?.template_id ?? null;
+  const publishedTemplates = useMemo(
+    () => templates.filter((x) => x.status === 'PUBLISHED' && !!x.current_version_id && x.id !== ownTemplateId),
+    [templates, ownTemplateId],
+  );
+  const backOptions = useMemo(
+    () => publishedTemplates.filter((x) => !backIds.includes(x.id)).map((x) => ({ value: x.id, label: x.name })),
+    [publishedTemplates, backIds],
+  );
+  const templateName = (id: string) => templates.find((x) => x.id === id)?.name ?? id.slice(0, 8);
 
   const patch = (id: string, next: Partial<DesignerAddonItem>) => {
     setDone(false);
@@ -203,22 +231,29 @@ export function ProductAddonsEditor({
     }
     setSaving(true);
     try {
-      const res = await putProductAddons(token, productId, {
-        v: 2,
-        items: items.map((rest, i) => {
-          const label: Record<string, string> = {};
-          for (const [loc, v] of Object.entries(rest.label)) if (v.trim()) label[loc] = v.trim();
-          return {
-            key: rest.key,
-            type: rest.type,
-            label,
-            price: rest.price,
-            ...(rest.type === 'quantity' ? { max_qty: rest.max_qty ?? 1 } : {}),
-            enabled: rest.enabled,
-            sort: i,
-          };
-        }),
-      });
+      const res = await putProductAddons(
+        token,
+        productId,
+        {
+          v: 2,
+          items: items.map((rest, i) => {
+            const label: Record<string, string> = {};
+            for (const [loc, v] of Object.entries(rest.label)) if (v.trim()) label[loc] = v.trim();
+            return {
+              key: rest.key,
+              type: rest.type,
+              label,
+              price: rest.price,
+              ...(rest.type === 'quantity' ? { max_qty: rest.max_qty ?? 1 } : {}),
+              enabled: rest.enabled,
+              sort: i,
+              // Stored only when it differs from the key default (G0 for untouched configs).
+              ...(typeof rest.enables_back === 'boolean' ? { enables_back: rest.enables_back } : {}),
+            };
+          }),
+        },
+        backIds,
+      );
       onSaved(res);
       setDone(true);
     } catch (err) {
@@ -311,6 +346,22 @@ export function ProductAddonsEditor({
                     error={errs.label}
                   />
 
+                  {/* M5.6: this add-on opens the "back side" block on the product page. */}
+                  <div className="flex items-start justify-between gap-3 rounded-md border bg-zinc-50 p-2.5">
+                    <div>
+                      <Label htmlFor={`${base}-enables_back`} className="text-xs font-normal">
+                        {t('enablesBack')}
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground">{t('enablesBackHint')}</p>
+                    </div>
+                    <ToggleSwitch
+                      id={`${base}-enables_back`}
+                      checked={enablesBack(it)}
+                      onChange={(v) => patch(it.uid, { enables_back: v })}
+                      label={t('enablesBack')}
+                    />
+                  </div>
+
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <Label htmlFor={`${base}-price`} className="text-xs">
@@ -357,6 +408,50 @@ export function ProductAddonsEditor({
               );
             })}
           </ol>
+        )}
+
+        {anyEnablesBack && (
+          <div className="space-y-2 rounded-md border p-3" data-back-templates>
+            <Label htmlFor="dz-back-templates" className="text-sm font-normal">
+              {t('backTemplates')}
+            </Label>
+            <p className="text-xs text-muted-foreground">{t('backTemplatesHint')}</p>
+            {backIds.length > 0 && (
+              <ul className="flex flex-wrap gap-1.5">
+                {backIds.map((id) => (
+                  <li key={id} className="inline-flex items-center gap-1 rounded-full border bg-zinc-50 ps-2.5 pe-1 py-0.5 text-xs">
+                    <span dir="auto">{templateName(id)}</span>
+                    <button
+                      type="button"
+                      className="inline-flex size-6 items-center justify-center rounded-full hover:bg-zinc-200 max-sm:size-9"
+                      aria-label={t('backTemplatesRemove', { name: templateName(id) })}
+                      onClick={() => {
+                        setDone(false);
+                        setBackIds((list) => list.filter((x) => x !== id));
+                      }}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="max-w-md">
+              <SearchableSelect
+                id="dz-back-templates"
+                value={backPick}
+                placeholder={backOptions.length ? t('backTemplatesAdd') : t('backTemplatesNone')}
+                options={backOptions}
+                onChange={(v) => {
+                  if (!v) return;
+                  setDone(false);
+                  setBackIds((list) => (list.includes(v) ? list : [...list, v]));
+                  setBackPick('');
+                }}
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">{t('backTemplatesOwn')}</p>
+          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-2 border-t pt-4">

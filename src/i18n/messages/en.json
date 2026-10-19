@@ -3944,7 +3944,11 @@
         "nextAttempt": "Next attempt {date}",
         "notPaid": "Not paid yet",
         "download": "Download",
-        "regenerate": "Regenerate"
+        "regenerate": "Regenerate",
+        "back": "back",
+        "downloadBack": "Back",
+        "downloadPdfBack": "PDF (back)",
+        "doubleSided": "Double-sided"
       },
       "settings": {
         "saveFailed": "The settings could not be saved.",
@@ -4042,7 +4046,15 @@
           "errLabel": "Enter a name in at least one language.",
           "errPrice": "Enter a price from 0 to {max} with at most 2 decimals.",
           "errMaxQty": "Enter a whole number from 1 to {max}.",
-          "errFix": "Some add-ons need fixing, see the marked fields."
+          "errFix": "Some add-ons need fixing, see the marked fields.",
+          "enablesBack": "Enables the back side",
+          "enablesBackHint": "When the customer picks this add-on, a \"Back side\" block appears: same design again, or another template with its own photo and texts (a second print file is rendered).",
+          "backTemplates": "Back templates",
+          "backTemplatesHint": "Published templates the customer may pick for the back under \"Another template\". Leave empty to offer only the product’s own template.",
+          "backTemplatesAdd": "Add a template…",
+          "backTemplatesNone": "No other published templates",
+          "backTemplatesOwn": "The product’s own template is always offered first.",
+          "backTemplatesRemove": "Remove {name}"
         }
       },
       "order": {
@@ -4090,7 +4102,16 @@
         "readOnly": "The designer app is off, so designs are read-only. Print files and original photos can still be downloaded.",
         "readOnlyRefused": "The designer app is off, so this action is not available. Downloads still work.",
         "addons": "Add-ons",
-        "addonsPerUnit": "{amount} per unit · × {quantity}"
+        "addonsPerUnit": "{amount} per unit · × {quantity}",
+        "back": "Back side",
+        "backModeSame": "Same design as the front",
+        "backModeOther": "Template: {name}",
+        "backProofAlt": "Proof of the back side",
+        "backTexts": "Back texts",
+        "backPhotos": "Back photos",
+        "backFile": "Print file (back)",
+        "downloadPrintBack": "Download print file (back)",
+        "downloadPdfBack": "Download PDF (back)"
       },
       "printErrors": {
         "WORKER_LOST": "The render was interrupted. It is retried automatically.",

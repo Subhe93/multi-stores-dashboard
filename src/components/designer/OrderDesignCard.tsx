@@ -33,6 +33,7 @@ import { useDateTimeFormat } from '@/components/importer/ImporterBits';
 import { DesignPreviewCanvas, type PreviewFont } from '@/components/designer/DesignPreviewCanvas';
 import { PrintStatusBadge, usePrintErrorText } from '@/components/designer/DesignerBits';
 import { OrderDesignAddons } from '@/components/designer/OrderDesignAddons';
+import { OrderDesignBackBlock } from '@/components/designer/OrderDesignBack';
 
 interface OrderDesignCardProps {
   orderId: string;
@@ -78,7 +79,9 @@ function useDesignLibraries(token: string, needed: boolean): DesignLibraries {
   return libs;
 }
 
-function ProofFallback({ item, libraries }: { item: OrderDesignItem; libraries: DesignLibraries }) {
+export type { DesignLibraries };
+
+export function ProofFallback({ item, libraries }: { item: OrderDesignItem; libraries: DesignLibraries }) {
   const t = useTranslations('creator.designer.order');
   const spec = item.template_spec ?? null;
   const { fonts, assets: library } = libraries;
@@ -184,18 +187,20 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
 
   // Libraries are fetched once per card, and only when some line needs the
   // client-side proof fallback (no server proof yet).
-  const needsFallback = !!data?.items.some((item) => !item.proof_url && !!item.template_spec);
+  const needsFallback = !!data?.items.some(
+    (item) => (!item.proof_url && !!item.template_spec) || (!!item.back && !item.back.proof_url && !!item.back.template_spec),
+  );
   const libraries = useDesignLibraries(token, needsFallback);
 
   if (hidden) return null;
   if (!data && !error) return null;
   if (data && data.items.length === 0) return null;
 
-  const download = async (item: OrderDesignItem, format: 'png' | 'pdf' = 'png') => {
-    setBusy(`dl-${format}-${item.order_item_id}`);
+  const download = async (item: OrderDesignItem, format: 'png' | 'pdf' = 'png', side: 'front' | 'back' = 'front') => {
+    setBusy(`dl-${format}-${side === 'back' ? 'back-' : ''}${item.order_item_id}`);
     setRowMsg(null);
     try {
-      await downloadPrintFile(token, orderId, item.order_item_id, format);
+      await downloadPrintFile(token, orderId, item.order_item_id, format, side);
     } catch (err) {
       setRowMsg({ id: item.order_item_id, text: describeError(err) });
     } finally {
@@ -326,6 +331,17 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
 
                   {/* M5.5: chosen add-ons (separate from the print-file block). */}
                   <OrderDesignAddons item={item} />
+
+                  {/* M5.6: the back side (mode, template, texts, photos, proof, downloads). */}
+                  {item.back && (
+                    <OrderDesignBackBlock
+                      item={item}
+                      libraries={libraries}
+                      busy={busy}
+                      onDownload={(format) => download(item, format, 'back')}
+                      onDownloadOriginal={(photo) => downloadOriginal(item, photo)}
+                    />
+                  )}
 
                   {photos.length > 0 && (
                     <div className="space-y-1">

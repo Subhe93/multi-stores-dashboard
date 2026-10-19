@@ -325,7 +325,8 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
     if (downloading) return;
     setDownloading(`print-${file.order_item_id}`);
     try {
-      await downloadPrintFile(token, orderId, file.order_item_id);
+      // M5.6: the back file of a double-sided line is a second link.
+      await downloadPrintFile(token, orderId, file.order_item_id, 'png', file.url.includes('side=back') ? 'back' : 'front');
     } catch (err) {
       setError(apiError(err));
     } finally {

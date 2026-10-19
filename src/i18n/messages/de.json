@@ -3944,7 +3944,11 @@
         "nextAttempt": "Nächster Versuch {date}",
         "notPaid": "Noch nicht bezahlt",
         "download": "Herunterladen",
-        "regenerate": "Neu erzeugen"
+        "regenerate": "Neu erzeugen",
+        "back": "Rückseite",
+        "downloadBack": "Rückseite",
+        "downloadPdfBack": "PDF (Rückseite)",
+        "doubleSided": "Doppelseitig"
       },
       "settings": {
         "saveFailed": "Die Einstellungen konnten nicht gespeichert werden.",
@@ -4042,7 +4046,15 @@
           "errLabel": "Gib in mindestens einer Sprache einen Namen ein.",
           "errPrice": "Gib einen Preis von 0 bis {max} mit höchstens 2 Nachkommastellen ein.",
           "errMaxQty": "Gib eine ganze Zahl von 1 bis {max} ein.",
-          "errFix": "Einige Extras müssen korrigiert werden, siehe markierte Felder."
+          "errFix": "Einige Extras müssen korrigiert werden, siehe markierte Felder.",
+          "enablesBack": "Aktiviert die Rückseite",
+          "enablesBackHint": "Wählt der Kunde dieses Extra, erscheint ein Block „Rückseite“: dasselbe Design noch einmal oder eine andere Vorlage mit eigenem Foto und Texten (eine zweite Druckdatei wird erzeugt).",
+          "backTemplates": "Vorlagen für die Rückseite",
+          "backTemplatesHint": "Veröffentlichte Vorlagen, die der Kunde unter „Andere Vorlage“ für die Rückseite wählen kann. Leer lassen, um nur die eigene Vorlage des Produkts anzubieten.",
+          "backTemplatesAdd": "Vorlage hinzufügen…",
+          "backTemplatesNone": "Keine weiteren veröffentlichten Vorlagen",
+          "backTemplatesOwn": "Die eigene Vorlage des Produkts wird immer zuerst angeboten.",
+          "backTemplatesRemove": "{name} entfernen"
         }
       },
       "order": {
@@ -4090,7 +4102,16 @@
         "readOnly": "Die Designer-App ist ausgeschaltet, daher sind die Designs schreibgeschützt. Druckdateien und Originalfotos können weiterhin heruntergeladen werden.",
         "readOnlyRefused": "Die Designer-App ist ausgeschaltet, daher ist diese Aktion nicht verfügbar. Downloads funktionieren weiterhin.",
         "addons": "Extras",
-        "addonsPerUnit": "{amount} pro Stück · × {quantity}"
+        "addonsPerUnit": "{amount} pro Stück · × {quantity}",
+        "back": "Rückseite",
+        "backModeSame": "Gleiches Design wie die Vorderseite",
+        "backModeOther": "Vorlage: {name}",
+        "backProofAlt": "Vorschau der Rückseite",
+        "backTexts": "Texte der Rückseite",
+        "backPhotos": "Fotos der Rückseite",
+        "backFile": "Druckdatei (Rückseite)",
+        "downloadPrintBack": "Druckdatei herunterladen (Rückseite)",
+        "downloadPdfBack": "PDF herunterladen (Rückseite)"
       },
       "printErrors": {
         "WORKER_LOST": "Das Rendern wurde unterbrochen. Es wird automatisch erneut versucht.",

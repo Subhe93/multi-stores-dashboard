@@ -160,6 +160,8 @@ export interface DesignerAddonItem {
   max_qty?: number;
   enabled: boolean;
   sort?: number;
+  /** M5.6: choosing the add-on opens the back-side block (the `double` key does by default). */
+  enables_back?: boolean;
 }
 
 export interface DesignerAddonsConfig {
@@ -177,6 +179,8 @@ export interface ProductDesignerView {
     addons: DesignerAddonsConfig;
     /** Suggested (disabled) add-ons from imported NPP data; empty without. */
     addon_presets: DesignerAddonItem[];
+    /** M5.6: templates offered for the back besides the product's own (empty = own only). */
+    back_template_ids?: string[];
     updated_at: string;
   } | null;
   fallback_field_count: number;
@@ -187,10 +191,14 @@ export interface ProductDesignerView {
 
 // ─── Orders / print queue ───────────────────────────────────────────────────
 
+export type PrintSide = 'front' | 'back';
+
 export interface PrintFileInfo {
   surface: string;
   /** 'png' (always) or 'pdf' (print-ready, with bleed). */
   format: string;
+  /** M5.6: set on every file of a double-sided row; absent = front. */
+  side?: PrintSide;
   width_px: number;
   height_px: number;
   dpi: number;
@@ -205,15 +213,25 @@ export interface PrintFileInfo {
   crop_marks?: boolean;
 }
 
-/** The PNG print file of a render (the front surface first). */
-export function pngPrintFile(files: PrintFileInfo[]): PrintFileInfo | undefined {
-  const png = files.filter((f) => f.format !== 'pdf');
+/** Side of a print file (absent = front). */
+export function printFileSide(f: Pick<PrintFileInfo, 'side'>): PrintSide {
+  return f.side === 'back' ? 'back' : 'front';
+}
+
+/** The PNG print file of a render for `side` (the front surface first). */
+export function pngPrintFile(files: PrintFileInfo[], side: PrintSide = 'front'): PrintFileInfo | undefined {
+  const png = files.filter((f) => f.format !== 'pdf' && printFileSide(f) === side);
   return png.find((f) => f.surface === 'front') ?? png[0];
 }
 
-/** The print-ready PDF of a render, when the store renders one. */
-export function pdfPrintFile(files: PrintFileInfo[]): PrintFileInfo | undefined {
-  return files.find((f) => f.format === 'pdf');
+/** The print-ready PDF of a render for `side`, when the store renders one. */
+export function pdfPrintFile(files: PrintFileInfo[], side: PrintSide = 'front'): PrintFileInfo | undefined {
+  return files.find((f) => f.format === 'pdf' && printFileSide(f) === side);
+}
+
+/** True when the render has any back-side file (M5.6 double-sided). */
+export function hasBackPrintFiles(files: PrintFileInfo[]): boolean {
+  return files.some((f) => printFileSide(f) === 'back');
 }
 
 /** Human file size (B / KB / MB, one decimal from KB on). */
@@ -271,6 +289,8 @@ export interface OrderDesignItem {
   /** M5.5: add-ons sold with the line (per unit, order currency); empty on older rows. */
   addons?: OrderDesignAddon[];
   addons_currency?: string | null;
+  /** M5.6: the frozen back side of a double-sided line; absent otherwise. */
+  back?: OrderDesignBack | null;
   assets: OrderDesignAsset[];
   low_res: boolean;
   print: {
@@ -290,6 +310,21 @@ export interface OrderDesignItem {
   files_purged_at: string | null;
   originals_purge_at: string | null;
   files_purge_at: string | null;
+}
+
+/** The frozen back of a double-sided order line (M5.6). */
+export interface OrderDesignBack {
+  mode: 'same' | 'other';
+  template_id: string | null;
+  template_version_id: string | null;
+  template_name: string | null;
+  template_spec?: TemplateSpecV1 | null;
+  state?: OrderDesignState | null;
+  text_values: { element_id: string; label: string; value: string }[];
+  assets: OrderDesignAsset[];
+  proof_url: string | null;
+  download_path: string | null;
+  pdf_download_path: string | null;
 }
 
 export interface OrderDesignAddon {
@@ -327,6 +362,9 @@ export interface PrintQueueRow {
   low_res: boolean;
   print_files: PrintFileInfo[];
   proof_url: string | null;
+  /** M5.6: set on double-sided rows. */
+  back_mode?: 'same' | 'other' | null;
+  proof_back_url?: string | null;
   created_at: string;
 }
 
@@ -458,11 +496,12 @@ export const putProductDesigner = (token: string, productId: string, body: { ena
   });
 
 /** Saves the product's add-ons (validated server-side; 400 DESIGNER_ADDONS_INVALID). */
-export const putProductAddons = (token: string, productId: string, addons: DesignerAddonsConfig) =>
+export const putProductAddons = (token: string, productId: string, addons: DesignerAddonsConfig, backTemplateIds?: string[]) =>
   api<ProductDesignerView>(`${BASE}/products/${encodeURIComponent(productId)}/addons`, {
     method: 'PUT',
     token,
-    body: JSON.stringify({ addons }),
+    // M5.6: `back_template_ids` only when given (absent = unchanged).
+    body: JSON.stringify({ addons, ...(backTemplateIds ? { back_template_ids: backTemplateIds } : {}) }),
   });
 
 /** Unlinks the template from the product (the storefront shows the normal product page). */
@@ -505,12 +544,13 @@ function downloadDesignerFile(token: string, endpoint: string, fallbackName: str
   });
 }
 
-/** Downloads the print PNG (`<order_number>-<n>-front.png`). */
-export function downloadPrintFile(token: string, orderId: string, itemId: string, format: 'png' | 'pdf' = 'png'): Promise<void> {
+/** Downloads the print PNG (`<order_number>-<n>-front.png`), or the back file of a double-sided line (M5.6). */
+export function downloadPrintFile(token: string, orderId: string, itemId: string, format: 'png' | 'pdf' = 'png', side: PrintSide = 'front'): Promise<void> {
+  const q = [...(format === 'pdf' ? ['format=pdf'] : []), ...(side === 'back' ? ['side=back'] : [])];
   return downloadDesignerFile(
     token,
-    `${BASE}/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/print${format === 'pdf' ? '?format=pdf' : ''}`,
-    `print-${itemId.slice(0, 8)}-front.${format}`,
+    `${BASE}/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/print${q.length ? `?${q.join('&')}` : ''}`,
+    `print-${itemId.slice(0, 8)}-${side}.${format}`,
   );
 }
 

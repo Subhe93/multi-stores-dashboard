@@ -313,7 +313,7 @@ export function ProductDesignerTab({ productId }: { productId: string }) {
         </Card>
 
         {/* M5.5: paid add-ons (editable; imported NPP add-ons are offered as presets). */}
-        <ProductAddonsEditor productId={productId} token={token} view={view} onSaved={setView} />
+        <ProductAddonsEditor productId={productId} token={token} view={view} templates={templates} onSaved={setView} />
       </div>
 
       <Card className="shadow-none lg:self-start">

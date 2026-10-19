@@ -3944,7 +3944,11 @@
         "nextAttempt": "Prochaine tentative : {date}",
         "notPaid": "Pas encore payée",
         "download": "Télécharger",
-        "regenerate": "Régénérer"
+        "regenerate": "Régénérer",
+        "back": "verso",
+        "downloadBack": "Verso",
+        "downloadPdfBack": "PDF (verso)",
+        "doubleSided": "Recto verso"
       },
       "settings": {
         "saveFailed": "Les paramètres n'ont pas pu être enregistrés.",
@@ -4042,7 +4046,15 @@
           "errLabel": "Saisissez un nom dans au moins une langue.",
           "errPrice": "Saisissez un prix de 0 à {max} avec au plus 2 décimales.",
           "errMaxQty": "Saisissez un nombre entier de 1 à {max}.",
-          "errFix": "Certaines options sont à corriger, voir les champs signalés."
+          "errFix": "Certaines options sont à corriger, voir les champs signalés.",
+          "enablesBack": "Active le verso",
+          "enablesBackHint": "Quand le client choisit cette option, un bloc « Verso » apparaît : le même design, ou un autre modèle avec sa photo et ses textes (un second fichier d’impression est généré).",
+          "backTemplates": "Modèles pour le verso",
+          "backTemplatesHint": "Modèles publiés que le client peut choisir pour le verso sous « Autre modèle ». Laissez vide pour ne proposer que le modèle du produit.",
+          "backTemplatesAdd": "Ajouter un modèle…",
+          "backTemplatesNone": "Aucun autre modèle publié",
+          "backTemplatesOwn": "Le modèle du produit est toujours proposé en premier.",
+          "backTemplatesRemove": "Retirer {name}"
         }
       },
       "order": {
@@ -4090,7 +4102,16 @@
         "readOnly": "L'application Designer est désactivée : les designs sont en lecture seule. Les fichiers d'impression et les photos originales restent téléchargeables.",
         "readOnlyRefused": "L'application Designer est désactivée, cette action n'est donc pas disponible. Les téléchargements fonctionnent toujours.",
         "addons": "Options",
-        "addonsPerUnit": "{amount} par unité · × {quantity}"
+        "addonsPerUnit": "{amount} par unité · × {quantity}",
+        "back": "Verso",
+        "backModeSame": "Même design que le recto",
+        "backModeOther": "Modèle : {name}",
+        "backProofAlt": "Aperçu du verso",
+        "backTexts": "Textes du verso",
+        "backPhotos": "Photos du verso",
+        "backFile": "Fichier d’impression (verso)",
+        "downloadPrintBack": "Télécharger le fichier (verso)",
+        "downloadPdfBack": "Télécharger le PDF (verso)"
       },
       "printErrors": {
         "WORKER_LOST": "Le rendu a été interrompu. Il sera relancé automatiquement.",

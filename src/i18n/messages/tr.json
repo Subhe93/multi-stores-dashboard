@@ -3944,7 +3944,11 @@
         "nextAttempt": "Sonraki deneme {date}",
         "notPaid": "Henüz ödenmedi",
         "download": "İndir",
-        "regenerate": "Yeniden oluştur"
+        "regenerate": "Yeniden oluştur",
+        "back": "arka yüz",
+        "downloadBack": "Arka yüz",
+        "downloadPdfBack": "PDF (arka yüz)",
+        "doubleSided": "Çift taraflı"
       },
       "settings": {
         "saveFailed": "Ayarlar kaydedilemedi.",
@@ -4042,7 +4046,15 @@
           "errLabel": "En az bir dilde ad girin.",
           "errPrice": "0 ile {max} arasında, en fazla 2 ondalıklı bir fiyat girin.",
           "errMaxQty": "1 ile {max} arasında bir tam sayı girin.",
-          "errFix": "Bazı ekstraların düzeltilmesi gerekiyor, işaretli alanlara bakın."
+          "errFix": "Bazı ekstraların düzeltilmesi gerekiyor, işaretli alanlara bakın.",
+          "enablesBack": "Arka yüzü etkinleştirir",
+          "enablesBackHint": "Müşteri bu ek seçeneği seçtiğinde bir \"Arka yüz\" bloğu görünür: aynı tasarım ya da kendi fotoğraf ve metinleriyle başka bir şablon (ikinci bir baskı dosyası oluşturulur).",
+          "backTemplates": "Arka yüz şablonları",
+          "backTemplatesHint": "Müşterinin \"Başka şablon\" altında arka yüz için seçebileceği yayınlanmış şablonlar. Yalnızca ürünün kendi şablonunu sunmak için boş bırakın.",
+          "backTemplatesAdd": "Şablon ekle…",
+          "backTemplatesNone": "Başka yayınlanmış şablon yok",
+          "backTemplatesOwn": "Ürünün kendi şablonu her zaman ilk sırada sunulur.",
+          "backTemplatesRemove": "{name} kaldır"
         }
       },
       "order": {
@@ -4090,7 +4102,16 @@
         "readOnly": "Tasarımcı uygulaması kapalı, bu nedenle tasarımlar salt okunur. Baskı dosyaları ve orijinal fotoğraflar yine de indirilebilir.",
         "readOnlyRefused": "Tasarımcı uygulaması kapalı, bu nedenle bu işlem kullanılamıyor. İndirmeler çalışmaya devam ediyor.",
         "addons": "Ekstralar",
-        "addonsPerUnit": "adet başı {amount} · × {quantity}"
+        "addonsPerUnit": "adet başı {amount} · × {quantity}",
+        "back": "Arka yüz",
+        "backModeSame": "Ön yüzle aynı tasarım",
+        "backModeOther": "Şablon: {name}",
+        "backProofAlt": "Arka yüz önizlemesi",
+        "backTexts": "Arka yüz metinleri",
+        "backPhotos": "Arka yüz fotoğrafları",
+        "backFile": "Baskı dosyası (arka yüz)",
+        "downloadPrintBack": "Baskı dosyasını indir (arka yüz)",
+        "downloadPdfBack": "PDF indir (arka yüz)"
       },
       "printErrors": {
         "WORKER_LOST": "Oluşturma yarıda kesildi. Otomatik olarak yeniden denenecek.",

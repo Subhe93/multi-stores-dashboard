@@ -20,6 +20,7 @@ import {
   PRINT_STATUSES,
   type Paged,
   type PrintQueueRow,
+  type PrintSide,
   type PrintStatus,
 } from '@/lib/designer/designer.api';
 import { useDateTimeFormat } from '@/components/importer/ImporterBits';
@@ -122,11 +123,11 @@ export function PrintQueueTab({ token }: { token: string }) {
     }
   };
 
-  const download = async (row: PrintQueueRow, format: 'png' | 'pdf' = 'png') => {
-    setBusy(`dl-${format}-${row.id}`);
+  const download = async (row: PrintQueueRow, format: 'png' | 'pdf' = 'png', side: PrintSide = 'front') => {
+    setBusy(`dl-${format}-${side}-${row.id}`);
     setRowError(null);
     try {
-      await downloadPrintFile(token, row.order_id, row.order_item_id, format);
+      await downloadPrintFile(token, row.order_id, row.order_item_id, format, side);
     } catch (err) {
       setRowError({ id: row.id, text: describeError(err) });
     } finally {
@@ -199,6 +200,9 @@ export function PrintQueueTab({ token }: { token: string }) {
                   {sortedRows.map((row) => {
                     const file = pngPrintFile(row.print_files);
                     const pdf = pdfPrintFile(row.print_files);
+                    // M5.6: a double-sided row lists its back files too.
+                    const backFile = pngPrintFile(row.print_files, 'back');
+                    const backPdf = pdfPrintFile(row.print_files, 'back');
                     const purged = !!row.files_purged_at || row.print_status === 'PURGED';
                     return (
                       <tr key={row.id} className="border-b align-top last:border-0">
@@ -215,6 +219,11 @@ export function PrintQueueTab({ token }: { token: string }) {
                           {row.low_res && (
                             <span className="mt-0.5 inline-flex items-center gap-1 text-amber-700">
                               <AlertTriangle className="size-3" /> {t('lowRes')}
+                            </span>
+                          )}
+                          {row.back_mode && (
+                            <span className="mt-0.5 block text-muted-foreground" data-queue-double-sided>
+                              {t('doubleSided')}
                             </span>
                           )}
                         </td>
@@ -235,6 +244,16 @@ export function PrintQueueTab({ token }: { token: string }) {
                               PDF · {pdf.page_mm ? formatPageMm(pdf.page_mm) : '—'} · {formatFileSize(pdf.bytes)}
                             </span>
                           )}
+                          {backFile && (
+                            <span className="block text-muted-foreground" dir="ltr">
+                              PNG ({t('back')}) · {backFile.width_px}×{backFile.height_px} · {formatFileSize(backFile.bytes)}
+                            </span>
+                          )}
+                          {backPdf && (
+                            <span className="block text-muted-foreground" dir="ltr">
+                              PDF ({t('back')}) · {backPdf.page_mm ? formatPageMm(backPdf.page_mm) : '—'} · {formatFileSize(backPdf.bytes)}
+                            </span>
+                          )}
                         </td>
                         <td className="px-3 py-2 tabular-nums">
                           {row.print_attempts}/{row.max_attempts}
@@ -251,10 +270,10 @@ export function PrintQueueTab({ token }: { token: string }) {
                               size="sm"
                               variant="outline"
                               className="h-7 text-xs"
-                              disabled={row.print_status !== 'READY' || purged || busy === `dl-png-${row.id}`}
+                              disabled={row.print_status !== 'READY' || purged || busy === `dl-png-front-${row.id}`}
                               onClick={() => download(row)}
                             >
-                              {busy === `dl-png-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('download')}
+                              {busy === `dl-png-front-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('download')}
                             </Button>
                             {pdf && (
                               <Button
@@ -262,10 +281,34 @@ export function PrintQueueTab({ token }: { token: string }) {
                                 size="sm"
                                 variant="outline"
                                 className="h-7 text-xs"
-                                disabled={row.print_status !== 'READY' || purged || busy === `dl-pdf-${row.id}`}
+                                disabled={row.print_status !== 'READY' || purged || busy === `dl-pdf-front-${row.id}`}
                                 onClick={() => download(row, 'pdf')}
                               >
-                                {busy === `dl-pdf-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('downloadPdf')}
+                                {busy === `dl-pdf-front-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('downloadPdf')}
+                              </Button>
+                            )}
+                            {backFile && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                disabled={row.print_status !== 'READY' || purged || busy === `dl-png-back-${row.id}`}
+                                onClick={() => download(row, 'png', 'back')}
+                              >
+                                {busy === `dl-png-back-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('downloadBack')}
+                              </Button>
+                            )}
+                            {backPdf && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                disabled={row.print_status !== 'READY' || purged || busy === `dl-pdf-back-${row.id}`}
+                                onClick={() => download(row, 'pdf', 'back')}
+                              >
+                                {busy === `dl-pdf-back-${row.id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('downloadPdfBack')}
                               </Button>
                             )}
                             <Button
