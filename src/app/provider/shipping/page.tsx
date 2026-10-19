@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle, Check, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
 import {
   ZoneMethods,
@@ -124,6 +125,7 @@ export default function ProviderShipping() {
   const t = useTranslations('provider');
   const ts = useTranslations('shipping');
   const tc = useTranslations('common');
+  const describeError = useApiError();
   const [profiles, setProfiles] = useState<ShippingProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -302,7 +304,7 @@ export default function ProviderShipping() {
       await fetchProfiles();
     } catch (err) {
       console.error(err);
-      setPageError(errorMessage(err, ts('saveFailed')));
+      setPageError(describeError(err));
     }
     finally { setRenaming(false); }
   };

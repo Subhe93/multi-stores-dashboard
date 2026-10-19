@@ -3891,6 +3891,8 @@
         "resultAdded": "{face}: hinzugefügt.",
         "resultInvalid": "Schriftname, Stärke oder Stil konnten nicht gelesen werden. Geben Sie sie oben ein und laden Sie diese Datei einzeln hoch.",
         "inUse": "Diese Schrift wird von einer Vorlage oder Bestellung verwendet und kann nicht gelöscht werden.",
+        "deleteTitle": "Schrift löschen",
+        "deleteBody": "{face} löschen? Vorlagen, die diesen Schnitt noch verwenden, melden ihn als fehlend, bis wieder eine passende Datei hochgeladen wird.",
         "guideTitle": "Schriften, die Ihre Vorlagen verwenden",
         "guideIntro": "Schriften werden nie automatisch heruntergeladen. Laden Sie jede dieser Dateien einmal hoch; Editor, Produktseite und Druckdateien verwenden dann exakt dieselbe Schrift.",
         "uploaded": "Hochgeladen",

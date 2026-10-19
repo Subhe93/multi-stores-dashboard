@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { alignBox, sendInStack, type AlignKind, type Box } from '@/lib/designer/editorGeometry';
-import { HISTORY_LIMIT } from './template-editor/history';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -103,17 +102,17 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
   const {
     detail, loadError, spec, baseJson, name, sizeDrafts, sideTab, selected, issues, busy, actionError, picker,
     confirmDelete, linkedCount, loadingVersion, previewPrint, samplePhoto, sampleTexts, previewProblems, leaveTo,
-    past, future,
+    past, future, historySeq,
   } = state;
   const canUndo = past.length > 0;
   const canRedo = future.length > 0;
   /**
-   * The element just removed (confirm-free remove; undo restores it). `depth`
-   * is the history length right after the removal: the banner's Undo only
-   * makes sense while the removal is still the latest step.
+   * The element just removed (confirm-free remove; undo restores it). `seq`
+   * is the history sequence id right after the removal: the banner's Undo
+   * only makes sense while the removal is still the latest step.
    */
-  const [removed, setRemoved] = useState<{ name: string; depth: number } | null>(null);
-  const removedName = removed !== null && removed.depth === past.length ? removed.name : null;
+  const [removed, setRemoved] = useState<{ name: string; seq: number } | null>(null);
+  const removedName = removed !== null && removed.seq === historySeq ? removed.name : null;
   const patch = useCallback((p: TemplateEditorPatch) => dispatch({ type: 'patch', patch: p }), [dispatch]);
 
   // Library data (assets, fonts) and the store locales: loaded once, not edited.
@@ -244,11 +243,12 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
   const clearIssues = (pred: (i: Issue) => boolean) => dispatch({ type: 'clearIssues', pred });
   const setSelected = (index: number | null) => patch({ selected: index });
 
-  const updateElement = (index: number, next: DesignElement) => {
-    // Typing in the form coalesces per element + changed field (one undo step per edit run).
+  const updateElement = (index: number, next: DesignElement, coalesce?: string) => {
+    // Typing in the form coalesces per element + field (one undo step per edit
+    // run): the form names the field; otherwise the changed key is derived.
     const prev = elements[index];
     const changed = prev ? (Object.keys(next) as (keyof DesignElement)[]).find((k) => prev[k] !== next[k]) : undefined;
-    setElements((els) => els.map((e, i) => (i === index ? next : e)), changed ? `form:${index}:${String(changed)}` : undefined);
+    setElements((els) => els.map((e, i) => (i === index ? next : e)), coalesce ?? (changed ? `form:${index}:${String(changed)}` : undefined));
     clearIssues((i) => i.loc.elementIndex === index);
   };
 
@@ -283,8 +283,8 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
     if (!el) return;
     setElements((els) => els.filter((_, i) => i !== index));
     patch({ selected: null, issues: [] });
-    // The removal push (keyless) always adds one step.
-    setRemoved({ name: elementName(el), depth: Math.min(past.length + 1, HISTORY_LIMIT) });
+    // The removal push (keyless) always adds one step, i.e. one sequence id.
+    setRemoved({ name: elementName(el), seq: historySeq + 1 });
   };
   useEffect(() => {
     if (removed === null) return;

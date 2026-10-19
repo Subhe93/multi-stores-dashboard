@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { ArrowDown, ArrowUp, CheckCircle2, Download, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import {
 } from '@/lib/designer/designer.api';
 import { I18nInputs } from '@/components/designer/TemplateElementForm';
 import { FieldError } from '@/components/designer/DesignerBits';
+import { pickLabel } from '@/lib/designer/pickLabel';
 
 /** Same limits as the API validator (designer-addons.ts). */
 const MAX_ITEMS = 10;
@@ -79,6 +80,7 @@ export function ProductAddonsEditor({
   onSaved: (v: ProductDesignerView) => void;
 }) {
   const t = useTranslations('creator.designer.product.addons');
+  const locale = useLocale();
   const describeError = useApiError();
   const saved = view.link?.addons?.items ?? [];
   const presets = useMemo(() => view.link?.addon_presets ?? [], [view.link?.addon_presets]);
@@ -89,11 +91,18 @@ export function ProductAddonsEditor({
   const [error, setError] = useState<string | null>(null);
   const [itemErrors, setItemErrors] = useState<Record<string, ItemErrors>>({});
 
-  // Re-sync when the server view changes (load / save elsewhere).
+  // Re-sync only when the server add-ons actually changed (own save, reload).
+  // The parent replaces `view` on every link save / unlink too; keying on the
+  // object identity would wipe unsaved add-on edits each time the merchant
+  // saves the link card above.
+  const serverJson = JSON.stringify(saved);
+  const syncedJson = useRef(serverJson);
   useEffect(() => {
-    setItems(toDraft(view.link?.addons?.items ?? []));
+    if (syncedJson.current === serverJson) return;
+    syncedJson.current = serverJson;
+    setItems(toDraft(JSON.parse(serverJson) as DesignerAddonItem[]));
     setItemErrors({});
-  }, [view.link?.addons]);
+  }, [serverJson]);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,7 +261,7 @@ export function ProductAddonsEditor({
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
             <span>
               {t('presetsNote', {
-                list: unusedPresets.map((p) => `${p.label.sv || p.label.en || p.key} (${p.price})`).join(', '),
+                list: unusedPresets.map((p) => `${pickLabel(p.label, locale) || p.key} (${p.price})`).join(', '),
               })}
             </span>
             <Button type="button" size="sm" variant="outline" className="max-sm:min-h-11" onClick={usePresets} disabled={items.length >= MAX_ITEMS}>

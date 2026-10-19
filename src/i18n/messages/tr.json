@@ -3891,6 +3891,8 @@
         "resultAdded": "{face}: eklendi.",
         "resultInvalid": "Yazı tipi adı, kalınlığı veya stili okunamadı. Bunları yukarıya girin ve bu dosyayı tek başına yükleyin.",
         "inUse": "Bu yazı tipi bir şablonda veya siparişte kullanılıyor ve silinemez.",
+        "deleteTitle": "Yazı tipini sil",
+        "deleteBody": "{face} silinsin mi? Bu yazı tipini hâlâ kullanan şablonlar, eşleşen bir dosya yeniden yüklenene kadar onu eksik olarak bildirir.",
         "guideTitle": "Şablonlarınızın kullandığı yazı tipleri",
         "guideIntro": "Yazı tipleri asla otomatik indirilmez. Bu dosyaların her birini bir kez yükleyin; böylece düzenleyici, ürün sayfası ve baskı dosyaları tamamen aynı yazı tipini kullanır.",
         "uploaded": "Yüklendi",

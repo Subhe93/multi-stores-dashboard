@@ -20,7 +20,8 @@ interface BackgroundPanelProps {
   printPx: { w: number; h: number };
   /** field → message. */
   bgIssues: Record<string, string>;
-  onUpdateSpec: (fn: (s: TemplateSpecV1) => TemplateSpecV1) => void;
+  /** `coalesce`: typing runs in one field share this undo key (`bg:<field>`). */
+  onUpdateSpec: (fn: (s: TemplateSpecV1) => TemplateSpecV1, coalesce?: string) => void;
   onPick: (key: BgKey) => void;
 }
 
@@ -113,7 +114,7 @@ export function BackgroundPanel({ spec, assetById, assetUrls, printPx, bgIssues,
                   onUpdateSpec((s) => {
                     s.surfaces[0].background.color = e.target.value;
                     return s;
-                  })
+                  }, 'bg:color')
                 }
               />
               <Input
@@ -125,7 +126,7 @@ export function BackgroundPanel({ spec, assetById, assetUrls, printPx, bgIssues,
                   onUpdateSpec((s) => {
                     s.surfaces[0].background.color = e.target.value;
                     return s;
-                  })
+                  }, 'bg:color')
                 }
               />
             </div>

@@ -18,7 +18,8 @@ interface ElementFormProps {
   fontOptions: FontFaceOption[];
   locales: string[];
   imageUrl: string | null;
-  onChange: (next: DesignElement) => void;
+  /** `coalesce`: typing runs in one field share this undo key (`form:<index>:<field>`). */
+  onChange: (next: DesignElement, coalesce?: string) => void;
   onDuplicate: () => void;
   onRemove: () => void;
   onPickImage: () => void;

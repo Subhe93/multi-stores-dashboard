@@ -3891,6 +3891,8 @@
         "resultAdded": "{face}: tillagd.",
         "resultInvalid": "Typsnittets namn, vikt eller stil kunde inte läsas. Ange dem ovan och ladda upp den här filen för sig.",
         "inUse": "Det här typsnittet används av en mall eller en beställning och kan inte raderas.",
+        "deleteTitle": "Radera typsnitt",
+        "deleteBody": "Radera {face}? Mallar som fortfarande använder det här snittet rapporterar det som saknat tills en matchande fil laddas upp igen.",
         "guideTitle": "Typsnitt som dina mallar använder",
         "guideIntro": "Typsnitt laddas aldrig ned automatiskt. Ladda upp var och en av de här filerna en gång. Därefter använder redigeraren, produktsidan och utskriftsfilerna exakt samma typsnitt.",
         "uploaded": "Uppladdad",

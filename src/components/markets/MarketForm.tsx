@@ -172,7 +172,20 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
               <Label className="text-xs">{t('currency')}</Label>
               <SearchableSelect
                 value={form.currency}
-                onChange={(v) => set('currency', v)}
+                onChange={(v) =>
+                  setForm((prev) => {
+                    if (v === prev.currency) return prev;
+                    // Back to the store currency: the identity rule (as the
+                    // save path stores it). Away from it: the old rate is
+                    // meaningless (a 1:1 rate must not be saved by accident),
+                    // so the merchant has to enter one.
+                    const price_rule: PriceRule =
+                      v === baseCurrency
+                        ? { mode: 'convert', source: 'manual', rate: 1, rounding: prev.price_rule.rounding ?? {} }
+                        : { ...prev.price_rule, rate: null };
+                    return { ...prev, currency: v, price_rule };
+                  })
+                }
                 options={SUPPORTED_CURRENCY_OPTIONS}
               />
               {isDefault && <p className="text-[11px] text-muted-foreground">{t('defaultCurrencyHint')}</p>}

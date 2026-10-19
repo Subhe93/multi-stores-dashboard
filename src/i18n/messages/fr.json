@@ -3891,6 +3891,8 @@
         "resultAdded": "{face} : ajoutée.",
         "resultInvalid": "Le nom, la graisse ou le style de la police n'ont pas pu être lus. Saisissez-les ci-dessus et téléversez ce fichier seul.",
         "inUse": "Cette police est utilisée par un modèle ou une commande et ne peut pas être supprimée.",
+        "deleteTitle": "Supprimer la police",
+        "deleteBody": "Supprimer {face} ? Les modèles qui utilisent encore cette graisse la signaleront comme manquante jusqu'au téléversement d'un fichier correspondant.",
         "guideTitle": "Polices utilisées par vos modèles",
         "guideIntro": "Les polices ne sont jamais téléchargées automatiquement. Téléversez chacun de ces fichiers une seule fois ; l'éditeur, la page produit et les fichiers d'impression utilisent alors exactement la même police.",
         "uploaded": "Téléversée",

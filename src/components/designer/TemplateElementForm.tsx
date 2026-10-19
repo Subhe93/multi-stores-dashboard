@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ImageIcon, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,8 @@ export const elementFieldId = (index: number, field: string) => `dz-el-${index}-
 interface TemplateElementFormProps {
   element: DesignElement;
   index: number;
-  onChange: (next: DesignElement) => void;
+  /** `coalesce`: typing runs in one field share this undo key (`form:<index>:<field>`). */
+  onChange: (next: DesignElement, coalesce?: string) => void;
   /** field → message for this element. */
   errors: Record<string, string>;
   fontOptions: FontFaceOption[];
@@ -45,6 +47,11 @@ function NumField({
   max?: number;
   invalid?: boolean;
 }) {
+  // What was typed is kept while the field is focused; the spec only takes
+  // finite numbers (a cleared or half-typed field never writes NaN). On blur
+  // the draft is dropped and the committed value shows again.
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? (Number.isFinite(value) ? String(value) : '');
   return (
     <div className="space-y-1">
       <Label htmlFor={id} className="text-[11px] font-normal text-muted-foreground">
@@ -59,8 +66,14 @@ function NumField({
         dir="ltr"
         className="h-8 text-xs tabular-nums"
         aria-invalid={invalid || undefined}
-        value={Number.isFinite(value) ? String(value) : ''}
-        onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))}
+        value={shown}
+        onChange={(e) => {
+          const raw = e.target.value;
+          setDraft(raw);
+          const n = raw.trim() === '' ? NaN : Number(raw);
+          if (Number.isFinite(n)) onChange(n);
+        }}
+        onBlur={() => setDraft(null)}
       />
     </div>
   );
@@ -214,7 +227,8 @@ function ToggleRow({ id, label, hint, checked, onChange }: { id: string; label: 
 export function TemplateElementForm({ element, index, onChange, errors, fontOptions, locales, imageUrl, onPickImage }: TemplateElementFormProps) {
   const t = useTranslations('creator.designer.editor.element');
   const fid = (f: string) => elementFieldId(index, f);
-  const set = <K extends keyof DesignElement>(key: K, v: DesignElement[K]) => onChange({ ...element, [key]: v } as DesignElement);
+  const coalesceKey = (field: string) => `form:${index}:${field}`;
+  const set = <K extends keyof DesignElement>(key: K, v: DesignElement[K]) => onChange({ ...element, [key]: v } as DesignElement, coalesceKey(String(key)));
 
   const geometry = (
     <div className="space-y-2 rounded-md border bg-zinc-50/60 p-3" id={fid('geometry')}>
@@ -235,7 +249,7 @@ export function TemplateElementForm({ element, index, onChange, errors, fontOpti
 
   if (element.type === 'text') {
     const el = element;
-    const setText = <K extends keyof TextElement>(key: K, v: TextElement[K]) => onChange({ ...el, [key]: v });
+    const setText = <K extends keyof TextElement>(key: K, v: TextElement[K]) => onChange({ ...el, [key]: v }, coalesceKey(String(key)));
     const current = faceKey(el.font);
     const options = fontOptions.map((f) => ({
       value: faceKey(f),
@@ -367,7 +381,7 @@ export function TemplateElementForm({ element, index, onChange, errors, fontOpti
                     const next = { ...el };
                     if (v) next.allowed_chars = v;
                     else delete next.allowed_chars;
-                    onChange(next);
+                    onChange(next, coalesceKey('allowed_chars'));
                   }}
                 />
                 <p className="text-[11px] text-muted-foreground">{t('allowedCharsHint')}</p>
@@ -385,13 +399,13 @@ export function TemplateElementForm({ element, index, onChange, errors, fontOpti
     const el = element;
     return (
       <div className="space-y-4">
-        <I18nInputs id={fid('label')} label={t('label')} value={el.label} locales={locales} onChange={(v) => onChange({ ...el, label: v })} error={errors.label} />
+        <I18nInputs id={fid('label')} label={t('label')} value={el.label} locales={locales} onChange={(v) => onChange({ ...el, label: v }, coalesceKey('label'))} error={errors.label} />
         <I18nInputs
           id={fid('placeholder')}
           label={t('slotPlaceholder')}
           value={el.placeholder}
           locales={locales}
-          onChange={(v) => onChange({ ...el, placeholder: v })}
+          onChange={(v) => onChange({ ...el, placeholder: v }, coalesceKey('placeholder'))}
           error={errors.placeholder}
         />
         <div className="space-y-3 rounded-md border p-3">
@@ -408,11 +422,11 @@ export function TemplateElementForm({ element, index, onChange, errors, fontOpti
           <FieldError text={errors.shape} />
           {el.shape === 'rect' && (
             <div className="grid grid-cols-2 gap-2">
-              <NumField id={fid('radius')} label={t('radius')} value={el.radius} min={0} step={0.5} onChange={(v) => onChange({ ...el, radius: v })} invalid={!!errors.radius} />
+              <NumField id={fid('radius')} label={t('radius')} value={el.radius} min={0} step={0.5} onChange={(v) => onChange({ ...el, radius: v }, coalesceKey('radius'))} invalid={!!errors.radius} />
             </div>
           )}
           <FieldError text={errors.radius} />
-          <ColorField id={fid('border_color')} label={t('borderColor')} value={el.border_color} onChange={(v) => onChange({ ...el, border_color: v })} />
+          <ColorField id={fid('border_color')} label={t('borderColor')} value={el.border_color} onChange={(v) => onChange({ ...el, border_color: v }, coalesceKey('border_color'))} />
           <p className="text-[11px] text-muted-foreground">{t('borderColorHint')}</p>
           <ToggleRow id={fid('required')} label={t('photoRequired')} checked={el.required} onChange={(v) => onChange({ ...el, required: v })} />
         </div>

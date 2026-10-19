@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { ConfirmDialog } from '@/components/importer/ImporterBits';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -79,6 +80,8 @@ export function DomainsPanel({ marketId, domains, platformHostname, onChange }: 
   const [withWww, setWithWww] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Hostname awaiting the remove confirmation.
+  const [removeTarget, setRemoveTarget] = useState<DomainView | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -143,12 +146,17 @@ export function DomainsPanel({ marketId, domains, platformHostname, onChange }: 
       onChange(domains.map((x) => ({ ...x, is_primary: x.id === d.id })));
     });
 
-  const handleRemove = (d: DomainView) => {
-    if (!window.confirm(t(d.is_primary ? 'removePrimaryConfirm' : 'removeConfirm', { host: d.hostname }))) return;
-    run(`remove:${d.id}`, async () => {
+  const handleRemove = (d: DomainView) => setRemoveTarget(d);
+
+  const confirmRemove = async () => {
+    const d = removeTarget;
+    if (!d) return;
+    await run(`remove:${d.id}`, async () => {
       await removeDomain(token!, marketId, d.id);
       onChange(domains.filter((x) => x.id !== d.id));
     });
+    // A failure is shown under the list; the dialog closes either way.
+    setRemoveTarget(null);
   };
 
   // Null/empty while the platform has not published a CNAME target yet; the
@@ -278,6 +286,19 @@ export function DomainsPanel({ marketId, domains, platformHostname, onChange }: 
         <p className="text-[11px] text-muted-foreground">{t('activationNote')}</p>
         {error && <p className="text-[11px] text-red-600">{error}</p>}
       </CardContent>
+
+      <ConfirmDialog
+        open={removeTarget !== null}
+        title={t('remove')}
+        description={removeTarget ? t(removeTarget.is_primary ? 'removePrimaryConfirm' : 'removeConfirm', { host: removeTarget.hostname }) : undefined}
+        confirmLabel={t('remove')}
+        destructive
+        busy={removeTarget !== null && busy === `remove:${removeTarget.id}`}
+        onConfirm={confirmRemove}
+        onOpenChange={(o) => {
+          if (!o) setRemoveTarget(null);
+        }}
+      />
     </Card>
   );
 }

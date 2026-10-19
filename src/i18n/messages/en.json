@@ -3891,6 +3891,8 @@
         "resultAdded": "{face}: added.",
         "resultInvalid": "The font name, weight or style could not be read. Enter them above and upload this file alone.",
         "inUse": "This font is used by a template or an order and cannot be deleted.",
+        "deleteTitle": "Delete font",
+        "deleteBody": "Delete {face}? Templates that still use this face will report it as missing until a matching file is uploaded again.",
         "guideTitle": "Fonts your templates use",
         "guideIntro": "Fonts are never downloaded automatically. Upload each of these files once; the editor, the product page and the print files then use exactly the same font.",
         "uploaded": "Uploaded",

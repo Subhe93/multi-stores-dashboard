@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Globe, Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppPageHeader } from '@/components/apps/AppPageHeader';
 import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
@@ -64,8 +64,8 @@ export default function CreatorMarketsPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={
-          <Link href="/creator/markets/new">
-            <Button size="sm"><Plus /> {t('addMarket')}</Button>
+          <Link href="/creator/markets/new" className={buttonVariants({ size: 'sm' })}>
+            <Plus /> {t('addMarket')}
           </Link>
         }
       />
@@ -112,8 +112,8 @@ export default function CreatorMarketsPage() {
                       <Badge variant="outline" className="text-[10px] font-mono">{m.currency}</Badge>
                     </div>
                   </div>
-                  <Link href={`/creator/markets/${m.id}`}>
-                    <Button variant="outline" size="sm">{t('list.edit')}</Button>
+                  <Link href={`/creator/markets/${m.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                    {t('list.edit')}
                   </Link>
                 </CardHeader>
                 <CardContent className="space-y-3 text-xs">

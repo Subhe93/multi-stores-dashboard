@@ -177,13 +177,12 @@ export function PrintQueueTab({ token }: { token: string }) {
                 <thead>
                   <tr className="border-b bg-zinc-50 text-muted-foreground">
                     {SORT_COLUMNS.map((col) => (
-                      <th key={col.key} className="px-3 py-2 text-start font-medium">
-                        <button
-                          type="button"
-                          onClick={() => toggleSort(col.key)}
-                          className="inline-flex items-center gap-1 hover:text-foreground"
-                          aria-sort={sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                        >
+                      <th
+                        key={col.key}
+                        className="px-3 py-2 text-start font-medium"
+                        aria-sort={sort?.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
+                      >
+                        <button type="button" onClick={() => toggleSort(col.key)} className="inline-flex items-center gap-1 hover:text-foreground">
                           {t(col.label)}
                           {sort?.key === col.key ? (
                             sort.dir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />

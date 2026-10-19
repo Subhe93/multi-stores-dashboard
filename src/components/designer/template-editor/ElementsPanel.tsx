@@ -25,7 +25,7 @@ interface ElementsPanelProps {
   onAddDecoration: () => void;
   onSelect: (index: number | null) => void;
   onMove: (index: number, dir: 'up' | 'down') => void;
-  onChange: (index: number, next: DesignElement) => void;
+  onChange: (index: number, next: DesignElement, coalesce?: string) => void;
   onDuplicate: (index: number) => void;
   onRemove: (index: number) => void;
   onPickImage: (index: number) => void;
@@ -131,7 +131,7 @@ export function ElementsPanel({
             const el = elements[sel];
             return el.type === 'image' ? assetUrls[el.asset?.asset_id] : null;
           })()}
-          onChange={(next) => onChange(sel, next)}
+          onChange={(next, coalesce) => onChange(sel, next, coalesce)}
           onDuplicate={() => onDuplicate(sel)}
           onRemove={() => onRemove(sel)}
           onPickImage={() => onPickImage(sel)}

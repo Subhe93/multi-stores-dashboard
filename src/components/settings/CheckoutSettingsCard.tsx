@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, Lock } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import {
   AFTER_ADD_TO_CART,
   MAX_PAY_BUTTON_LABEL,
@@ -50,19 +51,27 @@ const DEFAULT_PAY_LABEL: Record<string, string> = {
 export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) {
   const t = useTranslations('creator.settings.checkout');
   const uiLocale = useLocale();
+  const describeError = useApiError();
   const [form, setForm] = useState<CheckoutSettingsForm>(() => toCheckoutForm(value));
   const [saved, setSaved] = useState<CheckoutSettingsForm>(() => toCheckoutForm(value));
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // A fresh store payload (e.g. after another card saved) resets the form.
+  const dirty = JSON.stringify(form) !== JSON.stringify(saved);
+
+  // A fresh store payload (e.g. after another card saved) re-seeds the form,
+  // but only when the stored settings actually changed and never over
+  // unsaved edits (same rule as useStoreAppSettingsForm).
+  const lastSeeded = useRef(JSON.stringify(toCheckoutForm(value)));
   useEffect(() => {
     const next = toCheckoutForm(value);
+    const json = JSON.stringify(next);
+    if (json === lastSeeded.current) return;
+    lastSeeded.current = json;
+    if (dirty) return;
     setForm(next);
     setSaved(next);
-  }, [value]);
-
-  const dirty = JSON.stringify(form) !== JSON.stringify(saved);
+  }, [value, dirty]);
   const errors = checkoutFormErrors(form);
   const hasErrors = Object.keys(errors).length > 0;
 
@@ -108,7 +117,7 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) 
       setMsg({ type: 'success', text: t('saved') });
       onSaved(body);
     } catch (err) {
-      setMsg({ type: 'error', text: (err instanceof Error && err.message) || t('saveFailed') });
+      setMsg({ type: 'error', text: describeError(err) });
     } finally {
       setSaving(false);
     }

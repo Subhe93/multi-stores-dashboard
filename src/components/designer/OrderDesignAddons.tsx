@@ -2,19 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import type { OrderDesignItem } from '@/lib/designer/designer.api';
-
-/** `{locale: text}` → the dashboard locale, same language, en, first. */
-function pickLabel(label: Record<string, string>, locale: string): string {
-  const lang = locale.split(/[-_]/)[0];
-  const keys = Object.keys(label);
-  return (
-    label[locale] ||
-    label[keys.find((k) => k.split(/[-_]/)[0] === lang) ?? ''] ||
-    label.en ||
-    (keys[0] ? label[keys[0]] : '') ||
-    ''
-  );
-}
+import { pickLabel } from '@/lib/designer/pickLabel';
 
 function money(amount: number, currency: string | null | undefined, locale: string): string {
   if (!currency) return amount.toFixed(2);

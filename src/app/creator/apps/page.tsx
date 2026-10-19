@@ -23,7 +23,7 @@ import { sanitizeStoreApps, setCachedStoreApps } from '@/lib/useStoreApps';
 import { STORE_APP_HREFS, isHiddenApp, type MyStoreAppView, type StoreAppKey } from '@/lib/storeApps.registry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 
@@ -223,11 +223,9 @@ export default function CreatorAppsPage() {
                   {error && <p className="text-[11px] text-red-600">{error}</p>}
                   {app.enabled && href && (
                     <div className="flex justify-end border-t pt-3">
-                      <Link href={href}>
-                        <Button size="sm">
-                          {t('openSettings')}
-                          <ArrowUpRight className="rtl:-scale-x-100" />
-                        </Button>
+                      <Link href={href} className={buttonVariants({ size: 'sm' })}>
+                        {t('openSettings')}
+                        <ArrowUpRight className="rtl:-scale-x-100" />
                       </Link>
                     </div>
                   )}

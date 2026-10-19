@@ -87,7 +87,10 @@ export default function CreatorEarnings() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [meta, setMeta] = useState<OrdersMeta | null>(null);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  // The orders request that has completed; "loading" is derived from it, so
+  // no state is set when the effect starts (react-hooks/set-state-in-effect).
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const loading = loadedKey !== `${token ?? ''}:${page}`;
   const [connectStatus, setConnectStatus] = useState<ConnectStatus | null>(null);
   const [connectStatusLoading, setConnectStatusLoading] = useState(true);
 
@@ -117,14 +120,13 @@ export default function CreatorEarnings() {
 
   useEffect(() => {
     if (!token) return;
-    setLoading(true);
     api<OrdersResponse>(`/orders?page=${page}&limit=${PAGE_SIZE}`, { token })
       .then((res) => {
         setOrders(Array.isArray(res?.data) ? res.data : []);
         setMeta(res?.meta ?? null);
       })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => setLoadedKey(`${token}:${page}`));
   }, [token, page]);
 
   const byCurrency = summary?.by_currency ?? [];

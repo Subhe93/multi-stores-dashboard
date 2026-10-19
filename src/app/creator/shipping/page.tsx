@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle, Check, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
 import {
   ZoneMethods,
@@ -116,6 +117,7 @@ export default function CreatorShipping() {
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
   const t = useTranslations('shipping');
+  const describeError = useApiError();
   // Markets app: costs and thresholds are stored in the store currency and
   // converted at each market's rate; name the markets that convert.
   const { apps } = useStoreApps();
@@ -302,7 +304,7 @@ export default function CreatorShipping() {
       await fetchProfiles();
     } catch (err) {
       console.error(err);
-      setPageError((err instanceof Error && err.message) || t('saveFailed'));
+      setPageError(describeError(err));
     }
     finally { setRenaming(false); }
   };

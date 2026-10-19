@@ -175,8 +175,9 @@ export function CustomFieldManager({
         optionLabels,
         extras,
       });
-    } catch {
-      // silent
+    } catch (err) {
+      // Shown in the dialog like a save failure, so a dead translation service is not mistaken for "nothing to translate".
+      patch({ saveError: apiError(err) });
     } finally {
       patch({ translatingLocale: '' });
     }

@@ -32,6 +32,12 @@ export interface TemplateEditorState {
   past: TemplateSpecV1[];
   future: TemplateSpecV1[];
   historyKey: string | null;
+  /**
+   * Increases on every history change (push, merge, undo, redo). Unlike
+   * `past.length` it keeps moving once the bounded past is full, so "is this
+   * removal still the latest step?" stays answerable.
+   */
+  historySeq: number;
   /** JSON of the last saved spec; `dirty` compares against it. */
   baseJson: string;
   name: string;
@@ -59,7 +65,7 @@ export interface TemplateEditorState {
   leaveTo: string | null;
 }
 
-export type TemplateEditorPatch = Partial<Omit<TemplateEditorState, 'spec' | 'sizeDrafts' | 'sampleTexts' | 'past' | 'future' | 'historyKey'>>;
+export type TemplateEditorPatch = Partial<Omit<TemplateEditorState, 'spec' | 'sizeDrafts' | 'sampleTexts' | 'past' | 'future' | 'historyKey' | 'historySeq'>>;
 type Patch = TemplateEditorPatch;
 
 export type TemplateEditorAction =
@@ -92,6 +98,7 @@ export const initialTemplateEditorState: TemplateEditorState = {
   past: [],
   future: [],
   historyKey: null,
+  historySeq: 0,
   baseJson: '',
   name: '',
   sizeDrafts: draftsOf(null),
@@ -123,6 +130,7 @@ const withHistory = (state: TemplateEditorState, h: History<TemplateSpecV1>): Te
   past: h.past,
   future: h.future,
   historyKey: h.key,
+  historySeq: state.historySeq + 1,
 });
 
 /** The new working spec with the previous one pushed to `past` (or merged when `key` repeats). */
@@ -165,7 +173,7 @@ export function templateEditorReducer(state: TemplateEditorState, action: Templa
         spec,
         baseJson: JSON.stringify(s),
         sizeDrafts: draftsOf(spec),
-        ...(sameTemplate ? { historyKey: null } : { past: [], future: [], historyKey: null }),
+        ...(sameTemplate ? { historyKey: null } : { past: [], future: [], historyKey: null, historySeq: state.historySeq + 1 }),
       };
     }
     case 'loadSpec': {

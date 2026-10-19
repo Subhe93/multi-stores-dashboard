@@ -21,7 +21,7 @@ import {
   type DesignerFontView,
 } from '@/lib/designer/designer.api';
 import type { TemplateSpecV1 } from '@multi-stores/core/designer';
-import { formatBytes } from '@/components/importer/ImporterBits';
+import { ConfirmDialog, formatBytes } from '@/components/importer/ImporterBits';
 
 /** Families of the imported NPP (Namez) templates, named only as an example when present. */
 const NPP_EXAMPLE_FAMILIES = ['montserrat', 'anton', 'righteous'];
@@ -117,6 +117,8 @@ export function FontsPanel({ token }: { token: string }) {
   const [uploading, setUploading] = useState(false);
   const [outcomes, setOutcomes] = useState<UploadOutcome[]>([]);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // Font awaiting the delete confirmation (same flow as AssetsPanel).
+  const [confirmFont, setConfirmFont] = useState<DesignerFontView | null>(null);
   const [rowError, setRowError] = useState<{ id: string; text: string } | null>(null);
   const [used, setUsed] = useState<{ faces: UsedFace[]; nppExample: boolean } | null>(null);
   const [usedError, setUsedError] = useState(false);
@@ -205,8 +207,12 @@ export function FontsPanel({ token }: { token: string }) {
       setRowError({ id: f.id, text: err instanceof ApiError && err.code === 'DESIGNER_ASSET_IN_USE' ? t('inUse') : describeError(err) });
     } finally {
       setDeleting(null);
+      // A failure is shown on the row; the dialog closes either way.
+      setConfirmFont(null);
     }
   };
+
+  const faceName = (f: DesignerFontView) => `${f.family} ${f.weight}${f.style === 'italic' ? ` ${t('styleItalic')}` : ''}`;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -386,7 +392,7 @@ export function FontsPanel({ token }: { token: string }) {
                         className="size-7 text-red-600"
                         aria-label={t('delete')}
                         disabled={deleting === f.id}
-                        onClick={() => remove(f)}
+                        onClick={() => setConfirmFont(f)}
                       >
                         {deleting === f.id ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
                       </Button>
@@ -399,6 +405,19 @@ export function FontsPanel({ token }: { token: string }) {
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirmFont !== null}
+        title={t('deleteTitle')}
+        description={confirmFont ? t('deleteBody', { face: faceName(confirmFont) }) : undefined}
+        confirmLabel={t('delete')}
+        destructive
+        busy={confirmFont !== null && deleting === confirmFont.id}
+        onConfirm={() => confirmFont && remove(confirmFont)}
+        onOpenChange={(o) => {
+          if (!o) setConfirmFont(null);
+        }}
+      />
     </div>
   );
 }

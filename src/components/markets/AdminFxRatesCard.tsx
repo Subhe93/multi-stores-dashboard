@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { ConfirmDialog } from '@/components/importer/ImporterBits';
 import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
 import { useTransientFlag } from '@/lib/useTransientFlag';
@@ -55,10 +56,13 @@ export function AdminFxRatesCard() {
     setRates((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
   const [removing, setRemoving] = useState<number | null>(null);
+  // Index of the persisted row awaiting the remove confirmation.
+  const [confirmIndex, setConfirmIndex] = useState<number | null>(null);
+  const confirmRow = confirmIndex !== null ? rates[confirmIndex] : undefined;
 
   const valid = rates.every((r) => r.base && r.quote && r.base !== r.quote && Number(r.rate) > 0);
 
-  const handleRemove = async (i: number) => {
+  const handleRemove = (i: number) => {
     const row = rates[i];
     if (!row || removing !== null) return;
     // Unsaved rows only exist locally.
@@ -66,7 +70,13 @@ export function AdminFxRatesCard() {
       setRates((prev) => prev.filter((_, idx) => idx !== i));
       return;
     }
-    if (!token || !window.confirm(t('removeConfirm', { pair: `${row.base} → ${row.quote}` }))) return;
+    setConfirmIndex(i);
+  };
+
+  const confirmRemove = async () => {
+    const i = confirmIndex;
+    const row = i !== null ? rates[i] : undefined;
+    if (i === null || !row || !token || removing !== null) return;
     setRemoving(i);
     setSaveError(null);
     try {
@@ -76,6 +86,7 @@ export function AdminFxRatesCard() {
       setSaveError(describeError(err));
     } finally {
       setRemoving(null);
+      setConfirmIndex(null);
     }
   };
 
@@ -150,6 +161,19 @@ export function AdminFxRatesCard() {
           </>
         )}
       </CardContent>
+
+      <ConfirmDialog
+        open={confirmRow !== undefined}
+        title={t('remove')}
+        description={confirmRow ? t('removeConfirm', { pair: `${confirmRow.base} → ${confirmRow.quote}` }) : undefined}
+        confirmLabel={t('remove')}
+        destructive
+        busy={removing !== null}
+        onConfirm={confirmRemove}
+        onOpenChange={(o) => {
+          if (!o) setConfirmIndex(null);
+        }}
+      />
     </Card>
   );
 }

@@ -11,6 +11,7 @@ import { MarketForm } from '@/components/markets/MarketForm';
 import { DomainsPanel } from '@/components/markets/DomainsPanel';
 import { MARKET_STATUS_CLASS, PaymentCheckCard } from '@/components/markets/PaymentCheckCard';
 import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
+import { ConfirmDialog } from '@/components/importer/ImporterBits';
 import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
@@ -38,6 +39,7 @@ export default function CreatorMarketDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   // Status-change failures are shown inside the payment card (they may not be payment problems).
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!appsLoading && !enabled) return <AppTurnedOff icon={Globe} />;
 
@@ -96,12 +98,15 @@ export default function CreatorMarketDetailPage() {
     }
   };
 
-  const handleDelete = () => {
-    if (!window.confirm(t('form.deleteConfirm', { name: market.name }))) return;
-    runAction(async () => {
+  const handleDelete = () => setConfirmDelete(true);
+
+  const confirmDeleteMarket = async () => {
+    await runAction(async () => {
       await deleteMarket(token!, market.id);
       router.push('/creator/markets');
     });
+    // A failure is shown under the header; the dialog closes either way.
+    setConfirmDelete(false);
   };
 
   return (
@@ -161,6 +166,17 @@ export default function CreatorMarketDetailPage() {
           {!market.is_default && <p className="text-[11px] text-muted-foreground">{t('form.deleteWarnOrders')}</p>}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t('form.deleteMarket')}
+        description={t('form.deleteConfirm', { name: market.name })}
+        confirmLabel={t('form.deleteMarket')}
+        destructive
+        busy={busy}
+        onConfirm={confirmDeleteMarket}
+        onOpenChange={setConfirmDelete}
+      />
     </div>
   );
 }

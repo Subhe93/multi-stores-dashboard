@@ -291,6 +291,17 @@ export function EditorCanvas({
       onSelect(null);
       return;
     }
+    // Tab / Shift+Tab walk the elements while the overlay itself has focus
+    // (not a handle inside it). Focus is never trapped: past the last (or
+    // before the first) element the key is left alone and focus moves on.
+    if (e.key === 'Tab' && !meta && !e.altKey && e.target === e.currentTarget && elements.length > 0) {
+      const last = elements.length - 1;
+      const next = e.shiftKey ? (selected === null ? last : selected - 1) : selected === null ? 0 : selected + 1;
+      if (next < 0 || next > last) return;
+      e.preventDefault();
+      onSelect(next);
+      return;
+    }
     if (selected === null || !elements[selected]) return;
     if (meta && (e.key === 'd' || e.key === 'D')) {
       e.preventDefault();
