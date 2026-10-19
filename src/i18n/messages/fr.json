@@ -4147,6 +4147,13 @@
         "deleteConfirm": "Supprimer le marché « {name} » ? Ses domaines et prix manuels seront retirés.",
         "deleteWarnOrders": "La suppression d'un marché conserve ses commandes ; elles perdent seulement la référence au marché."
       },
+      "preview": {
+        "title": "Lien d'aperçu",
+        "hint": "Fonctionne avant que le domaine soit connecté et tant que le marché est encore un brouillon. Le paiement est désactivé dans l'aperçu.",
+        "open": "Ouvrir l'aperçu",
+        "copy": "Copier le lien",
+        "copied": "Copié"
+      },
       "rule": {
         "sameCurrency": "Ce marché utilise la devise de votre boutique ({currency}) ; les prix sont utilisés tels quels.",
         "mode": "Mode",

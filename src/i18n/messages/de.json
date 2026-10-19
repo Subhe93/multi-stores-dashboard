@@ -4147,6 +4147,13 @@
         "deleteConfirm": "Markt „{name}“ löschen? Seine Domains und manuellen Preise werden entfernt.",
         "deleteWarnOrders": "Beim Löschen eines Marktes bleiben seine Bestellungen erhalten; nur der Marktbezug geht verloren."
       },
+      "preview": {
+        "title": "Vorschau-Link",
+        "hint": "Funktioniert, bevor die Domain verbunden ist und solange der Markt noch ein Entwurf ist. In der Vorschau ist die Kasse deaktiviert.",
+        "open": "Vorschau öffnen",
+        "copy": "Link kopieren",
+        "copied": "Kopiert"
+      },
       "rule": {
         "sameCurrency": "Dieser Markt nutzt Ihre Shop-Währung ({currency}); Preise werden wie eingegeben verwendet.",
         "mode": "Modus",

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { AlertCircle, Globe, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { AlertCircle, ExternalLink, Globe, Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -137,6 +137,20 @@ export default function CreatorMarketsPage() {
                       <span className="font-medium text-foreground">{t('list.primaryDomain')}:</span>{' '}
                       <code className="font-mono" dir="ltr">{primary?.hostname ?? m.platform_hostname}</code>
                     </p>
+                    {m.preview_url && (
+                      <p>
+                        <a
+                          href={m.preview_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-foreground underline-offset-2 hover:underline"
+                          title={t('preview.hint')}
+                        >
+                          <ExternalLink className="size-3" aria-hidden />
+                          {t('preview.open')}
+                        </a>
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                     <div className="space-y-1">

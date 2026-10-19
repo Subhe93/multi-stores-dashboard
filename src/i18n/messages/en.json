@@ -4147,6 +4147,13 @@
         "deleteConfirm": "Delete the market \"{name}\"? Its domains and price overrides are removed.",
         "deleteWarnOrders": "Deleting a market keeps its orders; they just lose the market reference."
       },
+      "preview": {
+        "title": "Preview link",
+        "hint": "Works before the domain is connected and while the market is still a draft. The checkout is disabled on the preview.",
+        "open": "Open preview",
+        "copy": "Copy link",
+        "copied": "Copied"
+      },
       "rule": {
         "sameCurrency": "This market uses your store currency ({currency}); prices are used as entered.",
         "mode": "Mode",

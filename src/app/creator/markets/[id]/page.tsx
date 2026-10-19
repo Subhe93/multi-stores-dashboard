@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MarketForm } from '@/components/markets/MarketForm';
 import { DomainsPanel } from '@/components/markets/DomainsPanel';
+import { MarketPreviewLink } from '@/components/markets/MarketPreviewLink';
 import { MARKET_STATUS_CLASS, PaymentCheckCard } from '@/components/markets/PaymentCheckCard';
 import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
 import { ConfirmDialog } from '@/components/importer/ImporterBits';
@@ -163,6 +164,8 @@ export default function CreatorMarketDetailPage() {
             onSetStatus={handleSetStatus}
             statusError={statusError}
           />
+          {/* Non-default markets only (preview_url is null for the default one). */}
+          <MarketPreviewLink previewUrl={market.preview_url ?? null} />
           {!market.is_default && <p className="text-[11px] text-muted-foreground">{t('form.deleteWarnOrders')}</p>}
         </div>
       </div>

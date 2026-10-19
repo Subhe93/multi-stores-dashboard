@@ -4147,6 +4147,13 @@
         "deleteConfirm": "\"{name}\" pazarı silinsin mi? Alan adları ve manuel fiyatları kaldırılır.",
         "deleteWarnOrders": "Bir pazarı silmek siparişlerini korur; yalnızca pazar bağlantısı kaldırılır."
       },
+      "preview": {
+        "title": "Önizleme bağlantısı",
+        "hint": "Alan adı bağlanmadan önce ve pazar hâlâ taslakken çalışır. Önizlemede ödeme kapalıdır.",
+        "open": "Önizlemeyi aç",
+        "copy": "Bağlantıyı kopyala",
+        "copied": "Kopyalandı"
+      },
       "rule": {
         "sameCurrency": "Bu pazar mağaza para biriminizi ({currency}) kullanır; fiyatlar girildiği gibi kullanılır.",
         "mode": "Mod",

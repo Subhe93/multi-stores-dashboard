@@ -4147,6 +4147,13 @@
         "deleteConfirm": "Ta bort marknaden \"{name}\"? Dess domäner och manuella priser tas bort.",
         "deleteWarnOrders": "Om en marknad tas bort finns dess ordrar kvar; de förlorar bara kopplingen till marknaden."
       },
+      "preview": {
+        "title": "Förhandsvisningslänk",
+        "hint": "Fungerar innan domänen är kopplad och medan marknaden fortfarande är ett utkast. Kassan är avstängd i förhandsvisningen.",
+        "open": "Öppna förhandsvisning",
+        "copy": "Kopiera länk",
+        "copied": "Kopierad"
+      },
       "rule": {
         "sameCurrency": "Den här marknaden använder din butiksvaluta ({currency}); priserna används som de angetts.",
         "mode": "Läge",

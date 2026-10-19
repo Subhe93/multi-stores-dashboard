@@ -66,6 +66,13 @@ export interface MarketView {
   effective_rate: number | null;
   domains: DomainView[];
   platform_hostname: string;
+  /**
+   * Market preview: `https://<slug>--<key>.<platform host>` serves this
+   * market before its domain is connected (DRAFT included) with the checkout
+   * disabled. Null for the default market (its platform subdomain already
+   * serves it). Built by the API from STOREFRONT_URL.
+   */
+  preview_url: string | null;
 }
 
 export interface MarketInput {
