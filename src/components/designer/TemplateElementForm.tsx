@@ -67,7 +67,7 @@ function NumField({
 }
 
 /** One input per store locale for a translated label / placeholder. */
-function I18nInputs({
+export function I18nInputs({
   id,
   label,
   hint,

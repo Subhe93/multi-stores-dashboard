@@ -339,6 +339,12 @@ export default function CreatorOrderDetailPage() {
   }
 
   // Earnings: sum creator_amount from commission entries
+  // Markets app: every amount of the order is in the order's own currency
+  // (e.g. EUR on a SEK store); `fmt` formats in the store currency.
+  const fmtOrder = (amount: number | string | null | undefined) =>
+    order.currency && order.currency !== currency
+      ? formatAmountIn(amount, order.currency)
+      : fmt(amount);
   const totalEarnings = Array.isArray(order.commission)
     ? order.commission.reduce(
         (acc: number, c) => acc + Number(c.creator_amount ?? 0),
@@ -518,20 +524,20 @@ export default function CreatorOrderDetailPage() {
                               <span>{t('orderDetail.qty', { count: item.quantity })}</span>
                               <span>·</span>
                               <span className="flex items-center gap-1">
-                                {t('orderDetail.each', { price: fmt(unitPrice) })}
+                                {t('orderDetail.each', { price: fmtOrder(unitPrice) })}
                                 {originalUnitPrice !== null && originalUnitPrice > unitPrice && (
                                   <span className="line-through text-muted-foreground/70 tabular-nums">
-                                    {fmt(originalUnitPrice)}
+                                    {fmtOrder(originalUnitPrice)}
                                   </span>
                                 )}
                               </span>
                               <span className="ml-auto flex flex-col items-end">
                                 <span className="font-semibold text-foreground text-sm">
-                                  {fmt(lineTotal)}
+                                  {fmtOrder(lineTotal)}
                                 </span>
                                 {originalLineTotal !== null && originalLineTotal > lineTotal && (
                                   <span className="text-[11px] line-through text-muted-foreground/70 tabular-nums">
-                                    {fmt(originalLineTotal)}
+                                    {fmtOrder(originalLineTotal)}
                                   </span>
                                 )}
                               </span>
@@ -562,7 +568,7 @@ export default function CreatorOrderDetailPage() {
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>{t('orderDetail.subtotal')}</span>
-                  <span>{fmt(Number(order.subtotal ?? order.total))}</span>
+                  <span>{fmtOrder(Number(order.subtotal ?? order.total))}</span>
                 </div>
                 {/* Shown when there is a cost or a chosen method (free pickup still names the method). */}
                 {(Number(order.shipping_cost ?? 0) > 0 || order.shipping_method_name) && (
@@ -574,13 +580,13 @@ export default function CreatorOrderDetailPage() {
                         <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
                       )}
                     </span>
-                    <span>{fmt(Number(order.shipping_cost ?? 0))}</span>
+                    <span>{fmtOrder(Number(order.shipping_cost ?? 0))}</span>
                   </div>
                 )}
                 {Number(order.discount_amount ?? 0) > 0 && (
                   <div className="flex justify-between text-emerald-600">
                     <span>{t('orderDetail.discount')}</span>
-                    <span>-{fmt(Number(order.discount_amount))}</span>
+                    <span>-{fmtOrder(Number(order.discount_amount))}</span>
                   </div>
                 )}
                 {/* Company orders (b2b app) read net-first: net total, then the
@@ -798,7 +804,7 @@ export default function CreatorOrderDetailPage() {
             </CardHeader>
             <CardContent className="text-xs">
               <p className="text-2xl font-semibold text-emerald-700">
-                {fmt(totalEarnings)}
+                {fmtOrder(totalEarnings)}
               </p>
               <p className="text-muted-foreground mt-1">
                 {storeType === 'INDEPENDENT'

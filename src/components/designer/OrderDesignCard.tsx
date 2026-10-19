@@ -13,10 +13,14 @@ import {
   designerFileUrl,
   downloadOriginalFile,
   downloadPrintFile,
+  formatFileSize,
+  formatPageMm,
   getOrderDesigns,
   isAppDisabledError,
   listAssets,
   listFonts,
+  pdfPrintFile,
+  pngPrintFile,
   purgeOrderItemFiles,
   regeneratePrint,
   type DesignerAssetView,
@@ -28,6 +32,7 @@ import {
 import { useDateTimeFormat } from '@/components/importer/ImporterBits';
 import { DesignPreviewCanvas, type PreviewFont } from '@/components/designer/DesignPreviewCanvas';
 import { PrintStatusBadge, usePrintErrorText } from '@/components/designer/DesignerBits';
+import { OrderDesignAddons } from '@/components/designer/OrderDesignAddons';
 
 interface OrderDesignCardProps {
   orderId: string;
@@ -186,11 +191,11 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
   if (!data && !error) return null;
   if (data && data.items.length === 0) return null;
 
-  const download = async (item: OrderDesignItem) => {
-    setBusy(`dl-${item.order_item_id}`);
+  const download = async (item: OrderDesignItem, format: 'png' | 'pdf' = 'png') => {
+    setBusy(`dl-${format}-${item.order_item_id}`);
     setRowMsg(null);
     try {
-      await downloadPrintFile(token, orderId, item.order_item_id);
+      await downloadPrintFile(token, orderId, item.order_item_id, format);
     } catch (err) {
       setRowMsg({ id: item.order_item_id, text: describeError(err) });
     } finally {
@@ -274,7 +279,8 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
           const proof = designerFileUrl(item.proof_url);
           const photos = item.assets.filter((a) => a.role === 'photo');
           const filesPurged = !!item.files_purged_at || item.print.status === 'PURGED';
-          const file = item.print.files.find((f) => f.surface === 'front') ?? item.print.files[0];
+          const file = pngPrintFile(item.print.files);
+          const pdf = pdfPrintFile(item.print.files);
           const title = itemTitles?.[item.order_item_id];
           return (
             <div key={item.order_item_design_id} className="space-y-3 rounded-lg border p-3">
@@ -317,6 +323,9 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                       </dl>
                     </div>
                   )}
+
+                  {/* M5.5: chosen add-ons (separate from the print-file block). */}
+                  <OrderDesignAddons item={item} />
 
                   {photos.length > 0 && (
                     <div className="space-y-1">
@@ -377,9 +386,18 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                   <div className="space-y-1.5">
                     <p className="font-medium text-muted-foreground">{t('printFile')}</p>
                     {file ? (
-                      <p className="text-muted-foreground" dir="ltr">
-                        PNG · {file.width_px}×{file.height_px} px · {Math.round(file.dpi)} DPI
-                      </p>
+                      <>
+                        <p className="text-muted-foreground" dir="ltr">
+                          PNG · {file.width_px}×{file.height_px} px · {Math.round(file.dpi)} DPI · {formatFileSize(file.bytes)}
+                        </p>
+                        {pdf && (
+                          <p className="text-muted-foreground" dir="ltr">
+                            PDF · {pdf.page_mm ? formatPageMm(pdf.page_mm) : '—'}
+                            {pdf.bleed_mm ? ` · ${t('pdfBleed', { mm: pdf.bleed_mm })}` : ''}
+                            {pdf.crop_marks ? ` · ${t('pdfCropMarks')}` : ''} · {formatFileSize(pdf.bytes)}
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <p className="text-muted-foreground">{item.print.requested_at ? t('printPending') : t('printWaitingPayment')}</p>
                     )}
@@ -394,12 +412,25 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                         size="sm"
                         variant="outline"
                         className="h-7 text-xs"
-                        disabled={!item.print.download_path || busy === `dl-${item.order_item_id}`}
+                        disabled={!item.print.download_path || busy === `dl-png-${item.order_item_id}`}
                         onClick={() => download(item)}
                       >
-                        {busy === `dl-${item.order_item_id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />}{' '}
+                        {busy === `dl-png-${item.order_item_id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />}{' '}
                         {t('downloadPrint')}
                       </Button>
+                      {pdf && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          disabled={!item.print.pdf_download_path || busy === `dl-pdf-${item.order_item_id}`}
+                          onClick={() => download(item, 'pdf')}
+                        >
+                          {busy === `dl-pdf-${item.order_item_id}` ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />}{' '}
+                          {t('downloadPdf')}
+                        </Button>
+                      )}
                       {!readOnly && (
                         <>
                       <Button
@@ -408,6 +439,7 @@ export function OrderDesignCard({ orderId, token, appEnabled, itemTitles }: Orde
                         variant="ghost"
                         className="h-7 text-xs"
                         disabled={filesPurged || item.print.status === 'RENDERING' || busy === `regen-${item.order_item_id}`}
+                        title={pdf ? t('regenerateBoth') : undefined}
                         onClick={() => regenerate(item)}
                       >
                         {busy === `regen-${item.order_item_id}` ? <Loader2 className="animate-spin" /> : <RotateCcw className="size-3.5" />}{' '}

@@ -151,13 +151,32 @@ export interface SpecIssue {
 
 // ─── Product link ───────────────────────────────────────────────────────────
 
+/** One paid add-on of a designed product (M5.5). Price in the store currency. */
+export interface DesignerAddonItem {
+  key: string;
+  type: 'toggle' | 'quantity';
+  label: Record<string, string>;
+  price: number;
+  max_qty?: number;
+  enabled: boolean;
+  sort?: number;
+}
+
+export interface DesignerAddonsConfig {
+  v: 2;
+  items: DesignerAddonItem[];
+}
+
 export interface ProductDesignerView {
   product_id: string;
   link: {
     enabled: boolean;
     template_id: string;
     template: { id: string; name: string; status: DesignTemplateStatus } | null;
-    addons: unknown;
+    /** M5.5 add-on config (empty `items` until saved). */
+    addons: DesignerAddonsConfig;
+    /** Suggested (disabled) add-ons from imported NPP data; empty without. */
+    addon_presets: DesignerAddonItem[];
     updated_at: string;
   } | null;
   fallback_field_count: number;
@@ -170,11 +189,44 @@ export interface ProductDesignerView {
 
 export interface PrintFileInfo {
   surface: string;
+  /** 'png' (always) or 'pdf' (print-ready, with bleed). */
   format: string;
   width_px: number;
   height_px: number;
   dpi: number;
   bytes: number;
+  /** PDF only: page size in mm (trim + 2 × bleed, plus the crop-mark slug). */
+  page_mm?: { width: number; height: number };
+  /** PDF only: trim size in mm. */
+  trim_mm?: { width: number; height: number };
+  /** PDF only: bleed in mm on every side. */
+  bleed_mm?: number;
+  /** PDF only: crop marks drawn. */
+  crop_marks?: boolean;
+}
+
+/** The PNG print file of a render (the front surface first). */
+export function pngPrintFile(files: PrintFileInfo[]): PrintFileInfo | undefined {
+  const png = files.filter((f) => f.format !== 'pdf');
+  return png.find((f) => f.surface === 'front') ?? png[0];
+}
+
+/** The print-ready PDF of a render, when the store renders one. */
+export function pdfPrintFile(files: PrintFileInfo[]): PrintFileInfo | undefined {
+  return files.find((f) => f.format === 'pdf');
+}
+
+/** Human file size (B / KB / MB, one decimal from KB on). */
+export function formatFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 1024) return `${Math.max(0, Math.round(bytes || 0))} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** "506 × 706 mm" (up to one decimal). */
+export function formatPageMm(page: { width: number; height: number }): string {
+  const n = (v: number) => String(Math.round(v * 10) / 10);
+  return `${n(page.width)} × ${n(page.height)} mm`;
 }
 
 export interface OrderDesignAsset {
@@ -216,6 +268,9 @@ export interface OrderDesignItem {
   template_spec?: TemplateSpecV1 | null;
   proof_url: string | null;
   text_values: { element_id: string; label: string; value: string }[] | null;
+  /** M5.5: add-ons sold with the line (per unit, order currency); empty on older rows. */
+  addons?: OrderDesignAddon[];
+  addons_currency?: string | null;
   assets: OrderDesignAsset[];
   low_res: boolean;
   print: {
@@ -226,6 +281,8 @@ export interface OrderDesignItem {
     rendered_at: string | null;
     files: PrintFileInfo[];
     download_path: string | null;
+    /** Set when the render has a print-ready PDF. */
+    pdf_download_path?: string | null;
   };
   shipped_at: string | null;
   terminal_at: string | null;
@@ -233,6 +290,15 @@ export interface OrderDesignItem {
   files_purged_at: string | null;
   originals_purge_at: string | null;
   files_purge_at: string | null;
+}
+
+export interface OrderDesignAddon {
+  key: string;
+  type: 'toggle' | 'quantity';
+  label: Record<string, string>;
+  qty: number;
+  unit_price: number;
+  amount: number;
 }
 
 export interface OrderDesigns {
@@ -391,6 +457,14 @@ export const putProductDesigner = (token: string, productId: string, body: { ena
     body: JSON.stringify(body),
   });
 
+/** Saves the product's add-ons (validated server-side; 400 DESIGNER_ADDONS_INVALID). */
+export const putProductAddons = (token: string, productId: string, addons: DesignerAddonsConfig) =>
+  api<ProductDesignerView>(`${BASE}/products/${encodeURIComponent(productId)}/addons`, {
+    method: 'PUT',
+    token,
+    body: JSON.stringify({ addons }),
+  });
+
 /** Unlinks the template from the product (the storefront shows the normal product page). */
 export const deleteProductDesigner = (token: string, productId: string) =>
   api<unknown>(`${BASE}/products/${encodeURIComponent(productId)}`, { method: 'DELETE', token });
@@ -432,11 +506,11 @@ function downloadDesignerFile(token: string, endpoint: string, fallbackName: str
 }
 
 /** Downloads the print PNG (`<order_number>-<n>-front.png`). */
-export function downloadPrintFile(token: string, orderId: string, itemId: string): Promise<void> {
+export function downloadPrintFile(token: string, orderId: string, itemId: string, format: 'png' | 'pdf' = 'png'): Promise<void> {
   return downloadDesignerFile(
     token,
-    `${BASE}/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/print`,
-    `print-${itemId.slice(0, 8)}-front.png`,
+    `${BASE}/orders/${encodeURIComponent(orderId)}/items/${encodeURIComponent(itemId)}/print${format === 'pdf' ? '?format=pdf' : ''}`,
+    `print-${itemId.slice(0, 8)}-front.${format}`,
   );
 }
 

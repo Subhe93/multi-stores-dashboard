@@ -30,17 +30,9 @@ import {
 } from '@/lib/designer/designer.api';
 import { DesignPreviewCanvas, type PreviewFont } from '@/components/designer/DesignPreviewCanvas';
 import { FieldError, TemplateStatusBadge } from '@/components/designer/DesignerBits';
+import { ProductAddonsEditor } from '@/components/designer/ProductAddonsEditor';
 
 const NONE = '__none__';
-
-/** Imported NPP add-ons (`{double:{enabled,price}, …}`), shown read-only. */
-function addonRows(addons: unknown): { key: string; price: string }[] {
-  if (!addons || typeof addons !== 'object' || Array.isArray(addons)) return [];
-  return Object.entries(addons as Record<string, unknown>).map(([key, v]) => {
-    const price = v && typeof v === 'object' && 'price' in v ? String((v as { price: unknown }).price ?? '') : '';
-    return { key, price };
-  });
-}
 
 /**
  * "Designer" tab of the product editor (M4.2 §8.3): link the product to a
@@ -208,8 +200,6 @@ export function ProductDesignerTab({ productId }: { productId: string }) {
     );
   }
 
-  const addons = addonRows(view.link?.addons);
-
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
       <div className="space-y-5">
@@ -322,29 +312,8 @@ export function ProductDesignerTab({ productId }: { productId: string }) {
           </CardContent>
         </Card>
 
-        {addons.length > 0 && (
-          <Card className="shadow-none">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">{t('addonsTitle')}</CardTitle>
-              <p className="text-xs text-muted-foreground">{t('addonsHint')}</p>
-            </CardHeader>
-            <CardContent>
-              <ul className="divide-y rounded-md border text-xs">
-                {addons.map((a) => (
-                  <li key={a.key} className="flex items-center justify-between px-3 py-2">
-                    <span className="font-mono" dir="ltr">
-                      {a.key}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {a.price ? `${a.price} · ` : ''}
-                      {t('addonDisabled')}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+        {/* M5.5: paid add-ons (editable; imported NPP add-ons are offered as presets). */}
+        <ProductAddonsEditor productId={productId} token={token} view={view} onSaved={setView} />
       </div>
 
       <Card className="shadow-none lg:self-start">

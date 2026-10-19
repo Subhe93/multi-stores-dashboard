@@ -22,6 +22,8 @@ import {
   type ShippingMethod,
 } from '@/components/common/ShippingMethods';
 import { useCurrency } from '@/lib/useCurrency';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { useMarkets } from '@/lib/useMarkets';
 import { useTranslations } from 'next-intl';
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -114,6 +116,13 @@ export default function CreatorShipping() {
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
   const t = useTranslations('shipping');
+  // Markets app: costs and thresholds are stored in the store currency and
+  // converted at each market's rate; name the markets that convert.
+  const { apps } = useStoreApps();
+  const { markets } = useMarkets(isAppEnabled(apps, 'markets'));
+  const convertingMarkets = (markets ?? []).filter(
+    (m) => m.currency.toUpperCase() !== currency.toUpperCase(),
+  );
   const tc = useTranslations('common');
   const [profiles, setProfiles] = useState<ShippingProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -337,6 +346,16 @@ export default function CreatorShipping() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t('shipping')}</h1>
           <p className="text-sm text-muted-foreground">{t('shippingSubtitle')}</p>
+          {convertingMarkets.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('marketCurrencyHint', {
+                currency,
+                markets: convertingMarkets
+                  .map((m) => `${m.name} (${m.currency}${m.effective_rate ? ` ≈ ${m.effective_rate}` : ''})`)
+                  .join(', '),
+              })}
+            </p>
+          )}
         </div>
         <Button size="sm" onClick={() => setShowAddProfile(true)}>
           <Plus className="w-4 h-4 me-1.5" /> {t('newProfile')}

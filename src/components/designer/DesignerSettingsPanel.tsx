@@ -19,7 +19,10 @@ export interface DesignerSettings {
   max_upload_mb: number;
   min_effective_dpi_warning: number;
   print_px_per_mm: number;
+  /** 'png' always (first); 'pdf' adds the print-ready PDF with bleed. */
   print_formats: string[];
+  /** Crop marks in the print PDF. */
+  print_crop_marks: boolean;
   shop_button_text: Record<string, string>;
 }
 
@@ -43,6 +46,7 @@ const DEFAULTS: DesignerSettings = {
   min_effective_dpi_warning: 100,
   print_px_per_mm: 6,
   print_formats: ['png'],
+  print_crop_marks: false,
   // No default text: an empty map means the storefront uses its own translated label.
   shop_button_text: {},
 };
@@ -67,7 +71,8 @@ function normalize(raw: unknown): DesignerSettings {
     max_upload_mb: int('max_upload_mb'),
     min_effective_dpi_warning: int('min_effective_dpi_warning'),
     print_px_per_mm: 6,
-    print_formats: ['png'],
+    print_formats: Array.isArray(r.print_formats) && r.print_formats.includes('pdf') ? ['png', 'pdf'] : ['png'],
+    print_crop_marks: r.print_crop_marks === true,
     shop_button_text: text,
   };
 }
@@ -85,8 +90,9 @@ const fieldId = (k: string) => `dz-set-${k}`;
 
 /**
  * "Settings" tab: retention (photo originals, drafts, print files), upload
- * limit, low-DPI warning threshold, print resolution (locked at 6 px/mm in
- * M4.2) and the storefront button text per store locale. Saving an invalid
+ * limit, low-DPI warning threshold, print output (resolution locked at
+ * 6 px/mm; PNG always, optional print-ready PDF with bleed and crop marks)
+ * and the storefront button text per store locale. Saving an invalid
  * value focuses the field instead of sending it.
  */
 export function DesignerSettingsPanel({ app, token }: { app: MyStoreAppView; token: string }) {
@@ -117,6 +123,7 @@ export function DesignerSettingsPanel({ app, token }: { app: MyStoreAppView; tok
   }, [token]);
 
   const allLocales = [...new Set([...locales, ...Object.keys(form.shop_button_text)])];
+  const hasPdf = form.print_formats.includes('pdf');
 
   const intError = (k: IntKey): string | null => {
     const v = form[k];
@@ -211,11 +218,41 @@ export function DesignerSettingsPanel({ app, token }: { app: MyStoreAppView; tok
               </span>
             </div>
             <div className="flex items-center justify-between gap-3 rounded-md border bg-zinc-50 px-3 py-2">
-              <span>{t('printFormats')}</span>
+              <span>{t('printFormatPng')}</span>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Lock className="size-3.5" /> {t('printFormatsValue')}
+                <Lock className="size-3.5" /> {t('printFormatPngValue')}
               </span>
             </div>
+            <label htmlFor={fieldId('pdf')} className="flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2">
+              <input
+                id={fieldId('pdf')}
+                type="checkbox"
+                className="mt-0.5 rounded accent-primary"
+                checked={hasPdf}
+                onChange={(e) => update('print_formats', e.target.checked ? ['png', 'pdf'] : ['png'])}
+              />
+              <span className="space-y-0.5">
+                <span className="block">{t('printFormatPdf')}</span>
+                <span className="block text-xs text-muted-foreground">{t('printFormatPdfHint')}</span>
+              </span>
+            </label>
+            <label
+              htmlFor={fieldId('crop-marks')}
+              className={`flex items-start gap-3 rounded-md border px-3 py-2 ${hasPdf ? 'cursor-pointer' : 'opacity-60'}`}
+            >
+              <input
+                id={fieldId('crop-marks')}
+                type="checkbox"
+                className="mt-0.5 rounded accent-primary"
+                checked={form.print_crop_marks}
+                disabled={!hasPdf}
+                onChange={(e) => update('print_crop_marks', e.target.checked)}
+              />
+              <span className="space-y-0.5">
+                <span className="block">{t('printCropMarks')}</span>
+                <span className="block text-xs text-muted-foreground">{t('printCropMarksHint')}</span>
+              </span>
+            </label>
             <p className="text-xs text-muted-foreground">{t('printHint')}</p>
           </CardContent>
         </Card>
