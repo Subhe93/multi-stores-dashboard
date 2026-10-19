@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { AlertCircle, ArrowDown, ArrowUp, ImageIcon, Plus, Type, UserSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { DesignElement } from '@/lib/designer/design-renderer';
+import type { DesignElement } from '@multi-stores/core/designer';
 import { stackOrder, type FontFaceOption } from '@/lib/designer/templateSpec';
 import { ElementForm } from './ElementForm';
 import type { Issue } from './specIssues';

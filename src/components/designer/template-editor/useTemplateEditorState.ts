@@ -1,7 +1,7 @@
 'use client';
 
 import { useReducer } from 'react';
-import type { DesignElement, TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { DesignElement, TemplateSpecV1 } from '@multi-stores/core/designer';
 import type { TemplateAssetKind, TemplateDetail } from '@/lib/designer/designer.api';
 import { cloneSpec, type EditorArea } from '@/lib/designer/templateSpec';
 import { historyPush, historyRedo, historyUndo, type History } from './history';

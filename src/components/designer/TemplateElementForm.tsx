@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import type { DesignElement, I18n, TextElement } from '@/lib/designer/design-renderer';
+import type { DesignElement, I18n, TextElement } from '@multi-stores/core/designer';
 import { faceKey, type FontFaceOption } from '@/lib/designer/templateSpec';
 import { FieldError } from '@/components/designer/DesignerBits';
 

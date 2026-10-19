@@ -19,7 +19,7 @@ import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { useTransientFlag } from '@/lib/useTransientFlag';
 import { loadStoreLocales } from '@/lib/personalization';
-import type { DesignElement, DesignStateV1, TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { DesignElement, DesignStateV1, TemplateSpecV1 } from '@multi-stores/core/designer';
 import {
   addTemplateVersion,
   deleteTemplate,

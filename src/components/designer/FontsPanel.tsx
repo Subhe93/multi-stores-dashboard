@@ -20,7 +20,7 @@ import {
   FONT_MAX_MB,
   type DesignerFontView,
 } from '@/lib/designer/designer.api';
-import type { TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { TemplateSpecV1 } from '@multi-stores/core/designer';
 import { formatBytes } from '@/components/importer/ImporterBits';
 
 /** Families of the imported NPP (Namez) templates, named only as an example when present. */

@@ -9,7 +9,7 @@ import {
   type Mode,
   type RenderReport,
   type TemplateSpecV1,
-} from '@/lib/designer/design-renderer';
+} from '@multi-stores/core/designer';
 
 export interface PreviewFont {
   family: string;

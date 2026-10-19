@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { TemplateSpecV1 } from '@multi-stores/core/designer';
 import type { DesignerAssetView } from '@/lib/designer/designer.api';
 import { FieldError, stretchDpi } from '@/components/designer/DesignerBits';
 import { areaFieldId } from './specIssues';

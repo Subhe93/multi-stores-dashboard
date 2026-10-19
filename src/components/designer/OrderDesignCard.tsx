@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
-import type { DesignStateV1 } from '@/lib/designer/design-renderer';
+import type { DesignStateV1 } from '@multi-stores/core/designer';
 import {
   designerFileUrl,
   downloadOriginalFile,

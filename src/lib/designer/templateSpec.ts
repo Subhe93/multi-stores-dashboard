@@ -9,7 +9,7 @@ import type {
   ImageSlotElement,
   TemplateSpecV1,
   TextElement,
-} from '@/lib/designer/design-renderer';
+} from '@multi-stores/core/designer';
 
 /** Element ids follow the renderer rule ^[a-z0-9_-]{1,32}$. */
 export const ELEMENT_ID_RE = /^[a-z0-9_-]{1,32}$/;

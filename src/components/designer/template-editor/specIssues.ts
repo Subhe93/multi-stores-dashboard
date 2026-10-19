@@ -1,4 +1,4 @@
-import { validateSpec, type TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import { validateSpec, type TemplateSpecV1 } from '@multi-stores/core/designer';
 import type { SpecIssue } from '@/lib/designer/designer.api';
 import { ELEMENT_ID_RE, locateSpecIssue, rebuildFonts, type FontFaceOption, type IssueLocation } from '@/lib/designer/templateSpec';
 import { elementFieldId } from '@/components/designer/TemplateElementForm';

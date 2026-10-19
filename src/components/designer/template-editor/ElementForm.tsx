@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Copy, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { DesignElement } from '@/lib/designer/design-renderer';
+import type { DesignElement } from '@multi-stores/core/designer';
 import type { FontFaceOption } from '@/lib/designer/templateSpec';
 import { TemplateElementForm, elementFieldId } from '@/components/designer/TemplateElementForm';
 import { FieldError } from '@/components/designer/DesignerBits';

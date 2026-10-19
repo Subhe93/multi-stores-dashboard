@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { useTranslations } from 'next-intl';
 import { Lock, Maximize2, Minus, Plus, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { DesignElement, DesignStateV1, Mode, RenderReport, TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { DesignElement, DesignStateV1, Mode, RenderReport, TemplateSpecV1 } from '@multi-stores/core/designer';
 import {
   HANDLES,
   boundsOf,

@@ -4,7 +4,7 @@
 
 import { api, API_URL, ApiError } from '@/lib/api';
 import { downloadAuthed, qs, type Paged } from '@/lib/http';
-import type { TemplateSpecV1 } from '@/lib/designer/design-renderer';
+import type { TemplateSpecV1 } from '@multi-stores/core/designer';
 
 export type { Paged } from '@/lib/http';
 
