@@ -784,7 +784,7 @@
     },
     "domains": {
       "title": "Markt-Domains",
-      "subtitle": "Setzen Sie eine Domain nach dem Cloudflare-Schritt auf „Aktiv“; nur aktive Domains werden ausgeliefert.",
+      "subtitle": "Setzen Sie eine Domain auf Aktiv oder zurück auf Ausstehend, um sie zu sperren; nur aktive Domains werden ausgeliefert. Ein erfolgreiches „Prüfen“ aktiviert die Domain automatisch.",
       "updated": "Domain-Status aktualisiert.",
       "verifiedAt": "geprüft am {date}",
       "loadFailed": "Domains konnten nicht geladen werden.",
@@ -4215,7 +4215,7 @@
         "add": "Hinzufügen",
         "redirectWww": "Auch www.{host} hinzufügen",
         "redirectWwwDesc": "Leitet www auf den Haupt-Hostnamen weiter (301).",
-        "activationNote": "Nach „Prüfen“ wird der Status „Geprüft“. Die Plattform aktiviert die Domain nach Abschluss der Cloudflare-Einrichtung; nur aktive Domains werden ausgeliefert.",
+        "activationNote": "Nach erfolgreichem „Prüfen“ wird die Domain aktiv und sofort ausgeliefert. Ein Admin kann eine Domain über die Domain-Karte des Shops sperren.",
         "dnsNotConfigured": "Die Plattform hat noch kein DNS-Ziel veröffentlicht – wenden Sie sich an den Support, bevor Sie Domains hinzufügen",
         "status": {
           "PENDING": "Ausstehend",

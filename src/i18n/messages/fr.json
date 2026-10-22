@@ -784,7 +784,7 @@
     },
     "domains": {
       "title": "Domaines des marchés",
-      "subtitle": "Passez un domaine en « Actif » après l'étape Cloudflare ; seuls les domaines actifs sont servis.",
+      "subtitle": "Passez un domaine à Actif, ou remettez-le En attente pour le suspendre ; seuls les domaines actifs sont servis. Une vérification réussie active le domaine automatiquement.",
       "updated": "Statut du domaine mis à jour.",
       "verifiedAt": "vérifié le {date}",
       "loadFailed": "Impossible de charger les domaines.",
@@ -4215,7 +4215,7 @@
         "add": "Ajouter",
         "redirectWww": "Ajouter aussi www.{host}",
         "redirectWwwDesc": "Redirige www vers le nom d’hôte principal (301).",
-        "activationNote": "Après « Vérifier », le statut passe à Vérifié. La plateforme active le domaine une fois la configuration Cloudflare terminée ; seuls les domaines actifs sont servis.",
+        "activationNote": "Quand « Vérifier » réussit, le domaine devient actif et est servi immédiatement. Un administrateur peut suspendre un domaine depuis la carte des domaines de la boutique.",
         "dnsNotConfigured": "La plateforme n’a pas encore publié de cible DNS — contactez le support avant d’ajouter des domaines",
         "status": {
           "PENDING": "En attente",

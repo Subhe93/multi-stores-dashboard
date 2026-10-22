@@ -784,7 +784,7 @@
     },
     "domains": {
       "title": "Market domains",
-      "subtitle": "Set a domain to Active after the Cloudflare step; only Active domains are served.",
+      "subtitle": "Set a domain to Active, or back to Pending to suspend it; only Active domains are served. A passing \"Verify\" activates a domain by itself.",
       "updated": "Domain status updated.",
       "verifiedAt": "verified {date}",
       "loadFailed": "Failed to load domains.",
@@ -4215,7 +4215,7 @@
         "add": "Add",
         "redirectWww": "Also add www.{host}",
         "redirectWwwDesc": "Redirects www to the main hostname (301).",
-        "activationNote": "After \"Verify\" the status becomes Verified. The platform activates the domain once the Cloudflare setup is done; only Active domains are served.",
+        "activationNote": "After \"Verify\" passes, the domain becomes Active and is served right away. An admin can suspend a domain from the store's domains card.",
         "dnsNotConfigured": "The platform has not published a DNS target yet — contact support before adding domains",
         "status": {
           "PENDING": "Pending",

@@ -784,7 +784,7 @@
     },
     "domains": {
       "title": "Marknadsdomäner",
-      "subtitle": "Sätt en domän till Aktiv efter Cloudflare-steget; endast aktiva domäner levereras.",
+      "subtitle": "Sätt en domän till Aktiv, eller tillbaka till Väntar för att stänga av den; bara aktiva domäner används. En lyckad \"Verifiera\" aktiverar domänen automatiskt.",
       "updated": "Domänstatus uppdaterad.",
       "verifiedAt": "verifierad {date}",
       "loadFailed": "Det gick inte att läsa in domänerna.",
@@ -4215,7 +4215,7 @@
         "add": "Lägg till",
         "redirectWww": "Lägg även till www.{host}",
         "redirectWwwDesc": "Omdirigerar www till huvudvärdnamnet (301).",
-        "activationNote": "Efter \"Verifiera\" blir statusen Verifierad. Plattformen aktiverar domänen när Cloudflare-konfigurationen är klar; endast aktiva domäner levereras.",
+        "activationNote": "När \"Verifiera\" lyckas blir domänen Aktiv och börjar genast användas. En administratör kan stänga av en domän från butikens domänkort.",
         "dnsNotConfigured": "Plattformen har inte publicerat något DNS-mål ännu – kontakta supporten innan du lägger till domäner",
         "status": {
           "PENDING": "Väntar",

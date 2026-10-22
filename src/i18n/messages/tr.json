@@ -784,7 +784,7 @@
     },
     "domains": {
       "title": "Pazar alan adları",
-      "subtitle": "Cloudflare adımından sonra alan adını Etkin yapın; yalnızca Etkin alan adları yayınlanır.",
+      "subtitle": "Bir alan adını Etkin yapın veya askıya almak için Beklemede durumuna geri alın; yalnızca etkin alan adları yayınlanır. Başarılı bir \"Doğrula\" alan adını kendiliğinden etkinleştirir.",
       "updated": "Alan adı durumu güncellendi.",
       "verifiedAt": "doğrulandı {date}",
       "loadFailed": "Alan adları yüklenemedi.",
@@ -4215,7 +4215,7 @@
         "add": "Ekle",
         "redirectWww": "www.{host} adresini de ekle",
         "redirectWwwDesc": "www'yi ana makine adına yönlendirir (301).",
-        "activationNote": "\"Doğrula\" sonrasında durum Doğrulandı olur. Cloudflare kurulumu tamamlanınca platform alan adını etkinleştirir; yalnızca Etkin alan adları yayınlanır.",
+        "activationNote": "\"Doğrula\" başarılı olunca alan adı Etkin olur ve hemen yayınlanır. Bir yönetici mağazanın alan adı kartından bir alan adını askıya alabilir.",
         "dnsNotConfigured": "Platform henüz bir DNS hedefi yayımlamadı — alan adı eklemeden önce destekle iletişime geçin",
         "status": {
           "PENDING": "Beklemede",

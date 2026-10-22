@@ -66,9 +66,9 @@ interface DomainsPanelProps {
 
 /**
  * Hostnames of one market: add (optionally with a www → apex redirect), DNS
- * instructions from GET /markets/dns-target, creator "Verify" (→ VERIFIED)
- * and the status badge. ACTIVE is set by the platform after the Cloudflare
- * step (L6), which the note under the list explains.
+ * instructions from GET /markets/dns-target, creator "Verify" (a passing
+ * verify makes the host ACTIVE at once) and the status badge. An admin can
+ * suspend a host from the store's domains card.
  */
 export function DomainsPanel({ marketId, domains, platformHostname, onChange }: DomainsPanelProps) {
   const t = useTranslations('creator.markets.domains');
