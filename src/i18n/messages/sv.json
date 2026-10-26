@@ -4211,6 +4211,8 @@
           "ALWAYS": "Indexera alltid",
           "NEVER": "Indexera aldrig"
         },
+        "indexingWarningNever": "Den här marknaden indexeras INTE av sökmotorer förrän du ändrar den här inställningen.",
+        "indexingWarningNoDomain": "Den här marknaden indexeras INTE ännu: ingen egen domän är aktiv. Den indexeras automatiskt när en domän kopplas, eller välj \"Indexera alltid\".",
         "indexingModeHint": {
           "AUTO": "Indexeras inte så länge marknaden körs på plattformsadressen. När en egen domän är aktiv indexeras den och plattformsadressen omdirigerar dit.",
           "ALWAYS": "Indexera på alla adresser, även plattformsadressen.",

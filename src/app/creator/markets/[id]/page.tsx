@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -18,6 +18,7 @@ import { useApiError } from '@/lib/useApiError';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useMarkets } from '@/lib/useMarkets';
 import { deleteMarket, runPaymentCheck, setMarketStatus, type MarketStatus, type MarketView } from '@/lib/markets.api';
+import { api } from '@/lib/api';
 
 export default function CreatorMarketDetailPage() {
   const t = useTranslations('creator.markets');
@@ -41,6 +42,17 @@ export default function CreatorMarketDetailPage() {
   // Status-change failures are shown inside the payment card (they may not be payment problems).
   const [statusError, setStatusError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // The default market without a StoreDomain row is served on the store's
+  // legacy custom_domain; the indexing warning must treat that as a live host.
+  const [storeCustomDomain, setStoreCustomDomain] = useState<string | null>(null);
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    api<{ custom_domain?: string | null }>('/stores/my/store', { token })
+      .then((s) => { if (!cancelled) setStoreCustomDomain(s.custom_domain ?? null); })
+      .catch(() => { /* the warning falls back to the market's own domains */ });
+    return () => { cancelled = true; };
+  }, [token]);
 
   if (!appsLoading && !enabled) return <AppTurnedOff icon={Globe} />;
 
@@ -145,6 +157,7 @@ export default function CreatorMarketDetailPage() {
         <div className="space-y-5 lg:col-span-2">
           <MarketForm
             initial={market}
+            storeCustomDomain={storeCustomDomain}
             onSaved={setMarket}
             // A refused PUT may have stored a fresh payment_check; reload it.
             onSaveFailed={() => { setOverride(null); void refresh(); }}

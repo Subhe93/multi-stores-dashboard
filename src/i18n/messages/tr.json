@@ -4211,6 +4211,8 @@
           "ALWAYS": "Her zaman dizine ekle",
           "NEVER": "Asla dizine ekleme"
         },
+        "indexingWarningNever": "Bu pazar, bu ayarı değiştirene kadar arama motorlarında dizine EKLENMEZ.",
+        "indexingWarningNoDomain": "Bu pazar henüz arama motorlarında dizine eklenmiyor: etkin bir özel alan adı yok. Bir alan adı bağlandığında otomatik olarak dizine eklenir veya \"Her zaman dizine ekle\" seçeneğini seçin.",
         "indexingModeHint": {
           "AUTO": "Pazar platform adresinde çalıştığı sürece dizine eklenmez. Özel bir alan adı etkinleştiğinde dizine eklenir ve platform adresi ona yönlendirilir.",
           "ALWAYS": "Platform adresi dahil her adreste dizine ekle.",

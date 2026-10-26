@@ -4211,6 +4211,8 @@
           "ALWAYS": "Immer indexieren",
           "NEVER": "Nie indexieren"
         },
+        "indexingWarningNever": "Dieser Markt wird NICHT von Suchmaschinen indexiert, bis Sie diese Einstellung ändern.",
+        "indexingWarningNoDomain": "Dieser Markt wird noch NICHT indexiert: keine eigene Domain ist aktiv. Sobald eine Domain verbunden ist, wird er automatisch indexiert – oder wählen Sie \"Immer indexieren\".",
         "indexingModeHint": {
           "AUTO": "Nicht indexiert, solange der Markt unter der Plattformadresse läuft. Sobald eine eigene Domain aktiv ist, wird er indexiert und die Plattformadresse leitet dorthin weiter.",
           "ALWAYS": "Unter jeder Adresse indexieren, auch unter der Plattformadresse.",

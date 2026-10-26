@@ -4211,6 +4211,8 @@
           "ALWAYS": "Toujours indexer",
           "NEVER": "Ne jamais indexer"
         },
+        "indexingWarningNever": "Ce marché n'est PAS indexé par les moteurs de recherche tant que vous ne modifiez pas ce réglage.",
+        "indexingWarningNoDomain": "Ce marché n'est PAS encore indexé : aucun domaine personnalisé n'est actif. Il sera indexé automatiquement dès qu'un domaine sera connecté, ou choisissez « Toujours indexer ».",
         "indexingModeHint": {
           "AUTO": "Non indexé tant que le marché fonctionne sur l’adresse de la plateforme. Dès qu’un domaine personnalisé est actif, il est indexé et l’adresse de la plateforme y redirige.",
           "ALWAYS": "Indexer sur toute adresse, y compris l’adresse de la plateforme.",

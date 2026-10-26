@@ -4211,6 +4211,8 @@
           "ALWAYS": "Always index",
           "NEVER": "Never index"
         },
+        "indexingWarningNever": "This market is NOT indexed by search engines until you change this setting.",
+        "indexingWarningNoDomain": "This market is NOT indexed by search engines yet: no custom domain is active. It will be indexed automatically once a domain is connected, or choose \"Always index\".",
         "indexingModeHint": {
           "AUTO": "Not indexed while the market runs on the platform address. Once a custom domain is active it is indexed and the platform address redirects to it.",
           "ALWAYS": "Index on any address, including the platform address.",

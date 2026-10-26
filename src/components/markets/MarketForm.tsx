@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,8 @@ const DEFAULT_RULE: PriceRule = { mode: 'convert', source: 'manual', rate: null,
 
 interface MarketFormProps {
   initial?: MarketView;
+  /** Store's legacy custom_domain: the default market is served on it when it has no StoreDomain row. */
+  storeCustomDomain?: string | null;
   onSaved: (market: MarketView) => void;
   /** Called after a refused update (e.g. MARKET_PAYMENT_CHECK_FAILED) so the parent can reload the stored payment_check. */
   onSaveFailed?: () => void;
@@ -53,7 +55,7 @@ interface MarketFormProps {
  * rule. Domains and the payment check live on the detail page because they
  * need an existing market id.
  */
-export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) {
+export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveFailed }: MarketFormProps) {
   const t = useTranslations('creator.markets.form');
   const { token } = useAuth();
   const describeError = useApiError();
@@ -92,6 +94,20 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
   const rateValid =
     sameCurrency || rule.mode !== 'convert' || (rule.source ?? 'manual') !== 'manual' || Number(rule.rate) > 0;
   const canSave = !!form.key.trim() && !!form.name.trim() && !!form.currency && keyValid && rateValid && !saving;
+
+  // Mirrors the storefront rule: NEVER is never indexed; AUTO is indexed only
+  // once the market has a live public host (an ACTIVE non-redirecting domain,
+  // or the store's legacy custom_domain for the default market).
+  const hasLiveHost =
+    (initial?.domains ?? []).some((d) => d.status === 'ACTIVE' && !d.redirect_to) ||
+    (!!initial?.is_default && !!storeCustomDomain);
+  const mode = form.indexing ?? 'AUTO';
+  const indexingWarning =
+    mode === 'NEVER'
+      ? t('indexingWarningNever')
+      : mode === 'AUTO' && !hasLiveHost
+        ? t('indexingWarningNoDomain')
+        : null;
 
   const handleSave = async () => {
     if (!token || !canSave) return;
@@ -244,6 +260,15 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
           <CardTitle className="text-sm font-semibold">{t('indexing')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          {indexingWarning && (
+            <div
+              role="status"
+              className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900"
+            >
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              <span>{indexingWarning}</span>
+            </div>
+          )}
           {INDEXING_MODES.map((mode) => {
             const selected = (form.indexing ?? 'AUTO') === mode;
             return (
