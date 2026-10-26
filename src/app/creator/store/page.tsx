@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import {
   ExternalLink,
   Loader2,
@@ -628,26 +629,27 @@ export default function CreatorStorePage() {
   const LanguageTabs = () => {
     if (!hasMultipleLocales) return null;
     return (
-      <div className="flex items-center gap-0 border-b px-6">
-        {allLocales.map(locale => {
-          const isDone = !!(translations[locale]?.name?.trim());
-          const isActive = locale === activeLocale;
-          const isPrimary = locale === form.primary_locale;
-          return (
-            <button key={locale} type="button" onClick={() => setActiveLocale(locale)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                isActive ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'
-              }`}
-            >
-              {LOCALE_LABELS[locale] || locale.toUpperCase()}
-              {!isPrimary && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-              {isPrimary && <span className="text-[9px] text-zinc-400">{t('myStore.primaryParen')}</span>}
-            </button>
-          );
-        })}
-      </div>
+      <LocaleTabs
+        className="px-6"
+        value={activeLocale}
+        onChange={setActiveLocale}
+        locales={allLocales}
+        primaryLocale={form.primary_locale}
+        filled={filledLocales(allLocales, translations, (tr) => !!tr?.name?.trim())}
+      />
     );
   };
+
+  // Secondary-locale placeholders preview the base-language value.
+  const translationPlaceholder = useTranslationPlaceholder();
+  const baseTrans = translations[form.primary_locale] || EMPTY_TRANSLATABLE;
+  const fieldPlaceholder = (field: keyof typeof baseTrans, primaryPlaceholder: string) =>
+    translationPlaceholder({
+      locale: activeLocale,
+      primaryLocale: form.primary_locale,
+      baseValue: baseTrans[field],
+      primaryPlaceholder,
+    });
 
   // Auto-translate banner for secondary locales
   const TranslateBanner = () => {
@@ -871,7 +873,7 @@ export default function CreatorStorePage() {
                 className="h-8 text-sm"
                 value={trans.name}
                 onChange={(e) => setTransField(activeLocale, 'name', e.target.value)}
-                placeholder={activeLocale === form.primary_locale ? t('myStore.storeNamePlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+                placeholder={fieldPlaceholder('name', t('myStore.storeNamePlaceholder'))}
               />
             </div>
             <div className="space-y-1.5">
@@ -892,7 +894,7 @@ export default function CreatorStorePage() {
             <RichTextEditor
               content={trans.description}
               onChange={(val) => setTransField(activeLocale, 'description', val)}
-              placeholder={activeLocale === form.primary_locale ? t('myStore.descriptionPlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+              placeholder={fieldPlaceholder('description', t('myStore.descriptionPlaceholder'))}
             />
           </div>
 
@@ -1069,7 +1071,7 @@ export default function CreatorStorePage() {
               className="h-8 text-sm"
               value={trans.metaTitle}
               onChange={(e) => setTransField(activeLocale, 'metaTitle', e.target.value)}
-              placeholder={activeLocale === form.primary_locale ? t('myStore.metaTitlePlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+              placeholder={fieldPlaceholder('metaTitle', t('myStore.metaTitlePlaceholder'))}
             />
           </div>
           <div className="space-y-1.5">
@@ -1079,7 +1081,7 @@ export default function CreatorStorePage() {
               className="text-sm resize-none" rows={2}
               value={trans.metaDescription}
               onChange={(e) => setTransField(activeLocale, 'metaDescription', e.target.value)}
-              placeholder={activeLocale === form.primary_locale ? t('myStore.metaDescriptionPlaceholder') : t('myStore.fieldInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+              placeholder={fieldPlaceholder('metaDescription', t('myStore.metaDescriptionPlaceholder'))}
             />
           </div>
         </CardContent>

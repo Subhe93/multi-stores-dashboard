@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Languages, Loader2 } from 'lucide-react';
+import { LocaleTabs, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { MAX_CHECKED_LIMIT, type OptionConfigLike } from '@/lib/personalization';
 import { FieldConditionsEditor } from '@/components/apps/personalization/FieldConditionsEditor';
 import { FieldPricingEditor } from '@/components/apps/personalization/FieldPricingEditor';
@@ -40,6 +41,7 @@ export function FieldDialog({
   form, fields, on, locales, primaryLocale, variantOptions, currency, uploading, onPickImage, onSave, onTranslate, onClose,
 }: FieldDialogProps) {
   const t = useTranslations();
+  const translationPlaceholder = useTranslationPlaceholder();
   const {
     state, patch, setLocaleField, setOptionLabel, setExtras,
     isChild, fieldTypes, appOnly, hasOptions, optionValues, primaryLabel, earlierFields, pricedValues,
@@ -88,23 +90,14 @@ export function FieldDialog({
   );
 
   const localeBar = locales.length > 1 && (
-    <div className="flex items-center gap-0 border-b mb-3">
-      {locales.map(locale => (
-        <button
-          key={locale}
-          type="button"
-          onClick={() => patch({ activeLocale: locale })}
-          className={`px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-            locale === activeLocale
-              ? 'border-zinc-900 text-zinc-900'
-              : 'border-transparent text-zinc-400 hover:text-zinc-600'
-          }`}
-        >
-          {localeName(locale)}
-          {locale === primaryLocale && <span className="text-[9px] text-zinc-400 ms-1">{t('customField.primaryParen')}</span>}
-        </button>
-      ))}
-    </div>
+    <LocaleTabs
+      className="mb-3"
+      value={activeLocale}
+      onChange={locale => patch({ activeLocale: locale })}
+      locales={locales}
+      primaryLocale={primaryLocale}
+      filled={Object.fromEntries(locales.map(l => [l, !!localeData[l]?.label?.trim()]))}
+    />
   );
 
   const labelsSection = (
@@ -145,7 +138,12 @@ export function FieldDialog({
             <Input
               className="h-8 text-sm"
               dir={isRtl ? 'rtl' : undefined}
-              placeholder={type === 'REPEATER' ? t('customField.repeaterLabelPlaceholder') : t('customField.englishLabelPlaceholder')}
+              placeholder={translationPlaceholder({
+                locale: activeLocale,
+                primaryLocale,
+                baseValue: localeData[primaryLocale]?.label,
+                primaryPlaceholder: type === 'REPEATER' ? t('customField.repeaterLabelPlaceholder') : t('customField.englishLabelPlaceholder'),
+              })}
               value={localeData[activeLocale]?.label || ''}
               onChange={e => setLocaleField(activeLocale, 'label', e.target.value)}
             />
@@ -160,7 +158,12 @@ export function FieldDialog({
               <Input
                 className="h-8 text-sm"
                 dir={isRtl ? 'rtl' : undefined}
-                placeholder={t('customField.placeholderPlaceholder')}
+                placeholder={translationPlaceholder({
+                  locale: activeLocale,
+                  primaryLocale,
+                  baseValue: localeData[primaryLocale]?.placeholder,
+                  primaryPlaceholder: t('customField.placeholderPlaceholder'),
+                })}
                 value={localeData[activeLocale]?.placeholder || ''}
                 onChange={e => setLocaleField(activeLocale, 'placeholder', e.target.value)}
               />

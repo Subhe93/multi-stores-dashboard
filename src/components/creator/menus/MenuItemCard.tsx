@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { SameAsBaseChip, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { labelFor, localeLabel, type MenuItemKind, type TreeItem } from './types';
 
 export const INDENT_PX = 28;
@@ -89,7 +90,14 @@ export function MenuItemCard({
     CUSTOM: t('kindCustom'),
   };
 
-  const displayLabel = labelFor(node, activeLocale, primaryLocale) || node.label || t('untitledItem');
+  const translationPlaceholder = useTranslationPlaceholder();
+  const isSecondary = activeLocale !== primaryLocale;
+  const ownLabel = labelFor(node, activeLocale, primaryLocale);
+  // Secondary locale with no translation yet: the header falls back to the
+  // base label, flagged with a "Same as base" chip so it is not mistaken for
+  // a translation.
+  const fallsBackToBase = isSecondary && !ownLabel.trim() && !!node.label;
+  const displayLabel = ownLabel || node.label || t('untitledItem');
   const isCustom = node.kind === 'CUSTOM';
   const showBody = expanded && !dragging;
 
@@ -143,9 +151,10 @@ export function MenuItemCard({
             className="min-w-0 flex-1 flex items-center gap-2 text-start"
             aria-expanded={expanded}
           >
-            <span className={cn('truncate text-[13px] font-medium', !node.label && 'text-zinc-400 italic')}>
+            <span className={cn('truncate text-[13px] font-medium', !node.label && 'text-zinc-400 italic', fallsBackToBase && 'text-zinc-500')}>
               {displayLabel}
             </span>
+            {fallsBackToBase && <SameAsBaseChip className="shrink-0" />}
             <span
               className={cn(
                 'shrink-0 rounded-full border px-1.5 py-px text-[9.5px] font-medium uppercase tracking-wide',
@@ -181,17 +190,24 @@ export function MenuItemCard({
               <div className="space-y-1">
                 <Label className="text-[10.5px] text-zinc-500">
                   {t('label')}
-                  {locales.length > 1 && <span className="ms-1 text-zinc-400">· {localeLabel(activeLocale)}</span>}
+                  {locales.length > 1 && (
+                    <span className="ms-1 text-zinc-400">
+                      · {localeLabel(activeLocale)}
+                      {isSecondary && <span className="ms-1">({tc('locale.translation')})</span>}
+                    </span>
+                  )}
+                  {fallsBackToBase && <SameAsBaseChip className="ms-1.5" />}
                 </Label>
                 <Input
                   className="h-8 text-[12.5px]"
-                  value={labelFor(node, activeLocale, primaryLocale)}
+                  value={ownLabel}
                   onChange={(e) => onLabel(activeLocale, e.target.value)}
-                  placeholder={
-                    activeLocale === primaryLocale
-                      ? t('labelPlaceholder')
-                      : labelFor(node, primaryLocale, primaryLocale) || t('translationPlaceholder')
-                  }
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: node.label,
+                    primaryPlaceholder: t('labelPlaceholder'),
+                  })}
                   dir={activeLocale === 'ar' ? 'rtl' : undefined}
                 />
               </div>

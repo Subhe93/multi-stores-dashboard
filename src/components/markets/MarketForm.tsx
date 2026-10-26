@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { CountryMultiSelect } from '@/components/common/CountryMultiSelect';
 import { PriceRuleEditor } from '@/components/markets/PriceRuleEditor';
@@ -18,7 +17,7 @@ import { useApiError } from '@/lib/useApiError';
 import { clearCurrencyCache, useCurrency } from '@/lib/useCurrency';
 import { useTransientFlag } from '@/lib/useTransientFlag';
 import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
-import { createMarket, updateMarket, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
+import { createMarket, updateMarket, type MarketIndexing, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
 
 // Mirror of the API key rule (CreateMarketDto): 1–16 lowercase letters, digits
 // or hyphens, no leading/trailing hyphen.
@@ -36,6 +35,9 @@ export const MARKET_LOCALES = [
 ];
 
 export const localeLabel = (code: string) => MARKET_LOCALES.find((l) => l.value === code)?.label ?? code.toUpperCase();
+
+// Indexing modes in display order; the API default is AUTO (M6.1).
+const INDEXING_MODES: MarketIndexing[] = ['AUTO', 'ALWAYS', 'NEVER'];
 
 const DEFAULT_RULE: PriceRule = { mode: 'convert', source: 'manual', rate: null, rounding: { ending: 'none' } };
 
@@ -66,7 +68,7 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
     locales: initial?.locales ?? [],
     currency: initial?.currency ?? baseCurrency,
     price_rule: initial?.price_rule && initial.price_rule.mode ? initial.price_rule : DEFAULT_RULE,
-    noindex: initial?.noindex ?? false,
+    indexing: initial?.indexing ?? 'AUTO',
   });
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useTransientFlag();
@@ -236,24 +238,35 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
         </CardContent>
       </Card>
 
-      {/* Search engine indexing: noindex for test/staging domains (M6). */}
+      {/* Search engine indexing mode (M6.1): the web proxy applies the effective rule per host. */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">{t('indexing')}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <Label htmlFor="market-noindex" className="text-xs font-medium">{t('noindex')}</Label>
-              <p className="text-[10px] text-muted-foreground">{t('noindexHint')}</p>
-            </div>
-            <ToggleSwitch
-              id="market-noindex"
-              checked={!!form.noindex}
-              onChange={(v) => set('noindex', v)}
-              label={t('noindex')}
-            />
-          </div>
+        <CardContent className="space-y-2">
+          {INDEXING_MODES.map((mode) => {
+            const selected = (form.indexing ?? 'AUTO') === mode;
+            return (
+              <label
+                key={mode}
+                className={`flex cursor-pointer items-start gap-2 rounded-md border p-3 transition ${
+                  selected ? 'border-zinc-900 bg-zinc-50/60' : 'border-zinc-200 hover:bg-zinc-50/40'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="market-indexing"
+                  className="mt-0.5"
+                  checked={selected}
+                  onChange={() => set('indexing', mode)}
+                />
+                <div className="space-y-0.5">
+                  <span className="block text-xs font-medium">{t(`indexingMode.${mode}`)}</span>
+                  <p className="text-[10px] text-muted-foreground">{t(`indexingModeHint.${mode}`)}</p>
+                </div>
+              </label>
+            );
+          })}
         </CardContent>
       </Card>
 

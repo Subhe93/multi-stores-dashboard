@@ -8,7 +8,6 @@ import {
   Trash2,
   Loader2,
   Languages,
-  Check,
   Image as ImageIcon,
   FolderTree,
   Tag,
@@ -23,7 +22,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
-import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
+import {
+  ParentCollectionPicker,
+  MAX_CATEGORY_DEPTH,
+} from '@/components/creator/categories/ParentCollectionPicker';
 import { TagInput } from '@/components/common/TagInput';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Textarea } from '@/components/ui/textarea';
@@ -137,6 +140,8 @@ interface CustomProductRow {
 interface CategoryFormProps {
   mode: 'create' | 'edit';
   initialId?: string;
+  /** Create mode: parent pre-selected from the list page's "Add sub-collection". */
+  initialParentId?: string | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -149,25 +154,6 @@ function slugify(input: string): string {
     .replace(/[^a-z0-9-]/g, '')
     .replace(/-+/g, '-');
 }
-
-/** Display name: store primary locale, then English, then any translation, then slug. */
-function getDisplayName(node: CategoryNode | CategoryDetail, primaryLocale: string): string {
-  const pick = (locale: string) => node.translations?.find((t) => t.locale === locale)?.name?.trim();
-  return (
-    pick(primaryLocale) ||
-    pick('en') ||
-    node.translations?.map((tr) => tr.name?.trim()).find(Boolean) ||
-    node.slug
-  );
-}
-
-interface ParentOption {
-  value: string;
-  label: string;
-}
-
-/** Deepest level a collection may sit on: root = 0, child = 1, grandchild = 2. */
-const MAX_CATEGORY_DEPTH = 2;
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
   for (const n of nodes) {
@@ -184,42 +170,15 @@ function subtreeHeight(node: CategoryNode): number {
   return 1 + Math.max(...node.children.map(subtreeHeight));
 }
 
-/**
- * Parent candidates. A node is offered only while its depth stays within
- * `maxParentDepth`, so the edited collection (and its whole subtree) never
- * ends up deeper than MAX_CATEGORY_DEPTH. Deeper levels are not walked at all
- * because none of their nodes can qualify.
- */
-function flattenForParent(
-  nodes: CategoryNode[],
-  excludeId: string | undefined,
-  maxParentDepth: number,
-  primaryLocale: string,
-  prefix = '',
-  depth = 0,
-): ParentOption[] {
-  const out: ParentOption[] = [];
-  if (depth > maxParentDepth) return out;
-  for (const n of nodes) {
-    if (n.id === excludeId) continue; // Skip self and entire subtree below it.
-    const name = getDisplayName(n, primaryLocale);
-    const label = prefix ? `${prefix} / ${name}` : name;
-    out.push({ value: n.id, label });
-    if (n.children?.length) {
-      out.push(...flattenForParent(n.children, excludeId, maxParentDepth, primaryLocale, label, depth + 1));
-    }
-  }
-  return out;
-}
-
 function resolveUrl(url: string): string {
   return url.startsWith('http') ? url : `${API_BASE}${url}`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function CategoryForm({ mode, initialId }: CategoryFormProps) {
+export function CategoryForm({ mode, initialId, initialParentId = null }: CategoryFormProps) {
   const t = useTranslations();
+  const translationPlaceholder = useTranslationPlaceholder();
   const router = useRouter();
   const { token, user } = useAuth();
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
@@ -238,7 +197,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
   });
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
-  const [parentId, setParentId] = useState<string | null>(null);
+  const [parentId, setParentId] = useState<string | null>(mode === 'create' ? initialParentId : null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [matchRule, setMatchRule] = useState<MatchRule>('MANUAL');
   const [matchTags, setMatchTags] = useState<string[]>([]);
@@ -251,6 +210,7 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
   // Reference data
   const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [products, setProducts] = useState<OwnProduct[]>([]);
   const [customProducts, setCustomProducts] = useState<CustomProductRow[]>([]);
 
@@ -291,7 +251,8 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
     api<CategoryNode[]>('/creator-categories', { token })
       .then((tree) => setAllCategories(Array.isArray(tree) ? tree : []))
-      .catch(() => setAllCategories([]));
+      .catch(() => setAllCategories([]))
+      .finally(() => setCategoriesLoaded(true));
   }, [token]);
 
   // Fetch every product the creator can manually attach: their own products
@@ -380,16 +341,16 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
     const node = findNode(allCategories, initialId);
     return node ? subtreeHeight(node) : 0;
   }, [allCategories, mode, initialId]);
-  const parentOptions = useMemo(
-    () =>
-      flattenForParent(
-        allCategories,
-        mode === 'edit' ? initialId : undefined,
-        MAX_CATEGORY_DEPTH - 1 - editedHeight,
-        primaryLocale,
-      ),
-    [allCategories, mode, initialId, editedHeight, primaryLocale],
-  );
+  const maxParentDepth = MAX_CATEGORY_DEPTH - 1 - editedHeight;
+
+  // A `?parent=` id that is not in the tree (deleted, or from another store)
+  // is dropped once the tree is known, so the form does not submit it blindly.
+  // A parent that exists but breaks the depth rule stays selected: the picker
+  // shows why, and the user can move the collection.
+  useEffect(() => {
+    if (mode !== 'create' || !categoriesLoaded || !parentId) return;
+    if (!findNode(allCategories, parentId)) setParentId(null);
+  }, [mode, categoriesLoaded, allCategories, parentId]);
 
   const productOptions: ProductOption[] = useMemo(() => {
     const own: ProductOption[] = products.map((p) => {
@@ -658,32 +619,13 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
         <div className="lg:col-span-2 space-y-4">
           {/* Locale tabs */}
           {hasMultipleLocales && (
-            <div className="flex items-center gap-0 border-b">
-              {allLocales.map((locale) => {
-                const isDone = !!translations[locale]?.name?.trim();
-                const isActive = locale === activeLocale;
-                return (
-                  <button
-                    key={locale}
-                    type="button"
-                    onClick={() => setActiveLocale(locale)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                      isActive
-                        ? 'border-zinc-900 text-zinc-900'
-                        : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                    }`}
-                  >
-                    {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                    {locale !== primaryLocale && isDone && (
-                      <Check className="w-3 h-3 text-emerald-500" />
-                    )}
-                    {locale === primaryLocale && (
-                      <span className="text-[9px] text-zinc-400">{t('category.primaryParen')}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <LocaleTabs
+              value={activeLocale}
+              onChange={setActiveLocale}
+              locales={allLocales}
+              primaryLocale={primaryLocale}
+              filled={filledLocales(allLocales, translations, (tr) => !!tr?.name?.trim())}
+            />
           )}
 
           <Card className="shadow-none">
@@ -699,11 +641,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                 <Input
                   dir={isRtl ? 'rtl' : 'ltr'}
                   className="h-9 text-sm"
-                  placeholder={
-                    activeLocale === primaryLocale
-                      ? t('category.namePlaceholder')
-                      : t('category.nameInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
-                  }
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.name,
+                    primaryPlaceholder: t('category.namePlaceholder'),
+                  })}
                   value={translations[activeLocale]?.name || ''}
                   onChange={(e) =>
                     setTransField(activeLocale, 'name', e.target.value)
@@ -722,7 +665,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   onChange={(val) =>
                     setTransField(activeLocale, 'description', val)
                   }
-                  placeholder={t('category.describePlaceholder')}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.description,
+                    primaryPlaceholder: t('category.describePlaceholder'),
+                  })}
                 />
               </div>
             </CardContent>
@@ -877,7 +825,12 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   className="h-9 text-sm"
                   value={translations[activeLocale]?.meta_title ?? ''}
                   onChange={(e) => setTransField(activeLocale, 'meta_title', e.target.value)}
-                  placeholder={translations[activeLocale]?.name || ''}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.meta_title || translations[primaryLocale]?.name,
+                    primaryPlaceholder: translations[activeLocale]?.name || '',
+                  })}
                 />
               </div>
               <div className="space-y-1.5">
@@ -900,6 +853,11 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                   className="text-sm"
                   value={translations[activeLocale]?.meta_desc ?? ''}
                   onChange={(e) => setTransField(activeLocale, 'meta_desc', e.target.value)}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.meta_desc,
+                  })}
                 />
                 <p className="text-[11px] text-muted-foreground">{t('creator.collections.form.metaHint')}</p>
               </div>
@@ -929,31 +887,20 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
                 {t('category.parentCollection')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <SearchableSelect
-                    options={parentOptions}
-                    value={parentId ?? ''}
-                    onChange={(v) => setParentId(v || null)}
-                    placeholder={t('category.noneTopLevel')}
-                    searchPlaceholder={t('category.searchCollections')}
-                  />
-                </div>
-                {parentId && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setParentId(null)}
-                  >
-                    {t('category.clear')}
-                  </Button>
-                )}
-              </div>
+            <CardContent className="pt-0 space-y-2">
               <p className="text-[11px] text-muted-foreground">
                 {t('category.parentHint')}
               </p>
+              <ParentCollectionPicker
+                tree={allCategories}
+                loading={!categoriesLoaded}
+                value={parentId}
+                onChange={setParentId}
+                excludeId={mode === 'edit' ? initialId : undefined}
+                maxParentDepth={maxParentDepth}
+                primaryLocale={primaryLocale}
+                previewName={primaryName}
+              />
               {editedHeight > 0 && (
                 <p className="text-[11px] text-muted-foreground">
                   {t('category.parentDepthLimited')}

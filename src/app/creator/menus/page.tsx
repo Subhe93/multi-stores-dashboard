@@ -6,7 +6,7 @@
 // tree, up to three levels). The whole tree is saved in one PUT. Sections
 // reference a menu by its `key`.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, ListTree, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -25,11 +25,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { LocaleTabs } from '@/components/common/LocaleTabs';
 import { MenuItemSources } from '@/components/creator/menus/MenuItemSources';
 import { MenuStructure } from '@/components/creator/menus/MenuStructure';
 import {
   buildTree,
-  localeLabel,
+  flattenTree,
+  labelFor,
   makeNode,
   type Menu,
   type MenuItemKind,
@@ -101,6 +103,17 @@ export default function MenusPage() {
 
   // Working copy of the selected menu's items as an editable tree.
   const [items, setItems] = useState<TreeItem[]>([]);
+
+  // Translation status per locale for the tabs: a secondary locale counts as
+  // filled when every item in the tree has a label in it.
+  const labelFilled = useMemo(() => {
+    const rows = flattenTree(items);
+    const out: Record<string, boolean> = {};
+    for (const l of locales) {
+      out[l] = rows.length > 0 && rows.every((r) => !!labelFor(r.node, l, primaryLocale).trim());
+    }
+    return out;
+  }, [items, locales, primaryLocale]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -357,26 +370,14 @@ export default function MenusPage() {
                 {/* Locale tabs — only when the store has more than one locale.
                     The active tab decides which language the Label inputs edit;
                     URL + new-tab are shared across locales. */}
-                {locales.length > 1 && (
-                  <div className="flex items-center gap-1 p-0.5 rounded-md bg-zinc-100 w-fit">
-                    {locales.map((l) => (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => setActiveLocale(l)}
-                        className={cn(
-                          'px-2.5 py-1 text-[11px] font-medium rounded transition',
-                          activeLocale === l ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900',
-                        )}
-                      >
-                        {localeLabel(l)}
-                        {l === primaryLocale && (
-                          <span className="ms-1 text-[8.5px] uppercase text-zinc-400">{t('menus.primary')}</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <LocaleTabs
+                  variant="pill"
+                  value={activeLocale}
+                  onChange={setActiveLocale}
+                  locales={locales}
+                  primaryLocale={primaryLocale}
+                  filled={labelFilled}
+                />
 
                 {/* Two columns: sources (left) + structure (right) */}
                 <div className="grid gap-5 lg:grid-cols-[300px_1fr] items-start">

@@ -51,6 +51,8 @@ export interface DomainView {
   dns: { expected_cname: string | null; observed: string[] | null };
 }
 
+export type MarketIndexing = 'AUTO' | 'ALWAYS' | 'NEVER';
+
 export interface MarketView {
   id: string;
   key: string;
@@ -73,8 +75,12 @@ export interface MarketView {
    * serves it). Built by the API from STOREFRONT_URL.
    */
   preview_url: string | null;
-  /** Hide this market from search engines (noindex, nofollow); pages stay crawlable. */
-  noindex: boolean;
+  /**
+   * Search engine indexing mode (M6.1). AUTO: noindex on the platform
+   * subdomain, indexable (and redirected to) once a custom domain is active;
+   * ALWAYS: indexable on any host; NEVER: noindex everywhere.
+   */
+  indexing: MarketIndexing;
 }
 
 export interface MarketInput {
@@ -85,7 +91,7 @@ export interface MarketInput {
   locales: string[];
   currency: string;
   price_rule: PriceRule;
-  noindex?: boolean;
+  indexing?: MarketIndexing;
 }
 
 export interface DnsTarget {

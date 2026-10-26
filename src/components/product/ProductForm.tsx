@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Loader2, Languages, Check, Info } from 'lucide-react';
+import { ArrowLeft, Loader2, Languages, Info } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { VariantManager, type VariantOption, type GeneratedVariant } from './VariantManager';
 import { CustomFieldManager, type CustomField } from './CustomFieldManager';
@@ -262,6 +263,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
   // ── Helpers ───────────────────────────────────────────────
   const primaryTitle = translations[primaryLocale]?.title || '';
+  const translationPlaceholder = useTranslationPlaceholder();
 
   const setTransField = (locale: string, field: keyof LocaleTranslation, value: string) => {
     setTranslations(prev => ({
@@ -830,32 +832,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           {/* Title & Description — language tabs */}
           <Card className="shadow-none">
             {hasMultipleLocales && (
-              <div className="flex items-center gap-0 border-b px-6 pt-4">
-                {allLocales.map(locale => {
-                  const isDone = !!translations[locale]?.title?.trim();
-                  const isActive = locale === activeLocale;
-                  return (
-                    <button
-                      key={locale}
-                      type="button"
-                      onClick={() => setActiveLocale(locale)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                        isActive
-                          ? 'border-zinc-900 text-zinc-900'
-                          : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                      }`}
-                    >
-                      {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                      {locale !== primaryLocale && isDone && (
-                        <Check className="w-3 h-3 text-emerald-500" />
-                      )}
-                      {locale === primaryLocale && (
-                        <span className="text-[9px] text-zinc-400">(primary)</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+              <LocaleTabs
+                className="px-6 pt-4"
+                value={activeLocale}
+                onChange={setActiveLocale}
+                locales={allLocales}
+                primaryLocale={primaryLocale}
+                filled={filledLocales(allLocales, translations, (tr) => !!tr?.title?.trim())}
+              />
             )}
 
             <CardContent className="pt-5 space-y-4">
@@ -893,11 +877,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 </Label>
                 <Input
                   dir={isRtl ? 'rtl' : 'ltr'}
-                  placeholder={
-                    activeLocale === primaryLocale
-                      ? t('product.titlePlaceholder')
-                      : t('product.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
-                  }
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: primaryTitle,
+                    primaryPlaceholder: t('product.titlePlaceholder'),
+                  })}
                   value={translations[activeLocale]?.title || ''}
                   onChange={e => {
                     setTransField(activeLocale, 'title', e.target.value);
@@ -926,7 +911,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   dir={isRtl ? 'rtl' : 'ltr'}
                   content={translations[activeLocale]?.short_description || ''}
                   onChange={val => setTransField(activeLocale, 'short_description', val)}
-                  placeholder={t('product.shortDescriptionPlaceholder')}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.short_description,
+                    primaryPlaceholder: t('product.shortDescriptionPlaceholder'),
+                  })}
                 />
               </div>
 

@@ -10,6 +10,7 @@ import {
   Loader2,
   Languages,
 } from 'lucide-react';
+import { LocaleTabs, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import {
   DndContext,
   PointerSensor,
@@ -158,6 +159,7 @@ export function BundleForm({ mode, initial }: Props) {
 
   const [nameTranslations, setNameTranslations] = useState<Record<string, string>>({});
   const [activeNameLocale, setActiveNameLocale] = useState('en');
+  const translationPlaceholder = useTranslationPlaceholder();
   const [translatingName, setTranslatingName] = useState('');
 
   const [offers, setOffers] = useState<OfferWithKey[]>([]);
@@ -614,25 +616,13 @@ export function BundleForm({ mode, initial }: Props) {
             </CardHeader>
             <CardContent className="space-y-3">
               {showSecondaryLocales && (
-                <div className="flex items-center gap-0 border-b">
-                  {locales.map((locale) => (
-                    <button
-                      key={locale}
-                      type="button"
-                      onClick={() => setActiveNameLocale(locale)}
-                      className={`-mb-px border-b-2 px-3 py-1.5 text-xs font-medium transition ${
-                        locale === activeNameLocale
-                          ? 'border-zinc-900 text-zinc-900'
-                          : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                      }`}
-                    >
-                      {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                      {locale === primaryLocale && (
-                        <span className="ms-1 text-[9px] text-zinc-400">{t('bundle.primaryParen')}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                <LocaleTabs
+                  value={activeNameLocale}
+                  onChange={setActiveNameLocale}
+                  locales={locales}
+                  primaryLocale={primaryLocale}
+                  filled={Object.fromEntries(locales.map((l) => [l, !!nameTranslations[l]?.trim()]))}
+                />
               )}
 
               {activeNameLocale !== primaryLocale && (
@@ -669,7 +659,12 @@ export function BundleForm({ mode, initial }: Props) {
                 </Label>
                 <Input
                   className="h-9 text-sm"
-                  placeholder={t('bundle.bundleNamePlaceholder')}
+                  placeholder={translationPlaceholder({
+                    locale: activeNameLocale,
+                    primaryLocale,
+                    baseValue: nameTranslations[primaryLocale],
+                    primaryPlaceholder: t('bundle.bundleNamePlaceholder'),
+                  })}
                   value={nameTranslations[activeNameLocale] || ''}
                   onChange={(e) =>
                     setNameTranslations((prev) => ({

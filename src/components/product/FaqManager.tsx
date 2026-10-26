@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle, Languages, Loader2 } from 'lucide-react';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
@@ -47,6 +48,7 @@ export default function FaqManager({
   const [showDialog, setShowDialog] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [activeLocale, setActiveLocale] = useState(primaryLocale);
+  const translationPlaceholder = useTranslationPlaceholder();
   const [formData, setFormData] = useState<Record<string, { question: string; answer: string }>>({});
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [translatingLocale, setTranslatingLocale] = useState('');
@@ -232,25 +234,14 @@ export default function FaqManager({
           </DialogHeader>
 
           {/* Language tabs */}
-          {locales.length > 1 && (
-            <div className="flex items-center gap-0 border-b -mx-6 px-6">
-              {locales.map((locale) => (
-                <button
-                  key={locale}
-                  type="button"
-                  onClick={() => setActiveLocale(locale)}
-                  className={`px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                    locale === activeLocale
-                      ? 'border-zinc-900 text-zinc-900'
-                      : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                  }`}
-                >
-                  {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400 ml-1">(primary)</span>}
-                </button>
-              ))}
-            </div>
-          )}
+          <LocaleTabs
+            className="-mx-6 px-6"
+            value={activeLocale}
+            onChange={setActiveLocale}
+            locales={locales}
+            primaryLocale={primaryLocale}
+            filled={filledLocales(locales, formData, (row) => !!row?.question?.trim() && !!row?.answer?.trim())}
+          />
 
           <div className="space-y-3 py-2">
             {/* Auto-translate from primary locale */}
@@ -280,7 +271,12 @@ export default function FaqManager({
               </Label>
               <Input
                 className="h-8 text-sm"
-                placeholder={t('faq.questionPlaceholder')}
+                placeholder={translationPlaceholder({
+                  locale: activeLocale,
+                  primaryLocale,
+                  baseValue: formData[primaryLocale]?.question,
+                  primaryPlaceholder: t('faq.questionPlaceholder'),
+                })}
                 value={formData[activeLocale]?.question || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -297,7 +293,12 @@ export default function FaqManager({
               <Textarea
                 rows={4}
                 className="text-sm resize-none"
-                placeholder={t('faq.answerPlaceholder')}
+                placeholder={translationPlaceholder({
+                  locale: activeLocale,
+                  primaryLocale,
+                  baseValue: formData[primaryLocale]?.answer,
+                  primaryPlaceholder: t('faq.answerPlaceholder'),
+                })}
                 value={formData[activeLocale]?.answer || ''}
                 onChange={(e) =>
                   setFormData((prev) => ({

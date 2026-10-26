@@ -32,6 +32,7 @@ import PricingStrategySelector from '@/components/creator/PricingStrategySelecto
 import CustomFieldRenderer from '@/components/creator/CustomFieldRenderer';
 import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
@@ -581,6 +582,7 @@ export default function NewCustomProductPage() {
   const isRtl = RTL_LOCALES.includes(activeLocale);
   const hasMultipleLocales = allLocales.length > 1;
   const primaryTitle = translations[primaryLocale]?.title || '';
+  const translationPlaceholder = useTranslationPlaceholder();
   const isLastStep = currentStep === totalSteps;
 
   // ── Render ─────────────────────────────────────────────
@@ -919,26 +921,13 @@ export default function NewCustomProductPage() {
 
               {/* Language tabs */}
               {hasMultipleLocales && (
-                <div className="flex items-center gap-0 border-b">
-                  {allLocales.map((locale) => {
-                    const isDone = !!translations[locale]?.title?.trim();
-                    const isActive = locale === activeLocale;
-                    return (
-                      <button
-                        key={locale}
-                        type="button"
-                        onClick={() => setActiveLocale(locale)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                          isActive ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                        }`}
-                      >
-                        {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                        {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                        {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('customProductForm.primaryParen')}</span>}
-                      </button>
-                    );
-                  })}
-                </div>
+                <LocaleTabs
+                  value={activeLocale}
+                  onChange={setActiveLocale}
+                  locales={allLocales}
+                  primaryLocale={primaryLocale}
+                  filled={filledLocales(allLocales, translations, (tr) => !!tr?.title?.trim())}
+                />
               )}
 
               {/* Auto-translate */}
@@ -1001,7 +990,12 @@ export default function NewCustomProductPage() {
                 <Input
                   dir={isRtl ? 'rtl' : 'ltr'}
                   className="h-8 text-sm"
-                  placeholder={activeLocale === primaryLocale ? t('customProductForm.titlePlaceholder') : t('customProductForm.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: primaryTitle,
+                    primaryPlaceholder: t('customProductForm.titlePlaceholder'),
+                  })}
                   value={translations[activeLocale]?.title || ''}
                   onChange={(e) => handleTitleChange(e.target.value)}
                 />
@@ -1072,7 +1066,12 @@ export default function NewCustomProductPage() {
                 <RichTextEditor
                   content={translations[activeLocale]?.description || ''}
                   onChange={(val) => setTransField(activeLocale, 'description', val)}
-                  placeholder={t('customProductForm.descriptionPlaceholder')}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.description,
+                    primaryPlaceholder: t('customProductForm.descriptionPlaceholder'),
+                  })}
                 />
               </div>
             </>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash2, Languages, Loader2, GripVertical } from 'lucide-react';
+import { LocaleTabs, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
@@ -141,6 +142,19 @@ export function BundleOfferEditor({
   };
 
   const dir = RTL_LOCALES.has(activeLocale) ? 'rtl' : 'ltr';
+  const translationPlaceholder = useTranslationPlaceholder();
+  const baseTranslation = offer.translations.find((tr) => tr.locale === primaryLocale);
+  const fieldPlaceholder = (field: 'title' | 'label' | 'sticker_text', primaryPlaceholder: string) =>
+    translationPlaceholder({
+      locale: activeLocale,
+      primaryLocale,
+      baseValue: baseTranslation?.[field],
+      primaryPlaceholder,
+    });
+  // A secondary locale counts as translated once its title is filled.
+  const filled = Object.fromEntries(
+    locales.map((l) => [l, !!offer.translations.find((tr) => tr.locale === l)?.title?.trim()]),
+  );
 
   return (
     <div ref={setNodeRef} style={style} className="rounded-xl border bg-white p-4">
@@ -169,27 +183,14 @@ export function BundleOfferEditor({
         </button>
       </div>
 
-      {locales.length > 1 && (
-        <div className="mb-3 flex items-center gap-0 border-b">
-          {locales.map((locale) => (
-            <button
-              key={locale}
-              type="button"
-              onClick={() => setActiveLocale(locale)}
-              className={`-mb-px border-b-2 px-3 py-1.5 text-xs font-medium transition ${
-                locale === activeLocale
-                  ? 'border-zinc-900 text-zinc-900'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-600'
-              }`}
-            >
-              {LOCALE_LABELS[locale] || locale.toUpperCase()}
-              {locale === primaryLocale && (
-                <span className="ml-1 text-[9px] text-zinc-400">(primary)</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      <LocaleTabs
+        className="mb-3"
+        value={activeLocale}
+        onChange={setActiveLocale}
+        locales={locales}
+        primaryLocale={primaryLocale}
+        filled={filled}
+      />
 
       {activeLocale !== primaryLocale && (
         <div className="mb-3 flex items-center justify-between rounded-lg border border-dashed bg-zinc-50 p-2.5">
@@ -226,7 +227,7 @@ export function BundleOfferEditor({
           </Label>
           <Input
             className="h-9 text-sm"
-            placeholder={t('bundle.offerTitlePlaceholder')}
+            placeholder={fieldPlaceholder('title', t('bundle.offerTitlePlaceholder'))}
             value={translation.title}
             onChange={(e) => setTranslationField('title', e.target.value)}
           />
@@ -290,7 +291,7 @@ export function BundleOfferEditor({
           <Label className="text-xs font-medium">{t('bundle.offerLabel')}</Label>
           <Input
             className="h-9 text-sm"
-            placeholder={t('bundle.offerLabelPlaceholder')}
+            placeholder={fieldPlaceholder('label', t('bundle.offerLabelPlaceholder'))}
             value={translation.label ?? ''}
             onChange={(e) => setTranslationField('label', e.target.value)}
           />
@@ -300,7 +301,7 @@ export function BundleOfferEditor({
           <Label className="text-xs font-medium">{t('bundle.stickerText')}</Label>
           <Input
             className="h-9 text-sm"
-            placeholder={t('bundle.stickerTextPlaceholder')}
+            placeholder={fieldPlaceholder('sticker_text', t('bundle.stickerTextPlaceholder'))}
             value={translation.sticker_text ?? ''}
             onChange={(e) => setTranslationField('sticker_text', e.target.value)}
           />

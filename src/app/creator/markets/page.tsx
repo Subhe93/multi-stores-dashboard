@@ -110,7 +110,7 @@ export default function CreatorMarketsPage() {
                         <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">{t('defaultBadge')}</Badge>
                       )}
                       <Badge variant="outline" className="text-[10px] font-mono">{m.currency}</Badge>
-                      {m.noindex && (
+                      {m.indexing === 'NEVER' && (
                         <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">{t('noindexBadge')}</Badge>
                       )}
                     </div>

@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Languages, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Languages, Loader2 } from 'lucide-react';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 
@@ -43,6 +44,7 @@ export default function NewPage() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const translationPlaceholder = useTranslationPlaceholder();
   const TEMPLATE_OPTIONS = buildTemplateOptions(t);
 
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -193,23 +195,14 @@ export default function NewPage() {
 
         {/* Language tabs */}
         {hasMultipleLocales && (
-          <div className="flex items-center gap-0 border-b px-6">
-            {allLocales.map(locale => {
-              const isDone = !!translations[locale]?.title?.trim();
-              const isActive = locale === activeLocale;
-              return (
-                <button key={locale} type="button" onClick={() => setActiveLocale(locale)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                    isActive ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                  }`}
-                >
-                  {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                  {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('newPage.primaryParen')}</span>}
-                </button>
-              );
-            })}
-          </div>
+          <LocaleTabs
+            className="px-6"
+            value={activeLocale}
+            onChange={setActiveLocale}
+            locales={allLocales}
+            primaryLocale={primaryLocale}
+            filled={filledLocales(allLocales, translations, (tr) => !!tr?.title?.trim())}
+          />
         )}
 
         <CardContent className="pt-4 space-y-4">
@@ -239,7 +232,12 @@ export default function NewPage() {
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
-              placeholder={activeLocale === primaryLocale ? t('newPage.titlePlaceholder') : t('newPage.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+              placeholder={translationPlaceholder({
+                locale: activeLocale,
+                primaryLocale,
+                baseValue: primaryTitle,
+                primaryPlaceholder: t('newPage.titlePlaceholder'),
+              })}
               value={translations[activeLocale]?.title || ''}
               onChange={e => {
                 if (activeLocale === primaryLocale) {

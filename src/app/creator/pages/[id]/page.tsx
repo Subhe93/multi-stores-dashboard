@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Trash2, Languages, Loader2, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, Languages, Loader2, AlertCircle } from 'lucide-react';
+import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
@@ -41,6 +42,7 @@ export default function EditPage() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const translationPlaceholder = useTranslationPlaceholder();
 
   const [page, setPage] = useState<StorePage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -256,23 +258,14 @@ export default function EditPage() {
 
         {/* Language tabs */}
         {hasMultipleLocales && (
-          <div className="flex items-center gap-0 border-b px-6">
-            {allLocales.map(locale => {
-              const isDone = !!translations[locale]?.title?.trim();
-              const isActive = locale === activeLocale;
-              return (
-                <button key={locale} type="button" onClick={() => setActiveLocale(locale)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-b-2 transition -mb-px ${
-                    isActive ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'
-                  }`}
-                >
-                  {LOCALE_LABELS[locale] || locale.toUpperCase()}
-                  {locale !== primaryLocale && isDone && <Check className="w-3 h-3 text-emerald-500" />}
-                  {locale === primaryLocale && <span className="text-[9px] text-zinc-400">{t('editPage.primaryParen')}</span>}
-                </button>
-              );
-            })}
-          </div>
+          <LocaleTabs
+            className="px-6"
+            value={activeLocale}
+            onChange={setActiveLocale}
+            locales={allLocales}
+            primaryLocale={primaryLocale}
+            filled={filledLocales(allLocales, translations, (tr) => !!tr?.title?.trim())}
+          />
         )}
 
         <CardContent className="pt-4 space-y-4">
@@ -302,7 +295,12 @@ export default function EditPage() {
             <Input
               dir={isRtl ? 'rtl' : 'ltr'}
               className="h-8 text-sm"
-              placeholder={activeLocale === primaryLocale ? t('editPage.titlePlaceholder') : t('editPage.titleInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })}
+              placeholder={translationPlaceholder({
+                locale: activeLocale,
+                primaryLocale,
+                baseValue: primaryTitle,
+                primaryPlaceholder: t('editPage.titlePlaceholder'),
+              })}
               value={translations[activeLocale]?.title || ''}
               onChange={e => setTransField(activeLocale, 'title', e.target.value)}
             />
@@ -329,11 +327,12 @@ export default function EditPage() {
               <RichTextEditor
                 content={translations[activeLocale]?.content || ''}
                 onChange={val => setTransField(activeLocale, 'content', val)}
-                placeholder={
-                  activeLocale === primaryLocale
-                    ? t('editPage.contentPlaceholder')
-                    : t('editPage.contentInLocale', { locale: LOCALE_LABELS[activeLocale] || activeLocale })
-                }
+                placeholder={translationPlaceholder({
+                  locale: activeLocale,
+                  primaryLocale,
+                  baseValue: translations[primaryLocale]?.content,
+                  primaryPlaceholder: t('editPage.contentPlaceholder'),
+                })}
               />
             </div>
           </div>
