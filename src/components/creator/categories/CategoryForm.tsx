@@ -58,6 +58,8 @@ interface CategoryTranslation {
   locale: string;
   name: string;
   description?: string;
+  // Long SEO text shown below the products (M6.2, HTML); absent on older API builds.
+  long_description?: string | null;
   // SEO overrides (M4.4); absent on older API builds.
   meta_title?: string | null;
   meta_desc?: string | null;
@@ -65,9 +67,11 @@ interface CategoryTranslation {
 
 // Per-locale form state. `meta_title`/`meta_desc` stay undefined until loaded
 // or edited: the API keeps the stored value of a locale that omits them (X19).
+// `long_description` is always sent (empty clears it), like `description`.
 interface LocaleFields {
   name: string;
   description: string;
+  long_description: string;
   meta_title?: string;
   meta_desc?: string;
 }
@@ -174,6 +178,14 @@ function resolveUrl(url: string): string {
   return url.startsWith('http') ? url : `${API_BASE}${url}`;
 }
 
+// Tiptap returns `<p></p>` for a cleared editor; send '' so the API clears the
+// stored text (undefined would keep it), and the storefront renders nothing.
+function htmlOrEmpty(html: string | undefined): string {
+  const trimmed = html?.trim() || '';
+  const plain = trimmed.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  return plain ? trimmed : '';
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function CategoryForm({ mode, initialId, initialParentId = null }: CategoryFormProps) {
@@ -193,7 +205,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
 
   // Form fields
   const [translations, setTranslations] = useState<Record<string, LocaleFields>>({
-    en: { name: '', description: '' },
+    en: { name: '', description: '', long_description: '' },
   });
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -238,7 +250,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         setTranslations((prev) => {
           const next: Record<string, LocaleFields> = {};
           all.forEach((l) => {
-            next[l] = prev[l] ?? { name: '', description: '' };
+            next[l] = prev[l] ?? { name: '', description: '', long_description: '' };
           });
           return next;
         });
@@ -314,6 +326,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             next[t.locale] = {
               name: t.name || '',
               description: t.description || '',
+              long_description: t.long_description || '',
               ...('meta_title' in t ? { meta_title: t.meta_title || '' } : {}),
               ...('meta_desc' in t ? { meta_desc: t.meta_desc || '' } : {}),
             };
@@ -443,7 +456,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     setTranslations((prev) => ({
       ...prev,
       [locale]: {
-        ...(prev[locale] ?? { name: '', description: '' }),
+        ...(prev[locale] ?? { name: '', description: '', long_description: '' }),
         [field]: value,
       },
     }));
@@ -493,7 +506,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         .map(([locale, t]) => ({
           locale,
           name: t.name.trim(),
-          description: t.description?.trim() || undefined,
+          description: htmlOrEmpty(t.description),
+          long_description: htmlOrEmpty(t.long_description),
           // Only when loaded or edited, so an untouched locale keeps its stored SEO.
           ...(t.meta_title !== undefined ? { meta_title: t.meta_title.trim() } : {}),
           ...(t.meta_desc !== undefined ? { meta_desc: t.meta_desc.trim() } : {}),
@@ -657,9 +671,9 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                 )}
               </div>
 
-              {/* Description */}
+              {/* Short description — hero text under the title (M6.2) */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">{t('common.description')}</Label>
+                <Label className="text-xs font-medium">{t('category.shortDescription')}</Label>
                 <RichTextEditor
                   content={translations[activeLocale]?.description || ''}
                   onChange={(val) =>
@@ -672,6 +686,30 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                     primaryPlaceholder: t('category.describePlaceholder'),
                   })}
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  {t('category.shortDescriptionHint')}
+                </p>
+              </div>
+
+              {/* Long description — SEO prose rendered below the products (M6.2) */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">{t('category.longDescription')}</Label>
+                <RichTextEditor
+                  content={translations[activeLocale]?.long_description || ''}
+                  onChange={(val) =>
+                    setTransField(activeLocale, 'long_description', val)
+                  }
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  placeholder={translationPlaceholder({
+                    locale: activeLocale,
+                    primaryLocale,
+                    baseValue: translations[primaryLocale]?.long_description,
+                    primaryPlaceholder: t('category.longDescribePlaceholder'),
+                  })}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  {t('category.longDescriptionHint')}
+                </p>
               </div>
             </CardContent>
           </Card>
