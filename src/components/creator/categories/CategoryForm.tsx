@@ -150,11 +150,15 @@ function slugify(input: string): string {
     .replace(/-+/g, '-');
 }
 
-function getDisplayName(node: CategoryNode | CategoryDetail): string {
-  const en = node.translations?.find((t) => t.locale === 'en')?.name;
-  if (en) return en;
-  const first = node.translations?.[0]?.name;
-  return first || node.slug;
+/** Display name: store primary locale, then English, then any translation, then slug. */
+function getDisplayName(node: CategoryNode | CategoryDetail, primaryLocale: string): string {
+  const pick = (locale: string) => node.translations?.find((t) => t.locale === locale)?.name?.trim();
+  return (
+    pick(primaryLocale) ||
+    pick('en') ||
+    node.translations?.map((tr) => tr.name?.trim()).find(Boolean) ||
+    node.slug
+  );
 }
 
 interface ParentOption {
@@ -162,19 +166,47 @@ interface ParentOption {
   label: string;
 }
 
+/** Deepest level a collection may sit on: root = 0, child = 1, grandchild = 2. */
+const MAX_CATEGORY_DEPTH = 2;
+
+function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    const hit = n.children?.length ? findNode(n.children, id) : undefined;
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+/** Height of the subtree below a node: 0 for a leaf, 1 with children, 2 with grandchildren. */
+function subtreeHeight(node: CategoryNode): number {
+  if (!node.children?.length) return 0;
+  return 1 + Math.max(...node.children.map(subtreeHeight));
+}
+
+/**
+ * Parent candidates. A node is offered only while its depth stays within
+ * `maxParentDepth`, so the edited collection (and its whole subtree) never
+ * ends up deeper than MAX_CATEGORY_DEPTH. Deeper levels are not walked at all
+ * because none of their nodes can qualify.
+ */
 function flattenForParent(
   nodes: CategoryNode[],
   excludeId: string | undefined,
+  maxParentDepth: number,
+  primaryLocale: string,
   prefix = '',
+  depth = 0,
 ): ParentOption[] {
   const out: ParentOption[] = [];
+  if (depth > maxParentDepth) return out;
   for (const n of nodes) {
     if (n.id === excludeId) continue; // Skip self and entire subtree below it.
-    const name = getDisplayName(n);
+    const name = getDisplayName(n, primaryLocale);
     const label = prefix ? `${prefix} / ${name}` : name;
     out.push({ value: n.id, label });
     if (n.children?.length) {
-      out.push(...flattenForParent(n.children, excludeId, label));
+      out.push(...flattenForParent(n.children, excludeId, maxParentDepth, primaryLocale, label, depth + 1));
     }
   }
   return out;
@@ -341,9 +373,22 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
+  // When the edited collection already has sub-collections, its subtree must
+  // still fit under the new parent, so the allowed parent depth shrinks.
+  const editedHeight = useMemo(() => {
+    if (mode !== 'edit' || !initialId) return 0;
+    const node = findNode(allCategories, initialId);
+    return node ? subtreeHeight(node) : 0;
+  }, [allCategories, mode, initialId]);
   const parentOptions = useMemo(
-    () => flattenForParent(allCategories, mode === 'edit' ? initialId : undefined),
-    [allCategories, mode, initialId],
+    () =>
+      flattenForParent(
+        allCategories,
+        mode === 'edit' ? initialId : undefined,
+        MAX_CATEGORY_DEPTH - 1 - editedHeight,
+        primaryLocale,
+      ),
+    [allCategories, mode, initialId, editedHeight, primaryLocale],
   );
 
   const productOptions: ProductOption[] = useMemo(() => {
@@ -534,10 +579,15 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
 
       router.push('/creator/categories');
     } catch (err) {
+      // Coded API errors (e.g. CREATOR_CATEGORY_MAX_DEPTH) get a friendly
+      // translated message; validation lists and raw messages are the fallback.
+      const code = err instanceof ApiError ? err.code : undefined;
       setSubmitError(
-        err instanceof ApiError && Array.isArray(err.errors)
-          ? err.errors.join(' • ')
-          : (err instanceof Error && err.message) || t('category.failedToSave'),
+        code && t.has(`errors.${code}`)
+          ? t(`errors.${code}`)
+          : err instanceof ApiError && Array.isArray(err.errors)
+            ? err.errors.join(' • ')
+            : (err instanceof Error && err.message) || t('category.failedToSave'),
       );
     } finally {
       setSaving(false);
@@ -904,6 +954,11 @@ export function CategoryForm({ mode, initialId }: CategoryFormProps) {
               <p className="text-[11px] text-muted-foreground">
                 {t('category.parentHint')}
               </p>
+              {editedHeight > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  {t('category.parentDepthLimited')}
+                </p>
+              )}
             </CardContent>
           </Card>
 

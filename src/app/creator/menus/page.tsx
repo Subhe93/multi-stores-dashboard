@@ -1,27 +1,17 @@
 'use client';
 
-// Menus editor — WordPress-style. Left rail lists the store's menus; the
-// main panel edits the selected menu's items (label + URL + new-tab). Items
-// reorder with up/down; the whole list is saved in one PUT. Sections
+// Menus editor — WordPress "Appearance → Menus" style. Left rail lists the
+// store's menus; the editor card has two columns: "Add menu items" (pages,
+// collections, products, custom link) and "Menu structure" (nested sortable
+// tree, up to three levels). The whole tree is saved in one PUT. Sections
 // reference a menu by its `key`.
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CornerDownRight,
-  ExternalLink,
-  GripVertical,
-  ListTree,
-  Loader2,
-  Plus,
-  Save,
-  Trash2,
-} from 'lucide-react';
+import { AlertCircle, ListTree, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,74 +25,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-
-// Flat item as returned by the API (includes nesting + ordering metadata).
-interface MenuItem {
-  id?: string;
-  parent_id?: string | null;
-  sort_order?: number;
-  label: string;
-  label_i18n?: Record<string, string>;
-  url: string;
-  open_in_new_tab?: boolean;
-}
-
-// Editor working shape: a 2-level tree. Top-level items may carry `children`
-// (one nesting level — dropdowns); child nodes keep an empty children array.
-interface TreeItem {
-  id?: string;
-  label: string;
-  label_i18n?: Record<string, string>;
-  url: string;
-  open_in_new_tab?: boolean;
-  children: TreeItem[];
-}
-
-interface Menu {
-  id: string;
-  key: string;
-  name: string;
-  items: MenuItem[];
-}
-
-// Rebuild the editor tree from the API's flat, sort_order-ordered item list.
-// Top-level items keep their order; each item's children are grouped under it
-// in encounter order (which is ascending sort_order within the parent).
-function buildTree(flat: MenuItem[]): TreeItem[] {
-  const toNode = (i: MenuItem): TreeItem => ({
-    id: i.id,
-    label: i.label,
-    label_i18n: i.label_i18n,
-    url: i.url,
-    open_in_new_tab: i.open_in_new_tab,
-    children: [],
-  });
-  const tops: TreeItem[] = [];
-  const byId = new Map<string, TreeItem>();
-  for (const i of flat) {
-    if (!i.parent_id) {
-      const node = toNode(i);
-      if (i.id) byId.set(i.id, node);
-      tops.push(node);
-    }
-  }
-  for (const i of flat) {
-    if (i.parent_id) {
-      const parent = byId.get(i.parent_id);
-      // Orphans (missing parent) fall back to top level so they never vanish.
-      (parent ? parent.children : tops).push(toNode(i));
-    }
-  }
-  return tops;
-}
-
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska', es: 'Español',
-};
-
-function localeLabel(code: string): string {
-  return LOCALE_LABELS[code] || code.toUpperCase();
-}
+import { MenuItemSources } from '@/components/creator/menus/MenuItemSources';
+import { MenuStructure } from '@/components/creator/menus/MenuStructure';
+import {
+  buildTree,
+  localeLabel,
+  makeNode,
+  type Menu,
+  type MenuItemKind,
+  type NewMenuItem,
+  type TreeItem,
+} from '@/components/creator/menus/types';
 
 function slugify(s: string): string {
   return s
@@ -112,26 +45,63 @@ function slugify(s: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-interface StoreLangResponse {
+interface StoreResponse {
+  id: string;
   language_config?: { primary_locale?: string; secondary_locales?: string[] } | null;
+}
+
+// Request body for PUT /menus/:id/items (one node, recursive).
+interface ItemPayload {
+  id?: string;
+  label: string;
+  url: string;
+  kind: MenuItemKind;
+  resource_id: string | null;
+  open_in_new_tab?: boolean;
+  label_i18n?: Record<string, string>;
+  children?: ItemPayload[];
+}
+
+// Serialize the tree. Keep nodes that have a URL and at least one label
+// (primary or any translation); if the primary label is blank but a
+// translation exists, promote it so the item never silently vanishes.
+function toPayload(node: TreeItem): ItemPayload | null {
+  const translations = node.label_i18n || {};
+  const base = node.label.trim() || Object.values(translations).find((v) => v?.trim())?.trim() || '';
+  if (!base || !node.url.trim()) return null;
+  const children = node.children.map(toPayload).filter((c): c is ItemPayload => c !== null);
+  return {
+    ...(node.id ? { id: node.id } : {}),
+    label: base,
+    url: node.url.trim(),
+    kind: node.kind,
+    resource_id: node.kind === 'CUSTOM' ? null : node.resource_id,
+    open_in_new_tab: !!node.open_in_new_tab,
+    ...(Object.keys(translations).length > 0 ? { label_i18n: translations } : {}),
+    ...(children.length > 0 ? { children } : {}),
+  };
 }
 
 export default function MenusPage() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  // Coded API errors (e.g. MENU_MAX_DEPTH) become translated messages.
+  const apiError = useApiError();
 
   const [menus, setMenus] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Store locales drive the per-item label translation tabs. Primary first.
+  // Store id (legacy pages endpoint) + content locales for the label tabs.
+  const [storeId, setStoreId] = useState<string | null>(null);
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const [locales, setLocales] = useState<string[]>(['en']);
   const [activeLocale, setActiveLocale] = useState('en');
 
   // Working copy of the selected menu's items as an editable tree.
   const [items, setItems] = useState<TreeItem[]>([]);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -148,15 +118,22 @@ export default function MenusPage() {
 
   const selected = menus.find((m) => m.id === selectedId) || null;
 
+  function loadTree(menu: Menu | null) {
+    setItems(menu ? buildTree(menu.items || []) : []);
+    setExpanded(new Set());
+    setDirty(false);
+  }
+
   const loadMenus = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
       const data = await api<Menu[]>('/menus/mine', { token });
-      setMenus(Array.isArray(data) ? data : []);
-      if (data.length > 0 && !selectedId) {
-        setSelectedId(data[0].id);
-        setItems(buildTree(data[0].items || []));
+      const list = Array.isArray(data) ? data : [];
+      setMenus(list);
+      if (list.length > 0 && !selectedId) {
+        setSelectedId(list[0].id);
+        loadTree(list[0]);
       }
     } catch (err) {
       console.error('Failed to load menus:', err);
@@ -170,18 +147,17 @@ export default function MenusPage() {
     loadMenus();
   }, [loadMenus]);
 
-  // Load the store's configured locales so we can offer translation tabs for
-  // each item label. Single-locale stores skip the tabs entirely.
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    api<StoreLangResponse>('/stores/my/store', { token })
+    api<StoreResponse>('/stores/my/store', { token })
       .then((s) => {
         if (cancelled) return;
+        setStoreId(s.id);
         const primary = s.language_config?.primary_locale || 'en';
         const secondary = s.language_config?.secondary_locales || [];
         setPrimaryLocale(primary);
-        setLocales([primary, ...secondary.filter((l) => l !== primary)]);
+        setLocales([primary, ...secondary.filter((l) => l && l !== primary)]);
         setActiveLocale(primary);
       })
       .catch(() => {});
@@ -190,97 +166,40 @@ export default function MenusPage() {
     };
   }, [token]);
 
+  // Unsaved-changes guard on tab close / reload.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
   function selectMenu(menu: Menu) {
+    if (menu.id === selectedId) return;
     if (dirty && !confirm(t('menus.discardChanges'))) return;
     setSelectedId(menu.id);
-    setItems(buildTree(menu.items || []));
-    setDirty(false);
+    setSaveError('');
+    loadTree(menu);
   }
 
-  // Read a node's label for the active locale. Primary locale uses the base
-  // `label`; secondary locales use `label_i18n[locale]`.
-  function labelFor(node: TreeItem, locale: string): string {
-    if (locale === primaryLocale) return node.label || '';
-    return node.label_i18n?.[locale] || '';
+  function changeItems(next: TreeItem[]) {
+    setItems(next);
+    setDirty(true);
   }
 
-  // Return a copy of `node` with its label for `locale` set to `value`.
-  function withLabel(node: TreeItem, locale: string, value: string): TreeItem {
-    if (locale === primaryLocale) return { ...node, label: value };
-    const next = { ...(node.label_i18n || {}) };
-    if (value) next[locale] = value;
-    else delete next[locale];
-    return { ...node, label_i18n: next };
-  }
-
-  // ── Top-level item mutations ──────────────────────────────
-  function patchTop(ti: number, patch: Partial<TreeItem>) {
-    setItems((prev) => prev.map((t, i) => (i === ti ? { ...t, ...patch } : t)));
-    setDirty(true);
-  }
-  function setTopLabel(ti: number, locale: string, value: string) {
-    setItems((prev) => prev.map((t, i) => (i === ti ? withLabel(t, locale, value) : t)));
-    setDirty(true);
-  }
-  function addTop() {
-    setItems((prev) => [...prev, { label: '', url: '', children: [] }]);
-    setDirty(true);
-  }
-  function removeTop(ti: number) {
-    setItems((prev) => prev.filter((_, i) => i !== ti));
-    setDirty(true);
-  }
-  function moveTop(ti: number, dir: -1 | 1) {
-    setItems((prev) => {
-      const next = prev.slice();
-      const target = ti + dir;
-      if (target < 0 || target >= next.length) return prev;
-      [next[ti], next[target]] = [next[target], next[ti]];
+  // Append picked sources as top-level items; expand them so they are visible.
+  function addItems(picked: NewMenuItem[]) {
+    if (picked.length === 0) return;
+    const nodes = picked.map(makeNode);
+    setItems((prev) => [...prev, ...nodes]);
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      nodes.forEach((n) => next.add(n.cid));
       return next;
     });
-    setDirty(true);
-  }
-
-  // ── Child (sub-item) mutations ────────────────────────────
-  function patchChild(ti: number, ci: number, patch: Partial<TreeItem>) {
-    setItems((prev) =>
-      prev.map((t, i) =>
-        i === ti ? { ...t, children: t.children.map((c, j) => (j === ci ? { ...c, ...patch } : c)) } : t,
-      ),
-    );
-    setDirty(true);
-  }
-  function setChildLabel(ti: number, ci: number, locale: string, value: string) {
-    setItems((prev) =>
-      prev.map((t, i) =>
-        i === ti ? { ...t, children: t.children.map((c, j) => (j === ci ? withLabel(c, locale, value) : c)) } : t,
-      ),
-    );
-    setDirty(true);
-  }
-  function addSub(ti: number) {
-    setItems((prev) =>
-      prev.map((t, i) => (i === ti ? { ...t, children: [...t.children, { label: '', url: '', children: [] }] } : t)),
-    );
-    setDirty(true);
-  }
-  function removeChild(ti: number, ci: number) {
-    setItems((prev) =>
-      prev.map((t, i) => (i === ti ? { ...t, children: t.children.filter((_, j) => j !== ci) } : t)),
-    );
-    setDirty(true);
-  }
-  function moveChild(ti: number, ci: number, dir: -1 | 1) {
-    setItems((prev) =>
-      prev.map((t, i) => {
-        if (i !== ti) return t;
-        const ch = t.children.slice();
-        const target = ci + dir;
-        if (target < 0 || target >= ch.length) return t;
-        [ch[ci], ch[target]] = [ch[target], ch[ci]];
-        return { ...t, children: ch };
-      }),
-    );
     setDirty(true);
   }
 
@@ -289,45 +208,17 @@ export default function MenusPage() {
     setSaving(true);
     setSaveError('');
     try {
-      // Serialize the tree. Keep nodes that have a URL and at least one label
-      // (primary or any translation); if the primary label is blank but a
-      // translation exists, promote it so the item never silently vanishes.
-      // Send label_i18n / children only when non-empty to keep payloads lean.
-      type Payload = {
-        label: string;
-        url: string;
-        open_in_new_tab?: boolean;
-        label_i18n?: Record<string, string>;
-        children?: Payload[];
-      };
-      const toPayload = (node: TreeItem): Payload | null => {
-        const translations = node.label_i18n || {};
-        const base =
-          node.label.trim() || Object.values(translations).find((v) => v?.trim())?.trim() || '';
-        if (!base || !node.url.trim()) return null;
-        const children = node.children
-          .map(toPayload)
-          .filter((c): c is Payload => c !== null);
-        return {
-          label: base,
-          url: node.url.trim(),
-          open_in_new_tab: node.open_in_new_tab,
-          ...(Object.keys(translations).length > 0 ? { label_i18n: translations } : {}),
-          ...(children.length > 0 ? { children } : {}),
-        };
-      };
-      const cleaned = items.map(toPayload).filter((c): c is Payload => c !== null);
+      const cleaned = items.map(toPayload).filter((c): c is ItemPayload => c !== null);
       const updated = await api<Menu>(`/menus/${selected.id}/items`, {
         method: 'PUT',
         token,
         body: JSON.stringify({ items: cleaned }),
       });
       setMenus((prev) => prev.map((m) => (m.id === selected.id ? updated : m)));
-      setItems(buildTree(updated.items || []));
-      setDirty(false);
+      loadTree(updated);
     } catch (err) {
       console.error('Failed to save menu:', err);
-      setSaveError((err instanceof Error && err.message) || t('menus.saveFailed'));
+      setSaveError(err ? apiError(err) : t('menus.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -346,7 +237,7 @@ export default function MenusPage() {
       });
       setMenus((prev) => [...prev, menu]);
       setSelectedId(menu.id);
-      setItems(buildTree(menu.items || []));
+      loadTree(menu);
       setCreateOpen(false);
       setNewName('');
       setNewKey('');
@@ -366,7 +257,7 @@ export default function MenusPage() {
       setMenus((prev) => prev.filter((m) => m.id !== deleteTarget.id));
       if (selectedId === deleteTarget.id) {
         setSelectedId(null);
-        setItems([]);
+        loadTree(null);
       }
       setDeleteTarget(null);
     } catch (err) {
@@ -375,102 +266,12 @@ export default function MenusPage() {
     }
   }
 
-  // Shared label / URL / new-tab fields for one node. Rendered as a plain
-  // function call (not a component) so the inputs keep focus across renders.
-  const renderFields = (
-    node: TreeItem,
-    onLabel: (locale: string, v: string) => void,
-    onUrl: (v: string) => void,
-    onNewTab: (checked: boolean) => void,
-  ) => (
-    <div className="flex-1 grid gap-2 sm:grid-cols-2 min-w-0">
-      <div className="space-y-1">
-        <Label className="text-[10px] text-zinc-500">
-          {t('menus.label')}
-          {locales.length > 1 && (
-            <span className="ms-1 text-zinc-400">· {localeLabel(activeLocale)}</span>
-          )}
-        </Label>
-        <Input
-          className="h-8 text-[12.5px]"
-          value={labelFor(node, activeLocale)}
-          onChange={(e) => onLabel(activeLocale, e.target.value)}
-          placeholder={
-            activeLocale === primaryLocale
-              ? t('menus.labelPlaceholder')
-              : labelFor(node, primaryLocale) || t('menus.translationPlaceholder')
-          }
-          dir={activeLocale === 'ar' ? 'rtl' : undefined}
-        />
-      </div>
-      <div className="space-y-1">
-        <Label className="text-[10px] text-zinc-500">{t('menus.url')}</Label>
-        <Input
-          className="h-8 text-[12.5px] font-mono"
-          value={node.url}
-          onChange={(e) => onUrl(e.target.value)}
-          placeholder="/products"
-        />
-      </div>
-      <label className="flex items-center gap-1.5 text-[11px] text-zinc-600 sm:col-span-2">
-        <input
-          type="checkbox"
-          checked={!!node.open_in_new_tab}
-          onChange={(e) => onNewTab(e.target.checked)}
-          className="size-3.5"
-        />
-        <ExternalLink className="size-3 text-zinc-400" />
-        {t('menus.openInNewTab')}
-      </label>
-    </div>
-  );
-
-  // Vertical move + delete controls for one row.
-  const renderControls = (
-    onUp: () => void,
-    onDown: () => void,
-    onRemove: () => void,
-    canUp: boolean,
-    canDown: boolean,
-  ) => (
-    <div className="flex flex-col gap-0.5 shrink-0">
-      <button
-        type="button"
-        onClick={onUp}
-        disabled={!canUp}
-        className="size-6 inline-flex items-center justify-center rounded text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 disabled:opacity-30 transition"
-        title={t('menus.moveUp')}
-      >
-        <ArrowUp className="size-3.5" />
-      </button>
-      <button
-        type="button"
-        onClick={onDown}
-        disabled={!canDown}
-        className="size-6 inline-flex items-center justify-center rounded text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 disabled:opacity-30 transition"
-        title={t('menus.moveDown')}
-      >
-        <ArrowDown className="size-3.5" />
-      </button>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="size-6 inline-flex items-center justify-center rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
-        title={tc('remove')}
-      >
-        <Trash2 className="size-3.5" />
-      </button>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t('menus.title')}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t('menus.subtitle')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('menus.subtitle')}</p>
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" />
@@ -489,9 +290,7 @@ export default function MenusPage() {
               <ListTree className="size-6" />
             </div>
             <p className="text-sm font-medium">{t('menus.emptyTitle')}</p>
-            <p className="mt-1 text-xs text-muted-foreground max-w-sm">
-              {t('menus.emptyDesc')}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground max-w-sm">{t('menus.emptyDesc')}</p>
             <Button size="sm" className="mt-4" onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
               {t('menus.createFirstMenu')}
@@ -509,9 +308,7 @@ export default function MenusPage() {
                 onClick={() => selectMenu(m)}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-start transition border',
-                  m.id === selectedId
-                    ? 'border-zinc-900 bg-zinc-50'
-                    : 'border-transparent hover:bg-zinc-50',
+                  m.id === selectedId ? 'border-zinc-900 bg-zinc-50' : 'border-transparent hover:bg-zinc-50',
                 )}
               >
                 <ListTree className="size-4 text-zinc-400 shrink-0" />
@@ -525,17 +322,16 @@ export default function MenusPage() {
           </div>
 
           {/* Editor */}
-          {selected ? (
+          {selected && token ? (
             <Card className="shadow-none">
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <h2 className="text-sm font-semibold truncate">{selected.name}</h2>
-                    <p className="text-[11px] text-zinc-400 font-mono">
-                      key: {selected.key}
-                    </p>
+                    <p className="text-[11px] text-zinc-400 font-mono">key: {selected.key}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {dirty && <span className="text-[11px] text-amber-600">{t('menus.unsaved')}</span>}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -551,7 +347,6 @@ export default function MenusPage() {
                   </div>
                 </div>
 
-                {/* Save error banner */}
                 {saveError && (
                   <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                     <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -571,9 +366,7 @@ export default function MenusPage() {
                         onClick={() => setActiveLocale(l)}
                         className={cn(
                           'px-2.5 py-1 text-[11px] font-medium rounded transition',
-                          activeLocale === l
-                            ? 'bg-white text-zinc-900 shadow-sm'
-                            : 'text-zinc-500 hover:text-zinc-900',
+                          activeLocale === l ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900',
                         )}
                       >
                         {localeLabel(l)}
@@ -585,78 +378,25 @@ export default function MenusPage() {
                   </div>
                 )}
 
-                <div className="space-y-3">
-                  {items.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/40 px-3 py-6 text-center">
-                      <p className="text-xs text-zinc-500">{t('menus.noItemsYet')}</p>
-                    </div>
-                  )}
-                  {items.map((item, ti) => (
-                    <div key={ti} className="space-y-2">
-                      {/* Top-level item */}
-                      <div className="flex items-start gap-2 rounded-lg border border-zinc-200 bg-white p-2.5">
-                        <GripVertical className="size-4 text-zinc-300 mt-2 shrink-0" />
-                        {renderFields(
-                          item,
-                          (locale, v) => setTopLabel(ti, locale, v),
-                          (v) => patchTop(ti, { url: v }),
-                          (checked) => patchTop(ti, { open_in_new_tab: checked }),
-                        )}
-                        {renderControls(
-                          () => moveTop(ti, -1),
-                          () => moveTop(ti, 1),
-                          () => removeTop(ti),
-                          ti > 0,
-                          ti < items.length - 1,
-                        )}
-                      </div>
-
-                      {/* Sub-items (one nesting level) */}
-                      <div className="ms-5 ps-3 border-s-2 border-zinc-100 space-y-2">
-                          {item.children.map((child, ci) => (
-                            <div
-                              key={ci}
-                              className="flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/50 p-2.5"
-                            >
-                              <CornerDownRight className="size-4 text-zinc-300 mt-2 shrink-0" />
-                              {renderFields(
-                                child,
-                                (locale, v) => setChildLabel(ti, ci, locale, v),
-                                (v) => patchChild(ti, ci, { url: v }),
-                                (checked) => patchChild(ti, ci, { open_in_new_tab: checked }),
-                              )}
-                              {renderControls(
-                                () => moveChild(ti, ci, -1),
-                                () => moveChild(ti, ci, 1),
-                                () => removeChild(ti, ci),
-                                ci > 0,
-                                ci < item.children.length - 1,
-                              )}
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => addSub(ti)}
-                            className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-indigo-600 transition"
-                          >
-                            <Plus className="size-3" />
-                            {t('menus.addSubItem')}
-                          </button>
-                        </div>
-                    </div>
-                  ))}
+                {/* Two columns: sources (left) + structure (right) */}
+                <div className="grid gap-5 lg:grid-cols-[300px_1fr] items-start">
+                  <MenuItemSources
+                    token={token}
+                    storeId={storeId}
+                    primaryLocale={primaryLocale}
+                    locales={locales}
+                    onAdd={addItems}
+                  />
+                  <MenuStructure
+                    items={items}
+                    onChange={changeItems}
+                    activeLocale={activeLocale}
+                    primaryLocale={primaryLocale}
+                    locales={locales}
+                    expanded={expanded}
+                    onExpandedChange={setExpanded}
+                  />
                 </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addTop}
-                  className="w-full border-dashed border-zinc-300 text-zinc-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/40"
-                >
-                  <Plus className="size-3.5" />
-                  {t('menus.addItem')}
-                </Button>
               </CardContent>
             </Card>
           ) : (
@@ -674,19 +414,14 @@ export default function MenusPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('menus.newMenuDialogTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('menus.newMenuDialogDesc')}
-            </DialogDescription>
+            <DialogDescription>{t('menus.newMenuDialogDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1">
               <Label className="text-xs">{tc('name')}</Label>
               <Input
                 value={newName}
-                onChange={(e) => {
-                  setNewName(e.target.value);
-                  if (!newKey) setNewKey('');
-                }}
+                onChange={(e) => setNewName(e.target.value)}
                 placeholder={t('menus.namePlaceholder')}
               />
             </div>
@@ -698,9 +433,7 @@ export default function MenusPage() {
                 onChange={(e) => setNewKey(slugify(e.target.value))}
                 placeholder="main-nav"
               />
-              <p className="text-[10.5px] text-zinc-400">
-                {t('menus.keyHint')}
-              </p>
+              <p className="text-[10.5px] text-zinc-400">{t('menus.keyHint')}</p>
             </div>
             {createError && <p className="text-xs text-red-600">{createError}</p>}
           </div>
@@ -729,7 +462,9 @@ export default function MenusPage() {
           <DialogHeader>
             <DialogTitle>{t('menus.deleteTitle')}</DialogTitle>
             <DialogDescription>
-              {t('menus.deleteConfirmPrefix')} <span className="font-medium text-foreground">{deleteTarget?.name}</span>{t('menus.deleteConfirmSuffix')}
+              {t('menus.deleteConfirmPrefix')}{' '}
+              <span className="font-medium text-foreground">{deleteTarget?.name}</span>
+              {t('menus.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
           {deleteError && (

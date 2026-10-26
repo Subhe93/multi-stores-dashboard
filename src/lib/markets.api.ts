@@ -73,6 +73,8 @@ export interface MarketView {
    * serves it). Built by the API from STOREFRONT_URL.
    */
   preview_url: string | null;
+  /** Hide this market from search engines (noindex, nofollow); pages stay crawlable. */
+  noindex: boolean;
 }
 
 export interface MarketInput {
@@ -83,6 +85,7 @@ export interface MarketInput {
   locales: string[];
   currency: string;
   price_rule: PriceRule;
+  noindex?: boolean;
 }
 
 export interface DnsTarget {

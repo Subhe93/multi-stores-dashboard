@@ -16,7 +16,7 @@ import { VariantManager, type VariantOption, type GeneratedVariant } from './Var
 import { CustomFieldManager, type CustomField } from './CustomFieldManager';
 import FaqManager, { type Faq } from './FaqManager';
 import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
-import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
+import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
 import { TagInput } from '@/components/common/TagInput';
@@ -135,6 +135,8 @@ interface ProductResponse {
     creator_category_id?: string | null;
     creator_category?: { id?: string | null } | null;
   }[];
+  /** The linked collection that drives the storefront breadcrumb / URL path. */
+  primary_creator_category_id?: string | null;
   shipping_profile_id?: string | null;
   tax_class_id?: string | null;
   tax_exempt?: boolean | null;
@@ -239,6 +241,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [bundleIds, setBundleIds] = useState<string[]>([]);
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
+  const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
   const [shippingProfiles, setShippingProfiles] = useState<ShippingProfile[]>([]);
   const [shippingProfileId, setShippingProfileId] = useState('');
   // Tax: platform + own-store classes; '' = the scope's default class.
@@ -352,10 +355,15 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
       // Pre-fill creator collections. API returns links of the shape
       // { creator_category_id, creator_category: {...} }; either field works.
-      setCreatorCategoryIds(
-        (p.creator_categories || [])
-          .map((link) => link?.creator_category?.id || link?.creator_category_id)
-          .filter((id): id is string => typeof id === 'string'),
+      const linkedIds = (p.creator_categories || [])
+        .map((link) => link?.creator_category?.id || link?.creator_category_id)
+        .filter((id): id is string => typeof id === 'string');
+      setCreatorCategoryIds(linkedIds);
+      // Older products have no stored primary: the first linked collection is it.
+      setPrimaryCreatorCategoryId(
+        p.primary_creator_category_id && linkedIds.includes(p.primary_creator_category_id)
+          ? p.primary_creator_category_id
+          : linkedIds[0] ?? null,
       );
       setShippingProfileId(p.shipping_profile_id || '');
       setTaxClassId(p.tax_class_id || '');
@@ -607,7 +615,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         tags: tags.length > 0 ? tags : [],
         variants: variantsPayload,
         images: imagesPayload,
-        ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds } : {}),
+        ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
       };
 
       let pid = productId;
@@ -1347,9 +1355,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   <p className="text-xs text-muted-foreground mb-2">
                     {t('product.collectionsHelp')}
                   </p>
-                  <CollectionsMultiSelect
+                  <CollectionTreePicker
                     value={creatorCategoryIds}
                     onChange={setCreatorCategoryIds}
+                    primaryId={primaryCreatorCategoryId}
+                    primaryLocale={primaryLocale}
+                    onPrimaryChange={setPrimaryCreatorCategoryId}
                   />
                 </div>
               </CardContent>

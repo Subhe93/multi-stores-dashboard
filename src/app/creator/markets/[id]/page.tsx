@@ -124,6 +124,9 @@ export default function CreatorMarketDetailPage() {
               {market.is_default && (
                 <Badge variant="outline" className="text-[10px] bg-sky-50 text-sky-700 border-sky-200">{t('defaultBadge')}</Badge>
               )}
+              {market.noindex && (
+                <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">{t('noindexBadge')}</Badge>
+              )}
             </h1>
             <p className="text-sm text-muted-foreground">
               <span className="font-mono" dir="ltr">{market.key}</span> · {market.currency}

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -33,7 +34,7 @@ import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
-import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
+import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
@@ -98,6 +99,7 @@ interface CreateCustomProductBody {
   mockup_image_urls?: string[];
   bundle_ids?: string[];
   creator_category_ids?: string[];
+  primary_creator_category_id?: string | null;
 }
 
 // ── Error helpers ────────────────────────────────────────
@@ -164,6 +166,7 @@ export default function NewCustomProductPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const apiError = useApiError();
   const searchParams = useSearchParams();
   const preselectedProductId = searchParams.get('product_id');
   const { storeType } = useStoreType();
@@ -195,6 +198,7 @@ export default function NewCustomProductPage() {
   const [faqDrafts, setFaqDrafts] = useState<Faq[]>([]);
   const [bundleIds, setBundleIds] = useState<string[]>([]);
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
+  const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
 
   // Slug availability check — debounced, primary-locale only.
   type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
@@ -525,6 +529,7 @@ export default function NewCustomProductPage() {
 
       if (creatorCategoryIds.length > 0) {
         body.creator_category_ids = creatorCategoryIds;
+        body.primary_creator_category_id = primaryCreatorCategoryId;
       }
 
       // Create custom product
@@ -558,8 +563,12 @@ export default function NewCustomProductPage() {
       // Redirect to edit page so the creator can submit for review or finalize details
       router.push(created?.id ? `/creator/custom-products/${created.id}` : '/creator/custom-products');
     } catch (err) {
-      setSubmitError(formatSubmitError(err, t));
-      const targetKey = stepKeyFromError(err, t);
+      // Coded API errors (e.g. PRIMARY_COLLECTION_NOT_LINKED) are translated;
+      // class-validator lists go through the pattern mapper (formatSubmitError).
+      const coded = err instanceof ApiError && !!err.code && !Array.isArray(err.errors);
+      setSubmitError(coded ? apiError(err) : formatSubmitError(err, t));
+      const targetKey =
+        coded && err.code === 'PRIMARY_COLLECTION_NOT_LINKED' ? 'details' : stepKeyFromError(err, t);
       if (targetKey) {
         const idx = steps.findIndex((s) => s.key === targetKey);
         if (idx >= 0) setCurrentStep(idx + 1);
@@ -1047,9 +1056,12 @@ export default function NewCustomProductPage() {
                   <p className="text-[11px] text-muted-foreground">
                     {t('customProductForm.collectionsDesc')}
                   </p>
-                  <CollectionsMultiSelect
+                  <CollectionTreePicker
                     value={creatorCategoryIds}
                     onChange={setCreatorCategoryIds}
+                    primaryId={primaryCreatorCategoryId}
+                    primaryLocale={primaryLocale}
+                    onPrimaryChange={setPrimaryCreatorCategoryId}
                   />
                 </div>
               )}

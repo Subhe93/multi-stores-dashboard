@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { CountryMultiSelect } from '@/components/common/CountryMultiSelect';
 import { PriceRuleEditor } from '@/components/markets/PriceRuleEditor';
@@ -65,6 +66,7 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
     locales: initial?.locales ?? [],
     currency: initial?.currency ?? baseCurrency,
     price_rule: initial?.price_rule && initial.price_rule.mode ? initial.price_rule : DEFAULT_RULE,
+    noindex: initial?.noindex ?? false,
   });
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useTransientFlag();
@@ -231,6 +233,27 @@ export function MarketForm({ initial, onSaved, onSaveFailed }: MarketFormProps) 
             marketCurrency={form.currency}
           />
           {!rateValid && <p className="mt-2 text-[11px] text-red-600">{t('rateRequired')}</p>}
+        </CardContent>
+      </Card>
+
+      {/* Search engine indexing: noindex for test/staging domains (M6). */}
+      <Card className="shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold">{t('indexing')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="market-noindex" className="text-xs font-medium">{t('noindex')}</Label>
+              <p className="text-[10px] text-muted-foreground">{t('noindexHint')}</p>
+            </div>
+            <ToggleSwitch
+              id="market-noindex"
+              checked={!!form.noindex}
+              onChange={(v) => set('noindex', v)}
+              label={t('noindex')}
+            />
+          </div>
         </CardContent>
       </Card>
 

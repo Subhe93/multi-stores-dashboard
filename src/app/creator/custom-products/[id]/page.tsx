@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { useApiError } from '@/lib/useApiError';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -24,7 +25,7 @@ import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
-import { CollectionsMultiSelect } from '@/components/creator/categories/CollectionsMultiSelect';
+import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
@@ -68,6 +69,7 @@ interface CustomProduct {
   field_values?: { id: string; custom_field_id: string; value?: string; file_url?: string }[];
   bundles?: { bundle_id: string }[];
   creator_categories?: { creator_category_id: string; creator_category?: { id: string } }[];
+  primary_creator_category_id?: string | null;
   mockup_images?: { url: string }[];
   faqs?: Faq[];
   product: {
@@ -120,6 +122,7 @@ interface UpdateCustomProductBody {
   mockup_image_urls?: string[];
   bundle_ids?: string[];
   creator_category_ids?: string[];
+  primary_creator_category_id?: string | null;
 }
 
 export default function EditCustomProduct() {
@@ -129,6 +132,8 @@ export default function EditCustomProduct() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  // Coded API errors (e.g. PRIMARY_COLLECTION_NOT_LINKED) become translated messages.
+  const apiError = useApiError();
 
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
   const [product, setProduct] = useState<CustomProduct | null>(null);
@@ -174,6 +179,7 @@ export default function EditCustomProduct() {
 
   // Creator collections attached to this custom product
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
+  const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
 
   // Slug availability check — debounced, primary-locale only.
   type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
@@ -205,10 +211,15 @@ export default function EditCustomProduct() {
       setProduct(productRes);
       setStatus(productRes.status);
       setBundleIds((productRes.bundles ?? []).map((b) => b.bundle_id));
-      setCreatorCategoryIds(
-        (productRes.creator_categories ?? [])
-          .map((link) => link.creator_category?.id || link.creator_category_id)
-          .filter((id): id is string => typeof id === 'string'),
+      const linkedIds = (productRes.creator_categories ?? [])
+        .map((link) => link.creator_category?.id || link.creator_category_id)
+        .filter((id): id is string => typeof id === 'string');
+      setCreatorCategoryIds(linkedIds);
+      // Older products have no stored primary: the first linked collection is it.
+      setPrimaryCreatorCategoryId(
+        productRes.primary_creator_category_id && linkedIds.includes(productRes.primary_creator_category_id)
+          ? productRes.primary_creator_category_id
+          : linkedIds[0] ?? null,
       );
 
       // Pricing
@@ -389,6 +400,7 @@ export default function EditCustomProduct() {
 
       body.bundle_ids = bundleIds;
       body.creator_category_ids = creatorCategoryIds;
+      body.primary_creator_category_id = primaryCreatorCategoryId;
 
       await api(`/custom-products/${id}`, { method: 'PUT', token, body: JSON.stringify(body) });
       setSaved(true);
@@ -396,8 +408,11 @@ export default function EditCustomProduct() {
       fetchAll();
       return true;
     } catch (err) {
-      const e = err as { message?: string };
-      setSaveError(e?.message || t('editCustomProduct.failedSave'));
+      setSaveError(
+        err instanceof ApiError && err.code
+          ? apiError(err)
+          : (err instanceof Error && err.message) || t('editCustomProduct.failedSave'),
+      );
       return false;
     } finally {
       setSaving(false);
@@ -940,9 +955,12 @@ export default function EditCustomProduct() {
             <p className="text-[11px] text-muted-foreground mb-2">
               {t('editCustomProduct.collectionsDesc')}
             </p>
-            <CollectionsMultiSelect
+            <CollectionTreePicker
               value={creatorCategoryIds}
               onChange={setCreatorCategoryIds}
+              primaryId={primaryCreatorCategoryId}
+              primaryLocale={primaryLocale}
+              onPrimaryChange={setPrimaryCreatorCategoryId}
             />
           </CardContent>
         </Card>

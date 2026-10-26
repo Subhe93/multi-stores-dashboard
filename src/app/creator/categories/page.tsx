@@ -61,20 +61,25 @@ interface FlatRow extends CategoryNode {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getDisplayName(node: CategoryNode): string {
-  const en = node.translations?.find((t) => t.locale === 'en')?.name;
-  if (en) return en;
-  return node.translations?.[0]?.name || node.slug;
+/** Display name: store primary locale, then English, then any translation, then slug. */
+function getDisplayName(node: CategoryNode, primaryLocale: string): string {
+  const pick = (locale: string) => node.translations?.find((t) => t.locale === locale)?.name?.trim();
+  return (
+    pick(primaryLocale) ||
+    pick('en') ||
+    node.translations?.map((tr) => tr.name?.trim()).find(Boolean) ||
+    node.slug
+  );
 }
 
-function flattenTree(nodes: CategoryNode[], depth = 0, prefix = ''): FlatRow[] {
+function flattenTree(nodes: CategoryNode[], primaryLocale: string, depth = 0, prefix = ''): FlatRow[] {
   const out: FlatRow[] = [];
   for (const n of nodes) {
-    const name = getDisplayName(n);
+    const name = getDisplayName(n, primaryLocale);
     const path = prefix ? `${prefix} / ${name}` : name;
     out.push({ ...n, display_path: path, depth });
     if (n.children?.length) {
-      out.push(...flattenTree(n.children, depth + 1, path));
+      out.push(...flattenTree(n.children, primaryLocale, depth + 1, path));
     }
   }
   return out;
@@ -98,6 +103,15 @@ export default function CreatorCategoriesPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  // Store content locale: names are shown in it first (then en, any, slug).
+  const [primaryLocale, setPrimaryLocale] = useState('en');
+
+  useEffect(() => {
+    if (!token) return;
+    api<{ primary_locale?: string }>('/translations/overview', { token })
+      .then((res) => setPrimaryLocale(res?.primary_locale || 'en'))
+      .catch(() => {});
+  }, [token]);
 
   const fetchCategories = async () => {
     if (!token) return;
@@ -117,7 +131,7 @@ export default function CreatorCategoriesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const rows = useMemo(() => flattenTree(tree), [tree]);
+  const rows = useMemo(() => flattenTree(tree, primaryLocale), [tree, primaryLocale]);
 
   // Client-side filter over the visible rows — the tree endpoint has no search,
   // and collections lists are small enough to filter in memory.
@@ -127,10 +141,10 @@ export default function CreatorCategoriesPage() {
     return rows.filter(
       (row) =>
         row.display_path.toLowerCase().includes(q) ||
-        getDisplayName(row).toLowerCase().includes(q) ||
+        getDisplayName(row, primaryLocale).toLowerCase().includes(q) ||
         row.slug.toLowerCase().includes(q),
     );
-  }, [rows, searchQuery]);
+  }, [rows, searchQuery, primaryLocale]);
 
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
@@ -175,10 +189,23 @@ export default function CreatorCategoriesPage() {
       label: tc('name'),
       render: (item: FlatRow) => (
         <div className="flex flex-col">
-          <span
-            className="text-sm font-medium"
-            style={{ paddingLeft: item.depth * 12 }}
-          >
+          <span className="flex items-center gap-1.5 text-sm font-medium">
+            {/* One guide bar per nesting level; the innermost is darker so
+                depth 2 reads differently from depth 1. */}
+            {Array.from({ length: item.depth }, (_, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className={`inline-block h-4 w-0.5 rounded-full ${
+                  i === item.depth - 1 ? 'bg-zinc-500' : 'bg-zinc-200'
+                }`}
+              />
+            ))}
+            {item.depth > 0 && (
+              <span aria-hidden className="text-[10px] text-zinc-400 rtl:-scale-x-100">
+                └
+              </span>
+            )}
             {item.display_path}
           </span>
           <span className="text-[11px] text-muted-foreground font-mono">
@@ -331,7 +358,7 @@ export default function CreatorCategoriesPage() {
             <DialogDescription>
               {t('collections.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
-                {deleteTarget ? getDisplayName(deleteTarget) : ''}
+                {deleteTarget ? getDisplayName(deleteTarget, primaryLocale) : ''}
               </span>
               {t('collections.deleteConfirmSuffix')}
             </DialogDescription>
