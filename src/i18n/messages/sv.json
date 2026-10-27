@@ -4782,6 +4782,7 @@
     "PAGE_SLUG_REQUIRED": "Slug krävs för den här sidtypen",
     "PAGE_STATIC_KIND_REQUIRED": "static_kind krävs för STATIC-sidor",
     "PAGE_SLUG_OR_KIND_EXISTS": "En sida med denna slug eller typ finns redan",
+    "PAGE_SLUG_RESERVED": "Den här adressen är reserverad för en butikssida (t.ex. products, collections, cart). Välj en annan slug.",
     "PAGE_CANNOT_BE_DELETED": "Den här sidan kan inte tas bort",
     "PAGE_SECTION_IDS_INVALID": "section_ids innehåller poster som inte finns på den här sidan",
     "PAGE_VERSION_NOT_FOUND": "Versionen hittades inte",

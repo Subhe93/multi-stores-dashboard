@@ -131,7 +131,7 @@ export default function LandingPagesPage() {
       key: 'slug',
       label: t('landingPages.colUrl'),
       render: (item: PageRow) => (
-        <span className="font-mono text-[10px] text-muted-foreground">/p/{item.slug}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">/{item.slug}</span>
       ),
     },
     {
@@ -162,7 +162,7 @@ export default function LandingPagesPage() {
         <div className="flex items-center justify-end gap-1">
           {item.status === 'PUBLISHED' && store && (
             <a
-              href={`${WEB_ORIGIN}/store/${store.slug}/p/${item.slug}`}
+              href={`${WEB_ORIGIN}/store/${store.slug}/${item.slug}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -420,7 +420,7 @@ function CreateLandingDialog({
           <div className="space-y-1.5">
             <Label htmlFor="lp-slug" className="text-xs">{t('landingPages.urlLabel')}</Label>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-mono">/p/</span>
+              <span className="text-xs text-muted-foreground font-mono">/</span>
               <Input
                 id="lp-slug"
                 value={slug}

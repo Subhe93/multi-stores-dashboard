@@ -267,12 +267,12 @@ function PagesPanel({
             return {
               key: `v2:${p.id}`,
               title,
-              hint: `/p/${p.slug}`,
+              hint: `/${p.slug}`,
               published: !!p.published_version_id,
               item: {
                 label: title,
                 label_i18n: i18nLabels(p.translations, locales, primaryLocale, read),
-                url: `/p/${p.slug}`,
+                url: `/${p.slug}`,
                 kind: 'PAGE',
                 resource_id: p.id,
               },

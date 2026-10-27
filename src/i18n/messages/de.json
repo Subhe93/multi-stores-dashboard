@@ -4782,6 +4782,7 @@
     "PAGE_SLUG_REQUIRED": "Slug ist für diesen Seitentyp erforderlich",
     "PAGE_STATIC_KIND_REQUIRED": "static_kind ist für STATIC-Seiten erforderlich",
     "PAGE_SLUG_OR_KIND_EXISTS": "Eine Seite mit diesem Slug oder Typ existiert bereits",
+    "PAGE_SLUG_RESERVED": "Diese Adresse ist für eine Shop-Seite reserviert (z. B. products, collections, cart). Wähle einen anderen Slug.",
     "PAGE_CANNOT_BE_DELETED": "Diese Seite kann nicht gelöscht werden",
     "PAGE_SECTION_IDS_INVALID": "section_ids enthält Einträge, die nicht zu dieser Seite gehören",
     "PAGE_VERSION_NOT_FOUND": "Version nicht gefunden",

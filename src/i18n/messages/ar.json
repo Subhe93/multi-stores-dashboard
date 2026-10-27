@@ -4782,6 +4782,7 @@
     "PAGE_SLUG_REQUIRED": "المعرّف مطلوب لهذا النوع من الصفحات",
     "PAGE_STATIC_KIND_REQUIRED": "نوع الصفحة الثابتة مطلوب للصفحات الثابتة",
     "PAGE_SLUG_OR_KIND_EXISTS": "توجد صفحة بهذا المعرّف أو النوع بالفعل",
+    "PAGE_SLUG_RESERVED": "هذا العنوان محجوز لصفحة من صفحات المتجر (مثل products أو collections أو cart). اختر معرّفاً آخر.",
     "PAGE_CANNOT_BE_DELETED": "لا يمكن حذف هذه الصفحة",
     "PAGE_SECTION_IDS_INVALID": "تحتوي معرّفات الأقسام على عناصر ليست في هذه الصفحة",
     "PAGE_VERSION_NOT_FOUND": "لم يتم العثور على الإصدار",

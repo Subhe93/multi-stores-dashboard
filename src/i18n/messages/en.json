@@ -4782,6 +4782,7 @@
     "PAGE_SLUG_REQUIRED": "slug is required for this page type",
     "PAGE_STATIC_KIND_REQUIRED": "static_kind is required for STATIC pages",
     "PAGE_SLUG_OR_KIND_EXISTS": "A page with this slug or kind already exists",
+    "PAGE_SLUG_RESERVED": "This address is reserved for a store page (for example products, collections, cart). Choose another slug.",
     "PAGE_CANNOT_BE_DELETED": "This page cannot be deleted",
     "PAGE_SECTION_IDS_INVALID": "section_ids contains entries not on this page",
     "PAGE_VERSION_NOT_FOUND": "Version not found",

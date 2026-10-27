@@ -4782,6 +4782,7 @@
     "PAGE_SLUG_REQUIRED": "Bu sayfa türü için slug gereklidir",
     "PAGE_STATIC_KIND_REQUIRED": "STATIC sayfalar için static_kind gereklidir",
     "PAGE_SLUG_OR_KIND_EXISTS": "Bu slug veya tür ile bir sayfa zaten mevcut",
+    "PAGE_SLUG_RESERVED": "Bu adres bir mağaza sayfası için ayrılmıştır (ör. products, collections, cart). Başka bir slug seçin.",
     "PAGE_CANNOT_BE_DELETED": "Bu sayfa silinemez",
     "PAGE_SECTION_IDS_INVALID": "section_ids bu sayfada olmayan girişler içeriyor",
     "PAGE_VERSION_NOT_FOUND": "Sürüm bulunamadı",
