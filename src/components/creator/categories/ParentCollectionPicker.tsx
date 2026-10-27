@@ -12,6 +12,8 @@ export interface ParentPickerNode {
   id: string;
   slug: string;
   parent_id?: string | null;
+  // M6.3: INTERNAL labels can never be a parent; absent on older payloads = PUBLIC.
+  visibility?: 'PUBLIC' | 'INTERNAL';
   translations?: { locale: string; name: string }[];
   children?: ParentPickerNode[];
 }
@@ -71,7 +73,8 @@ function indexTree(
     ancestors: string[],
     underSelf: boolean,
   ): string[] =>
-    list.map((n) => {
+    // Internal labels are not offered at all (they are flat, so no subtree is lost).
+    list.filter((n) => n.visibility !== 'INTERNAL').map((n) => {
       const name = getName(n, primaryLocale);
       const isSelfOrDescendant = underSelf || n.id === excludeId;
       const entry: IndexedNode = {

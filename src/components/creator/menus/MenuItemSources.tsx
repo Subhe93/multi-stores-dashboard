@@ -320,6 +320,8 @@ interface CategoryTranslation { locale: string; name?: string | null }
 interface CategoryNode {
   id: string;
   slug: string;
+  // M6.3: INTERNAL labels have no storefront page; absent on older payloads = PUBLIC.
+  visibility?: 'PUBLIC' | 'INTERNAL' | null;
   translations?: CategoryTranslation[] | null;
   children?: CategoryNode[] | null;
 }
@@ -344,6 +346,8 @@ function CollectionsPanel({
         // The endpoint returns a nested tree of any depth; render it indented.
         const walk = (nodes: CategoryNode[], depth: number) => {
           for (const c of nodes) {
+            // Internal labels have no page to link to.
+            if (c.visibility === 'INTERNAL') continue;
             const title = pickTranslation(c.translations, primaryLocale, read) || c.slug;
             out.push({
               key: c.id,

@@ -569,7 +569,9 @@ export default function NewCustomProductPage() {
       const coded = err instanceof ApiError && !!err.code && !Array.isArray(err.errors);
       setSubmitError(coded ? apiError(err) : formatSubmitError(err, t));
       const targetKey =
-        coded && err.code === 'PRIMARY_COLLECTION_NOT_LINKED' ? 'details' : stepKeyFromError(err, t);
+        coded && (err.code === 'PRIMARY_COLLECTION_NOT_LINKED' || err.code === 'PRIMARY_COLLECTION_INTERNAL')
+          ? 'details'
+          : stepKeyFromError(err, t);
       if (targetKey) {
         const idx = steps.findIndex((s) => s.key === targetKey);
         if (idx >= 0) setCurrentStep(idx + 1);

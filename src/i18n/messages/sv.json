@@ -5051,7 +5051,11 @@
     "DESIGNER_UPLOAD_BUSY": "För många bilder bearbetas just nu. Försök igen om en stund.",
     "PRODUCT_GTIN_INVALID": "GTIN är inte giltigt (kontrollsiffra).",
     "FEED_NOT_FOUND": "Flödet hittades inte.",
-    "DESIGNER_ADDONS_INVALID": "Tillvalen är inte giltiga. Kontrollera de markerade fälten."
+    "DESIGNER_ADDONS_INVALID": "Tillvalen är inte giltiga. Kontrollera de markerade fälten.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "En intern etikett kan inte ha en överordnad kollektion. Välj \"Ingen (toppnivå)\" eller gör den till en butikskollektion.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Den här kollektionen har underkollektioner och kan därför inte bli en intern etikett. Flytta eller ta bort underkollektionerna först.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "En intern etikett kan inte vara en överordnad kollektion. Välj en butikskollektion som överordnad.",
+    "PRIMARY_COLLECTION_INTERNAL": "En intern etikett kan inte vara den primära kollektionen. Välj en av de valda butikskollektionerna som primär."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -5938,7 +5942,27 @@
       "noOthers": "Inga andra kollektioner ännu — den här hamnar på toppnivån.",
       "levelShort": "N{level}",
       "levelTitle": "Nivå {level}"
-    }
+    },
+    "type": "Typ",
+    "visibility": {
+      "PUBLIC": "Butikskollektion",
+      "INTERNAL": "Intern etikett"
+    },
+    "visibilityHint": {
+      "PUBLIC": "Har en egen sida och visas i menyer, brödsmulor och webbplatskartan.",
+      "INTERNAL": "Grupperar produkter endast för builder-sidor; visas aldrig som en kollektion i butiken. Kan inte vara överordnad, underordnad eller en produkts primära kollektion."
+    },
+    "internalNote": "Interna etiketter visas aldrig i butiken; använd dem från builder-sidor.",
+    "internalHasChildren": "Inte tillgängligt: den här kollektionen har underkollektioner. Flytta eller ta bort dem först.",
+    "internalBadge": "Intern",
+    "visibilityFilter": {
+      "label": "Visa",
+      "all": "Alla",
+      "storefront": "Butik",
+      "internal": "Interna"
+    },
+    "internalLabelsGroup": "Interna etiketter",
+    "internalLabelsHint": "Visas inte i butiken"
   },
   "shipping": {
     "actionCannotBeUndone": "Den här åtgärden kan inte ångras.",

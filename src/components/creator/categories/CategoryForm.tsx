@@ -12,6 +12,7 @@ import {
   FolderTree,
   Tag,
   Package,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
@@ -54,6 +55,11 @@ const RTL_LOCALES = ['ar'];
 
 type MatchRule = 'MANUAL' | 'TAGS';
 
+// M6.3: PUBLIC has a storefront page; INTERNAL is a flat label for builder
+// pages only (no parent, no children, never a product's primary collection).
+type Visibility = 'PUBLIC' | 'INTERNAL';
+const VISIBILITY_OPTIONS: Visibility[] = ['PUBLIC', 'INTERNAL'];
+
 interface CategoryTranslation {
   locale: string;
   name: string;
@@ -84,6 +90,8 @@ interface CategoryNode {
   id: string;
   slug: string;
   parent_id?: string | null;
+  // Absent on older API payloads = PUBLIC.
+  visibility?: Visibility;
   translations?: CategoryTranslation[];
   children?: CategoryNode[];
 }
@@ -92,6 +100,8 @@ interface CategoryDetail {
   id: string;
   slug: string;
   parent_id?: string | null;
+  visibility?: Visibility;
+  children?: { id: string }[];
   thumbnail_url?: string | null;
   match_rule: MatchRule;
   match_tags: string[];
@@ -212,6 +222,10 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [parentId, setParentId] = useState<string | null>(mode === 'create' ? initialParentId : null);
+  const [visibility, setVisibility] = useState<Visibility>('PUBLIC');
+  // Children from the detail payload (null until loaded / on older API builds);
+  // the tree the parent picker loads is the fallback.
+  const [detailHasChildren, setDetailHasChildren] = useState<boolean | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [matchRule, setMatchRule] = useState<MatchRule>('MANUAL');
   const [matchTags, setMatchTags] = useState<string[]>([]);
@@ -309,6 +323,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         setSlug(detail.slug);
         setSlugTouched(true);
         setParentId(detail.parent_id ?? null);
+        setVisibility(detail.visibility === 'INTERNAL' ? 'INTERNAL' : 'PUBLIC');
+        setDetailHasChildren(Array.isArray(detail.children) ? detail.children.length > 0 : null);
         setThumbnailUrl(detail.thumbnail_url ?? null);
         setMatchRule(detail.match_rule);
         setMatchTags(detail.match_tags ?? []);
@@ -357,6 +373,13 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     return node ? subtreeHeight(node) : 0;
   }, [allCategories, mode, initialId]);
   const maxParentDepth = MAX_CATEGORY_DEPTH - 1 - editedHeight;
+
+  const isInternal = visibility === 'INTERNAL';
+  // INTERNAL is flat: a collection that already has sub-collections cannot
+  // become one (the API answers CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN).
+  const hasChildren = detailHasChildren === true || editedHeight > 0;
+  const internalDisabledReason =
+    mode === 'edit' && !isInternal && hasChildren ? t('category.internalHasChildren') : undefined;
 
   // A `?parent=` id that is not in the tree (deleted, or from another store)
   // is dropped once the tree is known, so the form does not submit it blindly.
@@ -515,8 +538,9 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
           description: htmlOrEmpty(t.description),
           long_description: htmlOrEmpty(t.long_description),
           // Only when loaded or edited, so an untouched locale keeps its stored SEO.
-          ...(t.meta_title !== undefined ? { meta_title: t.meta_title.trim() } : {}),
-          ...(t.meta_desc !== undefined ? { meta_desc: t.meta_desc.trim() } : {}),
+          // An internal label has no page, so its hidden SEO fields are left as stored.
+          ...(!isInternal && t.meta_title !== undefined ? { meta_title: t.meta_title.trim() } : {}),
+          ...(!isInternal && t.meta_desc !== undefined ? { meta_desc: t.meta_desc.trim() } : {}),
         }));
 
       // The picker uses prefixed IDs to distinguish own products (`p:`) from
@@ -533,12 +557,14 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
 
       const basePayload = {
         slug: slug.trim(),
-        parent_id: parentId || null,
+        visibility,
+        // An internal label is always top level (CREATOR_CATEGORY_INTERNAL_NO_PARENT otherwise).
+        parent_id: isInternal ? null : parentId || null,
         thumbnail_url: thumbnailUrl || null,
         match_rule: matchRule,
         match_tags: matchRule === 'TAGS' ? matchTags : [],
         is_active: isActive,
-        ...(noindexWhenEmpty !== undefined ? { noindex_when_empty: noindexWhenEmpty } : {}),
+        ...(!isInternal && noindexWhenEmpty !== undefined ? { noindex_when_empty: noindexWhenEmpty } : {}),
         translations: translationsPayload,
         product_ids: ownIds,
         custom_product_ids: customIds,
@@ -725,6 +751,56 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             </CardContent>
           </Card>
 
+          {/* Type (M6.3): storefront collection vs internal label */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">{t('category.type')}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2">
+              {VISIBILITY_OPTIONS.map((option) => {
+                const selected = visibility === option;
+                const reason = option === 'INTERNAL' ? internalDisabledReason : undefined;
+                const disabled = !!reason;
+                return (
+                  <label
+                    key={option}
+                    title={reason}
+                    className={`flex items-start gap-2 rounded-md border p-3 transition ${
+                      disabled
+                        ? 'cursor-not-allowed border-zinc-200 bg-zinc-50/40 opacity-60'
+                        : selected
+                          ? 'cursor-pointer border-zinc-900 bg-zinc-50/60'
+                          : 'cursor-pointer border-zinc-200 hover:bg-zinc-50/40'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="collection-visibility"
+                      className="mt-0.5"
+                      checked={selected}
+                      disabled={disabled}
+                      onChange={() => setVisibility(option)}
+                    />
+                    <div className="space-y-0.5">
+                      <span className="block text-xs font-medium">{t(`category.visibility.${option}`)}</span>
+                      <p className="text-[10px] text-muted-foreground">{t(`category.visibilityHint.${option}`)}</p>
+                      {reason && <p className="text-[10px] text-amber-700">{reason}</p>}
+                    </div>
+                  </label>
+                );
+              })}
+              {isInternal && (
+                <div
+                  role="status"
+                  className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900"
+                >
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <span>{t('category.internalNote')}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Thumbnail */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
@@ -831,7 +907,9 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             </CardContent>
           </Card>
 
-          {/* Search engine listing (M4.4): per-locale SEO overrides + noindex */}
+          {/* Search engine listing (M4.4): per-locale SEO overrides + noindex.
+              Hidden for an internal label: it has no page to index. */}
+          {!isInternal && (
           <Card className="shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
@@ -928,8 +1006,10 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
               </div>
             </CardContent>
           </Card>
+          )}
 
-          {/* Parent collection */}
+          {/* Parent collection. Hidden for an internal label: it is always top level. */}
+          {!isInternal && (
           <Card className="shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
@@ -957,6 +1037,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Filter section */}
           <Card className="shadow-none">
@@ -1059,6 +1140,20 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                   }
                 >
                   {matchRule === 'MANUAL' ? t('category.manual') : t('category.byTags')}
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-muted-foreground">{t('category.type')}</p>
+                <Badge
+                  variant="outline"
+                  className={
+                    isInternal
+                      ? 'bg-amber-50 text-amber-700 border-amber-200 mt-1'
+                      : 'bg-zinc-100 text-zinc-700 border-zinc-200 mt-1'
+                  }
+                >
+                  {t(`category.visibility.${visibility}`)}
                 </Badge>
               </div>
 

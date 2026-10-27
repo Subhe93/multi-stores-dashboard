@@ -55,6 +55,11 @@ const COLLAPSED_KEY_PREFIX = 'ms-collections-collapsed:';
 
 type MatchRule = 'MANUAL' | 'TAGS';
 
+// M6.3: INTERNAL labels are flat (no parent, no children) and never shown in the store.
+type Visibility = 'PUBLIC' | 'INTERNAL';
+type VisibilityFilter = 'all' | 'storefront' | 'internal';
+const VISIBILITY_FILTERS: VisibilityFilter[] = ['all', 'storefront', 'internal'];
+
 interface CategoryTranslation {
   locale: string;
   name: string;
@@ -64,6 +69,8 @@ interface CategoryNode {
   id: string;
   slug: string;
   parent_id?: string | null;
+  // Absent on older API payloads = PUBLIC.
+  visibility?: Visibility;
   thumbnail_url?: string | null;
   match_rule: MatchRule;
   match_tags: string[];
@@ -158,6 +165,7 @@ export default function CreatorCategoriesPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tcat = useTranslations('category');
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,6 +173,7 @@ export default function CreatorCategoriesPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all');
   // Store content locale: names are shown in it first (then en, any, slug).
   const [primaryLocale, setPrimaryLocale] = useState('en');
   // Ids whose children are hidden; persisted per store so the layout survives reloads.
@@ -227,11 +236,15 @@ export default function CreatorCategoriesPage() {
   // collapsed parent.
   const visibleRows = useMemo(() => {
     return rows.filter((row) => {
+      // Internal labels are always root rows, so filtering them never hides a path.
+      const internal = row.visibility === 'INTERNAL';
+      if (visibilityFilter === 'storefront' && internal) return false;
+      if (visibilityFilter === 'internal' && !internal) return false;
       if (matchSet && !matchSet.has(row.id)) return false;
       if (!matchSet && row.ancestorIds.some((id) => collapsed.has(id))) return false;
       return true;
     });
-  }, [rows, matchSet, collapsed]);
+  }, [rows, matchSet, collapsed, visibilityFilter]);
 
   const updateCollapsed = (next: Set<string>) => {
     setCollapsed(next);
@@ -327,6 +340,7 @@ export default function CreatorCategoriesPage() {
     const hasChildren = row.childIds.length > 0;
     const open = matchSet ? true : !collapsed.has(row.id);
     const level = row.depth + 1;
+    const isInternal = row.visibility === 'INTERNAL';
     const canAddSub = row.depth < MAX_CATEGORY_DEPTH;
     const productCount = (row._count?.products ?? 0) + (row._count?.custom_products ?? 0);
     const parentRow = row.parent_id ? byId.get(row.parent_id) : undefined;
@@ -425,6 +439,21 @@ export default function CreatorCategoriesPage() {
                   </TooltipTrigger>
                   <TooltipContent>{t('collections.tree.level', { level })}</TooltipContent>
                 </Tooltip>
+                {isInternal && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Badge
+                          variant="outline"
+                          className="h-4 border-amber-200 bg-amber-50 px-1 text-[10px] font-normal text-amber-700"
+                        />
+                      }
+                    >
+                      {tcat('internalBadge')}
+                    </TooltipTrigger>
+                    <TooltipContent>{tcat('internalLabelsHint')}</TooltipContent>
+                  </Tooltip>
+                )}
                 {hasChildren && (
                   <Badge variant="outline" className="h-4 border-zinc-200 bg-white px-1 text-[10px] font-normal text-zinc-500">
                     {t('collections.tree.childrenCount', { count: row.childIds.length })}
@@ -503,26 +532,29 @@ export default function CreatorCategoriesPage() {
               </TooltipTrigger>
               <TooltipContent>{tc('edit')}</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <span className="inline-flex">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      disabled={!canAddSub}
-                      onClick={() => goNew(row.id)}
-                      aria-label={t('collections.tree.addSub')}
-                    >
-                      <FolderPlus className="size-3.5" />
-                    </Button>
-                  </span>
-                }
-              />
-              <TooltipContent>
-                {canAddSub ? t('collections.tree.addSub') : t('collections.tree.maxLevels')}
-              </TooltipContent>
-            </Tooltip>
+            {/* An internal label is flat: no "add sub-collection" at all. */}
+            {!isInternal && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <span className="inline-flex">
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        disabled={!canAddSub}
+                        onClick={() => goNew(row.id)}
+                        aria-label={t('collections.tree.addSub')}
+                      >
+                        <FolderPlus className="size-3.5" />
+                      </Button>
+                    </span>
+                  }
+                />
+                <TooltipContent>
+                  {canAddSub ? t('collections.tree.addSub') : t('collections.tree.maxLevels')}
+                </TooltipContent>
+              </Tooltip>
+            )}
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -594,6 +626,31 @@ export default function CreatorCategoriesPage() {
                 aria-label={t('collections.searchPlaceholder')}
                 className="h-8 w-full rounded-md border border-input bg-background ps-8 pe-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
               />
+            </div>
+            {/* Visibility filter (M6.3): all / storefront / internal */}
+            <div
+              role="radiogroup"
+              aria-label={tcat('visibilityFilter.label')}
+              className="inline-flex h-8 items-center rounded-md border border-input bg-background p-0.5"
+            >
+              {VISIBILITY_FILTERS.map((f) => {
+                const active = visibilityFilter === f;
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setVisibilityFilter(f)}
+                    className={cn(
+                      'h-7 rounded px-2.5 text-xs font-medium transition',
+                      active ? 'bg-zinc-900 text-white' : 'text-muted-foreground hover:bg-zinc-100 hover:text-foreground',
+                    )}
+                  >
+                    {tcat(`visibilityFilter.${f}`)}
+                  </button>
+                );
+              })}
             </div>
             <div className="flex items-center gap-1.5">
               <span className="hidden text-[11px] text-muted-foreground sm:inline">

@@ -5051,7 +5051,11 @@
     "DESIGNER_UPLOAD_BUSY": "Gerade werden zu viele Bilder verarbeitet. Bitte versuchen Sie es gleich noch einmal.",
     "PRODUCT_GTIN_INVALID": "Die GTIN ist ungültig (Prüfziffer).",
     "FEED_NOT_FOUND": "Feed nicht gefunden.",
-    "DESIGNER_ADDONS_INVALID": "Die Extras sind ungültig. Prüfe die markierten Felder."
+    "DESIGNER_ADDONS_INVALID": "Die Extras sind ungültig. Prüfe die markierten Felder.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Ein internes Label kann keine übergeordnete Kollektion haben. Wähle „Keine (oberste Ebene)“ oder mache es zu einer Shop-Kollektion.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Diese Kollektion hat Unterkollektionen und kann daher kein internes Label werden. Verschiebe oder lösche ihre Unterkollektionen zuerst.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Ein internes Label kann keine übergeordnete Kollektion sein. Wähle eine Shop-Kollektion als übergeordnete Kollektion.",
+    "PRIMARY_COLLECTION_INTERNAL": "Ein internes Label kann nicht die primäre Kollektion sein. Wähle eine der ausgewählten Shop-Kollektionen als primäre Kollektion."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -5938,7 +5942,27 @@
       "noOthers": "Noch keine anderen Kollektionen — diese liegt auf der obersten Ebene.",
       "levelShort": "E{level}",
       "levelTitle": "Ebene {level}"
-    }
+    },
+    "type": "Typ",
+    "visibility": {
+      "PUBLIC": "Shop-Kollektion",
+      "INTERNAL": "Internes Label"
+    },
+    "visibilityHint": {
+      "PUBLIC": "Hat eine eigene Seite und erscheint in Menüs, Breadcrumbs und der Sitemap.",
+      "INTERNAL": "Gruppiert Produkte nur für Builder-Seiten; wird im Shop nie als Kollektion angezeigt. Kann weder über- noch untergeordnet noch die primäre Kollektion eines Produkts sein."
+    },
+    "internalNote": "Interne Labels werden im Shop nie angezeigt; verwende sie auf Builder-Seiten.",
+    "internalHasChildren": "Nicht verfügbar: Diese Kollektion hat Unterkollektionen. Verschiebe oder lösche sie zuerst.",
+    "internalBadge": "Intern",
+    "visibilityFilter": {
+      "label": "Anzeigen",
+      "all": "Alle",
+      "storefront": "Shop",
+      "internal": "Intern"
+    },
+    "internalLabelsGroup": "Interne Labels",
+    "internalLabelsHint": "Nicht im Shop sichtbar"
   },
   "shipping": {
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",

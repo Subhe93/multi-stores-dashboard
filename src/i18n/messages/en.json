@@ -5051,7 +5051,11 @@
     "DESIGNER_UPLOAD_BUSY": "Too many images are being processed right now. Please try again in a moment.",
     "PRODUCT_GTIN_INVALID": "The GTIN is not valid (check digit).",
     "FEED_NOT_FOUND": "Feed not found.",
-    "DESIGNER_ADDONS_INVALID": "The add-ons are not valid. Check the marked fields."
+    "DESIGNER_ADDONS_INVALID": "The add-ons are not valid. Check the marked fields.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "An internal label cannot have a parent collection. Choose \"None (top level)\" or make it a storefront collection.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "This collection has sub-collections, so it cannot become an internal label. Move or delete its sub-collections first.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "An internal label cannot be a parent collection. Pick a storefront collection as the parent.",
+    "PRIMARY_COLLECTION_INTERNAL": "An internal label cannot be the primary collection. Pick one of the selected storefront collections as the primary."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -5938,7 +5942,27 @@
       "noOthers": "No other collections yet — this one will be top level.",
       "levelShort": "L{level}",
       "levelTitle": "Level {level}"
-    }
+    },
+    "type": "Type",
+    "visibility": {
+      "PUBLIC": "Storefront collection",
+      "INTERNAL": "Internal label"
+    },
+    "visibilityHint": {
+      "PUBLIC": "Has its own page, appears in menus, breadcrumbs and the sitemap.",
+      "INTERNAL": "Groups products for builder pages only; never shown as a collection in the store. Cannot be a parent, a child or a product's primary collection."
+    },
+    "internalNote": "Internal labels are never shown in the store; use them from builder pages.",
+    "internalHasChildren": "Not available: this collection has sub-collections. Move or delete them first.",
+    "internalBadge": "Internal",
+    "visibilityFilter": {
+      "label": "Show",
+      "all": "All",
+      "storefront": "Storefront",
+      "internal": "Internal"
+    },
+    "internalLabelsGroup": "Internal labels",
+    "internalLabelsHint": "Not shown in the store"
   },
   "shipping": {
     "actionCannotBeUndone": "This action cannot be undone.",

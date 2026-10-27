@@ -5051,7 +5051,11 @@
     "DESIGNER_UPLOAD_BUSY": "Trop d’images sont en cours de traitement. Veuillez réessayer dans un instant.",
     "PRODUCT_GTIN_INVALID": "Le GTIN n'est pas valide (clé de contrôle).",
     "FEED_NOT_FOUND": "Flux introuvable.",
-    "DESIGNER_ADDONS_INVALID": "Les options ne sont pas valides. Vérifiez les champs signalés."
+    "DESIGNER_ADDONS_INVALID": "Les options ne sont pas valides. Vérifiez les champs signalés.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Une étiquette interne ne peut pas avoir de collection parente. Choisissez « Aucune (niveau supérieur) » ou faites-en une collection de la boutique.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Cette collection a des sous-collections et ne peut donc pas devenir une étiquette interne. Déplacez ou supprimez d'abord ses sous-collections.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Une étiquette interne ne peut pas être une collection parente. Choisissez une collection de la boutique comme parente.",
+    "PRIMARY_COLLECTION_INTERNAL": "Une étiquette interne ne peut pas être la collection principale. Choisissez l'une des collections de la boutique sélectionnées comme principale."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -5938,7 +5942,27 @@
       "noOthers": "Aucune autre collection pour l'instant — celle-ci sera au niveau supérieur.",
       "levelShort": "N{level}",
       "levelTitle": "Niveau {level}"
-    }
+    },
+    "type": "Type",
+    "visibility": {
+      "PUBLIC": "Collection de la boutique",
+      "INTERNAL": "Étiquette interne"
+    },
+    "visibilityHint": {
+      "PUBLIC": "Possède sa propre page et apparaît dans les menus, le fil d'Ariane et le plan du site.",
+      "INTERNAL": "Regroupe des produits uniquement pour les pages du builder ; jamais affichée comme collection dans la boutique. Ne peut être ni parente, ni enfant, ni la collection principale d'un produit."
+    },
+    "internalNote": "Les étiquettes internes ne sont jamais affichées dans la boutique ; utilisez-les depuis les pages du builder.",
+    "internalHasChildren": "Indisponible : cette collection a des sous-collections. Déplacez-les ou supprimez-les d'abord.",
+    "internalBadge": "Interne",
+    "visibilityFilter": {
+      "label": "Afficher",
+      "all": "Toutes",
+      "storefront": "Boutique",
+      "internal": "Internes"
+    },
+    "internalLabelsGroup": "Étiquettes internes",
+    "internalLabelsHint": "Non affichées dans la boutique"
   },
   "shipping": {
     "actionCannotBeUndone": "Cette action est irréversible.",

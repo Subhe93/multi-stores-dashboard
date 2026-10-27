@@ -5051,7 +5051,11 @@
     "DESIGNER_UPLOAD_BUSY": "Şu anda çok fazla görsel işleniyor. Lütfen biraz sonra tekrar deneyin.",
     "PRODUCT_GTIN_INVALID": "GTIN geçerli değil (kontrol basamağı).",
     "FEED_NOT_FOUND": "Feed bulunamadı.",
-    "DESIGNER_ADDONS_INVALID": "Ekstralar geçerli değil. İşaretli alanları kontrol edin."
+    "DESIGNER_ADDONS_INVALID": "Ekstralar geçerli değil. İşaretli alanları kontrol edin.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Dahili bir etiketin üst koleksiyonu olamaz. \"Yok (üst düzey)\" seçeneğini seçin veya onu mağaza koleksiyonu yapın.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Bu koleksiyonun alt koleksiyonları olduğu için dahili etiket olamaz. Önce alt koleksiyonlarını taşıyın veya silin.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Dahili bir etiket üst koleksiyon olamaz. Üst koleksiyon olarak bir mağaza koleksiyonu seçin.",
+    "PRIMARY_COLLECTION_INTERNAL": "Dahili bir etiket birincil koleksiyon olamaz. Seçili mağaza koleksiyonlarından birini birincil olarak seçin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -5938,7 +5942,27 @@
       "noOthers": "Henüz başka koleksiyon yok — bu koleksiyon üst seviyede olacak.",
       "levelShort": "S{level}",
       "levelTitle": "Seviye {level}"
-    }
+    },
+    "type": "Tür",
+    "visibility": {
+      "PUBLIC": "Mağaza koleksiyonu",
+      "INTERNAL": "Dahili etiket"
+    },
+    "visibilityHint": {
+      "PUBLIC": "Kendi sayfası vardır; menülerde, gezinti yolunda ve site haritasında görünür.",
+      "INTERNAL": "Ürünleri yalnızca oluşturucu sayfaları için gruplar; mağazada asla koleksiyon olarak gösterilmez. Üst koleksiyon, alt koleksiyon veya bir ürünün birincil koleksiyonu olamaz."
+    },
+    "internalNote": "Dahili etiketler mağazada asla gösterilmez; bunları oluşturucu sayfalarından kullanın.",
+    "internalHasChildren": "Kullanılamaz: bu koleksiyonun alt koleksiyonları var. Önce onları taşıyın veya silin.",
+    "internalBadge": "Dahili",
+    "visibilityFilter": {
+      "label": "Göster",
+      "all": "Tümü",
+      "storefront": "Mağaza",
+      "internal": "Dahili"
+    },
+    "internalLabelsGroup": "Dahili etiketler",
+    "internalLabelsHint": "Mağazada gösterilmez"
   },
   "shipping": {
     "actionCannotBeUndone": "Bu işlem geri alınamaz.",

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ChevronRight, FolderTree, Plus, Search, Star, X } from 'lucide-react';
+import { ChevronRight, FolderTree, Plus, Search, Star, Tags, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -23,6 +23,9 @@ interface CollectionNode {
   id: string;
   slug: string;
   parent_id?: string | null;
+  // M6.3: INTERNAL labels are flat and never a product's primary collection;
+  // absent on older payloads = PUBLIC.
+  visibility?: 'PUBLIC' | 'INTERNAL';
   translations?: { locale: string; name: string }[];
   children?: CollectionNode[];
 }
@@ -38,6 +41,8 @@ interface IndexedNode {
   depth: number;
   parentId: string | null;
   childIds: string[];
+  /** True for an internal label (listed in its own group, never primary). */
+  internal: boolean;
 }
 
 /**
@@ -54,23 +59,33 @@ function getName(node: CollectionNode, primaryLocale: string): string {
   );
 }
 
-/** Flatten the tree into an id-indexed map that keeps parent/child links. */
+/**
+ * Flatten the tree into an id-indexed map that keeps parent/child links.
+ * Internal labels are kept out of the tree (`rootIds`) and listed in
+ * `internalIds` for their own group.
+ */
 function indexTree(
   nodes: CollectionNode[],
   primaryLocale: string,
-): { byId: Map<string, IndexedNode>; rootIds: string[] } {
+): { byId: Map<string, IndexedNode>; rootIds: string[]; internalIds: string[] } {
   const byId = new Map<string, IndexedNode>();
+  const internalIds: string[] = [];
   const walk = (list: CollectionNode[], depth: number, parentId: string | null, prefix: string): string[] =>
-    list.map((n) => {
+    list.flatMap((n) => {
       const name = getName(n, primaryLocale);
+      const internal = n.visibility === 'INTERNAL';
       const path = prefix ? `${prefix} / ${name}` : name;
-      const entry: IndexedNode = { id: n.id, name, path, depth, parentId, childIds: [] };
+      const entry: IndexedNode = { id: n.id, name, path, depth, parentId, childIds: [], internal };
       byId.set(n.id, entry);
+      if (internal) {
+        internalIds.push(n.id);
+        return [];
+      }
       entry.childIds = n.children?.length ? walk(n.children, depth + 1, n.id, path) : [];
-      return n.id;
+      return [n.id];
     });
   const rootIds = walk(nodes, 0, null, '');
-  return { byId, rootIds };
+  return { byId, rootIds, internalIds };
 }
 
 /**
@@ -88,6 +103,7 @@ export function CollectionTreePicker({
 }: Props) {
   const { token } = useAuth();
   const t = useTranslations('components');
+  const tcat = useTranslations('category');
   // The fetched tree is tagged with the request it answers (token + retry
   // attempt); a mismatch means a request is in flight. A failed fetch is
   // shown as such (with a retry), never as "no collections".
@@ -120,14 +136,32 @@ export function CollectionTreePicker({
 
   const load = useCallback(() => setAttempt((n) => n + 1), []);
 
-  const { byId, rootIds } = useMemo(() => indexTree(tree, primaryLocale), [tree, primaryLocale]);
+  const { byId, rootIds, internalIds } = useMemo(() => indexTree(tree, primaryLocale), [tree, primaryLocale]);
 
-  // The primary shown is always one of the checked ids (first checked when the
-  // stored one is missing or unchecked, null when nothing is checked). Every
-  // change made here also emits a consistent pair through onChange /
-  // onPrimaryChange, and the forms normalise the stored primary on prefill.
-  const effectivePrimary =
-    value.length === 0 ? null : primaryId && value.includes(primaryId) ? primaryId : value[0];
+  // An id not in the tree (unknown to this picker) is treated as public.
+  const isInternal = useCallback((id: string) => byId.get(id)?.internal === true, [byId]);
+
+  // The primary shown is always one of the checked PUBLIC ids: the stored one
+  // when it qualifies, else the first checked public collection, else null
+  // (also when only internal labels are checked). Every change made here
+  // emits a consistent pair through onChange / onPrimaryChange, and the
+  // effect below realigns a prefilled primary once the tree is known.
+  const resolvePrimary = useCallback(
+    (ids: string[], stored: string | null): string | null => {
+      if (stored && ids.includes(stored) && !isInternal(stored)) return stored;
+      return ids.find((id) => !isInternal(id)) ?? null;
+    },
+    [isInternal],
+  );
+  const effectivePrimary = resolvePrimary(value, primaryId);
+
+  // The forms prefill the primary with the first linked id, which may be an
+  // internal label; the API rejects that (PRIMARY_COLLECTION_INTERNAL), so the
+  // stored value is corrected as soon as the tree says which ids are internal.
+  useEffect(() => {
+    if (loading) return;
+    if (effectivePrimary !== primaryId) onPrimaryChange(effectivePrimary);
+  }, [loading, effectivePrimary, primaryId, onPrimaryChange]);
 
   // Search: a node stays visible when it matches or has a matching descendant.
   const q = search.trim().toLowerCase();
@@ -148,10 +182,10 @@ export function CollectionTreePicker({
   const toggle = (id: string) => {
     const next = value.includes(id) ? value.filter((v) => v !== id) : [...value, id];
     onChange(next);
-    // Move the primary when it was unchecked, or auto-pick it when none is set.
-    if (next.length === 0) onPrimaryChange(null);
-    else if (!effectivePrimary || !next.includes(effectivePrimary)) onPrimaryChange(next[0]);
-    else if (effectivePrimary !== primaryId) onPrimaryChange(effectivePrimary);
+    // Move the primary when it was unchecked, or auto-pick the first public
+    // one when none is set; an internal label is never emitted as primary.
+    const nextPrimary = resolvePrimary(next, effectivePrimary);
+    if (nextPrimary !== primaryId) onPrimaryChange(nextPrimary);
   };
 
   const toggleCollapsed = (id: string) =>
@@ -183,7 +217,7 @@ export function CollectionTreePicker({
   }
 
   // Empty state: no collections at all. Guide the user to create one.
-  if (!loading && rootIds.length === 0) {
+  if (!loading && rootIds.length === 0 && internalIds.length === 0) {
     return (
       <div className="rounded-md border border-dashed bg-zinc-50/60 p-4 text-center">
         <FolderTree className="mx-auto mb-2 size-5 text-zinc-400" />
@@ -280,7 +314,39 @@ export function CollectionTreePicker({
     );
   };
 
-  const anyVisible = visible ? rootIds.some((id) => visible.has(id)) : rootIds.length > 0;
+  // Internal labels: checkbox only, no primary button, in their own group.
+  const visibleInternalIds = visible ? internalIds.filter((id) => visible.has(id)) : internalIds;
+  const renderInternalNode = (id: string): ReactNode => {
+    const node = byId.get(id);
+    if (!node) return null;
+    const checked = value.includes(id);
+    const inputId = `ctp-${id}`;
+    return (
+      <li key={id}>
+        <div
+          className={cn(
+            'flex items-center gap-1.5 rounded px-1 py-1 text-sm',
+            checked ? 'bg-zinc-100' : 'hover:bg-zinc-50',
+          )}
+        >
+          <Tags className="size-3.5 shrink-0 text-amber-500" aria-hidden />
+          <input
+            id={inputId}
+            type="checkbox"
+            checked={checked}
+            onChange={() => toggle(id)}
+            className="size-3.5 shrink-0 cursor-pointer accent-zinc-800"
+          />
+          <label htmlFor={inputId} className="flex-1 cursor-pointer truncate select-none">
+            {node.name}
+          </label>
+        </div>
+      </li>
+    );
+  };
+
+  const anyVisible =
+    (visible ? rootIds.some((id) => visible.has(id)) : rootIds.length > 0) || visibleInternalIds.length > 0;
 
   return (
     <div className="space-y-2">
@@ -342,9 +408,24 @@ export function CollectionTreePicker({
           ) : !anyVisible ? (
             <p className="py-6 text-center text-xs text-muted-foreground">{t('noCollectionsFound')}</p>
           ) : (
-            <ul role="tree" className="space-y-0.5">
-              {rootIds.map(renderNode)}
-            </ul>
+            <>
+              <ul role="tree" className="space-y-0.5">
+                {rootIds.map(renderNode)}
+              </ul>
+              {visibleInternalIds.length > 0 && (
+                <div className={cn(rootIds.length > 0 && 'mt-2 border-t border-dashed border-zinc-200 pt-2')}>
+                  <div className="flex items-baseline gap-1.5 px-1 pb-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                      {tcat('internalLabelsGroup')}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">{tcat('internalLabelsHint')}</span>
+                  </div>
+                  <ul className="space-y-0.5" aria-label={tcat('internalLabelsGroup')}>
+                    {visibleInternalIds.map(renderInternalNode)}
+                  </ul>
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="flex items-center justify-between border-t bg-zinc-50/70 px-3 py-2">
