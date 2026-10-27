@@ -5881,7 +5881,7 @@
     "failedToLoad": "تعذّر تحميل المجموعة.",
     "errNameRequired": "الاسم مطلوب بلغة واحدة على الأقل.",
     "errHandleRequired": "معرّف الرابط مطلوب.",
-    "errHandleFormat": "استخدم أحرفًا صغيرة وأرقامًا وشرطات فقط.",
+    "errHandleFormat": "استخدم أحرفًا صغيرة وأرقامًا وشرطات أو شرطات سفلية فقط (بلا مسافات).",
     "noteManuallyAdded": "أُضيفت يدويًا",
     "noteMatchedByTags": "مطابقة حسب الوسوم",
     "noteWillCompute": "سيتم احتسابها بعد الحفظ.",

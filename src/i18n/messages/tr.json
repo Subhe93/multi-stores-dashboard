@@ -5881,7 +5881,7 @@
     "failedToLoad": "Koleksiyon yüklenemedi.",
     "errNameRequired": "En az bir dilde ad gereklidir.",
     "errHandleRequired": "Bir URL tanıtıcısı gereklidir.",
-    "errHandleFormat": "Yalnızca küçük harf, rakam ve tire kullanın.",
+    "errHandleFormat": "Yalnızca küçük harf, rakam, tire veya alt çizgi kullanın (boşluk yok).",
     "noteManuallyAdded": "elle eklendi",
     "noteMatchedByTags": "etiketlere göre eşleşti",
     "noteWillCompute": "Kaydedildikten sonra hesaplanacak.",

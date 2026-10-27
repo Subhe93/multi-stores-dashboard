@@ -5881,7 +5881,7 @@
     "failedToLoad": "Det gick inte att läsa in kollektionen.",
     "errNameRequired": "Ett namn krävs på minst ett språk.",
     "errHandleRequired": "Ett URL-handtag krävs.",
-    "errHandleFormat": "Använd endast små bokstäver, siffror och bindestreck.",
+    "errHandleFormat": "Använd endast små bokstäver, siffror, bindestreck eller understreck (inga mellanslag).",
     "noteManuallyAdded": "tillagda manuellt",
     "noteMatchedByTags": "matchade via taggar",
     "noteWillCompute": "Beräknas efter att du sparat.",

@@ -5881,7 +5881,7 @@
     "failedToLoad": "Failed to load the collection.",
     "errNameRequired": "A name is required in at least one language.",
     "errHandleRequired": "A URL handle is required.",
-    "errHandleFormat": "Use only lowercase letters, numbers, and hyphens.",
+    "errHandleFormat": "Use only lowercase letters, numbers, hyphens or underscores (no spaces).",
     "noteManuallyAdded": "manually added",
     "noteMatchedByTags": "matched by tags",
     "noteWillCompute": "Will be computed after saving.",

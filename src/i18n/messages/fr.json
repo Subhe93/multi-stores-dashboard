@@ -5881,7 +5881,7 @@
     "failedToLoad": "Échec du chargement de la collection.",
     "errNameRequired": "Un nom est requis dans au moins une langue.",
     "errHandleRequired": "Un identifiant d'URL est requis.",
-    "errHandleFormat": "Utilisez uniquement des minuscules, des chiffres et des tirets.",
+    "errHandleFormat": "Utilisez uniquement des minuscules, des chiffres, des tirets ou des tirets bas (sans espaces).",
     "noteManuallyAdded": "ajoutés manuellement",
     "noteMatchedByTags": "associés par étiquettes",
     "noteWillCompute": "Sera calculé après l'enregistrement.",

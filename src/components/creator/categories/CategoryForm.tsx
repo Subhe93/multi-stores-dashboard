@@ -150,12 +150,14 @@ interface CategoryFormProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Keeps underscores and non-ASCII lowercase letters so an imported WordPress
+// handle (e.g. `3d_presenter`, `kläder`) survives an edit of the field.
 function slugify(input: string): string {
   return input
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
+    .replace(/[^\p{Ll}\p{N}_-]/gu, '')
     .replace(/-+/g, '-');
 }
 
@@ -421,7 +423,11 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
 
   const slugError = useMemo(() => {
     if (!slug.trim()) return t('category.errHandleRequired');
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    // Imported collections keep their WordPress handles (underscores, non-ASCII
+    // letters such as å/ä/ö), which the API and the storefront route accept;
+    // the form must not block saving them. Lowercase letters or digits in any
+    // script, separated by single hyphens or underscores.
+    if (!/^[\p{Ll}\p{N}]+(?:[-_][\p{Ll}\p{N}]+)*$/u.test(slug)) {
       return t('category.errHandleFormat');
     }
     return '';
@@ -607,6 +613,11 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             >
               {t('common.cancel')}
             </Button>
+            {!canSave && !saving && (
+              <span className="text-[11px] text-red-600" role="status">
+                {nameError || slugError}
+              </span>
+            )}
             <Button
               size="sm"
               onClick={handleSubmit}

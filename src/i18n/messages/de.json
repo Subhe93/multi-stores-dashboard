@@ -5881,7 +5881,7 @@
     "failedToLoad": "Die Kollektion konnte nicht geladen werden.",
     "errNameRequired": "In mindestens einer Sprache ist ein Name erforderlich.",
     "errHandleRequired": "Ein URL-Handle ist erforderlich.",
-    "errHandleFormat": "Verwende nur Kleinbuchstaben, Zahlen und Bindestriche.",
+    "errHandleFormat": "Verwende nur Kleinbuchstaben, Zahlen, Binde- oder Unterstriche (keine Leerzeichen).",
     "noteManuallyAdded": "manuell hinzugefügt",
     "noteMatchedByTags": "über Tags zugeordnet",
     "noteWillCompute": "Wird nach dem Speichern berechnet.",
