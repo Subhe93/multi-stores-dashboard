@@ -2426,6 +2426,22 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'show_description', type: 'boolean', label: { en: 'Show collection description (collection page)', ar: 'إظهار وصف التصنيف (صفحة التصنيف)' }, defaultValue: true },
       { key: 'show_back_link', type: 'boolean', label: { en: 'Show "All collections" link (collection page)', ar: 'إظهار رابط "كل التصنيفات" (صفحة التصنيف)' }, defaultValue: true },
       {
+        key: 'show_long_description',
+        type: 'boolean',
+        label: { en: 'Show long description (collection page)', ar: 'إظهار الوصف الطويل (صفحة التصنيف)' },
+        defaultValue: true,
+      },
+      {
+        key: 'long_description_position',
+        type: 'select',
+        label: { en: 'Long description position', ar: 'موضع الوصف الطويل' },
+        defaultValue: 'below',
+        options: [
+          { value: 'below', label: { en: 'Below the products', ar: 'أسفل المنتجات' } },
+          { value: 'above', label: { en: 'Above the products (under the banner)', ar: 'أعلى المنتجات (تحت البانر)' } },
+        ],
+      },
+      {
         key: 'aspect',
         type: 'select',
         label: { en: 'Image aspect ratio', ar: 'نسبة أبعاد الصور' },
@@ -2449,6 +2465,8 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       show_sort: true,
       show_description: true,
       show_back_link: true,
+      show_long_description: true,
+      long_description_position: 'below',
       aspect: 'square',
       columns: 4,
       columns_tablet: 3,
