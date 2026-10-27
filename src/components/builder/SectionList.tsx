@@ -34,6 +34,7 @@ interface SectionListProps {
   onSelect: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
   onAdd: (sectionKey: string) => Promise<void> | void;
+  onAddPreset?: (presetId: string) => Promise<void> | void;
   onToggleHidden: (id: string, hidden: boolean) => void;
   onDuplicate: (id: string) => Promise<void> | void;
 }
@@ -47,6 +48,7 @@ export function SectionList({
   onSelect,
   onReorder,
   onAdd,
+  onAddPreset,
   onToggleHidden,
   onDuplicate,
 }: SectionListProps) {
@@ -102,7 +104,7 @@ export function SectionList({
       </div>
 
       <div className="p-2 border-t">
-        <AddSectionDialog locale={locale} pageType={pageType} onAdd={onAdd} />
+        <AddSectionDialog locale={locale} pageType={pageType} onAdd={onAdd} onAddPreset={onAddPreset} />
       </div>
     </div>
   );

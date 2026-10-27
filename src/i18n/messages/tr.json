@@ -1832,7 +1832,11 @@
       "createAndOpen": "Oluştur ve Aç",
       "loadFailed": "Açılış sayfaları yüklenemedi. Lütfen tekrar deneyin.",
       "deleteFailed": "Açılış sayfası silinemedi. Lütfen tekrar deneyin.",
-      "retry": "Tekrar dene"
+      "retry": "Tekrar dene",
+      "startFrom": "Başlangıç",
+      "startFromBlank": "Boş sayfa",
+      "startFromOccasion": "Özel gün sayfası",
+      "startFromOccasionDesc": "Ana banner, koleksiyon ürünleri ve bir SEO metin bloğu."
     },
     "menus": {
       "title": "Menüler",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "Paragraflar",
     "typoButtons": "Düğmeler",
     "typoLinks": "Bağlantılar",
-    "typoHeaderBar": "Üst çubuk"
+    "typoHeaderBar": "Üst çubuk",
+    "presets": {
+      "tab": "Hazır şablonlar",
+      "addedToast": "{count} bölüm eklendi",
+      "includes": "İçerir:"
+    },
+    "presetOccasionName": "Özel gün sayfası",
+    "presetOccasionDesc": "Ana banner, bir koleksiyonun veya dahili etiketin ürünleri, ardından bir SEO metin bloğu — hediye günü sayfasının düzeni.",
+    "internalLabelsGroup": "Dahili etiketler",
+    "missingCollection": "(koleksiyon bulunamadı)"
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",

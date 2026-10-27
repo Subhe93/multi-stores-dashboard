@@ -1832,7 +1832,11 @@
       "createAndOpen": "Create & Open",
       "loadFailed": "Failed to load landing pages. Please try again.",
       "deleteFailed": "Failed to delete the landing page. Please try again.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "startFrom": "Start from",
+      "startFromBlank": "Blank page",
+      "startFromOccasion": "Occasion page",
+      "startFromOccasionDesc": "Hero banner, collection products and an SEO text block."
     },
     "menus": {
       "title": "Menus",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "Paragraphs",
     "typoButtons": "Buttons",
     "typoLinks": "Links",
-    "typoHeaderBar": "Header bar"
+    "typoHeaderBar": "Header bar",
+    "presets": {
+      "tab": "Presets",
+      "addedToast": "{count} sections added",
+      "includes": "Includes:"
+    },
+    "presetOccasionName": "Occasion page",
+    "presetOccasionDesc": "Hero banner, the products of one collection or internal label, then an SEO text block — the layout of a gift-occasion page.",
+    "internalLabelsGroup": "Internal labels",
+    "missingCollection": "(missing collection)"
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",

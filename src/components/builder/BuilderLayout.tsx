@@ -6,6 +6,7 @@ import { Layers, Loader2, Palette } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { findSectionSchema } from '@/lib/section-schemas';
+import { presetSections } from '@/lib/section-presets';
 import { cn } from '@/lib/utils';
 import { LivePreview, type LivePreviewHandle } from './LivePreview';
 import { SectionInspector } from './SectionInspector';
@@ -86,6 +87,14 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const [activeLocale, setActiveLocale] = useState(store.language_config.primary_locale);
   const [pageStatus, setPageStatus] = useState<'DRAFT' | 'PUBLISHED'>(page.status);
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  // Transient feedback chip (the builder has no global toaster). Cleared by
+  // the timer below; a new notice restarts it.
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 3500);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   // Always-fresh mirror of `sections` for callbacks that must read the latest
   // state without re-subscribing (history capture, keyboard shortcuts).
@@ -340,6 +349,45 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       setSelectedId(created.id);
     },
     [token, page.id, store.language_config.primary_locale],
+  );
+
+  // Insert every section of a preset (M6.5) at the end, in order. One history
+  // checkpoint covers the whole batch so undo removes all of them at once.
+  const addPreset = useCallback(
+    async (presetId: string) => {
+      if (!token) return;
+      const bodies = presetSections(presetId, store.language_config.primary_locale);
+      if (bodies.length === 0) return;
+      recordHistory({ force: true });
+      const created: SectionInstance[] = [];
+      try {
+        // Sequential so the server assigns consecutive positions.
+        for (const body of bodies) {
+          const row = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+            method: 'POST',
+            token,
+            body: JSON.stringify({
+              section_key: body.section_key,
+              settings: body.settings,
+              translations: [
+                { locale: store.language_config.primary_locale, content: body.content },
+              ],
+            }),
+          });
+          created.push(row);
+        }
+      } finally {
+        // A later POST may fail after earlier ones succeeded: those sections
+        // exist on the server, so keep the local state in sync with them
+        // before the error propagates (surfaced like addSection's errors).
+        if (created.length > 0) {
+          setSections((prev) => [...prev, ...created]);
+          setSelectedId(created[0].id);
+        }
+      }
+      setNotice(tBuilder('presets.addedToast', { count: created.length }));
+    },
+    [token, page.id, store.language_config.primary_locale, recordHistory, tBuilder],
   );
 
   const deleteSection = useCallback(
@@ -891,6 +939,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
                 onSelect={setSelectedId}
                 onReorder={reorderSections}
                 onAdd={addSection}
+                onAddPreset={addPreset}
                 onToggleHidden={toggleHidden}
                 onDuplicate={duplicateSection}
               />
@@ -964,6 +1013,15 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
           />
         </aside>
       </div>
+
+      {notice && (
+        <div
+          role="status"
+          className="pointer-events-none fixed bottom-4 inset-s-1/2 -translate-x-1/2 rtl:translate-x-1/2 z-50 rounded-md bg-zinc-900 px-3.5 py-2 text-xs font-medium text-white shadow-lg"
+        >
+          {notice}
+        </div>
+      )}
     </div>
   );
 }

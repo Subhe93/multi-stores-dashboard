@@ -455,18 +455,20 @@ function MenuPicker({
   // picker's own chrome is translated via the dashboard UI locale.
   void locale;
   const t = useTranslations('builder');
-  const [menus, setMenus] = useState<MenuOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Loaded list keyed by the token it was fetched with; `loading` is derived
+  // so the effect never sets state synchronously (react-hooks rule).
+  const [loaded, setLoaded] = useState<{ key: string; menus: MenuOption[] } | null>(null);
+  const loading = loaded?.key !== token;
+  const menus = loaded?.key === token ? loaded.menus : [];
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     fetchMenusOnce(token)
       .then((list) => {
-        if (!cancelled) setMenus(list);
+        if (!cancelled) setLoaded({ key: token, menus: list });
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch(() => {
+        if (!cancelled) setLoaded({ key: token, menus: [] });
       });
     return () => {
       cancelled = true;
@@ -525,6 +527,9 @@ interface CategoryTranslation {
 interface CategoryNode {
   id: string;
   slug: string;
+  // PUBLIC = storefront collection (tree); INTERNAL = flat label used only by
+  // builder sections (M6.3). Older API responses omit it — treated as PUBLIC.
+  visibility?: 'PUBLIC' | 'INTERNAL';
   translations: CategoryTranslation[];
   children?: CategoryNode[];
 }
@@ -532,9 +537,11 @@ interface CategoryNode {
 // Flat option carrying the indented display path so nested categories read as
 // a tree inside the dropdown.
 interface CategoryOption {
+  id: string;
   slug: string;
   path: string;
   depth: number;
+  internal: boolean;
 }
 
 function categoryName(node: CategoryNode, locale: string): string {
@@ -551,10 +558,19 @@ function flattenCategories(nodes: CategoryNode[], locale: string, depth = 0, pre
   for (const n of nodes) {
     const name = categoryName(n, locale);
     const path = prefix ? `${prefix} / ${name}` : name;
-    out.push({ slug: n.slug, path, depth });
+    out.push({ id: n.id, slug: n.slug, path, depth, internal: n.visibility === 'INTERNAL' });
     if (n.children?.length) out.push(...flattenCategories(n.children, locale, depth + 1, path));
   }
   return out;
+}
+
+// Order for the picker: the PUBLIC tree first (as returned), then every
+// INTERNAL label grouped at the end. INTERNAL rows are always roots.
+function orderCategoryOptions(options: CategoryOption[]): { publicOnes: CategoryOption[]; internalOnes: CategoryOption[] } {
+  return {
+    publicOnes: options.filter((o) => !o.internal),
+    internalOnes: options.filter((o) => o.internal),
+  };
 }
 
 // Module-level cache so multiple collection pickers on the same inspector
@@ -584,18 +600,22 @@ function CollectionPicker({
   // `locale` drives the category NAME shown (store-content locale). The
   // picker's own chrome is translated via the dashboard UI locale.
   const t = useTranslations('builder');
-  const [options, setOptions] = useState<CategoryOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Loaded options keyed by token + locale; `loading` is derived so the
+  // effect never sets state synchronously (react-hooks rule).
+  const loadKey = `${token}|${locale}`;
+  const [loaded, setLoaded] = useState<{ key: string; options: CategoryOption[] } | null>(null);
+  const loading = loaded?.key !== loadKey;
+  const options = loaded?.key === loadKey ? loaded.options : [];
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const key = `${token}|${locale}`;
     fetchCategoriesOnce(token)
       .then((tree) => {
-        if (!cancelled) setOptions(flattenCategories(tree, locale));
+        if (!cancelled) setLoaded({ key, options: flattenCategories(tree, locale) });
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch(() => {
+        if (!cancelled) setLoaded({ key, options: [] });
       });
     return () => {
       cancelled = true;
@@ -627,20 +647,37 @@ function CollectionPicker({
     );
   }
 
-  // Value is the category SLUG (the storefront's `creator_category` filter
-  // resolves it). "None" clears it so the section shows its empty prompt.
-  const selectOptions = [
+  // New picks store the collection ID (the storefront resolves it through
+  // `creator_category_id`, which also accepts INTERNAL labels). Pages saved
+  // before M6.4 hold the SLUG, so the stored value is matched by id OR slug
+  // and the select is fed the matching option's own value to keep the
+  // selection. "None" clears it so the section shows its empty prompt.
+  const { publicOnes, internalOnes } = orderCategoryOptions(options);
+  const current = value ? options.find((o) => o.id === value || o.slug === value) : undefined;
+  const selectValue = current ? current.id : value;
+  const internalMarker = `[${t('internalLabelsGroup')}] `;
+  const selectOptions: { value: string; label: string; disabled?: boolean }[] = [
     { value: '', label: t('categoryNone') },
-    ...options.map((o) => ({
-      value: o.slug,
+    ...publicOnes.map((o) => ({
+      value: o.id,
       // Indent nested categories with leading spaces so the hierarchy reads.
       label: `${'  '.repeat(o.depth)}${o.path.split(' / ').pop()}`,
     })),
+    // Internal labels: flat, prefixed so they read as labels, not pages.
+    ...internalOnes.map((o) => ({
+      value: o.id,
+      label: `${internalMarker}${o.path}`,
+    })),
   ];
+  // A stored value that matches nothing (deleted collection, other store)
+  // stays visible as a disabled row instead of silently resetting the field.
+  if (value && !current) {
+    selectOptions.push({ value, label: `${t('missingCollection')} (${value})`, disabled: true });
+  }
 
   return (
     <SearchableSelect
-      value={value}
+      value={selectValue}
       onChange={(v) => onChange(v)}
       options={selectOptions}
       placeholder={t('selectCategory')}

@@ -1832,7 +1832,11 @@
       "createAndOpen": "Erstellen & Öffnen",
       "loadFailed": "Die Landingpages konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
       "deleteFailed": "Die Landingpage konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "startFrom": "Beginnen mit",
+      "startFromBlank": "Leere Seite",
+      "startFromOccasion": "Anlass-Seite",
+      "startFromOccasionDesc": "Hero-Banner, Kollektionsprodukte und ein SEO-Textblock."
     },
     "menus": {
       "title": "Menüs",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "Absätze",
     "typoButtons": "Schaltflächen",
     "typoLinks": "Links",
-    "typoHeaderBar": "Kopfleiste"
+    "typoHeaderBar": "Kopfleiste",
+    "presets": {
+      "tab": "Vorlagen",
+      "addedToast": "{count} Abschnitte hinzugefügt",
+      "includes": "Enthält:"
+    },
+    "presetOccasionName": "Anlass-Seite",
+    "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines internen Labels, dann ein SEO-Textblock — das Layout einer Geschenkanlass-Seite.",
+    "internalLabelsGroup": "Interne Labels",
+    "missingCollection": "(Kollektion fehlt)"
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

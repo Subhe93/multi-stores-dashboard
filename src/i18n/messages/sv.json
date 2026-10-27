@@ -1832,7 +1832,11 @@
       "createAndOpen": "Skapa och öppna",
       "loadFailed": "Det gick inte att ladda landningssidorna. Försök igen.",
       "deleteFailed": "Det gick inte att ta bort landningssidan. Försök igen.",
-      "retry": "Försök igen"
+      "retry": "Försök igen",
+      "startFrom": "Börja från",
+      "startFromBlank": "Tom sida",
+      "startFromOccasion": "Högtidssida",
+      "startFromOccasionDesc": "Hero-banner, kollektionsprodukter och ett SEO-textblock."
     },
     "menus": {
       "title": "Menyer",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "Stycken",
     "typoButtons": "Knappar",
     "typoLinks": "Länkar",
-    "typoHeaderBar": "Sidhuvudsfält"
+    "typoHeaderBar": "Sidhuvudsfält",
+    "presets": {
+      "tab": "Mallar",
+      "addedToast": "{count} sektioner tillagda",
+      "includes": "Innehåller:"
+    },
+    "presetOccasionName": "Högtidssida",
+    "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller intern etikett, sedan ett SEO-textblock — layouten för en presentsida.",
+    "internalLabelsGroup": "Interna etiketter",
+    "missingCollection": "(kollektion saknas)"
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

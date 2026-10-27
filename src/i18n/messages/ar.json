@@ -1832,7 +1832,11 @@
       "createAndOpen": "إنشاء وفتح",
       "loadFailed": "فشل تحميل الصفحات المقصودة. يرجى المحاولة مرة أخرى.",
       "deleteFailed": "فشل حذف الصفحة المقصودة. يرجى المحاولة مرة أخرى.",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "startFrom": "ابدأ من",
+      "startFromBlank": "صفحة فارغة",
+      "startFromOccasion": "صفحة مناسبة",
+      "startFromOccasionDesc": "بانر رئيسي ومنتجات مجموعة وكتلة نص لمحركات البحث."
     },
     "menus": {
       "title": "القوائم",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "الفقرات",
     "typoButtons": "الأزرار",
     "typoLinks": "الروابط",
-    "typoHeaderBar": "الهيدر"
+    "typoHeaderBar": "الهيدر",
+    "presets": {
+      "tab": "قوالب جاهزة",
+      "addedToast": "تمت إضافة {count} أقسام",
+      "includes": "يتضمن:"
+    },
+    "presetOccasionName": "صفحة مناسبة",
+    "presetOccasionDesc": "بانر رئيسي، ثم منتجات مجموعة أو تصنيف داخلي، ثم كتلة نص لمحركات البحث — تخطيط صفحة هدايا المناسبات.",
+    "internalLabelsGroup": "تصنيفات داخلية",
+    "missingCollection": "(مجموعة غير موجودة)"
   },
   "product": {
     "seededFromLocale": "الاسم والوصف معروضان من لغة متجر سابقة ({locale}). راجعهما ثم احفظ لتخزينهما باللغة الحالية.",

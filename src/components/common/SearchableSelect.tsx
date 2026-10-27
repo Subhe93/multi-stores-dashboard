@@ -12,6 +12,8 @@ interface Option {
   value: string;
   label: string;
   description?: string;
+  // Shown but not selectable (e.g. a stored value whose option is gone).
+  disabled?: boolean;
 }
 
 interface SearchableSelectProps {
@@ -85,6 +87,7 @@ export function SearchableSelect({
 
   const commit = (index: number) => {
     const option = filtered[index];
+    if (option?.disabled) return;
     if (option) onChange?.(option.value);
     close();
   };
@@ -235,12 +238,14 @@ export function SearchableSelect({
                   id={optionId(index)}
                   role="option"
                   aria-selected={value === option.value}
+                  aria-disabled={option.disabled || undefined}
                   onMouseMove={() => { if (active !== index) setActiveIndex(index); }}
                   onClick={() => commit(index)}
                   className={cn(
                     'w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-start cursor-pointer transition',
                     value === option.value && 'bg-muted',
                     active === index && 'bg-muted',
+                    option.disabled && 'opacity-50 cursor-not-allowed',
                   )}
                 >
                   <Check

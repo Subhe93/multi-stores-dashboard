@@ -1832,7 +1832,11 @@
       "createAndOpen": "Créer et ouvrir",
       "loadFailed": "Impossible de charger les pages de destination. Veuillez réessayer.",
       "deleteFailed": "Échec de la suppression de la page de destination. Veuillez réessayer.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "startFrom": "Commencer à partir de",
+      "startFromBlank": "Page vierge",
+      "startFromOccasion": "Page d’occasion",
+      "startFromOccasionDesc": "Bannière principale, produits d’une collection et un bloc de texte SEO."
     },
     "menus": {
       "title": "Menus",
@@ -5295,7 +5299,16 @@
     "typoParagraphs": "Paragraphes",
     "typoButtons": "Boutons",
     "typoLinks": "Liens",
-    "typoHeaderBar": "Barre d’en-tête"
+    "typoHeaderBar": "Barre d’en-tête",
+    "presets": {
+      "tab": "Modèles",
+      "addedToast": "{count} sections ajoutées",
+      "includes": "Comprend :"
+    },
+    "presetOccasionName": "Page d’occasion",
+    "presetOccasionDesc": "Bannière principale, les produits d’une collection ou d’une étiquette interne, puis un bloc de texte SEO — la mise en page d’une page cadeaux d’occasion.",
+    "internalLabelsGroup": "Étiquettes internes",
+    "missingCollection": "(collection introuvable)"
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",

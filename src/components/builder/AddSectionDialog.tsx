@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Search, SearchX } from 'lucide-react';
+import { Gift, LayoutTemplate, Plus, Search, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { SECTION_SCHEMAS, labelOf, type SectionSchema } from '@/lib/section-schemas';
+import { presetsForPageType, type SectionPreset } from '@/lib/section-presets';
 import { cn } from '@/lib/utils';
 import { SectionPreview } from './SectionPreviews';
 
@@ -20,6 +21,17 @@ interface AddSectionDialogProps {
   locale: string;
   pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   onAdd: (sectionKey: string) => Promise<void> | void;
+  // Inserts every section of a preset in one action (M6.5). When omitted the
+  // Presets tab is hidden.
+  onAddPreset?: (presetId: string) => Promise<void> | void;
+}
+
+type FilterId = SectionSchema['category'] | 'all' | 'presets';
+
+// Icon for a preset card; `icon` is a hint from the preset definition.
+function PresetIcon({ icon, className }: { icon?: string; className?: string }) {
+  if (icon === 'gift') return <Gift className={className} />;
+  return <LayoutTemplate className={className} />;
 }
 
 // Section keys that only render meaningfully inside a product page template
@@ -48,14 +60,18 @@ function isAvailableForPageType(
   return pageType !== 'HEADER' && pageType !== 'FOOTER';
 }
 
-export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogProps) {
+export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSectionDialogProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<SectionSchema['category'] | 'all'>('all');
+  const [filter, setFilter] = useState<FilterId>('all');
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState(false);
 
   const isProductTemplate = pageType === 'PRODUCT_TEMPLATE';
+
+  // Presets exist for regular page types only (not templates / chrome); the
+  // tab shows only when at least one applies and the host can insert them.
+  const presets = onAddPreset ? presetsForPageType(pageType) : [];
 
   // Visibility rules (in order):
   // - First filter by `pageTypes` whitelist on the schema. Chrome sections
@@ -77,7 +93,8 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
   for (const s of visible) {
     categoryCounts.set(s.category, (categoryCounts.get(s.category) ?? 0) + 1);
   }
-  const allCategories: { id: SectionSchema['category'] | 'all'; label: string; count: number }[] = [
+  const allCategories: { id: FilterId; label: string; count: number }[] = [
+    { id: 'presets', label: t('builder.presets.tab'), count: presets.length },
     { id: 'all', label: t('builder.catAll'), count: visible.length },
     { id: 'showcase', label: t('builder.catShowcase'), count: categoryCounts.get('showcase') ?? 0 },
     { id: 'content', label: t('builder.catContent'), count: categoryCounts.get('content') ?? 0 },
@@ -99,9 +116,33 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
           labelOf(s.label, locale).toLowerCase().includes(query) ||
           s.id.toLowerCase().includes(query),
       )
-    : filter === 'all'
+    : filter === 'all' || filter === 'presets'
       ? visible
       : visible.filter((s) => s.category === filter);
+  // Preset card text follows the dashboard UI locale (i18n keys) and falls
+  // back to the preset's own localized strings.
+  const presetName = (p: SectionPreset) => (p.i18n ? t(`builder.${p.i18n.name}`) : labelOf(p.name, locale));
+  const presetDescription = (p: SectionPreset) =>
+    p.i18n ? t(`builder.${p.i18n.description}`) : labelOf(p.description, locale);
+  // Presets show on their own tab, and a search also matches their names.
+  const filteredPresets = query
+    ? presets.filter(
+        (p) =>
+          presetName(p).toLowerCase().includes(query) ||
+          labelOf(p.name, locale).toLowerCase().includes(query) ||
+          p.id.toLowerCase().includes(query),
+      )
+    : filter === 'presets'
+      ? presets
+      : [];
+  const showSections = query || filter !== 'presets';
+  const nothingFound = filteredPresets.length === 0 && (!showSections || filtered.length === 0);
+
+  const presetSectionNames = (p: SectionPreset) =>
+    p.sections
+      .map((s) => SECTION_SCHEMAS.find((schema) => schema.id === s.section_key))
+      .filter((schema): schema is SectionSchema => !!schema)
+      .map((schema) => labelOf(schema.label, locale));
 
   return (
     <Dialog
@@ -173,7 +214,7 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
           ))}
         </div>
 
-        {filtered.length === 0 && (
+        {nothingFound && (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <SearchX className="w-5 h-5 text-zinc-300" />
             <p className="text-sm text-zinc-500">{t('builder.noSectionsFound')}</p>
@@ -181,7 +222,48 @@ export function AddSectionDialog({ locale, pageType, onAdd }: AddSectionDialogPr
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 py-3 max-h-[60vh] overflow-y-auto -mx-6 px-6">
-          {filtered.map((s) => (
+          {filteredPresets.map((p) => (
+            <button
+              key={`preset:${p.id}`}
+              type="button"
+              disabled={adding}
+              onClick={async () => {
+                if (!onAddPreset) return;
+                setAdding(true);
+                try {
+                  await onAddPreset(p.id);
+                  setOpen(false);
+                } finally {
+                  setAdding(false);
+                }
+              }}
+              className="group flex flex-col w-full h-max text-start rounded-lg border border-indigo-200 bg-indigo-50/40 hover:border-indigo-500 hover:ring-2 hover:ring-indigo-500/20 hover:shadow-md overflow-hidden transition-all disabled:opacity-50 disabled:hover:border-indigo-200 disabled:hover:ring-0 disabled:hover:shadow-none"
+            >
+              <div className="flex flex-col gap-2 p-3.5 min-w-0">
+                <div className="flex items-start gap-2">
+                  <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-white border border-indigo-200 text-indigo-600">
+                    <PresetIcon icon={p.icon} className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-semibold leading-tight text-zinc-900 truncate">
+                      {presetName(p)}
+                    </h4>
+                    <span className="text-[9px] font-medium uppercase tracking-wide text-indigo-600">
+                      {t('builder.presets.tab')}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-500 leading-snug">
+                  {presetDescription(p)}
+                </p>
+                <p className="text-[11px] text-zinc-600 leading-snug">
+                  <span className="font-medium">{t('builder.presets.includes')}</span>{' '}
+                  {presetSectionNames(p).join(' · ')}
+                </p>
+              </div>
+            </button>
+          ))}
+          {showSections && filtered.map((s) => (
             <button
               key={s.id}
               type="button"

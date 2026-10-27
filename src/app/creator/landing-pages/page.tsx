@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import {
   AlertCircle,
   ExternalLink,
+  FileText,
+  Gift,
   Loader2,
   Plus,
   Sparkles,
@@ -13,6 +15,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { presetSections } from '@/lib/section-presets';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -312,6 +315,9 @@ function CreateLandingDialog({
   const [slug, setSlug] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // "Start from": a blank page, or the occasion-page preset (M6.5) whose
+  // sections are created right after the page itself.
+  const [startFrom, setStartFrom] = useState<'blank' | 'occasion-page'>('blank');
 
   // Derive a slug from the title until the user types their own.
   const [slugDirty, setSlugDirty] = useState(false);
@@ -354,11 +360,27 @@ function CreateLandingDialog({
           translations: [{ locale: primaryLocale, title }],
         }),
       });
+      if (startFrom !== 'blank') {
+        // Same body shape as the builder's addSection; sequential so the
+        // server assigns consecutive positions.
+        for (const body of presetSections(startFrom, primaryLocale)) {
+          await api(`/v2/pages/${created.id}/sections`, {
+            method: 'POST',
+            token,
+            body: JSON.stringify({
+              section_key: body.section_key,
+              settings: body.settings,
+              translations: [{ locale: primaryLocale, content: body.content }],
+            }),
+          });
+        }
+      }
       onCreated(created);
       setOpen(false);
       setTitle('');
       setSlug('');
       setSlugDirty(false);
+      setStartFrom('blank');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('landingPages.failedCreate'));
     } finally {
@@ -411,6 +433,38 @@ function CreateLandingDialog({
               />
             </div>
             {slugError && <p className="text-[11px] text-red-500">{slugError}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">{t('landingPages.startFrom')}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { id: 'blank', label: t('landingPages.startFromBlank'), desc: null, Icon: FileText },
+                { id: 'occasion-page', label: t('landingPages.startFromOccasion'), desc: t('landingPages.startFromOccasionDesc'), Icon: Gift },
+              ] as const).map((opt) => (
+                <label
+                  key={opt.id}
+                  className={`flex items-start gap-2 rounded-md border p-2.5 cursor-pointer transition ${
+                    startFrom === opt.id ? 'border-zinc-900 bg-zinc-50/60' : 'border-zinc-200 hover:bg-zinc-50/40'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="lp-start-from"
+                    className="mt-0.5"
+                    checked={startFrom === opt.id}
+                    onChange={() => setStartFrom(opt.id)}
+                    disabled={creating}
+                  />
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <opt.Icon className="size-3.5 text-zinc-500 shrink-0" />
+                      <span className="text-sm font-medium">{opt.label}</span>
+                    </div>
+                    {opt.desc && <p className="text-[11px] text-muted-foreground">{opt.desc}</p>}
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
