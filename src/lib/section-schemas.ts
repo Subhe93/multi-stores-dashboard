@@ -2649,6 +2649,20 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'none', label: { en: 'Never', ar: 'أبداً' } },
         ],
       },
+      {
+        key: 'submenu_style',
+        type: 'select',
+        label: { en: 'Submenu style (desktop)', ar: 'نمط القوائم الفرعية (سطح المكتب)' },
+        description: {
+          en: 'Mega menu: a top-level item whose sub-items have their own children opens a full-width panel (sub-items as column headings). Items without a third level keep the dropdown.',
+          ar: 'القائمة الموسّعة: العنصر الرئيسي الذي تحتوي عناصره الفرعية على عناصر أبناء يفتح لوحة بعرض كامل (العناصر الفرعية كعناوين أعمدة). العناصر بدون مستوى ثالث تبقى قائمة منسدلة.',
+        },
+        defaultValue: 'dropdown',
+        options: [
+          { value: 'dropdown', label: { en: 'Dropdown list', ar: 'قائمة منسدلة' } },
+          { value: 'mega', label: { en: 'Mega menu (columns)', ar: 'قائمة موسّعة (أعمدة)' } },
+        ],
+      },
       { key: 'bg_color', type: 'color', label: { en: 'Background color', ar: 'لون الخلفية' } },
       { key: 'text_color', type: 'color', label: { en: 'Text color', ar: 'لون النص' } },
       { key: 'border_color', type: 'color', label: { en: 'Bottom border color', ar: 'لون الحد السفلي' } },
@@ -2673,6 +2687,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       show_account: false,
       show_locale: true,
       sticky_mode: 'always',
+      submenu_style: 'dropdown',
       logo_size: 32,
     },
   },
