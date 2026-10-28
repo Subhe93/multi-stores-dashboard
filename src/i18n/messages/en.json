@@ -2254,6 +2254,35 @@
         "saveFailed": "Could not save the checkout settings.",
         "unsaved": "Unsaved changes",
         "save": "Save"
+      },
+      "tracking": {
+        "title": "Tracking & cookies",
+        "subtitle": "Google Analytics, Meta Pixel and TikTok Pixel for your storefront. When at least one id is set, visitors see a cookie banner and the trackers load only after they accept.",
+        "ga4_measurement_id": {
+          "label": "Google Analytics 4 measurement ID",
+          "hint": "Found in GA4 under Admin → Data streams, e.g. G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "Meta Pixel ID",
+          "hint": "Digits only, from Meta Events Manager."
+        },
+        "tiktok_pixel_id": {
+          "label": "TikTok Pixel ID",
+          "hint": "From TikTok Events Manager, e.g. CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "The GA4 measurement ID must look like G-XXXXXXXXXX.",
+          "meta_pixel_id": "The Meta Pixel ID must contain digits only (at least 5).",
+          "tiktok_pixel_id": "The TikTok Pixel ID must contain letters and digits only (8–64 characters).",
+          "consent_required": "The cookie banner setting must be on or off."
+        },
+        "consentRequired": "Ask for cookie consent",
+        "consentRequiredOn": "Visitors see a cookie banner; trackers load only after they accept (recommended in the EU).",
+        "consentRequiredOff": "Trackers load for every visitor without asking. You are responsible for the legal basis.",
+        "noIdsHint": "No tracker is configured: the storefront shows no cookie banner and loads no scripts.",
+        "saved": "Tracking settings saved.",
+        "unsaved": "Unsaved changes",
+        "save": "Save"
       }
     },
     "orderDetail": {

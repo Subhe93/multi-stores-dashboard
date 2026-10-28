@@ -2254,6 +2254,35 @@
         "saveFailed": "تعذّر حفظ إعدادات الدفع.",
         "unsaved": "تغييرات غير محفوظة",
         "save": "حفظ"
+      },
+      "tracking": {
+        "title": "التتبع وملفات تعريف الارتباط",
+        "subtitle": "Google Analytics وMeta Pixel وTikTok Pixel لمتجرك. عند إدخال معرّف واحد على الأقل يظهر للزوار شريط ملفات تعريف الارتباط ولا تُحمَّل أدوات التتبع إلا بعد الموافقة.",
+        "ga4_measurement_id": {
+          "label": "معرّف القياس في Google Analytics 4",
+          "hint": "تجده في GA4 ضمن Admin → Data streams، مثل G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "معرّف Meta Pixel",
+          "hint": "أرقام فقط، من Meta Events Manager."
+        },
+        "tiktok_pixel_id": {
+          "label": "معرّف TikTok Pixel",
+          "hint": "من TikTok Events Manager، مثل CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "يجب أن يكون معرّف GA4 بالشكل G-XXXXXXXXXX.",
+          "meta_pixel_id": "يجب أن يحتوي معرّف Meta Pixel على أرقام فقط (5 على الأقل).",
+          "tiktok_pixel_id": "يجب أن يحتوي معرّف TikTok Pixel على حروف وأرقام فقط (8–64 حرفاً).",
+          "consent_required": "إعداد شريط ملفات تعريف الارتباط يجب أن يكون مفعّلاً أو معطّلاً."
+        },
+        "consentRequired": "طلب الموافقة على ملفات تعريف الارتباط",
+        "consentRequiredOn": "يرى الزوار شريط ملفات تعريف الارتباط ولا تُحمَّل أدوات التتبع إلا بعد الموافقة (موصى به في الاتحاد الأوروبي).",
+        "consentRequiredOff": "تُحمَّل أدوات التتبع لكل زائر دون سؤال. أنت المسؤول عن الأساس القانوني.",
+        "noIdsHint": "لا توجد أداة تتبع مضبوطة: لن يعرض المتجر شريط ملفات تعريف الارتباط ولن يحمّل أي سكربت.",
+        "saved": "تم حفظ إعدادات التتبع.",
+        "unsaved": "تغييرات غير محفوظة",
+        "save": "حفظ"
       }
     },
     "orderDetail": {

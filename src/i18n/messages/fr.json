@@ -2254,6 +2254,35 @@
         "saveFailed": "Impossible d’enregistrer les paramètres de paiement.",
         "unsaved": "Modifications non enregistrées",
         "save": "Enregistrer"
+      },
+      "tracking": {
+        "title": "Suivi & cookies",
+        "subtitle": "Google Analytics, Meta Pixel et TikTok Pixel pour votre boutique. Dès qu'un identifiant est renseigné, les visiteurs voient un bandeau cookies et les traceurs ne se chargent qu'après leur accord.",
+        "ga4_measurement_id": {
+          "label": "ID de mesure Google Analytics 4",
+          "hint": "Dans GA4 sous Administration → Flux de données, ex. G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "ID du Meta Pixel",
+          "hint": "Chiffres uniquement, depuis le Gestionnaire d’événements Meta."
+        },
+        "tiktok_pixel_id": {
+          "label": "ID du TikTok Pixel",
+          "hint": "Depuis TikTok Events Manager, ex. CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "L'ID de mesure GA4 doit ressembler à G-XXXXXXXXXX.",
+          "meta_pixel_id": "L'ID du Meta Pixel ne doit contenir que des chiffres (au moins 5).",
+          "tiktok_pixel_id": "L'ID du TikTok Pixel ne doit contenir que des lettres et des chiffres (8 à 64 caractères).",
+          "consent_required": "Le réglage du bandeau cookies doit être activé ou désactivé."
+        },
+        "consentRequired": "Demander le consentement aux cookies",
+        "consentRequiredOn": "Les visiteurs voient un bandeau cookies ; les traceurs ne se chargent qu'après leur accord (recommandé dans l'UE).",
+        "consentRequiredOff": "Les traceurs se chargent pour chaque visiteur sans demander. La base légale est de votre responsabilité.",
+        "noIdsHint": "Aucun traceur configuré : la boutique n'affiche pas de bandeau cookies et ne charge aucun script.",
+        "saved": "Paramètres de suivi enregistrés.",
+        "unsaved": "Modifications non enregistrées",
+        "save": "Enregistrer"
       }
     },
     "orderDetail": {

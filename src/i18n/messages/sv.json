@@ -2254,6 +2254,35 @@
         "saveFailed": "Kunde inte spara kassainställningarna.",
         "unsaved": "Osparade ändringar",
         "save": "Spara"
+      },
+      "tracking": {
+        "title": "Spårning & cookies",
+        "subtitle": "Google Analytics, Meta Pixel och TikTok Pixel för din butik. När minst ett id är angivet ser besökarna en cookiebanner och spårarna laddas först efter att de accepterat.",
+        "ga4_measurement_id": {
+          "label": "Google Analytics 4 mät-id",
+          "hint": "Finns i GA4 under Administratör → Dataströmmar, t.ex. G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "Meta Pixel-id",
+          "hint": "Endast siffror, från Meta Events Manager."
+        },
+        "tiktok_pixel_id": {
+          "label": "TikTok Pixel-id",
+          "hint": "Från TikTok Events Manager, t.ex. CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "GA4 mät-id måste se ut som G-XXXXXXXXXX.",
+          "meta_pixel_id": "Meta Pixel-id får bara innehålla siffror (minst 5).",
+          "tiktok_pixel_id": "TikTok Pixel-id får bara innehålla bokstäver och siffror (8–64 tecken).",
+          "consent_required": "Inställningen för cookiebannern måste vara på eller av."
+        },
+        "consentRequired": "Be om samtycke till cookies",
+        "consentRequiredOn": "Besökare ser en cookiebanner; spårarna laddas först efter att de accepterat (rekommenderas i EU).",
+        "consentRequiredOff": "Spårarna laddas för alla besökare utan att fråga. Du ansvarar för den rättsliga grunden.",
+        "noIdsHint": "Ingen spårare är inställd: butiken visar ingen cookiebanner och laddar inga skript.",
+        "saved": "Spårningsinställningarna sparades.",
+        "unsaved": "Osparade ändringar",
+        "save": "Spara"
       }
     },
     "orderDetail": {

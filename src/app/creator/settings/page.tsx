@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckoutSettingsCard } from '@/components/settings/CheckoutSettingsCard';
+import { TrackingSettingsCard, type TrackingSettings } from '@/components/settings/TrackingSettingsCard';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveAvatarUrl(url?: string | null): string {
@@ -57,6 +58,11 @@ interface StoreInfo {
   checkout_settings?: unknown;
   // Content locales: the pay button label is editable per locale.
   language_config?: { primary_locale: string; secondary_locales: string[] } | null;
+  // Tracking + cookie consent (3.9): public vendor ids, null when unset.
+  ga4_measurement_id?: string | null;
+  meta_pixel_id?: string | null;
+  tiktok_pixel_id?: string | null;
+  consent_required?: boolean;
 }
 
 // Editable subset of GET /taxes/my/settings (the PUT body).
@@ -1016,6 +1022,20 @@ export default function CreatorSettingsPage() {
               ...(store.language_config?.secondary_locales || []),
             ].filter((l, i, all) => all.indexOf(l) === i)}
             onSaved={(settings) => setStore((s) => (s ? { ...s, checkout_settings: settings } : s))}
+          />
+        )}
+
+        {/* Tracking & cookies (3.9): GA4 / Meta / TikTok ids + consent banner toggle. */}
+        {token && store && (
+          <TrackingSettingsCard
+            token={token}
+            value={{
+              ga4_measurement_id: store.ga4_measurement_id ?? null,
+              meta_pixel_id: store.meta_pixel_id ?? null,
+              tiktok_pixel_id: store.tiktok_pixel_id ?? null,
+              consent_required: store.consent_required !== false,
+            }}
+            onSaved={(settings: TrackingSettings) => setStore((s) => (s ? { ...s, ...settings } : s))}
           />
         )}
       </TabsContent>

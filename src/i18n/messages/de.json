@@ -2254,6 +2254,35 @@
         "saveFailed": "Die Checkout-Einstellungen konnten nicht gespeichert werden.",
         "unsaved": "Ungespeicherte Änderungen",
         "save": "Speichern"
+      },
+      "tracking": {
+        "title": "Tracking & Cookies",
+        "subtitle": "Google Analytics, Meta Pixel und TikTok Pixel für Ihren Shop. Sobald mindestens eine ID gesetzt ist, sehen Besucher einen Cookie-Banner und die Tracker laden erst nach der Zustimmung.",
+        "ga4_measurement_id": {
+          "label": "Google Analytics 4 Mess-ID",
+          "hint": "In GA4 unter Verwaltung → Datenstreams, z. B. G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "Meta Pixel-ID",
+          "hint": "Nur Ziffern, aus dem Meta Events Manager."
+        },
+        "tiktok_pixel_id": {
+          "label": "TikTok Pixel-ID",
+          "hint": "Aus dem TikTok Events Manager, z. B. CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "Die GA4 Mess-ID muss wie G-XXXXXXXXXX aussehen.",
+          "meta_pixel_id": "Die Meta Pixel-ID darf nur Ziffern enthalten (mindestens 5).",
+          "tiktok_pixel_id": "Die TikTok Pixel-ID darf nur Buchstaben und Ziffern enthalten (8–64 Zeichen).",
+          "consent_required": "Die Cookie-Banner-Einstellung muss an oder aus sein."
+        },
+        "consentRequired": "Cookie-Zustimmung einholen",
+        "consentRequiredOn": "Besucher sehen einen Cookie-Banner; Tracker laden erst nach der Zustimmung (in der EU empfohlen).",
+        "consentRequiredOff": "Tracker laden für jeden Besucher ohne Nachfrage. Sie sind für die Rechtsgrundlage verantwortlich.",
+        "noIdsHint": "Kein Tracker eingerichtet: der Shop zeigt keinen Cookie-Banner und lädt keine Skripte.",
+        "saved": "Tracking-Einstellungen gespeichert.",
+        "unsaved": "Ungespeicherte Änderungen",
+        "save": "Speichern"
       }
     },
     "orderDetail": {

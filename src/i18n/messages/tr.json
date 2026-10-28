@@ -2254,6 +2254,35 @@
         "saveFailed": "Ödeme ayarları kaydedilemedi.",
         "unsaved": "Kaydedilmemiş değişiklikler",
         "save": "Kaydet"
+      },
+      "tracking": {
+        "title": "İzleme ve çerezler",
+        "subtitle": "Mağazanız için Google Analytics, Meta Pixel ve TikTok Pixel. En az bir kimlik girildiğinde ziyaretçiler bir çerez bildirimi görür ve izleyiciler yalnızca onaydan sonra yüklenir.",
+        "ga4_measurement_id": {
+          "label": "Google Analytics 4 ölçüm kimliği",
+          "hint": "GA4’te Yönetici → Veri akışları altında bulunur, örn. G-XXXXXXXXXX."
+        },
+        "meta_pixel_id": {
+          "label": "Meta Pixel kimliği",
+          "hint": "Yalnızca rakam, Meta Events Manager’dan."
+        },
+        "tiktok_pixel_id": {
+          "label": "TikTok Pixel kimliği",
+          "hint": "TikTok Events Manager’dan, örn. CXXXXXXXXXXXXXXXXX."
+        },
+        "invalid": {
+          "ga4_measurement_id": "GA4 ölçüm kimliği G-XXXXXXXXXX biçiminde olmalıdır.",
+          "meta_pixel_id": "Meta Pixel kimliği yalnızca rakamlardan oluşmalıdır (en az 5).",
+          "tiktok_pixel_id": "TikTok Pixel kimliği yalnızca harf ve rakamlardan oluşmalıdır (8–64 karakter).",
+          "consent_required": "Çerez bildirimi ayarı açık veya kapalı olmalıdır."
+        },
+        "consentRequired": "Çerez onayı iste",
+        "consentRequiredOn": "Ziyaretçiler bir çerez bildirimi görür; izleyiciler yalnızca onaydan sonra yüklenir (AB’de önerilir).",
+        "consentRequiredOff": "İzleyiciler sormadan her ziyaretçi için yüklenir. Yasal dayanaktan siz sorumlusunuz.",
+        "noIdsHint": "Hiçbir izleyici ayarlanmadı: mağaza çerez bildirimi göstermez ve hiçbir betik yüklemez.",
+        "saved": "İzleme ayarları kaydedildi.",
+        "unsaved": "Kaydedilmemiş değişiklikler",
+        "save": "Kaydet"
       }
     },
     "orderDetail": {
