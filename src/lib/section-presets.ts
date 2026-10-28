@@ -54,16 +54,23 @@ export const SECTION_PRESETS: SectionPreset[] = [
             heading: 'هدايا لـ…',
             subheading: 'هدايا مختارة بعناية لمن يهمّك أمرهم.',
           },
+          sv: {
+            heading: 'Presenter till …',
+            subheading: 'Handplockade presenter till dem som betyder mest.',
+          },
         },
       },
       {
         section_key: 'collection-products',
         // `category` stays empty: the creator picks the collection or internal
         // label; the section shows its "pick a collection" prompt until then.
+        // Keys and defaults are mirrored server-side in
+        // multi-stores-api/src/modules/occasion-conversion/occasion-preset.ts.
         settings: { category: '', aspect: 'square', limit: 12, columns: 4, columns_tablet: 3, columns_mobile: 2 },
         content: {
-          en: { heading: 'Our picks' },
-          ar: { heading: 'مختاراتنا' },
+          en: { heading: 'Our picks', link_label: 'View all' },
+          ar: { heading: 'مختاراتنا', link_label: 'عرض الكل' },
+          sv: { heading: 'Våra favoriter', link_label: 'Visa alla' },
         },
       },
       {
@@ -77,6 +84,10 @@ export const SECTION_PRESETS: SectionPreset[] = [
           ar: {
             heading: 'عن هذه الهدايا',
             html: '<p>اكتب هنا نص تحسين الظهور في محركات البحث لهذه المناسبة — لمن هذه الهدايا، وما الذي يميّزها، وكيف تختار منها.</p>',
+          },
+          sv: {
+            heading: 'Om dessa presenter',
+            html: '<p>Skriv SEO-texten för tillfället här – vem presenterna är till, vad som gör dem speciella och hur man väljer.</p>',
           },
         },
       },
