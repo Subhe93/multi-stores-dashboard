@@ -5923,6 +5923,7 @@
     "dropOrClick": "Släpp en bild eller klicka för att ladda upp",
     "thumbnailHint": "Rekommenderat 800×800 px, JPG eller PNG.",
     "urlHandle": "URL-handtag",
+    "storefrontUrl": "Butiks-URL",
     "parentCollection": "Överordnad kollektion",
     "noneTopLevel": "Ingen (toppnivå)",
     "searchCollections": "Sök kollektioner",

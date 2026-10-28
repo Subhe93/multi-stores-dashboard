@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, FileText, FolderTree, Link2, Loader2, Package, Plus } from 'lucide-react';
 import { api } from '@/lib/api';
+import { collectionUrl } from '@/lib/collection-url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -343,21 +344,24 @@ function CollectionsPanel({
         if (cancelled) return;
         const read = (tr: CategoryTranslation) => tr.name;
         const out: Candidate[] = [];
+        const roots = Array.isArray(tree) ? tree : [];
         // The endpoint returns a nested tree of any depth; render it indented.
         const walk = (nodes: CategoryNode[], depth: number) => {
           for (const c of nodes) {
             // Internal labels have no page to link to.
             if (c.visibility === 'INTERNAL') continue;
             const title = pickTranslation(c.translations, primaryLocale, read) || c.slug;
+            // M6.7: the canonical URL carries the ancestor slugs.
+            const url = collectionUrl(roots, c.id);
             out.push({
               key: c.id,
               title,
-              hint: `/collections/${c.slug}`,
+              hint: url,
               depth,
               item: {
                 label: title,
                 label_i18n: i18nLabels(c.translations, locales, primaryLocale, read),
-                url: `/collections/${c.slug}`,
+                url,
                 kind: 'COLLECTION',
                 resource_id: c.id,
               },
@@ -365,7 +369,7 @@ function CollectionsPanel({
             if (c.children?.length) walk(c.children, depth + 1);
           }
         };
-        walk(Array.isArray(tree) ? tree : [], 0);
+        walk(roots, 0);
         setLoaded({ key, rows: out, error: false });
       })
       .catch(() => !cancelled && setLoaded({ key, rows: [], error: true }));

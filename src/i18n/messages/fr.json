@@ -5923,6 +5923,7 @@
     "dropOrClick": "Déposez une image ou cliquez pour téléverser",
     "thumbnailHint": "Recommandé 800×800 px, JPG ou PNG.",
     "urlHandle": "Identifiant d'URL",
+    "storefrontUrl": "URL de la boutique",
     "parentCollection": "Collection parente",
     "noneTopLevel": "Aucune (niveau supérieur)",
     "searchCollections": "Rechercher des collections",

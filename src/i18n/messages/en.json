@@ -5923,6 +5923,7 @@
     "dropOrClick": "Drop an image or click to upload",
     "thumbnailHint": "Recommended 800×800px, JPG or PNG.",
     "urlHandle": "URL handle",
+    "storefrontUrl": "Storefront URL",
     "parentCollection": "Parent collection",
     "noneTopLevel": "None (top level)",
     "searchCollections": "Search collections",

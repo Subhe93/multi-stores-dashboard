@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
+import { collectionPathFromTree } from '@/lib/collection-url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -389,6 +390,13 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     if (mode !== 'create' || !categoriesLoaded || !parentId) return;
     if (!findNode(allCategories, parentId)) setParentId(null);
   }, [mode, categoriesLoaded, allCategories, parentId]);
+
+  // M6.7: the canonical storefront URL carries the ancestor slugs. The parent's
+  // path comes from the tree the picker loads; the own slug is the live input.
+  const storefrontPath = useMemo(() => {
+    const ancestors = parentId ? collectionPathFromTree(allCategories, parentId) : [];
+    return `/collections/${[...ancestors, slug.trim() || '…'].join('/')}`;
+  }, [allCategories, parentId, slug]);
 
   const productOptions: ProductOption[] = useMemo(() => {
     const own: ProductOption[] = products.map((p) => {
@@ -903,6 +911,15 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
               </div>
               {slugError && (
                 <p className="text-[11px] text-red-500">{slugError}</p>
+              )}
+              {/* M6.7: full storefront URL (ancestors from the selected parent). */}
+              {isInternal ? (
+                <p className="text-[11px] text-muted-foreground">{t('category.internalNote')}</p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground flex flex-wrap items-baseline gap-x-1.5">
+                  <span>{t('category.storefrontUrl')}:</span>
+                  <span className="font-mono text-foreground break-all" dir="ltr">{storefrontPath}</span>
+                </p>
               )}
             </CardContent>
           </Card>

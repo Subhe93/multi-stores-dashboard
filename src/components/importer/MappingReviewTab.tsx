@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { api } from '@/lib/api';
+import { collectionUrl } from '@/lib/collection-url';
 import { useApiError } from '@/lib/useApiError';
 import { useImporterRun } from '@/lib/useImporterRun';
 import {
@@ -939,6 +940,8 @@ interface ContentSectionProps {
 interface CreatorCategoryNode {
   id: string;
   slug: string;
+  // M6.3: INTERNAL labels have no storefront page; absent on older payloads = PUBLIC.
+  visibility?: 'PUBLIC' | 'INTERNAL' | null;
   translations?: { locale: string; name: string }[];
   children?: CreatorCategoryNode[];
 }
@@ -966,7 +969,8 @@ function ContentSection({ token, summary, open, pagesScope, mode, targets, onMod
   const [filter, setFilter] = useState<'all' | 'unmapped'>('all');
   const [customRow, setCustomRow] = useState<string | null>(null);
   const [customPath, setCustomPath] = useState('');
-  const [collections, setCollections] = useState<{ slug: string; name: string }[] | null>(null);
+  // `path` is the hierarchical storefront path (M6.7): `/collections/<root>/<child>`.
+  const [collections, setCollections] = useState<{ path: string; name: string }[] | null>(null);
   const [pages, setPages] = useState<{ slug: string; title: string }[] | null>(null);
 
   const rows: ContentRow[] = useMemo(() => {
@@ -981,19 +985,22 @@ function ContentSection({ token, summary, open, pagesScope, mode, targets, onMod
     api<CreatorCategoryNode[]>('/creator-categories', { token })
       .then((tree) => {
         if (cancelled) return;
-        const flat: { slug: string; name: string }[] = [];
+        const flat: { path: string; name: string }[] = [];
+        const roots = Array.isArray(tree) ? tree : [];
         const walk = (nodes: CreatorCategoryNode[], prefix: string) => {
           for (const c of nodes) {
+            // Internal labels have no storefront page, so nothing can redirect to them.
+            if (c.visibility === 'INTERNAL') continue;
             const name =
               c.translations?.find((tr) => tr.locale === locale)?.name ||
               c.translations?.find((tr) => tr.locale === 'en')?.name ||
               c.translations?.[0]?.name ||
               c.slug;
-            flat.push({ slug: c.slug, name: prefix + name });
+            flat.push({ path: collectionUrl(roots, c.id), name: prefix + name });
             if (c.children?.length) walk(c.children, `${prefix}— `);
           }
         };
-        walk(Array.isArray(tree) ? tree : [], '');
+        walk(roots, '');
         setCollections(flat);
       })
       .catch(() => {
@@ -1039,7 +1046,7 @@ function ContentSection({ token, summary, open, pagesScope, mode, targets, onMod
       ...(row.kind === 'page' ? [{ value: 'import', label: t('targets.import') }] : []),
       { value: 'skip', label: t('targets.skip') },
     ];
-    for (const c of collections ?? []) out.push({ value: `/collections/${c.slug}`, label: t('targets.collection', { name: c.name }), description: `/collections/${c.slug}` });
+    for (const c of collections ?? []) out.push({ value: c.path, label: t('targets.collection', { name: c.name }), description: c.path });
     for (const p of pages ?? []) out.push({ value: `/${p.slug}`, label: t('targets.page', { title: p.title }), description: `/${p.slug}` });
     const value = targets[row.ref];
     if (value && !out.some((o) => o.value === value)) out.push({ value, label: value });
