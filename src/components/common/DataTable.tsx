@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { pageWindow } from './pageWindow';
 
 interface Column<T> {
   key: string;
@@ -169,21 +170,22 @@ export function DataTable<T extends object>({
             >
               <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
             </Button>
-            {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
+            {pageWindow(pagination.page, pagination.totalPages).map((pageNum, i) =>
+              pageNum === null ? (
+                <span key={'gap-' + i} className="px-1 text-xs text-muted-foreground">…</span>
+              ) : (
                 <Button
                   key={pageNum}
                   variant={pagination.page === pageNum ? 'default' : 'outline'}
                   size="icon"
-                  className="h-7 w-7 text-xs"
+                  className="h-7 min-w-7 w-auto px-1.5 text-xs tabular-nums"
+                  aria-current={pagination.page === pageNum ? 'page' : undefined}
                   onClick={() => onPageChange?.(pageNum)}
                 >
                   {pageNum}
                 </Button>
-              );
-            })}
-            {pagination.totalPages > 5 && <span className="text-xs text-muted-foreground px-1">...</span>}
+              ),
+            )}
             <Button
               variant="outline"
               size="icon"
