@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "Bu koleksiyona dahil etmek için ürün ekleyin.",
     "showMoreProducts": "Daha fazla göster ({count} kaldı)",
     "productUnavailable": "Ürün mevcut değil",
-    "doneSelecting": "Tamam"
+    "doneSelecting": "Tamam",
+    "reorderHint": "Mağazanızda gösterilecek sırayı belirlemek için tutamacı sürükleyin veya sıralama menüsünü kullanın.",
+    "reorderActions": "{name} konumunu değiştir",
+    "moveToTop": "En üste taşı",
+    "moveToBottom": "En alta taşı",
+    "dragHandleNamed": "{name} sırasını değiştir, konum {position} / {total}",
+    "movedToPosition": "{name}, {position} / {total} konumuna taşındı.",
+    "dndInstructions": "Sıralamak için ürünü almak üzere Boşluk veya Enter tuşuna basın, ok tuşlarıyla taşıyın, bırakmak için yeniden Boşluk veya Enter tuşuna, iptal için Escape tuşuna basın.",
+    "dndPickedUp": "{name} alındı, konum {position} / {total}.",
+    "dndMovedOver": "{name} şimdi {position} / {total} konumunda.",
+    "dndDropped": "{name}, {position} / {total} konumuna bırakıldı.",
+    "dndCancelled": "Sıralama iptal edildi. {name}, {position} konumuna geri döndü.",
+    "sourceAll": "Tümü",
+    "sourceFilter": "Ürün türü",
+    "productsLoadFailed": "Ürünler yüklenemedi."
   },
   "shipping": {
     "actionCannotBeUndone": "Bu işlem geri alınamaz.",

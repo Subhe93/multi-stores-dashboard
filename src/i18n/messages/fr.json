@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "Ajoutez des produits pour les inclure dans cette collection.",
     "showMoreProducts": "Afficher plus ({count} restants)",
     "productUnavailable": "Produit indisponible",
-    "doneSelecting": "Terminé"
+    "doneSelecting": "Terminé",
+    "reorderHint": "Faites glisser la poignée ou utilisez le menu d’ordre pour définir l’ordre affiché dans votre boutique.",
+    "reorderActions": "Changer la position de {name}",
+    "moveToTop": "Placer en premier",
+    "moveToBottom": "Placer en dernier",
+    "dragHandleNamed": "Réordonner {name}, position {position} sur {total}",
+    "movedToPosition": "{name} déplacé en position {position} sur {total}.",
+    "dndInstructions": "Pour réordonner, appuyez sur Espace ou Entrée pour saisir le produit, utilisez les flèches pour le déplacer, puis Espace ou Entrée pour le déposer, ou Échap pour annuler.",
+    "dndPickedUp": "{name} saisi, position {position} sur {total}.",
+    "dndMovedOver": "{name} est maintenant en position {position} sur {total}.",
+    "dndDropped": "{name} déposé en position {position} sur {total}.",
+    "dndCancelled": "Réorganisation annulée. {name} est revenu en position {position}.",
+    "sourceAll": "Tous",
+    "sourceFilter": "Type de produit",
+    "productsLoadFailed": "Impossible de charger les produits."
   },
   "shipping": {
     "actionCannotBeUndone": "Cette action est irréversible.",

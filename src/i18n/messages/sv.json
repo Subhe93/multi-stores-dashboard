@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "Lägg till produkter för att inkludera dem i denna kollektion.",
     "showMoreProducts": "Visa fler ({count} kvar)",
     "productUnavailable": "Produkten är inte tillgänglig",
-    "doneSelecting": "Klar"
+    "doneSelecting": "Klar",
+    "reorderHint": "Dra i handtaget eller använd ordningsmenyn för att bestämma ordningen i din butik.",
+    "reorderActions": "Ändra position för {name}",
+    "moveToTop": "Flytta överst",
+    "moveToBottom": "Flytta nederst",
+    "dragHandleNamed": "Ändra ordning för {name}, position {position} av {total}",
+    "movedToPosition": "{name} flyttades till position {position} av {total}.",
+    "dndInstructions": "För att ändra ordning, tryck på mellanslag eller Enter för att plocka upp produkten, flytta den med piltangenterna och tryck på mellanslag eller Enter för att släppa den, eller Escape för att avbryta.",
+    "dndPickedUp": "{name} har plockats upp, position {position} av {total}.",
+    "dndMovedOver": "{name} är nu på position {position} av {total}.",
+    "dndDropped": "{name} släpptes på position {position} av {total}.",
+    "dndCancelled": "Omordningen avbröts. {name} är tillbaka på position {position}.",
+    "sourceAll": "Alla",
+    "sourceFilter": "Produkttyp",
+    "productsLoadFailed": "Produkterna kunde inte laddas."
   },
   "shipping": {
     "actionCannotBeUndone": "Den här åtgärden kan inte ångras.",

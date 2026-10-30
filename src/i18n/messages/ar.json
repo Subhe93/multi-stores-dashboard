@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "أضف منتجات لتضمينها في هذه المجموعة.",
     "showMoreProducts": "عرض المزيد (المتبقي {count})",
     "productUnavailable": "المنتج غير متاح",
-    "doneSelecting": "تم"
+    "doneSelecting": "تم",
+    "reorderHint": "اسحب المقبض أو استخدم قائمة الترتيب لتحديد الترتيب الذي يظهر في متجرك.",
+    "reorderActions": "تغيير موضع {name}",
+    "moveToTop": "نقل إلى الأعلى",
+    "moveToBottom": "نقل إلى الأسفل",
+    "dragHandleNamed": "إعادة ترتيب {name}، الموضع {position} من {total}",
+    "movedToPosition": "نُقل {name} إلى الموضع {position} من {total}.",
+    "dndInstructions": "لإعادة الترتيب، اضغط المسافة أو Enter لالتقاط المنتج، واستخدم مفاتيح الأسهم لتحريكه، ثم اضغط المسافة أو Enter لإفلاته، أو Escape للإلغاء.",
+    "dndPickedUp": "تم التقاط {name}، الموضع {position} من {total}.",
+    "dndMovedOver": "{name} الآن في الموضع {position} من {total}.",
+    "dndDropped": "تم إفلات {name} في الموضع {position} من {total}.",
+    "dndCancelled": "أُلغيت إعادة الترتيب. عاد {name} إلى الموضع {position}.",
+    "sourceAll": "الكل",
+    "sourceFilter": "نوع المنتج",
+    "productsLoadFailed": "تعذّر تحميل المنتجات."
   },
   "shipping": {
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",

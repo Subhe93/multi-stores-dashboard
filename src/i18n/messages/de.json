@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "Fügen Sie Produkte hinzu, um sie in diese Kollektion aufzunehmen.",
     "showMoreProducts": "Mehr anzeigen ({count} übrig)",
     "productUnavailable": "Produkt nicht verfügbar",
-    "doneSelecting": "Fertig"
+    "doneSelecting": "Fertig",
+    "reorderHint": "Ziehe am Griff oder nutze das Reihenfolge-Menü, um die Reihenfolge in deinem Shop festzulegen.",
+    "reorderActions": "Position von {name} ändern",
+    "moveToTop": "Nach ganz oben",
+    "moveToBottom": "Nach ganz unten",
+    "dragHandleNamed": "{name} verschieben, Position {position} von {total}",
+    "movedToPosition": "{name} wurde auf Position {position} von {total} verschoben.",
+    "dndInstructions": "Zum Sortieren Leertaste oder Enter drücken, um das Produkt aufzunehmen, mit den Pfeiltasten verschieben und mit Leertaste oder Enter ablegen, oder mit Escape abbrechen.",
+    "dndPickedUp": "{name} aufgenommen, Position {position} von {total}.",
+    "dndMovedOver": "{name} ist jetzt auf Position {position} von {total}.",
+    "dndDropped": "{name} auf Position {position} von {total} abgelegt.",
+    "dndCancelled": "Sortieren abgebrochen. {name} ist zurück auf Position {position}.",
+    "sourceAll": "Alle",
+    "sourceFilter": "Produktart",
+    "productsLoadFailed": "Produkte konnten nicht geladen werden."
   },
   "shipping": {
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",

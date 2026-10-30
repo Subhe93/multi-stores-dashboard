@@ -6282,7 +6282,21 @@
     "noProductsSelectedHint": "Add products to include them in this collection.",
     "showMoreProducts": "Show more ({count} remaining)",
     "productUnavailable": "Product not available",
-    "doneSelecting": "Done"
+    "doneSelecting": "Done",
+    "reorderHint": "Drag the handle or use the order menu to set the order shown in your store.",
+    "reorderActions": "Change the position of {name}",
+    "moveToTop": "Move to top",
+    "moveToBottom": "Move to bottom",
+    "dragHandleNamed": "Reorder {name}, position {position} of {total}",
+    "movedToPosition": "{name} moved to position {position} of {total}.",
+    "dndInstructions": "To reorder, press Space or Enter to pick up the product, use the arrow keys to move it, then press Space or Enter to drop it, or Escape to cancel.",
+    "dndPickedUp": "Picked up {name}, position {position} of {total}.",
+    "dndMovedOver": "{name} is now at position {position} of {total}.",
+    "dndDropped": "{name} dropped at position {position} of {total}.",
+    "dndCancelled": "Reordering cancelled. {name} returned to position {position}.",
+    "sourceAll": "All",
+    "sourceFilter": "Product type",
+    "productsLoadFailed": "Could not load products."
   },
   "shipping": {
     "actionCannotBeUndone": "This action cannot be undone.",

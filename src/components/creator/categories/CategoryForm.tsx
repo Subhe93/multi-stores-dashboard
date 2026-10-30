@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
+import { useStoreType } from '@/lib/useStoreType';
 import { collectionPathFromTree } from '@/lib/collection-url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,11 @@ import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Textarea } from '@/components/ui/textarea';
 import {
   CollectionProductsPicker,
+  customProductOption,
+  ownProductOption,
   type CollectionProductOption,
+  type CustomProductRow,
+  type OwnProductRow,
 } from '@/components/creator/categories/CollectionProductsPicker';
 
 const API_BASE = (
@@ -110,8 +115,10 @@ interface CategoryDetail {
   noindex_when_empty?: boolean;
   sort_order: number;
   translations: CategoryTranslation[];
-  products?: { product: { id: string } }[];
-  custom_products?: { custom_product: { id: string } }[];
+  products?: { product: OwnProductRow }[];
+  custom_products?: { custom_product: CustomProductRow }[];
+  /** Full manual order as `p:<id>` / `cp:<id>` tokens (newer API builds). */
+  product_order?: string[];
 }
 
 interface ResolvedProduct {
@@ -128,31 +135,6 @@ interface OverviewResp {
 
 interface MyStore {
   slug?: string;
-}
-
-interface OwnProduct {
-  id: string;
-  base_price?: number | string;
-  status?: string;
-  sku?: string | null;
-  translations?: { locale: string; title: string; slug?: string }[];
-  images?: { url: string; is_featured?: boolean }[];
-}
-
-interface CustomProductRow {
-  id: string;
-  final_price?: number | string;
-  status?: string;
-  pricing_type?: 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
-  margin_amount?: number | string | null;
-  translations?: { locale: string; title: string }[];
-  mockup_images?: { url: string }[];
-  selected_variants?: { custom_price?: number | string | null }[];
-  product?: {
-    base_price?: number | string;
-    translations?: { locale: string; title: string }[];
-    images?: { url: string }[];
-  };
 }
 
 interface CategoryFormProps {
@@ -208,7 +190,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const t = useTranslations();
   const translationPlaceholder = useTranslationPlaceholder();
   const router = useRouter();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
 
   // Locale state
@@ -243,9 +225,12 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   // Reference data
   const [allCategories, setAllCategories] = useState<CategoryNode[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
-  const [products, setProducts] = useState<OwnProduct[]>([]);
-  const [customProducts, setCustomProducts] = useState<CustomProductRow[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
+  // Linked products from the detail payload, plus display data of products the
+  // picker's search has loaded, so selected items render without a full list.
+  const [linkedOwn, setLinkedOwn] = useState<OwnProductRow[]>([]);
+  const [linkedCustom, setLinkedCustom] = useState<CustomProductRow[]>([]);
+  const [discovered, setDiscovered] = useState<Record<string, CollectionProductOption>>({});
+  const { storeType } = useStoreType();
 
   // For edit mode: resolved product count (works for both MANUAL and TAGS)
   const [resolvedCount, setResolvedCount] = useState<number | null>(null);
@@ -288,38 +273,6 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
       .finally(() => setCategoriesLoaded(true));
   }, [token]);
 
-  // Fetch every product the creator can manually attach: their own products
-  // and any provider products they've imported as custom products. Both lists
-  // are merged into a single picker — the bundles form does the same thing.
-  useEffect(() => {
-    if (!token) return;
-    const cid = user?.creator?.id;
-
-    const fetchOwn = cid
-      ? api<{ data: OwnProduct[] } | OwnProduct[]>(
-          `/products?creator_id=${cid}&limit=200`,
-          { token },
-        ).catch(() => [] as OwnProduct[])
-      : Promise.resolve([] as OwnProduct[]);
-
-    const fetchCustom = api<
-      { data: CustomProductRow[] } | CustomProductRow[]
-    >('/custom-products?limit=200', { token }).catch(
-      () => [] as CustomProductRow[],
-    );
-
-    Promise.all([fetchOwn, fetchCustom])
-      .then(([ownRes, customRes]) => {
-        const own = Array.isArray(ownRes) ? ownRes : ownRes?.data ?? [];
-        const custom = Array.isArray(customRes)
-          ? customRes
-          : customRes?.data ?? [];
-        setProducts(own);
-        setCustomProducts(custom);
-      })
-      .finally(() => setProductsLoading(false));
-  }, [token, user?.creator?.id]);
-
   // ── Edit mode: load the existing record ────────────────────────────────────
 
   useEffect(() => {
@@ -337,12 +290,20 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         setMatchTags(detail.match_tags ?? []);
         setIsActive(detail.is_active);
         if (typeof detail.noindex_when_empty === 'boolean') setNoindexWhenEmpty(detail.noindex_when_empty);
-        setProductIds([
-          ...(detail.products ?? []).map((p) => `p:${p.product.id}`),
-          ...(detail.custom_products ?? []).map(
-            (cp) => `cp:${cp.custom_product.id}`,
-          ),
-        ]);
+        const own = (detail.products ?? []).map((p) => p.product).filter(Boolean);
+        const custom = (detail.custom_products ?? []).map((cp) => cp.custom_product).filter(Boolean);
+        setLinkedOwn(own);
+        setLinkedCustom(custom);
+        const linked = [...own.map((p) => `p:${p.id}`), ...custom.map((cp) => `cp:${cp.id}`)];
+        // Newer API: the merged manual order. Older builds: own, then custom.
+        // Linked ids missing from the order (should not happen) go last.
+        if (Array.isArray(detail.product_order)) {
+          const ordered = [...new Set(detail.product_order.filter((id) => /^c?p:/.test(id)))];
+          const inOrder = new Set(ordered);
+          setProductIds([...ordered, ...linked.filter((id) => !inOrder.has(id))]);
+        } else {
+          setProductIds(linked);
+        }
         setTranslations((prev) => {
           const next: Record<string, LocaleFields> = {
             ...prev,
@@ -404,45 +365,23 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     return `/collections/${[...ancestors, slug.trim() || '…'].join('/')}`;
   }, [allCategories, parentId, slug]);
 
-  const productOptions: CollectionProductOption[] = useMemo(() => {
-    const own: CollectionProductOption[] = products.map((p) => {
-      const trans =
-        p.translations?.find((tr) => tr.locale === primaryLocale) ||
-        p.translations?.[0];
-      const featured =
-        p.images?.find((img) => img.is_featured)?.url ||
-        p.images?.[0]?.url ||
-        null;
-      return {
-        id: `p:${p.id}`,
-        title: trans?.title || t('bundle.untitledProduct'),
-        kind: 'own',
-        thumbnail: featured ? resolveUrl(featured) : null,
-        subtitle: [p.sku, trans?.slug].filter(Boolean).join(' · ') || null,
-        price: p.base_price !== undefined ? Number(p.base_price) : null,
-        status: p.status ?? null,
-      };
+  // Display data for the selected products: the detail payload first, then
+  // everything the picker's search has loaded (fresher data wins).
+  const knownProducts = useMemo(() => {
+    const untitled = t('bundle.untitledProduct');
+    const map: Record<string, CollectionProductOption> = {};
+    for (const p of linkedOwn) map[`p:${p.id}`] = ownProductOption(p, primaryLocale, untitled);
+    for (const cp of linkedCustom) map[`cp:${cp.id}`] = customProductOption(cp, primaryLocale, untitled);
+    return { ...map, ...discovered };
+  }, [linkedOwn, linkedCustom, discovered, primaryLocale, t]);
+
+  const handleDiscover = useCallback((options: CollectionProductOption[]) => {
+    setDiscovered((prev) => {
+      const next = { ...prev };
+      for (const o of options) next[o.id] = o;
+      return next;
     });
-    const custom: CollectionProductOption[] = customProducts.map((cp) => {
-      const trans =
-        cp.translations?.find((tr) => tr.locale === primaryLocale) ||
-        cp.translations?.[0] ||
-        cp.product?.translations?.find((tr) => tr.locale === primaryLocale) ||
-        cp.product?.translations?.[0];
-      const thumb =
-        cp.mockup_images?.[0]?.url || cp.product?.images?.[0]?.url || null;
-      const price = cp.final_price ?? cp.product?.base_price;
-      return {
-        id: `cp:${cp.id}`,
-        title: trans?.title || t('bundle.untitledProduct'),
-        kind: 'custom',
-        thumbnail: thumb ? resolveUrl(thumb) : null,
-        price: price !== undefined ? Number(price) : null,
-        status: cp.status ?? null,
-      };
-    });
-    return [...own, ...custom];
-  }, [products, customProducts, primaryLocale, t]);
+  }, []);
 
   const primaryName = translations[primaryLocale]?.name || '';
   const hasMultipleLocales = allLocales.length > 1;
@@ -587,18 +526,27 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         product_ids: ownIds,
         custom_product_ids: customIds,
       };
+      // The manual storefront order across own and custom products, as the
+      // prefixed tokens the picker already keeps in order.
+      const orderedPayload = {
+        ...basePayload,
+        product_order: matchRule === 'MANUAL' ? productIds.filter((id) => /^c?p:/.test(id)) : [],
+      };
 
+      // The API that accepts `product_order` ships before this dashboard, so
+      // there is no fallback: a silent retry without the order would also
+      // swallow real product_order validation errors (e.g. the size cap).
       if (mode === 'create') {
         await api('/creator-categories', {
           method: 'POST',
           token,
-          body: JSON.stringify(basePayload),
+          body: JSON.stringify(orderedPayload),
         });
       } else if (initialId) {
         await api(`/creator-categories/${initialId}`, {
           method: 'PATCH',
           token,
-          body: JSON.stringify(basePayload),
+          body: JSON.stringify(orderedPayload),
         });
       }
 
@@ -1139,10 +1087,14 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                 {matchRule === 'MANUAL' && (
                   <div className="mt-3">
                     <CollectionProductsPicker
-                      options={productOptions}
                       value={productIds}
                       onChange={setProductIds}
-                      loading={productsLoading}
+                      known={knownProducts}
+                      onDiscover={handleDiscover}
+                      token={token}
+                      locale={primaryLocale}
+                      includeCustom={storeType !== 'INDEPENDENT'}
+                      loading={loading}
                     />
                   </div>
                 )}
