@@ -327,7 +327,8 @@
     "personalization": "Kişiselleştirme",
     "designer": "Tasarımcı",
     "production": "Üretim",
-    "feeds": "Feed'ler"
+    "feeds": "Feed'ler",
+    "zohoMail": "Zoho Mail"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -2524,6 +2525,10 @@
         "feeds": {
           "name": "Ürün feed'leri",
           "description": "Pazar başına gizli URL'lerle Google Merchant ve Meta (Facebook / Instagram) katalog feed'leri."
+        },
+        "zoho_mail": {
+          "name": "Zoho Mail",
+          "description": "Mağazanızın e-postalarını (sipariş onayları, faturalar, şifre sıfırlama…) kendi Zoho Mail posta kutunuzdan gönderin."
         }
       },
       "b2b": {
@@ -4670,6 +4675,132 @@
         "missingBrand": "Markasız ürünler",
         "excludedList": "Feed'lerden hariç"
       }
+    },
+    "zohoMail": {
+      "title": "Zoho Mail",
+      "subtitle": "Mağazanızın e-postalarını kendi Zoho Mail posta kutunuzdan gönderin.",
+      "loadFailed": "Zoho Mail ayarları yüklenemedi. Lütfen sayfayı yenileyin.",
+      "details": "Ayrıntılar:",
+      "about": {
+        "emails": "Bağlandıktan sonra mağazanızın gönderdiği her e-posta — sipariş onayları, kargo güncellemeleri, faturalar, şifre sıfırlama, hoş geldin e-postaları ve diğerleri — Zoho Mail posta kutunuzdan gönderilir ve Gönderilenler klasöründe de görünür.",
+        "fallback": "Zoho bir e-postayı gönderemezse, müşterilerinize yine ulaşması için e-posta platformun göndericisi üzerinden gönderilir. Hata burada gösterilir.",
+        "permission": "Zoho'dan yalnızca e-posta gönderme ve gönderici adresleri listenizi okuma izni istiyoruz. Gelen kutunuzu okuyamayız."
+      },
+      "regions": {
+        "us": "Amerika Birleşik Devletleri",
+        "eu": "Avrupa",
+        "in": "Hindistan",
+        "cn": "Çin",
+        "au": "Avustralya",
+        "jp": "Japonya",
+        "ca": "Kanada",
+        "sa": "Suudi Arabistan"
+      },
+      "status": {
+        "title": "Bağlantı",
+        "connected": "Bağlı",
+        "notConnected": "Bağlı değil",
+        "email": "Zoho hesabı",
+        "region": "Bölge",
+        "connectedAt": "Bağlanma tarihi",
+        "verifiedAt": "Son başarılı test",
+        "neverVerified": "Henüz test edilmedi",
+        "lastError": "Son hata",
+        "lastErrorGeneric": "Son e-posta Zoho üzerinden gönderilemedi, bu yüzden platform göndericisi kullanıldı.",
+        "notConnectedHint": "Kendi Zoho Mail hesabınızı bağlamak için aşağıdaki adımları izleyin."
+      },
+      "sender": {
+        "title": "Gönderici",
+        "hint": "Mağaza e-postalarınızın hangi Zoho adresinizden gönderileceğini ve müşterilerin göreceği adı seçin.",
+        "fromAddress": "Gönderen adresi",
+        "fromAddressPlaceholder": "Bir adres seçin",
+        "noAddresses": "Zoho hesabınızda gönderici adresi bulunamadı. Zoho'da bir adres ekleyin, ardından \"Adresleri yenile\"ye tıklayın.",
+        "fromName": "Gönderen adı",
+        "fromNamePlaceholder": "ör. Mağazam",
+        "fromNameHint": "Mağaza adınızı kullanmak için boş bırakın.",
+        "refresh": "Adresleri yenile",
+        "refreshing": "Yenileniyor…",
+        "refreshed": "Adres listesi Zoho'dan güncellendi.",
+        "refreshFailed": "Adresler Zoho'dan yenilenemedi. Lütfen tekrar deneyin.",
+        "saved": "Gönderici kaydedildi.",
+        "saveFailed": "Gönderici kaydedilemedi. Lütfen tekrar deneyin."
+      },
+      "test": {
+        "title": "Test e-postası gönder",
+        "hint": "Zoho üzerinden bir test e-postası göndererek her şeyin çalıştığını kontrol edin.",
+        "to": "Alıcı e-postası",
+        "send": "Test gönder",
+        "sending": "Gönderiliyor…",
+        "sent": "Test e-postası {to} adresine gönderildi. Gelen kutusunu kontrol edin.",
+        "failed": "Test e-postası Zoho üzerinden gönderilemedi. Zoho hesabınızı kontrol edip tekrar deneyin.",
+        "needsFrom": "Önce bir gönderen adresi seçip kaydedin."
+      },
+      "disconnect": {
+        "failed": "Zoho Mail bağlantısı kesilemedi. Lütfen tekrar deneyin.",
+        "button": "Bağlantıyı kes ve istemciyi kaldır",
+        "title": "Zoho Mail bağlantısı kesilsin ve istemci kaldırılsın mı?",
+        "body": "Bağlantı ile kayıtlı Client ID ve Client Secret kaldırılır. Mağazanızın e-postaları yeniden platformun göndericisi üzerinden gönderilir.",
+        "confirm": "Bağlantıyı kes ve kaldır",
+        "done": "Zoho Mail bağlantısı kesildi ve istemci kaldırıldı. E-postalar yeniden platform göndericisi üzerinden gönderiliyor.",
+        "tokenOnly": {
+          "button": "Yalnızca bağlantıyı kes",
+          "title": "Zoho Mail bağlantısı kesilsin mi?",
+          "body": "Bağlantı kaldırılır ancak Client ID ve Client Secret korunur, böylece daha sonra yeniden yetkilendirebilirsiniz. Bu sırada e-postalar platformun göndericisi üzerinden gönderilir.",
+          "confirm": "Bağlantıyı kes",
+          "done": "Zoho Mail bağlantısı kesildi. İstemciniz korundu — dilediğiniz zaman yeniden yetkilendirin."
+        }
+      },
+      "callback": {
+        "connected": "Zoho Mail hesabınız bağlandı. Gönderen adresini seçin ve bir test e-postası gönderin.",
+        "failed": "Zoho bağlantısı başarılı olmadı. Lütfen tekrar deneyin."
+      },
+      "setup": {
+        "title": "Zoho Mail kurulumu",
+        "hint": "Mağazanız, resmi Zoho Mail eklentisinde olduğu gibi kendi Zoho API istemcisini kullanır. Yaklaşık beş dakika sürer.",
+        "region": {
+          "title": "Zoho bölgenizi seçin",
+          "hint": "Zoho hesabınızın barındırıldığı bölgeyi seçin — oturum açtığınız adresle eşleşir (ör. mail.zoho.eu)."
+        },
+        "redirect": {
+          "title": "Yetkili Yönlendirme URI’sini (Redirect URI) kopyalayın",
+          "hint": "Bu adresi bir sonraki adımda Zoho API Console’a yapıştıracaksınız.",
+          "copy": "Kopyala",
+          "copied": "Kopyalandı",
+          "missing": "Yönlendirme URI’si şu anda kullanılamıyor. Lütfen sayfayı yenileyin."
+        },
+        "console": {
+          "title": "Zoho API Console’da bir istemci oluşturun",
+          "open": "Bölgenize ait Zoho API Console’u açın (aşağıdaki bağlantı) ve Zoho hesabınızla oturum açın.",
+          "addClient": "\"Add Client\"a tıklayın ve \"Server-based Applications\"ı seçin.",
+          "fill": "Formu doldurun:",
+          "fieldName": "Client Name: herhangi bir ad, ör. mağazanızın adı.",
+          "fieldHomepage": "Homepage URL: mağazanızın web adresi.",
+          "fieldRedirect": "Authorized Redirect URIs: 2. adımda kopyaladığınız adres.",
+          "create": "\"Create\"e tıklayın. Zoho ardından Client ID ve Client Secret değerlerini gösterir.",
+          "link": "Zoho API Console’u aç"
+        },
+        "client": {
+          "title": "Client ID ve Client Secret girin",
+          "clientId": "Client ID",
+          "clientSecret": "Client Secret",
+          "secretSaved": "Kayıtlı bir secret var — korumak için boş bırakın.",
+          "reauthHint": "İstemciyi veya bölgeyi sonradan değiştirmek yeniden yetkilendirme gerektirir.",
+          "changedWarning": "İstemciyi veya bölgeyi değiştirdiniz. Kaydettikten sonra mevcut bağlantı kaldırılır ve yeniden yetkilendirmeniz gerekir.",
+          "save": "İstemciyi kaydet",
+          "saved": "İstemci kaydedildi. Şimdi 5. adımda erişimi yetkilendirin.",
+          "saveFailed": "İstemci kaydedilemedi. Lütfen değerleri kontrol edip tekrar deneyin."
+        },
+        "authorize": {
+          "title": "Erişimi yetkilendirin",
+          "hint": "Erişimi onaylamak için Zoho'ya yönlendirilecek, ardından buraya geri getirileceksiniz.",
+          "needsClient": "Önce Client ID ve Client Secret değerlerinizi kaydedin (4. adım).",
+          "saveFirst": "Yetkilendirmeden önce 4. adımdaki değişikliklerinizi kaydedin.",
+          "button": "Yetkilendir",
+          "reauthorize": "Yeniden yetkilendir",
+          "opening": "Zoho açılıyor…",
+          "failed": "Zoho ile yetkilendirme başlatılamadı. Lütfen tekrar deneyin."
+        }
+      }
     }
   },
   "components": {
@@ -5112,7 +5243,23 @@
     "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Dahili bir etiketin üst koleksiyonu olamaz. \"Yok (üst düzey)\" seçeneğini seçin veya onu mağaza koleksiyonu yapın.",
     "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Bu koleksiyonun alt koleksiyonları olduğu için dahili etiket olamaz. Önce alt koleksiyonlarını taşıyın veya silin.",
     "CREATOR_CATEGORY_PARENT_INTERNAL": "Dahili bir etiket üst koleksiyon olamaz. Üst koleksiyon olarak bir mağaza koleksiyonu seçin.",
-    "PRIMARY_COLLECTION_INTERNAL": "Dahili bir etiket birincil koleksiyon olamaz. Seçili mağaza koleksiyonlarından birini birincil olarak seçin."
+    "PRIMARY_COLLECTION_INTERNAL": "Dahili bir etiket birincil koleksiyon olamaz. Seçili mağaza koleksiyonlarından birini birincil olarak seçin.",
+    "ZOHO_NOT_CONFIGURED": "Zoho istemciniz henüz kurulmadı. Önce Client ID ve Client Secret değerlerini kaydedin (4. adım).",
+    "ZOHO_APP_DISABLED": "Zoho Mail uygulaması kapalı. Önce Uygulamalar sayfasından açın.",
+    "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail yalnızca bağımsız mağazalar için kullanılabilir.",
+    "ZOHO_STATE_INVALID": "Bağlantı isteğinin süresi doldu veya artık geçerli değil. Lütfen tekrar \"Bağla\"ya tıklayın.",
+    "ZOHO_OAUTH_DENIED": "Zoho'da erişim onaylanmadı. Devam etmek için tekrar \"Bağla\"ya tıklayın ve isteği onaylayın.",
+    "ZOHO_TOKEN_EXCHANGE_FAILED": "Zoho bağlantıyı kabul etmedi. Bölgeyi, Client ID ve Client Secret değerlerini ve Zoho API Console'daki Redirect URI'nin birebir eşleştiğini kontrol edip tekrar deneyin.",
+    "ZOHO_NO_ACCOUNTS": "Bu Zoho oturumu için posta kutusu bulunamadı. Posta hesabı olan bir Zoho kullanıcısıyla oturum açın.",
+    "ZOHO_FROM_NOT_ALLOWED": "Bu adres Zoho hesabınızda gönderici olarak izinli değil. Listeden birini seçin veya adresleri yenileyin.",
+    "ZOHO_NOT_CONNECTED": "Zoho Mail henüz bağlı değil. Önce Zoho hesabınızı bağlayın.",
+    "ZOHO_SEND_FAILED": "Zoho e-postayı gönderemedi. Zoho'daki posta kutunuzu kontrol edip tekrar deneyin.",
+    "ZOHO_CLIENT_NOT_CONFIGURED": "Zoho istemciniz henüz kurulmadı. Önce Client ID ve Client Secret değerlerini kaydedin (4. adım).",
+    "ZOHO_INVALID_REGION": "Bu Zoho bölgesi desteklenmiyor. Listelenen bölgelerden birini seçin.",
+    "ZOHO_INVALID_CLIENT": "Zoho API konsolundaki Client ID ve Client Secret değerlerini girin.",
+    "ZOHO_RECONNECT_REQUIRED": "Zoho bu bağlantıyı artık kabul etmiyor. Yeniden bağlanmak için Yetkilendir’e tıklayın.",
+    "ZOHO_API_ERROR": "Zoho Mail bir hata döndürdü. Biraz sonra tekrar deneyin.",
+    "ZOHO_ATTACHMENT_TOO_LARGE": "Bir ek 10 MB’tan büyük olduğu için e-posta platform göndericisinden gönderildi."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -6165,7 +6312,8 @@
     },
     "via": {
       "store": "Mağaza göndericisi",
-      "platform": "Platform göndericisi"
+      "platform": "Platform göndericisi",
+      "zoho": "Zoho Mail"
     },
     "events": {
       "order_confirmation": "Sipariş onayı",

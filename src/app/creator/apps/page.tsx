@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import {
   AlertCircle,
   ArrowUpRight,
+  AtSign,
   Blocks,
   Building2,
   Download,
@@ -36,6 +37,7 @@ const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
   production: ListChecks,
   designer: PenTool,
   feeds: Rss,
+  zoho_mail: AtSign,
 };
 
 /**

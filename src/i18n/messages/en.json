@@ -327,7 +327,8 @@
     "personalization": "Personalization",
     "designer": "Designer",
     "production": "Production",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "zohoMail": "Zoho Mail"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -2524,6 +2525,10 @@
         "feeds": {
           "name": "Product feeds",
           "description": "Google Merchant and Meta (Facebook / Instagram) catalog feeds with secret URLs, one per market."
+        },
+        "zoho_mail": {
+          "name": "Zoho Mail",
+          "description": "Send your store's emails (order confirmations, invoices, password resets…) from your own Zoho Mail mailbox."
         }
       },
       "b2b": {
@@ -4670,6 +4675,132 @@
         "missingBrand": "Products without brand",
         "excludedList": "Excluded from feeds"
       }
+    },
+    "zohoMail": {
+      "title": "Zoho Mail",
+      "subtitle": "Send your store's emails from your own Zoho Mail mailbox.",
+      "loadFailed": "Could not load the Zoho Mail settings. Please reload the page.",
+      "details": "Details:",
+      "about": {
+        "emails": "Once connected, every email your store sends — order confirmations, shipping updates, invoices, password resets, welcome emails and more — goes out from your Zoho Mail mailbox and also appears in its Sent folder.",
+        "fallback": "If Zoho can't send an email, it is sent through the platform's sender instead, so your customers still receive it. The error is shown here.",
+        "permission": "We only ask Zoho for permission to send emails and to read your list of sender addresses. We cannot read your inbox."
+      },
+      "regions": {
+        "us": "United States",
+        "eu": "Europe",
+        "in": "India",
+        "cn": "China",
+        "au": "Australia",
+        "jp": "Japan",
+        "ca": "Canada",
+        "sa": "Saudi Arabia"
+      },
+      "status": {
+        "title": "Connection",
+        "connected": "Connected",
+        "notConnected": "Not connected",
+        "email": "Zoho account",
+        "region": "Region",
+        "connectedAt": "Connected on",
+        "verifiedAt": "Last successful test",
+        "neverVerified": "Not tested yet",
+        "lastError": "Last error",
+        "lastErrorGeneric": "The last email could not be sent through Zoho, so the platform sender was used instead.",
+        "notConnectedHint": "Follow the steps below to connect your own Zoho Mail account."
+      },
+      "sender": {
+        "title": "Sender",
+        "hint": "Choose which of your Zoho addresses your store emails are sent from, and the name customers see.",
+        "fromAddress": "From address",
+        "fromAddressPlaceholder": "Select an address",
+        "noAddresses": "No sender addresses were found in your Zoho account. Add one in Zoho, then click \"Refresh addresses\".",
+        "fromName": "From name",
+        "fromNamePlaceholder": "e.g. My Store",
+        "fromNameHint": "Leave empty to use your store name.",
+        "refresh": "Refresh addresses",
+        "refreshing": "Refreshing…",
+        "refreshed": "The address list was updated from Zoho.",
+        "refreshFailed": "Could not refresh the addresses from Zoho. Please try again.",
+        "saved": "Sender saved.",
+        "saveFailed": "Could not save the sender. Please try again."
+      },
+      "test": {
+        "title": "Send a test email",
+        "hint": "Check that everything works by sending a test email through Zoho.",
+        "to": "Recipient email",
+        "send": "Send test",
+        "sending": "Sending…",
+        "sent": "Test email sent to {to}. Check the inbox.",
+        "failed": "The test email could not be sent through Zoho. Check your Zoho account and try again.",
+        "needsFrom": "Choose and save a from address first."
+      },
+      "disconnect": {
+        "failed": "Could not disconnect Zoho Mail. Please try again.",
+        "button": "Disconnect and remove client",
+        "title": "Disconnect Zoho Mail and remove the client?",
+        "body": "The connection and the saved Client ID and Client Secret are removed. Your store's emails will be sent through the platform's sender again.",
+        "confirm": "Disconnect and remove",
+        "done": "Zoho Mail was disconnected and the client removed. Emails are sent through the platform sender again.",
+        "tokenOnly": {
+          "button": "Disconnect only",
+          "title": "Disconnect Zoho Mail?",
+          "body": "The connection is removed but your Client ID and Client Secret are kept, so you can authorize again later. Emails will be sent through the platform's sender meanwhile.",
+          "confirm": "Disconnect",
+          "done": "Zoho Mail was disconnected. Your client is kept — authorize again whenever you like."
+        }
+      },
+      "callback": {
+        "connected": "Your Zoho Mail account is connected. Choose the sender address and send a test email.",
+        "failed": "Connecting to Zoho did not succeed. Please try again."
+      },
+      "setup": {
+        "title": "Set up Zoho Mail",
+        "hint": "Your store uses its own Zoho API client, just like the official Zoho Mail plugin. It takes about five minutes.",
+        "region": {
+          "title": "Choose your Zoho region",
+          "hint": "Choose the region where your Zoho account is hosted — it matches the address you use to sign in (e.g. mail.zoho.eu)."
+        },
+        "redirect": {
+          "title": "Copy the Authorized Redirect URI",
+          "hint": "You will paste this address into the Zoho API Console in the next step.",
+          "copy": "Copy",
+          "copied": "Copied",
+          "missing": "The redirect URI is not available right now. Please reload the page."
+        },
+        "console": {
+          "title": "Create a client in the Zoho API Console",
+          "open": "Open the Zoho API Console for your region (link below) and sign in with your Zoho account.",
+          "addClient": "Click \"Add Client\" and choose \"Server-based Applications\".",
+          "fill": "Fill in the form:",
+          "fieldName": "Client Name: any name, e.g. your store name.",
+          "fieldHomepage": "Homepage URL: your store's web address.",
+          "fieldRedirect": "Authorized Redirect URIs: the address you copied in step 2.",
+          "create": "Click \"Create\". Zoho then shows the Client ID and Client Secret.",
+          "link": "Open Zoho API Console"
+        },
+        "client": {
+          "title": "Enter the Client ID and Client Secret",
+          "clientId": "Client ID",
+          "clientSecret": "Client Secret",
+          "secretSaved": "A secret is saved — leave empty to keep it.",
+          "reauthHint": "Changing the client or the region later requires authorizing again.",
+          "changedWarning": "You changed the client or the region. After saving, the current connection is removed and you must authorize again.",
+          "save": "Save client",
+          "saved": "Client saved. Now authorize access in step 5.",
+          "saveFailed": "Could not save the client. Please check the values and try again."
+        },
+        "authorize": {
+          "title": "Authorize access",
+          "hint": "You'll be taken to Zoho to approve access, then brought back here.",
+          "needsClient": "Save your Client ID and Client Secret first (step 4).",
+          "saveFirst": "Save your changes in step 4 before authorizing.",
+          "button": "Authorize",
+          "reauthorize": "Authorize again",
+          "opening": "Opening Zoho…",
+          "failed": "Could not start the authorization with Zoho. Please try again."
+        }
+      }
     }
   },
   "components": {
@@ -5112,7 +5243,23 @@
     "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "An internal label cannot have a parent collection. Choose \"None (top level)\" or make it a storefront collection.",
     "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "This collection has sub-collections, so it cannot become an internal label. Move or delete its sub-collections first.",
     "CREATOR_CATEGORY_PARENT_INTERNAL": "An internal label cannot be a parent collection. Pick a storefront collection as the parent.",
-    "PRIMARY_COLLECTION_INTERNAL": "An internal label cannot be the primary collection. Pick one of the selected storefront collections as the primary."
+    "PRIMARY_COLLECTION_INTERNAL": "An internal label cannot be the primary collection. Pick one of the selected storefront collections as the primary.",
+    "ZOHO_NOT_CONFIGURED": "Your Zoho client is not set up yet. Save the Client ID and Client Secret first (step 4).",
+    "ZOHO_APP_DISABLED": "The Zoho Mail app is turned off. Turn it on from the Apps page first.",
+    "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail is only available for independent stores.",
+    "ZOHO_STATE_INVALID": "The connection request expired or is no longer valid. Please click \"Connect\" again.",
+    "ZOHO_OAUTH_DENIED": "Access was not approved in Zoho. Click \"Connect\" again and approve the request to continue.",
+    "ZOHO_TOKEN_EXCHANGE_FAILED": "Zoho didn't accept the connection. Check the region, the Client ID and Client Secret, and that the Redirect URI in the Zoho API Console matches exactly — then try again.",
+    "ZOHO_NO_ACCOUNTS": "No mailbox was found for this Zoho login. Sign in with a Zoho user that has a mail account.",
+    "ZOHO_FROM_NOT_ALLOWED": "This address is not allowed as a sender in your Zoho account. Choose one from the list or refresh the addresses.",
+    "ZOHO_NOT_CONNECTED": "Zoho Mail is not connected yet. Connect your Zoho account first.",
+    "ZOHO_SEND_FAILED": "Zoho couldn't send the email. Check your mailbox in Zoho and try again.",
+    "ZOHO_CLIENT_NOT_CONFIGURED": "Your Zoho client is not set up yet. Save the Client ID and Client Secret first (step 4).",
+    "ZOHO_INVALID_REGION": "This Zoho region is not supported. Choose one of the listed regions.",
+    "ZOHO_INVALID_CLIENT": "Enter both the Client ID and the Client Secret from the Zoho API console.",
+    "ZOHO_RECONNECT_REQUIRED": "Zoho no longer accepts this connection. Click Authorize to connect again.",
+    "ZOHO_API_ERROR": "Zoho Mail returned an error. Try again in a moment.",
+    "ZOHO_ATTACHMENT_TOO_LARGE": "An attachment is larger than 10 MB, so the email went out from the platform sender instead."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -6165,7 +6312,8 @@
     },
     "via": {
       "store": "Store sender",
-      "platform": "Platform sender"
+      "platform": "Platform sender",
+      "zoho": "Zoho Mail"
     },
     "events": {
       "order_confirmation": "Order confirmation",

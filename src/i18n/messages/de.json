@@ -327,7 +327,8 @@
     "personalization": "Personalisierung",
     "designer": "Designer",
     "production": "Produktion",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "zohoMail": "Zoho Mail"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -2524,6 +2525,10 @@
         "feeds": {
           "name": "Produkt-Feeds",
           "description": "Google-Merchant- und Meta-Katalog-Feeds (Facebook / Instagram) mit geheimen URLs, einer je Markt."
+        },
+        "zoho_mail": {
+          "name": "Zoho Mail",
+          "description": "Versenden Sie die E-Mails Ihres Shops (Bestellbestätigungen, Rechnungen, Passwort-Zurücksetzungen…) aus Ihrem eigenen Zoho-Mail-Postfach."
         }
       },
       "b2b": {
@@ -4670,6 +4675,132 @@
         "missingBrand": "Produkte ohne Marke",
         "excludedList": "Aus Feeds ausgeschlossen"
       }
+    },
+    "zohoMail": {
+      "title": "Zoho Mail",
+      "subtitle": "Versenden Sie die E-Mails Ihres Shops aus Ihrem eigenen Zoho-Mail-Postfach.",
+      "loadFailed": "Die Zoho-Mail-Einstellungen konnten nicht geladen werden. Bitte laden Sie die Seite neu.",
+      "details": "Details:",
+      "about": {
+        "emails": "Nach dem Verbinden wird jede E-Mail Ihres Shops — Bestellbestätigungen, Versand-Updates, Rechnungen, Passwort-Zurücksetzungen, Willkommens-E-Mails und mehr — aus Ihrem Zoho-Mail-Postfach versendet und erscheint auch in dessen Ordner „Gesendet“.",
+        "fallback": "Kann Zoho eine E-Mail nicht senden, wird sie stattdessen über den Absender der Plattform verschickt, damit Ihre Kunden sie trotzdem erhalten. Der Fehler wird hier angezeigt.",
+        "permission": "Wir bitten Zoho nur um die Berechtigung, E-Mails zu senden und Ihre Absenderadressen zu lesen. Ihren Posteingang können wir nicht lesen."
+      },
+      "regions": {
+        "us": "Vereinigte Staaten",
+        "eu": "Europa",
+        "in": "Indien",
+        "cn": "China",
+        "au": "Australien",
+        "jp": "Japan",
+        "ca": "Kanada",
+        "sa": "Saudi-Arabien"
+      },
+      "status": {
+        "title": "Verbindung",
+        "connected": "Verbunden",
+        "notConnected": "Nicht verbunden",
+        "email": "Zoho-Konto",
+        "region": "Region",
+        "connectedAt": "Verbunden am",
+        "verifiedAt": "Letzter erfolgreicher Test",
+        "neverVerified": "Noch nicht getestet",
+        "lastError": "Letzter Fehler",
+        "lastErrorGeneric": "Die letzte E-Mail konnte nicht über Zoho gesendet werden, daher wurde der Absender der Plattform verwendet.",
+        "notConnectedHint": "Folgen Sie den Schritten unten, um Ihr eigenes Zoho-Mail-Konto zu verbinden."
+      },
+      "sender": {
+        "title": "Absender",
+        "hint": "Wählen Sie, von welcher Ihrer Zoho-Adressen die Shop-E-Mails gesendet werden und welchen Namen Ihre Kunden sehen.",
+        "fromAddress": "Absenderadresse",
+        "fromAddressPlaceholder": "Adresse auswählen",
+        "noAddresses": "In Ihrem Zoho-Konto wurden keine Absenderadressen gefunden. Fügen Sie in Zoho eine hinzu und klicken Sie dann auf „Adressen aktualisieren“.",
+        "fromName": "Absendername",
+        "fromNamePlaceholder": "z. B. Mein Shop",
+        "fromNameHint": "Leer lassen, um den Namen Ihres Shops zu verwenden.",
+        "refresh": "Adressen aktualisieren",
+        "refreshing": "Wird aktualisiert…",
+        "refreshed": "Die Adressliste wurde von Zoho aktualisiert.",
+        "refreshFailed": "Die Adressen konnten nicht von Zoho aktualisiert werden. Bitte versuchen Sie es erneut.",
+        "saved": "Absender gespeichert.",
+        "saveFailed": "Der Absender konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      },
+      "test": {
+        "title": "Test-E-Mail senden",
+        "hint": "Prüfen Sie mit einer Test-E-Mail über Zoho, ob alles funktioniert.",
+        "to": "E-Mail des Empfängers",
+        "send": "Test senden",
+        "sending": "Wird gesendet…",
+        "sent": "Test-E-Mail an {to} gesendet. Bitte prüfen Sie den Posteingang.",
+        "failed": "Die Test-E-Mail konnte nicht über Zoho gesendet werden. Prüfen Sie Ihr Zoho-Konto und versuchen Sie es erneut.",
+        "needsFrom": "Wählen und speichern Sie zuerst eine Absenderadresse."
+      },
+      "disconnect": {
+        "failed": "Zoho Mail konnte nicht getrennt werden. Bitte versuchen Sie es erneut.",
+        "button": "Trennen und Client entfernen",
+        "title": "Zoho Mail trennen und Client entfernen?",
+        "body": "Die Verbindung sowie die gespeicherte Client ID und das Client Secret werden entfernt. Die E-Mails Ihres Shops werden wieder über den Absender der Plattform versendet.",
+        "confirm": "Trennen und entfernen",
+        "done": "Zoho Mail wurde getrennt und der Client entfernt. E-Mails werden wieder über den Absender der Plattform versendet.",
+        "tokenOnly": {
+          "button": "Nur trennen",
+          "title": "Zoho Mail trennen?",
+          "body": "Die Verbindung wird entfernt, Client ID und Client Secret bleiben jedoch gespeichert, sodass Sie später erneut autorisieren können. Bis dahin werden E-Mails über den Absender der Plattform versendet.",
+          "confirm": "Trennen",
+          "done": "Zoho Mail wurde getrennt. Ihr Client bleibt gespeichert — autorisieren Sie jederzeit erneut."
+        }
+      },
+      "callback": {
+        "connected": "Ihr Zoho-Mail-Konto ist verbunden. Wählen Sie die Absenderadresse und senden Sie eine Test-E-Mail.",
+        "failed": "Die Verbindung mit Zoho ist fehlgeschlagen. Bitte versuchen Sie es erneut."
+      },
+      "setup": {
+        "title": "Zoho Mail einrichten",
+        "hint": "Ihr Shop verwendet einen eigenen Zoho-API-Client, genau wie das offizielle Zoho-Mail-Plugin. Das dauert etwa fünf Minuten.",
+        "region": {
+          "title": "Zoho-Region wählen",
+          "hint": "Wählen Sie die Region, in der Ihr Zoho-Konto gehostet wird — sie entspricht der Adresse, unter der Sie sich anmelden (z. B. mail.zoho.eu)."
+        },
+        "redirect": {
+          "title": "Autorisierte Weiterleitungs-URI (Redirect URI) kopieren",
+          "hint": "Diese Adresse fügen Sie im nächsten Schritt in die Zoho API Console ein.",
+          "copy": "Kopieren",
+          "copied": "Kopiert",
+          "missing": "Die Weiterleitungs-URI ist gerade nicht verfügbar. Bitte laden Sie die Seite neu."
+        },
+        "console": {
+          "title": "Client in der Zoho API Console anlegen",
+          "open": "Öffnen Sie die Zoho API Console Ihrer Region (Link unten) und melden Sie sich mit Ihrem Zoho-Konto an.",
+          "addClient": "Klicken Sie auf „Add Client“ und wählen Sie „Server-based Applications“.",
+          "fill": "Füllen Sie das Formular aus:",
+          "fieldName": "Client Name: ein beliebiger Name, z. B. der Name Ihres Shops.",
+          "fieldHomepage": "Homepage URL: die Webadresse Ihres Shops.",
+          "fieldRedirect": "Authorized Redirect URIs: die Adresse, die Sie in Schritt 2 kopiert haben.",
+          "create": "Klicken Sie auf „Create“. Zoho zeigt dann Client ID und Client Secret an.",
+          "link": "Zoho API Console öffnen"
+        },
+        "client": {
+          "title": "Client ID und Client Secret eingeben",
+          "clientId": "Client ID",
+          "clientSecret": "Client Secret",
+          "secretSaved": "Ein Secret ist gespeichert — leer lassen, um es zu behalten.",
+          "reauthHint": "Wenn Sie den Client oder die Region später ändern, müssen Sie erneut autorisieren.",
+          "changedWarning": "Sie haben den Client oder die Region geändert. Nach dem Speichern wird die aktuelle Verbindung entfernt und Sie müssen erneut autorisieren.",
+          "save": "Client speichern",
+          "saved": "Client gespeichert. Autorisieren Sie jetzt den Zugriff in Schritt 5.",
+          "saveFailed": "Der Client konnte nicht gespeichert werden. Bitte prüfen Sie die Werte und versuchen Sie es erneut."
+        },
+        "authorize": {
+          "title": "Zugriff autorisieren",
+          "hint": "Sie werden zu Zoho weitergeleitet, um den Zugriff zu bestätigen, und danach hierher zurückgebracht.",
+          "needsClient": "Speichern Sie zuerst Client ID und Client Secret (Schritt 4).",
+          "saveFirst": "Speichern Sie Ihre Änderungen in Schritt 4, bevor Sie autorisieren.",
+          "button": "Autorisieren",
+          "reauthorize": "Erneut autorisieren",
+          "opening": "Zoho wird geöffnet…",
+          "failed": "Die Autorisierung bei Zoho konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
+        }
+      }
     }
   },
   "components": {
@@ -5112,7 +5243,23 @@
     "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Ein internes Label kann keine übergeordnete Kollektion haben. Wähle „Keine (oberste Ebene)“ oder mache es zu einer Shop-Kollektion.",
     "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Diese Kollektion hat Unterkollektionen und kann daher kein internes Label werden. Verschiebe oder lösche ihre Unterkollektionen zuerst.",
     "CREATOR_CATEGORY_PARENT_INTERNAL": "Ein internes Label kann keine übergeordnete Kollektion sein. Wähle eine Shop-Kollektion als übergeordnete Kollektion.",
-    "PRIMARY_COLLECTION_INTERNAL": "Ein internes Label kann nicht die primäre Kollektion sein. Wähle eine der ausgewählten Shop-Kollektionen als primäre Kollektion."
+    "PRIMARY_COLLECTION_INTERNAL": "Ein internes Label kann nicht die primäre Kollektion sein. Wähle eine der ausgewählten Shop-Kollektionen als primäre Kollektion.",
+    "ZOHO_NOT_CONFIGURED": "Ihr Zoho-Client ist noch nicht eingerichtet. Speichern Sie zuerst Client ID und Client Secret (Schritt 4).",
+    "ZOHO_APP_DISABLED": "Die App Zoho Mail ist ausgeschaltet. Schalten Sie sie zuerst auf der Seite „Apps“ ein.",
+    "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail ist nur für unabhängige Shops verfügbar.",
+    "ZOHO_STATE_INVALID": "Die Verbindungsanfrage ist abgelaufen oder nicht mehr gültig. Bitte klicken Sie erneut auf „Verbinden“.",
+    "ZOHO_OAUTH_DENIED": "Der Zugriff wurde in Zoho nicht bestätigt. Klicken Sie erneut auf „Verbinden“ und bestätigen Sie die Anfrage, um fortzufahren.",
+    "ZOHO_TOKEN_EXCHANGE_FAILED": "Zoho hat die Verbindung nicht akzeptiert. Prüfen Sie die Region, Client ID und Client Secret sowie, ob die Redirect URI in der Zoho API Console exakt übereinstimmt, und versuchen Sie es erneut.",
+    "ZOHO_NO_ACCOUNTS": "Für diese Zoho-Anmeldung wurde kein Postfach gefunden. Melden Sie sich mit einem Zoho-Benutzer an, der ein E-Mail-Konto hat.",
+    "ZOHO_FROM_NOT_ALLOWED": "Diese Adresse ist in Ihrem Zoho-Konto nicht als Absender erlaubt. Wählen Sie eine aus der Liste oder aktualisieren Sie die Adressen.",
+    "ZOHO_NOT_CONNECTED": "Zoho Mail ist noch nicht verbunden. Verbinden Sie zuerst Ihr Zoho-Konto.",
+    "ZOHO_SEND_FAILED": "Zoho konnte die E-Mail nicht senden. Prüfen Sie Ihr Postfach in Zoho und versuchen Sie es erneut.",
+    "ZOHO_CLIENT_NOT_CONFIGURED": "Ihr Zoho-Client ist noch nicht eingerichtet. Speichern Sie zuerst Client ID und Client Secret (Schritt 4).",
+    "ZOHO_INVALID_REGION": "Diese Zoho-Region wird nicht unterstützt. Wähle eine der aufgeführten Regionen.",
+    "ZOHO_INVALID_CLIENT": "Gib die Client-ID und das Client-Secret aus der Zoho-API-Konsole ein.",
+    "ZOHO_RECONNECT_REQUIRED": "Zoho akzeptiert diese Verbindung nicht mehr. Klicke auf „Autorisieren“, um neu zu verbinden.",
+    "ZOHO_API_ERROR": "Zoho Mail hat einen Fehler gemeldet. Versuche es gleich noch einmal.",
+    "ZOHO_ATTACHMENT_TOO_LARGE": "Ein Anhang ist größer als 10 MB, daher wurde die E-Mail über den Plattform-Absender verschickt."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -6165,7 +6312,8 @@
     },
     "via": {
       "store": "Shop-Absender",
-      "platform": "Plattform-Absender"
+      "platform": "Plattform-Absender",
+      "zoho": "Zoho Mail"
     },
     "events": {
       "order_confirmation": "Bestellbestätigung",

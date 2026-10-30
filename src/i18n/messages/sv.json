@@ -327,7 +327,8 @@
     "personalization": "Personalisering",
     "designer": "Designer",
     "production": "Produktion",
-    "feeds": "Flöden"
+    "feeds": "Flöden",
+    "zohoMail": "Zoho Mail"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -2524,6 +2525,10 @@
         "feeds": {
           "name": "Produktflöden",
           "description": "Google Merchant- och Meta-katalogflöden (Facebook / Instagram) med hemliga URL:er, ett per marknad."
+        },
+        "zoho_mail": {
+          "name": "Zoho Mail",
+          "description": "Skicka butikens e-post (orderbekräftelser, fakturor, lösenordsåterställningar…) från din egen Zoho Mail-brevlåda."
         }
       },
       "b2b": {
@@ -4670,6 +4675,132 @@
         "missingBrand": "Produkter utan varumärke",
         "excludedList": "Uteslutna från flöden"
       }
+    },
+    "zohoMail": {
+      "title": "Zoho Mail",
+      "subtitle": "Skicka butikens e-post från din egen Zoho Mail-brevlåda.",
+      "loadFailed": "Det gick inte att läsa in inställningarna för Zoho Mail. Ladda om sidan.",
+      "details": "Detaljer:",
+      "about": {
+        "emails": "När kontot är anslutet skickas all e-post från din butik — orderbekräftelser, leveransuppdateringar, fakturor, lösenordsåterställningar, välkomstmejl med mera — från din Zoho Mail-brevlåda och syns även i mappen Skickat.",
+        "fallback": "Om Zoho inte kan skicka ett mejl skickas det i stället via plattformens avsändare, så att dina kunder ändå får det. Felet visas här.",
+        "permission": "Vi ber bara Zoho om behörighet att skicka e-post och läsa listan över dina avsändaradresser. Vi kan inte läsa din inkorg."
+      },
+      "regions": {
+        "us": "USA",
+        "eu": "Europa",
+        "in": "Indien",
+        "cn": "Kina",
+        "au": "Australien",
+        "jp": "Japan",
+        "ca": "Kanada",
+        "sa": "Saudiarabien"
+      },
+      "status": {
+        "title": "Anslutning",
+        "connected": "Ansluten",
+        "notConnected": "Inte ansluten",
+        "email": "Zoho-konto",
+        "region": "Region",
+        "connectedAt": "Ansluten",
+        "verifiedAt": "Senaste lyckade test",
+        "neverVerified": "Inte testat än",
+        "lastError": "Senaste fel",
+        "lastErrorGeneric": "Det senaste mejlet kunde inte skickas via Zoho, så plattformens avsändare användes i stället.",
+        "notConnectedHint": "Följ stegen nedan för att ansluta ditt eget Zoho Mail-konto."
+      },
+      "sender": {
+        "title": "Avsändare",
+        "hint": "Välj vilken av dina Zoho-adresser butikens e-post skickas från och vilket namn kunderna ser.",
+        "fromAddress": "Avsändaradress",
+        "fromAddressPlaceholder": "Välj en adress",
+        "noAddresses": "Inga avsändaradresser hittades i ditt Zoho-konto. Lägg till en i Zoho och klicka sedan på ”Uppdatera adresser”.",
+        "fromName": "Avsändarnamn",
+        "fromNamePlaceholder": "t.ex. Min butik",
+        "fromNameHint": "Lämna tomt för att använda butikens namn.",
+        "refresh": "Uppdatera adresser",
+        "refreshing": "Uppdaterar…",
+        "refreshed": "Adresslistan har uppdaterats från Zoho.",
+        "refreshFailed": "Det gick inte att uppdatera adresserna från Zoho. Försök igen.",
+        "saved": "Avsändaren har sparats.",
+        "saveFailed": "Det gick inte att spara avsändaren. Försök igen."
+      },
+      "test": {
+        "title": "Skicka ett testmejl",
+        "hint": "Kontrollera att allt fungerar genom att skicka ett testmejl via Zoho.",
+        "to": "Mottagarens e-post",
+        "send": "Skicka test",
+        "sending": "Skickar…",
+        "sent": "Testmejlet har skickats till {to}. Kolla inkorgen.",
+        "failed": "Testmejlet kunde inte skickas via Zoho. Kontrollera ditt Zoho-konto och försök igen.",
+        "needsFrom": "Välj och spara en avsändaradress först."
+      },
+      "disconnect": {
+        "failed": "Det gick inte att koppla från Zoho Mail. Försök igen.",
+        "button": "Koppla från och ta bort klient",
+        "title": "Koppla från Zoho Mail och ta bort klienten?",
+        "body": "Anslutningen samt sparat Client ID och Client Secret tas bort. Butikens e-post skickas då åter via plattformens avsändare.",
+        "confirm": "Koppla från och ta bort",
+        "done": "Zoho Mail har kopplats från och klienten tagits bort. E-post skickas åter via plattformens avsändare.",
+        "tokenOnly": {
+          "button": "Koppla bara från",
+          "title": "Koppla från Zoho Mail?",
+          "body": "Anslutningen tas bort men ditt Client ID och Client Secret behålls, så att du kan godkänna åtkomsten igen senare. Under tiden skickas e-post via plattformens avsändare.",
+          "confirm": "Koppla från",
+          "done": "Zoho Mail har kopplats från. Din klient finns kvar — godkänn igen när du vill."
+        }
+      },
+      "callback": {
+        "connected": "Ditt Zoho Mail-konto är anslutet. Välj avsändaradress och skicka ett testmejl.",
+        "failed": "Anslutningen till Zoho lyckades inte. Försök igen."
+      },
+      "setup": {
+        "title": "Konfigurera Zoho Mail",
+        "hint": "Din butik använder en egen Zoho API-klient, precis som det officiella Zoho Mail-tillägget. Det tar ungefär fem minuter.",
+        "region": {
+          "title": "Välj din Zoho-region",
+          "hint": "Välj regionen där ditt Zoho-konto finns — den motsvarar adressen du loggar in på (t.ex. mail.zoho.eu)."
+        },
+        "redirect": {
+          "title": "Kopiera den godkända omdirigerings-URI:n (Redirect URI)",
+          "hint": "Du klistrar in adressen i Zoho API Console i nästa steg.",
+          "copy": "Kopiera",
+          "copied": "Kopierad",
+          "missing": "Omdirigerings-URI:n är inte tillgänglig just nu. Ladda om sidan."
+        },
+        "console": {
+          "title": "Skapa en klient i Zoho API Console",
+          "open": "Öppna Zoho API Console för din region (länk nedan) och logga in med ditt Zoho-konto.",
+          "addClient": "Klicka på ”Add Client” och välj ”Server-based Applications”.",
+          "fill": "Fyll i formuläret:",
+          "fieldName": "Client Name: valfritt namn, t.ex. butikens namn.",
+          "fieldHomepage": "Homepage URL: butikens webbadress.",
+          "fieldRedirect": "Authorized Redirect URIs: adressen du kopierade i steg 2.",
+          "create": "Klicka på ”Create”. Zoho visar då Client ID och Client Secret.",
+          "link": "Öppna Zoho API Console"
+        },
+        "client": {
+          "title": "Ange Client ID och Client Secret",
+          "clientId": "Client ID",
+          "clientSecret": "Client Secret",
+          "secretSaved": "En hemlighet är sparad — lämna tomt för att behålla den.",
+          "reauthHint": "Om du byter klient eller region senare måste du godkänna åtkomsten igen.",
+          "changedWarning": "Du har ändrat klienten eller regionen. När du sparar tas den nuvarande anslutningen bort och du måste godkänna åtkomsten igen.",
+          "save": "Spara klient",
+          "saved": "Klienten har sparats. Godkänn nu åtkomsten i steg 5.",
+          "saveFailed": "Det gick inte att spara klienten. Kontrollera värdena och försök igen."
+        },
+        "authorize": {
+          "title": "Godkänn åtkomst",
+          "hint": "Du skickas till Zoho för att godkänna åtkomsten och kommer sedan tillbaka hit.",
+          "needsClient": "Spara först ditt Client ID och Client Secret (steg 4).",
+          "saveFirst": "Spara dina ändringar i steg 4 innan du godkänner.",
+          "button": "Godkänn",
+          "reauthorize": "Godkänn igen",
+          "opening": "Öppnar Zoho…",
+          "failed": "Det gick inte att starta godkännandet hos Zoho. Försök igen."
+        }
+      }
     }
   },
   "components": {
@@ -5112,7 +5243,23 @@
     "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "En intern etikett kan inte ha en överordnad kollektion. Välj \"Ingen (toppnivå)\" eller gör den till en butikskollektion.",
     "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Den här kollektionen har underkollektioner och kan därför inte bli en intern etikett. Flytta eller ta bort underkollektionerna först.",
     "CREATOR_CATEGORY_PARENT_INTERNAL": "En intern etikett kan inte vara en överordnad kollektion. Välj en butikskollektion som överordnad.",
-    "PRIMARY_COLLECTION_INTERNAL": "En intern etikett kan inte vara den primära kollektionen. Välj en av de valda butikskollektionerna som primär."
+    "PRIMARY_COLLECTION_INTERNAL": "En intern etikett kan inte vara den primära kollektionen. Välj en av de valda butikskollektionerna som primär.",
+    "ZOHO_NOT_CONFIGURED": "Din Zoho-klient är inte konfigurerad än. Spara först Client ID och Client Secret (steg 4).",
+    "ZOHO_APP_DISABLED": "Appen Zoho Mail är avstängd. Slå på den på sidan Appar först.",
+    "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail är bara tillgängligt för fristående butiker.",
+    "ZOHO_STATE_INVALID": "Anslutningsbegäran har gått ut eller är inte längre giltig. Klicka på ”Anslut” igen.",
+    "ZOHO_OAUTH_DENIED": "Åtkomsten godkändes inte i Zoho. Klicka på ”Anslut” igen och godkänn begäran för att fortsätta.",
+    "ZOHO_TOKEN_EXCHANGE_FAILED": "Zoho godtog inte anslutningen. Kontrollera regionen, Client ID och Client Secret samt att Redirect URI i Zoho API Console stämmer exakt — och försök igen.",
+    "ZOHO_NO_ACCOUNTS": "Ingen brevlåda hittades för den här Zoho-inloggningen. Logga in med en Zoho-användare som har ett e-postkonto.",
+    "ZOHO_FROM_NOT_ALLOWED": "Adressen är inte tillåten som avsändare i ditt Zoho-konto. Välj en i listan eller uppdatera adresserna.",
+    "ZOHO_NOT_CONNECTED": "Zoho Mail är inte anslutet än. Anslut ditt Zoho-konto först.",
+    "ZOHO_SEND_FAILED": "Zoho kunde inte skicka mejlet. Kontrollera din brevlåda i Zoho och försök igen.",
+    "ZOHO_CLIENT_NOT_CONFIGURED": "Din Zoho-klient är inte konfigurerad än. Spara först Client ID och Client Secret (steg 4).",
+    "ZOHO_INVALID_REGION": "Den här Zoho-regionen stöds inte. Välj en av regionerna i listan.",
+    "ZOHO_INVALID_CLIENT": "Ange både Client ID och Client Secret från Zoho API-konsolen.",
+    "ZOHO_RECONNECT_REQUIRED": "Zoho godkänner inte längre den här kopplingen. Klicka på Auktorisera för att koppla igen.",
+    "ZOHO_API_ERROR": "Zoho Mail returnerade ett fel. Försök igen om en stund.",
+    "ZOHO_ATTACHMENT_TOO_LARGE": "En bilaga är större än 10 MB, så mejlet skickades från plattformens avsändare i stället."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -6165,7 +6312,8 @@
     },
     "via": {
       "store": "Butikens avsändare",
-      "platform": "Plattformens avsändare"
+      "platform": "Plattformens avsändare",
+      "zoho": "Zoho Mail"
     },
     "events": {
       "order_confirmation": "Orderbekräftelse",

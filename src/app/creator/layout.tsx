@@ -38,6 +38,7 @@ import {
   Import,
   PenTool,
   Rss,
+  AtSign,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -55,6 +56,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const personalizationEnabled = isAppEnabled(apps, 'personalization');
   const productionEnabled = isAppEnabled(apps, 'production');
   const feedsEnabled = isAppEnabled(apps, 'feeds');
+  const zohoMailEnabled = isAppEnabled(apps, 'zoho_mail');
   // Invoices stay reachable (read-only) while the app is merely available,
   // so issued documents remain accessible after it is switched off (L1).
   const invoicesVisible =
@@ -149,6 +151,10 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         // Feeds app: Google Merchant / Meta catalog feed URLs and settings.
         ...(feedsEnabled
           ? [{ label: t('feeds'), href: '/creator/feeds', icon: <Rss className="w-4 h-4" /> }]
+          : []),
+        // Zoho Mail app: send the store's emails from its own Zoho mailbox.
+        ...(zohoMailEnabled
+          ? [{ label: t('zohoMail'), href: '/creator/zoho-mail', icon: <AtSign className="w-4 h-4" /> }]
           : []),
         { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
       ],

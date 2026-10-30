@@ -21,7 +21,7 @@ interface EmailLogRow {
   subject: string;
   event: string | null;
   status: EmailLogStatus;
-  via: 'store' | 'platform' | null;
+  via: 'store' | 'platform' | 'zoho' | null;
   smtp_host: string | null;
   error: string | null;
   order_id: string | null;
