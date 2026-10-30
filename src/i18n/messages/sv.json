@@ -5203,7 +5203,10 @@
       "link": "Länkfärg",
       "linkAuto": "Auto (prisfärg)",
       "priceShadow": "Prisskuggans färg",
-      "none": "Ingen"
+      "none": "Ingen",
+      "priceBg": "Prismarkering",
+      "sale": "Färg på reaetikett",
+      "saleAuto": "Auto"
     },
     "fonts": "Teckensnitt",
     "headingFont": "Rubriktypsnitt",

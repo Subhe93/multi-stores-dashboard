@@ -5203,7 +5203,10 @@
       "link": "Link colour",
       "linkAuto": "Auto (price colour)",
       "priceShadow": "Price shadow colour",
-      "none": "None"
+      "none": "None",
+      "priceBg": "Price highlight",
+      "sale": "Sale badge colour",
+      "saleAuto": "Auto"
     },
     "fonts": "Fonts",
     "headingFont": "Heading font",

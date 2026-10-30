@@ -5203,7 +5203,10 @@
       "link": "Linkfarbe",
       "linkAuto": "Automatisch (Preisfarbe)",
       "priceShadow": "Preis-Schattenfarbe",
-      "none": "Keine"
+      "none": "Keine",
+      "priceBg": "Preis-Hervorhebung",
+      "sale": "Rabatt-Badge-Farbe",
+      "saleAuto": "Automatisch"
     },
     "fonts": "Schriftarten",
     "headingFont": "Überschriftenschrift",

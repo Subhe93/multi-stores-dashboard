@@ -5203,7 +5203,10 @@
       "link": "Bağlantı rengi",
       "linkAuto": "Otomatik (fiyat rengi)",
       "priceShadow": "Fiyat gölgesi rengi",
-      "none": "Yok"
+      "none": "Yok",
+      "priceBg": "Fiyat vurgusu",
+      "sale": "İndirim rozeti rengi",
+      "saleAuto": "Otomatik"
     },
     "fonts": "Yazı tipleri",
     "headingFont": "Başlık yazı tipi",

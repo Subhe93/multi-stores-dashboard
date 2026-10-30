@@ -5203,7 +5203,10 @@
       "link": "Couleur des liens",
       "linkAuto": "Auto (couleur des prix)",
       "priceShadow": "Couleur de l’ombre du prix",
-      "none": "Aucune"
+      "none": "Aucune",
+      "priceBg": "Surlignage du prix",
+      "sale": "Couleur du badge promo",
+      "saleAuto": "Auto"
     },
     "fonts": "Polices",
     "headingFont": "Police des titres",

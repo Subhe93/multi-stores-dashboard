@@ -47,7 +47,7 @@ const FONT_OPTIONS = GOOGLE_FONT_OPTIONS;
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 // Text-on-colour tokens; empty = automatic on the storefront (readable
 // contrast for the *Contrast keys, the primary colour for price).
-type TextColorKey = 'primaryContrast' | 'accentContrast' | 'price' | 'priceShadow' | 'link';
+type TextColorKey = 'primaryContrast' | 'accentContrast' | 'price' | 'priceBg' | 'priceShadow' | 'sale' | 'link';
 
 // Color token keys (used as logic + theme token keys) paired with a default
 // placeholder. Human-readable labels come from the translator, keyed by token.
@@ -60,11 +60,13 @@ const COLOR_FIELDS: { key: ColorKey; placeholder: string }[] = [
   { key: 'text', placeholder: '#111827' },
 ];
 
-const TEXT_COLOR_FIELDS: { key: TextColorKey; placeholderKey: 'color.auto' | 'color.priceAuto' | 'color.linkAuto' | 'color.none' }[] = [
+const TEXT_COLOR_FIELDS: { key: TextColorKey; placeholderKey: 'color.auto' | 'color.priceAuto' | 'color.linkAuto' | 'color.none' | 'color.saleAuto' }[] = [
   { key: 'primaryContrast', placeholderKey: 'color.auto' },
   { key: 'accentContrast', placeholderKey: 'color.auto' },
   { key: 'price', placeholderKey: 'color.priceAuto' },
+  { key: 'priceBg', placeholderKey: 'color.none' },
   { key: 'priceShadow', placeholderKey: 'color.none' },
+  { key: 'sale', placeholderKey: 'color.saleAuto' },
   { key: 'link', placeholderKey: 'color.linkAuto' },
 ];
 
