@@ -328,7 +328,14 @@
     "designer": "Designer",
     "production": "Produktion",
     "feeds": "Flöden",
-    "zohoMail": "Zoho Mail"
+    "zohoMail": "Zoho Mail",
+    "home": "Hem",
+    "discounts": "Rabatter",
+    "finances": "Ekonomi",
+    "onlineStore": "Webbutik",
+    "appsGroup": "Appar",
+    "manageApps": "Hantera appar",
+    "notifications": "Aviseringar"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -6351,5 +6358,24 @@
     "sending": "Skickar…",
     "testSent": "Test skickat till {email}",
     "testFailed": "Testmejlet kunde inte skickas."
+  },
+  "shell": {
+    "mainNavigation": "Huvudnavigering",
+    "closeMenu": "Stäng navigeringsmenyn",
+    "openMenu": "Öppna navigeringsmenyn",
+    "brandHome": "{name} — gå till startsidan",
+    "searchOpen": "Öppna sökning",
+    "searchPlaceholder": "Sök",
+    "searchInputPlaceholder": "Sök bland sidor och inställningar…",
+    "searchTitle": "Sök",
+    "searchDescription": "Gå till valfri sida eller inställning i din panel.",
+    "searchEmpty": "Inga matchande sidor hittades.",
+    "searchGroupNavigation": "Navigering",
+    "searchGroupMore": "Mer",
+    "searchHintNavigate": "för att navigera",
+    "searchHintOpen": "för att öppna",
+    "searchHintClose": "för att stänga",
+    "userMenuOpen": "Kontomeny för {name}",
+    "language": "Språk"
   }
 }

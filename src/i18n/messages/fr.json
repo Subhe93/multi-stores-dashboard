@@ -328,7 +328,14 @@
     "designer": "Designer",
     "production": "Production",
     "feeds": "Flux",
-    "zohoMail": "Zoho Mail"
+    "zohoMail": "Zoho Mail",
+    "home": "Accueil",
+    "discounts": "Réductions",
+    "finances": "Finances",
+    "onlineStore": "Boutique en ligne",
+    "appsGroup": "Applications",
+    "manageApps": "Gérer les applications",
+    "notifications": "Notifications"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -6351,5 +6358,24 @@
     "sending": "Envoi…",
     "testSent": "Test envoyé à {email}",
     "testFailed": "L'e-mail de test n'a pas pu être envoyé."
+  },
+  "shell": {
+    "mainNavigation": "Navigation principale",
+    "closeMenu": "Fermer le menu de navigation",
+    "openMenu": "Ouvrir le menu de navigation",
+    "brandHome": "{name} — aller à l’accueil",
+    "searchOpen": "Ouvrir la recherche",
+    "searchPlaceholder": "Rechercher",
+    "searchInputPlaceholder": "Rechercher des pages et des paramètres…",
+    "searchTitle": "Rechercher",
+    "searchDescription": "Accédez à n’importe quelle page ou paramètre du tableau de bord.",
+    "searchEmpty": "Aucune page correspondante.",
+    "searchGroupNavigation": "Navigation",
+    "searchGroupMore": "Plus",
+    "searchHintNavigate": "pour naviguer",
+    "searchHintOpen": "pour ouvrir",
+    "searchHintClose": "pour fermer",
+    "userMenuOpen": "Menu du compte de {name}",
+    "language": "Langue"
   }
 }

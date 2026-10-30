@@ -328,7 +328,14 @@
     "designer": "Designer",
     "production": "Production",
     "feeds": "Feeds",
-    "zohoMail": "Zoho Mail"
+    "zohoMail": "Zoho Mail",
+    "home": "Home",
+    "discounts": "Discounts",
+    "finances": "Finances",
+    "onlineStore": "Online store",
+    "appsGroup": "Apps",
+    "manageApps": "Manage apps",
+    "notifications": "Notifications"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -6351,5 +6358,24 @@
     "sending": "Sending…",
     "testSent": "Test sent to {email}",
     "testFailed": "The test email could not be sent."
+  },
+  "shell": {
+    "mainNavigation": "Main navigation",
+    "closeMenu": "Close navigation menu",
+    "openMenu": "Open navigation menu",
+    "brandHome": "{name} — go to home",
+    "searchOpen": "Open search",
+    "searchPlaceholder": "Search",
+    "searchInputPlaceholder": "Search pages and settings…",
+    "searchTitle": "Search",
+    "searchDescription": "Jump to any page or setting in your dashboard.",
+    "searchEmpty": "No matching pages found.",
+    "searchGroupNavigation": "Navigation",
+    "searchGroupMore": "More",
+    "searchHintNavigate": "to navigate",
+    "searchHintOpen": "to open",
+    "searchHintClose": "to close",
+    "userMenuOpen": "Account menu for {name}",
+    "language": "Language"
   }
 }

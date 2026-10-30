@@ -328,7 +328,14 @@
     "designer": "المصمم",
     "production": "الإنتاج",
     "feeds": "الخلاصات",
-    "zohoMail": "Zoho Mail"
+    "zohoMail": "Zoho Mail",
+    "home": "الرئيسية",
+    "discounts": "الخصومات",
+    "finances": "الماليات",
+    "onlineStore": "المتجر الإلكتروني",
+    "appsGroup": "التطبيقات",
+    "manageApps": "إدارة التطبيقات",
+    "notifications": "الإشعارات"
   },
   "table": {
     "searchPlaceholder": "بحث...",
@@ -6351,5 +6358,24 @@
     "sending": "جارٍ الإرسال…",
     "testSent": "أُرسلت التجربة إلى {email}",
     "testFailed": "تعذّر إرسال رسالة التجربة."
+  },
+  "shell": {
+    "mainNavigation": "التنقل الرئيسي",
+    "closeMenu": "إغلاق قائمة التنقل",
+    "openMenu": "فتح قائمة التنقل",
+    "brandHome": "{name} — الذهاب إلى الرئيسية",
+    "searchOpen": "فتح البحث",
+    "searchPlaceholder": "بحث",
+    "searchInputPlaceholder": "ابحث في الصفحات والإعدادات…",
+    "searchTitle": "بحث",
+    "searchDescription": "انتقل إلى أي صفحة أو إعداد في لوحة التحكم.",
+    "searchEmpty": "لا توجد صفحات مطابقة.",
+    "searchGroupNavigation": "التنقل",
+    "searchGroupMore": "المزيد",
+    "searchHintNavigate": "للتنقل",
+    "searchHintOpen": "للفتح",
+    "searchHintClose": "للإغلاق",
+    "userMenuOpen": "قائمة الحساب لـ {name}",
+    "language": "اللغة"
   }
 }

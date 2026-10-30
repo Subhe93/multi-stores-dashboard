@@ -673,7 +673,7 @@ export function TemplateEditor({ id, token }: { id: string; token: string }) {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_440px]">
         {/* Preview */}
-        <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+        <div className="space-y-3 lg:sticky lg:top-20 lg:self-start">
           <Card className="shadow-none">
             <CardContent className="space-y-3 pt-4">
               <EditorCanvas

@@ -837,7 +837,7 @@ export default function EditCustomProduct() {
       </div>
 
       {/* ═══ RIGHT COLUMN ═══ (sticky sidebar) */}
-      <div className="lg:sticky lg:top-4 space-y-4">
+      <div className="lg:sticky lg:top-20 space-y-4">
 
         {/* Status & Review */}
         <Card className="shadow-none">

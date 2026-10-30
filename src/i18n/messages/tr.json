@@ -328,7 +328,14 @@
     "designer": "Tasarımcı",
     "production": "Üretim",
     "feeds": "Feed'ler",
-    "zohoMail": "Zoho Mail"
+    "zohoMail": "Zoho Mail",
+    "home": "Ana sayfa",
+    "discounts": "İndirimler",
+    "finances": "Finans",
+    "onlineStore": "Online mağaza",
+    "appsGroup": "Uygulamalar",
+    "manageApps": "Uygulamaları yönet",
+    "notifications": "Bildirimler"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -6351,5 +6358,24 @@
     "sending": "Gönderiliyor…",
     "testSent": "Test {email} adresine gönderildi",
     "testFailed": "Test e-postası gönderilemedi."
+  },
+  "shell": {
+    "mainNavigation": "Ana gezinme",
+    "closeMenu": "Gezinme menüsünü kapat",
+    "openMenu": "Gezinme menüsünü aç",
+    "brandHome": "{name} — ana sayfaya git",
+    "searchOpen": "Aramayı aç",
+    "searchPlaceholder": "Ara",
+    "searchInputPlaceholder": "Sayfalarda ve ayarlarda ara…",
+    "searchTitle": "Ara",
+    "searchDescription": "Panelinizdeki herhangi bir sayfaya veya ayara gidin.",
+    "searchEmpty": "Eşleşen sayfa bulunamadı.",
+    "searchGroupNavigation": "Gezinme",
+    "searchGroupMore": "Diğer",
+    "searchHintNavigate": "gezinmek için",
+    "searchHintOpen": "açmak için",
+    "searchHintClose": "kapatmak için",
+    "userMenuOpen": "{name} hesap menüsü",
+    "language": "Dil"
   }
 }

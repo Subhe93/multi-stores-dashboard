@@ -1,17 +1,17 @@
 'use client';
 
-import { AppSidebar } from '@/components/layout/Sidebar';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import type { ShellNav } from '@/components/layout/nav-types';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
 import { useTranslations } from 'next-intl';
 import {
-  LayoutDashboard,
+  Home,
   Package,
   ClipboardList,
   Truck,
-  DollarSign,
+  Landmark,
   Settings,
   CheckSquare,
   Store as StoreIcon,
@@ -22,46 +22,42 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
   const platformName = usePlatformName();
   const t = useTranslations('nav');
 
-  const providerNav = [
-    {
-      title: t('main'),
-      items: [
-        { label: t('overview'), href: '/provider', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { label: t('products'), href: '/provider/products', icon: <Package className="w-4 h-4" /> },
-        { label: t('stores'), href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
-        { label: t('orders'), href: '/provider/orders', icon: <ClipboardList className="w-4 h-4" /> },
-        { label: t('reviews'), href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('manage'),
-      items: [
-        { label: t('shipping'), href: '/provider/shipping', icon: <Truck className="w-4 h-4" /> },
-        { label: t('earnings'), href: '/provider/earnings', icon: <DollarSign className="w-4 h-4" /> },
-        { label: t('settings'), href: '/provider/settings', icon: <Settings className="w-4 h-4" /> },
-      ],
-    },
-  ];
+  const nav: ShellNav = {
+    groups: [
+      {
+        id: 'main',
+        items: [
+          { label: t('home'), href: '/provider', icon: <Home className="w-4 h-4" />, exact: true },
+          { label: t('orders'), href: '/provider/orders', icon: <ClipboardList className="w-4 h-4" /> },
+          { label: t('products'), href: '/provider/products', icon: <Package className="w-4 h-4" /> },
+          // Custom-product approval queue; kept top-level so pending work stays visible.
+          { label: t('reviews'), href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
+          { label: t('stores'), href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
+          { label: t('shipping'), href: '/provider/shipping', icon: <Truck className="w-4 h-4" /> },
+          { label: t('finances'), href: '/provider/earnings', icon: <Landmark className="w-4 h-4" /> },
+        ],
+      },
+    ],
+    footerItems: [
+      { label: t('settings'), href: '/provider/settings', icon: <Settings className="w-4 h-4" /> },
+    ],
+  };
 
   return (
     <ProtectedRoute allowedRoles={['PROVIDER']}>
-      <div className="flex min-h-screen bg-zinc-50">
-        <AppSidebar
-          groups={providerNav}
-          title={platformName}
-          subtitle={t('providerDashboard')}
-          role="Provider"
-          userLabel={user?.provider?.company_name || user?.email || 'Provider'}
-          onLogout={logout}
-        />
-        <div className="flex-1 flex flex-col min-w-0">
-          <DashboardHeader
-            userName={user?.provider?.company_name || user?.email || 'Provider'}
-            userRole="PROVIDER"
-          />
-          <main className="flex-1 p-6">{children}</main>
-        </div>
-      </div>
+      <AppShell
+        nav={nav}
+        user={{
+          label: user?.provider?.company_name || user?.email || 'Provider',
+          email: user?.email,
+          role: 'PROVIDER',
+          roleLabel: t('providerDashboard'),
+        }}
+        brandTitle={platformName}
+        onLogout={logout}
+      >
+        {children}
+      </AppShell>
     </ProtectedRoute>
   );
 }

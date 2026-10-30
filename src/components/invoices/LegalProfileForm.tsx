@@ -371,7 +371,7 @@ export function LegalProfileForm({ token, profile, onSaved }: LegalProfileFormPr
 
       {/* Completeness checklist + save, sticky beside the form on wide screens. */}
       <div className="space-y-4">
-        <Card className="shadow-none lg:sticky lg:top-4">
+        <Card className="shadow-none lg:sticky lg:top-20">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">{t('checklistTitle')}</CardTitle>
           </CardHeader>

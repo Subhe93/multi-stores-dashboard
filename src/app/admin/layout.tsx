@@ -1,26 +1,20 @@
 'use client';
 
-import { AppSidebar } from '@/components/layout/Sidebar';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import type { ShellNav } from '@/components/layout/nav-types';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
 import { useTranslations } from 'next-intl';
 import {
-  LayoutDashboard,
+  Home,
   Users,
-  Factory,
-  Palette,
-  FolderTree,
-  SlidersHorizontal,
   ClipboardList,
-  DollarSign,
-  Percent,
+  Landmark,
   Settings,
   Package,
   Scale,
   Mail,
-  MailCheck,
   BookOpen,
   DatabaseBackup,
   Blocks,
@@ -31,62 +25,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const platformName = usePlatformName();
   const t = useTranslations('nav');
 
-  const adminNav = [
-    {
-      title: t('platform'),
-      items: [
-        { label: t('overview'), href: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { label: t('users'), href: '/admin/users', icon: <Users className="w-4 h-4" /> },
-        { label: t('backups'), href: '/admin/backups', icon: <DatabaseBackup className="w-4 h-4" /> },
-        { label: t('providers'), href: '/admin/providers', icon: <Factory className="w-4 h-4" /> },
-        { label: t('creators'), href: '/admin/creators', icon: <Palette className="w-4 h-4" /> },
-        { label: t('storeApps'), href: '/admin/store-apps', icon: <Blocks className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('catalog'),
-      items: [
-        { label: t('products'), href: '/admin/products', icon: <Package className="w-4 h-4" /> },
-        { label: t('categories'), href: '/admin/categories', icon: <FolderTree className="w-4 h-4" /> },
-        { label: t('attributes'), href: '/admin/attributes', icon: <SlidersHorizontal className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('operations'),
-      items: [
-        { label: t('orders'), href: '/admin/orders', icon: <ClipboardList className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('finance'),
-      items: [
-        { label: t('commissions'), href: '/admin/commissions', icon: <DollarSign className="w-4 h-4" /> },
-        { label: t('taxes'), href: '/admin/taxes', icon: <Percent className="w-4 h-4" /> },
-        { label: t('settings'), href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
-        { label: t('legalPages'), href: '/admin/legal', icon: <Scale className="w-4 h-4" /> },
-        { label: t('notificationTemplates'), href: '/admin/notifications', icon: <Mail className="w-4 h-4" /> },
-        { label: t('emailLog'), href: '/admin/email-log', icon: <MailCheck className="w-4 h-4" /> },
-        { label: t('guide'), href: '/admin/guide', icon: <BookOpen className="w-4 h-4" /> },
-      ],
-    },
-  ];
+  const nav: ShellNav = {
+    groups: [
+      {
+        id: 'main',
+        items: [
+          { label: t('home'), href: '/admin', icon: <Home className="w-4 h-4" />, exact: true },
+          { label: t('orders'), href: '/admin/orders', icon: <ClipboardList className="w-4 h-4" /> },
+          {
+            label: t('products'),
+            href: '/admin/products',
+            icon: <Package className="w-4 h-4" />,
+            children: [
+              { label: t('categories'), href: '/admin/categories' },
+              { label: t('attributes'), href: '/admin/attributes' },
+            ],
+          },
+          // All accounts; providers and creators are the two business profiles.
+          {
+            label: t('users'),
+            href: '/admin/users',
+            icon: <Users className="w-4 h-4" />,
+            children: [
+              { label: t('providers'), href: '/admin/providers' },
+              { label: t('creators'), href: '/admin/creators' },
+            ],
+          },
+          {
+            label: t('finances'),
+            href: '/admin/commissions',
+            icon: <Landmark className="w-4 h-4" />,
+            children: [{ label: t('taxes'), href: '/admin/taxes' }],
+          },
+          { label: t('storeApps'), href: '/admin/store-apps', icon: <Blocks className="w-4 h-4" /> },
+          {
+            label: t('notifications'),
+            href: '/admin/notifications',
+            icon: <Mail className="w-4 h-4" />,
+            children: [{ label: t('emailLog'), href: '/admin/email-log' }],
+          },
+          { label: t('legalPages'), href: '/admin/legal', icon: <Scale className="w-4 h-4" /> },
+        ],
+      },
+    ],
+    footerItems: [
+      { label: t('backups'), href: '/admin/backups', icon: <DatabaseBackup className="w-4 h-4" /> },
+      { label: t('guide'), href: '/admin/guide', icon: <BookOpen className="w-4 h-4" /> },
+      { label: t('settings'), href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
+    ],
+  };
 
   return (
     <ProtectedRoute allowedRoles={['ADMIN']}>
-      <div className="flex min-h-screen bg-zinc-50">
-        <AppSidebar
-          groups={adminNav}
-          title={platformName}
-          subtitle={t('adminPanel')}
-          role="Admin"
-          userLabel={user?.email || 'Admin'}
-          onLogout={logout}
-        />
-        <div className="flex-1 flex flex-col min-w-0">
-          <DashboardHeader userName={user?.email || 'Admin'} userRole="ADMIN" />
-          <main className="flex-1 p-6">{children}</main>
-        </div>
-      </div>
+      <AppShell
+        nav={nav}
+        user={{
+          label: user?.email || 'Admin',
+          email: user?.email,
+          role: 'ADMIN',
+          roleLabel: t('adminPanel'),
+        }}
+        brandTitle={platformName}
+        onLogout={logout}
+      >
+        {children}
+      </AppShell>
     </ProtectedRoute>
   );
 }

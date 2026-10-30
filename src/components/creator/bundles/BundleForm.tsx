@@ -751,7 +751,7 @@ export function BundleForm({ mode, initial }: Props) {
           </Card>
         </div>
 
-        <aside className="lg:sticky lg:top-6 lg:self-start">
+        <aside className="lg:sticky lg:top-20 lg:self-start">
           <BundlePreview
             offers={previewOffers}
             primaryLocale={primaryLocale}

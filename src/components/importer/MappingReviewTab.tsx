@@ -869,7 +869,7 @@ function MappingForm({
       </div>
 
       {/* Side panel: save */}
-      <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+      <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
         <Card className="shadow-none">
           <CardContent className="space-y-3 py-4">
             <p className="text-sm font-medium">{t('saveTitle')}</p>

@@ -153,7 +153,7 @@ export default function BrowseProviderCatalogPage() {
       <div className="flex gap-6">
         {/* Category Sidebar */}
         <div className="hidden lg:block w-52 shrink-0">
-          <div className="sticky top-6 space-y-1">
+          <div className="sticky top-20 space-y-1">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-2">{t('browseCatalog.categories')}</p>
             <button
               type="button"

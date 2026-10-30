@@ -1,8 +1,8 @@
 'use client';
 
-import { AppSidebar } from '@/components/layout/Sidebar';
-import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import type { NavItem, ShellNav } from '@/components/layout/nav-types';
 import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
@@ -11,25 +11,16 @@ import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useImporterHistory } from '@/lib/useImporterHistory';
 import { useTranslations } from 'next-intl';
 import {
-  LayoutDashboard,
+  Home,
   Store,
   Package,
-  Layers,
   ClipboardList,
   Tag,
-  DollarSign,
-  Percent,
+  Landmark,
   FileText,
   Settings,
-  Languages,
-  Plus,
-  FolderTree,
-  Sparkles,
-  ListTree,
-  LayoutTemplate,
   Truck,
   Mail,
-  Palette,
   Blocks,
   Globe,
   Building2,
@@ -71,116 +62,132 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const designerVisible =
     isAppEnabled(apps, 'designer') || !!apps?.some((a) => a.key === 'designer' && a.available);
 
-  const creatorNav = [
-    {
-      title: t('main'),
-      items: [
-        { label: t('overview'), href: '/creator', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { label: t('myStore'), href: '/creator/store', icon: <Store className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('catalog'),
-      items: [
-        // Marketplace-only entries are hidden for independent stores, which
-        // get their own-products list instead.
-        ...(isIndependent
-          ? [{ label: t('myProducts'), href: '/creator/products/own', icon: <Package className="w-4 h-4" /> }]
-          : [{ label: t('exploreProviderProducts'), href: '/creator/products/browse', icon: <Package className="w-4 h-4" /> }]),
-        { label: t('addProduct'), href: '/creator/products/own/new', icon: <Plus className="w-4 h-4" /> },
-        ...(isIndependent
-          ? []
-          : [{ label: t('products'), href: '/creator/custom-products', icon: <Layers className="w-4 h-4" /> }]),
-        { label: t('collections'), href: '/creator/categories', icon: <FolderTree className="w-4 h-4" /> },
-        { label: t('shipping'), href: '/creator/shipping', icon: <Truck className="w-4 h-4" /> },
-        // Markets app: per-country domains, currencies and locales.
-        ...(marketsEnabled
-          ? [{ label: t('markets'), href: '/creator/markets', icon: <Globe className="w-4 h-4" /> }]
-          : []),
-        // Personalization app: settings, presets and the field library.
-        ...(personalizationEnabled
-          ? [{ label: t('personalization'), href: '/creator/personalization', icon: <PenLine className="w-4 h-4" /> }]
-          : []),
-        // Designer app: design templates, fonts, print queue and settings.
-        ...(designerVisible
-          ? [{ label: t('designer'), href: '/creator/designer', icon: <PenTool className="w-4 h-4" /> }]
-          : []),
-      ],
-    },
-    {
-      title: t('sales'),
-      items: [
-        { label: t('orders'), href: '/creator/orders', icon: <ClipboardList className="w-4 h-4" /> },
-        // Production app: per-order production queue and checklist settings.
-        ...(productionEnabled
-          ? [{ label: t('production'), href: '/creator/production', icon: <ListChecks className="w-4 h-4" /> }]
-          : []),
-        // Invoices app: issued invoices/credit notes, backlog, seller profile.
-        ...(invoicesVisible
-          ? [{ label: t('invoices'), href: '/creator/invoices', icon: <FileText className="w-4 h-4" /> }]
-          : []),
-        { label: t('promotions'), href: '/creator/promotions', icon: <Tag className="w-4 h-4" /> },
-        { label: t('bundles'), href: '/creator/bundles', icon: <Layers className="w-4 h-4" /> },
-        { label: t('earnings'), href: '/creator/earnings', icon: <DollarSign className="w-4 h-4" /> },
-        { label: t('taxes'), href: '/creator/taxes', icon: <Percent className="w-4 h-4" /> },
-      ],
-    },
-    {
-      title: t('store'),
-      items: [
-        { label: t('themes'), href: '/creator/themes', icon: <Palette className="w-4 h-4" /> },
-        { label: t('templates'), href: '/creator/templates', icon: <LayoutTemplate className="w-4 h-4" /> },
-        { label: t('pages'), href: '/creator/pages', icon: <FileText className="w-4 h-4" /> },
-        { label: t('menus'), href: '/creator/menus', icon: <ListTree className="w-4 h-4" /> },
-        { label: t('landingPages'), href: '/creator/landing-pages', icon: <Sparkles className="w-4 h-4" /> },
-        { label: t('translations'), href: '/creator/translations', icon: <Languages className="w-4 h-4" /> },
-        // Every store type: order notifications address + delivery log. The
-        // own-sender and template sections inside are independent-only.
-        { label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> },
-        // Optional store apps the admin made available; the creator switches
-        // them on here and each enabled app gets its own page.
-        { label: t('apps'), href: '/creator/apps', icon: <Blocks className="w-4 h-4" /> },
-        // Importer app: WooCommerce sources, import runs and redirects.
-        ...(importerVisible
-          ? [{ label: t('importer'), href: '/creator/importer', icon: <Import className="w-4 h-4" /> }]
-          : []),
-        // B2B app: business-buyer settings, reverse charge, EC sales list.
-        ...(b2bEnabled
-          ? [{ label: t('b2b'), href: '/creator/b2b', icon: <Building2 className="w-4 h-4" /> }]
-          : []),
-        // Feeds app: Google Merchant / Meta catalog feed URLs and settings.
-        ...(feedsEnabled
-          ? [{ label: t('feeds'), href: '/creator/feeds', icon: <Rss className="w-4 h-4" /> }]
-          : []),
-        // Zoho Mail app: send the store's emails from its own Zoho mailbox.
-        ...(zohoMailEnabled
-          ? [{ label: t('zohoMail'), href: '/creator/zoho-mail', icon: <AtSign className="w-4 h-4" /> }]
-          : []),
-        { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
-      ],
-    },
+  // Products section: the parent links to the store's own product list.
+  // Marketplace-only entries are hidden for independent stores, which get
+  // their own-products list instead.
+  const productsItem: NavItem = isIndependent
+    ? {
+        label: t('products'),
+        href: '/creator/products/own',
+        icon: <Package className="w-4 h-4" />,
+        children: [
+          { label: t('addProduct'), href: '/creator/products/own/new' },
+          { label: t('collections'), href: '/creator/categories' },
+          { label: t('bundles'), href: '/creator/bundles' },
+        ],
+      }
+    : {
+        label: t('products'),
+        href: '/creator/custom-products',
+        icon: <Package className="w-4 h-4" />,
+        children: [
+          { label: t('exploreProviderProducts'), href: '/creator/products/browse' },
+          { label: t('addProduct'), href: '/creator/products/own/new' },
+          { label: t('collections'), href: '/creator/categories' },
+          { label: t('bundles'), href: '/creator/bundles' },
+        ],
+      };
+
+  // Store apps, Shopify style: every app page lives in the Apps group.
+  const appItems: NavItem[] = [
+    // Optional store apps the admin made available; the creator switches
+    // them on here and each enabled app gets its own page.
+    { label: t('manageApps'), href: '/creator/apps', icon: <Blocks className="w-4 h-4" /> },
+    // Markets app: per-country domains, currencies and locales.
+    ...(marketsEnabled
+      ? [{ label: t('markets'), href: '/creator/markets', icon: <Globe className="w-4 h-4" /> }]
+      : []),
+    // Production app: per-order production queue and checklist settings.
+    ...(productionEnabled
+      ? [{ label: t('production'), href: '/creator/production', icon: <ListChecks className="w-4 h-4" /> }]
+      : []),
+    // Invoices app: issued invoices/credit notes, backlog, seller profile.
+    ...(invoicesVisible
+      ? [{ label: t('invoices'), href: '/creator/invoices', icon: <FileText className="w-4 h-4" /> }]
+      : []),
+    // Personalization app: settings, presets and the field library.
+    ...(personalizationEnabled
+      ? [{ label: t('personalization'), href: '/creator/personalization', icon: <PenLine className="w-4 h-4" /> }]
+      : []),
+    // Designer app: design templates, fonts, print queue and settings.
+    ...(designerVisible
+      ? [{ label: t('designer'), href: '/creator/designer', icon: <PenTool className="w-4 h-4" /> }]
+      : []),
+    // Importer app: WooCommerce sources, import runs and redirects.
+    ...(importerVisible
+      ? [{ label: t('importer'), href: '/creator/importer', icon: <Import className="w-4 h-4" /> }]
+      : []),
+    // B2B app: business-buyer settings, reverse charge, EC sales list.
+    ...(b2bEnabled
+      ? [{ label: t('b2b'), href: '/creator/b2b', icon: <Building2 className="w-4 h-4" /> }]
+      : []),
+    // Feeds app: Google Merchant / Meta catalog feed URLs and settings.
+    ...(feedsEnabled
+      ? [{ label: t('feeds'), href: '/creator/feeds', icon: <Rss className="w-4 h-4" /> }]
+      : []),
+    // Zoho Mail app: send the store's emails from its own Zoho mailbox.
+    ...(zohoMailEnabled
+      ? [{ label: t('zohoMail'), href: '/creator/zoho-mail', icon: <AtSign className="w-4 h-4" /> }]
+      : []),
   ];
+
+  const nav: ShellNav = {
+    groups: [
+      {
+        id: 'main',
+        items: [
+          { label: t('home'), href: '/creator', icon: <Home className="w-4 h-4" />, exact: true },
+          { label: t('orders'), href: '/creator/orders', icon: <ClipboardList className="w-4 h-4" /> },
+          productsItem,
+          { label: t('discounts'), href: '/creator/promotions', icon: <Tag className="w-4 h-4" /> },
+          {
+            label: t('finances'),
+            href: '/creator/earnings',
+            icon: <Landmark className="w-4 h-4" />,
+            children: [{ label: t('taxes'), href: '/creator/taxes' }],
+          },
+          {
+            label: t('onlineStore'),
+            href: '/creator/store',
+            icon: <Store className="w-4 h-4" />,
+            children: [
+              { label: t('themes'), href: '/creator/themes' },
+              { label: t('templates'), href: '/creator/templates' },
+              { label: t('pages'), href: '/creator/pages' },
+              { label: t('menus'), href: '/creator/menus' },
+              { label: t('landingPages'), href: '/creator/landing-pages' },
+              { label: t('translations'), href: '/creator/translations' },
+            ],
+          },
+          { label: t('shipping'), href: '/creator/shipping', icon: <Truck className="w-4 h-4" /> },
+          // Every store type: order notifications address + delivery log. The
+          // own-sender and template sections inside are independent-only.
+          { label: t('email'), href: '/creator/email', icon: <Mail className="w-4 h-4" /> },
+        ],
+      },
+      { id: 'apps', title: t('appsGroup'), items: appItems },
+    ],
+    footerItems: [
+      { label: t('settings'), href: '/creator/settings', icon: <Settings className="w-4 h-4" /> },
+    ],
+  };
 
   return (
     <ProtectedRoute allowedRoles={['CREATOR']}>
-      <div className="flex min-h-screen bg-zinc-50">
-        <AppSidebar
-          groups={creatorNav}
-          title={platformName}
-          subtitle={t('creatorDashboard')}
-          role="Creator"
-          userLabel={user?.creator?.display_name || user?.email || 'Creator'}
-          onLogout={logout}
-        />
-        <div className="flex-1 flex flex-col min-w-0">
-          <DashboardHeader
-            userName={user?.creator?.display_name || user?.email || 'Creator'}
-            userRole="CREATOR"
-            extras={<StoreLinkButton />}
-          />
-          <main className="flex-1 p-6">{children}</main>
-        </div>
-      </div>
+      <AppShell
+        nav={nav}
+        user={{
+          label: user?.creator?.display_name || user?.email || 'Creator',
+          email: user?.email,
+          role: 'CREATOR',
+          roleLabel: t('creatorDashboard'),
+        }}
+        brandTitle={platformName}
+        onLogout={logout}
+        headerExtras={<StoreLinkButton />}
+      >
+        {children}
+      </AppShell>
     </ProtectedRoute>
   );
 }

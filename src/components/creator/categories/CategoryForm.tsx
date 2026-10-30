@@ -628,7 +628,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header — sticky inside the page */}
-      <div className="sticky top-0 z-10 -mx-6 px-6 py-3 bg-zinc-50/95 backdrop-blur border-b">
+      <div className="sticky top-14 z-10 -mx-4 px-4 sm:-mx-6 sm:px-6 py-3 bg-zinc-50/95 backdrop-blur border-b">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">
