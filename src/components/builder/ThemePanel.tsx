@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ThemeSwitcher } from '@/components/creator/ThemeSwitcher';
 import { ThemeCustomizer, type ThemeTokenCustomizations } from './ThemeCustomizer';
+import { AccountPagesCustomizer, type AuthPagesConfig } from './AccountPagesCustomizer';
 import { findTheme } from '@/lib/themes-catalog';
 import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 import { cn } from '@/lib/utils';
@@ -442,6 +443,17 @@ export function ThemePanel({
               />
             </div>
           </div>
+        </Group>
+
+        {/* ── Account pages (login / register) ──────────── */}
+        <Group title={tb('accountPages.title')} defaultOpen={false}>
+          <AccountPagesCustomizer
+            value={c.auth as AuthPagesConfig | undefined}
+            onChange={(auth) => set({ auth })}
+            token={token}
+            apiBase={apiBase}
+            locale={primaryLocale}
+          />
         </Group>
 
         {/* ── Logo & Favicon ────────────────────────────── */}

@@ -5194,7 +5194,12 @@
       "accent": "Akzent",
       "background": "Hintergrund",
       "surface": "Oberfläche",
-      "text": "Text"
+      "text": "Text",
+      "primaryContrast": "Buttontext auf Primärfarbe",
+      "accentContrast": "Badge-Text auf Akzentfarbe",
+      "price": "Preis- & Linkfarbe",
+      "auto": "Automatisch",
+      "priceAuto": "Automatisch (Primär)"
     },
     "fonts": "Schriftarten",
     "headingFont": "Überschriftenschrift",
@@ -5361,7 +5366,23 @@
     "presetOccasionName": "Anlass-Seite",
     "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines internen Labels, ein SEO-Textblock, dann Fragen und Antworten — das Layout einer Geschenkanlass-Seite.",
     "internalLabelsGroup": "Interne Labels",
-    "missingCollection": "(Kollektion fehlt)"
+    "missingCollection": "(Kollektion fehlt)",
+    "textColors": "Text auf Farben",
+    "textColorsHint": "Leer lassen für automatisch: dunkler Text auf hellen Farben, weißer auf dunklen. Preis- & Linkfarbe leer = Primärfarbe.",
+    "accountPages": {
+      "title": "Kontoseiten",
+      "hint": "Hintergrund hinter den Formularen für Anmeldung, Registrierung und Passwort-Zurücksetzung.",
+      "backgroundImage": "Hintergrundbild",
+      "backgroundColor": "Hintergrundfarbe",
+      "imageFocus": "Bildausschnitt",
+      "position": {
+        "top": "Oben",
+        "center": "Mitte",
+        "bottom": "Unten"
+      },
+      "overlay": "Bild abdunkeln",
+      "previewHint": "Änderungen werden automatisch gespeichert. Öffne /auth/login in deinem Shop, um sie zu sehen."
+    }
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

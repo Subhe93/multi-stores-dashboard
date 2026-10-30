@@ -5194,7 +5194,12 @@
       "accent": "Accent",
       "background": "Background",
       "surface": "Surface",
-      "text": "Text"
+      "text": "Text",
+      "primaryContrast": "Button text on primary",
+      "accentContrast": "Badge text on accent",
+      "price": "Price & link colour",
+      "auto": "Auto",
+      "priceAuto": "Auto (primary)"
     },
     "fonts": "Fonts",
     "headingFont": "Heading font",
@@ -5361,7 +5366,23 @@
     "presetOccasionName": "Occasion page",
     "presetOccasionDesc": "Hero banner, the products of one collection or internal label, an SEO text block, then questions and answers — the layout of a gift-occasion page.",
     "internalLabelsGroup": "Internal labels",
-    "missingCollection": "(missing collection)"
+    "missingCollection": "(missing collection)",
+    "textColors": "Text on colours",
+    "textColorsHint": "Leave empty for automatic: dark text on light colours, white on dark ones. Price & link colour empty = primary colour.",
+    "accountPages": {
+      "title": "Account pages",
+      "hint": "Background behind the login, sign-up and password reset forms.",
+      "backgroundImage": "Background image",
+      "backgroundColor": "Background colour",
+      "imageFocus": "Image focus",
+      "position": {
+        "top": "Top",
+        "center": "Center",
+        "bottom": "Bottom"
+      },
+      "overlay": "Darken image",
+      "previewHint": "Changes save automatically. Open /auth/login on your store to see them."
+    }
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",

@@ -5194,7 +5194,12 @@
       "accent": "Accent",
       "background": "Arrière-plan",
       "surface": "Surface",
-      "text": "Texte"
+      "text": "Texte",
+      "primaryContrast": "Texte des boutons sur la couleur principale",
+      "accentContrast": "Texte des badges sur la couleur d'accent",
+      "price": "Couleur des prix et liens",
+      "auto": "Auto",
+      "priceAuto": "Auto (principale)"
     },
     "fonts": "Polices",
     "headingFont": "Police des titres",
@@ -5361,7 +5366,23 @@
     "presetOccasionName": "Page d’occasion",
     "presetOccasionDesc": "Bannière principale, les produits d’une collection ou d’une étiquette interne, un bloc de texte SEO, puis des questions-réponses — la mise en page d’une page cadeaux d’occasion.",
     "internalLabelsGroup": "Étiquettes internes",
-    "missingCollection": "(collection introuvable)"
+    "missingCollection": "(collection introuvable)",
+    "textColors": "Texte sur les couleurs",
+    "textColorsHint": "Laisser vide pour le mode automatique : texte foncé sur les couleurs claires, blanc sur les foncées. Couleur des prix et liens vide = couleur principale.",
+    "accountPages": {
+      "title": "Pages de compte",
+      "hint": "Arrière-plan derrière les formulaires de connexion, d’inscription et de réinitialisation du mot de passe.",
+      "backgroundImage": "Image d’arrière-plan",
+      "backgroundColor": "Couleur d’arrière-plan",
+      "imageFocus": "Cadrage de l’image",
+      "position": {
+        "top": "Haut",
+        "center": "Centre",
+        "bottom": "Bas"
+      },
+      "overlay": "Assombrir l’image",
+      "previewHint": "Les modifications sont enregistrées automatiquement. Ouvrez /auth/login sur votre boutique pour les voir."
+    }
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",

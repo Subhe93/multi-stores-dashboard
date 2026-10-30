@@ -26,9 +26,9 @@ import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 
 // ── Token shape (subset of the storefront's ThemeTokens we expose) ──
 export interface ThemeTokenCustomizations {
-  colors?: Partial<Record<'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text', string>>;
+  colors?: Partial<Record<ColorKey | TextColorKey, string>>;
   typography?: { fontFamily?: { heading?: string; body?: string } };
-  [key: string]: unknown; // preserve unrelated keys (muted/border/primaryContrast…)
+  [key: string]: unknown; // preserve unrelated keys (muted/border…)
 }
 
 interface ThemeCustomizerProps {
@@ -45,6 +45,9 @@ interface ThemeCustomizerProps {
 const FONT_OPTIONS = GOOGLE_FONT_OPTIONS;
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
+// Text-on-colour tokens; empty = automatic on the storefront (readable
+// contrast for the *Contrast keys, the primary colour for price).
+type TextColorKey = 'primaryContrast' | 'accentContrast' | 'price';
 
 // Color token keys (used as logic + theme token keys) paired with a default
 // placeholder. Human-readable labels come from the translator, keyed by token.
@@ -55,6 +58,12 @@ const COLOR_FIELDS: { key: ColorKey; placeholder: string }[] = [
   { key: 'background', placeholder: '#ffffff' },
   { key: 'surface', placeholder: '#f5f5f5' },
   { key: 'text', placeholder: '#111827' },
+];
+
+const TEXT_COLOR_FIELDS: { key: TextColorKey; placeholderKey: 'color.auto' | 'color.priceAuto' }[] = [
+  { key: 'primaryContrast', placeholderKey: 'color.auto' },
+  { key: 'accentContrast', placeholderKey: 'color.auto' },
+  { key: 'price', placeholderKey: 'color.priceAuto' },
 ];
 
 export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigger }: ThemeCustomizerProps) {
@@ -72,7 +81,7 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
     onChange(next); // live preview
   };
 
-  const setColor = (key: ColorKey, v: string) => {
+  const setColor = (key: ColorKey | TextColorKey, v: string) => {
     const colors = { ...(draft.colors || {}) };
     if (v) colors[key] = v;
     else delete colors[key];
@@ -144,6 +153,25 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
             </div>
           </section>
 
+          {/* Text on colours (empty = automatic) */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('textColors')}
+            </div>
+            <p className="text-[11px] text-zinc-500">{t('textColorsHint')}</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {TEXT_COLOR_FIELDS.map((f) => (
+                <ColorField
+                  key={f.key}
+                  label={t(`color.${f.key}`)}
+                  value={draft.colors?.[f.key] || ''}
+                  placeholder={t(f.placeholderKey)}
+                  onChange={(v) => setColor(f.key, v)}
+                />
+              ))}
+            </div>
+          </section>
+
           {/* Fonts */}
           <section className="space-y-2">
             <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
@@ -174,7 +202,7 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
 
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
           <Button type="button" variant="ghost" size="sm" onClick={handleReset} className="text-zinc-500">
-            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+            <RotateCcw className="w-3.5 h-3.5 me-1.5" />
             {t('resetToTheme')}
           </Button>
           <div className="flex items-center gap-2">
@@ -184,7 +212,7 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
             <Button type="button" onClick={handleSave} disabled={saving}>
               {saving ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
                   {tc('saving')}
                 </>
               ) : (

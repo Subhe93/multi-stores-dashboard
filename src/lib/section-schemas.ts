@@ -2695,10 +2695,24 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'mega', label: { en: 'Mega menu (columns)', ar: 'قائمة موسّعة (أعمدة)' } },
         ],
       },
+      {
+        key: 'active_style',
+        type: 'select',
+        label: { en: 'Active menu item style', ar: 'نمط عنصر القائمة النشط' },
+        description: {
+          en: 'Pill: the current page gets a filled rounded background in the accent colour (or the theme primary).',
+          ar: 'كبسولة: تحصل الصفحة الحالية على خلفية دائرية مملوءة بلون التمييز (أو اللون الأساسي للثيم).',
+        },
+        defaultValue: 'text',
+        options: [
+          { value: 'text', label: { en: 'Accent text', ar: 'نص بلون التمييز' } },
+          { value: 'pill', label: { en: 'Filled pill', ar: 'كبسولة مملوءة' } },
+        ],
+      },
       { key: 'bg_color', type: 'color', label: { en: 'Background color', ar: 'لون الخلفية' } },
       { key: 'text_color', type: 'color', label: { en: 'Text color', ar: 'لون النص' } },
       { key: 'border_color', type: 'color', label: { en: 'Bottom border color', ar: 'لون الحد السفلي' } },
-      { key: 'accent_color', type: 'color', label: { en: 'Accent (active locale)', ar: 'لون التمييز (اللغة النشطة)' } },
+      { key: 'accent_color', type: 'color', label: { en: 'Accent (active link / locale)', ar: 'لون التمييز (الرابط النشط / اللغة)' } },
       { key: 'menu_key', type: 'menuPicker', label: { en: 'Menu', ar: 'القائمة' }, description: { en: 'Pick a menu built in the Menus page. Leave as None to use the inline links below.', ar: 'اختر قائمة من صفحة القوائم. اتركها بدون لاستخدام الروابط أدناه.' } },
       {
         key: 'items',
@@ -2720,6 +2734,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       show_locale: true,
       sticky_mode: 'always',
       submenu_style: 'dropdown',
+      active_style: 'text',
       logo_size: 32,
     },
   },
@@ -2849,6 +2864,16 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'bg_color', type: 'color', label: { en: 'Background color', ar: 'لون الخلفية' } },
       { key: 'text_color', type: 'color', label: { en: 'Text color', ar: 'لون النص' } },
       { key: 'link_color', type: 'color', label: { en: 'Inline link color', ar: 'لون الرابط الداخلي' } },
+      {
+        key: 'link_style',
+        type: 'select',
+        label: { en: 'Inline link style', ar: 'نمط الرابط الداخلي' },
+        defaultValue: 'text',
+        options: [
+          { value: 'text', label: { en: 'Underlined text', ar: 'نص مسطّر' } },
+          { value: 'button', label: { en: 'Outlined button', ar: 'زر بإطار' } },
+        ],
+      },
     ],
     defaultSettings: {
       layout: 'simple',
@@ -2856,6 +2881,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       marquee_speed_s: 25,
       dismissible: false,
       dismiss_key: 'default',
+      link_style: 'text',
     },
     defaultContent: {
       messages: [{ text: 'Free shipping on orders over $50', link_label: 'Shop now', link_url: '/products' }],

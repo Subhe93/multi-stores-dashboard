@@ -5194,7 +5194,12 @@
       "accent": "Accent",
       "background": "Bakgrund",
       "surface": "Yta",
-      "text": "Text"
+      "text": "Text",
+      "primaryContrast": "Knapptext på primärfärg",
+      "accentContrast": "Märktext på accentfärg",
+      "price": "Pris- och länkfärg",
+      "auto": "Auto",
+      "priceAuto": "Auto (primär)"
     },
     "fonts": "Teckensnitt",
     "headingFont": "Rubriktypsnitt",
@@ -5361,7 +5366,23 @@
     "presetOccasionName": "Högtidssida",
     "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller intern etikett, ett SEO-textblock, sedan frågor och svar — layouten för en presentsida.",
     "internalLabelsGroup": "Interna etiketter",
-    "missingCollection": "(kollektion saknas)"
+    "missingCollection": "(kollektion saknas)",
+    "textColors": "Text på färger",
+    "textColorsHint": "Lämna tomt för automatiskt: mörk text på ljusa färger, vit på mörka. Pris- och länkfärg tom = primärfärg.",
+    "accountPages": {
+      "title": "Kontosidor",
+      "hint": "Bakgrund bakom formulären för inloggning, registrering och återställning av lösenord.",
+      "backgroundImage": "Bakgrundsbild",
+      "backgroundColor": "Bakgrundsfärg",
+      "imageFocus": "Bildfokus",
+      "position": {
+        "top": "Topp",
+        "center": "Mitten",
+        "bottom": "Botten"
+      },
+      "overlay": "Mörka bilden",
+      "previewHint": "Ändringar sparas automatiskt. Öppna /auth/login i din butik för att se dem."
+    }
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

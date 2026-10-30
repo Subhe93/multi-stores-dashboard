@@ -5194,7 +5194,12 @@
       "accent": "Vurgu",
       "background": "Arka plan",
       "surface": "Yüzey",
-      "text": "Metin"
+      "text": "Metin",
+      "primaryContrast": "Ana renk üzerindeki buton metni",
+      "accentContrast": "Vurgu rengi üzerindeki rozet metni",
+      "price": "Fiyat ve bağlantı rengi",
+      "auto": "Otomatik",
+      "priceAuto": "Otomatik (ana renk)"
     },
     "fonts": "Yazı tipleri",
     "headingFont": "Başlık yazı tipi",
@@ -5361,7 +5366,23 @@
     "presetOccasionName": "Özel gün sayfası",
     "presetOccasionDesc": "Ana banner, bir koleksiyonun veya dahili etiketin ürünleri, bir SEO metin bloğu, ardından sorular ve cevaplar — hediye günü sayfasının düzeni.",
     "internalLabelsGroup": "Dahili etiketler",
-    "missingCollection": "(koleksiyon bulunamadı)"
+    "missingCollection": "(koleksiyon bulunamadı)",
+    "textColors": "Renkler üzerindeki metin",
+    "textColorsHint": "Otomatik için boş bırakın: açık renklerde koyu, koyu renklerde beyaz metin. Fiyat ve bağlantı rengi boşsa ana renk kullanılır.",
+    "accountPages": {
+      "title": "Hesap sayfaları",
+      "hint": "Giriş, kayıt ve şifre sıfırlama formlarının arkasındaki arka plan.",
+      "backgroundImage": "Arka plan görseli",
+      "backgroundColor": "Arka plan rengi",
+      "imageFocus": "Görsel odağı",
+      "position": {
+        "top": "Üst",
+        "center": "Orta",
+        "bottom": "Alt"
+      },
+      "overlay": "Görseli karart",
+      "previewHint": "Değişiklikler otomatik kaydedilir. Görmek için mağazanızda /auth/login sayfasını açın."
+    }
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",
