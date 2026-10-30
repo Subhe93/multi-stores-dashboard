@@ -5201,7 +5201,9 @@
       "auto": "Otomatik",
       "priceAuto": "Otomatik (ana renk)",
       "link": "Bağlantı rengi",
-      "linkAuto": "Otomatik (fiyat rengi)"
+      "linkAuto": "Otomatik (fiyat rengi)",
+      "priceShadow": "Fiyat gölgesi rengi",
+      "none": "Yok"
     },
     "fonts": "Yazı tipleri",
     "headingFont": "Başlık yazı tipi",

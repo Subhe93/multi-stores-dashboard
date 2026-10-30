@@ -5201,7 +5201,9 @@
       "auto": "Auto",
       "priceAuto": "Auto (principale)",
       "link": "Couleur des liens",
-      "linkAuto": "Auto (couleur des prix)"
+      "linkAuto": "Auto (couleur des prix)",
+      "priceShadow": "Couleur de l’ombre du prix",
+      "none": "Aucune"
     },
     "fonts": "Polices",
     "headingFont": "Police des titres",

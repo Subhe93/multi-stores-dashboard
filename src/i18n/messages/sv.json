@@ -5201,7 +5201,9 @@
       "auto": "Auto",
       "priceAuto": "Auto (primär)",
       "link": "Länkfärg",
-      "linkAuto": "Auto (prisfärg)"
+      "linkAuto": "Auto (prisfärg)",
+      "priceShadow": "Prisskuggans färg",
+      "none": "Ingen"
     },
     "fonts": "Teckensnitt",
     "headingFont": "Rubriktypsnitt",

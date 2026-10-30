@@ -5201,7 +5201,9 @@
       "auto": "Auto",
       "priceAuto": "Auto (primary)",
       "link": "Link colour",
-      "linkAuto": "Auto (price colour)"
+      "linkAuto": "Auto (price colour)",
+      "priceShadow": "Price shadow colour",
+      "none": "None"
     },
     "fonts": "Fonts",
     "headingFont": "Heading font",

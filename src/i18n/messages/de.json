@@ -5201,7 +5201,9 @@
       "auto": "Automatisch",
       "priceAuto": "Automatisch (Primär)",
       "link": "Linkfarbe",
-      "linkAuto": "Automatisch (Preisfarbe)"
+      "linkAuto": "Automatisch (Preisfarbe)",
+      "priceShadow": "Preis-Schattenfarbe",
+      "none": "Keine"
     },
     "fonts": "Schriftarten",
     "headingFont": "Überschriftenschrift",
