@@ -5197,9 +5197,11 @@
       "text": "Metin",
       "primaryContrast": "Ana renk üzerindeki buton metni",
       "accentContrast": "Vurgu rengi üzerindeki rozet metni",
-      "price": "Fiyat ve bağlantı rengi",
+      "price": "Fiyat rengi",
       "auto": "Otomatik",
-      "priceAuto": "Otomatik (ana renk)"
+      "priceAuto": "Otomatik (ana renk)",
+      "link": "Bağlantı rengi",
+      "linkAuto": "Otomatik (fiyat rengi)"
     },
     "fonts": "Yazı tipleri",
     "headingFont": "Başlık yazı tipi",
@@ -5368,7 +5370,7 @@
     "internalLabelsGroup": "Dahili etiketler",
     "missingCollection": "(koleksiyon bulunamadı)",
     "textColors": "Renkler üzerindeki metin",
-    "textColorsHint": "Otomatik için boş bırakın: açık renklerde koyu, koyu renklerde beyaz metin. Fiyat ve bağlantı rengi boşsa ana renk kullanılır.",
+    "textColorsHint": "Otomatik için boş bırakın: açık renklerde koyu, koyu renklerde beyaz metin. Fiyat rengi boşsa ana renk, bağlantı rengi boşsa fiyat rengi kullanılır.",
     "accountPages": {
       "title": "Hesap sayfaları",
       "hint": "Giriş, kayıt ve şifre sıfırlama formlarının arkasındaki arka plan.",

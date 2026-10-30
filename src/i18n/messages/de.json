@@ -5197,9 +5197,11 @@
       "text": "Text",
       "primaryContrast": "Buttontext auf Primärfarbe",
       "accentContrast": "Badge-Text auf Akzentfarbe",
-      "price": "Preis- & Linkfarbe",
+      "price": "Preisfarbe",
       "auto": "Automatisch",
-      "priceAuto": "Automatisch (Primär)"
+      "priceAuto": "Automatisch (Primär)",
+      "link": "Linkfarbe",
+      "linkAuto": "Automatisch (Preisfarbe)"
     },
     "fonts": "Schriftarten",
     "headingFont": "Überschriftenschrift",
@@ -5368,7 +5370,7 @@
     "internalLabelsGroup": "Interne Labels",
     "missingCollection": "(Kollektion fehlt)",
     "textColors": "Text auf Farben",
-    "textColorsHint": "Leer lassen für automatisch: dunkler Text auf hellen Farben, weißer auf dunklen. Preis- & Linkfarbe leer = Primärfarbe.",
+    "textColorsHint": "Leer lassen für automatisch: dunkler Text auf hellen Farben, weißer auf dunklen. Preisfarbe leer = Primärfarbe, Linkfarbe leer = Preisfarbe.",
     "accountPages": {
       "title": "Kontoseiten",
       "hint": "Hintergrund hinter den Formularen für Anmeldung, Registrierung und Passwort-Zurücksetzung.",

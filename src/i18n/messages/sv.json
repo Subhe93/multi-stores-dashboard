@@ -5197,9 +5197,11 @@
       "text": "Text",
       "primaryContrast": "Knapptext på primärfärg",
       "accentContrast": "Märktext på accentfärg",
-      "price": "Pris- och länkfärg",
+      "price": "Prisfärg",
       "auto": "Auto",
-      "priceAuto": "Auto (primär)"
+      "priceAuto": "Auto (primär)",
+      "link": "Länkfärg",
+      "linkAuto": "Auto (prisfärg)"
     },
     "fonts": "Teckensnitt",
     "headingFont": "Rubriktypsnitt",
@@ -5368,7 +5370,7 @@
     "internalLabelsGroup": "Interna etiketter",
     "missingCollection": "(kollektion saknas)",
     "textColors": "Text på färger",
-    "textColorsHint": "Lämna tomt för automatiskt: mörk text på ljusa färger, vit på mörka. Pris- och länkfärg tom = primärfärg.",
+    "textColorsHint": "Lämna tomt för automatiskt: mörk text på ljusa färger, vit på mörka. Prisfärg tom = primärfärg, länkfärg tom = prisfärg.",
     "accountPages": {
       "title": "Kontosidor",
       "hint": "Bakgrund bakom formulären för inloggning, registrering och återställning av lösenord.",

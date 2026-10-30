@@ -5197,9 +5197,11 @@
       "text": "Texte",
       "primaryContrast": "Texte des boutons sur la couleur principale",
       "accentContrast": "Texte des badges sur la couleur d'accent",
-      "price": "Couleur des prix et liens",
+      "price": "Couleur des prix",
       "auto": "Auto",
-      "priceAuto": "Auto (principale)"
+      "priceAuto": "Auto (principale)",
+      "link": "Couleur des liens",
+      "linkAuto": "Auto (couleur des prix)"
     },
     "fonts": "Polices",
     "headingFont": "Police des titres",
@@ -5368,7 +5370,7 @@
     "internalLabelsGroup": "Étiquettes internes",
     "missingCollection": "(collection introuvable)",
     "textColors": "Texte sur les couleurs",
-    "textColorsHint": "Laisser vide pour le mode automatique : texte foncé sur les couleurs claires, blanc sur les foncées. Couleur des prix et liens vide = couleur principale.",
+    "textColorsHint": "Laisser vide pour le mode automatique : texte foncé sur les couleurs claires, blanc sur les foncées. Couleur des prix vide = couleur principale ; couleur des liens vide = couleur des prix.",
     "accountPages": {
       "title": "Pages de compte",
       "hint": "Arrière-plan derrière les formulaires de connexion, d’inscription et de réinitialisation du mot de passe.",
