@@ -1506,7 +1506,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </Card>
           )}
 
-          {/* Internal categories (tags): not shown in the store, kept apart
+          {/* Internal categories: not shown in the store, kept apart
               from the storefront collections. Same id list as above. */}
           {isCreator && (
             <Card className="shadow-none">

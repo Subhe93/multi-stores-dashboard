@@ -5698,7 +5698,7 @@
     "switchToDraft": "Repasser en brouillon",
     "unsavedChanges": "Modifications non enregistrées",
     "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?",
-    "internalCategories": "Catégories internes (tags)",
+    "internalCategories": "Catégories internes",
     "internalCategoriesHelp": "Pour votre organisation et vos filtres uniquement. Non affichées dans la boutique."
   },
   "customField": {

@@ -1064,7 +1064,7 @@ export default function NewCustomProductPage() {
                 </div>
               )}
 
-              {/* Internal categories (tags): not shown in the store. */}
+              {/* Internal categories: not shown in the store. */}
               {activeLocale === primaryLocale && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium">{tp('internalCategories')}</Label>

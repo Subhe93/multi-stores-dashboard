@@ -5698,7 +5698,7 @@
     "switchToDraft": "Switch to draft",
     "unsavedChanges": "Unsaved changes",
     "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?",
-    "internalCategories": "Internal categories (tags)",
+    "internalCategories": "Internal categories",
     "internalCategoriesHelp": "For your own organisation and filtering. Not shown in the store."
   },
   "customField": {

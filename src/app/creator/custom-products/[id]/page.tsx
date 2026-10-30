@@ -1060,7 +1060,7 @@ export default function EditCustomProduct() {
           </CardContent>
         </Card>
 
-        {/* Internal categories (tags): not shown in the store. */}
+        {/* Internal categories: not shown in the store. */}
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">{tp('internalCategories')}</CardTitle>

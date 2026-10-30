@@ -5698,7 +5698,7 @@
     "switchToDraft": "Taslağa çevir",
     "unsavedChanges": "Kaydedilmemiş değişiklikler",
     "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?",
-    "internalCategories": "Dahili kategoriler (etiketler)",
+    "internalCategories": "Dahili kategoriler",
     "internalCategoriesHelp": "Yalnızca kendi düzeniniz ve filtreleme için. Mağazada gösterilmez."
   },
   "customField": {
