@@ -34,8 +34,8 @@ export const SECTION_PRESETS: SectionPreset[] = [
     id: 'occasion-page',
     name: { en: 'Occasion page', ar: 'صفحة مناسبة' },
     description: {
-      en: 'Hero banner, the products of one collection or internal label, then an SEO text block — the layout of a gift-occasion page.',
-      ar: 'بانر رئيسي، ثم منتجات مجموعة أو تصنيف داخلي، ثم كتلة نص لتحسين الظهور في محركات البحث — تخطيط صفحة هدايا المناسبات.',
+      en: 'Hero banner, the products of one collection or internal label, an SEO text block, then questions and answers — the layout of a gift-occasion page.',
+      ar: 'بانر رئيسي، ثم منتجات مجموعة أو تصنيف داخلي، ثم كتلة نص لتحسين الظهور في محركات البحث، ثم أسئلة وأجوبة — تخطيط صفحة هدايا المناسبات.',
     },
     i18n: { name: 'presetOccasionName', description: 'presetOccasionDesc' },
     icon: 'gift',
@@ -88,6 +88,35 @@ export const SECTION_PRESETS: SectionPreset[] = [
           sv: {
             heading: 'Om dessa presenter',
             html: '<p>Skriv SEO-texten för tillfället här – vem presenterna är till, vad som gör dem speciella och hur man väljer.</p>',
+          },
+        },
+      },
+      {
+        // Questions at the end (also emitted as FAQPage structured data).
+        // Sample pairs: the creator replaces them with the page's own.
+        section_key: 'faq-list',
+        settings: { layout: 'stacked', allow_multiple: true },
+        content: {
+          en: {
+            heading: 'Frequently asked questions',
+            items: [
+              { question: 'How long does delivery take?', answer: 'Replace with your answer.' },
+              { question: 'Can the gift be personalised?', answer: 'Replace with your answer.' },
+            ],
+          },
+          ar: {
+            heading: 'الأسئلة الشائعة',
+            items: [
+              { question: 'كم يستغرق التوصيل؟', answer: 'اكتب إجابتك هنا.' },
+              { question: 'هل يمكن تخصيص الهدية؟', answer: 'اكتب إجابتك هنا.' },
+            ],
+          },
+          sv: {
+            heading: 'Vanliga frågor',
+            items: [
+              { question: 'Hur lång är leveranstiden?', answer: 'Ersätt med ditt svar.' },
+              { question: 'Kan presenten personifieras?', answer: 'Ersätt med ditt svar.' },
+            ],
           },
         },
       },

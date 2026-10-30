@@ -5359,7 +5359,7 @@
       "includes": "Comprend :"
     },
     "presetOccasionName": "Page d’occasion",
-    "presetOccasionDesc": "Bannière principale, les produits d’une collection ou d’une étiquette interne, puis un bloc de texte SEO — la mise en page d’une page cadeaux d’occasion.",
+    "presetOccasionDesc": "Bannière principale, les produits d’une collection ou d’une étiquette interne, un bloc de texte SEO, puis des questions-réponses — la mise en page d’une page cadeaux d’occasion.",
     "internalLabelsGroup": "Étiquettes internes",
     "missingCollection": "(collection introuvable)"
   },

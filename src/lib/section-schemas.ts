@@ -120,7 +120,7 @@ function buttonStyleFields(prefix: string, en: { suffix?: string } = {}, ar: { s
 
 // ── Section catalog (mirrors multi-stores-web/src/themes/minimal/sections/*) ─
 
-export const SECTION_SCHEMAS: SectionSchema[] = [
+const BASE_SECTION_SCHEMAS: SectionSchema[] = [
   {
     id: 'hero-banner',
     label: { en: 'Hero Banner', ar: 'بانر رئيسي' },
@@ -2228,7 +2228,7 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'columns_tablet', type: 'number', label: { en: 'Columns — tablet', ar: 'الأعمدة — تابلت' }, min: 1, max: 6, defaultValue: 3 },
       { key: 'columns_mobile', type: 'number', label: { en: 'Columns — mobile', ar: 'الأعمدة — جوال' }, min: 1, max: 4, defaultValue: 2 },
       { key: 'link_label', type: 'text', label: { en: 'See all link text', ar: 'نص رابط الكل' } },
-      { key: 'link_url', type: 'url', label: { en: 'See all link URL', ar: 'رابط الكل' } },
+      { key: 'link_url', type: 'url', label: { en: 'See all link URL', ar: 'رابط الكل' }, description: { en: 'Usually the collection page. Left empty with a collection picked, the link is hidden (it no longer falls back to all products).', ar: 'عادةً صفحة المجموعة. إن تُرك فارغاً مع اختيار مجموعة يُخفى الرابط (لم يعد يذهب إلى كل المنتجات).' } },
       ...textColorFields({ heading: true, subheading: true }),
       c('link_color', 'See-all link color', 'لون رابط الكل'),
     ],
@@ -3003,6 +3003,77 @@ export const SECTION_SCHEMAS: SectionSchema[] = [
     },
   },
 ];
+
+// Builder-selectable heading level of each section's own heading (the
+// storefront reads settings.heading_level; only the HTML tag changes, the
+// visual size stays). Value = the tag the section uses when unset. Hero
+// sections open the page with an h1; a hero slider applies the level to its
+// first slide (later slides step down to h2).
+const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
+  'hero-banner': 'h1',
+  'hero-split': 'h1',
+  'hero-video': 'h1',
+  'aurora-hero': 'h1',
+  'hero-slider': 'h1',
+  'parallax-banner': 'h2',
+  'rich-text': 'h2',
+  'image-with-text': 'h2',
+  'collection-products': 'h2',
+  'featured-products': 'h2',
+  'faq-list': 'h2',
+  'product-slider': 'h2',
+  'gallery-slider': 'h2',
+  countdown: 'h2',
+  'image-gallery': 'h2',
+  'social-icons': 'h2',
+  video: 'h2',
+  'animated-features': 'h2',
+  map: 'h2',
+  'newsletter-signup': 'h2',
+  'before-after': 'h2',
+  'bento-grid': 'h2',
+  'comparison-table': 'h2',
+  'feature-grid': 'h2',
+  'image-hotspots': 'h2',
+  'masonry-gallery': 'h2',
+  'pricing-table': 'h2',
+  'stats-bar': 'h2',
+  steps: 'h2',
+  'team-grid': 'h2',
+  'testimonial-carousel': 'h2',
+  testimonials: 'h2',
+  timeline: 'h2',
+};
+
+function headingLevelField(fallback: 'h1' | 'h2'): FieldDefinition {
+  return {
+    key: 'heading_level',
+    type: 'select',
+    label: { en: 'Heading level (SEO)', ar: 'مستوى العنوان (SEO)' },
+    description: {
+      en: 'HTML tag of the heading. Use H1 once per page, for its main title. The size does not change.',
+      ar: 'وسم HTML للعنوان. استخدم H1 مرة واحدة في الصفحة لعنوانها الرئيسي. الحجم لا يتغير.',
+    },
+    defaultValue: fallback,
+    options: [
+      { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة' } },
+      { value: 'h2', label: { en: 'H2 — section title', ar: 'H2 — عنوان قسم' } },
+      { value: 'h3', label: { en: 'H3 — sub-title', ar: 'H3 — عنوان فرعي' } },
+    ],
+  };
+}
+
+/** Adds the heading-level select right after the section's heading field. */
+function withHeadingLevel(schema: SectionSchema): SectionSchema {
+  const fallback = HEADING_LEVEL_DEFAULTS[schema.id];
+  if (!fallback || schema.schema.some((f) => f.key === 'heading_level')) return schema;
+  const fields = [...schema.schema];
+  const at = fields.findIndex((f) => f.key === 'heading');
+  fields.splice(at >= 0 ? at + 1 : fields.length, 0, headingLevelField(fallback));
+  return { ...schema, schema: fields };
+}
+
+export const SECTION_SCHEMAS: SectionSchema[] = BASE_SECTION_SCHEMAS.map(withHeadingLevel);
 
 export function findSectionSchema(id: string): SectionSchema | undefined {
   return SECTION_SCHEMAS.find((s) => s.id === id);
