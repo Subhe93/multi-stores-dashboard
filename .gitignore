@@ -15,6 +15,9 @@
 
 # next.js
 /.next/
+# Backup / staging copies of the build (e.g. .next.pre-<tag>); this also
+# keeps Tailwind v4 source detection out of them (it skips ignored paths).
+/.next*/
 /out/
 
 # production
