@@ -3004,11 +3004,14 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
   },
 ];
 
-// Builder-selectable heading level of each section's own heading (the
-// storefront reads settings.heading_level; only the HTML tag changes, the
-// visual size stays). Value = the tag the section uses when unset. Hero
-// sections open the page with an h1; a hero slider applies the level to its
-// first slide (later slides step down to h2).
+// Builder-selectable HTML tag of each section's texts. The storefront reads
+// settings.heading_level / subheading_tag / eyebrow_tag; only the element
+// changes, the look stays (texts keep their heading or body typography).
+// Value = the tag the section renders when unset. Hero sections open the
+// page with an h1; a hero slider applies the heading tag to its first slide
+// (later slides step down to h2 when it is h1).
+type TextTagValue = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'div' | 'span';
+
 const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'hero-banner': 'h1',
   'hero-split': 'h1',
@@ -3045,31 +3048,68 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   timeline: 'h2',
 };
 
-function headingLevelField(fallback: 'h1' | 'h2'): FieldDefinition {
+// Sections whose eyebrow (small label above the heading) honours eyebrow_tag.
+const EYEBROW_SECTIONS = new Set([
+  'aurora-hero',
+  'hero-banner',
+  'hero-slider',
+  'hero-split',
+  'hero-video',
+  'image-with-text',
+  'parallax-banner',
+  'rich-text',
+]);
+const EYEBROW_P_SECTIONS = new Set(['rich-text', 'image-with-text']);
+// Sections without a subheading text.
+const NO_SUBHEADING_SECTIONS = new Set(['image-with-text', 'rich-text', 'testimonial-carousel']);
+
+const TEXT_TAG_OPTIONS: { value: TextTagValue; label: LocalizedString }[] = [
+  { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة' } },
+  { value: 'h2', label: { en: 'H2 — section title', ar: 'H2 — عنوان قسم' } },
+  { value: 'h3', label: { en: 'H3 — sub-title', ar: 'H3 — عنوان فرعي' } },
+  { value: 'h4', label: { en: 'H4', ar: 'H4' } },
+  { value: 'h5', label: { en: 'H5', ar: 'H5' } },
+  { value: 'h6', label: { en: 'H6', ar: 'H6' } },
+  { value: 'p', label: { en: 'P — paragraph', ar: 'P — فقرة' } },
+  { value: 'div', label: { en: 'DIV — plain block', ar: 'DIV — كتلة عادية' } },
+  { value: 'span', label: { en: 'SPAN — plain text', ar: 'SPAN — نص عادي' } },
+];
+
+function textTagField(key: string, label: LocalizedString, fallback: TextTagValue): FieldDefinition {
   return {
-    key: 'heading_level',
+    key,
     type: 'select',
-    label: { en: 'Heading level (SEO)', ar: 'مستوى العنوان (SEO)' },
+    label,
     description: {
-      en: 'HTML tag of the heading. Use H1 once per page, for its main title. The size does not change.',
-      ar: 'وسم HTML للعنوان. استخدم H1 مرة واحدة في الصفحة لعنوانها الرئيسي. الحجم لا يتغير.',
+      en: 'HTML tag for SEO. Use H1 once per page, for its main title. The look does not change.',
+      ar: 'وسم HTML لتحسين الظهور. استخدم H1 مرة واحدة في الصفحة لعنوانها الرئيسي. الشكل لا يتغير.',
     },
     defaultValue: fallback,
-    options: [
-      { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة' } },
-      { value: 'h2', label: { en: 'H2 — section title', ar: 'H2 — عنوان قسم' } },
-      { value: 'h3', label: { en: 'H3 — sub-title', ar: 'H3 — عنوان فرعي' } },
-    ],
+    options: TEXT_TAG_OPTIONS,
   };
 }
 
-/** Adds the heading-level select right after the section's heading field. */
+/** Inserts a field right after `afterKey` (or at the end when absent). */
+function insertAfter(fields: FieldDefinition[], afterKey: string, field: FieldDefinition) {
+  if (fields.some((f) => f.key === field.key)) return;
+  const at = fields.findIndex((f) => f.key === afterKey);
+  fields.splice(at >= 0 ? at + 1 : fields.length, 0, field);
+}
+
+/** Adds the text-tag selects (heading, subheading, eyebrow) after their texts. */
 function withHeadingLevel(schema: SectionSchema): SectionSchema {
   const fallback = HEADING_LEVEL_DEFAULTS[schema.id];
-  if (!fallback || schema.schema.some((f) => f.key === 'heading_level')) return schema;
+  if (!fallback) return schema;
   const fields = [...schema.schema];
-  const at = fields.findIndex((f) => f.key === 'heading');
-  fields.splice(at >= 0 ? at + 1 : fields.length, 0, headingLevelField(fallback));
+  insertAfter(fields, 'heading', textTagField('heading_level', { en: 'Heading tag (SEO)', ar: 'وسم العنوان (SEO)' }, fallback));
+  if (!NO_SUBHEADING_SECTIONS.has(schema.id)) {
+    insertAfter(fields, 'subheading', textTagField('subheading_tag', { en: 'Subheading tag (SEO)', ar: 'وسم العنوان الفرعي (SEO)' }, 'p'));
+  }
+  if (EYEBROW_SECTIONS.has(schema.id)) {
+    // rich-text and image-with-text render their eyebrow as a p.
+    const eyebrowDefault = EYEBROW_P_SECTIONS.has(schema.id) ? 'p' : 'span';
+    insertAfter(fields, 'eyebrow', textTagField('eyebrow_tag', { en: 'Small label tag (SEO)', ar: 'وسم التسمية الصغيرة (SEO)' }, eyebrowDefault));
+  }
   return { ...schema, schema: fields };
 }
 
