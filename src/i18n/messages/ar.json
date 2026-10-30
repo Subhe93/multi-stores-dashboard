@@ -1605,6 +1605,32 @@
         "seoDescFallback": "يُستخدم وصف المجموعة عندما يكون هذا الحقل فارغاً.",
         "noindexWhenEmpty": "إخفاء عن محركات البحث ما دامت فارغة",
         "noindexWhenEmptyHint": "ما دامت المجموعة بلا منتجات منشورة تُستبعد من خريطة الموقع وتُعلَّم بـ noindex."
+      },
+      "list": {
+        "totalCount": "{count, plural, zero {لا توجد مجموعات} one {مجموعة واحدة} two {مجموعتان} few {# مجموعات} many {# مجموعة} other {# مجموعة}}",
+        "showingGroups": "عرض المجموعات الرئيسية {from}–{to} من {total}",
+        "previousPage": "الصفحة السابقة",
+        "nextPage": "الصفحة التالية",
+        "sort_manual": "الترتيب اليدوي",
+        "sort_name_asc": "الاسم أ–ي",
+        "sort_name_desc": "الاسم ي–أ",
+        "sort_products_desc": "الأكثر منتجات",
+        "sort_products_asc": "الأقل منتجات",
+        "filterProducts": "المنتجات",
+        "anyProducts": "أي عدد منتجات",
+        "withProducts": "تحتوي منتجات",
+        "emptyProducts": "فارغة",
+        "productsFilterHint": "يحسب المنتجات المرتبطة. المجموعات المعتمدة على الوسوم تُطابق مباشرة، لذلك لا تدخل في هذا الفلتر.",
+        "filterLevel": "المستوى",
+        "allLevels": "كل المستويات",
+        "topLevelOnly": "المستوى الأعلى فقط",
+        "filterImage": "الصورة",
+        "anyImage": "أي صورة",
+        "withImage": "بصورة",
+        "withoutImage": "بدون صورة",
+        "anyRule": "أي قاعدة مطابقة",
+        "noFilterResults": "لا توجد مجموعات تطابق هذه الفلاتر.",
+        "contextRow": "معروضة للسياق فقط: لا تطابق الفلاتر بنفسها"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "أضف الكتل من اللوحة على اليمين",
     "blockNumber": "الكتلة {number}",
     "editBlockContent": "عدّل محتوى {type} هنا...",
-    "savePage": "حفظ الصفحة"
+    "savePage": "حفظ الصفحة",
+    "noInternalLabelsYetCreate": "لا توجد تصنيفات داخلية بعد. <link>أنشئ واحداً</link> من المجموعات واجعل ظهوره داخلياً.",
+    "searchInternalLabels": "ابحث في التصنيفات الداخلية…"
   },
   "errors": {
     "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -5669,7 +5697,9 @@
     "savedState": "محفوظ",
     "switchToDraft": "التحويل إلى مسودة",
     "unsavedChanges": "تغييرات غير محفوظة",
-    "unsavedLeaveConfirm": "لديك تغييرات غير محفوظة. هل تريد مغادرة الصفحة وتجاهلها؟"
+    "unsavedLeaveConfirm": "لديك تغييرات غير محفوظة. هل تريد مغادرة الصفحة وتجاهلها؟",
+    "internalCategories": "التصنيفات الداخلية (تاغز)",
+    "internalCategoriesHelp": "لتنظيمك الداخلي والتصفية فقط، ولا تظهر في المتجر."
   },
   "customField": {
     "typeText": "نص",
@@ -6240,7 +6270,19 @@
       "internal": "داخلي"
     },
     "internalLabelsGroup": "التصنيفات الداخلية",
-    "internalLabelsHint": "لا تظهر في المتجر"
+    "internalLabelsHint": "لا تظهر في المتجر",
+    "viewMode": "طريقة العرض",
+    "viewList": "عرض قائمة",
+    "viewGrid": "عرض شبكة",
+    "selectedProducts": "المنتجات المختارة",
+    "addProducts": "إضافة منتجات",
+    "addProductsTitle": "إضافة منتجات إلى هذه المجموعة",
+    "addProductsHint": "انقر على منتج لتضمينه أو إزالته.",
+    "noProductsSelected": "لم يتم اختيار أي منتج بعد",
+    "noProductsSelectedHint": "أضف منتجات لتضمينها في هذه المجموعة.",
+    "showMoreProducts": "عرض المزيد (المتبقي {count})",
+    "productUnavailable": "المنتج غير متاح",
+    "doneSelecting": "تم"
   },
   "shipping": {
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "تنزيل ملفات PDF ({count})",
     "allDone": "{count, plural, zero {تم — # عنصر.} one {تم — عنصر واحد.} two {تم — عنصران.} few {تم — # عناصر.} many {تم — # عنصرًا.} other {تم — # عنصر.}}",
     "partial": "نجح {ok}، وفشل {failed}.",
-    "firstError": "أول خطأ: {error}"
+    "firstError": "أول خطأ: {error}",
+    "changeStatus": "تغيير الحالة",
+    "skippedCount": "تم تخطي {count}",
+    "cancelOrders": "إلغاء الطلبات",
+    "exportCsvCount": "تصدير CSV ({count})",
+    "ordersStatusTitle": "تعيين {count, plural, one {طلب واحد} two {طلبين} few {# طلبات} many {# طلبًا} other {# طلب}} إلى «{status}»؟",
+    "ordersCancelTitle": "إلغاء {count, plural, one {طلب واحد} two {طلبين} few {# طلبات} many {# طلبًا} other {# طلب}}؟",
+    "ordersShippedWarning": "سيتلقى العملاء رسالة شحن بالبريد الإلكتروني، وسيتم الآن تحصيل المدفوعات المُصرَّح بها عبر Kustom.",
+    "ordersDeliveredWarning": "سيتلقى العملاء رسالة تسليم بالبريد الإلكتروني، وستُصدر الفواتير المستحقة عند التسليم.",
+    "ordersCancelWarning": "سيتلقى العملاء رسالة إلغاء بالبريد الإلكتروني وستُلغى العمولات. لا تُسترد المدفوعات تلقائيًا: استردّها من خلال مزوّد الدفع.",
+    "ordersSkippedNote": "سيتم تخطي {count, plural, one {طلب محدد واحد} two {طلبين محددين} few {# طلبات محددة} many {# طلبًا محددًا} other {# طلب محدد}}: هذا التغيير غير متاح من حالته الحالية.",
+    "ordersShipNeedsTracking": "لتعيين الطلبات كمشحونة، افتح كل طلب وأضف رقم التتبع الخاص به.",
+    "csv": {
+      "order": "الطلب",
+      "date": "التاريخ",
+      "customer": "العميل",
+      "email": "البريد الإلكتروني",
+      "status": "الحالة",
+      "payment": "الدفع",
+      "total": "الإجمالي",
+      "currency": "العملة",
+      "items": "العناصر"
+    }
   }
 }

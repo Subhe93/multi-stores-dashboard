@@ -166,6 +166,7 @@ export default function NewCustomProductPage() {
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
+  const tp = useTranslations('product');
   const tc = useTranslations('common');
   const apiError = useApiError();
   const searchParams = useSearchParams();
@@ -1053,6 +1054,23 @@ export default function NewCustomProductPage() {
                     {t('customProductForm.collectionsDesc')}
                   </p>
                   <CollectionTreePicker
+                    scope="public"
+                    value={creatorCategoryIds}
+                    onChange={setCreatorCategoryIds}
+                    primaryId={primaryCreatorCategoryId}
+                    primaryLocale={primaryLocale}
+                    onPrimaryChange={setPrimaryCreatorCategoryId}
+                  />
+                </div>
+              )}
+
+              {/* Internal categories (tags): not shown in the store. */}
+              {activeLocale === primaryLocale && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">{tp('internalCategories')}</Label>
+                  <p className="text-[11px] text-muted-foreground">{tp('internalCategoriesHelp')}</p>
+                  <CollectionTreePicker
+                    scope="internal"
                     value={creatorCategoryIds}
                     onChange={setCreatorCategoryIds}
                     primaryId={primaryCreatorCategoryId}

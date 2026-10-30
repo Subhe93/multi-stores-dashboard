@@ -1494,6 +1494,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     {t('product.collectionsHelp')}
                   </p>
                   <CollectionTreePicker
+                    scope="public"
                     value={creatorCategoryIds}
                     onChange={setCreatorCategoryIds}
                     primaryId={primaryCreatorCategoryId}
@@ -1501,6 +1502,25 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     onPrimaryChange={setPrimaryCreatorCategoryId}
                   />
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Internal categories (tags): not shown in the store, kept apart
+              from the storefront collections. Same id list as above. */}
+          {isCreator && (
+            <Card className="shadow-none">
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.internalCategories')}</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-2">{t('product.internalCategoriesHelp')}</p>
+                <CollectionTreePicker
+                  scope="internal"
+                  value={creatorCategoryIds}
+                  onChange={setCreatorCategoryIds}
+                  primaryId={primaryCreatorCategoryId}
+                  primaryLocale={primaryLocale}
+                  onPrimaryChange={setPrimaryCreatorCategoryId}
+                />
               </CardContent>
             </Card>
           )}

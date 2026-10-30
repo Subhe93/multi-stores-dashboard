@@ -1605,6 +1605,32 @@
         "seoDescFallback": "La description de la collection est utilisée si ce champ est vide.",
         "noindexWhenEmpty": "Masquer aux moteurs de recherche tant qu’elle est vide",
         "noindexWhenEmptyHint": "Tant que la collection n’a aucun produit publié, elle est exclue du plan du site et marquée noindex."
+      },
+      "list": {
+        "totalCount": "{count, plural, one {# collection} other {# collections}}",
+        "showingGroups": "Collections principales {from}–{to} sur {total}",
+        "previousPage": "Page précédente",
+        "nextPage": "Page suivante",
+        "sort_manual": "Ordre manuel",
+        "sort_name_asc": "Nom A–Z",
+        "sort_name_desc": "Nom Z–A",
+        "sort_products_desc": "Le plus de produits",
+        "sort_products_asc": "Le moins de produits",
+        "filterProducts": "Produits",
+        "anyProducts": "Tout nombre de produits",
+        "withProducts": "Avec produits",
+        "emptyProducts": "Vide",
+        "productsFilterHint": "Compte les produits liés. Les collections par tags sont calculées en direct et ne sont donc pas incluses.",
+        "filterLevel": "Niveau",
+        "allLevels": "Tous les niveaux",
+        "topLevelOnly": "Niveau supérieur uniquement",
+        "filterImage": "Image",
+        "anyImage": "Toute image",
+        "withImage": "Avec image",
+        "withoutImage": "Sans image",
+        "anyRule": "Toute règle de correspondance",
+        "noFilterResults": "Aucune collection ne correspond à ces filtres.",
+        "contextRow": "Affichée pour le contexte : ne correspond pas elle-même aux filtres"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "Ajoutez des blocs depuis la palette à droite",
     "blockNumber": "Bloc {number}",
     "editBlockContent": "Modifier le contenu {type} ici...",
-    "savePage": "Enregistrer la page"
+    "savePage": "Enregistrer la page",
+    "noInternalLabelsYetCreate": "Aucune catégorie interne pour l’instant. <link>Créez-en une</link> dans Collections avec la visibilité interne.",
+    "searchInternalLabels": "Rechercher des catégories internes…"
   },
   "errors": {
     "generic": "Une erreur s'est produite. Veuillez réessayer.",
@@ -5669,7 +5697,9 @@
     "savedState": "Enregistré",
     "switchToDraft": "Repasser en brouillon",
     "unsavedChanges": "Modifications non enregistrées",
-    "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?"
+    "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?",
+    "internalCategories": "Catégories internes (tags)",
+    "internalCategoriesHelp": "Pour votre organisation et vos filtres uniquement. Non affichées dans la boutique."
   },
   "customField": {
     "typeText": "Texte",
@@ -6240,7 +6270,19 @@
       "internal": "Internes"
     },
     "internalLabelsGroup": "Étiquettes internes",
-    "internalLabelsHint": "Non affichées dans la boutique"
+    "internalLabelsHint": "Non affichées dans la boutique",
+    "viewMode": "Mode d’affichage",
+    "viewList": "Vue liste",
+    "viewGrid": "Vue grille",
+    "selectedProducts": "Produits sélectionnés",
+    "addProducts": "Ajouter des produits",
+    "addProductsTitle": "Ajouter des produits à cette collection",
+    "addProductsHint": "Cliquez sur un produit pour l’inclure ou le retirer.",
+    "noProductsSelected": "Aucun produit sélectionné pour l’instant",
+    "noProductsSelectedHint": "Ajoutez des produits pour les inclure dans cette collection.",
+    "showMoreProducts": "Afficher plus ({count} restants)",
+    "productUnavailable": "Produit indisponible",
+    "doneSelecting": "Terminé"
   },
   "shipping": {
     "actionCannotBeUndone": "Cette action est irréversible.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "Télécharger les PDF ({count})",
     "allDone": "{count, plural, one {Terminé — # élément.} other {Terminé — # éléments.}}",
     "partial": "{ok} réussi(s), {failed} en échec.",
-    "firstError": "Première erreur : {error}"
+    "firstError": "Première erreur : {error}",
+    "changeStatus": "Changer le statut",
+    "skippedCount": "{count} ignorée(s)",
+    "cancelOrders": "Annuler les commandes",
+    "exportCsvCount": "Exporter en CSV ({count})",
+    "ordersStatusTitle": "Marquer {count, plural, one {# commande} other {# commandes}} comme « {status} » ?",
+    "ordersCancelTitle": "Annuler {count, plural, one {# commande} other {# commandes}} ?",
+    "ordersShippedWarning": "Les clients reçoivent un e-mail d'expédition, et les paiements autorisés via Kustom sont encaissés maintenant.",
+    "ordersDeliveredWarning": "Les clients reçoivent un e-mail de livraison, et les factures dues à la livraison sont émises.",
+    "ordersCancelWarning": "Les clients reçoivent un e-mail d'annulation et les commissions sont annulées. Les paiements ne sont pas remboursés automatiquement : remboursez-les auprès du prestataire de paiement.",
+    "ordersSkippedNote": "{count, plural, one {# commande sélectionnée est ignorée} other {# commandes sélectionnées sont ignorées}} : ce changement n'est pas possible depuis leur statut actuel.",
+    "ordersShipNeedsTracking": "Pour marquer des commandes comme expédiées, ouvrez chaque commande et ajoutez son numéro de suivi.",
+    "csv": {
+      "order": "Commande",
+      "date": "Date",
+      "customer": "Client",
+      "email": "E-mail",
+      "status": "Statut",
+      "payment": "Paiement",
+      "total": "Total",
+      "currency": "Devise",
+      "items": "Articles"
+    }
   }
 }

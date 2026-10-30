@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
@@ -11,14 +11,18 @@ import {
   Pencil,
   Tag,
   Package,
+  ChevronLeft,
   ChevronRight,
   ChevronsDownUp,
   ChevronsUpDown,
   Search,
   FolderPlus,
   Loader2,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { pageWindow } from '@/components/common/pageWindow';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { runBulk } from '@/lib/bulk';
@@ -72,6 +76,32 @@ type Visibility = 'PUBLIC' | 'INTERNAL';
 type VisibilityFilter = 'all' | 'storefront' | 'internal';
 const VISIBILITY_FILTERS: VisibilityFilter[] = ['all', 'storefront', 'internal'];
 
+const LIST_PATH = '/creator/categories';
+
+// Sorting reorders siblings only, so every branch stays under its parent.
+const SORTS = [
+  'manual',
+  'name_asc',
+  'name_desc',
+  'newest',
+  'oldest',
+  'updated',
+  'products_desc',
+  'products_asc',
+] as const;
+type Sort = (typeof SORTS)[number];
+const PAGE_SIZES = ['20', '50', '100'] as const;
+const STATUS_TABS = ['', 'active', 'inactive'] as const;
+const PRODUCT_FILTERS = ['with', 'empty'] as const;
+const IMAGE_FILTERS = ['with', 'without'] as const;
+const RULE_FILTERS = ['manual', 'tags'] as const;
+const LEVEL_FILTERS = ['top'] as const;
+
+/** Reads a query param, falling back to '' when it is not one of `allowed`. */
+function pickParam<T extends string>(value: string | null, allowed: readonly T[]): T | '' {
+  return value && (allowed as readonly string[]).includes(value) ? (value as T) : '';
+}
+
 interface CategoryTranslation {
   locale: string;
   name: string;
@@ -88,6 +118,8 @@ interface CategoryNode {
   match_tags: string[];
   is_active: boolean;
   sort_order: number;
+  created_at?: string;
+  updated_at?: string;
   translations: CategoryTranslation[];
   _count?: { products: number; custom_products?: number; children: number };
   children?: CategoryNode[];
@@ -117,6 +149,60 @@ function getDisplayName(node: CategoryNode, primaryLocale: string): string {
     node.translations?.map((tr) => tr.name?.trim()).find(Boolean) ||
     node.slug
   );
+}
+
+/**
+ * Linked product count, or null for tag-rule collections: their products are
+ * resolved live from tags, so the tree payload has no count for them.
+ */
+function linkedProductCount(node: CategoryNode): number | null {
+  if (node.match_rule === 'TAGS') return null;
+  return (node._count?.products ?? 0) + (node._count?.custom_products ?? 0);
+}
+
+function timeOf(value: string | undefined): number {
+  const ms = value ? Date.parse(value) : NaN;
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+/**
+ * Sorts every level of the tree among its siblings. "manual" keeps the API
+ * order (sort_order). Ties fall back to the name so the order is stable.
+ */
+function sortTree(nodes: CategoryNode[], sort: Sort, primaryLocale: string): CategoryNode[] {
+  if (sort === 'manual') return nodes;
+  const collator = new Intl.Collator(primaryLocale, { sensitivity: 'base', numeric: true });
+  const byName = (a: CategoryNode, b: CategoryNode) =>
+    collator.compare(getDisplayName(a, primaryLocale), getDisplayName(b, primaryLocale));
+  const compare = (a: CategoryNode, b: CategoryNode): number => {
+    switch (sort) {
+      case 'name_asc':
+        return byName(a, b);
+      case 'name_desc':
+        return byName(b, a);
+      case 'newest':
+        return timeOf(b.created_at) - timeOf(a.created_at) || byName(a, b);
+      case 'oldest':
+        return timeOf(a.created_at) - timeOf(b.created_at) || byName(a, b);
+      case 'updated':
+        return timeOf(b.updated_at) - timeOf(a.updated_at) || byName(a, b);
+      case 'products_desc':
+      case 'products_asc': {
+        // Tag-rule collections have no count and go last either way.
+        const ca = linkedProductCount(a);
+        const cb = linkedProductCount(b);
+        if (ca === null || cb === null) return (ca === null ? 1 : 0) - (cb === null ? 1 : 0) || byName(a, b);
+        return (sort === 'products_desc' ? cb - ca : ca - cb) || byName(a, b);
+      }
+      default:
+        return 0;
+    }
+  };
+  const walk = (list: CategoryNode[]): CategoryNode[] =>
+    [...list]
+      .sort(compare)
+      .map((n) => (n.children?.length ? { ...n, children: walk(n.children) } : n));
+  return walk(nodes);
 }
 
 /** Pre-order flatten of the tree: each row knows its depth, ancestors and children. */
@@ -187,8 +273,22 @@ export default function CreatorCategoriesPage() {
   const [deleteTarget, setDeleteTarget] = useState<FlatRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all');
+  // Search, filters, sort and page live in the URL (?q=&status=&products=
+  // &image=&rule=&level=&show=&sort=&limit=&page=) so the list survives
+  // "edit, then back" and can be linked, same as the products list.
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') ?? '';
+  const statusFilter = pickParam(searchParams.get('status'), STATUS_TABS);
+  const productsFilter = pickParam(searchParams.get('products'), PRODUCT_FILTERS);
+  const imageFilter = pickParam(searchParams.get('image'), IMAGE_FILTERS);
+  const ruleFilter = pickParam(searchParams.get('rule'), RULE_FILTERS);
+  const levelFilter = pickParam(searchParams.get('level'), LEVEL_FILTERS);
+  const visibilityFilter: VisibilityFilter =
+    pickParam(searchParams.get('show'), VISIBILITY_FILTERS) || 'all';
+  const sort: Sort = pickParam(searchParams.get('sort'), SORTS) || 'manual';
+  const limit = Number(pickParam(searchParams.get('limit'), PAGE_SIZES) || '20');
+  const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1);
+  const [searchInput, setSearchInput] = useState(query);
   // Store content locale: names are shown in it first (then en, any, slug).
   const [primaryLocale, setPrimaryLocale] = useState('en');
   // Ids whose children are hidden; persisted per store so the layout survives reloads.
@@ -224,44 +324,167 @@ export default function CreatorCategoriesPage() {
     fetchCategories();
   }, [fetchCategories]);
 
-  const rows = useMemo(() => flattenTree(tree, primaryLocale), [tree, primaryLocale]);
+  const sortedTree = useMemo(() => sortTree(tree, sort, primaryLocale), [tree, sort, primaryLocale]);
+  const rows = useMemo(() => flattenTree(sortedTree, primaryLocale), [sortedTree, primaryLocale]);
   const byId = useMemo(() => new Map(rows.map((r) => [r.id, r])), [rows]);
   const parentIds = useMemo(() => rows.filter((r) => r.childIds.length > 0).map((r) => r.id), [rows]);
 
-  // Search keeps a row when it matches or when any descendant matches, so the
-  // path to a hit is always visible. The tree endpoint has no search and the
-  // lists are small enough to filter in memory.
-  const q = searchQuery.trim().toLowerCase();
-  const matchSet = useMemo(() => {
-    if (!q) return null;
-    const set = new Set<string>();
-    for (const row of rows) {
-      const hit =
-        row.name.toLowerCase().includes(q) ||
-        row.slug.toLowerCase().includes(q) ||
-        row.ancestors.some((a) => a.toLowerCase().includes(q));
-      if (!hit) continue;
-      set.add(row.id);
-      row.ancestorIds.forEach((id) => set.add(id));
-    }
-    return set;
-  }, [q, rows]);
+  // The visibility switch alone keeps the normal tree (internal labels are
+  // flat roots, so hiding them never breaks a path). Any other filter turns
+  // on "filter mode": matches show with their ancestor path for context.
+  const q = query.trim().toLowerCase();
+  const filterMode = !!(q || statusFilter || productsFilter || imageFilter || ruleFilter || levelFilter);
+  const filtered = filterMode || visibilityFilter !== 'all';
 
-  // While searching every branch is open so a hit is never hidden under a
+  // Hits plus the ancestors shown for context (null outside filter mode).
+  // The tree endpoint has no filtering and the lists are small enough to
+  // filter in memory.
+  const matchInfo = useMemo(() => {
+    if (!filterMode) return null;
+    const hits = new Set<string>();
+    const shown = new Set<string>();
+    for (const row of rows) {
+      const internal = row.visibility === 'INTERNAL';
+      if (visibilityFilter === 'storefront' && internal) continue;
+      if (visibilityFilter === 'internal' && !internal) continue;
+      if (statusFilter === 'active' && !row.is_active) continue;
+      if (statusFilter === 'inactive' && row.is_active) continue;
+      if (levelFilter === 'top' && row.depth > 0) continue;
+      if (imageFilter === 'with' && !row.thumbnail_url) continue;
+      if (imageFilter === 'without' && row.thumbnail_url) continue;
+      if (ruleFilter === 'manual' && row.match_rule !== 'MANUAL') continue;
+      if (ruleFilter === 'tags' && row.match_rule !== 'TAGS') continue;
+      if (productsFilter) {
+        // Tag-rule collections have no count, so they match neither option.
+        const count = linkedProductCount(row);
+        if (count === null) continue;
+        if (productsFilter === 'with' && count === 0) continue;
+        if (productsFilter === 'empty' && count > 0) continue;
+      }
+      if (
+        q &&
+        !(
+          row.name.toLowerCase().includes(q) ||
+          row.slug.toLowerCase().includes(q) ||
+          row.ancestors.some((a) => a.toLowerCase().includes(q))
+        )
+      ) {
+        continue;
+      }
+      hits.add(row.id);
+      shown.add(row.id);
+      row.ancestorIds.forEach((id) => shown.add(id));
+    }
+    return { hits, shown };
+  }, [filterMode, rows, q, visibilityFilter, statusFilter, levelFilter, imageFilter, ruleFilter, productsFilter]);
+
+  // Every row that passes the filters, in tree (pre-order) order.
+  const listRows = useMemo(() => {
+    if (matchInfo) return rows.filter((row) => matchInfo.shown.has(row.id));
+    if (visibilityFilter === 'all') return rows;
+    return rows.filter((row) => (row.visibility === 'INTERNAL') === (visibilityFilter === 'internal'));
+  }, [rows, matchInfo, visibilityFilter]);
+  const resultCount = matchInfo ? matchInfo.hits.size : listRows.length;
+
+  // Pages are counted in top-level groups: a root with its (shown) subtree is
+  // one unit, so a child never lands on another page than its parent.
+  const groupIds = useMemo(() => listRows.filter((r) => r.depth === 0).map((r) => r.id), [listRows]);
+  const totalPages = Math.max(1, Math.ceil(groupIds.length / limit));
+  const currentPage = Math.min(page, totalPages);
+  const pageGroupFrom = (currentPage - 1) * limit;
+  const pageGroupTo = Math.min(pageGroupFrom + limit, groupIds.length);
+
+  // While filtering every branch is open so a hit is never hidden under a
   // collapsed parent.
   const visibleRows = useMemo(() => {
-    return rows.filter((row) => {
-      // Internal labels are always root rows, so filtering them never hides a path.
-      const internal = row.visibility === 'INTERNAL';
-      if (visibilityFilter === 'storefront' && internal) return false;
-      if (visibilityFilter === 'internal' && !internal) return false;
-      if (matchSet && !matchSet.has(row.id)) return false;
-      if (!matchSet && row.ancestorIds.some((id) => collapsed.has(id))) return false;
+    const onPage = new Set(groupIds.slice(pageGroupFrom, pageGroupTo));
+    return listRows.filter((row) => {
+      if (!onPage.has(row.ancestorIds[0] ?? row.id)) return false;
+      if (!matchInfo && row.ancestorIds.some((id) => collapsed.has(id))) return false;
       return true;
     });
-  }, [rows, matchSet, collapsed, visibilityFilter]);
+  }, [listRows, groupIds, pageGroupFrom, pageGroupTo, matchInfo, collapsed]);
 
-  const selection = useTableSelection(visibleRows, (r) => r.id);
+  // Ancestor rows shown only for context are not selectable, so "select
+  // all" covers the matches on this page.
+  const isContextRow = (id: string) => !!matchInfo && !matchInfo.hits.has(id);
+  const selectableRows = useMemo(
+    () => (matchInfo ? visibleRows.filter((row) => matchInfo.hits.has(row.id)) : visibleRows),
+    [visibleRows, matchInfo],
+  );
+  const selection = useTableSelection(selectableRows, (r) => r.id);
+  const clearSelection = selection.clear;
+
+  /** Writes params to the URL; any change other than the page resets to page 1. */
+  const updateParams = useCallback(
+    (patch: Record<string, string>) => {
+      // Same as DataTable: a page, filter or sort change drops the selection.
+      clearSelection();
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(patch)) {
+        if (value) params.set(key, value);
+        else params.delete(key);
+      }
+      if (!('page' in patch)) params.delete('page');
+      const qs = params.toString();
+      router.replace(qs ? `${LIST_PATH}?${qs}` : LIST_PATH, { scroll: false });
+    },
+    [router, searchParams, clearSelection],
+  );
+
+  // Last search this page wrote to the URL. When the URL catches up with it,
+  // the box is left alone (the user may have typed more meanwhile); any other
+  // change (back / forward, a pasted link) is copied into the box.
+  const pushedQuery = useRef(query);
+  useEffect(() => {
+    if (query !== pushedQuery.current) {
+      pushedQuery.current = query;
+      setSearchInput(query);
+    }
+  }, [query]);
+
+  const pushSearch = useCallback(
+    (value: string) => {
+      pushedQuery.current = value;
+      updateParams({ q: value });
+    },
+    [updateParams],
+  );
+
+  // Debounced search: the URL follows 300 ms after typing.
+  useEffect(() => {
+    const value = searchInput.trim();
+    if (value === pushedQuery.current) return;
+    const id = setTimeout(() => pushSearch(value), 300);
+    return () => clearTimeout(id);
+  }, [searchInput, pushSearch]);
+
+  // A page past the end (after deletes or a narrower filter) snaps back.
+  useEffect(() => {
+    if (!loading && page > totalPages) {
+      updateParams({ page: totalPages > 1 ? String(totalPages) : '' });
+    }
+  }, [loading, page, totalPages, updateParams]);
+
+  const clearFilters = () => {
+    pushedQuery.current = '';
+    setSearchInput('');
+    updateParams({ q: '', status: '', products: '', image: '', rule: '', level: '', show: '' });
+  };
+
+  const goToPage = (p: number) => updateParams({ page: p > 1 ? String(p) : '' });
+
+  const sortLabel = (s: Sort): string => {
+    switch (s) {
+      case 'newest':
+      case 'oldest':
+      case 'updated':
+        return t(`myProducts.sort_${s}`);
+      default:
+        return t(`collections.list.sort_${s}`);
+    }
+  };
+
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
@@ -311,7 +534,7 @@ export default function CreatorCategoriesPage() {
   // jumps to its parent), Enter edits. In RTL the horizontal arrows swap so
   // the key always points the way the chevron does.
   const handleRowKeyDown = (e: KeyboardEvent<HTMLTableRowElement>, row: FlatRow, index: number) => {
-    const isOpen = !collapsed.has(row.id);
+    const isOpen = matchInfo ? true : !collapsed.has(row.id);
     const rtl = getComputedStyle(e.currentTarget).direction === 'rtl';
     const key =
       rtl && e.key === 'ArrowRight' ? 'ArrowLeft' : rtl && e.key === 'ArrowLeft' ? 'ArrowRight' : e.key;
@@ -331,7 +554,7 @@ export default function CreatorCategoriesPage() {
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        if (row.childIds.length && isOpen && !matchSet) toggleCollapsed(row.id);
+        if (row.childIds.length && isOpen && !matchInfo) toggleCollapsed(row.id);
         else focusRow(row.parent_id ?? undefined);
         break;
       case 'Home':
@@ -377,13 +600,15 @@ export default function CreatorCategoriesPage() {
 
   const renderRow = (row: FlatRow, index: number) => {
     const hasChildren = row.childIds.length > 0;
-    const open = matchSet ? true : !collapsed.has(row.id);
+    const open = matchInfo ? true : !collapsed.has(row.id);
     const level = row.depth + 1;
     const isInternal = row.visibility === 'INTERNAL';
     const canAddSub = row.depth < MAX_CATEGORY_DEPTH;
     const productCount = (row._count?.products ?? 0) + (row._count?.custom_products ?? 0);
     const parentRow = row.parent_id ? byId.get(row.parent_id) : undefined;
     const rowOpen = linkRow(`/creator/categories/${row.id}`);
+    // Ancestor shown only to give a match its path: dimmed, not selectable.
+    const contextRow = isContextRow(row.id);
 
     return (
       <TableRow
@@ -402,7 +627,7 @@ export default function CreatorCategoriesPage() {
         className="group cursor-pointer outline-none focus-visible:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900/20"
       >
         <TableCell className="w-10 py-2" data-row-click-ignore>
-          <SelectRowCheckbox selection={selection} id={row.id} />
+          {!contextRow && <SelectRowCheckbox selection={selection} id={row.id} />}
         </TableCell>
         {/* Name + hierarchy */}
         <TableCell className="py-2">
@@ -411,12 +636,12 @@ export default function CreatorCategoriesPage() {
                 sit where the ancestors' chevrons are, so a branch reads as
                 one block. The parent's own column is drawn by the elbow. */}
             {row.ancestorIds.slice(0, -1).map((id, i) => {
+              // Column i is ancestor i's chevron column: its line runs down to
+              // that ancestor's children, so it ends once the branch this row
+              // sits in (ancestor i + 1) is the ancestor's last child.
               const ancestor = byId.get(id);
-              // Hide the guide for an ancestor that is the last sibling: the
-              // line would otherwise continue below a finished branch.
-              const grandparent = i === 0 ? null : byId.get(row.ancestorIds[i - 1]!);
-              const siblings = grandparent ? grandparent.childIds : tree.map((n) => n.id);
-              const isLastSibling = ancestor ? siblings[siblings.length - 1] === ancestor.id : false;
+              const branchId = row.ancestorIds[i + 1];
+              const isLastSibling = ancestor ? ancestor.childIds[ancestor.childIds.length - 1] === branchId : false;
               return (
                 <span key={id} aria-hidden className="relative block h-9 w-6 shrink-0">
                   {!isLastSibling && (
@@ -443,7 +668,7 @@ export default function CreatorCategoriesPage() {
                 type="button"
                 tabIndex={-1}
                 onClick={() => toggleCollapsed(row.id)}
-                disabled={!!matchSet}
+                disabled={!!matchInfo}
                 aria-label={open ? t('collections.tree.collapse') : t('collections.tree.expand')}
                 aria-expanded={open}
                 className="me-1 flex size-6 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 disabled:opacity-50"
@@ -464,7 +689,10 @@ export default function CreatorCategoriesPage() {
               )}
             </div>
 
-            <div className="flex min-w-0 flex-col">
+            <div
+              className={cn('flex min-w-0 flex-col', contextRow && 'opacity-60')}
+              title={contextRow ? t('collections.list.contextRow') : undefined}
+            >
               <span className="flex items-center gap-1.5 text-sm font-medium">
                 <Link href={`/creator/categories/${row.id}`} tabIndex={-1} className="truncate hover:underline">
                   {row.name}
@@ -638,6 +866,157 @@ export default function CreatorCategoriesPage() {
         </Button>
       </div>
 
+      {/* Search, filters and sort (same layout as the products list) */}
+      {!loading && rows.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-56 flex-1">
+              <Search className="pointer-events-none absolute inset-s-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') pushSearch(searchInput.trim());
+                }}
+                placeholder={t('collections.searchPlaceholder')}
+                aria-label={t('collections.searchPlaceholder')}
+                className="h-8 w-full rounded-md border border-input bg-background ps-8 pe-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+            <div className="w-44" title={t('collections.list.productsFilterHint')}>
+              <SearchableSelect
+                value={productsFilter}
+                onChange={(v) => updateParams({ products: v })}
+                placeholder={t('collections.list.filterProducts')}
+                options={[
+                  { value: '', label: t('collections.list.anyProducts') },
+                  { value: 'with', label: t('collections.list.withProducts') },
+                  { value: 'empty', label: t('collections.list.emptyProducts') },
+                ]}
+              />
+            </div>
+            <div className="w-40">
+              <SearchableSelect
+                value={levelFilter}
+                onChange={(v) => updateParams({ level: v })}
+                placeholder={t('collections.list.filterLevel')}
+                options={[
+                  { value: '', label: t('collections.list.allLevels') },
+                  { value: 'top', label: t('collections.list.topLevelOnly') },
+                ]}
+              />
+            </div>
+            <div className="w-40">
+              <SearchableSelect
+                value={imageFilter}
+                onChange={(v) => updateParams({ image: v })}
+                placeholder={t('collections.list.filterImage')}
+                options={[
+                  { value: '', label: t('collections.list.anyImage') },
+                  { value: 'with', label: t('collections.list.withImage') },
+                  { value: 'without', label: t('collections.list.withoutImage') },
+                ]}
+              />
+            </div>
+            <div className="w-40">
+              <SearchableSelect
+                value={ruleFilter}
+                onChange={(v) => updateParams({ rule: v })}
+                placeholder={t('collections.colMatchRule')}
+                options={[
+                  { value: '', label: t('collections.list.anyRule') },
+                  { value: 'manual', label: t('collections.manual') },
+                  { value: 'tags', label: t('collections.byTags') },
+                ]}
+              />
+            </div>
+            <div className="w-44">
+              <SearchableSelect
+                value={sort}
+                onChange={(v) => updateParams({ sort: v === 'manual' ? '' : v })}
+                placeholder={t('myProducts.sortBy')}
+                options={SORTS.map((s) => ({ value: s, label: sortLabel(s) }))}
+              />
+            </div>
+            <div className="w-36">
+              <SearchableSelect
+                value={String(limit)}
+                onChange={(v) => updateParams({ limit: v === '20' ? '' : v })}
+                options={PAGE_SIZES.map((n) => ({
+                  value: n,
+                  label: t('myProducts.perPage', { count: Number(n) }),
+                }))}
+              />
+            </div>
+            {filtered && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+                <X className="me-1 size-3.5" />
+                {t('myProducts.clearFilters')}
+              </Button>
+            )}
+          </div>
+
+          {/* Status tabs, visibility switch and result count */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-1">
+                {STATUS_TABS.map((status) => {
+                  const isActive = statusFilter === status;
+                  return (
+                    <button
+                      key={status || 'all'}
+                      type="button"
+                      onClick={() => updateParams({ status })}
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-xs font-medium transition',
+                        isActive
+                          ? 'border-zinc-900 bg-zinc-900 text-white'
+                          : 'border-zinc-200 text-zinc-600 hover:bg-zinc-100',
+                      )}
+                    >
+                      {status === 'active'
+                        ? t('collections.active')
+                        : status === 'inactive'
+                          ? t('collections.inactive')
+                          : t('myProducts.allStatuses')}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Visibility filter (M6.3): all / storefront / internal */}
+              <div
+                role="radiogroup"
+                aria-label={tcat('visibilityFilter.label')}
+                className="inline-flex h-7 items-center rounded-md border border-input bg-background p-0.5"
+              >
+                {VISIBILITY_FILTERS.map((f) => {
+                  const active = visibilityFilter === f;
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => updateParams({ show: f === 'all' ? '' : f })}
+                      className={cn(
+                        'h-6 rounded px-2.5 text-xs font-medium transition',
+                        active ? 'bg-zinc-900 text-white' : 'text-muted-foreground hover:bg-zinc-100 hover:text-foreground',
+                      )}
+                    >
+                      {tcat(`visibilityFilter.${f}`)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {t('collections.list.totalCount', { count: resultCount })}
+            </p>
+          </div>
+        </div>
+      )}
+
       <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
 
       {/* Tree table */}
@@ -669,44 +1048,8 @@ export default function CreatorCategoriesPage() {
               {tc('delete')}
             </Button>
           </TableSelectionBar>
-          {/* Toolbar (replaced by the selection bar while rows are selected) */}
-          <div className={cn('flex flex-wrap items-center justify-between gap-2 border-b p-3', selection.count > 0 && 'hidden')}>
-            <div className="relative w-full max-w-xs">
-              <Search className="pointer-events-none absolute inset-s-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('collections.searchPlaceholder')}
-                aria-label={t('collections.searchPlaceholder')}
-                className="h-8 w-full rounded-md border border-input bg-background ps-8 pe-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            {/* Visibility filter (M6.3): all / storefront / internal */}
-            <div
-              role="radiogroup"
-              aria-label={tcat('visibilityFilter.label')}
-              className="inline-flex h-8 items-center rounded-md border border-input bg-background p-0.5"
-            >
-              {VISIBILITY_FILTERS.map((f) => {
-                const active = visibilityFilter === f;
-                return (
-                  <button
-                    key={f}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setVisibilityFilter(f)}
-                    className={cn(
-                      'h-7 rounded px-2.5 text-xs font-medium transition',
-                      active ? 'bg-zinc-900 text-white' : 'text-muted-foreground hover:bg-zinc-100 hover:text-foreground',
-                    )}
-                  >
-                    {tcat(`visibilityFilter.${f}`)}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Tree toolbar (replaced by the selection bar while rows are selected) */}
+          <div className={cn('flex flex-wrap items-center justify-end gap-2 border-b p-3', selection.count > 0 && 'hidden')}>
             <div className="flex items-center gap-1.5">
               <span className="hidden text-[11px] text-muted-foreground sm:inline">
                 {t('collections.tree.hierarchyHint')}
@@ -715,7 +1058,7 @@ export default function CreatorCategoriesPage() {
                 size="sm"
                 variant="outline"
                 onClick={allCollapsed ? expandAll : collapseAll}
-                disabled={parentIds.length === 0 || !!matchSet}
+                disabled={parentIds.length === 0 || !!matchInfo}
               >
                 {allCollapsed ? (
                   <ChevronsUpDown className="size-3.5" />
@@ -752,7 +1095,7 @@ export default function CreatorCategoriesPage() {
               {visibleRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
-                    {t('collections.noSearchResults')}
+                    {q ? t('collections.noSearchResults') : t('collections.list.noFilterResults')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -760,6 +1103,57 @@ export default function CreatorCategoriesPage() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination: counted in top-level groups (a root with its subtree) */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                {t('collections.list.showingGroups', {
+                  from: pageGroupFrom + 1,
+                  to: pageGroupTo,
+                  total: groupIds.length,
+                })}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage <= 1}
+                  onClick={() => goToPage(currentPage - 1)}
+                  aria-label={t('collections.list.previousPage')}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+                </Button>
+                {pageWindow(currentPage, totalPages).map((pageNum, i) =>
+                  pageNum === null ? (
+                    <span key={'gap-' + i} className="px-1 text-xs text-muted-foreground">…</span>
+                  ) : (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size="icon"
+                      className="h-7 w-auto min-w-7 px-1.5 text-xs tabular-nums"
+                      aria-current={currentPage === pageNum ? 'page' : undefined}
+                      onClick={() => goToPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  ),
+                )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => goToPage(currentPage + 1)}
+                  aria-label={t('collections.list.nextPage')}
+                >
+                  <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 

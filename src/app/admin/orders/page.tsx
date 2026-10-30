@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
+import {
+  OrderBulkActions,
+  ORDER_STATUS_FLOW,
+  type OrderStatusTarget,
+} from '@/components/orders/OrderBulkActions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
@@ -18,6 +24,9 @@ interface AdminOrderRow {
   status: string;
   total: number | string;
   created_at: string;
+  currency?: string | null;
+  payment_status?: string | null;
+  market?: { currency?: string | null } | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
   items?: unknown[];
 }
@@ -41,8 +50,31 @@ const statusColors: Record<string, string> = {
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
 
+// The admin detail page hides its status actions on these and offers only
+// forward steps plus cancel otherwise; RETURNED is excluded here as well
+// (the detail page has no flow position for it).
+const ADMIN_LOCKED_STATUSES = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'];
+
+function adminCanApply(row: AdminOrderRow, target: string): boolean {
+  if (ADMIN_LOCKED_STATUSES.includes(row.status)) return false;
+  if (target === 'CANCELLED') return true;
+  return ORDER_STATUS_FLOW.indexOf(target) > ORDER_STATUS_FLOW.indexOf(row.status);
+}
+
 export default function AdminOrders() {
   const t = useTranslations('admin');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
+  // admin.orderStatus_* exists for every lifecycle status.
+  const statusLabel = (s: string) =>
+    [...ORDER_STATUS_FLOW, ...ADMIN_LOCKED_STATUSES].includes(s)
+      ? t(`orderStatus_${s}` as Parameters<typeof t>[0])
+      : s;
+  // Same targets as the admin detail page: every forward step + cancel.
+  const statusTargets: OrderStatusTarget[] = [
+    ...ORDER_STATUS_FLOW.slice(1).map((s) => ({ value: s, label: statusLabel(s) })),
+    { value: 'CANCELLED', label: tb('cancelOrders'), destructive: true },
+  ];
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const router = useRouter();
@@ -85,6 +117,9 @@ export default function AdminOrders() {
         ))}
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       <DataTable
         columns={[
           { key: 'order_number', label: t('order'), sortable: true, render: (item: AdminOrderRow) => (
@@ -102,7 +137,7 @@ export default function AdminOrders() {
             <span className="text-sm font-medium">{fmt(item.total)}</span>
           )},
           { key: 'status', label: t('status'), sortable: true, render: (item: AdminOrderRow) => (
-            <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{item.status}</Badge>
+            <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{statusLabel(item.status)}</Badge>
           )},
           { key: 'created_at', label: t('date'), sortable: true, render: (item: AdminOrderRow) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
@@ -113,6 +148,21 @@ export default function AdminOrders() {
         ]}
         data={filtered}
         rowHref={(item: AdminOrderRow) => `/admin/orders/${item.id}`}
+        selectable
+        bulkActions={(rows, clear) => (
+          <OrderBulkActions
+            rows={rows}
+            clear={clear}
+            bulk={bulk}
+            token={token}
+            targets={statusTargets}
+            canApply={adminCanApply}
+            // Same timeline note the admin detail page sends.
+            note={(s) => `Status changed to ${s} by admin`}
+            statusLabel={statusLabel}
+            after={() => fetchOrders(meta?.page || 1)}
+          />
+        )}
         pagination={meta ?? undefined}
         onPageChange={(p) => fetchOrders(p)}
         emptyMessage={loading ? t('loading') : t('noOrdersYet')}

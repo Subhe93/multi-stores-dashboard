@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
+import {
+  OrderBulkActions,
+  ORDER_STATUS_FLOW,
+  ORDER_TERMINAL_STATUSES,
+  ownItemsProgress,
+  type OrderStatusTarget,
+} from '@/components/orders/OrderBulkActions';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,6 +59,7 @@ interface OrderRow {
   customer?: { first_name?: string | null; last_name?: string | null } | null;
   items?: unknown[] | null;
   currency?: string | null;
+  payment_status?: string | null;
   // Present when the Markets app priced the order (GET /orders includes market).
   market?: { key: string; name: string; currency: string } | null;
   // b2b app snapshot: COMPANY orders carry the company name bought under.
@@ -83,10 +92,11 @@ function statusLabels(t: Translator): Record<string, string> {
 
 export default function CreatorOrdersPage() {
   const { fmt } = useCurrency();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const bulk = useBulkAction();
   const STATUS_LABELS = statusLabels(t);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [meta, setMeta] = useState<OrdersMeta | null>(null);
@@ -115,6 +125,31 @@ export default function CreatorOrdersPage() {
       ? `&production=${encodeURIComponent(production)}`
       : '';
   const tabs = productionEnabled ? PRODUCTION_TABS : TABS;
+  // Bulk status targets mirror the creator detail page's status dropdown:
+  // QUALITY_CHECK only with the production app's quality-check step on.
+  const qualityCheckEnabled =
+    productionEnabled &&
+    (apps?.find((a) => a.key === 'production')?.settings as
+      | { use_quality_check?: unknown }
+      | null
+      | undefined)?.use_quality_check !== false;
+  const statusTargets: OrderStatusTarget[] = [
+    'CONFIRMED',
+    'PROCESSING',
+    'MANUFACTURING',
+    ...(qualityCheckEnabled ? ['QUALITY_CHECK'] : []),
+    'SHIPPED',
+    'DELIVERED',
+  ].map((s) => ({ value: s, label: STATUS_LABELS[s] }));
+  const creatorId = user?.creator?.id as string | undefined;
+  // A creator's update moves only their own items, so it applies when they
+  // fulfill an item of the order; bulk only steps forward (never rolls
+  // items back) and leaves finished/cancelled orders alone.
+  const canApplyStatus = (row: OrderRow, target: string) => {
+    if (ORDER_TERMINAL_STATUSES.includes(row.status)) return false;
+    const progress = ownItemsProgress(row, 'CREATOR', creatorId);
+    return progress !== null && ORDER_STATUS_FLOW.indexOf(target) > progress;
+  };
   const [summaries, setSummaries] = useState<ProductionSummaries>({});
 
   const setMarketKey = (key: string) => {
@@ -396,14 +431,31 @@ export default function CreatorOrdersPage() {
           </Button>
         </div>
       ) : (
-        <DataTable
-          columns={columns}
-          data={orders}
-          rowHref={(item: OrderRow) => `/creator/orders/${item.id}`}
-          emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
-          pagination={meta ?? undefined}
-          onPageChange={(p) => fetchOrders(p)}
-        />
+        <>
+          {bulk.notice}
+          {bulk.dialog}
+          <DataTable
+            columns={columns}
+            data={orders}
+            rowHref={(item: OrderRow) => `/creator/orders/${item.id}`}
+            selectable
+            bulkActions={(rows, clear) => (
+              <OrderBulkActions
+                rows={rows}
+                clear={clear}
+                bulk={bulk}
+                token={token}
+                targets={statusTargets}
+                canApply={canApplyStatus}
+                statusLabel={(s) => STATUS_LABELS[s] || s}
+                after={() => fetchOrders(meta?.page || 1)}
+              />
+            )}
+            emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
+            pagination={meta ?? undefined}
+            onPageChange={(p) => fetchOrders(p)}
+          />
+        </>
       )}
     </div>
   );

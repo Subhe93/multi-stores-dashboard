@@ -17,6 +17,12 @@ interface Props {
   onPrimaryChange: (id: string | null) => void;
   /** The store's primary content locale: collection names are shown in it first. */
   primaryLocale?: string;
+  /**
+   * Which part to show: 'public' = storefront collections tree (with primary),
+   * 'internal' = internal labels only (no primary), 'all' = both (default).
+   * Two scoped pickers can share one `value`: each only adds/removes its own ids.
+   */
+  scope?: 'all' | 'public' | 'internal';
 }
 
 interface CollectionNode {
@@ -100,7 +106,10 @@ export function CollectionTreePicker({
   primaryId,
   onPrimaryChange,
   primaryLocale = 'en',
+  scope = 'all',
 }: Props) {
+  const showPublic = scope !== 'internal';
+  const showInternal = scope !== 'public';
   const { token } = useAuth();
   const t = useTranslations('components');
   const tcat = useTranslations('category');
@@ -158,10 +167,11 @@ export function CollectionTreePicker({
   // The forms prefill the primary with the first linked id, which may be an
   // internal label; the API rejects that (PRIMARY_COLLECTION_INTERNAL), so the
   // stored value is corrected as soon as the tree says which ids are internal.
+  // Only the picker that shows the public tree owns the primary.
   useEffect(() => {
-    if (loading) return;
+    if (loading || !showPublic) return;
     if (effectivePrimary !== primaryId) onPrimaryChange(effectivePrimary);
-  }, [loading, effectivePrimary, primaryId, onPrimaryChange]);
+  }, [loading, showPublic, effectivePrimary, primaryId, onPrimaryChange]);
 
   // Search: a node stays visible when it matches or has a matching descendant.
   const q = search.trim().toLowerCase();
@@ -184,6 +194,7 @@ export function CollectionTreePicker({
     onChange(next);
     // Move the primary when it was unchecked, or auto-pick the first public
     // one when none is set; an internal label is never emitted as primary.
+    if (!showPublic) return;
     const nextPrimary = resolvePrimary(next, effectivePrimary);
     if (nextPrimary !== primaryId) onPrimaryChange(nextPrimary);
   };
@@ -198,7 +209,10 @@ export function CollectionTreePicker({
 
   const selected = value
     .map((id) => byId.get(id))
-    .filter((n): n is IndexedNode => Boolean(n));
+    .filter((n): n is IndexedNode => Boolean(n))
+    .filter((n) => (n.internal ? showInternal : showPublic));
+  const shownRootIds = showPublic ? rootIds : [];
+  const shownInternalIds = showInternal ? internalIds : [];
 
   // Fetch failure: say so and offer a retry instead of the "create one" prompt.
   if (!loading && loadError) {
@@ -217,12 +231,12 @@ export function CollectionTreePicker({
   }
 
   // Empty state: no collections at all. Guide the user to create one.
-  if (!loading && rootIds.length === 0 && internalIds.length === 0) {
+  if (!loading && shownRootIds.length === 0 && shownInternalIds.length === 0) {
     return (
       <div className="rounded-md border border-dashed bg-zinc-50/60 p-4 text-center">
         <FolderTree className="mx-auto mb-2 size-5 text-zinc-400" />
         <p className="text-xs text-muted-foreground mb-3">
-          {t.rich('noCollectionsYetCreate', {
+          {t.rich(scope === 'internal' ? 'noInternalLabelsYetCreate' : 'noCollectionsYetCreate', {
             link: (chunks) => (
               <Link href="/creator/categories" className="text-primary hover:underline font-medium">
                 {chunks}
@@ -315,7 +329,7 @@ export function CollectionTreePicker({
   };
 
   // Internal labels: checkbox only, no primary button, in their own group.
-  const visibleInternalIds = visible ? internalIds.filter((id) => visible.has(id)) : internalIds;
+  const visibleInternalIds = visible ? shownInternalIds.filter((id) => visible.has(id)) : shownInternalIds;
   const renderInternalNode = (id: string): ReactNode => {
     const node = byId.get(id);
     if (!node) return null;
@@ -346,7 +360,7 @@ export function CollectionTreePicker({
   };
 
   const anyVisible =
-    (visible ? rootIds.some((id) => visible.has(id)) : rootIds.length > 0) || visibleInternalIds.length > 0;
+    (visible ? shownRootIds.some((id) => visible.has(id)) : shownRootIds.length > 0) || visibleInternalIds.length > 0;
 
   return (
     <div className="space-y-2">
@@ -365,6 +379,8 @@ export function CollectionTreePicker({
               >
                 {isPrimary ? (
                   <Star className="size-3 fill-amber-400 text-amber-500" />
+                ) : n.internal ? (
+                  <Tags className="size-3 text-amber-500" />
                 ) : (
                   <FolderTree className="size-3 text-zinc-400" />
                 )}
@@ -397,8 +413,8 @@ export function CollectionTreePicker({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('searchCollections')}
-            aria-label={t('searchCollections')}
+            placeholder={scope === 'internal' ? t('searchInternalLabels') : t('searchCollections')}
+            aria-label={scope === 'internal' ? t('searchInternalLabels') : t('searchCollections')}
             className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
@@ -409,17 +425,20 @@ export function CollectionTreePicker({
             <p className="py-6 text-center text-xs text-muted-foreground">{t('noCollectionsFound')}</p>
           ) : (
             <>
-              <ul role="tree" className="space-y-0.5">
-                {rootIds.map(renderNode)}
-              </ul>
+              {shownRootIds.length > 0 && (
+                <ul role="tree" className="space-y-0.5">
+                  {shownRootIds.map(renderNode)}
+                </ul>
+              )}
               {visibleInternalIds.length > 0 && (
-                <div className={cn(rootIds.length > 0 && 'mt-2 border-t border-dashed border-zinc-200 pt-2')}>
-                  <div className="flex items-baseline gap-1.5 px-1 pb-1">
+                <div className={cn(shownRootIds.length > 0 && 'mt-2 border-t border-dashed border-zinc-200 pt-2')}>
+                  {/* A scoped internal picker has its own card title, so no group heading. */}
+                  {scope === 'all' && <div className="flex items-baseline gap-1.5 px-1 pb-1">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
                       {tcat('internalLabelsGroup')}
                     </span>
                     <span className="text-[10px] text-muted-foreground">{tcat('internalLabelsHint')}</span>
-                  </div>
+                  </div>}
                   <ul className="space-y-0.5" aria-label={tcat('internalLabelsGroup')}>
                     {visibleInternalIds.map(renderInternalNode)}
                   </ul>
@@ -432,12 +451,19 @@ export function CollectionTreePicker({
           <Link href="/creator/categories/new" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
             <Plus className="size-3" /> {t('newCollection')}
           </Link>
-          {value.length > 0 && (
+          {selected.length > 0 && (
             <button
               type="button"
               onClick={() => {
-                onChange([]);
-                onPrimaryChange(null);
+                // Clear only this picker's part; a scoped picker keeps the other part.
+                if (scope === 'all') {
+                  onChange([]);
+                  onPrimaryChange(null);
+                  return;
+                }
+                const mine = new Set(selected.map((n) => n.id));
+                onChange(value.filter((id) => !mine.has(id)));
+                if (showPublic) onPrimaryChange(null);
               }}
               className="text-[11px] text-red-500 hover:underline"
             >
@@ -446,7 +472,7 @@ export function CollectionTreePicker({
           )}
         </div>
       </div>
-      <p className="text-[11px] text-muted-foreground">{t('collectionPrimaryHint')}</p>
+      {showPublic && <p className="text-[11px] text-muted-foreground">{t('collectionPrimaryHint')}</p>}
     </div>
   );
 }

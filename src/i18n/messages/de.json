@@ -1605,6 +1605,32 @@
         "seoDescFallback": "Wenn leer, wird die Beschreibung der Kollektion verwendet.",
         "noindexWhenEmpty": "Für Suchmaschinen ausblenden, solange leer",
         "noindexWhenEmptyHint": "Solange die Kollektion keine veröffentlichten Produkte hat, fehlt sie in der Sitemap und wird als noindex markiert."
+      },
+      "list": {
+        "totalCount": "{count, plural, one {# Kollektion} other {# Kollektionen}}",
+        "showingGroups": "Oberste Kollektionen {from}–{to} von {total}",
+        "previousPage": "Vorherige Seite",
+        "nextPage": "Nächste Seite",
+        "sort_manual": "Manuelle Reihenfolge",
+        "sort_name_asc": "Name A–Z",
+        "sort_name_desc": "Name Z–A",
+        "sort_products_desc": "Meiste Produkte",
+        "sort_products_asc": "Wenigste Produkte",
+        "filterProducts": "Produkte",
+        "anyProducts": "Beliebige Produktanzahl",
+        "withProducts": "Mit Produkten",
+        "emptyProducts": "Leer",
+        "productsFilterHint": "Zählt verknüpfte Produkte. Tag-basierte Kollektionen werden live abgeglichen und sind daher nicht enthalten.",
+        "filterLevel": "Ebene",
+        "allLevels": "Alle Ebenen",
+        "topLevelOnly": "Nur oberste Ebene",
+        "filterImage": "Bild",
+        "anyImage": "Beliebiges Bild",
+        "withImage": "Mit Bild",
+        "withoutImage": "Ohne Bild",
+        "anyRule": "Beliebige Zuordnungsregel",
+        "noFilterResults": "Keine Kollektionen entsprechen diesen Filtern.",
+        "contextRow": "Zur Orientierung angezeigt: entspricht den Filtern selbst nicht"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "Fügen Sie Blöcke aus der Palette rechts hinzu",
     "blockNumber": "Block {number}",
     "editBlockContent": "{type}-Inhalt hier bearbeiten...",
-    "savePage": "Seite speichern"
+    "savePage": "Seite speichern",
+    "noInternalLabelsYetCreate": "Noch keine internen Kategorien. <link>Lege eine an</link> unter Kollektionen und setze die Sichtbarkeit auf intern.",
+    "searchInternalLabels": "Interne Kategorien suchen…"
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
@@ -5669,7 +5697,9 @@
     "savedState": "Gespeichert",
     "switchToDraft": "Zu Entwurf machen",
     "unsavedChanges": "Ungespeicherte Änderungen",
-    "unsavedLeaveConfirm": "Du hast ungespeicherte Änderungen. Seite verlassen und Änderungen verwerfen?"
+    "unsavedLeaveConfirm": "Du hast ungespeicherte Änderungen. Seite verlassen und Änderungen verwerfen?",
+    "internalCategories": "Interne Kategorien (Tags)",
+    "internalCategoriesHelp": "Nur für deine eigene Ordnung und Filter. Wird im Shop nicht angezeigt."
   },
   "customField": {
     "typeText": "Text",
@@ -6240,7 +6270,19 @@
       "internal": "Intern"
     },
     "internalLabelsGroup": "Interne Labels",
-    "internalLabelsHint": "Nicht im Shop sichtbar"
+    "internalLabelsHint": "Nicht im Shop sichtbar",
+    "viewMode": "Ansicht",
+    "viewList": "Listenansicht",
+    "viewGrid": "Rasteransicht",
+    "selectedProducts": "Ausgewählte Produkte",
+    "addProducts": "Produkte hinzufügen",
+    "addProductsTitle": "Produkte zu dieser Kollektion hinzufügen",
+    "addProductsHint": "Klicken Sie auf ein Produkt, um es hinzuzufügen oder zu entfernen.",
+    "noProductsSelected": "Noch keine Produkte ausgewählt",
+    "noProductsSelectedHint": "Fügen Sie Produkte hinzu, um sie in diese Kollektion aufzunehmen.",
+    "showMoreProducts": "Mehr anzeigen ({count} übrig)",
+    "productUnavailable": "Produkt nicht verfügbar",
+    "doneSelecting": "Fertig"
   },
   "shipping": {
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "PDFs herunterladen ({count})",
     "allDone": "{count, plural, one {Erledigt — # Eintrag.} other {Erledigt — # Einträge.}}",
     "partial": "{ok} erfolgreich, {failed} fehlgeschlagen.",
-    "firstError": "Erster Fehler: {error}"
+    "firstError": "Erster Fehler: {error}",
+    "changeStatus": "Status ändern",
+    "skippedCount": "{count} übersprungen",
+    "cancelOrders": "Bestellungen stornieren",
+    "exportCsvCount": "CSV exportieren ({count})",
+    "ordersStatusTitle": "{count, plural, one {# Bestellung} other {# Bestellungen}} als „{status}“ markieren?",
+    "ordersCancelTitle": "{count, plural, one {# Bestellung} other {# Bestellungen}} stornieren?",
+    "ordersShippedWarning": "Kunden erhalten eine Versand-E-Mail, und über Kustom autorisierte Zahlungen werden jetzt eingezogen.",
+    "ordersDeliveredWarning": "Kunden erhalten eine Zustell-E-Mail, und bei Lieferung fällige Rechnungen werden ausgestellt.",
+    "ordersCancelWarning": "Kunden erhalten eine Stornierungs-E-Mail, und die Provisionen werden ausgebucht. Zahlungen werden nicht automatisch erstattet: Erstatte sie beim Zahlungsanbieter.",
+    "ordersSkippedNote": "{count, plural, one {# ausgewählte Bestellung wird übersprungen} other {# ausgewählte Bestellungen werden übersprungen}}: Diese Änderung ist von ihrem aktuellen Status aus nicht möglich.",
+    "ordersShipNeedsTracking": "Um Bestellungen als versendet zu markieren, öffne jede Bestellung und füge ihre Sendungsnummer hinzu.",
+    "csv": {
+      "order": "Bestellung",
+      "date": "Datum",
+      "customer": "Kunde",
+      "email": "E-Mail",
+      "status": "Status",
+      "payment": "Zahlung",
+      "total": "Gesamt",
+      "currency": "Währung",
+      "items": "Artikel"
+    }
   }
 }

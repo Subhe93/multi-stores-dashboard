@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
+import {
+  OrderBulkActions,
+  ORDER_STATUS_FLOW,
+  ORDER_TERMINAL_STATUSES,
+  ownItemsProgress,
+  type OrderStatusTarget,
+} from '@/components/orders/OrderBulkActions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
@@ -31,8 +39,10 @@ interface OrderRow {
   status: string;
   total: number | string;
   created_at: string;
+  currency?: string | null;
+  payment_status?: string | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
-  items?: { id: string }[] | null;
+  items?: { id: string; fulfiller_type?: string | null; fulfiller_id?: string | null; fulfillment_status?: string | null }[] | null;
 }
 
 /** Pagination block returned next to `data` by list endpoints. */
@@ -71,12 +81,46 @@ const TAB_LABEL_KEYS: Record<string, string> = {
   Cancelled:     'orderStatus.cancelled',
 };
 
+// Same keys as the provider detail page's status labels.
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING:       'orderStatus.pending',
+  CONFIRMED:     'orderStatus.confirmed',
+  PROCESSING:    'orderStatus.processing',
+  MANUFACTURING: 'orderStatus.manufacturing',
+  QUALITY_CHECK: 'orderStatus.qualityCheck',
+  SHIPPED:       'orderStatus.shipped',
+  DELIVERED:     'orderStatus.delivered',
+  RETURNED:      'orderStatus.returned',
+  CANCELLED:     'orderStatus.cancelled',
+  REFUNDED:      'orderStatus.refunded',
+};
+
+// Bulk targets mirror the provider detail page's forward steps, except
+// SHIPPED: there it always goes through the per-order tracking prompt.
+const PROVIDER_BULK_TARGETS = ORDER_STATUS_FLOW.filter((s) => s !== 'PENDING' && s !== 'SHIPPED');
+
 export default function ProviderOrders() {
   const { fmt } = useCurrency();
   const { token, user } = useAuth();
   const router = useRouter();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
+  const statusLabel = (s: string) => (STATUS_LABEL_KEYS[s] ? t(STATUS_LABEL_KEYS[s]) : s);
+  const statusTargets: OrderStatusTarget[] = PROVIDER_BULK_TARGETS.map((s) => ({
+    value: s,
+    label: statusLabel(s),
+  }));
+  const providerId = user?.provider?.id as string | undefined;
+  // The detail page offers status steps only while the provider fulfills an
+  // item, the order is not terminal and not waiting on quality check
+  // (approve needs tracking, reject is a single-order decision).
+  const canApply = (row: OrderRow, target: string) => {
+    if (ORDER_TERMINAL_STATUSES.includes(row.status) || row.status === 'QUALITY_CHECK') return false;
+    const progress = ownItemsProgress(row, 'PROVIDER', providerId);
+    return progress !== null && ORDER_STATUS_FLOW.indexOf(target) > progress;
+  };
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -139,6 +183,9 @@ export default function ProviderOrders() {
         })}
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       <DataTable
         columns={[
           {
@@ -184,7 +231,7 @@ export default function ProviderOrders() {
             sortable: true,
             render: (item: OrderRow) => (
               <Badge variant="outline" className={`text-[10px] font-semibold ${STATUS_COLORS[item.status] || ''}`}>
-                {item.status.replace('_', ' ')}
+                {statusLabel(item.status)}
               </Badge>
             ),
           },
@@ -213,6 +260,22 @@ export default function ProviderOrders() {
         ]}
         data={filtered}
         rowHref={(item: OrderRow) => `/provider/orders/${item.id}`}
+        selectable
+        bulkActions={(rows, clear) => (
+          <OrderBulkActions
+            rows={rows}
+            clear={clear}
+            bulk={bulk}
+            token={token}
+            targets={statusTargets}
+            canApply={canApply}
+            // Same timeline note the provider detail page sends.
+            note={(s) => t('noteStatusUpdated', { status: s })}
+            statusLabel={statusLabel}
+            after={() => fetchOrders(meta?.page || 1)}
+            menuHint={tb('ordersShipNeedsTracking')}
+          />
+        )}
         pagination={meta ?? undefined}
         onPageChange={p => fetchOrders(p)}
         emptyMessage={loading ? tc('loading') : t('noOrders')}

@@ -1605,6 +1605,32 @@
         "seoDescFallback": "Boş bırakılırsa koleksiyon açıklaması kullanılır.",
         "noindexWhenEmpty": "Boşken arama motorlarından gizle",
         "noindexWhenEmptyHint": "Koleksiyonda yayınlanmış ürün olmadığı sürece site haritasına eklenmez ve noindex olarak işaretlenir."
+      },
+      "list": {
+        "totalCount": "{count, plural, one {# koleksiyon} other {# koleksiyon}}",
+        "showingGroups": "Üst düzey koleksiyonlar {from}–{to} / {total}",
+        "previousPage": "Önceki sayfa",
+        "nextPage": "Sonraki sayfa",
+        "sort_manual": "Manuel sıralama",
+        "sort_name_asc": "Ad A–Z",
+        "sort_name_desc": "Ad Z–A",
+        "sort_products_desc": "En çok ürün",
+        "sort_products_asc": "En az ürün",
+        "filterProducts": "Ürünler",
+        "anyProducts": "Herhangi bir ürün sayısı",
+        "withProducts": "Ürün içeren",
+        "emptyProducts": "Boş",
+        "productsFilterHint": "Bağlı ürünleri sayar. Etiket tabanlı koleksiyonlar canlı eşleştirildiği için dahil edilmez.",
+        "filterLevel": "Seviye",
+        "allLevels": "Tüm seviyeler",
+        "topLevelOnly": "Yalnızca üst düzey",
+        "filterImage": "Görsel",
+        "anyImage": "Herhangi bir görsel",
+        "withImage": "Görselli",
+        "withoutImage": "Görselsiz",
+        "anyRule": "Herhangi bir eşleşme kuralı",
+        "noFilterResults": "Bu filtrelerle eşleşen koleksiyon yok.",
+        "contextRow": "Bağlam için gösteriliyor: filtrelerle kendisi eşleşmiyor"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "Sağdaki paletten blok ekleyin",
     "blockNumber": "Blok {number}",
     "editBlockContent": "{type} içeriğini buradan düzenleyin...",
-    "savePage": "Sayfayı Kaydet"
+    "savePage": "Sayfayı Kaydet",
+    "noInternalLabelsYetCreate": "Henüz dahili kategori yok. Koleksiyonlar altında <link>bir tane oluşturun</link> ve görünürlüğünü dahili yapın.",
+    "searchInternalLabels": "Dahili kategorilerde ara…"
   },
   "errors": {
     "generic": "Bir hata oluştu. Lütfen tekrar deneyin.",
@@ -5669,7 +5697,9 @@
     "savedState": "Kaydedildi",
     "switchToDraft": "Taslağa çevir",
     "unsavedChanges": "Kaydedilmemiş değişiklikler",
-    "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?"
+    "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?",
+    "internalCategories": "Dahili kategoriler (etiketler)",
+    "internalCategoriesHelp": "Yalnızca kendi düzeniniz ve filtreleme için. Mağazada gösterilmez."
   },
   "customField": {
     "typeText": "Metin",
@@ -6240,7 +6270,19 @@
       "internal": "Dahili"
     },
     "internalLabelsGroup": "Dahili etiketler",
-    "internalLabelsHint": "Mağazada gösterilmez"
+    "internalLabelsHint": "Mağazada gösterilmez",
+    "viewMode": "Görünüm",
+    "viewList": "Liste görünümü",
+    "viewGrid": "Izgara görünümü",
+    "selectedProducts": "Seçili ürünler",
+    "addProducts": "Ürün ekle",
+    "addProductsTitle": "Bu koleksiyona ürün ekle",
+    "addProductsHint": "Eklemek veya çıkarmak için bir ürüne tıklayın.",
+    "noProductsSelected": "Henüz ürün seçilmedi",
+    "noProductsSelectedHint": "Bu koleksiyona dahil etmek için ürün ekleyin.",
+    "showMoreProducts": "Daha fazla göster ({count} kaldı)",
+    "productUnavailable": "Ürün mevcut değil",
+    "doneSelecting": "Tamam"
   },
   "shipping": {
     "actionCannotBeUndone": "Bu işlem geri alınamaz.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "PDF'leri indir ({count})",
     "allDone": "{count, plural, one {Tamamlandı — # öğe.} other {Tamamlandı — # öğe.}}",
     "partial": "{ok} başarılı, {failed} başarısız.",
-    "firstError": "İlk hata: {error}"
+    "firstError": "İlk hata: {error}",
+    "changeStatus": "Durumu değiştir",
+    "skippedCount": "{count} atlandı",
+    "cancelOrders": "Siparişleri iptal et",
+    "exportCsvCount": "CSV dışa aktar ({count})",
+    "ordersStatusTitle": "{count, plural, one {# sipariş} other {# sipariş}} \"{status}\" olarak işaretlensin mi?",
+    "ordersCancelTitle": "{count, plural, one {# sipariş} other {# sipariş}} iptal edilsin mi?",
+    "ordersShippedWarning": "Müşterilere kargo e-postası gönderilir ve Kustom üzerinden yetkilendirilen ödemeler şimdi tahsil edilir.",
+    "ordersDeliveredWarning": "Müşterilere teslimat e-postası gönderilir ve teslimatta düzenlenmesi gereken faturalar düzenlenir.",
+    "ordersCancelWarning": "Müşterilere iptal e-postası gönderilir ve komisyonlar silinir. Ödemeler otomatik olarak iade edilmez: iadeyi ödeme sağlayıcısı üzerinden yapın.",
+    "ordersSkippedNote": "{count, plural, one {Seçili # sipariş atlanır} other {Seçili # sipariş atlanır}}: bu değişiklik mevcut durumundan yapılamaz.",
+    "ordersShipNeedsTracking": "Siparişleri kargolandı olarak işaretlemek için her siparişi açın ve takip numarasını ekleyin.",
+    "csv": {
+      "order": "Sipariş",
+      "date": "Tarih",
+      "customer": "Müşteri",
+      "email": "E-posta",
+      "status": "Durum",
+      "payment": "Ödeme",
+      "total": "Toplam",
+      "currency": "Para birimi",
+      "items": "Ürünler"
+    }
   }
 }

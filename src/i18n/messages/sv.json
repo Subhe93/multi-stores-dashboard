@@ -1605,6 +1605,32 @@
         "seoDescFallback": "Kollektionens beskrivning används när detta är tomt.",
         "noindexWhenEmpty": "Dölj för sökmotorer när den är tom",
         "noindexWhenEmptyHint": "Så länge kollektionen saknar publicerade produkter utesluts den från webbplatskartan och märks noindex."
+      },
+      "list": {
+        "totalCount": "{count, plural, one {# kollektion} other {# kollektioner}}",
+        "showingGroups": "Visar toppkollektioner {from}–{to} av {total}",
+        "previousPage": "Föregående sida",
+        "nextPage": "Nästa sida",
+        "sort_manual": "Manuell ordning",
+        "sort_name_asc": "Namn A–Ö",
+        "sort_name_desc": "Namn Ö–A",
+        "sort_products_desc": "Flest produkter",
+        "sort_products_asc": "Minst produkter",
+        "filterProducts": "Produkter",
+        "anyProducts": "Valfritt antal produkter",
+        "withProducts": "Har produkter",
+        "emptyProducts": "Tom",
+        "productsFilterHint": "Räknar kopplade produkter. Taggbaserade kollektioner matchas live och räknas därför inte med.",
+        "filterLevel": "Nivå",
+        "allLevels": "Alla nivåer",
+        "topLevelOnly": "Endast toppnivå",
+        "filterImage": "Bild",
+        "anyImage": "Valfri bild",
+        "withImage": "Med bild",
+        "withoutImage": "Utan bild",
+        "anyRule": "Valfri matchningsregel",
+        "noFilterResults": "Inga kollektioner matchar dessa filter.",
+        "contextRow": "Visas som sammanhang: matchar inte filtren själv"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "Lägg till block från paletten till höger",
     "blockNumber": "Block {number}",
     "editBlockContent": "Redigera {type}-innehåll här...",
-    "savePage": "Spara sida"
+    "savePage": "Spara sida",
+    "noInternalLabelsYetCreate": "Inga interna kategorier ännu. <link>Skapa en</link> under Kollektioner och sätt synligheten till intern.",
+    "searchInternalLabels": "Sök interna kategorier…"
   },
   "errors": {
     "generic": "Något gick fel. Försök igen.",
@@ -5669,7 +5697,9 @@
     "savedState": "Sparad",
     "switchToDraft": "Gör till utkast",
     "unsavedChanges": "Osparade ändringar",
-    "unsavedLeaveConfirm": "Du har osparade ändringar. Vill du lämna sidan och kasta dem?"
+    "unsavedLeaveConfirm": "Du har osparade ändringar. Vill du lämna sidan och kasta dem?",
+    "internalCategories": "Interna kategorier (taggar)",
+    "internalCategoriesHelp": "Endast för din egen ordning och filtrering. Visas inte i butiken."
   },
   "customField": {
     "typeText": "Text",
@@ -6240,7 +6270,19 @@
       "internal": "Interna"
     },
     "internalLabelsGroup": "Interna etiketter",
-    "internalLabelsHint": "Visas inte i butiken"
+    "internalLabelsHint": "Visas inte i butiken",
+    "viewMode": "Visningsläge",
+    "viewList": "Listvy",
+    "viewGrid": "Rutnätsvy",
+    "selectedProducts": "Valda produkter",
+    "addProducts": "Lägg till produkter",
+    "addProductsTitle": "Lägg till produkter i denna kollektion",
+    "addProductsHint": "Klicka på en produkt för att lägga till eller ta bort den.",
+    "noProductsSelected": "Inga produkter valda än",
+    "noProductsSelectedHint": "Lägg till produkter för att inkludera dem i denna kollektion.",
+    "showMoreProducts": "Visa fler ({count} kvar)",
+    "productUnavailable": "Produkten är inte tillgänglig",
+    "doneSelecting": "Klar"
   },
   "shipping": {
     "actionCannotBeUndone": "Den här åtgärden kan inte ångras.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "Ladda ner PDF:er ({count})",
     "allDone": "{count, plural, one {Klart — # objekt.} other {Klart — # objekt.}}",
     "partial": "{ok} lyckades, {failed} misslyckades.",
-    "firstError": "Första felet: {error}"
+    "firstError": "Första felet: {error}",
+    "changeStatus": "Ändra status",
+    "skippedCount": "{count} hoppades över",
+    "cancelOrders": "Avbryt beställningar",
+    "exportCsvCount": "Exportera CSV ({count})",
+    "ordersStatusTitle": "Markera {count, plural, one {# beställning} other {# beställningar}} som ”{status}”?",
+    "ordersCancelTitle": "Avbryt {count, plural, one {# beställning} other {# beställningar}}?",
+    "ordersShippedWarning": "Kunderna får ett e-postmeddelande om leverans, och betalningar som auktoriserats via Kustom dras nu.",
+    "ordersDeliveredWarning": "Kunderna får ett e-postmeddelande om att beställningen levererats, och fakturor som ska utfärdas vid leverans utfärdas.",
+    "ordersCancelWarning": "Kunderna får ett e-postmeddelande om avbokning och provisionerna skrivs av. Betalningar återbetalas inte automatiskt: återbetala dem hos betalleverantören.",
+    "ordersSkippedNote": "{count, plural, one {# vald beställning hoppas över} other {# valda beställningar hoppas över}}: ändringen är inte möjlig från deras nuvarande status.",
+    "ordersShipNeedsTracking": "Öppna varje beställning och lägg till dess spårningsnummer för att markera den som skickad.",
+    "csv": {
+      "order": "Beställning",
+      "date": "Datum",
+      "customer": "Kund",
+      "email": "E-post",
+      "status": "Status",
+      "payment": "Betalning",
+      "total": "Totalt",
+      "currency": "Valuta",
+      "items": "Artiklar"
+    }
   }
 }

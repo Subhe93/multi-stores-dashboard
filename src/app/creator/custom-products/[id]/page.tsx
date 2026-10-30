@@ -1050,6 +1050,25 @@ export default function EditCustomProduct() {
               {t('editCustomProduct.collectionsDesc')}
             </p>
             <CollectionTreePicker
+              scope="public"
+              value={creatorCategoryIds}
+              onChange={setCreatorCategoryIds}
+              primaryId={primaryCreatorCategoryId}
+              primaryLocale={primaryLocale}
+              onPrimaryChange={setPrimaryCreatorCategoryId}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Internal categories (tags): not shown in the store. */}
+        <Card className="shadow-none">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">{tp('internalCategories')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-[11px] text-muted-foreground mb-2">{tp('internalCategoriesHelp')}</p>
+            <CollectionTreePicker
+              scope="internal"
               value={creatorCategoryIds}
               onChange={setCreatorCategoryIds}
               primaryId={primaryCreatorCategoryId}

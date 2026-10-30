@@ -1605,6 +1605,32 @@
         "seoDescFallback": "The collection description is used when this is empty.",
         "noindexWhenEmpty": "Hide from search engines while empty",
         "noindexWhenEmptyHint": "While the collection has no published products it is left out of the sitemap and marked noindex."
+      },
+      "list": {
+        "totalCount": "{count, plural, one {# collection} other {# collections}}",
+        "showingGroups": "Showing top-level collections {from}–{to} of {total}",
+        "previousPage": "Previous page",
+        "nextPage": "Next page",
+        "sort_manual": "Manual order",
+        "sort_name_asc": "Name A–Z",
+        "sort_name_desc": "Name Z–A",
+        "sort_products_desc": "Most products",
+        "sort_products_asc": "Fewest products",
+        "filterProducts": "Products",
+        "anyProducts": "Any product count",
+        "withProducts": "Has products",
+        "emptyProducts": "Empty",
+        "productsFilterHint": "Counts linked products. Tag-based collections are matched live, so they are not included.",
+        "filterLevel": "Level",
+        "allLevels": "All levels",
+        "topLevelOnly": "Top level only",
+        "filterImage": "Image",
+        "anyImage": "Any image",
+        "withImage": "With image",
+        "withoutImage": "Without image",
+        "anyRule": "Any match rule",
+        "noFilterResults": "No collections match these filters.",
+        "contextRow": "Shown for context: it does not match the filters itself"
       }
     },
     "bundles": {
@@ -4935,7 +4961,9 @@
     "addBlocksFromPalette": "Add blocks from the palette on the right",
     "blockNumber": "Block {number}",
     "editBlockContent": "Edit {type} content here...",
-    "savePage": "Save Page"
+    "savePage": "Save Page",
+    "noInternalLabelsYetCreate": "No internal categories yet. <link>Create one</link> under Collections and set its visibility to internal.",
+    "searchInternalLabels": "Search internal categories…"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -5669,7 +5697,9 @@
     "savedState": "Saved",
     "switchToDraft": "Switch to draft",
     "unsavedChanges": "Unsaved changes",
-    "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?"
+    "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?",
+    "internalCategories": "Internal categories (tags)",
+    "internalCategoriesHelp": "For your own organisation and filtering. Not shown in the store."
   },
   "customField": {
     "typeText": "Text",
@@ -6240,7 +6270,19 @@
       "internal": "Internal"
     },
     "internalLabelsGroup": "Internal labels",
-    "internalLabelsHint": "Not shown in the store"
+    "internalLabelsHint": "Not shown in the store",
+    "viewMode": "View mode",
+    "viewList": "List view",
+    "viewGrid": "Grid view",
+    "selectedProducts": "Selected products",
+    "addProducts": "Add products",
+    "addProductsTitle": "Add products to this collection",
+    "addProductsHint": "Click a product to include or remove it.",
+    "noProductsSelected": "No products selected yet",
+    "noProductsSelectedHint": "Add products to include them in this collection.",
+    "showMoreProducts": "Show more ({count} remaining)",
+    "productUnavailable": "Product not available",
+    "doneSelecting": "Done"
   },
   "shipping": {
     "actionCannotBeUndone": "This action cannot be undone.",
@@ -6437,6 +6479,28 @@
     "downloadPdfs": "Download PDFs ({count})",
     "allDone": "{count, plural, one {Done — # item.} other {Done — # items.}}",
     "partial": "{ok} succeeded, {failed} failed.",
-    "firstError": "First error: {error}"
+    "firstError": "First error: {error}",
+    "changeStatus": "Change status",
+    "skippedCount": "{count} skipped",
+    "cancelOrders": "Cancel orders",
+    "exportCsvCount": "Export CSV ({count})",
+    "ordersStatusTitle": "Mark {count, plural, one {# order} other {# orders}} as {status}?",
+    "ordersCancelTitle": "Cancel {count, plural, one {# order} other {# orders}}?",
+    "ordersShippedWarning": "Customers get a shipping email, and payments authorized through Kustom are captured now.",
+    "ordersDeliveredWarning": "Customers get a delivery email, and invoices due on delivery are issued.",
+    "ordersCancelWarning": "Customers get a cancellation email and the commissions are written off. Payments are not refunded automatically: refund them with the payment provider.",
+    "ordersSkippedNote": "{count, plural, one {# selected order is skipped} other {# selected orders are skipped}}: this change isn't available from its current status.",
+    "ordersShipNeedsTracking": "To mark orders as shipped, open each order and add its tracking number.",
+    "csv": {
+      "order": "Order",
+      "date": "Date",
+      "customer": "Customer",
+      "email": "Email",
+      "status": "Status",
+      "payment": "Payment",
+      "total": "Total",
+      "currency": "Currency",
+      "items": "Items"
+    }
   }
 }

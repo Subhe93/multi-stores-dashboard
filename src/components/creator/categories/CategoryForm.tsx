@@ -33,9 +33,9 @@ import { TagInput } from '@/components/common/TagInput';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  ProductMultiSelect,
-  type ProductOption,
-} from '@/components/creator/bundles/ProductMultiSelect';
+  CollectionProductsPicker,
+  type CollectionProductOption,
+} from '@/components/creator/categories/CollectionProductsPicker';
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
@@ -133,13 +133,16 @@ interface MyStore {
 interface OwnProduct {
   id: string;
   base_price?: number | string;
-  translations?: { locale: string; title: string }[];
+  status?: string;
+  sku?: string | null;
+  translations?: { locale: string; title: string; slug?: string }[];
   images?: { url: string; is_featured?: boolean }[];
 }
 
 interface CustomProductRow {
   id: string;
   final_price?: number | string;
+  status?: string;
   pricing_type?: 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
   margin_amount?: number | string | null;
   translations?: { locale: string; title: string }[];
@@ -242,6 +245,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [products, setProducts] = useState<OwnProduct[]>([]);
   const [customProducts, setCustomProducts] = useState<CustomProductRow[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   // For edit mode: resolved product count (works for both MANUAL and TAGS)
   const [resolvedCount, setResolvedCount] = useState<number | null>(null);
@@ -304,14 +308,16 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
       () => [] as CustomProductRow[],
     );
 
-    Promise.all([fetchOwn, fetchCustom]).then(([ownRes, customRes]) => {
-      const own = Array.isArray(ownRes) ? ownRes : ownRes?.data ?? [];
-      const custom = Array.isArray(customRes)
-        ? customRes
-        : customRes?.data ?? [];
-      setProducts(own);
-      setCustomProducts(custom);
-    });
+    Promise.all([fetchOwn, fetchCustom])
+      .then(([ownRes, customRes]) => {
+        const own = Array.isArray(ownRes) ? ownRes : ownRes?.data ?? [];
+        const custom = Array.isArray(customRes)
+          ? customRes
+          : customRes?.data ?? [];
+        setProducts(own);
+        setCustomProducts(custom);
+      })
+      .finally(() => setProductsLoading(false));
   }, [token, user?.creator?.id]);
 
   // ── Edit mode: load the existing record ────────────────────────────────────
@@ -398,8 +404,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     return `/collections/${[...ancestors, slug.trim() || '…'].join('/')}`;
   }, [allCategories, parentId, slug]);
 
-  const productOptions: ProductOption[] = useMemo(() => {
-    const own: ProductOption[] = products.map((p) => {
+  const productOptions: CollectionProductOption[] = useMemo(() => {
+    const own: CollectionProductOption[] = products.map((p) => {
       const trans =
         p.translations?.find((tr) => tr.locale === primaryLocale) ||
         p.translations?.[0];
@@ -409,13 +415,15 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         null;
       return {
         id: `p:${p.id}`,
-        name: `${trans?.title || t('bundle.untitledProduct')} · ${t('bundle.ownSuffix')}`,
+        title: trans?.title || t('bundle.untitledProduct'),
+        kind: 'own',
         thumbnail: featured ? resolveUrl(featured) : null,
-        unitPrice: Number(p.base_price ?? 0),
-        pricingType: 'SINGLE',
+        subtitle: [p.sku, trans?.slug].filter(Boolean).join(' · ') || null,
+        price: p.base_price !== undefined ? Number(p.base_price) : null,
+        status: p.status ?? null,
       };
     });
-    const custom: ProductOption[] = customProducts.map((cp) => {
+    const custom: CollectionProductOption[] = customProducts.map((cp) => {
       const trans =
         cp.translations?.find((tr) => tr.locale === primaryLocale) ||
         cp.translations?.[0] ||
@@ -423,12 +431,14 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         cp.product?.translations?.[0];
       const thumb =
         cp.mockup_images?.[0]?.url || cp.product?.images?.[0]?.url || null;
+      const price = cp.final_price ?? cp.product?.base_price;
       return {
         id: `cp:${cp.id}`,
-        name: `${trans?.title || t('bundle.untitledProduct')} · ${t('bundle.customSuffix')}`,
+        title: trans?.title || t('bundle.untitledProduct'),
+        kind: 'custom',
         thumbnail: thumb ? resolveUrl(thumb) : null,
-        unitPrice: Number(cp.final_price ?? cp.product?.base_price ?? 0),
-        pricingType: cp.pricing_type ?? 'SINGLE',
+        price: price !== undefined ? Number(price) : null,
+        status: cp.status ?? null,
       };
     });
     return [...own, ...custom];
@@ -1097,41 +1107,46 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                 </div>
               </label>
 
-              {/* Radio: MANUAL */}
-              <label
-                className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer transition ${
+              {/* Radio: MANUAL. Only the header is the label, so clicks in the
+                  product picker below never re-target the radio. */}
+              <div
+                className={`rounded-md border p-3 transition ${
                   matchRule === 'MANUAL'
                     ? 'border-zinc-900 bg-zinc-50/60'
                     : 'border-zinc-200 hover:bg-zinc-50/40'
                 }`}
               >
-                <input
-                  type="radio"
-                  name="match_rule"
-                  className="mt-0.5"
-                  checked={matchRule === 'MANUAL'}
-                  onChange={() => setMatchRule('MANUAL')}
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Package className="size-3.5 text-zinc-500" />
-                    <span className="text-sm font-medium">
-                      {t('category.manuallyAdd')}
-                    </span>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="match_rule"
+                    className="mt-0.5"
+                    checked={matchRule === 'MANUAL'}
+                    onChange={() => setMatchRule('MANUAL')}
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Package className="size-3.5 text-zinc-500" />
+                      <span className="text-sm font-medium">
+                        {t('category.manuallyAdd')}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t('category.manuallyAddHint')}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t('category.manuallyAddHint')}
-                  </p>
-                  {matchRule === 'MANUAL' && (
-                    <ProductMultiSelect
+                </label>
+                {matchRule === 'MANUAL' && (
+                  <div className="mt-3">
+                    <CollectionProductsPicker
                       options={productOptions}
                       value={productIds}
                       onChange={setProductIds}
-                      placeholder={t('category.searchAndPickProducts')}
+                      loading={productsLoading}
                     />
-                  )}
-                </div>
-              </label>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
