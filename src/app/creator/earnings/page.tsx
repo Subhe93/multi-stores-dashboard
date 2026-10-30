@@ -322,6 +322,7 @@ export default function CreatorEarnings() {
           <DataTable
             columns={COMMISSION_COLUMNS}
             data={loading ? [] : orders}
+            rowHref={(item: Order) => `/creator/orders/${item.id}`}
             emptyMessage={loading ? tc('loading') : t('earnings.noEarningsYet')}
             pagination={meta ?? undefined}
             onPageChange={setPage}

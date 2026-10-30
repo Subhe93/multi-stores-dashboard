@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useApiError } from '@/lib/useApiError';
 import { useInvoicePdfDownload } from '@/lib/useInvoices';
 import { formatInvoiceAmount, formatInvoiceDate, invoiceCsvFilename } from '@/lib/invoices';
 import {
+  downloadInvoicePdf,
   downloadInvoicesCsv,
   listInvoices,
   type InvoiceKind,
@@ -42,6 +44,8 @@ export function InvoicesListTab({ token, canWrite }: InvoicesListTabProps) {
   const locale = useLocale();
   const describeError = useApiError();
   const { download, downloadingId, downloadError } = useInvoicePdfDownload(token);
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
 
   const [kind, setKind] = useState<KindFilter>('all');
   const [paid, setPaid] = useState<PaidFilter>('all');
@@ -321,6 +325,8 @@ export function InvoicesListTab({ token, canWrite }: InvoicesListTabProps) {
         </div>
       )}
 
+      {bulk.notice}
+
       <div className={loading && data ? 'opacity-60 transition-opacity' : undefined}>
         <DataTable
           columns={columns}
@@ -328,6 +334,30 @@ export function InvoicesListTab({ token, canWrite }: InvoicesListTabProps) {
           pagination={pagination}
           onPageChange={setPage}
           emptyMessage={loading ? t('loading') : t('empty')}
+          onRowClick={setSelected}
+          selectable
+          bulkActions={(rows, clear) => {
+            const withPdf = rows.filter((inv) => inv.pdf_available !== false);
+            return (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={bulk.busy || withPdf.length === 0}
+                onClick={() => bulk.run({
+                  rows: withPdf,
+                  fn: (inv) => downloadInvoicePdf(token, inv),
+                  done: (count) => tb('downloadedCount', { count }),
+                  clear,
+                  // Browsers block several parallel downloads.
+                  concurrency: 1,
+                })}
+              >
+                {bulk.busy ? <Loader2 className="animate-spin" /> : <Download />}
+                {tb('downloadPdfs', { count: withPdf.length })}
+              </Button>
+            );
+          }}
         />
       </div>
 

@@ -21,6 +21,17 @@ import {
   type BackupStatus,
 } from '@/lib/backups';
 import { RestoreBackupDialog } from '@/components/backups/RestoreBackupDialog';
+import { runBulk } from '@/lib/bulk';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 interface BackupsTableProps {
   items: Backup[];
@@ -59,6 +70,14 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [restoreTarget, setRestoreTarget] = useState<Backup | null>(null);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+  const tb = useTranslations('bulk');
+  const bulkSummary = useBulkSummary();
+  const selection = useTableSelection(items, (b) => b.id);
+  // A running backup cannot be deleted (same rule as the row button).
+  const bulkDeletable = selection.selectedRows.filter((b) => b.status !== 'RUNNING' && b.status !== 'PENDING');
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
 
   const setRowError = (id: string, message: string) => setRowErrors((prev) => ({ ...prev, [id]: message }));
   const clearRowError = (id: string) =>
@@ -106,6 +125,22 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (!token) return;
+    setBulkBusy(true);
+    // Re-throw with the friendly text so the summary shows it.
+    const result = await runBulk(bulkDeletable, (b) =>
+      api<{ deleted: boolean }>(`/admin/backups/${b.id}`, { method: 'DELETE', token }).catch((err: unknown) => {
+        throw new Error(describeBackupError(err, t, t('deleteFailed')));
+      }),
+    );
+    setBulkBusy(false);
+    setBulkDeleteOpen(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    onChanged();
+  };
+
   const kindLabel = (kind: BackupKind) =>
     kind === 'MANUAL' ? t('kindManual') : kind === 'SCHEDULED' ? t('kindScheduled') : t('kindPreRestore');
   const statusLabel = (status: BackupStatus) =>
@@ -131,12 +166,28 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
       </div>
 
       {error && <p className="text-[11px] text-red-600">{error}</p>}
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
 
       <Card className="shadow-none">
+        <TableSelectionBar selection={selection}>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="h-7 text-xs"
+            disabled={bulkDeletable.length === 0}
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <Trash2 className="size-3.5" />
+            {tc('delete')}
+          </Button>
+        </TableSelectionBar>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <SelectAllCheckbox selection={selection} />
+                </TableHead>
                 <TableHead>{t('colDate')}</TableHead>
                 <TableHead>{t('colKind')}</TableHead>
                 <TableHead>{tc('status')}</TableHead>
@@ -149,11 +200,11 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
             <TableBody>
               {loading && items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
+                  <TableCell colSpan={8} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">{t('noBackups')}</TableCell>
+                  <TableCell colSpan={8} className="py-8 text-center text-xs text-muted-foreground">{t('noBackups')}</TableCell>
                 </TableRow>
               ) : (
                 items.map((backup) => {
@@ -165,7 +216,10 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                   const rowError = rowErrors[backup.id];
                   return (
                     <Fragment key={backup.id}>
-                      <TableRow>
+                      <TableRow data-state={selection.isSelected(backup.id) ? 'selected' : undefined}>
+                        <TableCell className="w-10" data-row-click-ignore>
+                          <SelectRowCheckbox selection={selection} id={backup.id} />
+                        </TableCell>
                         <TableCell className="text-xs whitespace-nowrap">
                           <div>{new Date(backup.created_at).toLocaleString(locale)}</div>
                           <div className="font-mono text-[10px] text-muted-foreground">{backup.id.slice(0, 8)}</div>
@@ -266,7 +320,7 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                       </TableRow>
                       {(rowError || (errorOpen && backup.error)) && (
                         <TableRow className="bg-red-50/60 hover:bg-red-50/60">
-                          <TableCell colSpan={7} className="py-2">
+                          <TableCell colSpan={8} className="py-2">
                             {rowError && <p className="text-[11px] text-red-600">{rowError}</p>}
                             {errorOpen && backup.error && (
                               <pre className="max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-red-700">{backup.error}</pre>
@@ -282,6 +336,17 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        destructive
+        title={tb('deleteTitle', { count: bulkDeletable.length })}
+        description={tb('deleteDescription')}
+        busy={bulkBusy}
+        busyLabel={tb('working')}
+        onConfirm={handleBulkDelete}
+      />
 
       <RestoreBackupDialog backup={restoreTarget} onClose={() => setRestoreTarget(null)} onRestored={() => onChanged()} />
     </div>

@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { Package } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 type ProductStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
@@ -49,6 +50,8 @@ const TABS: { label: string; status?: ProductStatus }[] = [
 
 export default function AdminProducts() {
   const t = useTranslations('admin');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const { fmt } = useCurrency();
   const { token } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -105,6 +108,30 @@ export default function AdminProducts() {
   const getNextStatus = (current: ProductStatus): ProductStatus =>
     current === 'PUBLISHED' ? 'ARCHIVED' : 'PUBLISHED';
 
+  // Bulk status change through the same single-product endpoint as the row action.
+  const bulkSetStatus = (rows: AdminProduct[], status: ProductStatus, clear: () => void) => {
+    const targets = rows.filter((r) => r.status !== status);
+    const opts = {
+      rows: targets,
+      fn: (r: AdminProduct) =>
+        api(`/products/${r.id}/status`, { method: 'PUT', token: token ?? undefined, body: JSON.stringify({ status }) }),
+      done: (count: number) => tb('updatedCount', { count }),
+      clear,
+      after: () => fetchProducts(meta?.page || 1),
+    };
+    if (status === 'ARCHIVED') {
+      bulk.ask({
+        ...opts,
+        title: tb('archiveTitle', { count: targets.length }),
+        description: tb('archiveDescription'),
+        confirmLabel: t('archive'),
+        destructive: true,
+      });
+    } else {
+      void bulk.run(opts);
+    }
+  };
+
   const tabLabel = (tab: { label: string; status?: ProductStatus }) => {
     if (!tab.status) return t('tabAll');
     if (tab.status === 'PUBLISHED') return t('statusPublished');
@@ -120,6 +147,8 @@ export default function AdminProducts() {
           <p className="text-sm text-muted-foreground">{t('allProductsSubtitle')}</p>
         </div>
       </div>
+
+      {bulk.notice}
 
       <div className="flex gap-1.5">
         {TABS.map((tab, i) => (
@@ -201,10 +230,35 @@ export default function AdminProducts() {
           },
         ]}
         data={products}
+        selectable
+        bulkActions={(rows, clear) => (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || rows.every((r) => r.status === 'PUBLISHED')}
+              onClick={() => bulkSetStatus(rows, 'PUBLISHED', clear)}
+            >
+              {t('publish')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-red-600 hover:text-red-700"
+              disabled={bulk.busy || rows.every((r) => r.status === 'ARCHIVED')}
+              onClick={() => bulkSetStatus(rows, 'ARCHIVED', clear)}
+            >
+              {t('archive')}
+            </Button>
+          </>
+        )}
         pagination={meta ?? undefined}
         onPageChange={(p) => fetchProducts(p)}
         emptyMessage={loading ? t('loading') : t('noProductsFound')}
       />
+
+      {bulk.dialog}
 
       {/* Status toggle confirmation */}
       <Dialog open={!!toggleTarget} onOpenChange={(open) => { if (!open) setToggleTarget(null); }}>

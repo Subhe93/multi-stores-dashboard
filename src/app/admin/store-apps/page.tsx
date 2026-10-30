@@ -3,11 +3,19 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Info } from 'lucide-react';
+import { ChevronDown, Info } from 'lucide-react';
 import { DataTable } from '@/components/common/DataTable';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth';
@@ -46,6 +54,8 @@ export default function AdminStoreAppsPage() {
   const t = useTranslations('admin.storeAppsPage');
   const tAdmin = useTranslations('admin');
   const tRoot = useTranslations();
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const apiError = useApiError();
   const { token } = useAuth();
 
@@ -59,6 +69,8 @@ export default function AdminStoreAppsPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState<Set<string>>(new Set());
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Bumped after a bulk change to refetch the current page.
+  const [reloadKey, setReloadKey] = useState(0);
   // Guards against an older response overwriting a newer one.
   const requestId = useRef(0);
 
@@ -94,7 +106,7 @@ export default function AdminStoreAppsPage() {
       .finally(() => {
         if (current === requestId.current) setLoading(false);
       });
-  }, [token, page, query, type]);
+  }, [token, page, query, type, reloadKey]);
 
   const patchApp = (storeId: string, key: StoreAppKey, available: boolean) =>
     setRows((prev) =>
@@ -135,6 +147,44 @@ export default function AdminStoreAppsPage() {
     }
   };
 
+  /**
+   * Make one app available to (or withdraw it from) every selected store via the
+   * same per-store endpoint as the switches. Rows where the change is a no-op or
+   * not allowed (independent-only app on a marketplace store) are skipped.
+   */
+  const bulkSetAvailable = (rows: StoreAppsRow[], key: StoreAppKey, available: boolean, clear: () => void) => {
+    const targets = rows.filter((row) => {
+      const app = row.apps.find((a) => a.key === key);
+      if (!app || app.available === available) return false;
+      return !(available && app.requires_independent && row.store_type === 'MARKETPLACE');
+    });
+    const appName = tRoot(`creator.apps.items.${key}.name`);
+    const opts = {
+      rows: targets,
+      fn: (row: StoreAppsRow) =>
+        api(`/stores/by-creator/${row.creator_id}/apps/${key}/available`, {
+          method: 'PUT',
+          token: token ?? undefined,
+          body: JSON.stringify({ available }),
+        }),
+      done: (count: number) => tb('updatedCount', { count }),
+      clear,
+      after: () => setReloadKey((k) => k + 1),
+    };
+    if (available) {
+      void bulk.run(opts);
+    } else {
+      // Withdrawing also switches the app off for the store: confirm first.
+      bulk.ask({
+        ...opts,
+        title: tb('withdrawAppTitle', { app: appName, count: targets.length }),
+        description: t('introCreator'),
+        confirmLabel: tb('withdrawApp', { app: appName }),
+        destructive: true,
+      });
+    }
+  };
+
   const renderApp = (row: StoreAppsRow, key: StoreAppKey) => {
     const app = row.apps.find((a) => a.key === key);
     if (!app) return <span className="text-xs text-muted-foreground">—</span>;
@@ -151,7 +201,7 @@ export default function AdminStoreAppsPage() {
       />
     );
     return (
-      <div className="flex flex-col items-start gap-1">
+      <div className="flex flex-col items-start gap-1" data-row-click-ignore>
         {blocked ? (
           <Tooltip>
             {/* The wrapper keeps the tooltip reachable while the switch is disabled. */}
@@ -201,6 +251,8 @@ export default function AdminStoreAppsPage() {
         </CardContent>
       </Card>
 
+      {bulk.notice}
+      {bulk.dialog}
       {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
       {loadFailed && <p className="text-sm text-red-600">{t('loadFailed')}</p>}
 
@@ -235,6 +287,37 @@ export default function AdminStoreAppsPage() {
           })),
         ]}
         data={rows}
+        getRowId={(row: StoreAppsRow) => row.store_id}
+        rowHref={(row: StoreAppsRow) => `/admin/creators/${row.creator_id}`}
+        selectable
+        bulkActions={(selected, clear) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={bulk.busy}
+              className="inline-flex h-7 items-center gap-1 rounded-md border bg-background px-2.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {bulk.busy ? tb('working') : tb('appsMenu')}
+              <ChevronDown className="size-3.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto min-w-56">
+              {VISIBLE_STORE_APP_KEYS.map((key) => (
+                <DropdownMenuItem key={`on-${key}`} onClick={() => bulkSetAvailable(selected, key, true, clear)}>
+                  {tb('offerApp', { app: tRoot(`creator.apps.items.${key}.name`) })}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              {VISIBLE_STORE_APP_KEYS.map((key) => (
+                <DropdownMenuItem
+                  key={`off-${key}`}
+                  variant="destructive"
+                  onClick={() => bulkSetAvailable(selected, key, false, clear)}
+                >
+                  {tb('withdrawApp', { app: tRoot(`creator.apps.items.${key}.name`) })}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         searchPlaceholder={t('searchPlaceholder')}
         onSearch={setSearch}
         actions={

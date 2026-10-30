@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
   Plus,
@@ -20,6 +21,17 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { runBulk } from '@/lib/bulk';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -166,6 +178,9 @@ export default function CreatorCategoriesPage() {
   const t = useTranslations('creator');
   const tc = useTranslations('common');
   const tcat = useTranslations('category');
+  const tb = useTranslations('bulk');
+  const bulkSummary = useBulkSummary();
+  const { linkRow } = useRowOpen();
 
   const [tree, setTree] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,6 +260,30 @@ export default function CreatorCategoriesPage() {
       return true;
     });
   }, [rows, matchSet, collapsed, visibilityFilter]);
+
+  const selection = useTableSelection(visibleRows, (r) => r.id);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
+
+  // Children go first (deepest rows, one at a time) so a parent selected
+  // together with its children never detaches them. Unselected children of a
+  // deleted parent become top-level, same as the single delete.
+  const handleBulkDelete = async () => {
+    if (!token) return;
+    setBulkBusy(true);
+    const targets = [...selection.selectedRows].sort((a, b) => b.depth - a.depth);
+    const result = await runBulk(
+      targets,
+      (row) => api(`/creator-categories/${row.id}`, { method: 'DELETE', token }),
+      1,
+    );
+    setBulkBusy(false);
+    setBulkDeleteOpen(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    await fetchCategories();
+  };
 
   const updateCollapsed = (next: Set<string>) => {
     setCollapsed(next);
@@ -344,6 +383,7 @@ export default function CreatorCategoriesPage() {
     const canAddSub = row.depth < MAX_CATEGORY_DEPTH;
     const productCount = (row._count?.products ?? 0) + (row._count?.custom_products ?? 0);
     const parentRow = row.parent_id ? byId.get(row.parent_id) : undefined;
+    const rowOpen = linkRow(`/creator/categories/${row.id}`);
 
     return (
       <TableRow
@@ -357,8 +397,13 @@ export default function CreatorCategoriesPage() {
         aria-level={level}
         aria-expanded={hasChildren ? open : undefined}
         onKeyDown={(e) => handleRowKeyDown(e, row, index)}
-        className="group outline-none focus-visible:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900/20"
+        data-state={selection.isSelected(row.id) ? 'selected' : undefined}
+        {...rowOpen}
+        className="group cursor-pointer outline-none focus-visible:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900/20"
       >
+        <TableCell className="w-10 py-2" data-row-click-ignore>
+          <SelectRowCheckbox selection={selection} id={row.id} />
+        </TableCell>
         {/* Name + hierarchy */}
         <TableCell className="py-2">
           <div className="flex items-center">
@@ -421,7 +466,9 @@ export default function CreatorCategoriesPage() {
 
             <div className="flex min-w-0 flex-col">
               <span className="flex items-center gap-1.5 text-sm font-medium">
-                <span className="truncate">{row.name}</span>
+                <Link href={`/creator/categories/${row.id}`} tabIndex={-1} className="truncate hover:underline">
+                  {row.name}
+                </Link>
                 <Tooltip>
                   <TooltipTrigger
                     render={
@@ -591,6 +638,8 @@ export default function CreatorCategoriesPage() {
         </Button>
       </div>
 
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
+
       {/* Tree table */}
       {loading ? (
         <Card className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground shadow-none">
@@ -614,8 +663,14 @@ export default function CreatorCategoriesPage() {
         </Card>
       ) : (
         <Card className="shadow-none">
-          {/* Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b p-3">
+          <TableSelectionBar selection={selection}>
+            <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => setBulkDeleteOpen(true)}>
+              <Trash2 className="size-3.5" />
+              {tc('delete')}
+            </Button>
+          </TableSelectionBar>
+          {/* Toolbar (replaced by the selection bar while rows are selected) */}
+          <div className={cn('flex flex-wrap items-center justify-between gap-2 border-b p-3', selection.count > 0 && 'hidden')}>
             <div className="relative w-full max-w-xs">
               <Search className="pointer-events-none absolute inset-s-2.5 top-1/2 size-3.5 -translate-y-1/2 text-zinc-400" />
               <input
@@ -675,6 +730,9 @@ export default function CreatorCategoriesPage() {
           <Table role="treegrid">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 h-10">
+                  <SelectAllCheckbox selection={selection} />
+                </TableHead>
                 <TableHead className="h-10 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {tc('name')}
                 </TableHead>
@@ -693,7 +751,7 @@ export default function CreatorCategoriesPage() {
             <TableBody>
               {visibleRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={6} className="h-32 text-center text-sm text-muted-foreground">
                     {t('collections.noSearchResults')}
                   </TableCell>
                 </TableRow>
@@ -704,6 +762,17 @@ export default function CreatorCategoriesPage() {
           </Table>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        destructive
+        title={tb('deleteTitle', { count: selection.count })}
+        description={tb('deleteDescription')}
+        busy={bulkBusy}
+        busyLabel={t('collections.deleting')}
+        onConfirm={handleBulkDelete}
+      />
 
       {/* Delete confirm dialog */}
       <Dialog

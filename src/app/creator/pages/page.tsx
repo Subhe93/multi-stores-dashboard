@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -23,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -114,6 +116,8 @@ export default function CreatorPagesPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeError, setStoreError] = useState(false);
@@ -393,7 +397,9 @@ export default function CreatorPagesPage() {
       key: 'title',
       label: t('storePages.colTitle'),
       render: (item: PageRow) => (
-        <span className="text-sm font-medium">{pageTitle(item.translations, primaryLocale, t)}</span>
+        <Link href={`/builder/${item.id}`} className="text-sm font-medium hover:underline">
+          {pageTitle(item.translations, primaryLocale, t)}
+        </Link>
       ),
     },
     {
@@ -703,6 +709,9 @@ export default function CreatorPagesPage() {
         </Card>
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       {/* Table — simple client-side filter by title or slug */}
       <DataTable
         columns={columns}
@@ -718,6 +727,35 @@ export default function CreatorPagesPage() {
         searchPlaceholder={t('storePages.searchPlaceholder')}
         onSearch={setSearch}
         emptyMessage=""
+        selectable
+        rowHref={(item: PageRow) => `/builder/${item.id}`}
+        bulkActions={(rows, clear) => (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs text-destructive hover:text-destructive"
+            disabled={bulk.busy || rows.every((p) => p.isRequired)}
+            onClick={() => bulk.ask({
+              // Required pages cannot be deleted (the API rejects them).
+              rows: rows.filter((p) => !p.isRequired),
+              // Each row is deleted through the system it belongs to.
+              fn: (p) =>
+                api(p.system === 'v2' ? `/v2/pages/${p.id}` : `/pages/${p.id}`, {
+                  method: 'DELETE',
+                  token: token ?? undefined,
+                }),
+              done: (count) => tb('deletedCount', { count }),
+              clear,
+              after: fetchStoreAndPages,
+              title: tb('deleteTitle', { count: rows.filter((p) => !p.isRequired).length }),
+              description: tb('deleteDescription'),
+              destructive: true,
+            })}
+          >
+            <Trash2 className="size-3.5" />
+            {tb('deleteCount', { count: rows.length })}
+          </Button>
+        )}
       />
 
       {/* Empty state */}

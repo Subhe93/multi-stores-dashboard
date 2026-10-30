@@ -23,6 +23,17 @@ import {
   type TaxClass,
   type TaxRateRow,
 } from '@/lib/taxRate';
+import { runBulk } from '@/lib/bulk';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 // Default VAT labels per locale, pre-filled when creating a rate.
 const DEFAULT_LABELS: Record<string, string> = {
@@ -189,6 +200,27 @@ export function TaxRatesManager({ endpoint, classes, locales, canSeed, onSeeded,
         ),
     [rates, filterCountry, filterClass],
   );
+
+  const tb = useTranslations('bulk');
+  const bulkSummary = useBulkSummary();
+  const { actionRow } = useRowOpen();
+  const selection = useTableSelection(filtered, (r) => r.id);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
+
+  const handleBulkDelete = async () => {
+    if (!token) return;
+    setBulkBusy(true);
+    const result = await runBulk(selection.selectedRows, (rate) =>
+      api(`${endpoint}/${rate.id}`, { method: 'DELETE', token }),
+    );
+    setBulkBusy(false);
+    setBulkDeleteOpen(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    await fetchRates();
+  };
 
   const openCreate = () => {
     setEditingId(null);
@@ -379,12 +411,22 @@ export function TaxRatesManager({ endpoint, classes, locales, canSeed, onSeeded,
         <p className={`text-[11px] ${seedMsg.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>{seedMsg.text}</p>
       )}
       {loadError && <p className="text-[11px] text-red-600">{loadError}</p>}
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
 
       <Card className="shadow-none">
+        <TableSelectionBar selection={selection}>
+          <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => setBulkDeleteOpen(true)}>
+            <Trash2 className="size-3.5" />
+            {tc('delete')}
+          </Button>
+        </TableSelectionBar>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <SelectAllCheckbox selection={selection} />
+                </TableHead>
                 <TableHead>{t('country')}</TableHead>
                 <TableHead>{t('region')}</TableHead>
                 <TableHead>{t('postcode')}</TableHead>
@@ -400,20 +442,32 @@ export function TaxRatesManager({ endpoint, classes, locales, canSeed, onSeeded,
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-8 text-center text-xs text-muted-foreground">
+                  <TableCell colSpan={11} className="py-8 text-center text-xs text-muted-foreground">
                     {tc('loading')}
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-8 text-center text-xs text-muted-foreground">
+                  <TableCell colSpan={11} className="py-8 text-center text-xs text-muted-foreground">
                     {rates.length === 0 ? t('noRates') : tc('noResults')}
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((rate) => (
-                  <TableRow key={rate.id} className={rate.is_active ? '' : 'opacity-60'}>
-                    <TableCell className="text-xs whitespace-nowrap">{countryLabel(rate.country, locale)}</TableCell>
+                  <TableRow
+                    key={rate.id}
+                    data-state={selection.isSelected(rate.id) ? 'selected' : undefined}
+                    {...actionRow(() => openEdit(rate))}
+                    className={rate.is_active ? 'cursor-pointer' : 'cursor-pointer opacity-60'}
+                  >
+                    <TableCell className="w-10" data-row-click-ignore>
+                      <SelectRowCheckbox selection={selection} id={rate.id} />
+                    </TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">
+                      <button type="button" className="hover:underline" onClick={() => openEdit(rate)}>
+                        {countryLabel(rate.country, locale)}
+                      </button>
+                    </TableCell>
                     <TableCell className="text-xs">{rate.region || '—'}</TableCell>
                     <TableCell className="text-xs font-mono">{rate.postcode_pattern || '—'}</TableCell>
                     <TableCell className="text-xs">{className(rate.tax_class_id)}</TableCell>
@@ -583,6 +637,17 @@ export function TaxRatesManager({ endpoint, classes, locales, canSeed, onSeeded,
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        destructive
+        title={tb('deleteTitle', { count: selection.count })}
+        description={tb('deleteDescription')}
+        busy={bulkBusy}
+        busyLabel={tb('working')}
+        onConfirm={handleBulkDelete}
+      />
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

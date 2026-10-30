@@ -25,6 +25,16 @@ import {
 } from '@/lib/designer/designer.api';
 import { useDateTimeFormat } from '@/components/importer/ImporterBits';
 import { PrintStatusBadge, usePrintErrorText } from '@/components/designer/DesignerBits';
+import { runBulk } from '@/lib/bulk';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 const ALL = '__all__';
 const PAGE_SIZE = 25;
@@ -77,6 +87,18 @@ export function PrintQueueTab({ token }: { token: string }) {
       return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
     });
   }, [data, sort]);
+
+  const selection = useTableSelection(sortedRows, (r) => r.id);
+  const bulkSummary = useBulkSummary();
+  const { linkRow } = useRowOpen();
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
+  const isPurged = (row: PrintQueueRow) => !!row.files_purged_at || row.print_status === 'PURGED';
+  // Same rules as the row buttons: download needs a READY front PNG, regenerate
+  // skips purged rows and rows that are rendering right now.
+  const bulkDownloadable = selection.selectedRows.filter(
+    (r) => r.print_status === 'READY' && !isPurged(r) && !!pngPrintFile(r.print_files),
+  );
+  const bulkRegenerable = selection.selectedRows.filter((r) => !isPurged(r) && r.print_status !== 'RENDERING');
 
   const load = useCallback(() => {
     setError(null);
@@ -135,6 +157,41 @@ export function PrintQueueTab({ token }: { token: string }) {
     }
   };
 
+  // One file at a time so the browser does not block parallel downloads.
+  const bulkDownload = async () => {
+    setBusy('bulk');
+    setBulkNotice(null);
+    const result = await runBulk(
+      bulkDownloadable,
+      (row) =>
+        downloadPrintFile(token, row.order_id, row.order_item_id, 'png', 'front').catch((err: unknown) => {
+          throw new Error(describeError(err));
+        }),
+      1,
+    );
+    setBusy(null);
+    setBulkNotice(bulkSummary(result));
+  };
+
+  const bulkRegenerate = async () => {
+    setBusy('bulk');
+    setBulkNotice(null);
+    const result = await runBulk(bulkRegenerable, async (row) => {
+      let res: Awaited<ReturnType<typeof regeneratePrint>>;
+      try {
+        res = await regeneratePrint(token, row.order_id, row.order_item_id);
+      } catch (err) {
+        throw new Error(describeError(err));
+      }
+      if (!res.queued) throw new Error(t('alreadyRendering'));
+      // Sequential: the regenerate endpoint is throttled (6/min).
+    }, 1);
+    setBusy(null);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    load();
+  };
+
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
@@ -163,8 +220,31 @@ export function PrintQueueTab({ token }: { token: string }) {
 
       {error && <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {notice && <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
 
       <Card className="shadow-none">
+        <TableSelectionBar selection={selection}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            disabled={busy === 'bulk' || bulkDownloadable.length === 0}
+            onClick={bulkDownload}
+          >
+            {busy === 'bulk' ? <Loader2 className="animate-spin" /> : <Download className="size-3.5" />} {t('download')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            disabled={busy === 'bulk' || bulkRegenerable.length === 0}
+            onClick={bulkRegenerate}
+          >
+            {busy === 'bulk' ? <Loader2 className="animate-spin" /> : <RotateCcw className="size-3.5" />} {t('regenerate')}
+          </Button>
+        </TableSelectionBar>
         <CardContent className="p-0">
           {!data ? (
             <div className="flex justify-center py-10">
@@ -177,6 +257,9 @@ export function PrintQueueTab({ token }: { token: string }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b bg-zinc-50 text-muted-foreground">
+                    <th className="w-10 px-3 py-2">
+                      <SelectAllCheckbox selection={selection} />
+                    </th>
                     {SORT_COLUMNS.map((col) => (
                       <th
                         key={col.key}
@@ -203,9 +286,16 @@ export function PrintQueueTab({ token }: { token: string }) {
                     // M5.6: a double-sided row lists its back files too.
                     const backFile = pngPrintFile(row.print_files, 'back');
                     const backPdf = pdfPrintFile(row.print_files, 'back');
-                    const purged = !!row.files_purged_at || row.print_status === 'PURGED';
+                    const purged = isPurged(row);
                     return (
-                      <tr key={row.id} className="border-b align-top last:border-0">
+                      <tr
+                        key={row.id}
+                        {...linkRow(`/creator/orders/${row.order_id}`)}
+                        className={`cursor-pointer border-b align-top last:border-0 hover:bg-zinc-50 ${selection.isSelected(row.id) ? 'bg-zinc-50' : ''}`}
+                      >
+                        <td className="w-10 px-3 py-2" data-row-click-ignore>
+                          <SelectRowCheckbox selection={selection} id={row.id} />
+                        </td>
                         <td className="px-3 py-2">
                           <Link href={`/creator/orders/${row.order_id}`} className="font-medium hover:underline">
                             {row.order_number ? `#${row.order_number}` : row.order_id.slice(0, 8)}
@@ -337,11 +427,17 @@ export function PrintQueueTab({ token }: { token: string }) {
 
       {data && data.total > PAGE_SIZE && (
         <div className="flex items-center justify-end gap-2 text-xs">
-          <Button type="button" variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          <Button type="button" variant="outline" size="sm" disabled={page <= 1} onClick={() => {
+              selection.clear();
+              setPage((p) => p - 1);
+            }}>
             {tc('prev')}
           </Button>
           <span className="text-muted-foreground">{tc('pageOf', { page, pages })}</span>
-          <Button type="button" variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
+          <Button type="button" variant="outline" size="sm" disabled={page >= pages} onClick={() => {
+              selection.clear();
+              setPage((p) => p + 1);
+            }}>
             {tc('next')}
           </Button>
         </div>

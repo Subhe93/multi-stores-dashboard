@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Loader2, Languages, Info } from 'lucide-react';
+import { ArrowLeft, Loader2, Languages, Info, Check } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
@@ -31,6 +31,9 @@ import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
+import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
+import { ViewInStoreButton } from './ViewInStoreButton';
 
 // ─────────────────────────────────────────
 // Constants
@@ -257,6 +260,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [googleProductCategory, setGoogleProductCategory] = useState('');
   const [condition, setCondition] = useState('new');
   const [feedExcluded, setFeedExcluded] = useState(false);
+  // Persisted status / primary slug (edit mode): drive the header buttons and
+  // the storefront link, which must reflect what is live, not unsaved edits.
+  const [savedStatus, setSavedStatus] = useState('DRAFT');
+  const [savedSlug, setSavedSlug] = useState('');
+  // Learns the rich-text editor's own re-serialisation of stored HTML so it
+  // does not count as an unsaved change.
+  const [htmlCanon] = useState(createHtmlCanon);
+  const { productUrl, baseUrl } = useStorefrontUrl();
 
   const { pickAndUpload, uploading } = useImageUpload(token);
   const uiLocale = useLocale();
@@ -275,7 +286,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── Fetch store language config ────────────────────────────
   useEffect(() => {
     if (!token) return;
-    api<StoreResponse>('/stores/my/store', { token })
+    // Shared with the store link / storefront URL hook (one request per page).
+    (fetchMyStore(token) as Promise<StoreResponse>)
       .then(store => {
         const primary: string = store.language_config?.primary_locale || 'en';
         const secondary: string[] = store.language_config?.secondary_locales || [];
@@ -350,6 +362,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setWeightUnit(p.weight_unit || 'kg');
       setTags(p.tags?.map((t) => t.tag) || []);
       setStatus(p.status || 'DRAFT');
+      setSavedStatus(p.status || 'DRAFT');
+      setSavedSlug(pickProductSlug(p.translations, primaryLocale) || '');
       setImages((p.images || []).filter((img) => !img.variant_id));
       // Repeater children may arrive nested or flat; the editor works on a flat list.
       setCustomFields(flattenFieldTree(p.custom_fields));
@@ -466,6 +480,51 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryTitle, mode, primaryLocale]);
 
+  // ── Unsaved changes ───────────────────────────────────────
+  // Everything a save sends, normalised so equivalent values compare equal
+  // (empty locale slots, blank rich text, local-only keys such as _key).
+  // In edit mode custom fields and FAQs write through immediately, so they
+  // are not part of the form's unsaved state.
+  const richText = (html: string | undefined) => {
+    const v = htmlCanon.canon(html);
+    return isBlankHtml(v) ? '' : v;
+  };
+  const makeSnapshot = (statusOverride?: string) => {
+    const trans: Record<string, unknown> = {};
+    for (const [locale, tr] of Object.entries(translations)) {
+      const row = {
+        title: tr?.title || '',
+        description: richText(tr?.description),
+        short_description: richText(tr?.short_description),
+        slug: tr?.slug || '',
+      };
+      if (row.title || row.description || row.short_description || row.slug) trans[locale] = row;
+    }
+    return stableJson({
+      trans,
+      categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
+      trackInventory, stockQty, weight, weightUnit, tags, status: statusOverride ?? status,
+      metaTitle, metaDesc,
+      attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
+      images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
+      variantOptions,
+      variants: variants.map(v => ({
+        options: v.options,
+        price: v.price,
+        compare: v.compare_at_price || 0,
+        sku: v.sku || '',
+        stock: v.stock_quantity ?? null,
+        active: v.is_active,
+        image: v.image_url || '',
+      })),
+      bundleIds, creatorCategoryIds, primaryCreatorCategoryId, shippingProfileId, taxClassId, taxExempt,
+      gtin, mpn, brand, googleProductCategory, condition, feedExcluded,
+      ...(mode === 'create' ? { customFields, faqs } : {}),
+    });
+  };
+  const { dirty, saveToken, markSaved } = useDirtyTracker(loading ? null : makeSnapshot());
+  useBeforeUnloadWarning(dirty && !saving);
+
   // ── Auto-translate to target locale ───────────────────────
   const handleTranslateTo = async (targetLocale: string) => {
     if (!primaryTitle.trim() || translatingLocale) return;
@@ -517,9 +576,16 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   };
 
   // ── Save ──────────────────────────────────────────────────
-  const handleSave = async (publishNow = false) => {
+  // 'publish' saves as PUBLISHED, 'draft' as DRAFT, 'current' with the status
+  // picked in the sidebar.
+  const handleSave = async (intent: 'publish' | 'draft' | 'current' = 'current') => {
     if (!token) return;
     if (!validate()) return;
+    const targetStatus = intent === 'publish' ? 'PUBLISHED' : intent === 'draft' ? 'DRAFT' : status;
+    // What this save persists (with its final status) and the interaction
+    // count at its start, so edits made while it runs stay unsaved.
+    const savedSnapshot = makeSnapshot(targetStatus);
+    const interactionsAtStart = saveToken();
     setSaving(true);
     setError('');
     setOptionsError('');
@@ -529,7 +595,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     let failedFieldPrefix = '';
 
     try {
-      const finalStatus = publishNow ? 'PUBLISHED' : status;
+      const finalStatus = targetStatus;
 
       // Compute a URL-safe slug. `\w` is ASCII-only, so non-Latin titles
       // (Arabic, CJK, …) slugify to empty or just "-", which would 404 on the
@@ -690,6 +756,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       if (mode === 'create') {
         router.push(postCreateUrl ? `${postCreateUrl}/${pid}` : `/provider/products/${pid}`);
       } else {
+        // The sidebar status follows what was saved (Publish / Switch to draft).
+        setStatus(finalStatus);
+        setSavedStatus(finalStatus);
+        setSavedSlug(primarySlug);
+        markSaved(savedSnapshot, interactionsAtStart);
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
       }
@@ -799,27 +870,98 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const isRtl = RTL_LOCALES.includes(activeLocale);
   const hasMultipleLocales = allLocales.length > 1;
 
+  // Header actions (WordPress-style): a live product with nothing to save
+  // shows a muted "Published" state; edits turn it into "Update".
+  const isEdit = mode === 'edit';
+  const liveAndKept = isEdit && savedStatus === 'PUBLISHED' && status === 'PUBLISHED';
+  const upToDate = isEdit && !dirty;
+  const spinner = saving ? <Loader2 className="size-3.5 animate-spin" /> : null;
+  const confirmLeave = (e: React.MouseEvent) => {
+    if (dirty && !window.confirm(t('product.unsavedLeaveConfirm'))) e.preventDefault();
+  };
+
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
-          <Link href={backUrl} className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
-            <ArrowLeft className="w-4 h-4" />
+          <Link href={backUrl} onClick={confirmLeave} className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
+            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
           </Link>
           <h1 className="text-xl font-semibold tracking-tight">
             {mode === 'create' ? t('product.addProduct') : primaryTitle || t('product.editProduct')}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          {saved && <span className="text-xs text-emerald-600 font-medium">{saved}</span>}
-          <Button variant="outline" size="sm" onClick={() => router.push(backUrl)}>{t('product.discard')}</Button>
-          <Button variant="outline" size="sm" onClick={() => handleSave(false)} disabled={saving}>
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} {t('product.saveDraft')}
+        <div className="flex flex-wrap items-center gap-2">
+          {saved ? (
+            <span className="text-xs text-emerald-600 font-medium">{saved}</span>
+          ) : isEdit && dirty ? (
+            <span className="flex items-center gap-1.5 text-xs text-amber-700">
+              <span className="size-1.5 rounded-full bg-amber-500" />
+              {t('product.unsavedChanges')}
+            </span>
+          ) : null}
+          {isEdit && isCreator && baseUrl && (
+            <ViewInStoreButton
+              href={savedStatus === 'PUBLISHED' ? productUrl(savedSlug) : null}
+              disabledHint={
+                savedStatus !== 'PUBLISHED'
+                  ? t('product.viewInStoreNotPublished')
+                  : t('product.viewInStoreNoSlug')
+              }
+            />
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(backUrl)}
+            disabled={isEdit && (!dirty || saving)}
+          >
+            {t('product.discard')}
           </Button>
-          <Button size="sm" onClick={() => handleSave(true)} disabled={saving}>
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null} {t('product.publish')}
-          </Button>
+          {liveAndKept ? (
+            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleSave('draft')} disabled={saving}>
+              {t('product.switchToDraft')}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => handleSave('current')}
+              disabled={saving || upToDate}
+            >
+              {spinner}
+              {upToDate ? (
+                <>
+                  <Check className="size-3.5" />
+                  {t('product.savedState')}
+                </>
+              ) : status === 'DRAFT' ? (
+                t('product.saveDraft')
+              ) : (
+                t('product.save')
+              )}
+            </Button>
+          )}
+          {liveAndKept && upToDate ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="gap-1 disabled:opacity-100 text-muted-foreground"
+              disabled
+              aria-label={t('product.publishedUpToDateHint')}
+              title={t('product.publishedUpToDateHint')}
+            >
+              <Check className="size-3.5 text-emerald-600" />
+              {t('product.publishedState')}
+            </Button>
+          ) : (
+            <Button size="sm" className="gap-1" onClick={() => handleSave('publish')} disabled={saving}>
+              {spinner}
+              {liveAndKept ? t('product.update') : t('product.publish')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -900,7 +1042,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 <RichTextEditor
                   dir={isRtl ? 'rtl' : 'ltr'}
                   content={translations[activeLocale]?.description || ''}
-                  onChange={val => setTransField(activeLocale, 'description', val)}
+                  onChange={val => {
+                    htmlCanon.learn(translations[activeLocale]?.description, val);
+                    setTransField(activeLocale, 'description', val);
+                  }}
                 />
               </div>
 
@@ -910,7 +1055,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 <RichTextEditor
                   dir={isRtl ? 'rtl' : 'ltr'}
                   content={translations[activeLocale]?.short_description || ''}
-                  onChange={val => setTransField(activeLocale, 'short_description', val)}
+                  onChange={val => {
+                    htmlCanon.learn(translations[activeLocale]?.short_description, val);
+                    setTransField(activeLocale, 'short_description', val);
+                  }}
                   placeholder={translationPlaceholder({
                     locale: activeLocale,
                     primaryLocale,

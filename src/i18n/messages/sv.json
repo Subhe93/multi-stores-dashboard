@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "Sök...",
     "noData": "Inga data hittades",
-    "showingRange": "Visar {from}-{to} av {total}"
+    "showingRange": "Visar {from}-{to} av {total}",
+    "selectedCount": "{count} valda",
+    "clearSelection": "Rensa",
+    "selectAll": "Markera alla på sidan",
+    "selectRow": "Markera rad"
   },
   "notifications": {
     "title": "Aviseringar",
@@ -1422,7 +1426,20 @@
       "perPage": "{count} per sida",
       "clearFilters": "Rensa filter",
       "totalCount": "{count, plural, one {# produkt} other {# produkter}}",
-      "noMatches": "Inga produkter matchar filtren"
+      "noMatches": "Inga produkter matchar filtren",
+      "bulkPublish": "Publicera",
+      "bulkPublishHint": "Produkter baserade på en leverantörsprodukt skickas för granskning hos leverantören",
+      "bulkDraft": "Gör till utkast",
+      "bulkArchive": "Arkivera",
+      "bulkStatusUpdated": "{count, plural, one {# produkt uppdaterad} other {# produkter uppdaterade}}",
+      "bulkDeleted": "{count, plural, one {# produkt raderad} other {# produkter raderade}}",
+      "bulkSentForReview": "{count, plural, one {# produkt skickad för leverantörsgranskning} other {# produkter skickade för leverantörsgranskning}}",
+      "bulkFailed": "{count, plural, one {# misslyckades} other {# misslyckades}}: {error}",
+      "bulkNothingToChange": "De valda produkterna har redan den här statusen",
+      "bulkDeleteTitle": "{count, plural, one {Radera # produkt?} other {Radera # produkter?}}",
+      "bulkDeleteDesc": "De valda produkterna raderas permanent. Det går inte att ångra.",
+      "viewInStoreNotPublished": "Inte publicerad – endast publicerade produkter syns i butiken",
+      "viewInStoreNoSlug": "Den här produkten har ingen URL-slug än"
     },
     "customProductForm": {
       "newTitle": "Ny anpassad produkt",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "Begagnad",
     "feedExcluded": "Uteslut från flöden",
     "feedExcludedHint": "Produkten listas aldrig i Google- / Meta-flödena.",
-    "errGtinInvalid": "GTIN måste vara 8, 12, 13 eller 14 siffror med giltig kontrollsiffra."
+    "errGtinInvalid": "GTIN måste vara 8, 12, 13 eller 14 siffror med giltig kontrollsiffra.",
+    "viewInStore": "Visa i butiken",
+    "viewInStoreHint": "Öppna den publicerade produktsidan i en ny flik",
+    "viewInStoreNotPublished": "Inte publicerad än – publicera produkten för att se den i din butik",
+    "viewInStoreNoSlug": "Spara produkten med en URL-slug först",
+    "update": "Uppdatera",
+    "save": "Spara",
+    "publishedState": "Publicerad",
+    "publishedUpToDateHint": "Publicerad och uppdaterad – inga osparade ändringar",
+    "savedState": "Sparad",
+    "switchToDraft": "Gör till utkast",
+    "unsavedChanges": "Osparade ändringar",
+    "unsavedLeaveConfirm": "Du har osparade ändringar. Vill du lämna sidan och kasta dem?"
   },
   "customField": {
     "typeText": "Text",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "för att stänga",
     "userMenuOpen": "Kontomeny för {name}",
     "language": "Språk"
+  },
+  "bulk": {
+    "working": "Arbetar…",
+    "failedCount": "{count} misslyckades",
+    "dismiss": "Stäng",
+    "updatedCount": "{count} uppdaterade",
+    "deletedCount": "{count} raderade",
+    "verifiedCount": "{count} verifierade",
+    "downloadedCount": "{count} nedladdade",
+    "deleteCount": "Radera ({count})",
+    "deleteTitle": "{count, plural, one {Ta bort # objekt?} other {Ta bort # objekt?}}",
+    "deleteDescription": "De markerade objekten tas bort permanent. Det går inte att ångra.",
+    "verifyCount": "Verifiera ({count})",
+    "archiveTitle": "Arkivera {count, plural, one {# produkt} other {# produkter}}?",
+    "archiveDescription": "Arkiverade produkter döljs i butikerna tills de publiceras igen.",
+    "suspendTitle": "Stäng av {count} användare?",
+    "deleteUsersTitle": "Radera {count} användare?",
+    "deleteUsersDescription": "De valda kontona och deras data raderas permanent. Detta kan inte ångras.",
+    "activate": "Aktivera",
+    "disable": "Inaktivera",
+    "disableTitle": "Inaktivera {count} objekt?",
+    "disableBundlesDescription": "Inaktiverade paket tas bort från butiken och från aktiva varukorgar.",
+    "deactivate": "Inaktivera",
+    "deactivateTitle": "Inaktivera {count, plural, one {# omdirigering} other {# omdirigeringar}}?",
+    "appsMenu": "Appar",
+    "offerApp": "Gör {app} tillgänglig",
+    "withdrawApp": "Dra tillbaka {app}",
+    "withdrawAppTitle": "Dra tillbaka {app} från {count, plural, one {# butik} other {# butiker}}?",
+    "downloadPdfs": "Ladda ner PDF:er ({count})",
+    "allDone": "{count, plural, one {Klart — # objekt.} other {Klart — # objekt.}}",
+    "partial": "{ok} lyckades, {failed} misslyckades.",
+    "firstError": "Första felet: {error}"
   }
 }

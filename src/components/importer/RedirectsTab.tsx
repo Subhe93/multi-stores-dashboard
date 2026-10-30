@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DataTable } from '@/components/common/DataTable';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { useApiError } from '@/lib/useApiError';
 import {
   REDIRECT_BULK_MAX,
@@ -55,6 +56,8 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
   const t = useTranslations('creator.importer.redirects');
   const describeError = useApiError();
   const formatDate = useDateTimeFormat();
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
 
   const [search, setSearch] = useState('');
   const [q, setQ] = useState('');
@@ -124,17 +127,54 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
     }
   };
 
+  const openEdit = (r: RedirectView) => {
+    setEditing(r);
+    setDialogOpen(true);
+  };
+
+  // Bulk (de)activation through the same partial update as the edit dialog.
+  const bulkSetActive = (rows: RedirectView[], active: boolean, clear: () => void) => {
+    const opts = {
+      rows: rows.filter((r) => r.is_active !== active),
+      fn: (r: RedirectView) => updateRedirect(token, r.id, { is_active: active }),
+      done: (count: number) => tb('updatedCount', { count }),
+      clear,
+      after: load,
+    };
+    if (active) {
+      void bulk.run(opts);
+    } else {
+      bulk.ask({
+        ...opts,
+        title: tb('deactivateTitle', { count: opts.rows.length }),
+        confirmLabel: tb('deactivate'),
+        destructive: true,
+      });
+    }
+  };
+
   const columns = [
     {
       key: 'paths',
       label: t('columns.paths'),
-      render: (r: RedirectView) => (
-        <div className="flex min-w-0 max-w-xl flex-wrap items-center gap-1.5 font-mono text-xs" dir="ltr">
-          <span className="break-all">{r.from_path}</span>
-          <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
-          <span className="break-all text-muted-foreground">{r.to_path}</span>
-        </div>
-      ),
+      render: (r: RedirectView) => {
+        const paths = (
+          <>
+            <span className="break-all">{r.from_path}</span>
+            <ArrowRight className="size-3 shrink-0 text-muted-foreground rtl:rotate-180" />
+            <span className="break-all text-muted-foreground">{r.to_path}</span>
+          </>
+        );
+        const cls = 'flex min-w-0 max-w-xl flex-wrap items-center gap-1.5 font-mono text-xs';
+        // Editable rows open the edit dialog from the paths themselves.
+        return readOnly ? (
+          <div className={cls} dir="ltr">{paths}</div>
+        ) : (
+          <button type="button" className={`${cls} text-start hover:underline`} dir="ltr" onClick={() => openEdit(r)}>
+            {paths}
+          </button>
+        );
+      },
     },
     {
       key: 'status_code',
@@ -178,10 +218,7 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
               variant="ghost"
               size="icon"
               className="size-9 max-sm:size-11"
-              onClick={() => {
-                setEditing(r);
-                setDialogOpen(true);
-              }}
+              onClick={() => openEdit(r)}
               aria-label={t('edit')}
               title={t('edit')}
             >
@@ -266,6 +303,7 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
       </Card>
 
       {error && <ErrorBanner message={error} />}
+      {bulk.notice}
 
       {loading && !data ? (
         <div className="flex justify-center py-12">
@@ -282,8 +320,57 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
               : undefined
           }
           onPageChange={setPage}
+          onRowClick={readOnly ? undefined : openEdit}
+          selectable
+          bulkActions={(rows, clear) => (
+            <>
+              {!readOnly && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={bulk.busy || rows.every((r) => r.is_active)}
+                    onClick={() => bulkSetActive(rows, true, clear)}
+                  >
+                    {tb('activate')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={bulk.busy || rows.every((r) => !r.is_active)}
+                    onClick={() => bulkSetActive(rows, false, clear)}
+                  >
+                    {tb('deactivate')}
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-destructive hover:text-destructive"
+                disabled={bulk.busy}
+                onClick={() => bulk.ask({
+                  rows,
+                  fn: (r) => deleteRedirect(token, r.id),
+                  done: (count) => tb('deletedCount', { count }),
+                  clear,
+                  after: load,
+                  title: tb('deleteTitle', { count: rows.length }),
+                  description: tb('deleteDescription'),
+                  destructive: true,
+                })}
+              >
+                <Trash2 />
+                {tb('deleteCount', { count: rows.length })}
+              </Button>
+            </>
+          )}
         />
       )}
+
+      {bulk.dialog}
 
       <RedirectDialog
         token={token}

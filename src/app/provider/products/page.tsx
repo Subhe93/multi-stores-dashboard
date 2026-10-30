@@ -7,12 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Package, Pencil, Trash2, ImageIcon, CheckSquare2, Copy } from 'lucide-react';
+import { Plus, Package, Pencil, Trash2, ImageIcon, Copy, Send, Archive } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { resolveMediaUrl } from '@/lib/media';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
+import { runBulk } from '@/lib/bulk';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT:      'bg-zinc-100 text-zinc-600',
@@ -61,10 +71,14 @@ export default function ProviderProducts() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<'delete' | 'publish' | 'archive' | null>(null);
   const [bulkWorking, setBulkWorking] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
+  const selection = useTableSelection(products, (p) => p.id);
+  const bulkSummary = useBulkSummary();
+  const { linkRow } = useRowOpen();
+  const currentStatus = () => (activeTab === 'All' ? undefined : activeTab.toUpperCase());
 
   const fetchProducts = async (page = 1, status?: string) => {
     if (!token) return;
@@ -83,7 +97,7 @@ export default function ProviderProducts() {
 
   const handleTab = (tab: string) => {
     setActiveTab(tab);
-    setSelected(new Set());
+    selection.clear();
     fetchProducts(1, tab === 'All' ? undefined : tab.toUpperCase());
   };
 
@@ -91,8 +105,7 @@ export default function ProviderProducts() {
     if (!token || !deleteTarget) return;
     await api(`/products/${deleteTarget.id}`, { method: 'DELETE', token });
     setDeleteTarget(null);
-    setSelected(new Set());
-    fetchProducts();
+    fetchProducts(meta?.page ?? 1, currentStatus());
   };
 
   const handleDuplicate = async (id: string) => {
@@ -113,47 +126,29 @@ export default function ProviderProducts() {
     }
   };
 
-  const toggleSelect = (id: string) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const toggleAll = () => {
-    if (selected.size === products.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(products.map(p => p.id)));
-    }
-  };
-
+  // Runs the existing single endpoints for every selected product.
   const handleBulkConfirm = async () => {
-    if (!token || !bulkAction || selected.size === 0) return;
+    if (!token || !bulkAction || selection.count === 0) return;
     setBulkWorking(true);
-    try {
-      const ids = Array.from(selected);
-      if (bulkAction === 'delete') {
-        await Promise.all(ids.map(id => api(`/products/${id}`, { method: 'DELETE', token })));
-      } else {
-        const status = bulkAction === 'publish' ? 'PUBLISHED' : 'ARCHIVED';
-        await Promise.all(ids.map(id =>
-          api(`/products/${id}`, { method: 'PUT', token, body: JSON.stringify({ status }) })
-        ));
-      }
-      setSelected(new Set());
-      setBulkAction(null);
-      fetchProducts(1, activeTab === 'All' ? undefined : activeTab.toUpperCase());
-    } catch (err) { console.error(err); }
-    finally { setBulkWorking(false); }
+    const action = bulkAction;
+    const result = await runBulk(selection.selectedRows, (p) =>
+      action === 'delete'
+        ? api(`/products/${p.id}`, { method: 'DELETE', token })
+        : api(`/products/${p.id}`, {
+            method: 'PUT',
+            token,
+            body: JSON.stringify({ status: action === 'publish' ? 'PUBLISHED' : 'ARCHIVED' }),
+          }),
+    );
+    setBulkWorking(false);
+    setBulkAction(null);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    fetchProducts(1, currentStatus());
   };
 
   const getFeaturedImage = (item: ProductRow) =>
     resolveMediaUrl(item.images?.find((img) => img.is_featured)?.url || item.images?.[0]?.url) || null;
-
-  const allSelected = products.length > 0 && selected.size === products.length;
-  const someSelected = selected.size > 0 && selected.size < products.length;
 
   if (!loading && products.length === 0 && activeTab === 'All') {
     return (
@@ -204,45 +199,39 @@ export default function ProviderProducts() {
           ))}
         </div>
 
-        {/* Bulk action bar */}
-        {selected.size > 0 && (
-          <div className="flex items-center gap-2 bg-zinc-900 text-white rounded-lg px-3 py-1.5">
-            <CheckSquare2 className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium">{t('countSelected', { count: selected.size })}</span>
-            <div className="w-px h-4 bg-white/20 mx-1" />
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('publish')}>{t('publish')}</Button>
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('archive')}>{t('archive')}</Button>
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-red-300 hover:bg-white/10 px-2"
-              onClick={() => setBulkAction('delete')}>{t('delete')}</Button>
-            <Button size="sm" variant="ghost" className="h-6 text-[10px] text-white/50 hover:bg-white/10 px-2"
-              onClick={() => setSelected(new Set())}>✕</Button>
-          </div>
-        )}
       </div>
+
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
 
       {/* Custom table with checkboxes */}
       <Card className="shadow-none overflow-hidden">
+        <TableSelectionBar selection={selection}>
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setBulkAction('publish')}>
+            <Send className="w-3.5 h-3.5" />
+            {t('publish')}
+          </Button>
+          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setBulkAction('archive')}>
+            <Archive className="w-3.5 h-3.5" />
+            {t('archive')}
+          </Button>
+          <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => setBulkAction('delete')}>
+            <Trash2 className="w-3.5 h-3.5" />
+            {t('delete')}
+          </Button>
+        </TableSelectionBar>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b bg-zinc-50/50">
               <tr>
                 <th className="w-10 px-3 py-2.5">
-                  <input
-                    type="checkbox"
-                    className="rounded"
-                    checked={allSelected}
-                    ref={el => { if (el) el.indeterminate = someSelected; }}
-                    onChange={toggleAll}
-                  />
+                  <SelectAllCheckbox selection={selection} />
                 </th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colProduct')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colType')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colPrice')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colVariants')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colProduct')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colType')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colPrice')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colVariants')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
                 <th className="w-16 px-3 py-2.5" />
               </tr>
             </thead>
@@ -254,14 +243,15 @@ export default function ProviderProducts() {
               ) : (
                 products.map(item => {
                   const imgUrl = getFeaturedImage(item);
-                  const isSelected = selected.has(item.id);
+                  const isSelected = selection.isSelected(item.id);
+                  const href = `/provider/products/${item.id}`;
                   return (
-                    <tr key={item.id} className={`hover:bg-zinc-50 transition ${isSelected ? 'bg-blue-50/40' : ''}`}>
-                      <td className="px-3 py-2">
-                        <input type="checkbox" className="rounded" checked={isSelected} onChange={() => toggleSelect(item.id)} />
+                    <tr key={item.id} {...linkRow(href)} className={`cursor-pointer hover:bg-zinc-50 transition ${isSelected ? 'bg-zinc-50' : ''}`}>
+                      <td className="px-3 py-2" data-row-click-ignore>
+                        <SelectRowCheckbox selection={selection} id={item.id} />
                       </td>
                       <td className="px-3 py-2">
-                        <button onClick={() => router.push(`/provider/products/${item.id}`)} className="flex items-center gap-3 text-left hover:opacity-80 transition">
+                        <Link href={href} className="flex items-center gap-3 text-start hover:opacity-80 transition">
                           <div className="h-9 w-9 rounded-md bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                             {imgUrl ? <img src={imgUrl} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}
                           </div>
@@ -269,7 +259,7 @@ export default function ProviderProducts() {
                             <p className="text-sm font-medium">{item.translations?.[0]?.title || 'Untitled'}</p>
                             <p className="text-[10px] text-muted-foreground">{item.category?.translations?.[0]?.name || '—'}</p>
                           </div>
-                        </button>
+                        </Link>
                       </td>
                       <td className="px-3 py-2">
                         <Badge variant="secondary" className="text-[10px]">{item.product_type}</Badge>
@@ -325,9 +315,9 @@ export default function ProviderProducts() {
           <div className="flex items-center justify-between border-t px-4 py-2">
             <span className="text-xs text-muted-foreground">{t('countProducts', { count: meta.total })}</span>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => fetchProducts(meta.page - 1)}>{t('prev')}</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page <= 1} onClick={() => { selection.clear(); fetchProducts(meta.page - 1, currentStatus()); }}>{t('prev')}</Button>
               <span className="text-xs px-2 py-1">{meta.page} / {meta.totalPages}</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => fetchProducts(meta.page + 1)}>{tc('next')}</Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={meta.page >= meta.totalPages} onClick={() => { selection.clear(); fetchProducts(meta.page + 1, currentStatus()); }}>{tc('next')}</Button>
             </div>
           </div>
         )}
@@ -358,10 +348,10 @@ export default function ProviderProducts() {
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             {bulkAction === 'delete'
-              ? t('bulkDeleteConfirm', { count: selected.size })
+              ? t('bulkDeleteConfirm', { count: selection.count })
               : bulkAction === 'publish'
-                ? t('bulkPublishConfirm', { count: selected.size })
-                : t('bulkArchiveConfirm', { count: selected.size })}
+                ? t('bulkPublishConfirm', { count: selection.count })
+                : t('bulkArchiveConfirm', { count: selection.count })}
           </p>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setBulkAction(null)} disabled={bulkWorking}>{tc('cancel')}</Button>

@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Plus, Layers, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -49,6 +51,8 @@ export default function CreatorBundlesPage() {
   const tt = useTranslations('creator');
   const tc = useTranslations('common');
   const tb = useTranslations('bundle');
+  const tbulk = useTranslations('bulk');
+  const bulk = useBulkAction();
 
   interface ListMeta {
     total: number;
@@ -184,14 +188,39 @@ export default function CreatorBundlesPage() {
     }
   };
 
+  // Bulk status change via the same PUT the status badge uses. Disabling drops
+  // the bundle from the storefront and active carts, so it is confirmed first.
+  const bulkSetStatus = (rows: Bundle[], next: BundleStatus, clear: () => void) => {
+    const targets = rows.filter((b) => b.status !== next);
+    const opts = {
+      rows: targets,
+      fn: (b: Bundle) =>
+        api(`/bundles/${b.id}`, { method: 'PUT', token: token ?? undefined, body: JSON.stringify({ status: next }) }),
+      done: (count: number) => tbulk('updatedCount', { count }),
+      clear,
+      after: () => fetchBundles(meta?.page || 1),
+    };
+    if (next === 'DISABLED') {
+      bulk.ask({
+        ...opts,
+        title: tbulk('disableTitle', { count: targets.length }),
+        description: tbulk('disableBundlesDescription'),
+        confirmLabel: tt('bundles.disableBundle'),
+        destructive: true,
+      });
+    } else {
+      void bulk.run(opts);
+    }
+  };
+
   const columns = [
     {
       key: 'name',
       label: tc('name'),
       render: (item: Bundle) => (
-        <span className="text-sm font-medium">
+        <Link href={`/creator/bundles/${item.id}`} className="text-sm font-medium hover:underline">
           {pickTranslation(item.translations, primaryLocale)?.name || tt('bundles.untitled')}
-        </span>
+        </Link>
       ),
     },
     {
@@ -272,6 +301,9 @@ export default function CreatorBundlesPage() {
         </Button>
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       {/* Visible feedback when a direct status toggle fails (no dialog open). */}
       {statusError && !disableTarget && (
         <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
@@ -289,6 +321,49 @@ export default function CreatorBundlesPage() {
       <DataTable
         columns={columns}
         data={bundles}
+        selectable
+        rowHref={(item: Bundle) => `/creator/bundles/${item.id}`}
+        bulkActions={(rows, clear) => (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || rows.every((b) => b.status === 'ACTIVE')}
+              onClick={() => bulkSetStatus(rows, 'ACTIVE', clear)}
+            >
+              {tbulk('activate')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || rows.every((b) => b.status === 'DISABLED')}
+              onClick={() => bulkSetStatus(rows, 'DISABLED', clear)}
+            >
+              {tbulk('disable')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              disabled={bulk.busy}
+              onClick={() => bulk.ask({
+                rows,
+                fn: (b) => api(`/bundles/${b.id}`, { method: 'DELETE', token: token ?? undefined }),
+                done: (count) => tbulk('deletedCount', { count }),
+                clear,
+                after: () => fetchBundles(meta?.page || 1),
+                title: tbulk('deleteTitle', { count: rows.length }),
+                description: tbulk('deleteDescription'),
+                destructive: true,
+              })}
+            >
+              <Trash2 className="size-3.5" />
+              {tbulk('deleteCount', { count: rows.length })}
+            </Button>
+          </>
+        )}
         searchPlaceholder={tt('bundles.searchPlaceholder')}
         onSearch={setSearchQuery}
         emptyMessage=""

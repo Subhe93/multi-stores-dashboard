@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 interface Provider {
   id: string;
@@ -22,6 +24,8 @@ interface Provider {
 
 export default function AdminProviders() {
   const t = useTranslations('admin');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const { token } = useAuth();
   const router = useRouter();
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -51,11 +55,13 @@ export default function AdminProviders() {
         <p className="text-sm text-muted-foreground">{t('providersSubtitle')}</p>
       </div>
 
+      {bulk.notice}
+
       <DataTable
         columns={[
           { key: 'company', label: t('company'), render: (item: Provider) => (
             <div>
-              <p className="text-sm font-medium">{item.company_name}</p>
+              <Link href={`/admin/providers/${item.id}`} className="text-sm font-medium hover:underline">{item.company_name}</Link>
               <p className="text-[10px] text-muted-foreground">{item.user.email}</p>
             </div>
           )},
@@ -83,6 +89,27 @@ export default function AdminProviders() {
           )},
         ]}
         data={providers}
+        selectable
+        rowHref={(item: Provider) => `/admin/providers/${item.id}`}
+        bulkActions={(rows, clear) => {
+          const pending = rows.filter((r) => !r.verified);
+          return (
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || pending.length === 0}
+              onClick={() => bulk.run({
+                rows: pending,
+                fn: (r) => api(`/providers/${r.id}/verify`, { method: 'PUT', token: token ?? undefined }),
+                done: (count) => tb('verifiedCount', { count }),
+                clear,
+                after: fetchProviders,
+              })}
+            >
+              {bulk.busy ? tb('working') : tb('verifyCount', { count: pending.length })}
+            </Button>
+          );
+        }}
         searchPlaceholder={t('searchProviders')}
         onSearch={(q) => {
           if (!token) return;

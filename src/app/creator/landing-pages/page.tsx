@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -31,6 +32,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 interface PageRow {
   id: string;
@@ -67,6 +69,8 @@ export default function LandingPagesPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [pages, setPages] = useState<PageRow[]>([]);
@@ -124,7 +128,9 @@ export default function LandingPagesPage() {
       key: 'title',
       label: t('landingPages.colTitle'),
       render: (item: PageRow) => (
-        <span className="text-sm font-medium">{titleOf(item.translations, primaryLocale, item.slug || '—')}</span>
+        <Link href={`/builder/${item.id}`} className="text-sm font-medium hover:underline">
+          {titleOf(item.translations, primaryLocale, item.slug || '—')}
+        </Link>
       ),
     },
     {
@@ -212,6 +218,9 @@ export default function LandingPagesPage() {
         />
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="size-5 text-zinc-400 animate-spin" />
@@ -249,6 +258,29 @@ export default function LandingPagesPage() {
           searchPlaceholder={t('landingPages.searchPlaceholder')}
           onSearch={setSearch}
           emptyMessage=""
+          selectable
+          rowHref={(item: PageRow) => `/builder/${item.id}`}
+          bulkActions={(rows, clear) => (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              disabled={bulk.busy}
+              onClick={() => bulk.ask({
+                rows,
+                fn: (p) => api(`/v2/pages/${p.id}`, { method: 'DELETE', token: token ?? undefined }),
+                done: (count) => tb('deletedCount', { count }),
+                clear,
+                after: fetchAll,
+                title: tb('deleteTitle', { count: rows.length }),
+                description: tb('deleteDescription'),
+                destructive: true,
+              })}
+            >
+              <Trash2 className="size-3.5" />
+              {tb('deleteCount', { count: rows.length })}
+            </Button>
+          )}
         />
       )}
 

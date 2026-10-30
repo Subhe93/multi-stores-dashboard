@@ -14,6 +14,17 @@ import { LocalizedTextFields } from '@/components/taxes/LocalizedTextFields';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
+import { runBulk } from '@/lib/bulk';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 interface ClassForm {
   key: string;
@@ -56,6 +67,14 @@ export function TaxClassesManager({ classes, loading, locales, onChanged }: TaxC
   const [deleteError, setDeleteError] = useState('');
 
   const sorted = [...classes].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.key.localeCompare(b.key));
+
+  const tb = useTranslations('bulk');
+  const bulkSummary = useBulkSummary();
+  const { actionRow } = useRowOpen();
+  const selection = useTableSelection(sorted, (c) => c.id);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
 
   // The current default cannot be un-defaulted (the API rejects it); another
   // class has to take the default over instead.
@@ -136,6 +155,24 @@ export function TaxClassesManager({ classes, loading, locales, onChanged }: TaxC
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (!token) return;
+    setBulkBusy(true);
+    // The API refuses to delete the default class (409 TAX_CLASS_DEFAULT_REQUIRED).
+    const result = await runBulk(selection.selectedRows.filter((c) => !c.is_default), (cls) =>
+      api(`/taxes/admin/classes/${cls.id}`, { method: 'DELETE', token }).catch((err: unknown) => {
+        // 409: products or rates still reference the class.
+        const status = (err as { status?: number })?.status;
+        throw new Error(status === 409 ? t('classInUse') : (err instanceof Error && err.message) || t('deleteFailed'));
+      }),
+    );
+    setBulkBusy(false);
+    setBulkDeleteOpen(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    onChanged();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -146,11 +183,22 @@ export function TaxClassesManager({ classes, loading, locales, onChanged }: TaxC
         </Button>
       </div>
 
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
+
       <Card className="shadow-none">
+        <TableSelectionBar selection={selection}>
+          <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => setBulkDeleteOpen(true)}>
+            <Trash2 className="size-3.5" />
+            {tc('delete')}
+          </Button>
+        </TableSelectionBar>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <SelectAllCheckbox selection={selection} />
+                </TableHead>
                 <TableHead>{t('classKey')}</TableHead>
                 <TableHead>{t('className')}</TableHead>
                 <TableHead>{t('isDefault')}</TableHead>
@@ -161,16 +209,27 @@ export function TaxClassesManager({ classes, loading, locales, onChanged }: TaxC
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-xs text-muted-foreground">{t('noClasses')}</TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-xs text-muted-foreground">{t('noClasses')}</TableCell>
                 </TableRow>
               ) : (
                 sorted.map((cls) => (
-                  <TableRow key={cls.id}>
-                    <TableCell className="text-xs font-mono">{cls.key}</TableCell>
+                  <TableRow
+                    key={cls.id}
+                    data-state={selection.isSelected(cls.id) ? 'selected' : undefined}
+                    {...actionRow(() => openEdit(cls))}
+                  >
+                    <TableCell className="w-10" data-row-click-ignore>
+                      <SelectRowCheckbox selection={selection} id={cls.id} />
+                    </TableCell>
+                    <TableCell className="text-xs font-mono">
+                      <button type="button" className="hover:underline" onClick={() => openEdit(cls)}>
+                        {cls.key}
+                      </button>
+                    </TableCell>
                     <TableCell className="text-xs">{localizedTaxText(cls.name, locale, cls.key)}</TableCell>
                     <TableCell>
                       {cls.is_default ? <Badge className="text-[10px]">{t('isDefault')}</Badge> : <span className="text-xs text-muted-foreground">—</span>}
@@ -260,6 +319,17 @@ export function TaxClassesManager({ classes, loading, locales, onChanged }: TaxC
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        destructive
+        title={tb('deleteTitle', { count: selection.count })}
+        description={tb('deleteDescription')}
+        busy={bulkBusy}
+        busyLabel={tb('working')}
+        onConfirm={handleBulkDelete}
+      />
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

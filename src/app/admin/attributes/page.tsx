@@ -12,6 +12,7 @@ import { Plus } from 'lucide-react';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 interface AttributeTranslation {
   locale: string;
@@ -72,6 +73,8 @@ const emptyForm = {
 
 export default function AdminAttributes() {
   const t = useTranslations('admin');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const { token } = useAuth();
   const [templates, setTemplates] = useState<AttributeTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,17 +202,19 @@ export default function AdminAttributes() {
           <p className="text-sm text-muted-foreground">{t('attributeTemplatesSubtitle')}</p>
         </div>
         <Button size="sm" onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-1.5" /> {t('addTemplate')}
+          <Plus className="w-4 h-4 me-1.5" /> {t('addTemplate')}
         </Button>
       </div>
+
+      {bulk.notice}
 
       <DataTable
         columns={[
           { key: 'name', label: t('name'), sortable: true, render: (item: AttributeTemplate) => (
-            <div>
+            <button type="button" onClick={() => openEdit(item)} className="block text-start hover:underline">
               <p className="text-sm font-medium font-mono">{item.name}</p>
               <p className="text-[10px] text-muted-foreground">{pickLabel(item.translations, locales.default_locale, item.name)}</p>
-            </div>
+            </button>
           )},
           { key: 'type', label: t('type'), sortable: true, render: (item: AttributeTemplate) => (
             <Badge variant="secondary" className={`text-[10px] font-semibold ${typeColors[item.type] || ''}`}>{item.type}</Badge>
@@ -231,6 +236,28 @@ export default function AdminAttributes() {
           )},
         ]}
         data={templates}
+        onRowClick={openEdit}
+        selectable
+        bulkActions={(rows, clear) => (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs text-red-600 hover:text-red-700"
+            disabled={bulk.busy}
+            onClick={() => bulk.ask({
+              rows,
+              fn: (r) => api(`/attribute-templates/${r.id}`, { method: 'DELETE', token: token ?? undefined }),
+              done: (count) => tb('deletedCount', { count }),
+              clear,
+              after: fetchTemplates,
+              title: tb('deleteTitle', { count: rows.length }),
+              description: t('deleteAttributeTemplateConfirm'),
+              destructive: true,
+            })}
+          >
+            {tb('deleteCount', { count: rows.length })}
+          </Button>
+        )}
         emptyMessage={loading ? t('loading') : t('noAttributeTemplates')}
       />
 
@@ -322,6 +349,8 @@ export default function AdminAttributes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {bulk.dialog}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>

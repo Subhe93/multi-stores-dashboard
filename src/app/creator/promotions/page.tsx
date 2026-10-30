@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Plus, Tag, Trash2, Pencil, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
+import { useBulkAction } from '@/components/common/useBulkAction';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -138,6 +140,8 @@ export default function CreatorPromotionsPage() {
   const router = useRouter();
   const tt = useTranslations('creator');
   const tc = useTranslations('common');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const TYPE_LABELS = typeLabels(tt);
   const STATUS_LABELS = statusLabels(tt);
 
@@ -187,6 +191,30 @@ export default function CreatorPromotionsPage() {
     }
   };
 
+  // Bulk status change via the same PUT the status badge uses; expired
+  // promotions cannot be toggled, so they are skipped.
+  const bulkSetStatus = (rows: Promotion[], next: 'ACTIVE' | 'DISABLED', clear: () => void) => {
+    const targets = rows.filter((p) => p.status !== 'EXPIRED' && p.status !== next);
+    const opts = {
+      rows: targets,
+      fn: (p: Promotion) =>
+        api(`/promotions/${p.id}`, { method: 'PUT', token: token ?? undefined, body: JSON.stringify({ status: next }) }),
+      done: (count: number) => tb('updatedCount', { count }),
+      clear,
+      after: () => fetchPromotions(meta?.page || 1),
+    };
+    if (next === 'DISABLED') {
+      bulk.ask({
+        ...opts,
+        title: tb('disableTitle', { count: targets.length }),
+        confirmLabel: tb('disable'),
+        destructive: true,
+      });
+    } else {
+      void bulk.run(opts);
+    }
+  };
+
   const columns = [
     {
       key: 'name',
@@ -196,9 +224,9 @@ export default function CreatorPromotionsPage() {
           item.translations.find((t) => t.locale === 'en')?.title ||
           item.translations[0]?.title;
         return (
-          <span className="text-sm font-medium">
+          <Link href={`/creator/promotions/${item.id}`} className="text-sm font-medium hover:underline">
             {title || TYPE_LABELS[item.type]}
-          </span>
+          </Link>
         );
       },
     },
@@ -310,6 +338,9 @@ export default function CreatorPromotionsPage() {
         </Button>
       </div>
 
+      {bulk.notice}
+      {bulk.dialog}
+
       {/* Inline error banner for row-level actions (status toggle) */}
       {actionError && (
         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
@@ -322,6 +353,49 @@ export default function CreatorPromotionsPage() {
       <DataTable
         columns={columns}
         data={promotions}
+        selectable
+        rowHref={(item: Promotion) => `/creator/promotions/${item.id}`}
+        bulkActions={(rows, clear) => (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || !rows.some((p) => p.status === 'DISABLED')}
+              onClick={() => bulkSetStatus(rows, 'ACTIVE', clear)}
+            >
+              {tb('activate')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || !rows.some((p) => p.status === 'ACTIVE')}
+              onClick={() => bulkSetStatus(rows, 'DISABLED', clear)}
+            >
+              {tb('disable')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              disabled={bulk.busy}
+              onClick={() => bulk.ask({
+                rows,
+                fn: (p) => api(`/promotions/${p.id}`, { method: 'DELETE', token: token ?? undefined }),
+                done: (count) => tb('deletedCount', { count }),
+                clear,
+                after: () => fetchPromotions(meta?.page || 1),
+                title: tb('deleteTitle', { count: rows.length }),
+                description: tb('deleteDescription'),
+                destructive: true,
+              })}
+            >
+              <Trash2 className="size-3.5" />
+              {tb('deleteCount', { count: rows.length })}
+            </Button>
+          </>
+        )}
         emptyMessage=""
         pagination={meta ?? undefined}
         onPageChange={fetchPromotions}

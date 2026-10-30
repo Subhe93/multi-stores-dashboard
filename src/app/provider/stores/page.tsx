@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { Store as StoreIcon, ImageIcon, ExternalLink, Search, Package2, BadgeChe
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useTranslations } from 'next-intl';
+import { useRowOpen } from '@/components/common/useTableSelection';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveUrl(url?: string | null): string {
@@ -49,6 +51,7 @@ export default function ProviderStores() {
   const router = useRouter();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
+  const { linkRow } = useRowOpen();
   const [stores, setStores] = useState<ProviderStore[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,12 +110,12 @@ export default function ProviderStores() {
       </div>
 
       <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Search className="absolute inset-s-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
         <Input
           placeholder={t('searchStoresPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-8 h-9 text-sm"
+          className="ps-8 h-9 text-sm"
         />
       </div>
 
@@ -121,11 +124,11 @@ export default function ProviderStores() {
           <table className="w-full text-sm">
             <thead className="border-b bg-zinc-50/50">
               <tr>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStore')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreator')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colYourProducts')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStore')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreator')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colYourProducts')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colStatus')}</th>
+                <th className="text-start px-3 py-2.5 text-[10px] font-semibold uppercase text-muted-foreground">{t('colCreated')}</th>
                 <th className="w-16 px-3 py-2.5" />
               </tr>
             </thead>
@@ -138,8 +141,8 @@ export default function ProviderStores() {
                 filtered.map(store => (
                   <tr
                     key={store.id}
+                    {...linkRow(`/provider/stores/${store.id}`)}
                     className="hover:bg-zinc-50 transition cursor-pointer"
-                    onClick={() => router.push(`/provider/stores/${store.id}`)}
                   >
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-3">
@@ -149,7 +152,9 @@ export default function ProviderStores() {
                             : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{store.name}</p>
+                          <Link href={`/provider/stores/${store.id}`} className="text-sm font-medium hover:underline">
+                            {store.name}
+                          </Link>
                           <p className="text-[10px] text-muted-foreground">/{store.slug}</p>
                         </div>
                       </div>
@@ -164,7 +169,7 @@ export default function ProviderStores() {
                     </td>
                     <td className="px-3 py-2">
                       <Badge variant="outline" className="text-[10px]">
-                        <Package2 className="w-3 h-3 mr-1" />
+                        <Package2 className="w-3 h-3 me-1" />
                         {store.products_using_count}
                       </Badge>
                     </td>
@@ -188,12 +193,9 @@ export default function ProviderStores() {
                         variant="ghost"
                         size="sm"
                         className="h-7 text-[10px]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/provider/stores/${store.id}`);
-                        }}
+                        onClick={() => router.push(`/provider/stores/${store.id}`)}
                       >
-                        {t('view')} <ExternalLink className="w-3 h-3 ml-1" />
+                        {t('view')} <ExternalLink className="w-3 h-3 ms-1" />
                       </Button>
                     </td>
                   </tr>

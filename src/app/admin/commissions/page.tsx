@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
@@ -75,7 +75,6 @@ const STATUS_TABS: Array<{ label: string; value: CommissionRow['status'] | 'ALL'
 
 export default function AdminCommissions() {
   const t = useTranslations('admin');
-  const router = useRouter();
   const { fmt } = useCurrency();
   const { token } = useAuth();
 
@@ -220,12 +219,12 @@ export default function AdminCommissions() {
             key: 'order_number',
             label: t('order'),
             render: (item: CommissionRow) => (
-              <button
-                onClick={() => router.push(`/admin/orders/${item.order_id}`)}
-                className="text-sm font-mono font-medium hover:underline text-left"
+              <Link
+                href={`/admin/orders/${item.order_id}`}
+                className="text-sm font-mono font-medium hover:underline"
               >
                 {item.order_number}
-              </button>
+              </Link>
             ),
           },
           {
@@ -300,9 +299,9 @@ export default function AdminCommissions() {
           {
             key: 'order_total',
             label: t('orderTotal'),
-            className: 'text-right',
+            className: 'text-end',
             render: (item: CommissionRow) => (
-              <span className="text-sm font-medium text-right block">
+              <span className="text-sm font-medium text-end block">
                 {fmt(item.order_total)}
               </span>
             ),
@@ -310,9 +309,9 @@ export default function AdminCommissions() {
           {
             key: 'platform_amount',
             label: t('platform'),
-            className: 'text-right',
+            className: 'text-end',
             render: (item: CommissionRow) => (
-              <span className="text-sm font-semibold text-emerald-700 text-right block">
+              <span className="text-sm font-semibold text-emerald-700 text-end block">
                 {fmt(item.platform_amount)}
               </span>
             ),
@@ -320,9 +319,9 @@ export default function AdminCommissions() {
           {
             key: 'provider_amount',
             label: t('provider'),
-            className: 'text-right',
+            className: 'text-end',
             render: (item: CommissionRow) => (
-              <span className="text-sm text-blue-700 text-right block">
+              <span className="text-sm text-blue-700 text-end block">
                 {fmt(item.provider_amount)}
               </span>
             ),
@@ -330,9 +329,9 @@ export default function AdminCommissions() {
           {
             key: 'creator_amount',
             label: t('creator'),
-            className: 'text-right',
+            className: 'text-end',
             render: (item: CommissionRow) => (
-              <span className="text-sm text-purple-700 text-right block">
+              <span className="text-sm text-purple-700 text-end block">
                 {fmt(item.creator_amount)}
               </span>
             ),
@@ -351,6 +350,7 @@ export default function AdminCommissions() {
           },
         ]}
         data={rows}
+        rowHref={(item: CommissionRow) => `/admin/orders/${item.order_id}`}
         searchPlaceholder={t('searchOrderOrCustomer')}
         onSearch={(q) => {
           setSearch(q);

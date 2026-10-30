@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "Ara...",
     "noData": "Veri bulunamadı",
-    "showingRange": "{total} öğeden {from}-{to} arası gösteriliyor"
+    "showingRange": "{total} öğeden {from}-{to} arası gösteriliyor",
+    "selectedCount": "{count} seçildi",
+    "clearSelection": "Temizle",
+    "selectAll": "Bu sayfadakilerin tümünü seç",
+    "selectRow": "Satırı seç"
   },
   "notifications": {
     "title": "Bildirimler",
@@ -1422,7 +1426,20 @@
       "perPage": "Sayfa başına {count}",
       "clearFilters": "Filtreleri temizle",
       "totalCount": "{count, plural, one {# ürün} other {# ürün}}",
-      "noMatches": "Bu filtrelere uyan ürün yok"
+      "noMatches": "Bu filtrelere uyan ürün yok",
+      "bulkPublish": "Yayınla",
+      "bulkPublishHint": "Tedarikçi ürününe dayanan ürünler tedarikçi incelemesine gönderilir",
+      "bulkDraft": "Taslağa al",
+      "bulkArchive": "Arşivle",
+      "bulkStatusUpdated": "{count, plural, one {# ürün güncellendi} other {# ürün güncellendi}}",
+      "bulkDeleted": "{count, plural, one {# ürün silindi} other {# ürün silindi}}",
+      "bulkSentForReview": "{count, plural, one {# ürün tedarikçi incelemesine gönderildi} other {# ürün tedarikçi incelemesine gönderildi}}",
+      "bulkFailed": "{count, plural, one {# başarısız} other {# başarısız}}: {error}",
+      "bulkNothingToChange": "Seçili ürünler zaten bu durumda",
+      "bulkDeleteTitle": "{count, plural, one {# ürün silinsin mi?} other {# ürün silinsin mi?}}",
+      "bulkDeleteDesc": "Seçili ürünler kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      "viewInStoreNotPublished": "Yayında değil — mağazada yalnızca yayınlanmış ürünler görünür",
+      "viewInStoreNoSlug": "Bu ürünün henüz bir URL kısaltması (slug) yok"
     },
     "customProductForm": {
       "newTitle": "Yeni Özel Ürün",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "Kullanılmış",
     "feedExcluded": "Feed'lerden hariç tut",
     "feedExcludedHint": "Ürün Google / Meta feed'lerinde asla listelenmez.",
-    "errGtinInvalid": "GTIN, geçerli bir kontrol basamağıyla 8, 12, 13 veya 14 rakam olmalıdır."
+    "errGtinInvalid": "GTIN, geçerli bir kontrol basamağıyla 8, 12, 13 veya 14 rakam olmalıdır.",
+    "viewInStore": "Mağazada görüntüle",
+    "viewInStoreHint": "Yayındaki ürün sayfasını yeni sekmede aç",
+    "viewInStoreNotPublished": "Henüz yayınlanmadı — mağazanızda görmek için ürünü yayınlayın",
+    "viewInStoreNoSlug": "Önce ürünü bir URL kısaltmasıyla (slug) kaydedin",
+    "update": "Güncelle",
+    "save": "Kaydet",
+    "publishedState": "Yayında",
+    "publishedUpToDateHint": "Yayında ve güncel — kaydedilmemiş değişiklik yok",
+    "savedState": "Kaydedildi",
+    "switchToDraft": "Taslağa çevir",
+    "unsavedChanges": "Kaydedilmemiş değişiklikler",
+    "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?"
   },
   "customField": {
     "typeText": "Metin",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "kapatmak için",
     "userMenuOpen": "{name} hesap menüsü",
     "language": "Dil"
+  },
+  "bulk": {
+    "working": "İşleniyor…",
+    "failedCount": "{count} başarısız",
+    "dismiss": "Kapat",
+    "updatedCount": "{count} güncellendi",
+    "deletedCount": "{count} silindi",
+    "verifiedCount": "{count} doğrulandı",
+    "downloadedCount": "{count} indirildi",
+    "deleteCount": "Sil ({count})",
+    "deleteTitle": "{count, plural, one {# öğe silinsin mi?} other {# öğe silinsin mi?}}",
+    "deleteDescription": "Seçilen öğeler kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "verifyCount": "Doğrula ({count})",
+    "archiveTitle": "{count} ürün arşivlensin mi?",
+    "archiveDescription": "Arşivlenen ürünler yeniden yayınlanana kadar mağazalarda gizlenir.",
+    "suspendTitle": "{count} kullanıcı askıya alınsın mı?",
+    "deleteUsersTitle": "{count} kullanıcı silinsin mi?",
+    "deleteUsersDescription": "Seçilen hesaplar ve verileri kalıcı olarak silinir. Bu işlem geri alınamaz.",
+    "activate": "Etkinleştir",
+    "disable": "Devre dışı bırak",
+    "disableTitle": "{count} öğe devre dışı bırakılsın mı?",
+    "disableBundlesDescription": "Devre dışı bırakılan paketler mağazadan ve aktif sepetlerden kaldırılır.",
+    "deactivate": "Pasifleştir",
+    "deactivateTitle": "{count} yönlendirme pasifleştirilsin mi?",
+    "appsMenu": "Uygulamalar",
+    "offerApp": "{app} kullanılabilir yap",
+    "withdrawApp": "{app} geri çek",
+    "withdrawAppTitle": "{app}, {count} mağazadan geri çekilsin mi?",
+    "downloadPdfs": "PDF'leri indir ({count})",
+    "allDone": "{count, plural, one {Tamamlandı — # öğe.} other {Tamamlandı — # öğe.}}",
+    "partial": "{ok} başarılı, {failed} başarısız.",
+    "firstError": "İlk hata: {error}"
   }
 }

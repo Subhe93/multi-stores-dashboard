@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/common/DataTable';
 import { Badge } from '@/components/ui/badge';
@@ -145,12 +146,12 @@ export default function ProviderOrders() {
             label: t('csvOrder'),
             sortable: true,
             render: (item: OrderRow) => (
-              <button
-                onClick={() => router.push(`/provider/orders/${item.id}`)}
-                className="text-sm font-mono font-medium hover:underline text-left"
+              <Link
+                href={`/provider/orders/${item.id}`}
+                className="text-sm font-mono font-medium hover:underline"
               >
                 {item.order_number}
-              </button>
+              </Link>
             ),
           },
           {
@@ -211,6 +212,7 @@ export default function ProviderOrders() {
           },
         ]}
         data={filtered}
+        rowHref={(item: OrderRow) => `/provider/orders/${item.id}`}
         pagination={meta ?? undefined}
         onPageChange={p => fetchOrders(p)}
         emptyMessage={loading ? tc('loading') : t('noOrders')}

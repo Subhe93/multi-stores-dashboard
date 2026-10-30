@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Package, Plus, ImageIcon, Search, X } from 'lucide-react';
@@ -10,6 +11,11 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { DataTable } from '@/components/common/DataTable';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
+import { BulkNotice, useBulkNotice } from '@/components/product/BulkNotice';
+import { runBulk } from '@/lib/bulk';
+import { pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,6 +76,7 @@ type Sort = (typeof SORTS)[number];
 const PAGE_SIZES = ['20', '50', '100'] as const;
 const STOCK_FILTERS = ['in_stock', 'out_of_stock'] as const;
 const LIST_PATH = '/creator/products/own';
+const editHref = (item: { id: string }) => `${LIST_PATH}/${item.id}`;
 
 /** Collections as path-labelled options ("Parent › Child"). */
 function flattenCollections(
@@ -187,6 +194,11 @@ export default function CreatorOwnProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<OwnProduct | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const { productUrl, primaryLocale } = useStorefrontUrl();
+  // Bulk actions: busy flag, the pending bulk delete and the result notice.
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkDelete, setBulkDelete] = useState<{ rows: OwnProduct[]; clear: () => void } | null>(null);
+  const { notice, setNotice } = useBulkNotice();
 
   /** Writes params to the URL; any change other than the page resets to page 1. */
   const updateParams = useCallback(
@@ -310,6 +322,94 @@ export default function CreatorOwnProductsPage() {
     }
   };
 
+  /** Short summary of a bulk run: successes and the first failure reason. */
+  const reportBulk = (
+    ok: number,
+    failed: { error: string }[],
+    okKey: 'bulkStatusUpdated' | 'bulkDeleted',
+  ) => {
+    const parts: string[] = [];
+    if (ok) parts.push(tt(`myProducts.${okKey}`, { count: ok }));
+    if (failed.length) {
+      parts.push(tt('myProducts.bulkFailed', { count: failed.length, error: failed[0]!.error }));
+    }
+    setNotice({ tone: failed.length ? 'warn' : 'ok', text: parts.join(' · ') });
+  };
+
+  // Status changes use the partial PUT /products/:id, which also refreshes
+  // the storefront cache (PUT /products/:id/status does not).
+  const bulkSetStatus = async (rows: OwnProduct[], status: ProductStatus, clear: () => void) => {
+    if (!token) return;
+    const targets = rows.filter((r) => r.status !== status);
+    if (!targets.length) {
+      clear();
+      setNotice({ tone: 'ok', text: tt('myProducts.bulkNothingToChange') });
+      return;
+    }
+    setBulkBusy(true);
+    const result = await runBulk(targets, (r) =>
+      api(`/products/${r.id}`, { method: 'PUT', token, body: JSON.stringify({ status }) }),
+    );
+    setBulkBusy(false);
+    clear();
+    reportBulk(result.ok.length, result.failed, 'bulkStatusUpdated');
+    fetchItems();
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!token || !bulkDelete) return;
+    setBulkBusy(true);
+    const result = await runBulk(bulkDelete.rows, (r) =>
+      api(`/products/${r.id}`, { method: 'DELETE', token }),
+    );
+    setBulkBusy(false);
+    bulkDelete.clear();
+    setBulkDelete(null);
+    reportBulk(result.ok.length, result.failed, 'bulkDeleted');
+    fetchItems();
+  };
+
+  const bulkActions = (selected: OwnProduct[], clear: () => void) => (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
+        disabled={bulkBusy}
+        onClick={() => bulkSetStatus(selected, 'PUBLISHED', clear)}
+      >
+        {tt('myProducts.bulkPublish')}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
+        disabled={bulkBusy}
+        onClick={() => bulkSetStatus(selected, 'DRAFT', clear)}
+      >
+        {tt('myProducts.bulkDraft')}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs"
+        disabled={bulkBusy}
+        onClick={() => bulkSetStatus(selected, 'ARCHIVED', clear)}
+      >
+        {tt('myProducts.bulkArchive')}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+        disabled={bulkBusy}
+        onClick={() => setBulkDelete({ rows: selected, clear })}
+      >
+        {tc('delete')}
+      </Button>
+    </>
+  );
+
   const columns = [
     {
       key: 'title',
@@ -318,7 +418,7 @@ export default function CreatorOwnProductsPage() {
         const t = pickTitle(item.translations);
         const imgUrl = resolveUrl(item.images?.[0]?.url);
         return (
-          <div className="flex items-center gap-3">
+          <Link href={editHref(item)} className="group flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-zinc-50">
               {imgUrl ? (
                 <img src={imgUrl} alt={t?.title || ''} className="h-full w-full object-cover" />
@@ -327,14 +427,14 @@ export default function CreatorOwnProductsPage() {
               )}
             </div>
             <div>
-              <p className="text-sm font-medium">{t?.title ?? '—'}</p>
+              <p className="text-sm font-medium group-hover:underline">{t?.title ?? '—'}</p>
               {(t?.slug || item.sku) && (
                 <p className="font-mono text-[10px] text-muted-foreground">
                   {[item.sku, t?.slug].filter(Boolean).join(' · ')}
                 </p>
               )}
             </div>
-          </div>
+          </Link>
         );
       },
     },
@@ -379,26 +479,41 @@ export default function CreatorOwnProductsPage() {
     {
       key: 'actions',
       label: '',
-      render: (item: OwnProduct) => (
-        <div className="flex items-center justify-end gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => router.push(`/creator/products/own/${item.id}`)}
-          >
-            {tc('edit')}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
-            onClick={() => setDeleteTarget(item)}
-          >
-            {tc('delete')}
-          </Button>
-        </div>
-      ),
+      render: (item: OwnProduct) => {
+        const slug = pickProductSlug(item.translations, primaryLocale);
+        const published = item.status === 'PUBLISHED';
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <ViewInStoreButton
+              appearance="icon"
+              href={published ? productUrl(slug) : null}
+              disabledHint={
+                !published
+                  ? tt('myProducts.viewInStoreNotPublished')
+                  : !slug
+                    ? tt('myProducts.viewInStoreNoSlug')
+                    : undefined
+              }
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => router.push(editHref(item))}
+            >
+              {tc('edit')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={() => setDeleteTarget(item)}
+            >
+              {tc('delete')}
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -512,6 +627,8 @@ export default function CreatorOwnProductsPage() {
         )}
       </div>
 
+      <BulkNotice notice={notice} onDismiss={() => setNotice(null)} />
+
       {/* Error state */}
       {loadError && !loading ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-lg border py-16 text-center">
@@ -537,6 +654,9 @@ export default function CreatorOwnProductsPage() {
         <DataTable
           columns={columns}
           data={items}
+          selectable
+          bulkActions={bulkActions}
+          rowHref={editHref}
           emptyMessage={
             loading
               ? tc('loading')
@@ -548,6 +668,20 @@ export default function CreatorOwnProductsPage() {
           onPageChange={(p) => updateParams({ page: p > 1 ? String(p) : '' })}
         />
       )}
+
+      {/* Bulk delete confirmation */}
+      <ConfirmDialog
+        open={!!bulkDelete}
+        onOpenChange={(open) => {
+          if (!open) setBulkDelete(null);
+        }}
+        destructive
+        title={tt('myProducts.bulkDeleteTitle', { count: bulkDelete?.rows.length ?? 0 })}
+        description={tt('myProducts.bulkDeleteDesc')}
+        busy={bulkBusy}
+        busyLabel={tt('myProducts.deleting')}
+        onConfirm={confirmBulkDelete}
+      />
 
       {/* Delete confirmation dialog */}
       <Dialog

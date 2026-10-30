@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 interface Creator {
   id: string;
@@ -21,6 +23,8 @@ interface Creator {
 
 export default function AdminCreators() {
   const t = useTranslations('admin');
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
   const { token } = useAuth();
   const router = useRouter();
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -50,11 +54,13 @@ export default function AdminCreators() {
         <p className="text-sm text-muted-foreground">{t('creatorsSubtitle')}</p>
       </div>
 
+      {bulk.notice}
+
       <DataTable
         columns={[
           { key: 'name', label: t('creator'), render: (item: Creator) => (
             <div>
-              <p className="text-sm font-medium">{item.display_name}</p>
+              <Link href={`/admin/creators/${item.id}`} className="text-sm font-medium hover:underline">{item.display_name}</Link>
               <p className="text-[10px] text-muted-foreground">{item.user.email}</p>
             </div>
           )},
@@ -79,6 +85,27 @@ export default function AdminCreators() {
           )},
         ]}
         data={creators}
+        selectable
+        rowHref={(item: Creator) => `/admin/creators/${item.id}`}
+        bulkActions={(rows, clear) => {
+          const pending = rows.filter((r) => !r.verified);
+          return (
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || pending.length === 0}
+              onClick={() => bulk.run({
+                rows: pending,
+                fn: (r) => api(`/creators/${r.id}/verify`, { method: 'PUT', token: token ?? undefined }),
+                done: (count) => tb('verifiedCount', { count }),
+                clear,
+                after: fetchCreators,
+              })}
+            >
+              {bulk.busy ? tb('working') : tb('verifyCount', { count: pending.length })}
+            </Button>
+          );
+        }}
         searchPlaceholder={t('searchCreators')}
         onSearch={(q) => {
           if (!token) return;

@@ -217,6 +217,7 @@ export function RunsTab({ token, version, sourceNames, onOpen }: RunsTabProps) {
       <DataTable
         columns={columns}
         data={data?.items ?? []}
+        onRowClick={onOpen}
         emptyMessage={t('emptyTitle')}
         actions={
           <Button variant="outline" size="sm" onClick={() => load()} disabled={loading}>

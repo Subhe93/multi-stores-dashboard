@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useRowOpen } from '@/components/common/useTableSelection';
 
 type EmailLogStatus = 'SENT' | 'FAILED' | 'SKIPPED';
 
@@ -68,6 +69,7 @@ export function EmailLogTable({ endpoint, showStore = false }: EmailLogTableProp
   const t = useTranslations('emailLog');
   const locale = useLocale();
   const { token } = useAuth();
+  const { actionRow } = useRowOpen();
 
   const [data, setData] = useState<EmailLogResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,7 +198,8 @@ export function EmailLogTable({ endpoint, showStore = false }: EmailLogTableProp
               ) : (
                 items.map((row) => (
                   <Fragment key={row.id}>
-                    <TableRow>
+                    {/* A failed row opens its error detail on click. */}
+                    <TableRow {...actionRow(row.error ? () => toggle(row.id) : null)}>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                         {new Date(row.created_at).toLocaleString(locale)}
                       </TableCell>

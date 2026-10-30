@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
@@ -87,9 +88,9 @@ export default function AdminOrders() {
       <DataTable
         columns={[
           { key: 'order_number', label: t('order'), sortable: true, render: (item: AdminOrderRow) => (
-            <button onClick={() => router.push(`/admin/orders/${item.id}`)} className="text-sm font-mono font-medium hover:underline text-left">
+            <Link href={`/admin/orders/${item.id}`} className="text-sm font-mono font-medium hover:underline">
               {item.order_number}
-            </button>
+            </Link>
           )},
           { key: 'customer', label: t('customer'), render: (item: AdminOrderRow) => (
             <span className="text-sm">{item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}</span>
@@ -111,6 +112,7 @@ export default function AdminOrders() {
           )},
         ]}
         data={filtered}
+        rowHref={(item: AdminOrderRow) => `/admin/orders/${item.id}`}
         pagination={meta ?? undefined}
         onPageChange={(p) => fetchOrders(p)}
         emptyMessage={loading ? t('loading') : t('noOrdersYet')}

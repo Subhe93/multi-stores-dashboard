@@ -13,6 +13,8 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useRowOpen } from '@/components/common/useTableSelection';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -105,6 +107,7 @@ export default function ProviderEarnings() {
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('provider');
+  const { linkRow } = useRowOpen();
   const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
   const [orders, setOrders] = useState<EarningsOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,8 +243,12 @@ export default function ProviderEarnings() {
                     : null;
 
                   return (
-                    <TableRow key={order.id}>
-                      <TableCell className="text-xs font-mono">{order.order_number}</TableCell>
+                    <TableRow key={order.id} {...linkRow(`/provider/orders/${order.id}`)}>
+                      <TableCell className="text-xs font-mono">
+                        <Link href={`/provider/orders/${order.id}`} className="hover:underline">
+                          {order.order_number}
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString()}
                       </TableCell>

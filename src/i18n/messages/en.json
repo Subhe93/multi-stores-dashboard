@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "Search...",
     "noData": "No data found",
-    "showingRange": "Showing {from}-{to} of {total}"
+    "showingRange": "Showing {from}-{to} of {total}",
+    "selectedCount": "{count} selected",
+    "clearSelection": "Clear",
+    "selectAll": "Select all on this page",
+    "selectRow": "Select row"
   },
   "notifications": {
     "title": "Notifications",
@@ -1422,7 +1426,20 @@
       "perPage": "{count} per page",
       "clearFilters": "Clear filters",
       "totalCount": "{count, plural, one {# product} other {# products}}",
-      "noMatches": "No products match these filters"
+      "noMatches": "No products match these filters",
+      "bulkPublish": "Publish",
+      "bulkPublishHint": "Products based on a provider product are sent for the provider's review",
+      "bulkDraft": "Set to draft",
+      "bulkArchive": "Archive",
+      "bulkStatusUpdated": "{count, plural, one {# product updated} other {# products updated}}",
+      "bulkDeleted": "{count, plural, one {# product deleted} other {# products deleted}}",
+      "bulkSentForReview": "{count, plural, one {# product sent for provider review} other {# products sent for provider review}}",
+      "bulkFailed": "{count, plural, one {# failed} other {# failed}}: {error}",
+      "bulkNothingToChange": "The selected products already have this status",
+      "bulkDeleteTitle": "{count, plural, one {Delete # product?} other {Delete # products?}}",
+      "bulkDeleteDesc": "The selected products will be permanently deleted. This cannot be undone.",
+      "viewInStoreNotPublished": "Not published — only published products are visible in the store",
+      "viewInStoreNoSlug": "This product has no URL slug yet"
     },
     "customProductForm": {
       "newTitle": "New Custom Product",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "Used",
     "feedExcluded": "Exclude from feeds",
     "feedExcludedHint": "The product is never listed in the Google / Meta feeds.",
-    "errGtinInvalid": "GTIN must be 8, 12, 13 or 14 digits with a valid check digit."
+    "errGtinInvalid": "GTIN must be 8, 12, 13 or 14 digits with a valid check digit.",
+    "viewInStore": "View in store",
+    "viewInStoreHint": "Open the live product page in a new tab",
+    "viewInStoreNotPublished": "Not published yet — publish the product to view it in your store",
+    "viewInStoreNoSlug": "Save the product with a URL slug first",
+    "update": "Update",
+    "save": "Save",
+    "publishedState": "Published",
+    "publishedUpToDateHint": "Published and up to date — no unsaved changes",
+    "savedState": "Saved",
+    "switchToDraft": "Switch to draft",
+    "unsavedChanges": "Unsaved changes",
+    "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?"
   },
   "customField": {
     "typeText": "Text",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "to close",
     "userMenuOpen": "Account menu for {name}",
     "language": "Language"
+  },
+  "bulk": {
+    "working": "Working…",
+    "failedCount": "{count} failed",
+    "dismiss": "Dismiss",
+    "updatedCount": "{count} updated",
+    "deletedCount": "{count} deleted",
+    "verifiedCount": "{count} verified",
+    "downloadedCount": "{count} downloaded",
+    "deleteCount": "Delete ({count})",
+    "deleteTitle": "{count, plural, one {Delete # item?} other {Delete # items?}}",
+    "deleteDescription": "The selected items will be deleted permanently. This can't be undone.",
+    "verifyCount": "Verify ({count})",
+    "archiveTitle": "Archive {count, plural, one {# product} other {# products}}?",
+    "archiveDescription": "Archived products are hidden from stores until they are published again.",
+    "suspendTitle": "Suspend {count, plural, one {# user} other {# users}}?",
+    "deleteUsersTitle": "Delete {count, plural, one {# user} other {# users}}?",
+    "deleteUsersDescription": "The selected accounts and their data are deleted permanently. This can't be undone.",
+    "activate": "Activate",
+    "disable": "Disable",
+    "disableTitle": "Disable {count, plural, one {# item} other {# items}}?",
+    "disableBundlesDescription": "Disabled bundles are removed from the storefront and from active carts.",
+    "deactivate": "Deactivate",
+    "deactivateTitle": "Deactivate {count, plural, one {# redirect} other {# redirects}}?",
+    "appsMenu": "Apps",
+    "offerApp": "Make {app} available",
+    "withdrawApp": "Withdraw {app}",
+    "withdrawAppTitle": "Withdraw {app} from {count, plural, one {# store} other {# stores}}?",
+    "downloadPdfs": "Download PDFs ({count})",
+    "allDone": "{count, plural, one {Done — # item.} other {Done — # items.}}",
+    "partial": "{ok} succeeded, {failed} failed.",
+    "firstError": "First error: {error}"
   }
 }

@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "بحث...",
     "noData": "لا توجد بيانات",
-    "showingRange": "عرض {from}-{to} من {total}"
+    "showingRange": "عرض {from}-{to} من {total}",
+    "selectedCount": "{count} محدد",
+    "clearSelection": "إلغاء التحديد",
+    "selectAll": "تحديد الكل في هذه الصفحة",
+    "selectRow": "تحديد السطر"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -1422,7 +1426,20 @@
       "perPage": "{count} في الصفحة",
       "clearFilters": "مسح الفلاتر",
       "totalCount": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجاً} other {# منتج}}",
-      "noMatches": "لا توجد منتجات تطابق هذه الفلاتر"
+      "noMatches": "لا توجد منتجات تطابق هذه الفلاتر",
+      "bulkPublish": "نشر",
+      "bulkPublishHint": "المنتجات المبنية على منتج مورّد تُرسَل لمراجعة المورّد",
+      "bulkDraft": "تحويل إلى مسودة",
+      "bulkArchive": "أرشفة",
+      "bulkStatusUpdated": "{count, plural, zero {لم يُحدَّث أي منتج} one {تم تحديث منتج واحد} two {تم تحديث منتجين} few {تم تحديث # منتجات} many {تم تحديث # منتجًا} other {تم تحديث # منتج}}",
+      "bulkDeleted": "{count, plural, zero {لم يُحذف أي منتج} one {تم حذف منتج واحد} two {تم حذف منتجين} few {تم حذف # منتجات} many {تم حذف # منتجًا} other {تم حذف # منتج}}",
+      "bulkSentForReview": "{count, plural, zero {لم يُرسَل أي منتج للمراجعة} one {أُرسل منتج واحد لمراجعة المورّد} two {أُرسل منتجان لمراجعة المورّد} few {أُرسلت # منتجات لمراجعة المورّد} many {أُرسل # منتجًا لمراجعة المورّد} other {أُرسل # منتج لمراجعة المورّد}}",
+      "bulkFailed": "{count, plural, one {فشل منتج واحد} two {فشل منتجان} few {فشلت # منتجات} many {فشل # منتجًا} other {فشل # منتج}}: {error}",
+      "bulkNothingToChange": "المنتجات المحددة لها هذه الحالة بالفعل",
+      "bulkDeleteTitle": "{count, plural, one {حذف منتج واحد؟} two {حذف منتجين؟} few {حذف # منتجات؟} many {حذف # منتجًا؟} other {حذف # منتج؟}}",
+      "bulkDeleteDesc": "سيتم حذف المنتجات المحددة نهائيًا. لا يمكن التراجع عن ذلك.",
+      "viewInStoreNotPublished": "غير منشور — تظهر المنتجات المنشورة فقط في المتجر",
+      "viewInStoreNoSlug": "لا يوجد رابط مختصر (slug) لهذا المنتج بعد"
     },
     "customProductForm": {
       "newTitle": "منتج مخصص جديد",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "مستعمل",
     "feedExcluded": "استبعاد من الخلاصات",
     "feedExcludedHint": "لن يُدرج المنتج أبداً في خلاصات Google / Meta.",
-    "errGtinInvalid": "يجب أن يتكوّن GTIN من 8 أو 12 أو 13 أو 14 رقماً مع رقم تحقق صحيح."
+    "errGtinInvalid": "يجب أن يتكوّن GTIN من 8 أو 12 أو 13 أو 14 رقماً مع رقم تحقق صحيح.",
+    "viewInStore": "عرض في المتجر",
+    "viewInStoreHint": "فتح صفحة المنتج المنشورة في تبويب جديد",
+    "viewInStoreNotPublished": "لم يُنشر بعد — انشر المنتج لتتمكن من عرضه في متجرك",
+    "viewInStoreNoSlug": "احفظ المنتج مع رابط مختصر (slug) أولاً",
+    "update": "تحديث",
+    "save": "حفظ",
+    "publishedState": "منشور",
+    "publishedUpToDateHint": "منشور ومحدَّث — لا توجد تغييرات غير محفوظة",
+    "savedState": "محفوظ",
+    "switchToDraft": "التحويل إلى مسودة",
+    "unsavedChanges": "تغييرات غير محفوظة",
+    "unsavedLeaveConfirm": "لديك تغييرات غير محفوظة. هل تريد مغادرة الصفحة وتجاهلها؟"
   },
   "customField": {
     "typeText": "نص",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "للإغلاق",
     "userMenuOpen": "قائمة الحساب لـ {name}",
     "language": "اللغة"
+  },
+  "bulk": {
+    "working": "جارٍ التنفيذ…",
+    "failedCount": "فشل {count}",
+    "dismiss": "إغلاق",
+    "updatedCount": "تم تحديث {count}",
+    "deletedCount": "تم حذف {count}",
+    "verifiedCount": "تم توثيق {count}",
+    "downloadedCount": "تم تنزيل {count}",
+    "deleteCount": "حذف ({count})",
+    "deleteTitle": "{count, plural, zero {حذف # عنصر؟} one {حذف عنصر واحد؟} two {حذف عنصرين؟} few {حذف # عناصر؟} many {حذف # عنصرًا؟} other {حذف # عنصر؟}}",
+    "deleteDescription": "سيتم حذف العناصر المحددة نهائيًا. لا يمكن التراجع عن ذلك.",
+    "verifyCount": "توثيق ({count})",
+    "archiveTitle": "أرشفة {count, plural, one {منتج واحد} two {منتجين} few {# منتجات} many {# منتجًا} other {# منتج}}؟",
+    "archiveDescription": "المنتجات المؤرشفة تُخفى من المتاجر حتى يُعاد نشرها.",
+    "suspendTitle": "إيقاف {count, plural, one {مستخدم واحد} two {مستخدمَين} few {# مستخدمين} many {# مستخدمًا} other {# مستخدم}}؟",
+    "deleteUsersTitle": "حذف {count, plural, one {مستخدم واحد} two {مستخدمَين} few {# مستخدمين} many {# مستخدمًا} other {# مستخدم}}؟",
+    "deleteUsersDescription": "ستُحذف الحسابات المحددة وبياناتها نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "activate": "تفعيل",
+    "disable": "تعطيل",
+    "disableTitle": "تعطيل {count, plural, one {عنصر واحد} two {عنصرين} few {# عناصر} many {# عنصرًا} other {# عنصر}}؟",
+    "disableBundlesDescription": "الباقات المعطّلة تُزال من واجهة المتجر ومن السلال النشطة.",
+    "deactivate": "إلغاء التفعيل",
+    "deactivateTitle": "إلغاء تفعيل {count, plural, one {تحويل واحد} two {تحويلين} few {# تحويلات} many {# تحويلًا} other {# تحويل}}؟",
+    "appsMenu": "التطبيقات",
+    "offerApp": "إتاحة {app}",
+    "withdrawApp": "سحب {app}",
+    "withdrawAppTitle": "سحب {app} من {count, plural, one {متجر واحد} two {متجرين} few {# متاجر} many {# متجرًا} other {# متجر}}؟",
+    "downloadPdfs": "تنزيل ملفات PDF ({count})",
+    "allDone": "{count, plural, zero {تم — # عنصر.} one {تم — عنصر واحد.} two {تم — عنصران.} few {تم — # عناصر.} many {تم — # عنصرًا.} other {تم — # عنصر.}}",
+    "partial": "نجح {ok}، وفشل {failed}.",
+    "firstError": "أول خطأ: {error}"
   }
 }

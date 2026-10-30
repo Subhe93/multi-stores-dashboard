@@ -26,6 +26,17 @@ import {
 } from '@/lib/designer/designer.api';
 import { formatBytes, useDateTimeFormat } from '@/components/importer/ImporterBits';
 import { UploadWarnings, stretchDpi } from '@/components/designer/DesignerBits';
+import { runBulk } from '@/lib/bulk';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 const ALL = '__all__';
 /** NPP budget size: the DPI column assumes it when the asset is not tied to a template. */
@@ -56,6 +67,12 @@ export function AssetsPanel({ token }: { token: string }) {
   const [replacing, setReplacing] = useState<DesignerAssetView | null>(null);
   const [deleting, setDeleting] = useState<{ asset: DesignerAssetView; refs: AssetReferences | null; checking: boolean } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const tb = useTranslations('bulk');
+  const bulkSummary = useBulkSummary();
+  const selection = useTableSelection(items ?? [], (a) => a.id);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
 
   const load = useCallback(() => {
     setError(null);
@@ -134,6 +151,22 @@ export function AssetsPanel({ token }: { token: string }) {
     }
   };
 
+  // Assets still used by a template version or an order are rejected by the
+  // API (DESIGNER_ASSET_IN_USE) and reported as failures.
+  const handleBulkDelete = async () => {
+    setBusy(true);
+    const result = await runBulk(selection.selectedRows, (asset) =>
+      deleteAsset(token, asset.id).catch((err: unknown) => {
+        throw new Error(describeError(err));
+      }),
+    );
+    setBusy(false);
+    setBulkDeleteOpen(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    load();
+  };
+
   const inUse = !!deleting?.refs && (deleting.refs.template_versions > 0 || deleting.refs.order_items > 0);
   const kindOptions = TEMPLATE_ASSET_KINDS.map((k) => ({ value: k, label: tk(k), description: t(`kindHints.${k}`) }));
 
@@ -198,6 +231,7 @@ export function AssetsPanel({ token }: { token: string }) {
             className="hidden"
             onChange={(e) => replacing && doUpload(e.target.files?.[0], replacing.kind as TemplateAssetKind, replacing)}
           />
+          <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} className="mb-3" />
           {!items ? (
             <div className="flex justify-center py-8">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -206,9 +240,24 @@ export function AssetsPanel({ token }: { token: string }) {
             <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">{t('empty')}</p>
           ) : (
             <div className="overflow-x-auto">
+              <TableSelectionBar selection={selection}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  className="h-7 text-xs"
+                  disabled={busy}
+                  onClick={() => setBulkDeleteOpen(true)}
+                >
+                  <Trash2 className="size-3.5" /> {t('delete')}
+                </Button>
+              </TableSelectionBar>
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b text-muted-foreground">
+                    <th className="w-10 py-2 pe-3">
+                      <SelectAllCheckbox selection={selection} />
+                    </th>
                     <th className="py-2 pe-3 text-start font-medium">{t('colPreview')}</th>
                     <th className="py-2 pe-3 text-start font-medium">{t('kind')}</th>
                     <th className="py-2 pe-3 text-start font-medium">{t('colSize')}</th>
@@ -226,7 +275,14 @@ export function AssetsPanel({ token }: { token: string }) {
                     const low = isBg && a.width < target * 0.8;
                     const warnings = Array.isArray(a.meta?.warnings) ? (a.meta.warnings as string[]) : [];
                     return (
-                      <tr key={a.id} className="border-b align-middle last:border-0">
+                      <tr
+                        key={a.id}
+                        data-state={selection.isSelected(a.id) ? 'selected' : undefined}
+                        className={`border-b align-middle last:border-0 ${selection.isSelected(a.id) ? 'bg-zinc-50' : ''}`}
+                      >
+                        <td className="w-10 py-2 pe-3">
+                          <SelectRowCheckbox selection={selection} id={a.id} />
+                        </td>
                         <td className="py-2 pe-3">
                           <div className="flex h-14 w-10 items-center justify-center overflow-hidden rounded border bg-zinc-50">
                             {url ? (
@@ -292,6 +348,17 @@ export function AssetsPanel({ token }: { token: string }) {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        destructive
+        title={tb('deleteTitle', { count: selection.count })}
+        description={tb('deleteDescription')}
+        busy={busy}
+        busyLabel={tb('working')}
+        onConfirm={handleBulkDelete}
+      />
 
       <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <DialogContent className="sm:max-w-lg">

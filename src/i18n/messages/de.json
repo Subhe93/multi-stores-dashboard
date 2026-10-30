@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "Suchen...",
     "noData": "Keine Daten gefunden",
-    "showingRange": "{from}-{to} von {total} werden angezeigt"
+    "showingRange": "{from}-{to} von {total} werden angezeigt",
+    "selectedCount": "{count} ausgewählt",
+    "clearSelection": "Aufheben",
+    "selectAll": "Alle auf dieser Seite auswählen",
+    "selectRow": "Zeile auswählen"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -1422,7 +1426,20 @@
       "perPage": "{count} pro Seite",
       "clearFilters": "Filter zurücksetzen",
       "totalCount": "{count, plural, one {# Produkt} other {# Produkte}}",
-      "noMatches": "Keine Produkte entsprechen diesen Filtern"
+      "noMatches": "Keine Produkte entsprechen diesen Filtern",
+      "bulkPublish": "Veröffentlichen",
+      "bulkPublishHint": "Produkte auf Basis eines Anbieterprodukts werden dem Anbieter zur Prüfung vorgelegt",
+      "bulkDraft": "Als Entwurf",
+      "bulkArchive": "Archivieren",
+      "bulkStatusUpdated": "{count, plural, one {# Produkt aktualisiert} other {# Produkte aktualisiert}}",
+      "bulkDeleted": "{count, plural, one {# Produkt gelöscht} other {# Produkte gelöscht}}",
+      "bulkSentForReview": "{count, plural, one {# Produkt zur Anbieterprüfung gesendet} other {# Produkte zur Anbieterprüfung gesendet}}",
+      "bulkFailed": "{count, plural, one {# fehlgeschlagen} other {# fehlgeschlagen}}: {error}",
+      "bulkNothingToChange": "Die ausgewählten Produkte haben diesen Status bereits",
+      "bulkDeleteTitle": "{count, plural, one {# Produkt löschen?} other {# Produkte löschen?}}",
+      "bulkDeleteDesc": "Die ausgewählten Produkte werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+      "viewInStoreNotPublished": "Nicht veröffentlicht – nur veröffentlichte Produkte sind im Shop sichtbar",
+      "viewInStoreNoSlug": "Dieses Produkt hat noch keinen URL-Slug"
     },
     "customProductForm": {
       "newTitle": "Neues eigenes Produkt",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "Gebraucht",
     "feedExcluded": "Aus Feeds ausschließen",
     "feedExcludedHint": "Das Produkt erscheint nie in den Google- / Meta-Feeds.",
-    "errGtinInvalid": "Die GTIN muss 8, 12, 13 oder 14 Ziffern mit gültiger Prüfziffer haben."
+    "errGtinInvalid": "Die GTIN muss 8, 12, 13 oder 14 Ziffern mit gültiger Prüfziffer haben.",
+    "viewInStore": "Im Shop ansehen",
+    "viewInStoreHint": "Die Live-Produktseite in einem neuen Tab öffnen",
+    "viewInStoreNotPublished": "Noch nicht veröffentlicht – veröffentliche das Produkt, um es im Shop zu sehen",
+    "viewInStoreNoSlug": "Speichere das Produkt zuerst mit einem URL-Slug",
+    "update": "Aktualisieren",
+    "save": "Speichern",
+    "publishedState": "Veröffentlicht",
+    "publishedUpToDateHint": "Veröffentlicht und aktuell – keine ungespeicherten Änderungen",
+    "savedState": "Gespeichert",
+    "switchToDraft": "Zu Entwurf machen",
+    "unsavedChanges": "Ungespeicherte Änderungen",
+    "unsavedLeaveConfirm": "Du hast ungespeicherte Änderungen. Seite verlassen und Änderungen verwerfen?"
   },
   "customField": {
     "typeText": "Text",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "zum Schließen",
     "userMenuOpen": "Kontomenü für {name}",
     "language": "Sprache"
+  },
+  "bulk": {
+    "working": "Wird ausgeführt…",
+    "failedCount": "{count} fehlgeschlagen",
+    "dismiss": "Schließen",
+    "updatedCount": "{count} aktualisiert",
+    "deletedCount": "{count} gelöscht",
+    "verifiedCount": "{count} verifiziert",
+    "downloadedCount": "{count} heruntergeladen",
+    "deleteCount": "Löschen ({count})",
+    "deleteTitle": "{count, plural, one {# Eintrag löschen?} other {# Einträge löschen?}}",
+    "deleteDescription": "Die ausgewählten Einträge werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "verifyCount": "Verifizieren ({count})",
+    "archiveTitle": "{count, plural, one {# Produkt} other {# Produkte}} archivieren?",
+    "archiveDescription": "Archivierte Produkte sind in den Shops ausgeblendet, bis sie erneut veröffentlicht werden.",
+    "suspendTitle": "{count} Benutzer sperren?",
+    "deleteUsersTitle": "{count} Benutzer löschen?",
+    "deleteUsersDescription": "Die ausgewählten Konten und ihre Daten werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
+    "activate": "Aktivieren",
+    "disable": "Deaktivieren",
+    "disableTitle": "{count, plural, one {# Eintrag} other {# Einträge}} deaktivieren?",
+    "disableBundlesDescription": "Deaktivierte Bundles werden aus dem Shop und aus aktiven Warenkörben entfernt.",
+    "deactivate": "Deaktivieren",
+    "deactivateTitle": "{count, plural, one {# Weiterleitung} other {# Weiterleitungen}} deaktivieren?",
+    "appsMenu": "Apps",
+    "offerApp": "{app} verfügbar machen",
+    "withdrawApp": "{app} entziehen",
+    "withdrawAppTitle": "{app} {count, plural, one {# Shop} other {# Shops}} entziehen?",
+    "downloadPdfs": "PDFs herunterladen ({count})",
+    "allDone": "{count, plural, one {Erledigt — # Eintrag.} other {Erledigt — # Einträge.}}",
+    "partial": "{ok} erfolgreich, {failed} fehlgeschlagen.",
+    "firstError": "Erster Fehler: {error}"
   }
 }

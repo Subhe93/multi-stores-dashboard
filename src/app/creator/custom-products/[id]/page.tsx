@@ -28,6 +28,9 @@ import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
+import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
+import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 
@@ -133,6 +136,8 @@ export default function EditCustomProduct() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  // Save-state / storefront-link strings shared with the own-product editor.
+  const tp = useTranslations('product');
   const translationPlaceholder = useTranslationPlaceholder();
   // Coded API errors (e.g. PRIMARY_COLLECTION_NOT_LINKED) become translated messages.
   const apiError = useApiError();
@@ -190,6 +195,11 @@ export default function EditCustomProduct() {
   // Other
   const [status, setStatus] = useState('DRAFT');
 
+  // Learns the rich-text editor's own re-serialisation of stored HTML so it
+  // does not count as an unsaved change.
+  const [htmlCanon] = useState(createHtmlCanon);
+  const { productUrl, baseUrl } = useStorefrontUrl();
+
   const setTransField = (locale: string, field: keyof LocaleTranslation, value: string) => {
     setTranslations((prev) => ({ ...prev, [locale]: { ...prev[locale], [field]: value } }));
   };
@@ -199,7 +209,8 @@ export default function EditCustomProduct() {
     setLoading(true);
     try {
       const [store, productRes] = await Promise.all([
-        api<StoreLanguageSettings>('/stores/my/store', { token }),
+        // Shared with the store link / storefront URL hook (one request per page).
+        fetchMyStore(token) as Promise<StoreLanguageSettings>,
         api<CustomProduct>(`/custom-products/${id}`, { token }),
       ]);
 
@@ -311,6 +322,47 @@ export default function EditCustomProduct() {
     return () => clearTimeout(handle);
   }, [token, id, translations, primaryLocale]);
 
+  // ── Unsaved changes ──
+  // Everything a save sends, normalised so equivalent values compare equal.
+  // FAQs write through immediately and are not part of the form state.
+  const makeSnapshot = () => {
+    const trans: Record<string, unknown> = {};
+    for (const [locale, tr] of Object.entries(translations)) {
+      const description = htmlCanon.canon(tr?.description);
+      const row = {
+        title: tr?.title || '',
+        // Markup without text (Tiptap's empty `<p></p>`) counts as empty.
+        description:
+          description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || /<img\b/i.test(description)
+            ? description
+            : '',
+        slug: tr?.slug || '',
+      };
+      if (row.title || row.description || row.slug) trans[locale] = row;
+    }
+    return stableJson({
+      trans,
+      status,
+      pricingType,
+      finalPrice,
+      marginAmount,
+      variantPrices: Object.fromEntries(Object.entries(variantPrices).filter(([, v]) => v !== '')),
+      selectedVariantIds: [...selectedVariantIds].sort(),
+      fieldValues: Object.fromEntries(
+        Object.entries(fieldValues)
+          .filter(([, v]) => v.value?.trim() || v.file_url?.trim())
+          .map(([k, v]) => [k, { value: v.value || '', file_url: v.file_url || '' }]),
+      ),
+      selectedImageUrls,
+      featuredImageUrl,
+      bundleIds,
+      creatorCategoryIds,
+      primaryCreatorCategoryId,
+    });
+  };
+  const { dirty, saveToken, markSaved } = useDirtyTracker(loading || !product ? null : makeSnapshot());
+  useBeforeUnloadWarning(dirty);
+
   const handleTranslateTo = async (targetLocale: string) => {
     const sourceTitle = translations[primaryLocale]?.title || '';
     if (!sourceTitle.trim() || translatingLocale) return;
@@ -331,6 +383,10 @@ export default function EditCustomProduct() {
 
   const handleSave = async () => {
     if (!token || !product) return;
+    // What this save persists and the interaction count at its start, so
+    // edits made while it runs stay unsaved.
+    const savedSnapshot = makeSnapshot();
+    const interactionsAtStart = saveToken();
     setSaving(true);
     setSaveError('');
     try {
@@ -405,6 +461,9 @@ export default function EditCustomProduct() {
       body.primary_creator_category_id = primaryCreatorCategoryId;
 
       await api(`/custom-products/${id}`, { method: 'PUT', token, body: JSON.stringify(body) });
+      // The reload below may normalise values (server-derived slugs, an
+      // auto-revert to review); markSaved lets the baseline absorb it.
+      markSaved(savedSnapshot, interactionsAtStart);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       fetchAll();
@@ -474,12 +533,22 @@ export default function EditCustomProduct() {
   const allVariants = product.product.variants || [];
   const hasCustomFields = (product.product.custom_fields?.length ?? 0) > 0;
   const selectedVariantsForPricing = allVariants.filter((v) => selectedVariantIds.includes(v.id));
+  // Storefront link: what is live (persisted status and slug), not unsaved edits.
+  const liveSlug = pickProductSlug(product.translations, primaryLocale);
+  const isLive = product.status === 'PUBLISHED';
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            if (dirty && !window.confirm(tp('unsavedLeaveConfirm'))) return;
+            router.back();
+          }}
+        >
+          <ArrowLeft className="w-4 h-4 me-1 rtl:rotate-180" /> {tc('back')}
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{t('editCustomProduct.title')}</h1>
@@ -498,6 +567,18 @@ export default function EditCustomProduct() {
         <Badge variant="secondary" className={`text-[10px] font-semibold ${STATUS_COLORS[status] || ''}`}>
           {t(`editCustomProduct.status_${status}`)}
         </Badge>
+        {dirty && (
+          <span className="flex items-center gap-1.5 text-xs text-amber-700">
+            <span className="size-1.5 rounded-full bg-amber-500" />
+            {tp('unsavedChanges')}
+          </span>
+        )}
+        {baseUrl && (
+          <ViewInStoreButton
+            href={isLive ? productUrl(liveSlug) : null}
+            disabledHint={!isLive ? tp('viewInStoreNotPublished') : tp('viewInStoreNoSlug')}
+          />
+        )}
       </div>
 
       {/* ── Two-column grid ─────────────────────────────── */}
@@ -729,7 +810,7 @@ export default function EditCustomProduct() {
           {seededFrom && (
             <div className="flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
               <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>{t('product.seededFromLocale', { locale: LOCALE_LABELS[seededFrom] || seededFrom.toUpperCase() })}</span>
+              <span>{tp('seededFromLocale', { locale: LOCALE_LABELS[seededFrom] || seededFrom.toUpperCase() })}</span>
             </div>
           )}
           {activeLocale !== primaryLocale && (
@@ -803,7 +884,10 @@ export default function EditCustomProduct() {
             <Label className="text-xs">{t('editCustomProduct.descriptionLabel')}</Label>
             <RichTextEditor
               content={translations[activeLocale]?.description || ''}
-              onChange={(val) => setTransField(activeLocale, 'description', val)}
+              onChange={(val) => {
+                htmlCanon.learn(translations[activeLocale]?.description, val);
+                setTransField(activeLocale, 'description', val);
+              }}
               placeholder={translationPlaceholder({
                 locale: activeLocale,
                 primaryLocale,
@@ -899,20 +983,34 @@ export default function EditCustomProduct() {
         {/* Actions */}
         <Card className="shadow-none">
           <CardContent className="py-3 space-y-2">
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={handleSave}
-              disabled={
-                saving ||
-                slugStatus === 'checking' ||
-                slugStatus === 'taken' ||
-                (!translations[primaryLocale]?.title?.trim() &&
-                  !product.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim())
-              }
-            >
-              {saving ? tc('saving') : t('editCustomProduct.saveChanges')}
-            </Button>
+            {!dirty && !saving ? (
+              // Nothing to save: a muted state instead of the black button.
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full gap-1 disabled:opacity-100 text-muted-foreground"
+                disabled
+                title={isLive ? tp('publishedUpToDateHint') : undefined}
+              >
+                <Check className="size-3.5 text-emerald-600" />
+                {isLive ? tp('publishedState') : tp('savedState')}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={handleSave}
+                disabled={
+                  saving ||
+                  slugStatus === 'checking' ||
+                  slugStatus === 'taken' ||
+                  (!translations[primaryLocale]?.title?.trim() &&
+                    !product.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim())
+                }
+              >
+                {saving ? tc('saving') : t('editCustomProduct.saveChanges')}
+              </Button>
+            )}
             {saved && (
               <p className="text-xs text-emerald-600 font-medium text-center">{t('editCustomProduct.savedExclaim')}</p>
             )}

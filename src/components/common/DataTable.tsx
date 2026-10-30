@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
   Table,
@@ -13,8 +14,10 @@ import {
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { pageWindow } from './pageWindow';
+import { RowCheckbox } from './RowCheckbox';
+import { isRowClickIgnored } from './rowClick';
 
 interface Column<T> {
   key: string;
@@ -41,6 +44,23 @@ interface DataTableProps<T> {
   pagination?: PaginationMeta;
   onPageChange?: (page: number) => void;
   onSort?: (key: string, direction: 'asc' | 'desc') => void;
+  /** Stable row id; required for selection (falls back to `row.id`). */
+  getRowId?: (row: T) => string;
+  /** Show row checkboxes + a select-all checkbox (current page). */
+  selectable?: boolean;
+  /**
+   * Actions shown in the bar that replaces the toolbar while rows are selected.
+   * `clear` resets the selection (call it after a successful bulk action).
+   */
+  bulkActions?: (selected: T[], clear: () => void) => React.ReactNode;
+  /**
+   * Clicking anywhere on the row opens this URL (Ctrl/Cmd/middle click = new tab).
+   * Clicks on links, buttons, inputs and elements with data-row-click-ignore are
+   * left alone, so render the primary cell as a real <Link> for keyboard users.
+   */
+  rowHref?: (row: T) => string | null | undefined;
+  /** Row click handler for items that open in a dialog (same ignore rules as rowHref). */
+  onRowClick?: (row: T) => void;
 }
 
 /** Read a cell by column key. Rows are plain objects; column keys index them by name. */
@@ -57,7 +77,16 @@ export function DataTable<T extends object>({
   pagination,
   onPageChange,
   onSort,
+  getRowId,
+  selectable,
+  bulkActions,
+  rowHref,
+  onRowClick,
 }: DataTableProps<T>) {
+  const router = useRouter();
+  const rowId = (row: T): string =>
+    getRowId ? getRowId(row) : String(cellValue(row, 'id') ?? '');
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const t = useTranslations('table');
   const placeholder = searchPlaceholder ?? t('searchPlaceholder');
   const empty = emptyMessage ?? t('noData');
@@ -89,10 +118,57 @@ export function DataTable<T extends object>({
     });
   }
 
+  // Selection is scoped to the rows on screen; ids that left the data
+  // (deleted, filtered out, other page) are dropped automatically.
+  const selectedRows = selectable ? sortedData.filter((row) => selected.has(rowId(row))) : [];
+  const allSelected = sortedData.length > 0 && selectedRows.length === sortedData.length;
+  const someSelected = selectedRows.length > 0 && !allSelected;
+  const clearSelection = () => setSelected(new Set());
+  const toggleAll = () =>
+    setSelected(allSelected ? new Set() : new Set(sortedData.map(rowId)));
+  const toggleRow = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const goToPage = (p: number) => {
+    clearSelection();
+    onPageChange?.(p);
+  };
+  const colCount = columns.length + (selectable ? 1 : 0);
+
+  const openRow = (e: React.MouseEvent<HTMLTableRowElement>, href: string) => {
+    if (isRowClickIgnored(e)) return;
+    if (e.ctrlKey || e.metaKey || e.button === 1) {
+      window.open(href, '_blank', 'noopener');
+      return;
+    }
+    router.push(href);
+  };
+
   return (
     <Card className="shadow-none">
+      {/* Bulk bar replaces the toolbar while rows are selected */}
+      {selectedRows.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 border-b bg-zinc-50">
+          <span className="text-sm font-medium tabular-nums">
+            {t('selectedCount', { count: selectedRows.length })}
+          </span>
+          <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={clearSelection}>
+            <X className="w-3.5 h-3.5" />
+            {t('clearSelection')}
+          </Button>
+          {bulkActions && (
+            <div className="ms-auto flex flex-wrap items-center gap-2">
+              {bulkActions(selectedRows, clearSelection)}
+            </div>
+          )}
+        </div>
+      )}
       {/* Toolbar */}
-      {(onSearch || actions) && (
+      {selectedRows.length === 0 && (onSearch || actions) && (
         <div className="flex items-center justify-between p-4 border-b">
           {onSearch && (
             <Input
@@ -111,6 +187,17 @@ export function DataTable<T extends object>({
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
+            {selectable && (
+              <TableHead className="w-10 h-10">
+                <RowCheckbox
+                  checked={allSelected}
+                  indeterminate={someSelected}
+                  disabled={sortedData.length === 0}
+                  onChange={toggleAll}
+                  aria-label={t('selectAll')}
+                />
+              </TableHead>
+            )}
             {columns.map((col) => (
               <TableHead
                 key={col.key}
@@ -132,20 +219,46 @@ export function DataTable<T extends object>({
         <TableBody>
           {sortedData.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground text-sm">
+              <TableCell colSpan={colCount} className="h-32 text-center text-muted-foreground text-sm">
                 {empty}
               </TableCell>
             </TableRow>
           ) : (
-            sortedData.map((item, idx) => (
-              <TableRow key={idx}>
+            sortedData.map((item, idx) => {
+              const id = rowId(item);
+              const isSelected = selectable && selected.has(id);
+              const href = rowHref?.(item) || null;
+              return (
+              <TableRow
+                key={id || idx}
+                data-state={isSelected ? 'selected' : undefined}
+                className={href || onRowClick ? 'cursor-pointer' : undefined}
+                onClick={
+                  href
+                    ? (e) => openRow(e, href)
+                    : onRowClick
+                      ? (e) => { if (!isRowClickIgnored(e)) onRowClick(item); }
+                      : undefined
+                }
+                onAuxClick={href ? (e) => { if (e.button === 1) openRow(e, href); } : undefined}
+              >
+                {selectable && (
+                  <TableCell className="w-10 py-3" data-row-click-ignore>
+                    <RowCheckbox
+                      checked={!!isSelected}
+                      onChange={() => toggleRow(id)}
+                      aria-label={t('selectRow')}
+                    />
+                  </TableCell>
+                )}
                 {columns.map((col) => (
                   <TableCell key={col.key} className="text-sm py-3">
                     {col.render ? col.render(item) : (cellValue(item, col.key) as React.ReactNode)}
                   </TableCell>
                 ))}
               </TableRow>
-            ))
+              );
+            })
           )}
         </TableBody>
       </Table>
@@ -166,7 +279,7 @@ export function DataTable<T extends object>({
               size="icon"
               className="h-7 w-7"
               disabled={pagination.page <= 1}
-              onClick={() => onPageChange?.(pagination.page - 1)}
+              onClick={() => goToPage(pagination.page - 1)}
             >
               <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
             </Button>
@@ -180,7 +293,7 @@ export function DataTable<T extends object>({
                   size="icon"
                   className="h-7 min-w-7 w-auto px-1.5 text-xs tabular-nums"
                   aria-current={pagination.page === pageNum ? 'page' : undefined}
-                  onClick={() => onPageChange?.(pageNum)}
+                  onClick={() => goToPage(pageNum)}
                 >
                   {pageNum}
                 </Button>
@@ -191,7 +304,7 @@ export function DataTable<T extends object>({
               size="icon"
               className="h-7 w-7"
               disabled={pagination.page >= pagination.totalPages}
-              onClick={() => onPageChange?.(pagination.page + 1)}
+              onClick={() => goToPage(pagination.page + 1)}
             >
               <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
             </Button>

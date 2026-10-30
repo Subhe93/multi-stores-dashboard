@@ -10,6 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppPageHeader } from '@/components/apps/AppPageHeader';
 import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
+import { useRowOpen } from '@/components/common/useTableSelection';
 import { localeLabel } from '@/components/markets/MarketForm';
 import { MARKET_STATUS_CLASS, ProviderDot, kustomCheckMessage, stripeCheckMessage } from '@/components/markets/PaymentCheckCard';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -22,6 +23,7 @@ import { runPaymentCheck, type MarketView } from '@/lib/markets.api';
 
 export default function CreatorMarketsPage() {
   const t = useTranslations('creator.markets');
+  const { linkRow } = useRowOpen();
   const tErrors = useTranslations('errors');
   const locale = useLocale();
   const { token } = useAuth();
@@ -97,7 +99,7 @@ export default function CreatorMarketsPage() {
             const primary = m.domains.find((d) => d.is_primary && d.status === 'ACTIVE') ?? m.domains.find((d) => d.is_primary);
             const check = m.payment_check;
             return (
-              <Card key={m.id} className="shadow-none">
+              <Card key={m.id} {...linkRow(`/creator/markets/${m.id}`)} className="cursor-pointer shadow-none transition hover:border-zinc-300">
                 <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3 space-y-0">
                   <div className="min-w-0 space-y-1">
                     <CardTitle className="text-sm font-semibold">

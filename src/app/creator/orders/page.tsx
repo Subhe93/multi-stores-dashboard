@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
@@ -201,13 +202,12 @@ export default function CreatorOrdersPage() {
       label: t('orders.colOrder'),
       sortable: true,
       render: (item: OrderRow) => (
-        <button
-          type="button"
-          onClick={() => router.push(`/creator/orders/${item.id}`)}
-          className="text-sm font-mono font-medium hover:underline text-start"
+        <Link
+          href={`/creator/orders/${item.id}`}
+          className="text-sm font-mono font-medium hover:underline"
         >
           {item.order_number}
-        </button>
+        </Link>
       ),
     },
     {
@@ -399,6 +399,7 @@ export default function CreatorOrdersPage() {
         <DataTable
           columns={columns}
           data={orders}
+          rowHref={(item: OrderRow) => `/creator/orders/${item.id}`}
           emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
           pagination={meta ?? undefined}
           onPageChange={(p) => fetchOrders(p)}

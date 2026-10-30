@@ -340,7 +340,11 @@
   "table": {
     "searchPlaceholder": "Rechercher...",
     "noData": "Aucune donnée trouvée",
-    "showingRange": "Affichage de {from}-{to} sur {total}"
+    "showingRange": "Affichage de {from}-{to} sur {total}",
+    "selectedCount": "{count} sélectionné(s)",
+    "clearSelection": "Effacer",
+    "selectAll": "Tout sélectionner sur cette page",
+    "selectRow": "Sélectionner la ligne"
   },
   "notifications": {
     "title": "Notifications",
@@ -1422,7 +1426,20 @@
       "perPage": "{count} par page",
       "clearFilters": "Effacer les filtres",
       "totalCount": "{count, plural, one {# produit} other {# produits}}",
-      "noMatches": "Aucun produit ne correspond à ces filtres"
+      "noMatches": "Aucun produit ne correspond à ces filtres",
+      "bulkPublish": "Publier",
+      "bulkPublishHint": "Les produits basés sur un produit fournisseur sont envoyés en validation au fournisseur",
+      "bulkDraft": "Passer en brouillon",
+      "bulkArchive": "Archiver",
+      "bulkStatusUpdated": "{count, plural, one {# produit mis à jour} other {# produits mis à jour}}",
+      "bulkDeleted": "{count, plural, one {# produit supprimé} other {# produits supprimés}}",
+      "bulkSentForReview": "{count, plural, one {# produit envoyé en validation au fournisseur} other {# produits envoyés en validation au fournisseur}}",
+      "bulkFailed": "{count, plural, one {# échec} other {# échecs}} : {error}",
+      "bulkNothingToChange": "Les produits sélectionnés ont déjà ce statut",
+      "bulkDeleteTitle": "{count, plural, one {Supprimer # produit ?} other {Supprimer # produits ?}}",
+      "bulkDeleteDesc": "Les produits sélectionnés seront définitivement supprimés. Cette action est irréversible.",
+      "viewInStoreNotPublished": "Non publié — seuls les produits publiés sont visibles dans la boutique",
+      "viewInStoreNoSlug": "Ce produit n'a pas encore de slug d'URL"
     },
     "customProductForm": {
       "newTitle": "Nouveau produit personnalisé",
@@ -5640,7 +5657,19 @@
     "feedConditionUsed": "Occasion",
     "feedExcluded": "Exclure des flux",
     "feedExcludedHint": "Le produit n'apparaît jamais dans les flux Google / Meta.",
-    "errGtinInvalid": "Le GTIN doit comporter 8, 12, 13 ou 14 chiffres avec une clé de contrôle valide."
+    "errGtinInvalid": "Le GTIN doit comporter 8, 12, 13 ou 14 chiffres avec une clé de contrôle valide.",
+    "viewInStore": "Voir dans la boutique",
+    "viewInStoreHint": "Ouvrir la page produit en ligne dans un nouvel onglet",
+    "viewInStoreNotPublished": "Pas encore publié — publiez le produit pour le voir dans votre boutique",
+    "viewInStoreNoSlug": "Enregistrez d'abord le produit avec un slug d'URL",
+    "update": "Mettre à jour",
+    "save": "Enregistrer",
+    "publishedState": "Publié",
+    "publishedUpToDateHint": "Publié et à jour — aucune modification non enregistrée",
+    "savedState": "Enregistré",
+    "switchToDraft": "Repasser en brouillon",
+    "unsavedChanges": "Modifications non enregistrées",
+    "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?"
   },
   "customField": {
     "typeText": "Texte",
@@ -6377,5 +6406,37 @@
     "searchHintClose": "pour fermer",
     "userMenuOpen": "Menu du compte de {name}",
     "language": "Langue"
+  },
+  "bulk": {
+    "working": "En cours…",
+    "failedCount": "{count, plural, one {# échec} other {# échecs}}",
+    "dismiss": "Fermer",
+    "updatedCount": "{count} mis à jour",
+    "deletedCount": "{count, plural, one {# supprimé} other {# supprimés}}",
+    "verifiedCount": "{count, plural, one {# vérifié} other {# vérifiés}}",
+    "downloadedCount": "{count, plural, one {# téléchargé} other {# téléchargés}}",
+    "deleteCount": "Supprimer ({count})",
+    "deleteTitle": "{count, plural, one {Supprimer # élément ?} other {Supprimer # éléments ?}}",
+    "deleteDescription": "Les éléments sélectionnés seront supprimés définitivement. Cette action est irréversible.",
+    "verifyCount": "Vérifier ({count})",
+    "archiveTitle": "Archiver {count, plural, one {# produit} other {# produits}} ?",
+    "archiveDescription": "Les produits archivés sont masqués dans les boutiques jusqu'à leur republication.",
+    "suspendTitle": "Suspendre {count, plural, one {# utilisateur} other {# utilisateurs}} ?",
+    "deleteUsersTitle": "Supprimer {count, plural, one {# utilisateur} other {# utilisateurs}} ?",
+    "deleteUsersDescription": "Les comptes sélectionnés et leurs données seront supprimés définitivement. Cette action est irréversible.",
+    "activate": "Activer",
+    "disable": "Désactiver",
+    "disableTitle": "Désactiver {count, plural, one {# élément} other {# éléments}} ?",
+    "disableBundlesDescription": "Les lots désactivés sont retirés de la boutique et des paniers actifs.",
+    "deactivate": "Désactiver",
+    "deactivateTitle": "Désactiver {count, plural, one {# redirection} other {# redirections}} ?",
+    "appsMenu": "Applications",
+    "offerApp": "Rendre {app} disponible",
+    "withdrawApp": "Retirer {app}",
+    "withdrawAppTitle": "Retirer {app} de {count, plural, one {# boutique} other {# boutiques}} ?",
+    "downloadPdfs": "Télécharger les PDF ({count})",
+    "allDone": "{count, plural, one {Terminé — # élément.} other {Terminé — # éléments.}}",
+    "partial": "{ok} réussi(s), {failed} en échec.",
+    "firstError": "Première erreur : {error}"
   }
 }

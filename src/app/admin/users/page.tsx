@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
@@ -21,6 +22,7 @@ import {
 import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useBulkAction } from '@/components/common/useBulkAction';
 
 interface User {
   id: string;
@@ -57,7 +59,9 @@ const statusColors: Record<string, string> = {
 
 export default function AdminUsers() {
   const t = useTranslations('admin');
-  const { token } = useAuth();
+  const tb = useTranslations('bulk');
+  const bulk = useBulkAction();
+  const { token, user: me } = useAuth();
   const router = useRouter();
 
   const roleOptions = [
@@ -231,6 +235,31 @@ export default function AdminUsers() {
     }
   };
 
+  // Bulk status change mirrors the row buttons: admins are never suspended.
+  const bulkSetStatus = (rows: User[], status: 'ACTIVE' | 'SUSPENDED', clear: () => void) => {
+    const targets = status === 'SUSPENDED'
+      ? rows.filter((u) => u.status === 'ACTIVE' && u.role !== 'ADMIN')
+      : rows.filter((u) => u.status === 'SUSPENDED');
+    const opts = {
+      rows: targets,
+      fn: (u: User) =>
+        api(`/admin/users/${u.id}/status`, { method: 'PUT', token: token ?? undefined, body: JSON.stringify({ status }) }),
+      done: (count: number) => tb('updatedCount', { count }),
+      clear,
+      after: () => fetchUsers(page),
+    };
+    if (status === 'SUSPENDED') {
+      bulk.ask({
+        ...opts,
+        title: tb('suspendTitle', { count: targets.length }),
+        confirmLabel: t('suspend'),
+        destructive: true,
+      });
+    } else {
+      void bulk.run(opts);
+    }
+  };
+
   const getName = (u: User) => {
     if (u.provider) return u.provider.company_name;
     if (u.creator) return u.creator.display_name;
@@ -246,10 +275,11 @@ export default function AdminUsers() {
           <p className="text-sm text-muted-foreground">{t('usersSubtitle')}</p>
         </div>
         <Button size="sm" className="h-8 text-xs" onClick={() => { resetForm(); setShowCreate(true); }}>
-          <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('newUser')}
+          <Plus className="w-3.5 h-3.5 me-1.5" /> {t('newUser')}
         </Button>
       </div>
 
+      {bulk.notice}
       {success && <div className="bg-emerald-50 text-emerald-700 text-xs p-3 rounded-lg border border-emerald-200">{success}</div>}
       {error && !showCreate && !deleteTarget && (
         <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg border border-red-200">{error}</div>
@@ -265,10 +295,10 @@ export default function AdminUsers() {
       <DataTable
         columns={[
           { key: 'name', label: t('name'), sortable: true, render: (item: User) => (
-            <button onClick={() => router.push(`/admin/users/${item.id}`)} className="text-left hover:underline">
+            <Link href={`/admin/users/${item.id}`} className="block text-start hover:underline">
               <p className="text-sm font-medium">{getName(item)}</p>
               <p className="text-[10px] text-muted-foreground">{item.email}</p>
-            </button>
+            </Link>
           )},
           { key: 'role', label: t('role'), sortable: true, render: (item: User) => (
             <Badge variant="outline" className={`text-[10px] font-semibold ${roleColors[item.role] || ''}`}>{item.role}</Badge>
@@ -301,6 +331,51 @@ export default function AdminUsers() {
           )},
         ]}
         data={users}
+        selectable
+        rowHref={(item: User) => `/admin/users/${item.id}`}
+        bulkActions={(rows, clear) => (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || !rows.some((u) => u.status === 'ACTIVE' && u.role !== 'ADMIN')}
+              onClick={() => bulkSetStatus(rows, 'SUSPENDED', clear)}
+            >
+              {t('suspend')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              disabled={bulk.busy || !rows.some((u) => u.status === 'SUSPENDED')}
+              onClick={() => bulkSetStatus(rows, 'ACTIVE', clear)}
+            >
+              {t('reactivate')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-red-600 hover:text-red-700"
+              disabled={bulk.busy}
+              onClick={() => bulk.ask({
+                // The API refuses to delete the signed-in account.
+                rows: rows.filter((u) => u.id !== me?.id),
+                fn: (u) => api(`/admin/users/${u.id}`, { method: 'DELETE', token: token ?? undefined }),
+                done: (count) => tb('deletedCount', { count }),
+                clear,
+                after: () => fetchUsers(page),
+                title: tb('deleteUsersTitle', { count: rows.length }),
+                description: tb('deleteUsersDescription'),
+                confirmLabel: t('deletePermanently'),
+                destructive: true,
+              })}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {tb('deleteCount', { count: rows.length })}
+            </Button>
+          </>
+        )}
         pagination={meta ?? undefined}
         onPageChange={(p) => fetchUsers(p)}
         searchPlaceholder={t('searchByEmail')}
@@ -469,6 +544,8 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {bulk.dialog}
 
       {/* Delete Confirm Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>

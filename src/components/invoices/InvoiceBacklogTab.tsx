@@ -12,6 +12,16 @@ import { useApiError } from '@/lib/useApiError';
 import { formatInvoiceAmount, missingFieldsFromPayload } from '@/lib/invoices';
 import { getBacklog, issueBacklog, issueInvoice, type BacklogIssueResult, type BacklogOrder } from '@/lib/invoices.api';
 import { ProfileMissingNotice } from '@/components/invoices/InvoiceBits';
+import { runBulk } from '@/lib/bulk';
+import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
+import {
+  BulkNotice,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+  TableSelectionBar,
+  useBulkSummary,
+  type BulkNoticeValue,
+} from '@/components/common/TableSelectionBar';
 
 const BACKLOG_LIMIT = 200;
 // The API issues at most this many orders per "Issue all" run.
@@ -47,6 +57,12 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
   const [issuingAll, setIssuingAll] = useState(false);
   const [result, setResult] = useState<BacklogIssueResult | null>(null);
   const [allError, setAllError] = useState<string | null>(null);
+
+  const selection = useTableSelection(orders ?? [], (o) => o.id);
+  const bulkSummary = useBulkSummary();
+  const { linkRow } = useRowOpen();
+  const [bulkIssuing, setBulkIssuing] = useState(false);
+  const [bulkNotice, setBulkNotice] = useState<BulkNoticeValue | null>(null);
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -115,6 +131,36 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
     }
   };
 
+  // Issues the selected orders one by one with the single-order endpoint.
+  const handleIssueSelected = async () => {
+    if (bulkIssuing || issuingId || issuingAll) return;
+    setBulkIssuing(true);
+    setBulkNotice(null);
+    const done = new Set<string>();
+    const result = await runBulk(selection.selectedRows, async (order) => {
+      try {
+        await issueInvoice(token, order.id);
+        done.add(order.id);
+      } catch (err) {
+        if (err instanceof ApiError && err.code === 'INVOICE_ALREADY_ISSUED') {
+          done.add(order.id);
+          return;
+        }
+        if (err instanceof ApiError && err.code === 'INVOICE_PROFILE_INCOMPLETE') {
+          setMissing(missingFieldsFromPayload(err.payload));
+        }
+        throw new Error(describeError(err));
+      }
+      // One at a time so invoice numbers follow the selection order.
+    }, 1);
+    setOrders((prev) => prev?.filter((o) => !done.has(o.id)) ?? prev);
+    setCount((c) => Math.max(0, c - done.size));
+    setBulkIssuing(false);
+    selection.clear();
+    setBulkNotice(bulkSummary(result));
+    if (done.size > 0) onIssued();
+  };
+
   const resultProfileIncomplete = !!result?.errors.some((e) => e.code === 'INVOICE_PROFILE_INCOMPLETE');
   const bulkCount = Math.min(count, BULK_ISSUE_MAX);
 
@@ -168,6 +214,8 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
         </div>
       )}
 
+      <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
+
       <Card className="shadow-none">
         <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3 space-y-0">
           <div className="min-w-0 space-y-1">
@@ -197,9 +245,18 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
             <>
               <p className="text-xs text-muted-foreground">{t('count', { count })}</p>
               <div className="overflow-x-auto rounded-md border">
+                <TableSelectionBar selection={selection}>
+                  <Button size="sm" className="h-7 text-xs" disabled={bulkIssuing || !!issuingId || issuingAll} onClick={handleIssueSelected}>
+                    {bulkIssuing ? <Loader2 className="animate-spin" /> : <FileText />}
+                    {bulkIssuing ? t('issuing') : t('issue')}
+                  </Button>
+                </TableSelectionBar>
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
                     <tr>
+                      <th className="w-10 px-3 py-2">
+                        <SelectAllCheckbox selection={selection} />
+                      </th>
                       <th className="px-3 py-2 text-start font-semibold">{t('columns.order')}</th>
                       <th className="px-3 py-2 text-start font-semibold">{t('columns.date')}</th>
                       <th className="px-3 py-2 text-start font-semibold">{t('columns.payment')}</th>
@@ -209,7 +266,14 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
                   </thead>
                   <tbody>
                     {orders.map((o) => (
-                      <tr key={o.id} className="border-t align-top">
+                      <tr
+                        key={o.id}
+                        {...linkRow(`/creator/orders/${o.id}`)}
+                        className={`cursor-pointer border-t align-top hover:bg-zinc-50 ${selection.isSelected(o.id) ? 'bg-zinc-50' : ''}`}
+                      >
+                        <td className="w-10 px-3 py-2" data-row-click-ignore>
+                          <SelectRowCheckbox selection={selection} id={o.id} />
+                        </td>
                         <td className="px-3 py-2">
                           <Link href={`/creator/orders/${o.id}`} className="font-mono text-xs hover:underline" dir="ltr">
                             {o.order_number}
@@ -234,7 +298,7 @@ export function InvoiceBacklogTab({ token, onIssued, onOpenProfile, profileMissi
                           <Button
                             variant="outline"
                             size="sm"
-                            disabled={!!issuingId || issuingAll}
+                            disabled={!!issuingId || issuingAll || bulkIssuing}
                             onClick={() => handleIssue(o)}
                           >
                             {issuingId === o.id ? <Loader2 className="animate-spin" /> : <FileText />}

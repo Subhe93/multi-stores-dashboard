@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
+import { useRowOpen } from '@/components/common/useTableSelection';
 import {
   ZoneMethods,
   HideOthersWhenFreeField,
@@ -117,6 +118,7 @@ export default function CreatorShipping() {
   const { fmt, currency } = useCurrency();
   const { token } = useAuth();
   const t = useTranslations('shipping');
+  const { actionRow } = useRowOpen();
   const describeError = useApiError();
   // Markets app: costs and thresholds are stored in the store currency and
   // converted at each market's rate; name the markets that convert.
@@ -499,7 +501,11 @@ export default function CreatorShipping() {
                     : (zone.countries || '').split(',').map((c: string) => c.trim()).filter(Boolean);
 
                   return (
-                    <div key={zone.id} className="p-3 border rounded-lg hover:bg-zinc-50/50 transition">
+                    <div
+                      key={zone.id}
+                      {...actionRow(() => openEditZone(zone))}
+                      className="cursor-pointer p-3 border rounded-lg hover:bg-zinc-50/50 transition"
+                    >
                       <div className="flex items-center justify-between mb-2.5">
                         <div className="flex items-center gap-2">
                           <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
