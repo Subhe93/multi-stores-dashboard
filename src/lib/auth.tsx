@@ -94,7 +94,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('auth_token', data.access_token);
     localStorage.setItem('refresh_token', data.refresh_token);
     setToken(data.access_token);
-    setUser(data.user);
+    // The login response carries only id/email/role/status; pages need the
+    // full profile (creator/provider ids), so load it before redirecting.
+    let profile: User = data.user;
+    try {
+      profile = await api<User>('/auth/me', { token: data.access_token });
+    } catch {
+      // Keep the minimal user; a reload fetches the profile again.
+    }
+    setUser(profile);
 
     // Redirect based on role
     const roleRoutes: Record<string, string> = {
