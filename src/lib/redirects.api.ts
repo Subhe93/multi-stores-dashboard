@@ -5,7 +5,8 @@
 
 import { api } from '@/lib/api';
 
-export type RedirectSource = 'IMPORT' | 'MANUAL';
+/** SLUG_CHANGE: the old-slug 301 written when a product, collection or page URL changes. */
+export type RedirectSource = 'IMPORT' | 'MANUAL' | 'SLUG_CHANGE';
 export const REDIRECT_STATUS_CODES = [301, 302, 307, 308] as const;
 export type RedirectStatusCode = (typeof REDIRECT_STATUS_CODES)[number];
 

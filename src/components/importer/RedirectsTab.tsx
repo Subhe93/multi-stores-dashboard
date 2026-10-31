@@ -187,7 +187,13 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
       render: (r: RedirectView) => (
         <Badge
           variant="outline"
-          className={r.source === 'IMPORT' ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-zinc-200 bg-zinc-50 text-zinc-700'}
+          className={
+            r.source === 'IMPORT'
+              ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+              : r.source === 'SLUG_CHANGE'
+                ? 'border-amber-200 bg-amber-50 text-amber-800'
+                : 'border-zinc-200 bg-zinc-50 text-zinc-700'
+          }
         >
           {t(`source.${r.source}`)}
         </Badge>
@@ -271,6 +277,7 @@ export function RedirectsTab({ token, readOnly = false }: { token: string; readO
                 { value: 'all', label: t('allSources') },
                 { value: 'IMPORT', label: t('source.IMPORT') },
                 { value: 'MANUAL', label: t('source.MANUAL') },
+                { value: 'SLUG_CHANGE', label: t('source.SLUG_CHANGE') },
               ]}
               value={source}
               onChange={(v) => {

@@ -12,6 +12,7 @@ import { ArrowLeft, Languages, Loader2 } from 'lucide-react';
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { noticeIfSlugAdjusted, useSlugField } from '@/lib/useSlugField';
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
@@ -44,12 +45,12 @@ export default function NewPage() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tSlug = useTranslations('common.slug');
   const translationPlaceholder = useTranslationPlaceholder();
   const TEMPLATE_OPTIONS = buildTemplateOptions(t);
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [templateType, setTemplateType] = useState('CUSTOM');
-  const [slug, setSlug] = useState('');
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -62,6 +63,8 @@ export default function NewPage() {
     en: { title: '' },
   });
   const [translatingLocale, setTranslatingLocale] = useState('');
+  // WP-style slug: follows the primary title until edited, sanitized on blur/save.
+  const slugField = useSlugField({ title: translations[primaryLocale]?.title || '', locale: primaryLocale });
 
   const setTransField = (locale: string, value: string) => {
     setTranslations(prev => ({ ...prev, [locale]: { title: value } }));
@@ -86,13 +89,8 @@ export default function NewPage() {
       .catch(() => setStoreId(null));
   }, [token]);
 
-  const autoSlug = (title: string) =>
-    title.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
   const handlePrimaryTitleChange = (v: string) => {
     setTransField(primaryLocale, v);
-    // Auto-slug from primary locale title
-    if (activeLocale === primaryLocale) setSlug(autoSlug(v));
   };
 
   const handleTranslateTo = async (targetLocale: string) => {
@@ -116,7 +114,11 @@ export default function NewPage() {
     if (!token || !storeId) return;
     const primaryTitle = translations[primaryLocale]?.title?.trim() || '';
     if (!primaryTitle) { setError(t('newPage.titleRequired')); return; }
-    if (!slug.trim()) { setError(t('newPage.slugRequired')); return; }
+    const slug = slugField.finalize();
+    if (!slug) {
+      setError(slugField.problem === 'unusable' ? tSlug('errUnusable') : t('newPage.slugRequired'));
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -124,7 +126,7 @@ export default function NewPage() {
         .filter(([, t]) => t.title.trim())
         .map(([locale, t]) => ({ locale, title: t.title }));
 
-      const created = await api<{ id: string }>(`/stores/${storeId}/pages`, {
+      const created = await api<{ id: string; slug?: string }>(`/stores/${storeId}/pages`, {
         method: 'POST', token: token ?? undefined,
         body: JSON.stringify({
           slug,
@@ -138,6 +140,8 @@ export default function NewPage() {
           body: JSON.stringify({ status: 'PUBLISHED' }),
         });
       }
+      // The server may suffix a duplicate slug (`-2`): tell the user.
+      noticeIfSlugAdjusted(slug, created?.slug);
       router.push('/creator/pages');
     } catch (err) {
       setError((err instanceof Error && err.message) || t('newPage.failedCreate'));
@@ -254,9 +258,14 @@ export default function NewPage() {
             <Label className="text-xs">{t('newPage.slugLabel')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">/</span>
-              <Input className="h-8 text-sm font-mono flex-1" placeholder="about-us"
-                value={slug} onChange={e => setSlug(autoSlug(e.target.value))} />
+              <Input className="h-8 text-sm font-mono flex-1" placeholder="about-us" dir="auto"
+                {...slugField.inputProps} />
             </div>
+            {slugField.problem === 'unusable' ? (
+              <p className="text-[11px] text-red-600">{tSlug('errUnusable')}</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">{tSlug('hint')}</p>
+            )}
           </div>
 
           {/* Publish toggle */}
@@ -280,7 +289,7 @@ export default function NewPage() {
       <div className="flex justify-end gap-3">
         <Button variant="outline" size="sm" onClick={() => router.back()}>{tc('cancel')}</Button>
         <Button size="sm" onClick={handleSave}
-          disabled={saving || !translations[primaryLocale]?.title?.trim() || !slug}>
+          disabled={saving || !translations[primaryLocale]?.title?.trim() || !!slugField.problem}>
           {saving ? t('newPage.creating') : t('newPage.createPage')}
         </Button>
       </div>

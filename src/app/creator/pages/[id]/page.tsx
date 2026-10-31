@@ -13,6 +13,7 @@ import { ArrowLeft, Trash2, Languages, Loader2, AlertCircle } from 'lucide-react
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useSlugField } from '@/lib/useSlugField';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 
 const LOCALE_LABELS: Record<string, string> = {
@@ -63,7 +64,10 @@ export default function EditPage() {
   const [translatingLocale, setTranslatingLocale] = useState('');
   const [translatingContent, setTranslatingContent] = useState(false);
 
-  const [slug, setSlug] = useState('');
+  // WP-style slug: the stored slug never follows the title; typed text is
+  // sanitized on blur and on save; an emptied field is regenerated from the title.
+  const slugField = useSlugField({ title: translations[primaryLocale]?.title || '', locale: primaryLocale });
+  const resetSlug = slugField.reset;
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
 
   const setTransField = (locale: string, field: keyof LocaleTranslation, value: string) => {
@@ -96,7 +100,7 @@ export default function EditPage() {
     api<StorePage>(`/pages/${id}`, { token })
       .then(p => {
         setPage(p);
-        setSlug(p.slug);
+        resetSlug(p.slug);
         setStatus(p.status);
         setTranslations(prev => {
           const next = { ...prev };
@@ -108,7 +112,7 @@ export default function EditPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, id]);
+  }, [token, id, resetSlug]);
 
   const handleTranslateTo = async (targetLocale: string) => {
     const sourceTitle = translations[primaryLocale]?.title || '';
@@ -160,6 +164,11 @@ export default function EditPage() {
 
   const handleSave = async () => {
     if (!token || !page) return;
+    const slug = slugField.finalize();
+    if (!slug) {
+      setSaveError(slugField.problem === 'unusable' ? tc('slug.errUnusable') : tc('slug.errRequired'));
+      return;
+    }
     setSaving(true);
     setSaveError('');
     try {
@@ -167,10 +176,14 @@ export default function EditPage() {
         .filter(([, t]) => t.title.trim())
         .map(([locale, t]) => ({ locale, title: t.title, content: t.content || '' }));
 
-      await api(`/pages/${id}`, {
+      const updated = await api<{ slug?: string } | null>(`/pages/${id}`, {
         method: 'PUT', token,
         body: JSON.stringify({ slug, status, translations: translationsPayload }),
       });
+      // The server may suffix a duplicate slug (`-2`): show what it stored.
+      const stored = updated?.slug || slug;
+      slugField.applySaved(stored, slug);
+      setPage((prev) => (prev ? { ...prev, slug: stored } : prev));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -228,8 +241,13 @@ export default function EditPage() {
             <Label className="text-xs">{t('editPage.slugLabel')}</Label>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">/</span>
-              <Input className="h-8 text-sm font-mono flex-1" value={slug} onChange={e => setSlug(e.target.value)} />
+              <Input className="h-8 text-sm font-mono flex-1" dir="auto" {...slugField.inputProps} />
             </div>
+            {slugField.problem && (
+              <p className="text-[11px] text-red-600">
+                {slugField.problem === 'unusable' ? tc('slug.errUnusable') : tc('slug.errRequired')}
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">{t('editPage.templateType')}</Label>
@@ -355,7 +373,7 @@ export default function EditPage() {
         <div className="flex items-center gap-3">
           {saved && <span className="text-xs text-emerald-600 font-medium">{t('editPage.savedExclaim')}</span>}
           <Button size="sm" onClick={handleSave}
-            disabled={saving || !translations[primaryLocale]?.title?.trim() || !slug}>
+            disabled={saving || !translations[primaryLocale]?.title?.trim() || !!slugField.problem}>
             {saving ? tc('saving') : t('editPage.saveChanges')}
           </Button>
         </div>

@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Loader2, Wand2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { encodeSlugForUrl, slugWasAdjusted } from '@/lib/slug';
+import { announceSlugAdjusted } from '@/lib/slugNotice';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { BuilderLayout } from '@/components/builder/BuilderLayout';
@@ -399,20 +401,29 @@ function MigrationPrompt({
         ? legacy.translations.map((t) => ({ locale: t.locale, title: t.title || slugTitle }))
         : [{ locale: primaryLocale, title: slugTitle }];
 
+      // The stored slug is sent in WP's encoded form so the server's
+      // sanitize_title keeps it as is (`kläder` stays `kläder`, not `klader`)
+      // and the page keeps its URL.
+      const sentSlug = legacy.slug ? encodeSlugForUrl(legacy.slug) : legacy.slug;
       const payload: Record<string, unknown> = {
         type: v2Type,
-        slug: legacy.slug,
+        slug: sentSlug,
         translations,
       };
       if (v2Type === 'STATIC') {
         payload.static_kind = v2StaticKindFor(legacy.type);
       }
 
-      const created = await api<{ id: string }>('/v2/pages', {
+      const created = await api<{ id: string; slug?: string | null }>('/v2/pages', {
         method: 'POST',
         token,
         body: JSON.stringify(payload),
       });
+      // A slug that is now reserved or taken gets a WP suffix (`-2`): tell
+      // the user on the builder screen this one navigates to.
+      if (created?.slug && slugWasAdjusted(legacy.slug, created.slug)) {
+        announceSlugAdjusted(created.slug, { nextScreen: true });
+      }
 
       // 2) If the legacy page had body HTML, seed the new page with a
       //    rich-text section so the content is preserved per-locale. We pick

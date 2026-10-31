@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { findSectionSchema } from '@/lib/section-schemas';
 import { presetSections } from '@/lib/section-presets';
 import { cn } from '@/lib/utils';
+import { SlugAdjustedNotice } from '@/components/common/SlugAdjustedNotice';
 import { LivePreview, type LivePreviewHandle } from './LivePreview';
 import { SectionInspector } from './SectionInspector';
 import { SectionList } from './SectionList';
@@ -886,6 +887,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     <div className="h-screen w-full flex flex-col bg-zinc-50">
       {/* "View store" opens with the owner edit-button hand-off. */}
       <StorefrontEditHandoff />
+      {/* "URL saved as …-2" after creating the page from the landing-pages list. */}
+      <SlugAdjustedNotice />
       <PublishBar
         pageId={page.id}
         pageTitle={pageTitle}

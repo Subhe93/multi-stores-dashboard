@@ -19,6 +19,8 @@ import { api, ApiError } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { useStoreType } from '@/lib/useStoreType';
 import { collectionPathFromTree } from '@/lib/collection-url';
+import { slugPreviewPath } from '@/lib/slug';
+import { noticeIfSlugAdjusted, useSlugField } from '@/lib/useSlugField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -146,17 +148,6 @@ interface CategoryFormProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Keeps underscores and non-ASCII lowercase letters so an imported WordPress
-// handle (e.g. `3d_presenter`, `kläder`) survives an edit of the field.
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\p{Ll}\p{N}_-]/gu, '')
-    .replace(/-+/g, '-');
-}
-
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | undefined {
   for (const n of nodes) {
     if (n.id === id) return n;
@@ -205,8 +196,10 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const [translations, setTranslations] = useState<Record<string, LocaleFields>>({
     en: { name: '', description: '', long_description: '' },
   });
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
+  // WP-style handle: follows the primary-locale name until edited (new
+  // collections only), sanitized on blur and on save.
+  const slugField = useSlugField({ title: translations[primaryLocale]?.name || '', locale: primaryLocale });
+  const resetSlug = slugField.reset;
   const [parentId, setParentId] = useState<string | null>(mode === 'create' ? initialParentId : null);
   const [visibility, setVisibility] = useState<Visibility>('PUBLIC');
   // Children from the detail payload (null until loaded / on older API builds);
@@ -280,8 +273,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     setLoading(true);
     api<CategoryDetail>(`/creator-categories/${initialId}`, { token })
       .then((detail) => {
-        setSlug(detail.slug);
-        setSlugTouched(true);
+        resetSlug(detail.slug);
         setParentId(detail.parent_id ?? null);
         setVisibility(detail.visibility === 'INTERNAL' ? 'INTERNAL' : 'PUBLIC');
         setDetailHasChildren(Array.isArray(detail.children) ? detail.children.length > 0 : null);
@@ -329,7 +321,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     api<ResolvedProduct[]>(`/creator-categories/${initialId}/products`, { token })
       .then((list) => setResolvedCount(Array.isArray(list) ? list.length : 0))
       .catch(() => setResolvedCount(null));
-  }, [mode, initialId, token]);
+  }, [mode, initialId, token, resetSlug]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 
@@ -362,8 +354,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   // path comes from the tree the picker loads; the own slug is the live input.
   const storefrontPath = useMemo(() => {
     const ancestors = parentId ? collectionPathFromTree(allCategories, parentId) : [];
-    return `/collections/${[...ancestors, slug.trim() || '…'].join('/')}`;
-  }, [allCategories, parentId, slug]);
+    return slugPreviewPath('/collections', ...ancestors, slugField.preview);
+  }, [allCategories, parentId, slugField.preview]);
 
   // Display data for the selected products: the detail payload first, then
   // everything the picker's search has loaded (fresher data wins).
@@ -387,13 +379,6 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const hasMultipleLocales = allLocales.length > 1;
   const isRtl = RTL_LOCALES.includes(activeLocale);
 
-  // Auto-derive slug from the primary-locale name until the user edits it.
-  useEffect(() => {
-    if (slugTouched) return;
-    if (!primaryName) return;
-    setSlug(slugify(primaryName));
-  }, [primaryName, slugTouched]);
-
   // ── Validation ─────────────────────────────────────────────────────────────
 
   const nameError = useMemo(() => {
@@ -401,17 +386,14 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
     return hasAny ? '' : t('category.errNameRequired');
   }, [translations, t]);
 
-  const slugError = useMemo(() => {
-    if (!slug.trim()) return t('category.errHandleRequired');
-    // Imported collections keep their WordPress handles (underscores, non-ASCII
-    // letters such as å/ä/ö), which the API and the storefront route accept;
-    // the form must not block saving them. Lowercase letters or digits in any
-    // script, separated by single hyphens or underscores.
-    if (!/^[\p{Ll}\p{N}]+(?:[-_][\p{Ll}\p{N}]+)*$/u.test(slug)) {
-      return t('category.errHandleFormat');
-    }
-    return '';
-  }, [slug, t]);
+  // Only emptiness is checked here: the server applies the WordPress slug
+  // rules and makes the handle unique (`-2`), so any script is accepted.
+  const slugError =
+    slugField.problem === 'required'
+      ? t('category.errHandleRequired')
+      : slugField.problem === 'unusable'
+        ? t('common.slug.errUnusable')
+        : '';
 
   const canSave = !nameError && !slugError;
 
@@ -512,8 +494,9 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         }
       }
 
+      const sentSlug = slugField.finalize();
       const basePayload = {
-        slug: slug.trim(),
+        slug: sentSlug,
         visibility,
         // An internal label is always top level (CREATOR_CATEGORY_INTERNAL_NO_PARENT otherwise).
         parent_id: isInternal ? null : parentId || null,
@@ -536,19 +519,22 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
       // The API that accepts `product_order` ships before this dashboard, so
       // there is no fallback: a silent retry without the order would also
       // swallow real product_order validation errors (e.g. the size cap).
+      let saved: { slug?: string } | null = null;
       if (mode === 'create') {
-        await api('/creator-categories', {
+        saved = await api<{ slug?: string }>('/creator-categories', {
           method: 'POST',
           token,
           body: JSON.stringify(orderedPayload),
         });
       } else if (initialId) {
-        await api(`/creator-categories/${initialId}`, {
+        saved = await api<{ slug?: string }>(`/creator-categories/${initialId}`, {
           method: 'PATCH',
           token,
           body: JSON.stringify(orderedPayload),
         });
       }
+      // The server may suffix a duplicate handle (`-2`): tell the user.
+      noticeIfSlugAdjusted(sentSlug, saved?.slug);
 
       router.push('/creator/categories');
     } catch (err) {
@@ -854,16 +840,13 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             </CardHeader>
             <CardContent className="pt-0 space-y-1.5">
               <div className="flex items-stretch overflow-hidden rounded-md border focus-within:ring-2 focus-within:ring-ring">
-                <span className="px-2 inline-flex items-center text-[11px] text-muted-foreground bg-zinc-50 border-r whitespace-nowrap">
+                <span className="px-2 inline-flex items-center text-[11px] text-muted-foreground bg-zinc-50 border-e whitespace-nowrap" dir="ltr">
                   https://{slugPreviewHost}/collections/
                 </span>
                 <input
                   className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-transparent outline-none font-mono"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(slugify(e.target.value));
-                    setSlugTouched(true);
-                  }}
+                  dir="auto"
+                  {...slugField.inputProps}
                   placeholder="summer-essentials"
                 />
               </div>

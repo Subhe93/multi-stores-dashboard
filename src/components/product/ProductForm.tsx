@@ -34,6 +34,8 @@ import { isValidGtin } from '@/lib/gtin';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from './ViewInStoreButton';
+import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
+import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 
 // ─────────────────────────────────────────
 // Constants
@@ -264,6 +266,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // the storefront link, which must reflect what is live, not unsaved edits.
   const [savedStatus, setSavedStatus] = useState('DRAFT');
   const [savedSlug, setSavedSlug] = useState('');
+  // WP-style slug input: the primary slug follows the title while `slugAuto`
+  // (new products only, until the user edits it). Locales whose slug the user
+  // typed since the last sanitize are in `slugTypedRef` (sanitized on blur/save).
+  const [slugAuto, setSlugAuto] = useState(mode === 'create');
+  const slugTypedRef = useRef<Set<string>>(new Set());
   // Learns the rich-text editor's own re-serialisation of stored HTML so it
   // does not count as an unsaved change.
   const [htmlCanon] = useState(createHtmlCanon);
@@ -470,15 +477,36 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     setTranslations((prev) => ({ ...prev, [primaryLocale]: { ...prev[donor]! } }));
   }, [mode, loading, localeConfigLoaded, translations, primaryLocale]);
 
-  // ── Auto-slug from primary locale title ───────────────────
+  // ── Auto-slug from primary locale title (WP sanitize_title) ─
   useEffect(() => {
-    if (mode !== 'create') return;
-    if (!primaryTitle) return;
-    if (translations[primaryLocale]?.slug) return; // user has typed a custom one
-    const auto = primaryTitle.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100);
-    if (auto) setTransField(primaryLocale, 'slug', auto);
+    if (!slugAuto) return;
+    const auto = slugFromText(primaryTitle, primaryLocale);
+    if ((translations[primaryLocale]?.slug || '') !== auto) setTransField(primaryLocale, 'slug', auto);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [primaryTitle, mode, primaryLocale]);
+  }, [primaryTitle, slugAuto, primaryLocale]);
+
+  // Slug input handlers: free typing, sanitized when the field loses focus.
+  const handleSlugInput = (locale: string, raw: string) => {
+    slugTypedRef.current.add(locale);
+    if (locale === primaryLocale) setSlugAuto(false);
+    setTransField(locale, 'slug', raw);
+  };
+  const handleSlugBlur = (locale: string) => {
+    const raw = translations[locale]?.slug || '';
+    if (!raw.trim()) {
+      slugTypedRef.current.delete(locale);
+      // An emptied primary slug follows the title again (as WP regenerates it).
+      if (locale === primaryLocale) setSlugAuto(true);
+      else setTransField(locale, 'slug', '');
+      return;
+    }
+    if (!slugTypedRef.current.has(locale)) return;
+    const clean = slugFromText(raw, primaryLocale);
+    // Keep unusable text visible so the validation message can point at it.
+    if (!clean) return;
+    slugTypedRef.current.delete(locale);
+    setTransField(locale, 'slug', clean);
+  };
 
   // ── Unsaved changes ───────────────────────────────────────
   // Everything a save sends, normalised so equivalent values compare equal
@@ -489,9 +517,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     const v = htmlCanon.canon(html);
     return isBlankHtml(v) ? '' : v;
   };
-  const makeSnapshot = (statusOverride?: string) => {
+  const makeSnapshot = (statusOverride?: string, trOverride?: Record<string, LocaleTranslation>) => {
     const trans: Record<string, unknown> = {};
-    for (const [locale, tr] of Object.entries(translations)) {
+    for (const [locale, tr] of Object.entries(trOverride ?? translations)) {
       const row = {
         title: tr?.title || '',
         description: richText(tr?.description),
@@ -547,6 +575,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (!primaryTitle.trim()) errs.title = t('product.errTitleRequired');
+    else if (!resolveSlugForSubmit({
+      slug: translations[primaryLocale]?.slug,
+      typed: slugTypedRef.current.has(primaryLocale),
+      title: primaryTitle,
+      locale: primaryLocale,
+    })) errs.slug = t('common.slug.errUnusable');
     if (!categoryId)          errs.categoryId = t('product.errCategoryRequired');
     if (!basePrice || parseFloat(basePrice) <= 0)
                               errs.basePrice = t('product.errPricePositive');
@@ -582,9 +616,19 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     if (!token) return;
     if (!validate()) return;
     const targetStatus = intent === 'publish' ? 'PUBLISHED' : intent === 'draft' ? 'DRAFT' : status;
+    // Sanitize typed slugs (WP sanitize_title) and show them in the inputs.
+    // Untouched stored slugs are sent as they are; the server normalizes too.
+    const cleanTranslations: Record<string, LocaleTranslation> = { ...translations };
+    for (const locale of slugTypedRef.current) {
+      const tr = cleanTranslations[locale];
+      if (!tr) continue;
+      cleanTranslations[locale] = { ...tr, slug: slugFromText(tr.slug, primaryLocale) };
+    }
+    slugTypedRef.current.clear();
+    setTranslations(cleanTranslations);
     // What this save persists (with its final status) and the interaction
     // count at its start, so edits made while it runs stay unsaved.
-    const savedSnapshot = makeSnapshot(targetStatus);
+    let savedSnapshot = makeSnapshot(targetStatus, cleanTranslations);
     const interactionsAtStart = saveToken();
     setSaving(true);
     setError('');
@@ -597,28 +641,24 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     try {
       const finalStatus = targetStatus;
 
-      // Compute a URL-safe slug. `\w` is ASCII-only, so non-Latin titles
-      // (Arabic, CJK, …) slugify to empty or just "-", which would 404 on the
-      // storefront. We strip down to lowercase ASCII alphanumerics and hyphens.
-      const asciiSlug = (s: string) =>
-        s.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').substring(0, 100);
-      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
-      const primaryUserSlug = translations[primaryLocale]?.slug?.trim() || '';
-      const primarySlug = hasAlnum(primaryUserSlug)
-        ? primaryUserSlug
-        : asciiSlug(primaryTitle);
+      // WordPress slug rules (any script is kept; the store's primary locale
+      // picks the accent folding). A locale's own slug wins; an empty one is
+      // derived from its title, else the primary slug is reused.
+      const primarySlug = resolveSlugForSubmit({
+        slug: cleanTranslations[primaryLocale]?.slug,
+        title: primaryTitle,
+        locale: primaryLocale,
+      });
 
-      // Build translations array from all locales that have a title. A locale's
-      // own slug (as entered by the user) wins if it's usable; otherwise derive
-      // from the localized title; otherwise fall back to the primary slug.
-      const translationsPayload = Object.entries(translations)
+      const translationsPayload = Object.entries(cleanTranslations)
         .filter(([, t]) => t.title.trim())
         .map(([locale, t]) => {
-          const userSlug = t.slug?.trim() || '';
-          const derived = asciiSlug(t.title);
-          const resolved = hasAlnum(userSlug)
-            ? userSlug
-            : (hasAlnum(derived) ? derived : primarySlug);
+          const resolved = resolveSlugForSubmit({
+            slug: t.slug,
+            title: t.title,
+            locale: primaryLocale,
+            fallback: primarySlug,
+          });
           return {
             locale,
             title: t.title,
@@ -686,12 +726,39 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
       };
 
+      // The server may suffix a duplicate slug (`-2`): show what it stored.
+      const sentSlugs = new Map(translationsPayload.map((row) => [row.locale, row.slug]));
+      const adoptServerSlugs = (rows: ProductTranslationRow[] | undefined): string | null => {
+        let primaryStored: string | null = null;
+        const next = { ...cleanTranslations };
+        let changed = false;
+        for (const row of rows ?? []) {
+          const sent = sentSlugs.get(row.locale);
+          if (!row.slug || sent === undefined) continue;
+          if (row.locale === primaryLocale) primaryStored = row.slug;
+          noticeIfSlugAdjusted(sent, row.slug);
+          const current = next[row.locale];
+          if (current && current.slug !== row.slug) {
+            next[row.locale] = { ...current, slug: row.slug };
+            changed = true;
+          }
+        }
+        if (changed) {
+          setTranslations(next);
+          savedSnapshot = makeSnapshot(targetStatus, next);
+        }
+        return primaryStored;
+      };
+
       let pid = productId;
+      let storedPrimarySlug: string | null = null;
       if (mode === 'create') {
-        const product = await api<{ id: string }>('/products', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) });
+        const product = await api<Pick<ProductResponse, 'id' | 'translations'>>('/products', { method: 'POST', token: token ?? undefined, body: JSON.stringify(body) });
         pid = product.id;
+        adoptServerSlugs(product?.translations);
       } else {
-        const updated = await api<Pick<ProductResponse, 'variants'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        const updated = await api<Pick<ProductResponse, 'variants' | 'translations'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        storedPrimarySlug = adoptServerSlugs(updated?.translations);
         // Adopt the server-assigned ids for newly created variants so the next
         // save updates them in place instead of recreating them. Match on a
         // key-sorted options signature — jsonb does not preserve key order.
@@ -759,7 +826,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         // The sidebar status follows what was saved (Publish / Switch to draft).
         setStatus(finalStatus);
         setSavedStatus(finalStatus);
-        setSavedSlug(primarySlug);
+        setSavedSlug(storedPrimarySlug || primarySlug);
         markSaved(savedSnapshot, interactionsAtStart);
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
@@ -1068,30 +1135,37 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 />
               </div>
 
-              {/* URL slug per locale — kept ASCII (the storefront URL segment).
-                  Leaving it empty for a secondary locale reuses the primary slug. */}
+              {/* URL slug per locale (WordPress rules, any script). Leaving it
+                  empty for a secondary locale derives it from that locale's
+                  title, else reuses the primary slug. */}
               <div className="space-y-1.5">
                 <Label className="text-xs">
                   {t('product.urlSlug')}
                   {activeLocale === primaryLocale && <span className="text-red-500"> *</span>}
                 </Label>
                 <Input
-                  dir="ltr"
+                  dir="auto"
                   className="h-8 text-sm font-mono"
                   value={translations[activeLocale]?.slug || ''}
-                  onChange={e =>
-                    setTransField(
-                      activeLocale,
-                      'slug',
-                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-                    )
-                  }
+                  onChange={e => handleSlugInput(activeLocale, e.target.value)}
+                  onBlur={() => handleSlugBlur(activeLocale)}
                   placeholder={
                     activeLocale === primaryLocale
                       ? ''
                       : translations[primaryLocale]?.slug || ''
                   }
                 />
+                {activeLocale === primaryLocale && <FieldError msg={fieldErrors.slug} />}
+                {activeLocale === primaryLocale && baseUrl && (
+                  <p className="text-[11px] text-muted-foreground break-all">
+                    {t('common.slug.previewLabel')}:{' '}
+                    <span className="font-mono text-foreground" dir="ltr">
+                      {baseUrl}
+                      {slugPreviewPath('/products', translations[primaryLocale]?.slug)}
+                    </span>
+                  </p>
+                )}
+                <p className="text-[11px] text-muted-foreground">{t('common.slug.hint')}</p>
               </div>
             </CardContent>
           </Card>

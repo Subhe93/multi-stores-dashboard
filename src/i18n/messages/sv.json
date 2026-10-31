@@ -270,6 +270,15 @@
       "sameAsBase": "Samma som basen",
       "translated": "Översatt",
       "notTranslated": "Inte översatt ännu"
+    },
+    "slug": {
+      "adjusted": "URL:en justerades när den sparades (redan använd eller rensad). Den är nu:",
+      "dismiss": "Stäng",
+      "errUnusable": "Använd bokstäver eller siffror i URL:en.",
+      "errRequired": "Lägg till en titel eller ett URL-handtag.",
+      "hint": "Skapas från titeln tills du ändrar den. Mellanslag och symboler rensas när du lämnar fältet.",
+      "regenerate": "Skapa från titeln",
+      "previewLabel": "URL"
     }
   },
   "nav": {
@@ -1575,9 +1584,6 @@
       "titlePlaceholder": "Produkttitel...",
       "slugLabel": "Slug",
       "regenerateSlug": "Skapa slug på nytt från titeln",
-      "checkingAvailability": "Kontrollerar tillgänglighet…",
-      "slugAvailable": "Slug är tillgänglig",
-      "slugTaken": "Den här slugen används redan av en av dina produkter. Välj en annan.",
       "collections": "Kollektioner",
       "collectionsDesc": "Lägg till den här produkten i en eller flera av dina butikskollektioner.",
       "descriptionLabel": "Beskrivning",
@@ -1631,9 +1637,6 @@
       "titleLabel": "Titel",
       "titlePlaceholder": "Produkttitel...",
       "slugLabel": "Slug *",
-      "checkingAvailability": "Kontrollerar tillgänglighet…",
-      "slugAvailable": "Slug är tillgänglig",
-      "slugTaken": "Den här slugen används redan av en av dina produkter. Välj en annan.",
       "descriptionLabel": "Beskrivning",
       "descriptionPlaceholder": "Beskriv din anpassade produkt...",
       "faq": "Vanliga frågor",
@@ -2003,8 +2006,6 @@
       "titleLabel": "Titel ({locale})",
       "titlePlaceholder": "t.ex. Eid-rea",
       "urlLabel": "URL",
-      "slugInvalid": "Ogiltig URL. Använd gemener, siffror och bindestreck.",
-      "slugExists": "Den här URL:en används redan.",
       "failedCreate": "Det gick inte att skapa landningssidan",
       "creating": "Skapar...",
       "createAndOpen": "Skapa och öppna",
@@ -3473,7 +3474,8 @@
         "allSources": "Alla",
         "source": {
           "IMPORT": "Importerad",
-          "MANUAL": "Manuell"
+          "MANUAL": "Manuell",
+          "SLUG_CHANGE": "Ändrad URL"
         },
         "add": "Lägg till omdirigering",
         "edit": "Redigera",
@@ -6296,7 +6298,6 @@
     "failedToLoad": "Det gick inte att läsa in kollektionen.",
     "errNameRequired": "Ett namn krävs på minst ett språk.",
     "errHandleRequired": "Ett URL-handtag krävs.",
-    "errHandleFormat": "Använd endast små bokstäver, siffror, bindestreck eller understreck (inga mellanslag).",
     "noteManuallyAdded": "tillagda manuellt",
     "noteMatchedByTags": "matchade via taggar",
     "noteWillCompute": "Beräknas efter att du sparat.",

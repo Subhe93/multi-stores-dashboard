@@ -7,6 +7,7 @@ import { XIcon } from 'lucide-react';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { isRtl } from '@/i18n/config';
 import { cn } from '@/lib/utils';
+import { SlugAdjustedNotice } from '@/components/common/SlugAdjustedNotice';
 import { DashboardHeader } from './DashboardHeader';
 import { AppSidebar } from './Sidebar';
 import { ShellContext, type ShellContextValue } from './shell-context';
@@ -70,6 +71,8 @@ export function AppShell({ nav, user, brandTitle, onLogout, headerExtras, childr
           <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
         </div>
       </div>
+
+      <SlugAdjustedNotice />
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent

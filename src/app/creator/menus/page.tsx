@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import { AlertCircle, ListTree, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { useApiError } from '@/lib/useApiError';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,14 +39,6 @@ import {
   type NewMenuItem,
   type TreeItem,
 } from '@/components/creator/menus/types';
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 interface StoreResponse {
   id: string;
@@ -241,7 +234,8 @@ export default function MenusPage() {
     if (!token || !newName.trim()) return;
     setCreating(true);
     setCreateError('');
-    const key = (newKey.trim() || slugify(newName)) || 'menu';
+    // Menu key: internal ASCII handle (WP rules + [a-z0-9-]).
+    const key = asciiHandle(newKey) || asciiHandle(newName) || 'menu';
     try {
       const menu = await api<Menu>('/menus', {
         method: 'POST',
@@ -430,8 +424,10 @@ export default function MenusPage() {
               <Label className="text-xs">{t('menus.key')}</Label>
               <Input
                 className="font-mono text-[12.5px]"
-                value={newKey || slugify(newName)}
-                onChange={(e) => setNewKey(slugify(e.target.value))}
+                dir="ltr"
+                value={newKey || asciiHandle(newName)}
+                onChange={(e) => setNewKey(asciiHandleTyping(e.target.value))}
+                onBlur={() => setNewKey((k) => asciiHandle(k))}
                 placeholder="main-nav"
               />
               <p className="text-[10.5px] text-zinc-400">{t('menus.keyHint')}</p>

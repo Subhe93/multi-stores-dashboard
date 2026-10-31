@@ -12,6 +12,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Plus, ChevronRight, ChevronDown, FolderTree, Pencil, Trash2, Link2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { noticeIfSlugAdjusted, useSlugField } from '@/lib/useSlugField';
 
 interface Category {
   id: string;
@@ -36,6 +37,7 @@ type Translator = ReturnType<typeof useTranslations>;
 
 export default function AdminCategories() {
   const t = useTranslations('admin');
+  const tSlug = useTranslations('common.slug');
   const { token } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<AttrTemplate[]>([]);
@@ -48,13 +50,15 @@ export default function AdminCategories() {
   const [linkedIds, setLinkedIds] = useState<string[]>([]);
 
   // Form state
-  const [formSlug, setFormSlug] = useState('');
   const [formNameEn, setFormNameEn] = useState('');
   const [formNameAr, setFormNameAr] = useState('');
   const [formDescEn, setFormDescEn] = useState('');
   const [formIcon, setFormIcon] = useState('');
   const [formParentId, setFormParentId] = useState('');
   const [saving, setSaving] = useState(false);
+  // WP-style slug from the English name (platform taxonomy): follows the name
+  // for new categories until edited, sanitized on blur and on save.
+  const slugField = useSlugField({ title: formNameEn, locale: 'en' });
 
   const fetchAll = async () => {
     try {
@@ -71,12 +75,12 @@ export default function AdminCategories() {
   useEffect(() => { fetchAll(); }, [token]);
 
   const resetForm = () => {
-    setFormSlug(''); setFormNameEn(''); setFormNameAr(''); setFormDescEn(''); setFormIcon(''); setFormParentId('');
+    slugField.reset(); setFormNameEn(''); setFormNameAr(''); setFormDescEn(''); setFormIcon(''); setFormParentId('');
   };
 
   const openEdit = (cat: Category) => {
     setEditingCat(cat);
-    setFormSlug(cat.slug);
+    slugField.reset(cat.slug);
     setFormIcon(cat.icon || '');
     setFormNameEn(cat.translations.find(t => t.locale === 'en')?.name || '');
     setFormNameAr(cat.translations.find(t => t.locale === 'ar')?.name || '');
@@ -93,10 +97,12 @@ export default function AdminCategories() {
   };
 
   const handleCreate = async () => {
-    if (!token || !formSlug || !formNameEn) return;
+    if (!token || !formNameEn) return;
+    const formSlug = slugField.finalize();
+    if (!formSlug) return;
     setSaving(true);
     try {
-      await api('/categories', {
+      const created = await api<{ slug?: string } | null>('/categories', {
         method: 'POST', token,
         body: JSON.stringify({
           slug: formSlug,
@@ -108,6 +114,7 @@ export default function AdminCategories() {
           ],
         }),
       });
+      noticeIfSlugAdjusted(formSlug, created?.slug);
       setShowCreate(false);
       resetForm();
       fetchAll();
@@ -117,9 +124,11 @@ export default function AdminCategories() {
 
   const handleUpdate = async () => {
     if (!token || !editingCat) return;
+    const formSlug = slugField.finalize();
+    if (!formSlug) return;
     setSaving(true);
     try {
-      await api(`/categories/${editingCat.id}`, {
+      const updated = await api<{ slug?: string } | null>(`/categories/${editingCat.id}`, {
         method: 'PUT', token,
         body: JSON.stringify({
           slug: formSlug,
@@ -130,6 +139,7 @@ export default function AdminCategories() {
           ],
         }),
       });
+      noticeIfSlugAdjusted(formSlug, updated?.slug);
       setEditingCat(null);
       resetForm();
       fetchAll();
@@ -199,7 +209,8 @@ export default function AdminCategories() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('slug')} *</Label>
-                <Input className="h-8 text-sm" placeholder="printed-shirts" value={formSlug} onChange={e => setFormSlug(e.target.value)} />
+                <Input className="h-8 text-sm font-mono" dir="auto" placeholder="printed-shirts" {...slugField.inputProps} />
+                {slugField.problem === 'unusable' && <p className="text-[11px] text-red-600">{tSlug('errUnusable')}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('icon')}</Label>
@@ -249,7 +260,12 @@ export default function AdminCategories() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('slug')}</Label>
-                <Input className="h-8 text-sm" value={formSlug} onChange={e => setFormSlug(e.target.value)} />
+                <Input className="h-8 text-sm font-mono" dir="auto" {...slugField.inputProps} />
+                {slugField.problem && (
+                  <p className="text-[11px] text-red-600">
+                    {slugField.problem === 'unusable' ? tSlug('errUnusable') : tSlug('errRequired')}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('icon')}</Label>

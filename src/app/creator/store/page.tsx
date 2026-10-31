@@ -28,6 +28,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
+import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { setCachedStoreType } from '@/lib/useStoreType';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
@@ -566,7 +567,10 @@ export default function CreatorStorePage() {
       await api('/stores/my/store', {
         method: 'PUT', token,
         body: JSON.stringify({
-          ...(form.slug && form.slug !== store?.slug ? { slug: form.slug } : {}),
+          // The store slug is a DNS label: ASCII only (WP rules + [a-z0-9-]).
+          ...(form.slug && asciiHandle(form.slug) && asciiHandle(form.slug) !== store?.slug
+            ? { slug: asciiHandle(form.slug) }
+            : {}),
           name: primaryTrans.name.trim(),
           description: primaryTrans.description || '',
           logo_url: form.logo_url,
@@ -880,11 +884,13 @@ export default function CreatorStorePage() {
               <Label className="text-xs">{t('myStore.slug')}</Label>
               <div className="flex items-center">
                 <Input
-                  className="h-8 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-8 text-sm rounded-e-none border-e-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  dir="ltr"
                   value={form.slug}
-                  onChange={(e) => setField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  onChange={(e) => setField('slug', asciiHandleTyping(e.target.value))}
+                  onBlur={() => setField('slug', asciiHandle(form.slug))}
                 />
-                <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
+                <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-e-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
               </div>
             </div>
           </div>
@@ -1110,16 +1116,6 @@ export default function CreatorStorePage() {
 // Create Store form (shown when creator has no store yet)
 // ---------------------------------------------------------------------------
 
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
 
 function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (store: Store) => void }) {
@@ -1136,24 +1132,27 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!slugTouched) setSlug(slugify(val));
+    // Store slug = DNS label: ASCII only, derived from the name until edited.
+    if (!slugTouched) setSlug(asciiHandle(val));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || submitting) return;
     setError('');
-    if (!name.trim() || !slug.trim()) {
+    const finalSlug = asciiHandle(slug);
+    if (!name.trim() || !finalSlug) {
       setError(t('myStore.nameSlugRequired'));
       return;
     }
+    setSlug(finalSlug);
     setSubmitting(true);
     try {
       const created = await api<Store>('/stores', {
         method: 'POST', token,
         body: JSON.stringify({
           name: name.trim(),
-          slug: slug.trim(),
+          slug: finalSlug,
           description: description.trim() || undefined,
           primary_locale: primaryLocale,
           secondary_locales: [],
@@ -1192,9 +1191,11 @@ function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (stor
               <Label className="text-xs">{t('myStore.slug')} <span className="text-red-500">*</span></Label>
               <div className="flex items-center">
                 <Input
-                  className="h-9 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-9 text-sm rounded-e-none border-e-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  dir="ltr"
                   value={slug}
-                  onChange={(e) => { setSlug(slugify(e.target.value)); setSlugTouched(true); }}
+                  onChange={(e) => { setSlug(asciiHandleTyping(e.target.value)); setSlugTouched(true); }}
+                  onBlur={() => setSlug(asciiHandle(slug))}
                   placeholder="my-store"
                   required
                 />

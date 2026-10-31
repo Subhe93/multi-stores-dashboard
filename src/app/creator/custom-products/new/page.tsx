@@ -23,6 +23,9 @@ import {
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
+import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
+import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
+import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -166,6 +169,7 @@ export default function NewCustomProductPage() {
   const { token } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
+  const tSlug = useTranslations('common.slug');
   const tp = useTranslations('product');
   const tc = useTranslations('common');
   const apiError = useApiError();
@@ -202,9 +206,12 @@ export default function NewCustomProductPage() {
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
   const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
 
-  // Slug availability check — debounced, primary-locale only.
-  type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
-  const [slugStatus, setSlugStatus] = useState<SlugStatus>('idle');
+  // WP-style slug: follows the primary title until the user edits it
+  // (`slugAuto`); typed text is sanitized on blur and on submit. Duplicates
+  // are not blocked here: the server suffixes them (`-2`).
+  const [slugAuto, setSlugAuto] = useState(true);
+  const [slugTyped, setSlugTyped] = useState(false);
+  const { baseUrl } = useStorefrontUrl();
 
   // Language
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -279,30 +286,6 @@ export default function NewCustomProductPage() {
     };
   }, [token, preselectedProductId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced slug availability check against the backend. We only check the
-  // primary-locale slug — secondary translations don't drive the storefront URL.
-  useEffect(() => {
-    if (!token) return;
-    const slug = (translations[primaryLocale]?.slug || '').trim();
-    if (!slug) {
-      setSlugStatus('idle');
-      return;
-    }
-    setSlugStatus('checking');
-    const handle = setTimeout(async () => {
-      try {
-        const res = await api<{ available: boolean }>(
-          `/custom-products/check-slug?slug=${encodeURIComponent(slug)}`,
-          { token },
-        );
-        setSlugStatus(res?.available ? 'available' : 'taken');
-      } catch {
-        setSlugStatus('idle');
-      }
-    }, 400);
-    return () => clearTimeout(handle);
-  }, [token, translations, primaryLocale]);
-
   const fetchProductDetails = async (productId: string): Promise<Product | null> => {
     if (!token) return null;
     try {
@@ -341,19 +324,50 @@ export default function NewCustomProductPage() {
     return primary.url.startsWith('http') ? primary.url : `${API_BASE}${primary.url}`;
   };
 
-  const generateSlug = (value: string) =>
-    value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const generateSlug = (value: string) => slugFromText(value, primaryLocale);
 
   const handleTitleChange = (value: string) => {
     setTransField(activeLocale, 'title', value);
-    if (activeLocale === primaryLocale) {
-      const currentSlug = translations[primaryLocale]?.slug || '';
-      const prevTitle = translations[primaryLocale]?.title || '';
-      if (!currentSlug || currentSlug === generateSlug(prevTitle)) {
-        setTransField(primaryLocale, 'slug', generateSlug(value));
-      }
+    if (activeLocale === primaryLocale && slugAuto) {
+      setTransField(primaryLocale, 'slug', generateSlug(value));
     }
   };
+
+  const handleSlugInput = (raw: string) => {
+    setSlugAuto(false);
+    setSlugTyped(true);
+    setTransField(primaryLocale, 'slug', raw);
+  };
+
+  const handleSlugBlur = () => {
+    const raw = translations[primaryLocale]?.slug || '';
+    if (!raw.trim()) {
+      // An emptied slug follows the title again (as WP regenerates it).
+      setSlugAuto(true);
+      setSlugTyped(false);
+      setTransField(primaryLocale, 'slug', generateSlug(translations[primaryLocale]?.title || ''));
+      return;
+    }
+    if (!slugTyped) return;
+    const clean = generateSlug(raw);
+    if (!clean) return; // keep the text; the step check shows why
+    setSlugTyped(false);
+    setTransField(primaryLocale, 'slug', clean);
+  };
+
+  const regenerateSlug = () => {
+    setSlugAuto(true);
+    setSlugTyped(false);
+    setTransField(primaryLocale, 'slug', generateSlug(translations[primaryLocale]?.title || ''));
+  };
+
+  // The primary slug a save would send ('' when nothing usable remains).
+  const primarySlugFinal = resolveSlugForSubmit({
+    slug: translations[primaryLocale]?.slug,
+    typed: slugTyped,
+    title: translations[primaryLocale]?.title,
+    locale: primaryLocale,
+  });
 
   const handleTranslateTo = async (targetLocale: string) => {
     const sourceTitle = translations[primaryLocale]?.title || '';
@@ -447,7 +461,7 @@ export default function NewCustomProductPage() {
           return variantIdsForPricing.length > 0 && variantIdsForPricing.every((id) => variantPrices[id] && !isNaN(parseFloat(variantPrices[id])));
         }
         return false;
-      case 'details':  return !!(translations[primaryLocale]?.title?.trim() && translations[primaryLocale]?.slug?.trim()) && slugStatus !== 'taken' && slugStatus !== 'checking';
+      case 'details':  return !!(translations[primaryLocale]?.title?.trim() && primarySlugFinal);
       case 'faqs':     return true;
       default:         return false;
     }
@@ -463,28 +477,19 @@ export default function NewCustomProductPage() {
     setSaving(true);
     setSubmitError('');
     try {
-      // Non-Latin titles slugify to empty/"-" and would 404 on the storefront.
-      // Fall back to the primary locale's slug when a locale's title yields no
-      // usable Latin slug.
-      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
-      const primaryTr = translations[primaryLocale];
-      const primarySlug =
-        (primaryTr?.slug && hasAlnum(primaryTr.slug))
-          ? primaryTr.slug
-          : generateSlug(primaryTr?.title || '').substring(0, 100);
+      // WordPress slug rules (any script is kept). A secondary locale has no
+      // slug input: its slug comes from its own title, else the primary slug.
+      const primarySlug = primarySlugFinal;
       const translationsPayload = Object.entries(translations)
         .filter(([, tr]) => tr.title.trim())
-        .map(([locale, tr]) => {
-          const ownSlug = (tr.slug && hasAlnum(tr.slug))
-            ? tr.slug
-            : generateSlug(tr.title).substring(0, 100);
-          return {
-            locale,
-            title: tr.title,
-            description: tr.description || undefined,
-            slug: hasAlnum(ownSlug) ? ownSlug : primarySlug,
-          };
-        });
+        .map(([locale, tr]) => ({
+          locale,
+          title: tr.title,
+          description: tr.description || undefined,
+          slug: locale === primaryLocale
+            ? primarySlug
+            : resolveSlugForSubmit({ slug: tr.slug, title: tr.title, locale: primaryLocale, fallback: primarySlug }),
+        }));
 
       const body: CreateCustomProductBody = {
         product_id: selectedProduct.id,
@@ -535,7 +540,9 @@ export default function NewCustomProductPage() {
       }
 
       // Create custom product
-      const created = await api<{ id: string }>('/custom-products', { method: 'POST', token, body: JSON.stringify(body) });
+      const created = await api<{ id: string; translations?: { locale: string; slug?: string | null }[] }>('/custom-products', { method: 'POST', token, body: JSON.stringify(body) });
+      // The server may suffix a duplicate slug (`-2`): tell the user.
+      noticeIfSlugAdjusted(primarySlug, created?.translations?.find((tr) => tr.locale === primaryLocale)?.slug);
 
       // Save FAQ drafts to the new custom product. Sanitize translations to only
       // whitelisted fields — backend rejects any extras.
@@ -977,7 +984,11 @@ export default function NewCustomProductPage() {
                         }
                       });
                       const primaryTrans = productDetails.translations.find((tr) => tr.locale === primaryLocale);
-                      if (primaryTrans?.title) setTransField(primaryLocale, 'slug', generateSlug(primaryTrans.title));
+                      if (primaryTrans?.title) {
+                        setSlugAuto(true);
+                        setSlugTyped(false);
+                        setTransField(primaryLocale, 'slug', generateSlug(primaryTrans.title));
+                      }
                     }}
                   >
                     {t('customProductForm.copyFromOriginal')}
@@ -1011,10 +1022,12 @@ export default function NewCustomProductPage() {
                   <div className="flex gap-2">
                     <Input
                       placeholder="my-custom-product"
+                      dir="auto"
                       value={translations[primaryLocale]?.slug || ''}
-                      onChange={(e) => setTransField(primaryLocale, 'slug', generateSlug(e.target.value))}
+                      onChange={(e) => handleSlugInput(e.target.value)}
+                      onBlur={handleSlugBlur}
                       className={`h-8 text-sm font-mono ${
-                        slugStatus === 'taken' ? 'border-red-400 focus-visible:ring-red-400' : ''
+                        translations[primaryLocale]?.title?.trim() && !primarySlugFinal ? 'border-red-400 focus-visible:ring-red-400' : ''
                       }`}
                     />
                     <Button
@@ -1022,27 +1035,24 @@ export default function NewCustomProductPage() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8 shrink-0"
-                      onClick={() => setTransField(primaryLocale, 'slug', generateSlug(translations[primaryLocale]?.title || ''))}
+                      onClick={regenerateSlug}
                       title={t('customProductForm.regenerateSlug')}
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                     </Button>
                   </div>
-                  {slugStatus === 'checking' && (
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" /> {t('customProductForm.checkingAvailability')}
+                  {translations[primaryLocale]?.title?.trim() && !primarySlugFinal ? (
+                    <p className="text-[11px] text-red-600">{tSlug('errUnusable')}</p>
+                  ) : baseUrl ? (
+                    <p className="text-[11px] text-muted-foreground break-all">
+                      {tSlug('previewLabel')}:{' '}
+                      <span className="font-mono text-foreground" dir="ltr">
+                        {baseUrl}
+                        {slugPreviewPath('/products', primarySlugFinal)}
+                      </span>
                     </p>
-                  )}
-                  {slugStatus === 'available' && (
-                    <p className="text-[11px] text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3 h-3" /> {t('customProductForm.slugAvailable')}
-                    </p>
-                  )}
-                  {slugStatus === 'taken' && (
-                    <p className="text-[11px] text-red-600">
-                      {t('customProductForm.slugTaken')}
-                    </p>
-                  )}
+                  ) : null}
+                  <p className="text-[11px] text-muted-foreground">{tSlug('hint')}</p>
                 </div>
               )}
 

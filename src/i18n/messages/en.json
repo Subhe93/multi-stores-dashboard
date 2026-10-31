@@ -270,6 +270,15 @@
       "sameAsBase": "Same as base",
       "translated": "Translated",
       "notTranslated": "Not translated yet"
+    },
+    "slug": {
+      "adjusted": "The URL was adjusted when saving (already in use or cleaned up). It is now:",
+      "dismiss": "Dismiss",
+      "errUnusable": "Use letters or numbers in the URL.",
+      "errRequired": "Add a title or a URL handle.",
+      "hint": "Generated from the title until you edit it. Spaces and symbols are tidied up when you leave the field.",
+      "regenerate": "Generate from title",
+      "previewLabel": "URL"
     }
   },
   "nav": {
@@ -1575,9 +1584,6 @@
       "titlePlaceholder": "Product title...",
       "slugLabel": "Slug",
       "regenerateSlug": "Regenerate slug from title",
-      "checkingAvailability": "Checking availability…",
-      "slugAvailable": "Slug is available",
-      "slugTaken": "This slug is already used by one of your products. Pick a different one.",
       "collections": "Collections",
       "collectionsDesc": "Add this product to one or more of your store collections.",
       "descriptionLabel": "Description",
@@ -1631,9 +1637,6 @@
       "titleLabel": "Title",
       "titlePlaceholder": "Product title...",
       "slugLabel": "Slug *",
-      "checkingAvailability": "Checking availability…",
-      "slugAvailable": "Slug is available",
-      "slugTaken": "This slug is already used by one of your products. Pick a different one.",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Describe your custom product...",
       "faq": "FAQ",
@@ -2003,8 +2006,6 @@
       "titleLabel": "Title ({locale})",
       "titlePlaceholder": "e.g. Eid Sale",
       "urlLabel": "URL",
-      "slugInvalid": "Invalid URL. Use lowercase letters, numbers, and hyphens.",
-      "slugExists": "This URL is already in use.",
       "failedCreate": "Failed to create landing page",
       "creating": "Creating...",
       "createAndOpen": "Create & Open",
@@ -3473,7 +3474,8 @@
         "allSources": "All",
         "source": {
           "IMPORT": "Imported",
-          "MANUAL": "Manual"
+          "MANUAL": "Manual",
+          "SLUG_CHANGE": "URL changed"
         },
         "add": "Add redirect",
         "edit": "Edit",
@@ -6296,7 +6298,6 @@
     "failedToLoad": "Failed to load the collection.",
     "errNameRequired": "A name is required in at least one language.",
     "errHandleRequired": "A URL handle is required.",
-    "errHandleFormat": "Use only lowercase letters, numbers, hyphens or underscores (no spaces).",
     "noteManuallyAdded": "manually added",
     "noteMatchedByTags": "matched by tags",
     "noteWillCompute": "Will be computed after saving.",

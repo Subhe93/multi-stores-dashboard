@@ -16,6 +16,7 @@ import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { clearCurrencyCache, useCurrency } from '@/lib/useCurrency';
 import { useTransientFlag } from '@/lib/useTransientFlag';
+import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
 import { createMarket, updateMarket, type MarketIndexing, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
 
@@ -164,7 +165,9 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
                 disabled={isEdit}
                 readOnly={isEdit}
                 maxLength={16}
-                onChange={(e) => set('key', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                onChange={(e) => set('key', asciiHandleTyping(e.target.value))}
+                // Host label part: ASCII only (WP rules + [a-z0-9-]), max 16.
+                onBlur={() => set('key', asciiHandle(form.key, 16))}
                 placeholder="eu"
               />
               <p className={`text-[11px] ${!keyValid && form.key ? 'text-red-600' : 'text-muted-foreground'}`}>

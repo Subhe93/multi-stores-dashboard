@@ -270,6 +270,15 @@
       "sameAsBase": "Wie Basis",
       "translated": "Übersetzt",
       "notTranslated": "Noch nicht übersetzt"
+    },
+    "slug": {
+      "adjusted": "Die URL wurde beim Speichern angepasst (bereits vergeben oder bereinigt). Sie lautet jetzt:",
+      "dismiss": "Schließen",
+      "errUnusable": "Verwende Buchstaben oder Ziffern in der URL.",
+      "errRequired": "Gib einen Titel oder ein URL-Handle ein.",
+      "hint": "Wird aus dem Titel erzeugt, bis du es bearbeitest. Leerzeichen und Symbole werden beim Verlassen des Felds bereinigt.",
+      "regenerate": "Aus Titel erzeugen",
+      "previewLabel": "URL"
     }
   },
   "nav": {
@@ -1575,9 +1584,6 @@
       "titlePlaceholder": "Produkttitel...",
       "slugLabel": "Slug",
       "regenerateSlug": "Slug aus Titel neu erzeugen",
-      "checkingAvailability": "Verfügbarkeit wird geprüft…",
-      "slugAvailable": "Slug ist verfügbar",
-      "slugTaken": "Dieser Slug wird bereits von einem Ihrer Produkte verwendet. Wählen Sie einen anderen.",
       "collections": "Kollektionen",
       "collectionsDesc": "Fügen Sie dieses Produkt zu einer oder mehreren Ihrer Shop-Kollektionen hinzu.",
       "descriptionLabel": "Beschreibung",
@@ -1631,9 +1637,6 @@
       "titleLabel": "Titel",
       "titlePlaceholder": "Produkttitel...",
       "slugLabel": "Slug *",
-      "checkingAvailability": "Verfügbarkeit wird geprüft…",
-      "slugAvailable": "Slug ist verfügbar",
-      "slugTaken": "Dieser Slug wird bereits von einem Ihrer Produkte verwendet. Wählen Sie einen anderen.",
       "descriptionLabel": "Beschreibung",
       "descriptionPlaceholder": "Beschreiben Sie Ihr eigenes Produkt...",
       "faq": "FAQ",
@@ -2003,8 +2006,6 @@
       "titleLabel": "Titel ({locale})",
       "titlePlaceholder": "z. B. Eid-Sale",
       "urlLabel": "URL",
-      "slugInvalid": "Ungültige URL. Verwenden Sie Kleinbuchstaben, Zahlen und Bindestriche.",
-      "slugExists": "Diese URL wird bereits verwendet.",
       "failedCreate": "Landingpage konnte nicht erstellt werden",
       "creating": "Wird erstellt...",
       "createAndOpen": "Erstellen & Öffnen",
@@ -3473,7 +3474,8 @@
         "allSources": "Alle",
         "source": {
           "IMPORT": "Importiert",
-          "MANUAL": "Manuell"
+          "MANUAL": "Manuell",
+          "SLUG_CHANGE": "URL geändert"
         },
         "add": "Weiterleitung hinzufügen",
         "edit": "Bearbeiten",
@@ -6296,7 +6298,6 @@
     "failedToLoad": "Die Kollektion konnte nicht geladen werden.",
     "errNameRequired": "In mindestens einer Sprache ist ein Name erforderlich.",
     "errHandleRequired": "Ein URL-Handle ist erforderlich.",
-    "errHandleFormat": "Verwende nur Kleinbuchstaben, Zahlen, Binde- oder Unterstriche (keine Leerzeichen).",
     "noteManuallyAdded": "manuell hinzugefügt",
     "noteMatchedByTags": "über Tags zugeordnet",
     "noteWillCompute": "Wird nach dem Speichern berechnet.",

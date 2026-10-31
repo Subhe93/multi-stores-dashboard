@@ -270,6 +270,15 @@
       "sameAsBase": "مطابق للأساس",
       "translated": "مترجم",
       "notTranslated": "لم يُترجم بعد"
+    },
+    "slug": {
+      "adjusted": "تم تعديل الرابط عند الحفظ (مستخدم مسبقاً أو تم تنظيفه). الرابط الآن:",
+      "dismiss": "إغلاق",
+      "errUnusable": "استخدم حروفاً أو أرقاماً في الرابط.",
+      "errRequired": "أضف عنواناً أو معرّف رابط.",
+      "hint": "يُولَّد من العنوان إلى أن تعدّله. تُنظَّف المسافات والرموز عند مغادرة الحقل.",
+      "regenerate": "توليد من العنوان",
+      "previewLabel": "الرابط"
     }
   },
   "nav": {
@@ -1575,9 +1584,6 @@
       "titlePlaceholder": "عنوان المنتج...",
       "slugLabel": "المعرّف",
       "regenerateSlug": "إعادة توليد المعرّف من العنوان",
-      "checkingAvailability": "جارٍ التحقق من التوفر…",
-      "slugAvailable": "المعرّف متاح",
-      "slugTaken": "هذا المعرّف مستخدم بالفعل في أحد منتجاتك. اختر معرّفاً آخر.",
       "collections": "المجموعات",
       "collectionsDesc": "أضف هذا المنتج إلى مجموعة أو أكثر من مجموعات متجرك.",
       "descriptionLabel": "الوصف",
@@ -1631,9 +1637,6 @@
       "titleLabel": "العنوان",
       "titlePlaceholder": "عنوان المنتج...",
       "slugLabel": "المعرّف *",
-      "checkingAvailability": "جارٍ التحقق من التوفر…",
-      "slugAvailable": "المعرّف متاح",
-      "slugTaken": "هذا المعرّف مستخدم بالفعل في أحد منتجاتك. اختر معرّفاً آخر.",
       "descriptionLabel": "الوصف",
       "descriptionPlaceholder": "صف منتجك المخصص...",
       "faq": "الأسئلة الشائعة",
@@ -2003,8 +2006,6 @@
       "titleLabel": "العنوان ({locale})",
       "titlePlaceholder": "مثال: تخفيضات العيد",
       "urlLabel": "الرابط",
-      "slugInvalid": "رابط غير صالح. استخدم أحرفاً صغيرة وأرقاماً وشرطات.",
-      "slugExists": "هذا الرابط مستخدم بالفعل.",
       "failedCreate": "فشل إنشاء الصفحة المقصودة",
       "creating": "جارٍ الإنشاء...",
       "createAndOpen": "إنشاء وفتح",
@@ -3473,7 +3474,8 @@
         "allSources": "الكل",
         "source": {
           "IMPORT": "مستوردة",
-          "MANUAL": "يدوية"
+          "MANUAL": "يدوية",
+          "SLUG_CHANGE": "تغيير الرابط"
         },
         "add": "إضافة إعادة توجيه",
         "edit": "تعديل",
@@ -6296,7 +6298,6 @@
     "failedToLoad": "تعذّر تحميل المجموعة.",
     "errNameRequired": "الاسم مطلوب بلغة واحدة على الأقل.",
     "errHandleRequired": "معرّف الرابط مطلوب.",
-    "errHandleFormat": "استخدم أحرفًا صغيرة وأرقامًا وشرطات أو شرطات سفلية فقط (بلا مسافات).",
     "noteManuallyAdded": "أُضيفت يدويًا",
     "noteMatchedByTags": "مطابقة حسب الوسوم",
     "noteWillCompute": "سيتم احتسابها بعد الحفظ.",

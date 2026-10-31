@@ -31,6 +31,8 @@ import { useCurrency } from '@/lib/useCurrency';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
+import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
+import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 
@@ -136,6 +138,7 @@ export default function EditCustomProduct() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tSlug = useTranslations('common.slug');
   // Save-state / storefront-link strings shared with the own-product editor.
   const tp = useTranslations('product');
   const translationPlaceholder = useTranslationPlaceholder();
@@ -188,9 +191,9 @@ export default function EditCustomProduct() {
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
   const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
 
-  // Slug availability check — debounced, primary-locale only.
-  type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
-  const [slugStatus, setSlugStatus] = useState<SlugStatus>('idle');
+  // WP-style slug input: free typing, sanitized on blur and on save. An
+  // existing slug never follows the title; duplicates get `-2` server-side.
+  const [slugTyped, setSlugTyped] = useState(false);
 
   // Other
   const [status, setStatus] = useState('DRAFT');
@@ -297,30 +300,33 @@ export default function EditCustomProduct() {
     fetchAll();
   }, [fetchAll]);
 
-  // Debounced slug availability check. We only check the primary-locale slug —
-  // secondary translations don't drive the storefront URL. Exclude this product
-  // from the conflict check so its own current slug doesn't show as "taken".
-  useEffect(() => {
-    if (!token || !id) return;
-    const slug = (translations[primaryLocale]?.slug || '').trim();
-    if (!slug) {
-      setSlugStatus('idle');
+  const handleSlugInput = (raw: string) => {
+    setSlugTyped(true);
+    setTransField(primaryLocale, 'slug', raw);
+  };
+
+  const handleSlugBlur = () => {
+    const raw = translations[primaryLocale]?.slug || '';
+    if (!raw.trim()) {
+      // An emptied slug is generated from the title (as WP does on save).
+      setSlugTyped(false);
+      setTransField(primaryLocale, 'slug', slugFromText(translations[primaryLocale]?.title, primaryLocale));
       return;
     }
-    setSlugStatus('checking');
-    const handle = setTimeout(async () => {
-      try {
-        const res = await api<{ available: boolean }>(
-          `/custom-products/check-slug?slug=${encodeURIComponent(slug)}&exclude_id=${encodeURIComponent(id)}`,
-          { token },
-        );
-        setSlugStatus(res?.available ? 'available' : 'taken');
-      } catch {
-        setSlugStatus('idle');
-      }
-    }, 400);
-    return () => clearTimeout(handle);
-  }, [token, id, translations, primaryLocale]);
+    if (!slugTyped) return;
+    const clean = slugFromText(raw, primaryLocale);
+    if (!clean) return; // keep the text; the message below explains
+    setSlugTyped(false);
+    setTransField(primaryLocale, 'slug', clean);
+  };
+
+  // The primary slug a save would send ('' when nothing usable remains).
+  const primarySlugFinal = resolveSlugForSubmit({
+    slug: translations[primaryLocale]?.slug,
+    typed: slugTyped,
+    title: translations[primaryLocale]?.title,
+    locale: primaryLocale,
+  });
 
   // ── Unsaved changes ──
   // Everything a save sends, normalised so equivalent values compare equal.
@@ -390,26 +396,21 @@ export default function EditCustomProduct() {
     setSaving(true);
     setSaveError('');
     try {
-      // `\w` is ASCII-only; non-Latin titles slugify to empty/"-" and 404 on the
-      // storefront. Use a strict ASCII slugifier and fall back to the primary
-      // locale's slug when a locale's title yields nothing usable.
-      const asciiSlug = (s: string) =>
-        s.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').substring(0, 100);
-      const hasAlnum = (s: string) => /[a-z0-9]/.test(s);
-      const primaryTr = translations[primaryLocale];
-      const primarySlug =
-        (primaryTr && (primaryTr.slug || asciiSlug(primaryTr.title))) || '';
+      // WordPress slug rules (any script is kept). Stored slugs the user did
+      // not touch are sent as they are; a secondary locale without a slug
+      // derives one from its title, else reuses the primary slug.
+      const primarySlug = primarySlugFinal;
+      setSlugTyped(false);
       const translationsPayload = Object.entries(translations)
         .filter(([, tr]) => tr.title.trim())
-        .map(([locale, tr]) => {
-          const ownSlug = tr.slug && hasAlnum(tr.slug) ? tr.slug : asciiSlug(tr.title);
-          return {
-            locale,
-            title: tr.title,
-            description: tr.description || undefined,
-            slug: hasAlnum(ownSlug) ? ownSlug : primarySlug,
-          };
-        });
+        .map(([locale, tr]) => ({
+          locale,
+          title: tr.title,
+          description: tr.description || undefined,
+          slug: locale === primaryLocale
+            ? primarySlug
+            : resolveSlugForSubmit({ slug: tr.slug, title: tr.title, locale: primaryLocale, fallback: primarySlug }),
+        }));
 
       const body: UpdateCustomProductBody = {
         pricing_type: pricingType,
@@ -460,7 +461,12 @@ export default function EditCustomProduct() {
       body.creator_category_ids = creatorCategoryIds;
       body.primary_creator_category_id = primaryCreatorCategoryId;
 
-      await api(`/custom-products/${id}`, { method: 'PUT', token, body: JSON.stringify(body) });
+      const updated = await api<{ translations?: { locale: string; slug?: string | null }[] } | null>(
+        `/custom-products/${id}`,
+        { method: 'PUT', token, body: JSON.stringify(body) },
+      );
+      // The server may suffix a duplicate slug (`-2`); the reload below shows it.
+      noticeIfSlugAdjusted(primarySlug, updated?.translations?.find((tr) => tr.locale === primaryLocale)?.slug);
       // The reload below may normalise values (server-derived slugs, an
       // auto-revert to review); markSaved lets the baseline absorb it.
       markSaved(savedSnapshot, interactionsAtStart);
@@ -856,27 +862,27 @@ export default function EditCustomProduct() {
             <div className="space-y-1.5">
               <Label className="text-xs">{t('editCustomProduct.slugLabel')}</Label>
               <Input
+                dir="auto"
                 className={`h-8 text-sm font-mono ${
-                  slugStatus === 'taken' ? 'border-red-400 focus-visible:ring-red-400' : ''
+                  !primarySlugFinal ? 'border-red-400 focus-visible:ring-red-400' : ''
                 }`}
                 value={translations[primaryLocale]?.slug || ''}
-                onChange={(e) => setTransField(primaryLocale, 'slug', e.target.value)}
+                onChange={(e) => handleSlugInput(e.target.value)}
+                onBlur={handleSlugBlur}
               />
-              {slugStatus === 'checking' && (
-                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" /> {t('editCustomProduct.checkingAvailability')}
-                </p>
-              )}
-              {slugStatus === 'available' && (
-                <p className="text-[11px] text-emerald-600 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> {t('editCustomProduct.slugAvailable')}
-                </p>
-              )}
-              {slugStatus === 'taken' && (
+              {!primarySlugFinal ? (
                 <p className="text-[11px] text-red-600">
-                  {t('editCustomProduct.slugTaken')}
+                  {(translations[primaryLocale]?.slug || '').trim() ? tSlug('errUnusable') : tSlug('errRequired')}
                 </p>
-              )}
+              ) : baseUrl ? (
+                <p className="text-[11px] text-muted-foreground break-all">
+                  {tSlug('previewLabel')}:{' '}
+                  <span className="font-mono text-foreground" dir="ltr">
+                    {baseUrl}
+                    {slugPreviewPath('/products', primarySlugFinal)}
+                  </span>
+                </p>
+              ) : null}
             </div>
           )}
 
@@ -1002,8 +1008,7 @@ export default function EditCustomProduct() {
                 onClick={handleSave}
                 disabled={
                   saving ||
-                  slugStatus === 'checking' ||
-                  slugStatus === 'taken' ||
+                  !primarySlugFinal ||
                   (!translations[primaryLocale]?.title?.trim() &&
                     !product.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim())
                 }

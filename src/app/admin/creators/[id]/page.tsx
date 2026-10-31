@@ -14,6 +14,7 @@ import { AdminStoreDomainsCard } from '@/components/markets/AdminStoreDomainsCar
 import { ArrowLeft, Mail, Phone, CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
+import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { isHiddenApp, type AdminStoreAppView, type StoreAppKey } from '@/lib/storeApps.registry';
 import { countryName } from '@/lib/taxCountries';
 import type { TaxPricingMode } from '@/lib/taxRate';
@@ -141,7 +142,8 @@ export default function CreatorDetailPage() {
 
   const handleSaveSlug = async () => {
     if (!token || !store || savingSlug) return;
-    const next = slug.trim().toLowerCase();
+    // The store slug is a DNS label: ASCII only (WP rules + [a-z0-9-]).
+    const next = asciiHandle(slug);
     if (!next || next === store.slug) return;
     setSavingSlug(true);
     setSlugMsg(null);
@@ -258,12 +260,14 @@ export default function CreatorDetailPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center flex-1">
                     <Input
-                      className="h-8 text-sm rounded-r-none border-r-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="h-8 text-sm rounded-e-none border-e-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      dir="ltr"
                       value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      onChange={(e) => setSlug(asciiHandleTyping(e.target.value))}
+                      onBlur={() => setSlug(asciiHandle(slug))}
                       placeholder="store-slug"
                     />
-                    <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
+                    <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-e-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
                   </div>
                   <Button
                     size="sm"

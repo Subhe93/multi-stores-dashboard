@@ -18,6 +18,9 @@ import {
 import { api } from '@/lib/api';
 import { presetSections } from '@/lib/section-presets';
 import { useAuth } from '@/lib/auth';
+import { slugHref, slugWasAdjusted } from '@/lib/slug';
+import { announceSlugAdjusted } from '@/lib/slugNotice';
+import { useSlugField } from '@/lib/useSlugField';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -49,7 +52,6 @@ interface StoreLite {
 }
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
-const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -168,7 +170,7 @@ export default function LandingPagesPage() {
         <div className="flex items-center justify-end gap-1">
           {item.status === 'PUBLISHED' && store && (
             <a
-              href={`${WEB_ORIGIN}/store/${store.slug}/${item.slug}`}
+              href={slugHref(`${WEB_ORIGIN}/store/${store.slug}`, item.slug || '')}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -210,7 +212,6 @@ export default function LandingPagesPage() {
         </div>
         <CreateLandingDialog
           primaryLocale={primaryLocale}
-          existingSlugs={landings.map((p) => p.slug || '')}
           onCreated={(p) => {
             setPages((prev) => [...prev, p]);
             router.push(`/builder/${p.id}`);
@@ -332,11 +333,9 @@ export default function LandingPagesPage() {
 
 function CreateLandingDialog({
   primaryLocale,
-  existingSlugs,
   onCreated,
 }: {
   primaryLocale: string;
-  existingSlugs: string[];
   onCreated: (page: PageRow) => void;
 }) {
   const { token } = useAuth();
@@ -344,42 +343,24 @@ function CreateLandingDialog({
   const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   // "Start from": a blank page, or the occasion-page preset (M6.5) whose
   // sections are created right after the page itself.
   const [startFrom, setStartFrom] = useState<'blank' | 'occasion-page'>('blank');
 
-  // Derive a slug from the title until the user types their own.
-  const [slugDirty, setSlugDirty] = useState(false);
-  function onTitleChange(v: string) {
-    setTitle(v);
-    if (!slugDirty) {
-      setSlug(
-        v
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '')
-          .slice(0, 80),
-      );
-    }
-  }
+  // WP-style slug: derived from the title until the user types their own,
+  // sanitized on blur and on create. Duplicates and reserved words get a
+  // suffix on the server, which returns the final slug.
+  const slugField = useSlugField({ title, locale: primaryLocale });
+  const slugError = slugField.problem === 'unusable' ? tc('slug.errUnusable') : null;
 
-  const slugError = (() => {
-    if (!slug) return null;
-    if (!SLUG_REGEX.test(slug)) return t('landingPages.slugInvalid');
-    if (existingSlugs.includes(slug)) return t('landingPages.slugExists');
-    return null;
-  })();
-
-  const canSubmit = !!title.trim() && !!slug && !slugError && !creating;
+  const canSubmit = !!title.trim() && !slugField.problem && !creating;
 
   async function handleCreate() {
     if (!token || !canSubmit) return;
+    const slug = slugField.finalize();
+    if (!slug) return;
     setCreating(true);
     setError(null);
     try {
@@ -407,11 +388,14 @@ function CreateLandingDialog({
           });
         }
       }
+      // The builder opens next: hand it the notice when the slug changed.
+      if (created?.slug && slugWasAdjusted(slug, created.slug)) {
+        announceSlugAdjusted(created.slug, { nextScreen: true });
+      }
       onCreated(created);
       setOpen(false);
       setTitle('');
-      setSlug('');
-      setSlugDirty(false);
+      slugField.regenerate();
       setStartFrom('blank');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('landingPages.failedCreate'));
@@ -444,7 +428,7 @@ function CreateLandingDialog({
             <Input
               id="lp-title"
               value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder={t('landingPages.titlePlaceholder')}
               autoFocus
             />
@@ -455,16 +439,17 @@ function CreateLandingDialog({
               <span className="text-xs text-muted-foreground font-mono">/</span>
               <Input
                 id="lp-slug"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value.toLowerCase());
-                  setSlugDirty(true);
-                }}
+                dir="auto"
+                {...slugField.inputProps}
                 placeholder="eid-sale"
                 className="font-mono"
               />
             </div>
-            {slugError && <p className="text-[11px] text-red-500">{slugError}</p>}
+            {slugError ? (
+              <p className="text-[11px] text-red-500">{slugError}</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">{tc('slug.hint')}</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">{t('landingPages.startFrom')}</Label>

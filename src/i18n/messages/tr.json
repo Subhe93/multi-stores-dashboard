@@ -270,6 +270,15 @@
       "sameAsBase": "Temel ile aynı",
       "translated": "Çevrildi",
       "notTranslated": "Henüz çevrilmedi"
+    },
+    "slug": {
+      "adjusted": "URL kaydedilirken düzenlendi (zaten kullanımda ya da temizlendi). Şimdi:",
+      "dismiss": "Kapat",
+      "errUnusable": "URL'de harf veya rakam kullanın.",
+      "errRequired": "Bir başlık veya URL tanıtıcısı ekleyin.",
+      "hint": "Siz düzenleyene kadar başlıktan oluşturulur. Alandan çıktığınızda boşluklar ve semboller düzenlenir.",
+      "regenerate": "Başlıktan oluştur",
+      "previewLabel": "URL"
     }
   },
   "nav": {
@@ -1575,9 +1584,6 @@
       "titlePlaceholder": "Ürün başlığı...",
       "slugLabel": "Slug",
       "regenerateSlug": "Başlıktan slug'ı yeniden oluştur",
-      "checkingAvailability": "Uygunluk kontrol ediliyor…",
-      "slugAvailable": "Slug uygun",
-      "slugTaken": "Bu slug ürünlerinizden birinde zaten kullanılıyor. Farklı bir tane seçin.",
       "collections": "Koleksiyonlar",
       "collectionsDesc": "Bu ürünü mağaza koleksiyonlarınızdan birine veya birkaçına ekleyin.",
       "descriptionLabel": "Açıklama",
@@ -1631,9 +1637,6 @@
       "titleLabel": "Başlık",
       "titlePlaceholder": "Ürün başlığı...",
       "slugLabel": "Slug *",
-      "checkingAvailability": "Uygunluk kontrol ediliyor…",
-      "slugAvailable": "Slug uygun",
-      "slugTaken": "Bu slug ürünlerinizden birinde zaten kullanılıyor. Farklı bir tane seçin.",
       "descriptionLabel": "Açıklama",
       "descriptionPlaceholder": "Özel ürününüzü tanımlayın...",
       "faq": "SSS",
@@ -2003,8 +2006,6 @@
       "titleLabel": "Başlık ({locale})",
       "titlePlaceholder": "örn. Bayram İndirimi",
       "urlLabel": "URL",
-      "slugInvalid": "Geçersiz URL. Küçük harf, rakam ve tire kullanın.",
-      "slugExists": "Bu URL zaten kullanılıyor.",
       "failedCreate": "Açılış sayfası oluşturulamadı",
       "creating": "Oluşturuluyor...",
       "createAndOpen": "Oluştur ve Aç",
@@ -3473,7 +3474,8 @@
         "allSources": "Tümü",
         "source": {
           "IMPORT": "İçe aktarılan",
-          "MANUAL": "Manuel"
+          "MANUAL": "Manuel",
+          "SLUG_CHANGE": "URL değişikliği"
         },
         "add": "Yönlendirme ekle",
         "edit": "Düzenle",
@@ -6296,7 +6298,6 @@
     "failedToLoad": "Koleksiyon yüklenemedi.",
     "errNameRequired": "En az bir dilde ad gereklidir.",
     "errHandleRequired": "Bir URL tanıtıcısı gereklidir.",
-    "errHandleFormat": "Yalnızca küçük harf, rakam, tire veya alt çizgi kullanın (boşluk yok).",
     "noteManuallyAdded": "elle eklendi",
     "noteMatchedByTags": "etiketlere göre eşleşti",
     "noteWillCompute": "Kaydedildikten sonra hesaplanacak.",
