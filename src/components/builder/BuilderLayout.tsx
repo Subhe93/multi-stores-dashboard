@@ -17,6 +17,7 @@ import { ThemePanel, type ThemeCustomizations } from './ThemePanel';
 import type { ThemeTokenCustomizations } from './ThemeCustomizer';
 import type { StorePageSummary } from './PageSwitcher';
 import type { BuilderPage, SectionInstance } from './types';
+import { StorefrontEditHandoff } from '@/components/creator/StorefrontEditHandoff';
 
 interface BuilderLayoutProps {
   page: BuilderPage;
@@ -883,6 +884,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
 
   return (
     <div className="h-screen w-full flex flex-col bg-zinc-50">
+      {/* "View store" opens with the owner edit-button hand-off. */}
+      <StorefrontEditHandoff />
       <PublishBar
         pageId={page.id}
         pageTitle={pageTitle}

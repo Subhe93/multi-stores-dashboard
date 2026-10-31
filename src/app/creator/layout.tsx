@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import type { NavItem, ShellNav } from '@/components/layout/nav-types';
 import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
+import { StorefrontEditHandoff } from '@/components/creator/StorefrontEditHandoff';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
 import { useStoreType } from '@/lib/useStoreType';
@@ -186,6 +187,8 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         onLogout={logout}
         headerExtras={<StoreLinkButton />}
       >
+        {/* Storefront links open with the owner edit-button hand-off. */}
+        <StorefrontEditHandoff />
         {children}
       </AppShell>
     </ProtectedRoute>
