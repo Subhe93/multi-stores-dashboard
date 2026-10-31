@@ -6620,5 +6620,37 @@
       "currency": "العملة",
       "items": "العناصر"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "سجّل الدخول لإدارة متاجرك وطلباتك ومدفوعاتك.",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "you@company.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول…",
+      "networkError": "تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مرة أخرى.",
+      "secureNote": "دخول آمن للمشرفين والمزوّدين والمنشئين",
+      "rights": "جميع الحقوق محفوظة.",
+      "eyebrow": "منصّة تجارة إلكترونية",
+      "headline": "أدِر كل متاجرك بأناقة.",
+      "subline": "المنتجات والطلبات والمدفوعات والأسواق — من لوحة تحكم واحدة متقنة.",
+      "featureStores": "متاجر متعددة من لوحة تحكم واحدة",
+      "featurePayments": "مدفوعات وتحويلات آمنة مدمجة",
+      "featureMarkets": "بِع عبر الأسواق والعملات واللغات",
+      "mockNewOrder": "طلب جديد",
+      "mockJustNow": "الآن",
+      "mockRevenue": "الإيرادات",
+      "mockLast7Days": "آخر 7 أيام",
+      "mockProduct": "حقيبة كتان",
+      "mockInStock": "متوفر",
+      "mockAddToCart": "أضف إلى السلة",
+      "mockPaid": "تم استلام الدفعة",
+      "mockShipped": "تم الشحن"
+    }
   }
 }

@@ -6620,5 +6620,37 @@
       "currency": "Devise",
       "items": "Articles"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Bon retour parmi nous",
+      "subtitle": "Connectez-vous pour gérer vos boutiques, commandes et versements.",
+      "email": "E-mail",
+      "emailPlaceholder": "you@company.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "Saisissez votre mot de passe",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "networkError": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
+      "secureNote": "Connexion sécurisée pour les administrateurs, fournisseurs et créateurs",
+      "rights": "Tous droits réservés.",
+      "eyebrow": "Plateforme e-commerce",
+      "headline": "Chaque boutique, avec élégance.",
+      "subline": "Produits, commandes, paiements et marchés — réunis dans un tableau de bord raffiné.",
+      "featureStores": "Plusieurs boutiques, un seul tableau de bord",
+      "featurePayments": "Paiements et versements sécurisés intégrés",
+      "featureMarkets": "Vendez sur plusieurs marchés, devises et langues",
+      "mockNewOrder": "Nouvelle commande",
+      "mockJustNow": "À l'instant",
+      "mockRevenue": "Chiffre d'affaires",
+      "mockLast7Days": "7 derniers jours",
+      "mockProduct": "Cabas en lin",
+      "mockInStock": "En stock",
+      "mockAddToCart": "Ajouter au panier",
+      "mockPaid": "Paiement encaissé",
+      "mockShipped": "Expédiée"
+    }
   }
 }

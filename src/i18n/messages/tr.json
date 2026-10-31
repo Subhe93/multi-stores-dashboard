@@ -6620,5 +6620,37 @@
       "currency": "Para birimi",
       "items": "Ürünler"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Tekrar hoş geldiniz",
+      "subtitle": "Mağazalarınızı, siparişlerinizi ve ödemelerinizi yönetmek için giriş yapın.",
+      "email": "E-posta",
+      "emailPlaceholder": "you@company.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "Şifrenizi girin",
+      "showPassword": "Şifreyi göster",
+      "hidePassword": "Şifreyi gizle",
+      "submit": "Giriş yap",
+      "submitting": "Giriş yapılıyor…",
+      "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+      "secureNote": "Yöneticiler, sağlayıcılar ve içerik üreticileri için güvenli giriş",
+      "rights": "Tüm hakları saklıdır.",
+      "eyebrow": "E-ticaret platformu",
+      "headline": "Her mağazayı zarafetle yönetin.",
+      "subline": "Ürünler, siparişler, ödemeler ve pazarlar — tek ve özenli bir panelden.",
+      "featureStores": "Tek panelden birden fazla mağaza",
+      "featurePayments": "Yerleşik güvenli ödemeler ve hak edişler",
+      "featureMarkets": "Pazarlar, para birimleri ve diller arasında satış",
+      "mockNewOrder": "Yeni sipariş",
+      "mockJustNow": "Az önce",
+      "mockRevenue": "Gelir",
+      "mockLast7Days": "Son 7 gün",
+      "mockProduct": "Keten Çanta",
+      "mockInStock": "Stokta",
+      "mockAddToCart": "Sepete ekle",
+      "mockPaid": "Ödeme alındı",
+      "mockShipped": "Kargolandı"
+    }
   }
 }

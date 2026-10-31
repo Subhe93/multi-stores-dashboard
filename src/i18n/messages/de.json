@@ -6620,5 +6620,37 @@
       "currency": "Währung",
       "items": "Artikel"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich an, um Ihre Shops, Bestellungen und Auszahlungen zu verwalten.",
+      "email": "E-Mail",
+      "emailPlaceholder": "you@company.com",
+      "password": "Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "showPassword": "Passwort anzeigen",
+      "hidePassword": "Passwort verbergen",
+      "submit": "Anmelden",
+      "submitting": "Anmeldung läuft…",
+      "networkError": "Der Server ist nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "secureNote": "Sichere Anmeldung für Administratoren, Anbieter und Creator",
+      "rights": "Alle Rechte vorbehalten.",
+      "eyebrow": "Commerce-Plattform",
+      "headline": "Jeden Shop. Elegant geführt.",
+      "subline": "Produkte, Bestellungen, Zahlungen und Märkte — in einem durchdachten Dashboard.",
+      "featureStores": "Mehrere Shops in einem Dashboard",
+      "featurePayments": "Sichere Zahlungen und Auszahlungen integriert",
+      "featureMarkets": "Verkaufen über Märkte, Währungen und Sprachen hinweg",
+      "mockNewOrder": "Neue Bestellung",
+      "mockJustNow": "Gerade eben",
+      "mockRevenue": "Umsatz",
+      "mockLast7Days": "Letzte 7 Tage",
+      "mockProduct": "Leinentasche",
+      "mockInStock": "Auf Lager",
+      "mockAddToCart": "In den Warenkorb",
+      "mockPaid": "Zahlung erhalten",
+      "mockShipped": "Versendet"
+    }
   }
 }

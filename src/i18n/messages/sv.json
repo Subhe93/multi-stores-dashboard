@@ -6620,5 +6620,37 @@
       "currency": "Valuta",
       "items": "Artiklar"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Välkommen tillbaka",
+      "subtitle": "Logga in för att hantera dina butiker, ordrar och utbetalningar.",
+      "email": "E-post",
+      "emailPlaceholder": "you@company.com",
+      "password": "Lösenord",
+      "passwordPlaceholder": "Ange ditt lösenord",
+      "showPassword": "Visa lösenord",
+      "hidePassword": "Dölj lösenord",
+      "submit": "Logga in",
+      "submitting": "Loggar in…",
+      "networkError": "Det gick inte att nå servern. Kontrollera din anslutning och försök igen.",
+      "secureNote": "Säker inloggning för administratörer, leverantörer och kreatörer",
+      "rights": "Alla rättigheter förbehållna.",
+      "eyebrow": "E-handelsplattform",
+      "headline": "Driv varje butik, elegant.",
+      "subline": "Produkter, ordrar, betalningar och marknader — samlat i en genomtänkt panel.",
+      "featureStores": "Flera butiker i en och samma panel",
+      "featurePayments": "Säkra betalningar och utbetalningar inbyggt",
+      "featureMarkets": "Sälj över marknader, valutor och språk",
+      "mockNewOrder": "Ny order",
+      "mockJustNow": "Nyss",
+      "mockRevenue": "Intäkter",
+      "mockLast7Days": "Senaste 7 dagarna",
+      "mockProduct": "Linnetote",
+      "mockInStock": "I lager",
+      "mockAddToCart": "Lägg i varukorgen",
+      "mockPaid": "Betalning mottagen",
+      "mockShipped": "Skickad"
+    }
   }
 }

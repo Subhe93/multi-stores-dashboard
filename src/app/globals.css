@@ -153,3 +153,31 @@
   background-color: oklch(0.75 0 0);
   background-clip: content-box;
 }
+/* Login page: gentle floating motion for the decorative commerce mock-ups and
+   a soft entrance for the form. Disabled when the user prefers reduced motion. */
+@keyframes login-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes login-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.77 0.15 163 / 0.55); }
+  60% { box-shadow: 0 0 0 6px oklch(0.77 0.15 163 / 0); }
+}
+.login-float { animation: login-float 7s ease-in-out infinite; }
+.login-float-slow { animation: login-float 9s ease-in-out infinite; animation-delay: -3s; }
+.login-float-late { animation: login-float 8s ease-in-out infinite; animation-delay: -5s; }
+.login-rise { animation: login-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.login-pulse-dot { animation: login-pulse-dot 2.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .login-float,
+  .login-float-slow,
+  .login-float-late,
+  .login-rise,
+  .login-pulse-dot {
+    animation: none;
+  }
+}

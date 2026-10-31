@@ -6620,5 +6620,37 @@
       "currency": "Currency",
       "items": "Items"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to manage your stores, orders and payouts.",
+      "email": "Email",
+      "emailPlaceholder": "you@company.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "networkError": "We couldn't reach the server. Check your connection and try again.",
+      "secureNote": "Secure sign-in for administrators, providers and creators",
+      "rights": "All rights reserved.",
+      "eyebrow": "Commerce platform",
+      "headline": "Run every store, beautifully.",
+      "subline": "Products, orders, payments and markets — managed from one refined dashboard.",
+      "featureStores": "Multiple stores from a single dashboard",
+      "featurePayments": "Secure payments and payouts built in",
+      "featureMarkets": "Sell across markets, currencies and languages",
+      "mockNewOrder": "New order",
+      "mockJustNow": "Just now",
+      "mockRevenue": "Revenue",
+      "mockLast7Days": "Last 7 days",
+      "mockProduct": "Linen Tote",
+      "mockInStock": "In stock",
+      "mockAddToCart": "Add to cart",
+      "mockPaid": "Payment captured",
+      "mockShipped": "Shipped"
+    }
   }
 }
