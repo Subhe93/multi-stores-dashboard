@@ -1213,7 +1213,111 @@
       "quickActions": "Actions rapides",
       "browseProducts": "Parcourir les produits",
       "myProducts": "Mes produits",
-      "newCustomProduct": "Nouveau produit personnalisé"
+      "newCustomProduct": "Nouveau produit personnalisé",
+      "greetMorning": "Bonjour, {name}",
+      "greetAfternoon": "Bon après-midi, {name}",
+      "greetEvening": "Bonsoir, {name}",
+      "visitStore": "Voir la boutique",
+      "updatedAt": "Mis à jour à {time}",
+      "refresh": "Actualiser",
+      "refreshing": "Actualisation…",
+      "refreshFailed": "Échec de l'actualisation",
+      "loadFailed": "Impossible de charger la vue d'ensemble",
+      "retry": "Réessayer",
+      "deltaNew": "Nouveau",
+      "deltaUp": "Hausse de {value} par rapport à la période précédente",
+      "deltaDown": "Baisse de {value} par rapport à la période précédente",
+      "deltaFlat": "Aucun changement par rapport à la période précédente",
+      "range": {
+        "label": "Période",
+        "short": {
+          "today": "Aujourd'hui",
+          "7d": "7 jours",
+          "30d": "30 jours",
+          "90d": "90 jours",
+          "12m": "12 mois"
+        },
+        "long": {
+          "today": "Aujourd'hui",
+          "7d": "7 derniers jours",
+          "30d": "30 derniers jours",
+          "90d": "90 derniers jours",
+          "12m": "12 derniers mois"
+        }
+      },
+      "kpi": {
+        "revenue": "Ventes totales",
+        "orders": "Commandes",
+        "aov": "Panier moyen",
+        "itemsSold": "Articles vendus",
+        "customers": "Clients",
+        "returning": "{percent} fidèles",
+        "earnings": "Gains"
+      },
+      "chart": {
+        "current": "Cette période",
+        "previous": "Période précédente",
+        "hint": "Utilisez les flèches pour passer d’un point à l’autre, Début et Fin pour aller au premier ou au dernier.",
+        "showTable": "Tableau",
+        "showChart": "Graphique",
+        "date": "Date",
+        "previousDate": "Date précédente"
+      },
+      "salesOverTime": "Ventes dans le temps",
+      "ordersOverTime": "Commandes dans le temps",
+      "ordersCount": "{count, plural, one {# commande} other {# commandes}}",
+      "noSales": "Aucune vente sur cette période pour le moment",
+      "noSalesHint": "Ajoutez des produits et partagez le lien de votre boutique pour commencer à vendre.",
+      "addProduct": "Ajouter un produit",
+      "noData": "Aucune donnée pour cette période",
+      "salesByMarket": "Ventes par marché",
+      "paymentMethods": "Moyens de paiement",
+      "paymentMethod": {
+        "COD": "Paiement à la livraison",
+        "STRIPE": "Carte (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "Autre",
+      "ordersByStatus": "Commandes par statut",
+      "lowStock": "Stock faible",
+      "allStocked": "Tous les produits sont bien en stock",
+      "outOfStock": "Épuisé",
+      "stockLeft": "{count, plural, one {# restant} other {# restants}}",
+      "topProducts": "Meilleures ventes",
+      "noTopProducts": "Aucun produit vendu sur cette période",
+      "noTopProductsHint": "Vos meilleures ventes apparaîtront ici.",
+      "soldCount": "{count, plural, one {# vendu} other {# vendus}}",
+      "colOrder": "Commande",
+      "colDate": "Date",
+      "colStatus": "Statut",
+      "colTotal": "Total",
+      "fallbackNote": "Les analyses détaillées (graphiques et comparaisons) apparaîtront ici dès qu’elles seront disponibles pour votre boutique.",
+      "totalOrders": "Total des commandes",
+      "todo": {
+        "title": "À faire",
+        "unfulfilled": "{count, plural, one {# commande à traiter} other {# commandes à traiter}}",
+        "pendingPayment": "{count, plural, one {# commande en attente de paiement} other {# commandes en attente de paiement}}",
+        "lowStock": "{count, plural, one {# produit en stock faible} other {# produits en stock faible}}",
+        "pendingReview": "{count, plural, one {# produit en cours de vérification} other {# produits en cours de vérification}}",
+        "drafts": "{count, plural, one {# produit en brouillon} other {# produits en brouillon}}",
+        "allDone": "Tout est à jour — rien ne requiert votre attention."
+      },
+      "setup": {
+        "title": "Configurez votre boutique",
+        "progress": "{done} tâche(s) sur {total} terminée(s)",
+        "dismiss": "Masquer le guide de configuration",
+        "done": "terminé",
+        "todo": "à faire",
+        "items": {
+          "has_products": "Ajoutez votre premier produit",
+          "has_logo": "Importez votre logo",
+          "has_payment": "Configurez les paiements",
+          "has_shipping": "Configurez la livraison",
+          "has_published_theme": "Publiez un thème",
+          "has_domain": "Connectez votre domaine"
+        }
+      },
+      "recentOrdersTitle": "Commandes récentes"
     },
     "earnings": {
       "title": "Revenus",

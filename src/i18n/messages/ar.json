@@ -1213,7 +1213,111 @@
       "quickActions": "إجراءات سريعة",
       "browseProducts": "تصفح المنتجات",
       "myProducts": "منتجاتي",
-      "newCustomProduct": "منتج مخصص جديد"
+      "newCustomProduct": "منتج مخصص جديد",
+      "greetMorning": "صباح الخير، {name}",
+      "greetAfternoon": "مساء الخير، {name}",
+      "greetEvening": "مساء الخير، {name}",
+      "visitStore": "عرض المتجر",
+      "updatedAt": "آخر تحديث {time}",
+      "refresh": "تحديث",
+      "refreshing": "جارٍ التحديث…",
+      "refreshFailed": "تعذّر التحديث",
+      "loadFailed": "تعذّر تحميل النظرة العامة",
+      "retry": "إعادة المحاولة",
+      "deltaNew": "جديد",
+      "deltaUp": "ارتفاع بنسبة {value} مقارنة بالفترة السابقة",
+      "deltaDown": "انخفاض بنسبة {value} مقارنة بالفترة السابقة",
+      "deltaFlat": "بلا تغيير مقارنة بالفترة السابقة",
+      "range": {
+        "label": "الفترة الزمنية",
+        "short": {
+          "today": "اليوم",
+          "7d": "7 أيام",
+          "30d": "30 يومًا",
+          "90d": "90 يومًا",
+          "12m": "12 شهرًا"
+        },
+        "long": {
+          "today": "اليوم",
+          "7d": "آخر 7 أيام",
+          "30d": "آخر 30 يومًا",
+          "90d": "آخر 90 يومًا",
+          "12m": "آخر 12 شهرًا"
+        }
+      },
+      "kpi": {
+        "revenue": "إجمالي المبيعات",
+        "orders": "الطلبات",
+        "aov": "متوسط قيمة الطلب",
+        "itemsSold": "القطع المباعة",
+        "customers": "العملاء",
+        "returning": "{percent} عملاء عائدون",
+        "earnings": "الأرباح"
+      },
+      "chart": {
+        "current": "هذه الفترة",
+        "previous": "الفترة السابقة",
+        "hint": "استخدم مفاتيح الأسهم للتنقل بين النقاط، وHome وEnd للانتقال إلى الأولى أو الأخيرة.",
+        "showTable": "جدول",
+        "showChart": "رسم بياني",
+        "date": "التاريخ",
+        "previousDate": "التاريخ السابق"
+      },
+      "salesOverTime": "المبيعات عبر الزمن",
+      "ordersOverTime": "الطلبات عبر الزمن",
+      "ordersCount": "{count, plural, zero {لا طلبات} one {طلب واحد} two {طلبان} few {# طلبات} many {# طلبًا} other {# طلب}}",
+      "noSales": "لا توجد مبيعات في هذه الفترة بعد",
+      "noSalesHint": "أضف منتجات وشارك رابط متجرك لتبدأ البيع.",
+      "addProduct": "إضافة منتج",
+      "noData": "لا توجد بيانات لهذه الفترة",
+      "salesByMarket": "المبيعات حسب السوق",
+      "paymentMethods": "طرق الدفع",
+      "paymentMethod": {
+        "COD": "الدفع عند الاستلام",
+        "STRIPE": "بطاقة (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "أخرى",
+      "ordersByStatus": "الطلبات حسب الحالة",
+      "lowStock": "مخزون منخفض",
+      "allStocked": "المخزون كافٍ لكل المنتجات",
+      "outOfStock": "نفد المخزون",
+      "stockLeft": "{count, plural, zero {لم يتبقَّ شيء} one {تبقّت قطعة واحدة} two {تبقّت قطعتان} few {تبقّت # قطع} many {تبقّت # قطعة} other {تبقّت # قطعة}}",
+      "topProducts": "المنتجات الأكثر مبيعًا",
+      "noTopProducts": "لم يُبع أي منتج في هذه الفترة",
+      "noTopProductsHint": "ستظهر هنا منتجاتك الأكثر مبيعًا.",
+      "soldCount": "{count, plural, zero {لم يُبع شيء} one {بيعت قطعة واحدة} two {بيعت قطعتان} few {بيعت # قطع} many {بيعت # قطعة} other {بيعت # قطعة}}",
+      "colOrder": "الطلب",
+      "colDate": "التاريخ",
+      "colStatus": "الحالة",
+      "colTotal": "الإجمالي",
+      "fallbackNote": "ستظهر هنا التحليلات المفصّلة (الرسوم البيانية والمقارنات) فور توفّرها لمتجرك.",
+      "totalOrders": "إجمالي الطلبات",
+      "todo": {
+        "title": "مهام بانتظارك",
+        "unfulfilled": "{count, plural, zero {لا طلبات للتجهيز} one {طلب واحد بانتظار التجهيز} two {طلبان بانتظار التجهيز} few {# طلبات بانتظار التجهيز} many {# طلبًا بانتظار التجهيز} other {# طلب بانتظار التجهيز}}",
+        "pendingPayment": "{count, plural, zero {لا طلبات بانتظار الدفع} one {طلب واحد بانتظار الدفع} two {طلبان بانتظار الدفع} few {# طلبات بانتظار الدفع} many {# طلبًا بانتظار الدفع} other {# طلب بانتظار الدفع}}",
+        "lowStock": "{count, plural, zero {لا منتجات بمخزون منخفض} one {منتج واحد مخزونه منخفض} two {منتجان مخزونهما منخفض} few {# منتجات مخزونها منخفض} many {# منتجًا مخزونها منخفض} other {# منتج مخزونها منخفض}}",
+        "pendingReview": "{count, plural, zero {لا منتجات قيد المراجعة} one {منتج واحد قيد المراجعة} two {منتجان قيد المراجعة} few {# منتجات قيد المراجعة} many {# منتجًا قيد المراجعة} other {# منتج قيد المراجعة}}",
+        "drafts": "{count, plural, zero {لا مسودات} one {منتج واحد كمسودة} two {منتجان كمسودة} few {# منتجات كمسودة} many {# منتجًا كمسودة} other {# منتج كمسودة}}",
+        "allDone": "كل شيء على ما يرام — لا شيء يحتاج إلى انتباهك."
+      },
+      "setup": {
+        "title": "جهّز متجرك",
+        "progress": "اكتملت {done} من {total} مهام",
+        "dismiss": "إخفاء دليل الإعداد",
+        "done": "مكتملة",
+        "todo": "غير مكتملة",
+        "items": {
+          "has_products": "أضف منتجك الأول",
+          "has_logo": "ارفع شعارك",
+          "has_payment": "فعّل طرق الدفع",
+          "has_shipping": "اضبط الشحن",
+          "has_published_theme": "انشر قالبًا",
+          "has_domain": "اربط نطاقك"
+        }
+      },
+      "recentOrdersTitle": "أحدث الطلبات"
     },
     "earnings": {
       "title": "الأرباح",

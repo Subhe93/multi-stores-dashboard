@@ -1213,7 +1213,111 @@
       "quickActions": "Hızlı İşlemler",
       "browseProducts": "Ürünlere Göz At",
       "myProducts": "Ürünlerim",
-      "newCustomProduct": "Yeni Özel Ürün"
+      "newCustomProduct": "Yeni Özel Ürün",
+      "greetMorning": "Günaydın, {name}",
+      "greetAfternoon": "İyi günler, {name}",
+      "greetEvening": "İyi akşamlar, {name}",
+      "visitStore": "Mağazayı görüntüle",
+      "updatedAt": "Güncellendi: {time}",
+      "refresh": "Yenile",
+      "refreshing": "Yenileniyor…",
+      "refreshFailed": "Yenilenemedi",
+      "loadFailed": "Genel bakış yüklenemedi",
+      "retry": "Tekrar dene",
+      "deltaNew": "Yeni",
+      "deltaUp": "Önceki döneme göre {value} artış",
+      "deltaDown": "Önceki döneme göre {value} düşüş",
+      "deltaFlat": "Önceki döneme göre değişiklik yok",
+      "range": {
+        "label": "Tarih aralığı",
+        "short": {
+          "today": "Bugün",
+          "7d": "7 gün",
+          "30d": "30 gün",
+          "90d": "90 gün",
+          "12m": "12 ay"
+        },
+        "long": {
+          "today": "Bugün",
+          "7d": "Son 7 gün",
+          "30d": "Son 30 gün",
+          "90d": "Son 90 gün",
+          "12m": "Son 12 ay"
+        }
+      },
+      "kpi": {
+        "revenue": "Toplam satış",
+        "orders": "Siparişler",
+        "aov": "Ortalama sipariş değeri",
+        "itemsSold": "Satılan ürün adedi",
+        "customers": "Müşteriler",
+        "returning": "{percent} geri dönen",
+        "earnings": "Kazanç"
+      },
+      "chart": {
+        "current": "Bu dönem",
+        "previous": "Önceki dönem",
+        "hint": "Noktalar arasında gezinmek için ok tuşlarını, ilk veya son noktaya gitmek için Home ve End tuşlarını kullanın.",
+        "showTable": "Tablo",
+        "showChart": "Grafik",
+        "date": "Tarih",
+        "previousDate": "Önceki tarih"
+      },
+      "salesOverTime": "Zaman içinde satışlar",
+      "ordersOverTime": "Zaman içinde siparişler",
+      "ordersCount": "{count, plural, one {# sipariş} other {# sipariş}}",
+      "noSales": "Bu dönemde henüz satış yok",
+      "noSalesHint": "Satışa başlamak için ürün ekleyin ve mağaza bağlantınızı paylaşın.",
+      "addProduct": "Ürün ekle",
+      "noData": "Bu dönem için veri yok",
+      "salesByMarket": "Pazara göre satışlar",
+      "paymentMethods": "Ödeme yöntemleri",
+      "paymentMethod": {
+        "COD": "Kapıda ödeme",
+        "STRIPE": "Kart (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "Diğer",
+      "ordersByStatus": "Duruma göre siparişler",
+      "lowStock": "Düşük stok",
+      "allStocked": "Tüm ürünlerin stoğu yeterli",
+      "outOfStock": "Stokta yok",
+      "stockLeft": "{count, plural, one {# adet kaldı} other {# adet kaldı}}",
+      "topProducts": "En çok satan ürünler",
+      "noTopProducts": "Bu dönemde ürün satılmadı",
+      "noTopProductsHint": "En çok satanlarınız burada görünecek.",
+      "soldCount": "{count, plural, one {# satıldı} other {# satıldı}}",
+      "colOrder": "Sipariş",
+      "colDate": "Tarih",
+      "colStatus": "Durum",
+      "colTotal": "Toplam",
+      "fallbackNote": "Ayrıntılı analizler (grafikler ve karşılaştırmalar) mağazanız için kullanılabilir olduğunda burada görünecek.",
+      "totalOrders": "Toplam sipariş",
+      "todo": {
+        "title": "Yapılacaklar",
+        "unfulfilled": "{count, plural, one {# sipariş hazırlanmayı bekliyor} other {# sipariş hazırlanmayı bekliyor}}",
+        "pendingPayment": "{count, plural, one {# sipariş ödeme bekliyor} other {# sipariş ödeme bekliyor}}",
+        "lowStock": "{count, plural, one {# ürünün stoğu az} other {# ürünün stoğu az}}",
+        "pendingReview": "{count, plural, one {# ürün incelemede} other {# ürün incelemede}}",
+        "drafts": "{count, plural, one {# taslak ürün} other {# taslak ürün}}",
+        "allDone": "Her şey yolunda — ilgilenmeniz gereken bir şey yok."
+      },
+      "setup": {
+        "title": "Mağazanızı kurun",
+        "progress": "{total} görevden {done} tanesi tamamlandı",
+        "dismiss": "Kurulum rehberini gizle",
+        "done": "tamamlandı",
+        "todo": "tamamlanmadı",
+        "items": {
+          "has_products": "İlk ürününüzü ekleyin",
+          "has_logo": "Logonuzu yükleyin",
+          "has_payment": "Ödemeleri ayarlayın",
+          "has_shipping": "Kargoyu ayarlayın",
+          "has_published_theme": "Bir tema yayınlayın",
+          "has_domain": "Alan adınızı bağlayın"
+        }
+      },
+      "recentOrdersTitle": "Son siparişler"
     },
     "earnings": {
       "title": "Kazançlar",

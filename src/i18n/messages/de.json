@@ -1213,7 +1213,111 @@
       "quickActions": "Schnellaktionen",
       "browseProducts": "Produkte durchsuchen",
       "myProducts": "Meine Produkte",
-      "newCustomProduct": "Neues eigenes Produkt"
+      "newCustomProduct": "Neues eigenes Produkt",
+      "greetMorning": "Guten Morgen, {name}",
+      "greetAfternoon": "Guten Tag, {name}",
+      "greetEvening": "Guten Abend, {name}",
+      "visitStore": "Shop ansehen",
+      "updatedAt": "Aktualisiert um {time}",
+      "refresh": "Aktualisieren",
+      "refreshing": "Wird aktualisiert…",
+      "refreshFailed": "Aktualisierung fehlgeschlagen",
+      "loadFailed": "Übersicht konnte nicht geladen werden",
+      "retry": "Erneut versuchen",
+      "deltaNew": "Neu",
+      "deltaUp": "{value} mehr als im Vorzeitraum",
+      "deltaDown": "{value} weniger als im Vorzeitraum",
+      "deltaFlat": "Keine Veränderung zum Vorzeitraum",
+      "range": {
+        "label": "Zeitraum",
+        "short": {
+          "today": "Heute",
+          "7d": "7 Tage",
+          "30d": "30 Tage",
+          "90d": "90 Tage",
+          "12m": "12 Monate"
+        },
+        "long": {
+          "today": "Heute",
+          "7d": "Letzte 7 Tage",
+          "30d": "Letzte 30 Tage",
+          "90d": "Letzte 90 Tage",
+          "12m": "Letzte 12 Monate"
+        }
+      },
+      "kpi": {
+        "revenue": "Gesamtumsatz",
+        "orders": "Bestellungen",
+        "aov": "Durchschnittlicher Bestellwert",
+        "itemsSold": "Verkaufte Artikel",
+        "customers": "Kunden",
+        "returning": "{percent} wiederkehrend",
+        "earnings": "Einnahmen"
+      },
+      "chart": {
+        "current": "Dieser Zeitraum",
+        "previous": "Vorzeitraum",
+        "hint": "Mit den Pfeiltasten zwischen Punkten wechseln, mit Pos1 und Ende zum ersten oder letzten springen.",
+        "showTable": "Tabelle",
+        "showChart": "Diagramm",
+        "date": "Datum",
+        "previousDate": "Vorheriges Datum"
+      },
+      "salesOverTime": "Umsatz im Zeitverlauf",
+      "ordersOverTime": "Bestellungen im Zeitverlauf",
+      "ordersCount": "{count, plural, one {# Bestellung} other {# Bestellungen}}",
+      "noSales": "In diesem Zeitraum noch keine Verkäufe",
+      "noSalesHint": "Füge Produkte hinzu und teile den Link zu deinem Shop, um zu verkaufen.",
+      "addProduct": "Produkt hinzufügen",
+      "noData": "Keine Daten für diesen Zeitraum",
+      "salesByMarket": "Umsatz nach Markt",
+      "paymentMethods": "Zahlungsarten",
+      "paymentMethod": {
+        "COD": "Nachnahme",
+        "STRIPE": "Karte (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "Sonstige",
+      "ordersByStatus": "Bestellungen nach Status",
+      "lowStock": "Geringer Bestand",
+      "allStocked": "Alle Produkte sind ausreichend auf Lager",
+      "outOfStock": "Ausverkauft",
+      "stockLeft": "{count, plural, one {# übrig} other {# übrig}}",
+      "topProducts": "Top-Produkte",
+      "noTopProducts": "In diesem Zeitraum wurden keine Produkte verkauft",
+      "noTopProductsHint": "Hier erscheinen deine Bestseller.",
+      "soldCount": "{count, plural, one {# verkauft} other {# verkauft}}",
+      "colOrder": "Bestellung",
+      "colDate": "Datum",
+      "colStatus": "Status",
+      "colTotal": "Summe",
+      "fallbackNote": "Detaillierte Analysen (Diagramme und Vergleiche) erscheinen hier, sobald sie für deinen Shop verfügbar sind.",
+      "totalOrders": "Bestellungen gesamt",
+      "todo": {
+        "title": "Zu erledigen",
+        "unfulfilled": "{count, plural, one {# Bestellung zu erfüllen} other {# Bestellungen zu erfüllen}}",
+        "pendingPayment": "{count, plural, one {# Bestellung wartet auf Zahlung} other {# Bestellungen warten auf Zahlung}}",
+        "lowStock": "{count, plural, one {# Produkt mit geringem Bestand} other {# Produkte mit geringem Bestand}}",
+        "pendingReview": "{count, plural, one {# Produkt in Prüfung} other {# Produkte in Prüfung}}",
+        "drafts": "{count, plural, one {# Produktentwurf} other {# Produktentwürfe}}",
+        "allDone": "Alles erledigt — nichts braucht gerade deine Aufmerksamkeit."
+      },
+      "setup": {
+        "title": "Richte deinen Shop ein",
+        "progress": "{done} von {total} Aufgaben erledigt",
+        "dismiss": "Einrichtungshilfe ausblenden",
+        "done": "erledigt",
+        "todo": "offen",
+        "items": {
+          "has_products": "Erstes Produkt hinzufügen",
+          "has_logo": "Logo hochladen",
+          "has_payment": "Zahlungen einrichten",
+          "has_shipping": "Versand einrichten",
+          "has_published_theme": "Ein Theme veröffentlichen",
+          "has_domain": "Domain verbinden"
+        }
+      },
+      "recentOrdersTitle": "Neueste Bestellungen"
     },
     "earnings": {
       "title": "Einnahmen",

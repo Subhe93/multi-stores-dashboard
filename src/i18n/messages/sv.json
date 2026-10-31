@@ -1213,7 +1213,111 @@
       "quickActions": "Snabbåtgärder",
       "browseProducts": "Bläddra bland produkter",
       "myProducts": "Mina produkter",
-      "newCustomProduct": "Ny anpassad produkt"
+      "newCustomProduct": "Ny anpassad produkt",
+      "greetMorning": "God morgon, {name}",
+      "greetAfternoon": "God eftermiddag, {name}",
+      "greetEvening": "God kväll, {name}",
+      "visitStore": "Visa butiken",
+      "updatedAt": "Uppdaterad {time}",
+      "refresh": "Uppdatera",
+      "refreshing": "Uppdaterar…",
+      "refreshFailed": "Kunde inte uppdatera",
+      "loadFailed": "Det gick inte att läsa in översikten",
+      "retry": "Försök igen",
+      "deltaNew": "Ny",
+      "deltaUp": "Upp {value} jämfört med föregående period",
+      "deltaDown": "Ned {value} jämfört med föregående period",
+      "deltaFlat": "Oförändrat jämfört med föregående period",
+      "range": {
+        "label": "Datumintervall",
+        "short": {
+          "today": "Idag",
+          "7d": "7 dagar",
+          "30d": "30 dagar",
+          "90d": "90 dagar",
+          "12m": "12 månader"
+        },
+        "long": {
+          "today": "Idag",
+          "7d": "Senaste 7 dagarna",
+          "30d": "Senaste 30 dagarna",
+          "90d": "Senaste 90 dagarna",
+          "12m": "Senaste 12 månaderna"
+        }
+      },
+      "kpi": {
+        "revenue": "Total försäljning",
+        "orders": "Ordrar",
+        "aov": "Genomsnittligt ordervärde",
+        "itemsSold": "Sålda artiklar",
+        "customers": "Kunder",
+        "returning": "{percent} återkommande",
+        "earnings": "Intäkter"
+      },
+      "chart": {
+        "current": "Denna period",
+        "previous": "Föregående period",
+        "hint": "Använd piltangenterna för att flytta mellan punkter, Home och End för att hoppa till första eller sista.",
+        "showTable": "Tabell",
+        "showChart": "Diagram",
+        "date": "Datum",
+        "previousDate": "Föregående datum"
+      },
+      "salesOverTime": "Försäljning över tid",
+      "ordersOverTime": "Ordrar över tid",
+      "ordersCount": "{count, plural, one {# order} other {# ordrar}}",
+      "noSales": "Ingen försäljning under perioden ännu",
+      "noSalesHint": "Lägg till produkter och dela länken till din butik för att börja sälja.",
+      "addProduct": "Lägg till produkt",
+      "noData": "Inga data för perioden",
+      "salesByMarket": "Försäljning per marknad",
+      "paymentMethods": "Betalsätt",
+      "paymentMethod": {
+        "COD": "Betalning vid leverans",
+        "STRIPE": "Kort (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "Övrigt",
+      "ordersByStatus": "Ordrar per status",
+      "lowStock": "Lågt lager",
+      "allStocked": "Alla produkter har tillräckligt i lager",
+      "outOfStock": "Slut i lager",
+      "stockLeft": "{count, plural, one {# kvar} other {# kvar}}",
+      "topProducts": "Mest sålda produkter",
+      "noTopProducts": "Inga produkter sålda under perioden",
+      "noTopProductsHint": "Dina bästsäljare visas här.",
+      "soldCount": "{count, plural, one {# såld} other {# sålda}}",
+      "colOrder": "Order",
+      "colDate": "Datum",
+      "colStatus": "Status",
+      "colTotal": "Summa",
+      "fallbackNote": "Detaljerad statistik (diagram och jämförelser) visas här så snart den finns tillgänglig för din butik.",
+      "totalOrders": "Totalt antal ordrar",
+      "todo": {
+        "title": "Att göra",
+        "unfulfilled": "{count, plural, one {# order att leverera} other {# ordrar att leverera}}",
+        "pendingPayment": "{count, plural, one {# order väntar på betalning} other {# ordrar väntar på betalning}}",
+        "lowStock": "{count, plural, one {# produkt med lågt lager} other {# produkter med lågt lager}}",
+        "pendingReview": "{count, plural, one {# produkt granskas} other {# produkter granskas}}",
+        "drafts": "{count, plural, one {# produktutkast} other {# produktutkast}}",
+        "allDone": "Allt är klart — inget kräver din uppmärksamhet."
+      },
+      "setup": {
+        "title": "Kom igång med din butik",
+        "progress": "{done} av {total} uppgifter klara",
+        "dismiss": "Dölj startguiden",
+        "done": "klar",
+        "todo": "inte klar",
+        "items": {
+          "has_products": "Lägg till din första produkt",
+          "has_logo": "Ladda upp din logotyp",
+          "has_payment": "Ställ in betalningar",
+          "has_shipping": "Ställ in frakt",
+          "has_published_theme": "Publicera ett tema",
+          "has_domain": "Anslut din domän"
+        }
+      },
+      "recentOrdersTitle": "Senaste ordrar"
     },
     "earnings": {
       "title": "Intäkter",

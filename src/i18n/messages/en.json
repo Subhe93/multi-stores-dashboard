@@ -1213,7 +1213,111 @@
       "quickActions": "Quick Actions",
       "browseProducts": "Browse Products",
       "myProducts": "My Products",
-      "newCustomProduct": "New Custom Product"
+      "newCustomProduct": "New Custom Product",
+      "greetMorning": "Good morning, {name}",
+      "greetAfternoon": "Good afternoon, {name}",
+      "greetEvening": "Good evening, {name}",
+      "visitStore": "View store",
+      "updatedAt": "Updated {time}",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "refreshFailed": "Could not refresh",
+      "loadFailed": "Couldn't load your overview",
+      "retry": "Try again",
+      "deltaNew": "New",
+      "deltaUp": "Up {value} vs previous period",
+      "deltaDown": "Down {value} vs previous period",
+      "deltaFlat": "No change vs previous period",
+      "range": {
+        "label": "Date range",
+        "short": {
+          "today": "Today",
+          "7d": "7 days",
+          "30d": "30 days",
+          "90d": "90 days",
+          "12m": "12 months"
+        },
+        "long": {
+          "today": "Today",
+          "7d": "Last 7 days",
+          "30d": "Last 30 days",
+          "90d": "Last 90 days",
+          "12m": "Last 12 months"
+        }
+      },
+      "kpi": {
+        "revenue": "Total sales",
+        "orders": "Orders",
+        "aov": "Average order value",
+        "itemsSold": "Items sold",
+        "customers": "Customers",
+        "returning": "{percent} returning",
+        "earnings": "Earnings"
+      },
+      "chart": {
+        "current": "This period",
+        "previous": "Previous period",
+        "hint": "Use the arrow keys to move between points, Home and End to jump to the first or last.",
+        "showTable": "Table",
+        "showChart": "Chart",
+        "date": "Date",
+        "previousDate": "Previous date"
+      },
+      "salesOverTime": "Sales over time",
+      "ordersOverTime": "Orders over time",
+      "ordersCount": "{count, plural, one {# order} other {# orders}}",
+      "noSales": "No sales in this period yet",
+      "noSalesHint": "Add products and share your store link to start selling.",
+      "addProduct": "Add product",
+      "noData": "No data for this period",
+      "salesByMarket": "Sales by market",
+      "paymentMethods": "Payment methods",
+      "paymentMethod": {
+        "COD": "Cash on delivery",
+        "STRIPE": "Card (Stripe)",
+        "KUSTOM": "Kustom Checkout"
+      },
+      "other": "Other",
+      "ordersByStatus": "Orders by status",
+      "lowStock": "Low stock",
+      "allStocked": "Everything is well stocked",
+      "outOfStock": "Out of stock",
+      "stockLeft": "{count, plural, one {# left} other {# left}}",
+      "topProducts": "Top products",
+      "noTopProducts": "No products sold in this period",
+      "noTopProductsHint": "Your best sellers will show up here.",
+      "soldCount": "{count, plural, one {# sold} other {# sold}}",
+      "colOrder": "Order",
+      "colDate": "Date",
+      "colStatus": "Status",
+      "colTotal": "Total",
+      "fallbackNote": "Detailed analytics (charts and comparisons) will appear here once they are available for your store.",
+      "totalOrders": "Total orders",
+      "todo": {
+        "title": "Things to do",
+        "unfulfilled": "{count, plural, one {# order to fulfill} other {# orders to fulfill}}",
+        "pendingPayment": "{count, plural, one {# order awaiting payment} other {# orders awaiting payment}}",
+        "lowStock": "{count, plural, one {# product low on stock} other {# products low on stock}}",
+        "pendingReview": "{count, plural, one {# product in review} other {# products in review}}",
+        "drafts": "{count, plural, one {# draft product} other {# draft products}}",
+        "allDone": "You're all caught up — nothing needs your attention."
+      },
+      "setup": {
+        "title": "Set up your store",
+        "progress": "{done} of {total} tasks complete",
+        "dismiss": "Hide setup guide",
+        "done": "done",
+        "todo": "not done",
+        "items": {
+          "has_products": "Add your first product",
+          "has_logo": "Upload your logo",
+          "has_payment": "Set up payments",
+          "has_shipping": "Set up shipping",
+          "has_published_theme": "Publish a theme",
+          "has_domain": "Connect your domain"
+        }
+      },
+      "recentOrdersTitle": "Recent orders"
     },
     "earnings": {
       "title": "Earnings",

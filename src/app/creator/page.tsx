@@ -1,204 +1,76 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { StatCard } from '@/components/common/StatCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Package, ShoppingCart, DollarSign } from 'lucide-react';
+import { Suspense, useCallback, useSyncExternalStore } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
+import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { OverviewView, type OverviewState } from '@/components/overview/OverviewView';
+import { parseRange, DEFAULT_RANGE, type OverviewRange } from '@/components/overview/overview.api';
+import { useOverview } from '@/components/overview/useOverview';
 
-interface CommissionSummary {
-  total_earnings: number;
-  this_month: number;
-  pending: number;
-}
+const subscribeNoop = () => () => {};
+const localHour = () => new Date().getHours();
 
-interface Order {
-  id: string | number;
-  order_number: string;
-  total: number;
-  status: string;
-  created_at: string;
-  customer?: {
-    first_name: string;
-    last_name: string;
-  };
-}
-
-interface OrdersResponse {
-  data: Order[];
-  meta: { total: number };
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-amber-50 text-amber-700',
-  CONFIRMED: 'bg-blue-50 text-blue-700',
-  PROCESSING: 'bg-indigo-50 text-indigo-700',
-  SHIPPED: 'bg-sky-50 text-sky-700',
-  DELIVERED: 'bg-emerald-50 text-emerald-700',
-  CANCELLED: 'bg-red-50 text-red-700',
-};
-
-export default function CreatorOverview() {
-  const { token } = useAuth();
+function CreatorOverviewInner() {
+  const { token, user } = useAuth();
   const router = useRouter();
-  const t = useTranslations('creator');
-
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const range = parseRange(searchParams.get('range'));
   const { storeType, loading: storeTypeLoading } = useStoreType();
-  const isIndependent = storeType === 'INDEPENDENT';
+  const independent = storeType === 'INDEPENDENT';
+  const { currency } = useCurrency();
+  const { baseUrl } = useStorefrontUrl();
+  // Client-only: the greeting depends on the viewer's local time (null on the server).
+  const hour = useSyncExternalStore(subscribeNoop, localHour, () => null);
 
-  const [commissions, setCommissions] = useState<CommissionSummary | null>(null);
-  const [orders, setOrders] = useState<OrdersResponse | null>(null);
-  // null renders as "..." until the store-type-aware count has loaded.
-  const [productCount, setProductCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { fmt } = useCurrency();
+  const { result, error, loading, updatedAt, refetch } = useOverview(token, range, {
+    independent,
+    // The fallback path needs the store type to pick the products endpoint.
+    enabled: !storeTypeLoading || storeType != null,
+  });
 
-  useEffect(() => {
-    if (!token) return;
+  const setRange = useCallback(
+    (r: OverviewRange) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (r === DEFAULT_RANGE) params.delete('range');
+      else params.set('range', r);
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname, searchParams],
+  );
 
-    Promise.all([
-      api<CommissionSummary>('/commissions/summary', { token }),
-      api<OrdersResponse>('/orders?limit=5', { token }),
-    ])
-      .then(([comm, ord]) => {
-        setCommissions(comm);
-        setOrders(ord);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [token]);
-
-  // Independent stores sell their own products, so the marketplace
-  // custom-products count would always be 0 for them — count own products
-  // instead. Waits for the store type so the right endpoint is queried.
-  useEffect(() => {
-    if (!token || storeTypeLoading) return;
-    const path =
-      storeType === 'INDEPENDENT' ? '/products/mine?limit=1' : '/custom-products?limit=1';
-    api<{ meta: { total: number } }>(path, { token })
-      .then((res) => setProductCount(res?.meta?.total ?? 0))
-      .catch(() => setProductCount(0));
-  }, [token, storeType, storeTypeLoading]);
+  const state: OverviewState = result
+    ? { status: 'ready', result }
+    : error
+      ? { status: 'error', message: error }
+      : { status: 'loading' };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t('overview.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('overview.subtitle')}</p>
-      </div>
+    <OverviewView
+      range={range}
+      onRangeChange={setRange}
+      state={state}
+      refreshing={!!result && loading}
+      refreshFailed={!!result && !!error}
+      updatedAt={updatedAt}
+      onRefresh={refetch}
+      name={user?.creator?.display_name ?? null}
+      storeUrl={baseUrl}
+      independent={independent}
+      currency={currency}
+      hour={hour}
+    />
+  );
+}
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title={isIndependent ? t('overview.myProducts') : t('overview.customProducts')}
-          value={productCount == null ? '...' : productCount}
-          icon={<Package className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('overview.orders')}
-          value={loading ? '...' : orders?.meta?.total ?? 0}
-          icon={<ShoppingCart className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('overview.earningsThisMonth')}
-          value={loading ? '...' : fmt(commissions?.this_month ?? 0)}
-          trend="up"
-          icon={<DollarSign className="w-4 h-4" />}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Orders */}
-        <Card className="shadow-none">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">{t('overview.recentOrders')}</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-[10px]"
-                onClick={() => router.push('/creator/orders')}
-              >
-                {t('overview.viewAll')}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {!loading && (!orders || orders.data.length === 0) ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">{t('overview.noOrdersYet')}</p>
-            ) : (
-              <div className="space-y-1">
-                {(orders?.data ?? []).map((order) => (
-                  <button
-                    key={order.id}
-                    onClick={() => router.push(`/creator/orders/${order.id}`)}
-                    className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-left"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium">#{order.order_number}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {order.customer
-                          ? `${order.customer.first_name} ${order.customer.last_name}`
-                          : t('overview.guest')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-medium">{fmt(Number(order.total ?? 0))}</span>
-                      <Badge
-                        variant="outline"
-                        className={`text-[9px] border-0 ${STATUS_COLORS[order.status] ?? 'bg-zinc-100 text-zinc-700'}`}
-                      >
-                        {order.status}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="shadow-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">{t('overview.quickActions')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-              {/* Independent stores have no marketplace hub — link to their
-                  own-products list instead. */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() =>
-                  router.push(isIndependent ? '/creator/products/own' : '/creator/products')
-                }
-              >
-                {isIndependent ? t('overview.myProducts') : t('overview.browseProducts')}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-1"
-                onClick={() => router.push('/creator/products/own/new')}
-              >
-                {t('overview.newCustomProduct')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+export default function CreatorOverview() {
+  return (
+    <Suspense fallback={null}>
+      <CreatorOverviewInner />
+    </Suspense>
   );
 }
