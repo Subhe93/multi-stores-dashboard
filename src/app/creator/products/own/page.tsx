@@ -15,7 +15,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 import { BulkNotice, useBulkNotice } from '@/components/product/BulkNotice';
 import { runBulk } from '@/lib/bulk';
-import { pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { pickLocalized, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -140,11 +140,6 @@ function statusLabels(t: Translator): Record<string, string> {
     REJECTED: t('myProducts.statusRejected'),
     ARCHIVED: t('myProducts.statusArchived'),
   };
-}
-
-function pickTitle(translations?: Translation[]): Translation | undefined {
-  if (!translations?.length) return undefined;
-  return translations.find((t) => t.locale === 'en') ?? translations[0];
 }
 
 const STATUS_FILTERS: ('ALL' | ProductStatus)[] = [
@@ -415,7 +410,7 @@ export default function CreatorOwnProductsPage() {
       key: 'title',
       label: tt('myProducts.colProduct'),
       render: (item: OwnProduct) => {
-        const t = pickTitle(item.translations);
+        const t = pickLocalized(item.translations, primaryLocale);
         const imgUrl = resolveUrl(item.images?.[0]?.url);
         return (
           <Link href={editHref(item)} className="group flex items-center gap-3">
@@ -699,7 +694,7 @@ export default function CreatorOwnProductsPage() {
             <DialogDescription>
               {tt('myProducts.deleteConfirmPrefix')}{' '}
               <span className="font-medium">
-                {pickTitle(deleteTarget?.translations)?.title ?? tt('myProducts.thisProduct')}
+                {pickLocalized(deleteTarget?.translations, primaryLocale)?.title ?? tt('myProducts.thisProduct')}
               </span>
               {tt('myProducts.deleteConfirmSuffix')}
             </DialogDescription>

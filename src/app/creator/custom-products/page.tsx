@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 import { BulkNotice, useBulkNotice } from '@/components/product/BulkNotice';
 import { runBulk } from '@/lib/bulk';
-import { pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { pickLocalized, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -101,11 +101,6 @@ function statusLabels(t: Translator): Record<string, string> {
     REJECTED: t('myProducts.statusRejected'),
     ARCHIVED: t('myProducts.statusArchived'),
   };
-}
-
-function pickTitle(translations?: Translation[]): Translation | undefined {
-  if (!translations?.length) return undefined;
-  return translations.find((t) => t.locale === 'en') ?? translations[0];
 }
 
 export default function CustomProductsPage() {
@@ -352,10 +347,10 @@ export default function CustomProductsPage() {
         let t: Translation | undefined;
         let imgUrl: string | undefined;
         if (item.kind === 'custom') {
-          t = pickTitle(item.translations);
+          t = pickLocalized(item.translations, primaryLocale);
           imgUrl = resolveUrl(item.mockup_images?.[0]?.url || item.product?.images?.[0]?.url);
         } else {
-          t = pickTitle(item.translations);
+          t = pickLocalized(item.translations, primaryLocale);
           imgUrl = resolveUrl(item.images?.[0]?.url);
         }
         return (
@@ -384,7 +379,7 @@ export default function CustomProductsPage() {
         if (item.kind === 'own') {
           return <span className="text-sm text-muted-foreground">{tt('myProducts.yourOwnProduct')}</span>;
         }
-        const t = pickTitle(item.product?.translations);
+        const t = pickLocalized(item.product?.translations, primaryLocale);
         return <span className="text-sm">{t?.title ?? '—'}</span>;
       },
     },
@@ -625,7 +620,7 @@ export default function CustomProductsPage() {
             <DialogDescription>
               {tt('myProducts.deleteConfirmPrefix')}{' '}
               <span className="font-medium">
-                {pickTitle(deleteTarget?.translations)?.title ?? tt('myProducts.thisProduct')}
+                {pickLocalized(deleteTarget?.translations, primaryLocale)?.title ?? tt('myProducts.thisProduct')}
               </span>
               {tt('myProducts.deleteConfirmSuffix')}
             </DialogDescription>

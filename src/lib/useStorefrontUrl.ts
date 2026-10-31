@@ -74,6 +74,23 @@ export function pickProductSlug(
 }
 
 /**
+ * Pick the translation to display: the store's primary content locale first,
+ * then English, then the first row. Lists must show what shoppers see, so a
+ * Swedish store lists its Swedish names, not the English ones.
+ */
+export function pickLocalized<T extends { locale: string }>(
+  translations: T[] | null | undefined,
+  primaryLocale?: string | null,
+): T | undefined {
+  if (!translations?.length) return undefined;
+  return (
+    (primaryLocale ? translations.find((tr) => tr.locale === primaryLocale) : undefined) ??
+    translations.find((tr) => tr.locale === 'en') ??
+    translations[0]
+  );
+}
+
+/**
  * The signed-in creator's store and its public base URL (null until loaded,
  * or when the user has no store). Shares one request with other callers.
  */

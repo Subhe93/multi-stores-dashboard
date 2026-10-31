@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useCurrency } from '@/lib/useCurrency';
+import { pickLocalized, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ export default function CreatorPromotionsPage() {
   const { token } = useAuth();
   const router = useRouter();
   const tt = useTranslations('creator');
+  const { primaryLocale } = useStorefrontUrl();
   const tc = useTranslations('common');
   const tb = useTranslations('bulk');
   const bulk = useBulkAction();
@@ -221,8 +223,7 @@ export default function CreatorPromotionsPage() {
       label: tc('name'),
       render: (item: Promotion) => {
         const title =
-          item.translations.find((t) => t.locale === 'en')?.title ||
-          item.translations[0]?.title;
+          pickLocalized(item.translations, primaryLocale)?.title;
         return (
           <Link href={`/creator/promotions/${item.id}`} className="text-sm font-medium hover:underline">
             {title || TYPE_LABELS[item.type]}
@@ -439,8 +440,7 @@ export default function CreatorPromotionsPage() {
               {tt('promotions.deleteConfirmPrefix')}{' '}
               <span className="font-medium text-foreground">
                 {deleteTarget
-                  ? (deleteTarget.translations.find((t) => t.locale === 'en')?.title ||
-                      deleteTarget.translations[0]?.title ||
+                  ? (pickLocalized(deleteTarget.translations, primaryLocale)?.title ||
                       TYPE_LABELS[deleteTarget.type])
                   : ''}
               </span>

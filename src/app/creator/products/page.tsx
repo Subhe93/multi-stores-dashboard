@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCurrency } from '@/lib/useCurrency';
+import { pickLocalized, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,8 +48,8 @@ function statusLabels(t: Translator): Record<string, string> {
   };
 }
 
-function getEnTitle(translations: { locale: string; title: string }[]): string {
-  return translations.find((t) => t.locale === 'en')?.title || translations[0]?.title || '—';
+function getTitle(translations: { locale: string; title: string }[], primaryLocale: string): string {
+  return pickLocalized(translations, primaryLocale)?.title || '—';
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -60,6 +61,7 @@ export default function CreatorProductsPage() {
   const t = useTranslations('creator');
 
   const { storeType } = useStoreType();
+  const { primaryLocale } = useStorefrontUrl();
   const statusLabelMap = statusLabels(t);
 
   const [products, setProducts] = useState<CustomProduct[]>([]);
@@ -194,9 +196,9 @@ export default function CreatorProductsPage() {
           ) : (
             <div className="divide-y">
               {displayProducts.map((product) => {
-                const title = getEnTitle(product.translations);
+                const title = getTitle(product.translations, primaryLocale);
                 const baseName = product.product
-                  ? getEnTitle(product.product.translations)
+                  ? getTitle(product.product.translations, primaryLocale)
                   : null;
 
                 return (
