@@ -620,6 +620,9 @@
     "emailPasswordRequired": "البريد الإلكتروني وكلمة المرور مطلوبان",
     "passwordMin8": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
     "passwordMin8Label": "كلمة المرور * (8 أحرف على الأقل)",
+    "sendCredentials": "إرسال بيانات الدخول بالبريد الإلكتروني",
+    "sendCredentialsHint": "يستلم المستخدم كلمة المرور ورابط دخول بنقرة واحدة.",
+    "emailLanguage": "لغة البريد",
     "userCreated": "تم إنشاء المستخدم",
     "failedToCreateUser": "فشل إنشاء المستخدم",
     "userDeleted": "تم حذف المستخدم",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "طلب جديد (إلى صاحب المتجر)",
     "notifEvent_welcome": "ترحيب (حساب جديد)",
     "notifEvent_password_reset": "إعادة تعيين كلمة المرور",
+    "notifEvent_account_created": "إنشاء حساب (كلمة المرور + رابط الدخول)",
+    "notifEvent_production_new_order": "طلب جديد للإنتاج (فريق الإنتاج)",
     "notifEnabled": "مفعّل",
     "notifDisabled": "معطّل",
     "notifNeverSaved": "غير مُعدّ",
@@ -2622,7 +2627,9 @@
         "order_refunded": "استرداد المبلغ",
         "new_order_owner": "طلب جديد (إليك)",
         "welcome": "ترحيب",
-        "password_reset": "استعادة كلمة المرور"
+        "password_reset": "استعادة كلمة المرور",
+        "account_created": "إنشاء حساب (كلمة المرور + رابط الدخول)",
+        "production_new_order": "طلب جديد للإنتاج (فريق الإنتاج)"
       },
       "tabs": {
         "notifications": "الإشعارات",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "طلب جديد (صاحب المتجر)",
       "password_reset": "استعادة كلمة السر",
       "welcome": "ترحيب",
+      "account_created": "إنشاء حساب (كلمة المرور + رابط الدخول)",
+      "production_new_order": "طلب جديد للإنتاج (فريق الإنتاج)",
       "test": "رسالة اختبار"
     },
     "notificationTitle": "إشعارات الطلبات",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "أضف إلى السلة",
       "mockPaid": "تم استلام الدفعة",
       "mockShipped": "تم الشحن"
+    },
+    "magic": {
+      "signingIn": "جارٍ تسجيل دخولك…",
+      "signingInHint": "نتحقق من رابط الدخول. لن يستغرق ذلك سوى لحظة.",
+      "invalidTitle": "رابط الدخول هذا منتهي الصلاحية أو استُخدم من قبل",
+      "invalidBody": "حرصاً على أمانك، يعمل كل رابط مرة واحدة فقط ولمدة محدودة. ما زال بإمكانك تسجيل الدخول ببريدك الإلكتروني وكلمة المرور.",
+      "goToLogin": "الذهاب إلى تسجيل الدخول",
+      "customerTitle": "هذا الرابط خاص بالمتجر",
+      "customerBody": "حسابك حساب عميل. افتح متجرك لتسجيل الدخول.",
+      "networkTitle": "تعذّر الوصول إلى الخادم",
+      "networkBody": "تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.",
+      "errorTitle": "حدث خطأ ما",
+      "errorBody": "تعذّر تسجيل دخولك الآن. يرجى المحاولة بعد لحظات.",
+      "retry": "حاول مرة أخرى"
     }
   }
 }

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { useRouter } from 'next/navigation';
 import { api } from './api';
 import { clearCachedStoreApps } from './useStoreApps';
+import { roleHomePath } from './magicLogin';
 
 export interface ProviderProfile {
   id: string;
@@ -40,11 +41,19 @@ export interface User {
   customer?: CustomerProfile | null;
 }
 
+/** Body returned by /auth/login and /auth/magic-login. */
+export interface AuthTokens {
+  user: User;
+  access_token: string;
+  refresh_token: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithTokens: (data: AuthTokens) => Promise<void>;
   logout: () => void;
 }
 
@@ -82,15 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = useCallback(async (email: string, password: string) => {
-    const data = await api<{ user: User; access_token: string; refresh_token: string }>(
-      '/auth/login',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      },
-    );
-
+  // Shared by password login and the one-click (magic link) login: store the
+  // tokens, load the full profile, then redirect by role.
+  const loginWithTokens = useCallback(async (data: AuthTokens) => {
     localStorage.setItem('auth_token', data.access_token);
     localStorage.setItem('refresh_token', data.refresh_token);
     setToken(data.access_token);
@@ -105,13 +108,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
 
     // Redirect based on role
-    const roleRoutes: Record<string, string> = {
-      ADMIN: '/admin',
-      PROVIDER: '/provider',
-      CREATOR: '/creator',
-    };
-    router.push(roleRoutes[data.user.role] || '/');
+    router.push(roleHomePath(data.user.role) || '/');
   }, [router]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const data = await api<AuthTokens>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    await loginWithTokens(data);
+  }, [loginWithTokens]);
 
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
@@ -131,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithTokens, logout }}>
       {children}
     </AuthContext.Provider>
   );

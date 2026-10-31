@@ -620,6 +620,9 @@
     "emailPasswordRequired": "Email and password are required",
     "passwordMin8": "Password must be at least 8 characters",
     "passwordMin8Label": "Password * (min 8)",
+    "sendCredentials": "Send login details by email",
+    "sendCredentialsHint": "The user receives their password and a one-click login link.",
+    "emailLanguage": "Email language",
     "userCreated": "User created",
     "failedToCreateUser": "Failed to create user",
     "userDeleted": "User deleted",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "New order (to store owner)",
     "notifEvent_welcome": "Welcome (new account)",
     "notifEvent_password_reset": "Password reset",
+    "notifEvent_account_created": "Account created (password + login link)",
+    "notifEvent_production_new_order": "New order to produce (production team)",
     "notifEnabled": "Enabled",
     "notifDisabled": "Disabled",
     "notifNeverSaved": "Not configured",
@@ -2622,7 +2627,9 @@
         "order_refunded": "Order refunded",
         "new_order_owner": "New order (to you)",
         "welcome": "Welcome",
-        "password_reset": "Password reset"
+        "password_reset": "Password reset",
+        "account_created": "Account created (password + login link)",
+        "production_new_order": "New order to produce (production team)"
       },
       "tabs": {
         "notifications": "Notifications",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "New order (store owner)",
       "password_reset": "Password reset",
       "welcome": "Welcome",
+      "account_created": "Account created (password + login link)",
+      "production_new_order": "New order to produce (production team)",
       "test": "Test email"
     },
     "notificationTitle": "Order notifications",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "Add to cart",
       "mockPaid": "Payment captured",
       "mockShipped": "Shipped"
+    },
+    "magic": {
+      "signingIn": "Signing you in…",
+      "signingInHint": "Checking your login link. This only takes a moment.",
+      "invalidTitle": "This login link has expired or was already used",
+      "invalidBody": "For your security, each link works only once and for a limited time. You can still log in with your email and password.",
+      "goToLogin": "Go to login",
+      "customerTitle": "This link is for the store",
+      "customerBody": "Your account is a customer account. Open your store to log in.",
+      "networkTitle": "Can’t reach the server",
+      "networkBody": "Check your internet connection and try again.",
+      "errorTitle": "Something went wrong",
+      "errorBody": "We couldn’t sign you in right now. Please try again in a moment.",
+      "retry": "Try again"
     }
   }
 }

@@ -177,7 +177,8 @@ export default function CreatorEmailTemplateEditorPage() {
     );
   }
 
-  const eventLabel = t(`events.${event}` as never);
+  // Raw key for an event the API added before the locale files caught up.
+  const eventLabel = t.has(`events.${event}` as never) ? t(`events.${event}` as never) : event;
 
   return (
     <div className="space-y-5 max-w-4xl">

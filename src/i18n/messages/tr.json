@@ -620,6 +620,9 @@
     "emailPasswordRequired": "E-posta ve parola gereklidir",
     "passwordMin8": "Parola en az 8 karakter olmalıdır",
     "passwordMin8Label": "Parola * (min 8)",
+    "sendCredentials": "Giriş bilgilerini e-postayla gönder",
+    "sendCredentialsHint": "Kullanıcı şifresini ve tek tıkla giriş bağlantısını alır.",
+    "emailLanguage": "E-posta dili",
     "userCreated": "Kullanıcı oluşturuldu",
     "failedToCreateUser": "Kullanıcı oluşturulamadı",
     "userDeleted": "Kullanıcı silindi",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "Yeni sipariş (mağaza sahibine)",
     "notifEvent_welcome": "Hoş geldiniz (yeni hesap)",
     "notifEvent_password_reset": "Parola sıfırlama",
+    "notifEvent_account_created": "Hesap oluşturuldu (şifre + giriş bağlantısı)",
+    "notifEvent_production_new_order": "Üretilecek yeni sipariş (üretim ekibi)",
     "notifEnabled": "Etkin",
     "notifDisabled": "Devre dışı",
     "notifNeverSaved": "Yapılandırılmadı",
@@ -2622,7 +2627,9 @@
         "order_refunded": "Sipariş iade edildi",
         "new_order_owner": "Yeni sipariş (size)",
         "welcome": "Hoş geldiniz",
-        "password_reset": "Parola sıfırlama"
+        "password_reset": "Parola sıfırlama",
+        "account_created": "Hesap oluşturuldu (şifre + giriş bağlantısı)",
+        "production_new_order": "Üretilecek yeni sipariş (üretim ekibi)"
       },
       "tabs": {
         "notifications": "Bildirimler",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "Yeni sipariş (mağaza sahibi)",
       "password_reset": "Şifre sıfırlama",
       "welcome": "Hoş geldiniz",
+      "account_created": "Hesap oluşturuldu (şifre + giriş bağlantısı)",
+      "production_new_order": "Üretilecek yeni sipariş (üretim ekibi)",
       "test": "Test e-postası"
     },
     "notificationTitle": "Sipariş bildirimleri",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "Sepete ekle",
       "mockPaid": "Ödeme alındı",
       "mockShipped": "Kargolandı"
+    },
+    "magic": {
+      "signingIn": "Giriş yapılıyor…",
+      "signingInHint": "Giriş bağlantınız kontrol ediliyor. Bu yalnızca bir an sürer.",
+      "invalidTitle": "Bu giriş bağlantısının süresi dolmuş veya daha önce kullanılmış",
+      "invalidBody": "Güvenliğiniz için her bağlantı yalnızca bir kez ve sınırlı bir süre için çalışır. E-posta adresiniz ve şifrenizle yine giriş yapabilirsiniz.",
+      "goToLogin": "Girişe git",
+      "customerTitle": "Bu bağlantı mağaza içindir",
+      "customerBody": "Hesabınız bir müşteri hesabı. Giriş yapmak için mağazanızı açın.",
+      "networkTitle": "Sunucuya ulaşılamıyor",
+      "networkBody": "İnternet bağlantınızı kontrol edip tekrar deneyin.",
+      "errorTitle": "Bir şeyler ters gitti",
+      "errorBody": "Şu anda giriş yapılamadı. Lütfen biraz sonra tekrar deneyin.",
+      "retry": "Tekrar dene"
     }
   }
 }

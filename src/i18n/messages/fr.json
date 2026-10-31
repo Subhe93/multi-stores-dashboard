@@ -620,6 +620,9 @@
     "emailPasswordRequired": "L'e-mail et le mot de passe sont requis",
     "passwordMin8": "Le mot de passe doit comporter au moins 8 caractères",
     "passwordMin8Label": "Mot de passe * (min 8)",
+    "sendCredentials": "Envoyer les identifiants par e-mail",
+    "sendCredentialsHint": "L’utilisateur reçoit son mot de passe et un lien de connexion en un clic.",
+    "emailLanguage": "Langue de l’e-mail",
     "userCreated": "Utilisateur créé",
     "failedToCreateUser": "Échec de la création de l'utilisateur",
     "userDeleted": "Utilisateur supprimé",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "Nouvelle commande (au propriétaire)",
     "notifEvent_welcome": "Bienvenue (nouveau compte)",
     "notifEvent_password_reset": "Réinitialisation du mot de passe",
+    "notifEvent_account_created": "Compte créé (mot de passe + lien de connexion)",
+    "notifEvent_production_new_order": "Nouvelle commande à produire (équipe de production)",
     "notifEnabled": "Activé",
     "notifDisabled": "Désactivé",
     "notifNeverSaved": "Non configuré",
@@ -2622,7 +2627,9 @@
         "order_refunded": "Commande remboursée",
         "new_order_owner": "Nouvelle commande (pour vous)",
         "welcome": "Bienvenue",
-        "password_reset": "Réinitialisation du mot de passe"
+        "password_reset": "Réinitialisation du mot de passe",
+        "account_created": "Compte créé (mot de passe + lien de connexion)",
+        "production_new_order": "Nouvelle commande à produire (équipe de production)"
       },
       "tabs": {
         "notifications": "Notifications",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "Nouvelle commande (propriétaire)",
       "password_reset": "Réinitialisation du mot de passe",
       "welcome": "Bienvenue",
+      "account_created": "Compte créé (mot de passe + lien de connexion)",
+      "production_new_order": "Nouvelle commande à produire (équipe de production)",
       "test": "E-mail de test"
     },
     "notificationTitle": "Notifications de commande",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "Ajouter au panier",
       "mockPaid": "Paiement encaissé",
       "mockShipped": "Expédiée"
+    },
+    "magic": {
+      "signingIn": "Connexion en cours…",
+      "signingInHint": "Nous vérifions votre lien de connexion. Cela ne prend qu’un instant.",
+      "invalidTitle": "Ce lien de connexion a expiré ou a déjà été utilisé",
+      "invalidBody": "Pour votre sécurité, chaque lien ne fonctionne qu’une seule fois et pendant une durée limitée. Vous pouvez toujours vous connecter avec votre e-mail et votre mot de passe.",
+      "goToLogin": "Aller à la connexion",
+      "customerTitle": "Ce lien est destiné à la boutique",
+      "customerBody": "Votre compte est un compte client. Ouvrez votre boutique pour vous connecter.",
+      "networkTitle": "Impossible de joindre le serveur",
+      "networkBody": "Vérifiez votre connexion Internet et réessayez.",
+      "errorTitle": "Une erreur est survenue",
+      "errorBody": "Nous n’avons pas pu vous connecter pour le moment. Veuillez réessayer dans un instant.",
+      "retry": "Réessayer"
     }
   }
 }

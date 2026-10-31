@@ -385,7 +385,7 @@ export default function CreatorEmailPage() {
                 className="w-full flex items-center justify-between px-6 py-3 hover:bg-zinc-50 transition text-start"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">{t(`events.${row.event}` as never)}</p>
+                  <p className="text-sm font-medium">{t.has(`events.${row.event}` as never) ? t(`events.${row.event}` as never) : row.event}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {row.overridden
                       ? row.enabled

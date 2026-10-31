@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { storefrontBaseUrl } from '@/lib/useStorefrontUrl';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
 
@@ -58,6 +59,7 @@ interface StoreDetails {
   logo_url?: string | null;
   favicon_url?: string | null;
   custom_domain?: string | null;
+  public_host?: string | null;
   is_active: boolean;
   created_at: string;
   creator: {
@@ -167,9 +169,7 @@ export default function ProviderStoreDetails() {
   };
 
   const primaryLocale = store.language_config?.primary_locale || 'en';
-  const storeUrl = store.custom_domain
-    ? `https://${store.custom_domain}`
-    : `${process.env.NEXT_PUBLIC_WEB_URL || ''}/${store.slug}`;
+  const storeUrl = storefrontBaseUrl(store);
 
   return (
     <div className="space-y-6">

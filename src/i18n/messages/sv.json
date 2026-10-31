@@ -620,6 +620,9 @@
     "emailPasswordRequired": "E-post och lösenord krävs",
     "passwordMin8": "Lösenordet måste vara minst 8 tecken",
     "passwordMin8Label": "Lösenord * (min 8)",
+    "sendCredentials": "Skicka inloggningsuppgifter via e-post",
+    "sendCredentialsHint": "Användaren får sitt lösenord och en länk för inloggning med ett klick.",
+    "emailLanguage": "E-postspråk",
     "userCreated": "Användare skapad",
     "failedToCreateUser": "Det gick inte att skapa användaren",
     "userDeleted": "Användare borttagen",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "Ny beställning (till butiksägare)",
     "notifEvent_welcome": "Välkommen (nytt konto)",
     "notifEvent_password_reset": "Lösenordsåterställning",
+    "notifEvent_account_created": "Konto skapat (lösenord + inloggningslänk)",
+    "notifEvent_production_new_order": "Ny order att producera (produktionsteamet)",
     "notifEnabled": "Aktiverad",
     "notifDisabled": "Inaktiverad",
     "notifNeverSaved": "Ej konfigurerad",
@@ -2622,7 +2627,9 @@
         "order_refunded": "Order återbetald",
         "new_order_owner": "Ny order (till dig)",
         "welcome": "Välkommen",
-        "password_reset": "Återställ lösenord"
+        "password_reset": "Återställ lösenord",
+        "account_created": "Konto skapat (lösenord + inloggningslänk)",
+        "production_new_order": "Ny order att producera (produktionsteamet)"
       },
       "tabs": {
         "notifications": "Aviseringar",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "Ny order (butiksägare)",
       "password_reset": "Återställ lösenord",
       "welcome": "Välkommen",
+      "account_created": "Konto skapat (lösenord + inloggningslänk)",
+      "production_new_order": "Ny order att producera (produktionsteamet)",
       "test": "Testmejl"
     },
     "notificationTitle": "Orderaviseringar",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "Lägg i varukorgen",
       "mockPaid": "Betalning mottagen",
       "mockShipped": "Skickad"
+    },
+    "magic": {
+      "signingIn": "Loggar in dig…",
+      "signingInHint": "Vi kontrollerar din inloggningslänk. Det tar bara ett ögonblick.",
+      "invalidTitle": "Den här inloggningslänken har gått ut eller har redan använts",
+      "invalidBody": "För din säkerhet fungerar varje länk bara en gång och under en begränsad tid. Du kan fortfarande logga in med din e-post och ditt lösenord.",
+      "goToLogin": "Gå till inloggning",
+      "customerTitle": "Den här länken är till butiken",
+      "customerBody": "Ditt konto är ett kundkonto. Öppna din butik för att logga in.",
+      "networkTitle": "Servern går inte att nå",
+      "networkBody": "Kontrollera din internetanslutning och försök igen.",
+      "errorTitle": "Något gick fel",
+      "errorBody": "Vi kunde inte logga in dig just nu. Försök igen om en stund.",
+      "retry": "Försök igen"
     }
   }
 }

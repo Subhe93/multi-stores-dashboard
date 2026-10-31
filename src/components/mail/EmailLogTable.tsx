@@ -59,6 +59,8 @@ const KNOWN_EVENTS = new Set([
   'new_order_owner',
   'password_reset',
   'welcome',
+  'account_created',
+  'production_new_order',
   'test',
 ]);
 

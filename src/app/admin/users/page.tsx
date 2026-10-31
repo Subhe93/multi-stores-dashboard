@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,17 @@ import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useBulkAction } from '@/components/common/useBulkAction';
+import { locales } from '@/i18n/config';
+
+// Native language names for the credentials-email language picker.
+const EMAIL_LOCALE_LABELS: Record<string, string> = {
+  en: 'English',
+  ar: 'العربية',
+  tr: 'Türkçe',
+  de: 'Deutsch',
+  fr: 'Français',
+  sv: 'Svenska',
+};
 
 interface User {
   id: string;
@@ -63,6 +74,10 @@ export default function AdminUsers() {
   const bulk = useBulkAction();
   const { token, user: me } = useAuth();
   const router = useRouter();
+  const uiLocale = useLocale();
+  // The credentials email defaults to the admin's dashboard language.
+  const defaultEmailLocale = (locales as readonly string[]).includes(uiLocale) ? uiLocale : 'en';
+  const emailLocaleOptions = locales.map((l) => ({ value: l, label: EMAIL_LOCALE_LABELS[l] ?? l.toUpperCase() }));
 
   const roleOptions = [
     { value: 'CUSTOMER', label: t('roleCustomer'), description: t('roleCustomerDesc') },
@@ -105,6 +120,8 @@ export default function AdminUsers() {
     display_name: '',
     phone: '',
     verified: false,
+    send_credentials: true,
+    locale: defaultEmailLocale,
   });
 
   // Delete dialog
@@ -169,6 +186,8 @@ export default function AdminUsers() {
       display_name: '',
       phone: '',
       verified: false,
+      send_credentials: true,
+      locale: defaultEmailLocale,
     });
     setError('');
   };
@@ -192,7 +211,9 @@ export default function AdminUsers() {
         role: form.role,
         status: form.status,
         phone: form.phone || undefined,
+        send_credentials: form.send_credentials,
       };
+      if (form.send_credentials) payload.locale = form.locale;
       if (form.role === 'CUSTOMER') {
         payload.first_name = form.first_name;
         payload.last_name = form.last_name;
@@ -525,6 +546,34 @@ export default function AdminUsers() {
                 </label>
               </div>
             )}
+
+            {form.role !== 'ADMIN' && <Separator />}
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-start gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={form.send_credentials}
+                  onChange={(e) => setForm({ ...form, send_credentials: e.target.checked })}
+                />
+                <span>
+                  <span className="font-medium">{t('sendCredentials')}</span>
+                  <span className="block text-[11px] text-muted-foreground">{t('sendCredentialsHint')}</span>
+                </span>
+              </label>
+              {form.send_credentials && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('emailLanguage')}</Label>
+                  <SearchableSelect
+                    options={emailLocaleOptions}
+                    value={form.locale}
+                    onChange={(v) => setForm({ ...form, locale: v })}
+                    placeholder={t('emailLanguage')}
+                  />
+                </div>
+              )}
+            </div>
 
             {form.role === 'ADMIN' && (
               <div className="bg-amber-50 text-amber-700 text-xs p-3 rounded-lg border border-amber-200 flex gap-2">

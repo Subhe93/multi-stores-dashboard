@@ -24,6 +24,24 @@ test('isOwnStorefrontUrl: platform subdomain and /store/<slug> path', () => {
   assert.equal(isOwnStorefrontUrl('https://iwings-digital.com/store/namez-se/om-oss', namez, WEB), true);
 });
 
+test('isOwnStorefrontUrl: market hosts from storefront_hosts / public_host', () => {
+  // Legacy custom_domain is a retired host; the store is served on its market domains.
+  const market = {
+    slug: 'namez-se',
+    custom_domain: 'resumely.net',
+    public_host: 'namez.se',
+    storefront_hosts: ['namez.se', 'www.namez.se', 'namez.shop', 'resumely.net'],
+  };
+  assert.equal(isOwnStorefrontUrl('https://namez.se/products/x', market, WEB), true);
+  assert.equal(isOwnStorefrontUrl('https://www.namez.shop/', market, WEB), true);
+  assert.equal(isOwnStorefrontUrl('https://NAMEZ.SHOP/en/', market, WEB), true);
+  assert.equal(isOwnStorefrontUrl('https://resumely.net/', market, WEB), true);
+  assert.equal(isOwnStorefrontUrl('https://namez.de/', market, WEB), false);
+  assert.equal(isOwnStorefrontUrl('https://shop.namez.se/', market, WEB), false);
+  // public_host alone (no storefront_hosts) is honoured too.
+  assert.equal(isOwnStorefrontUrl('https://namez.se/', { slug: 'namez-se', public_host: 'namez.se' }, WEB), true);
+});
+
 test('isOwnStorefrontUrl: anything else is not the own storefront', () => {
   assert.equal(isOwnStorefrontUrl('https://iwings-digital.com/store/namez-se-2/x', namez, WEB), false);
   assert.equal(isOwnStorefrontUrl('https://other-store.iwings-digital.com/', namez, WEB), false);

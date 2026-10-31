@@ -11,14 +11,20 @@ export function withEditHint(href: string, token: string): string {
 }
 
 /**
- * Whether `href` points at this creator's storefront: its public origin
- * (custom domain, with or without www, or the platform subdomain) or the
- * platform's `/store/<slug>` path (redirected to the subdomain, fragment
- * kept by the browser).
+ * Whether `href` points at this creator's storefront: one of its hosts
+ * (custom domain or any served market domain from `storefront_hosts`, each
+ * with or without www, or the platform subdomain) or the platform's
+ * `/store/<slug>` path (redirected to the subdomain, fragment kept by the
+ * browser).
  */
 export function isOwnStorefrontUrl(
   href: string,
-  store: { slug: string; custom_domain?: string | null },
+  store: {
+    slug: string;
+    custom_domain?: string | null;
+    public_host?: string | null;
+    storefront_hosts?: string[] | null;
+  },
   webOrigin: string,
 ): boolean {
   let url: URL;
@@ -30,8 +36,12 @@ export function isOwnStorefrontUrl(
     return false;
   }
   const host = url.host.toLowerCase();
-  const custom = store.custom_domain?.toLowerCase().replace(/^www\./, '');
-  if (custom && (host === custom || host === `www.${custom}`)) return true;
+  const bare = host.replace(/^www\./, '');
+  const own = [store.custom_domain, store.public_host, ...(store.storefront_hosts ?? [])];
+  for (const h of own) {
+    const known = h?.trim().toLowerCase().replace(/^www\./, '');
+    if (known && bare === known) return true;
+  }
   if (host === `${store.slug}.${web.host}`.toLowerCase()) return true;
   return (
     host === web.host.toLowerCase() &&

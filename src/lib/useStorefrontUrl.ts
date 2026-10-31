@@ -12,6 +12,10 @@ export interface MyStoreSummary {
   name: string;
   is_active: boolean;
   custom_domain?: string | null;
+  /** Canonical public host (default market's primary domain, else custom_domain); null = platform subdomain. */
+  public_host?: string | null;
+  /** Every host that serves the storefront (market domains, their redirects, custom_domain). */
+  storefront_hosts?: string[];
   language_config?: { primary_locale?: string; secondary_locales?: string[] } | null;
 }
 
@@ -41,13 +45,18 @@ export function invalidateMyStore(): void {
 }
 
 /**
- * Public origin of a store: its custom domain when set, else the platform
- * subdomain `<slug>.<NEXT_PUBLIC_WEB_URL host>`. Market stores reached on the
- * platform subdomain are redirected by the storefront to the market's public
- * host, so this origin is always a valid entry point.
+ * Public origin of a store: the API's `public_host` (a market store's default
+ * market primary domain; its legacy custom_domain may be a retired host), else
+ * its custom domain, else the platform subdomain
+ * `<slug>.<NEXT_PUBLIC_WEB_URL host>`. Market stores reached on the platform
+ * subdomain are redirected by the storefront to the market's public host, so
+ * this origin is always a valid entry point.
  */
-export function storefrontBaseUrl(store: Pick<MyStoreSummary, 'slug' | 'custom_domain'>): string {
-  if (store.custom_domain) return `https://${store.custom_domain}`;
+export function storefrontBaseUrl(
+  store: Pick<MyStoreSummary, 'slug' | 'custom_domain' | 'public_host'>,
+): string {
+  const host = store.public_host || store.custom_domain;
+  if (host) return `https://${host}`;
   const u = new URL(WEB_ORIGIN);
   return `${u.protocol}//${store.slug}.${u.host}`;
 }

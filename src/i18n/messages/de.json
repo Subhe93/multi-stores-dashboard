@@ -620,6 +620,9 @@
     "emailPasswordRequired": "E-Mail und Passwort sind erforderlich",
     "passwordMin8": "Das Passwort muss mindestens 8 Zeichen lang sein",
     "passwordMin8Label": "Passwort * (mind. 8)",
+    "sendCredentials": "Anmeldedaten per E-Mail senden",
+    "sendCredentialsHint": "Der Nutzer erhält sein Passwort und einen Link zur Anmeldung mit einem Klick.",
+    "emailLanguage": "E-Mail-Sprache",
     "userCreated": "Benutzer erstellt",
     "failedToCreateUser": "Benutzer konnte nicht erstellt werden",
     "userDeleted": "Benutzer gelöscht",
@@ -753,6 +756,8 @@
     "notifEvent_new_order_owner": "Neue Bestellung (an Shop-Inhaber)",
     "notifEvent_welcome": "Willkommen (neues Konto)",
     "notifEvent_password_reset": "Passwort zurücksetzen",
+    "notifEvent_account_created": "Konto erstellt (Passwort + Anmeldelink)",
+    "notifEvent_production_new_order": "Neuer Produktionsauftrag (Produktionsteam)",
     "notifEnabled": "Aktiviert",
     "notifDisabled": "Deaktiviert",
     "notifNeverSaved": "Nicht konfiguriert",
@@ -2622,7 +2627,9 @@
         "order_refunded": "Bestellung erstattet",
         "new_order_owner": "Neue Bestellung (an Sie)",
         "welcome": "Willkommen",
-        "password_reset": "Passwort zurücksetzen"
+        "password_reset": "Passwort zurücksetzen",
+        "account_created": "Konto erstellt (Passwort + Anmeldelink)",
+        "production_new_order": "Neuer Produktionsauftrag (Produktionsteam)"
       },
       "tabs": {
         "notifications": "Benachrichtigungen",
@@ -6521,6 +6528,8 @@
       "new_order_owner": "Neue Bestellung (Shop-Inhaber)",
       "password_reset": "Passwort zurücksetzen",
       "welcome": "Willkommen",
+      "account_created": "Konto erstellt (Passwort + Anmeldelink)",
+      "production_new_order": "Neuer Produktionsauftrag (Produktionsteam)",
       "test": "Test-E-Mail"
     },
     "notificationTitle": "Bestellbenachrichtigungen",
@@ -6652,6 +6661,20 @@
       "mockAddToCart": "In den Warenkorb",
       "mockPaid": "Zahlung erhalten",
       "mockShipped": "Versendet"
+    },
+    "magic": {
+      "signingIn": "Du wirst angemeldet…",
+      "signingInHint": "Wir prüfen deinen Anmeldelink. Das dauert nur einen Moment.",
+      "invalidTitle": "Dieser Anmeldelink ist abgelaufen oder wurde bereits verwendet",
+      "invalidBody": "Zu deiner Sicherheit funktioniert jeder Link nur einmal und für begrenzte Zeit. Du kannst dich weiterhin mit E-Mail und Passwort anmelden.",
+      "goToLogin": "Zur Anmeldung",
+      "customerTitle": "Dieser Link ist für den Shop",
+      "customerBody": "Dein Konto ist ein Kundenkonto. Öffne deinen Shop, um dich anzumelden.",
+      "networkTitle": "Server nicht erreichbar",
+      "networkBody": "Prüfe deine Internetverbindung und versuche es erneut.",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "errorBody": "Wir konnten dich gerade nicht anmelden. Bitte versuche es gleich noch einmal.",
+      "retry": "Erneut versuchen"
     }
   }
 }
