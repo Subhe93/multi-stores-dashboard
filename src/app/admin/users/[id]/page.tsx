@@ -21,6 +21,7 @@ import { ArrowLeft, Pencil, Key, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth, type ProviderProfile, type CreatorProfile, type CustomerProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import { ReauthCancelled, useAdminGrant } from '@/components/security/useAdminGrant';
 
 // Saved customer address (only the fields this page renders).
 interface CustomerAddress {
@@ -48,6 +49,7 @@ interface AdminUserDetail {
   provider?: ProviderProfile | null;
   creator?: CreatorProfile | null;
   customer?: AdminCustomerProfile | null;
+  two_factor_enabled?: boolean;
 }
 
 export default function UserDetailPage() {
@@ -81,6 +83,8 @@ export default function UserDetailPage() {
   // Password form
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // Email, password, staff status and delete need the admin's step-up.
+  const grant = useAdminGrant();
 
   const fetchUser = () => {
     if (!token || !id) return;
@@ -128,7 +132,9 @@ export default function UserDetailPage() {
     setSaving(true);
     setError('');
     try {
-      const payload: Record<string, unknown> = { email: editEmail };
+      const payload: Record<string, unknown> = {};
+      const emailChanged = editEmail.trim() !== user.email;
+      if (emailChanged) payload.email = editEmail.trim();
       if (user.role === 'PROVIDER') {
         payload.company_name = editCompany;
         payload.description = editDescription || null;
@@ -145,15 +151,19 @@ export default function UserDetailPage() {
         payload.last_name = editLastName;
         payload.phone = editPhone || null;
       }
-      await api(`/admin/users/${id}`, {
-        method: 'PUT',
-        token,
-        body: JSON.stringify(payload),
-      });
+      const send = (reauth_token?: string) =>
+        api(`/admin/users/${id}`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ ...payload, reauth_token }),
+        });
+      if (emailChanged) await grant.run(send);
+      else await send();
       setShowEditProfile(false);
       flash(t('profileUpdated'));
       fetchUser();
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToUpdateProfile'));
     } finally {
       setSaving(false);
@@ -173,16 +183,19 @@ export default function UserDetailPage() {
     }
     setSaving(true);
     try {
-      await api(`/admin/users/${id}/password`, {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ password: newPassword }),
-      });
+      await grant.run((reauth_token) =>
+        api(`/admin/users/${id}/password`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ password: newPassword, reauth_token }),
+        }),
+      );
       setShowResetPassword(false);
       setNewPassword('');
       setConfirmPassword('');
       flash(t('passwordResetDone'));
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToResetPassword'));
     } finally {
       setSaving(false);
@@ -192,14 +205,18 @@ export default function UserDetailPage() {
   const handleStatusChange = async (status: string) => {
     if (!token) return;
     try {
-      await api(`/admin/users/${id}/status`, {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ status }),
-      });
+      const send = (reauth_token?: string) =>
+        api(`/admin/users/${id}/status`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ status, reauth_token }),
+        });
+      if (user?.role === 'CUSTOMER') await send();
+      else await grant.run(send);
       flash(t('statusChangedTo', { status }));
       fetchUser();
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToUpdateStatus'));
     }
   };
@@ -209,11 +226,18 @@ export default function UserDetailPage() {
     setSaving(true);
     setError('');
     try {
-      await api(`/admin/users/${id}`, { method: 'DELETE', token });
+      await grant.run((reauth_token) =>
+        api(`/admin/users/${id}`, {
+          method: 'DELETE',
+          token,
+          body: JSON.stringify({ reauth_token }),
+        }),
+      );
       router.push('/admin/users');
     } catch (err) {
-      setError((err instanceof Error && err.message) || t('failedToDeleteUser'));
       setSaving(false);
+      if (err instanceof ReauthCancelled) return;
+      setError((err instanceof Error && err.message) || t('failedToDeleteUser'));
     }
   };
 
@@ -374,6 +398,36 @@ export default function UserDetailPage() {
                 <>
                   <Separator />
                   <Button variant="outline" size="sm" className="w-full text-xs text-red-600" onClick={() => handleStatusChange('BANNED')}>{t('banAccount')}</Button>
+                </>
+              )}
+              {!isSelf && user.two_factor_enabled && (
+                <>
+                  <Separator />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() =>
+                      void grant
+                        .run((reauth_token) =>
+                          api(`/admin/users/${id}/2fa/reset`, {
+                            method: 'POST',
+                            token: token!,
+                            body: JSON.stringify({ reauth_token }),
+                          }),
+                        )
+                        .then(() => {
+                          flash(t('twoFactorResetDone'));
+                          fetchUser();
+                        })
+                        .catch((err: unknown) => {
+                          if (err instanceof ReauthCancelled) return;
+                          setError((err instanceof Error && err.message) || t('failedToUpdateStatus'));
+                        })
+                    }
+                  >
+                    {t('resetTwoFactor')}
+                  </Button>
                 </>
               )}
               {!isSelf && (
@@ -579,6 +633,8 @@ export default function UserDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {grant.dialog}
     </div>
   );
 }

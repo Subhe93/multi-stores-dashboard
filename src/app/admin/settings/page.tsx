@@ -14,6 +14,10 @@ import { api } from '@/lib/api';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
 import { AdminFxRatesCard } from '@/components/markets/AdminFxRatesCard';
+import { TwoFactorCard } from '@/components/security/TwoFactorCard';
+import { useReauth } from '@/components/security/ReauthDialog';
+import { useApiError } from '@/lib/useApiError';
+import type { ReauthCredentials } from '@/lib/twoFactor';
 
 interface PlatformConfig {
   commission_type: string;
@@ -65,7 +69,10 @@ const ALL_LOCALE_CODES = LOCALES.map(l => l.value);
 
 export default function AdminSettings() {
   const t = useTranslations('admin');
+  const ts = useTranslations('security');
   const { token } = useAuth();
+  const apiError = useApiError();
+  const reauth = useReauth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -100,6 +107,7 @@ export default function AdminSettings() {
   const [kustomPartnerId, setKustomPartnerId] = useState('');
   const [stripeSaving, setStripeSaving] = useState(false);
   const [stripeSaved, setStripeSaved] = useState(false);
+  const [stripeError, setStripeError] = useState('');
 
   // Platform SMTP settings (admin-only; password never returned).
   const [smtp, setSmtp] = useState<SmtpSettings>({
@@ -152,35 +160,48 @@ export default function AdminSettings() {
       .catch(console.error);
   }, [token]);
 
+  // Throws on failure so the re-auth dialog can show the error and retry.
+  const saveStripe = async (body: Record<string, string>, credentials?: ReauthCredentials) => {
+    const updated = await api<StripeSettings>('/payments/admin/settings', {
+      method: 'PUT',
+      token: token ?? undefined,
+      body: JSON.stringify({ ...body, ...(credentials ?? {}) }),
+    });
+    setStripe(updated);
+    setStripePublishable(updated.publishableKey || '');
+    setKustomPartnerId(updated.kustomPartnerId || '');
+    setStripeSecret('');
+    setStripeWebhook('');
+    setStripeConnectWebhook('');
+    setStripeSaved(true);
+    setTimeout(() => setStripeSaved(false), 3000);
+  };
+
   const handleSaveStripe = async () => {
-    if (!token) return;
-    setStripeSaving(true);
+    if (!token || stripeSaving) return;
     setStripeSaved(false);
+    setStripeError('');
+    const body: Record<string, string> = {
+      // Always sent: an empty string clears the partner id (not a credential).
+      kustom_partner_id: kustomPartnerId.trim(),
+    };
+    // Credentials are sent only when changed: each one needs re-authentication.
+    if (stripePublishable.trim() !== (stripe.publishableKey || '')) body.publishable_key = stripePublishable.trim();
+    if (stripeSecret.trim()) body.secret_key = stripeSecret.trim();
+    if (stripeWebhook.trim()) body.webhook_secret = stripeWebhook.trim();
+    if (stripeConnectWebhook.trim()) body.connect_webhook_secret = stripeConnectWebhook.trim();
+    const touchesCredentials = ['publishable_key', 'secret_key', 'webhook_secret', 'connect_webhook_secret'].some(
+      (k) => k in body,
+    );
+    if (touchesCredentials) {
+      reauth.request((credentials) => saveStripe(body, credentials), ts('reauth.stripeDescription'));
+      return;
+    }
+    setStripeSaving(true);
     try {
-      const body: Record<string, string> = {
-        publishable_key: stripePublishable,
-        // Always sent: an empty string clears the partner id.
-        kustom_partner_id: kustomPartnerId.trim(),
-      };
-      // Only send secrets when the admin typed a new value; blank leaves them unchanged.
-      if (stripeSecret.trim()) body.secret_key = stripeSecret.trim();
-      if (stripeWebhook.trim()) body.webhook_secret = stripeWebhook.trim();
-      if (stripeConnectWebhook.trim()) body.connect_webhook_secret = stripeConnectWebhook.trim();
-      const updated = await api<StripeSettings>('/payments/admin/settings', {
-        method: 'PUT',
-        token,
-        body: JSON.stringify(body),
-      });
-      setStripe(updated);
-      setStripePublishable(updated.publishableKey || '');
-      setKustomPartnerId(updated.kustomPartnerId || '');
-      setStripeSecret('');
-      setStripeWebhook('');
-      setStripeConnectWebhook('');
-      setStripeSaved(true);
-      setTimeout(() => setStripeSaved(false), 3000);
+      await saveStripe(body);
     } catch (err) {
-      console.error(err);
+      setStripeError(apiError(err));
     } finally {
       setStripeSaving(false);
     }
@@ -516,6 +537,10 @@ export default function AdminSettings() {
         </CardContent>
       </Card>
 
+      {/* Two-step verification for this admin account (required before
+          platform payment keys can be changed). */}
+      <TwoFactorCard />
+
       {/* Payments — platform Stripe account */}
       <Card className="shadow-none">
         <CardHeader className="pb-3">
@@ -608,7 +633,9 @@ export default function AdminSettings() {
             <p className="text-[10px] text-muted-foreground">{t('kustomPartnerIdHint')}</p>
           </div>
 
+          <p className="text-[11px] text-muted-foreground">{ts('reauth.stripeNote')}</p>
           <div className="flex items-center gap-3 justify-end">
+            {stripeError && <span className="text-xs text-destructive">{stripeError}</span>}
             {stripeSaved && <span className="text-xs text-emerald-600 font-medium">{t('settingsSavedSuccessfully')}</span>}
             <Button size="sm" onClick={handleSaveStripe} disabled={stripeSaving}>
               {stripeSaving ? t('saving') : t('saveSettings')}
@@ -693,6 +720,8 @@ export default function AdminSettings() {
 
       {/* Platform FX rates for the Markets app (saved by its own button). */}
       <AdminFxRatesCard />
+
+      {reauth.dialog}
 
       <div className="flex items-center gap-3 justify-end">
         {saved && <span className="text-xs text-emerald-600 font-medium">{t('settingsSavedSuccessfully')}</span>}

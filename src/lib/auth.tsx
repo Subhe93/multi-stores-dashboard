@@ -39,6 +39,8 @@ export interface User {
   provider?: ProviderProfile | null;
   creator?: CreatorProfile | null;
   customer?: CustomerProfile | null;
+  /** True when the account signs in with an authenticator code (GET /auth/me). */
+  two_factor_enabled?: boolean;
 }
 
 /** Body returned by /auth/login and /auth/magic-login. */
@@ -48,12 +50,38 @@ export interface AuthTokens {
   refresh_token: string;
 }
 
+/** Returned by /auth/login and /auth/magic-login instead of tokens when the
+ *  account has two-factor authentication: a code is still needed. */
+export interface TwoFactorChallenge {
+  requires_2fa: true;
+  challenge_token: string;
+  expires_in: number;
+}
+
+export function isTwoFactorChallenge(data: unknown): data is TwoFactorChallenge {
+  return (
+    !!data &&
+    typeof data === 'object' &&
+    (data as { requires_2fa?: unknown }).requires_2fa === true &&
+    typeof (data as { challenge_token?: unknown }).challenge_token === 'string'
+  );
+}
+
+/** Outcome of a password login: signed in, or a second step is needed. */
+export type LoginResult =
+  | { status: 'signed_in' }
+  | { status: 'two_factor'; challenge: string };
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   loginWithTokens: (data: AuthTokens) => Promise<void>;
+  /** Finish a 2FA sign-in with an authenticator or recovery code. */
+  verifyTwoFactorLogin: (challenge: string, code: string) => Promise<void>;
+  /** Reload /auth/me (e.g. after two-factor authentication was turned on/off). */
+  refreshProfile: () => Promise<void>;
   /** Swap in a fresh token pair for the signed-in account (change-password
    *  returns one: the API revokes every token issued before the change). */
   replaceTokens: (data: { access_token: string; refresh_token: string }) => void;
@@ -114,13 +142,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push(roleHomePath(data.user.role) || '/');
   }, [router]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const data = await api<AuthTokens>('/auth/login', {
+  const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+    const data = await api<AuthTokens | TwoFactorChallenge>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    if (isTwoFactorChallenge(data)) {
+      return { status: 'two_factor', challenge: data.challenge_token };
+    }
+    await loginWithTokens(data);
+    return { status: 'signed_in' };
+  }, [loginWithTokens]);
+
+  const verifyTwoFactorLogin = useCallback(async (challenge: string, code: string) => {
+    const data = await api<AuthTokens>('/auth/2fa/verify-login', {
+      method: 'POST',
+      body: JSON.stringify({ challenge_token: challenge, code }),
+    });
     await loginWithTokens(data);
   }, [loginWithTokens]);
+
+  const refreshProfile = useCallback(async () => {
+    const current = localStorage.getItem('auth_token');
+    if (!current) return;
+    try {
+      const profile = await api<User>('/auth/me', { token: current });
+      setUser(profile);
+    } catch {
+      // Keep the current profile; the next page load fetches it again.
+    }
+  }, []);
 
   const replaceTokens = useCallback((data: { access_token: string; refresh_token: string }) => {
     localStorage.setItem('auth_token', data.access_token);
@@ -146,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithTokens, replaceTokens, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithTokens, verifyTwoFactorLogin, refreshProfile, replaceTokens, logout }}>
       {children}
     </AuthContext.Provider>
   );

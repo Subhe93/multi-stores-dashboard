@@ -345,7 +345,8 @@
     "appsGroup": "Uygulamalar",
     "manageApps": "Uygulamaları yönet",
     "notifications": "Bildirimler",
-    "customers": "Müşteriler"
+    "customers": "Müşteriler",
+    "securityLog": "Güvenlik günlüğü"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -841,7 +842,10 @@
       "allStores": "Tüm mağazalar"
     },
     "customersCreateHint": "Müşteriler bir mağazaya aittir, bu yüzden Müşteriler sayfasından eklenir.",
-    "customersCreateLink": "Müşterileri aç"
+    "customersCreateLink": "Müşterileri aç",
+    "resetTwoFactor": "İki adımlı doğrulamayı sıfırla",
+    "twoFactorResetConfirm": "Bu hesabın iki adımlı doğrulamasını kapatın (telefon ve kurtarma kodları kaybolduysa). Kendi şifreniz ve kodunuzla onaylayın.",
+    "twoFactorResetDone": "Bu hesap için iki adımlı doğrulama kapatıldı"
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -5635,7 +5639,18 @@
     "STORE_REQUIRED": "Müşteri hesapları için mağaza gereklidir.",
     "CUSTOMER_STORE_MISMATCH": "Bu müşteri başka bir mağazaya ait.",
     "NOT_CUSTOMER_ACCOUNT": "Bu hesap bir müşteri hesabı değil.",
-    "CUSTOMER_NOT_FOUND": "Müşteri bulunamadı."
+    "CUSTOMER_NOT_FOUND": "Müşteri bulunamadı.",
+    "TWO_FACTOR_CHALLENGE_INVALID": "Oturum açma çok uzun sürdü. Lütfen yeniden giriş yapın.",
+    "TWO_FACTOR_CODE_INVALID": "Kod hatalı. Kimlik doğrulama uygulamanızı kontrol edip tekrar deneyin.",
+    "TWO_FACTOR_LOCKED": "Çok fazla hatalı kod. Lütfen birkaç dakika bekleyip tekrar deneyin.",
+    "TWO_FACTOR_NOT_AVAILABLE": "Bu hesap için iki adımlı doğrulama kullanılamaz.",
+    "TWO_FACTOR_ALREADY_ENABLED": "İki adımlı doğrulama zaten açık.",
+    "TWO_FACTOR_NOT_ENABLED": "İki adımlı doğrulama açık değil.",
+    "TWO_FACTOR_SETUP_MISSING": "Kurulumun süresi doldu. İki adımlı doğrulamayı açmaya yeniden başlayın.",
+    "REAUTH_REQUIRED": "Bu değişikliği onaylamak için mevcut şifrenizi girin.",
+    "REAUTH_PASSWORD_INVALID": "Şifre hatalı.",
+    "REAUTH_2FA_REQUIRED": "Platform ödeme anahtarlarını değiştirmeden önce iki adımlı doğrulamayı açın.",
+    "TWO_FACTOR_RESET_SELF": "Kendi iki adımlı doğrulamanızı sıfırlamak için kurtarma kodlarınızı kullanın."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -5783,6 +5798,12 @@
     "canonicalPlaceholder": "https://example.com/page",
     "savingEllipsis": "Kaydediliyor…",
     "saveSeo": "SEO’yu kaydet",
+    "pageUrl": "URL",
+    "pageUrlHint": "Sayfanın mağazanızdaki adresi. Alandan çıktığınızda boşluklar ve semboller düzenlenir.",
+    "pageUrlRedirectHint": "Eski adres {from}, {to} adresine yönlendirilecek.",
+    "pageUrlConfirmTitle": "Sayfanın adresi değiştirilsin mi?",
+    "pageUrlConfirmBody": "Bu sayfa yayında. Eski adresi kullanan ziyaretçiler ve arama motorları otomatik olarak yeni adrese yönlendirilir (301).",
+    "pageUrlConfirmAction": "Adresi değiştir",
     "confirmRestore": "Bu sürüm geri yüklensin mi? Yayınlanmamış mevcut değişiklikler değiştirilecek.",
     "failedToRestore": "Geri yükleme başarısız",
     "versionHistory": "Sürüm geçmişi",
@@ -5912,13 +5933,7 @@
       },
       "overlay": "Görseli karart",
       "previewHint": "Değişiklikler otomatik kaydedilir. Görmek için mağazanızda /auth/login sayfasını açın."
-    },
-    "pageUrl": "URL",
-    "pageUrlHint": "Sayfanın mağazanızdaki adresi. Alandan çıktığınızda boşluklar ve semboller düzenlenir.",
-    "pageUrlRedirectHint": "Eski adres {from}, {to} adresine yönlendirilecek.",
-    "pageUrlConfirmTitle": "Sayfanın adresi değiştirilsin mi?",
-    "pageUrlConfirmBody": "Bu sayfa yayında. Eski adresi kullanan ziyaretçiler ve arama motorları otomatik olarak yeni adrese yönlendirilir (301).",
-    "pageUrlConfirmAction": "Adresi değiştir"
+    }
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",
@@ -6877,7 +6892,8 @@
       "mockInStock": "Stokta",
       "mockAddToCart": "Sepete ekle",
       "mockPaid": "Ödeme alındı",
-      "mockShipped": "Kargolandı"
+      "mockShipped": "Kargolandı",
+      "twoFactorExpired": "Oturum açma çok uzun sürdü. Lütfen e-postanızı ve şifrenizi yeniden girin."
     },
     "magic": {
       "signingIn": "Giriş yapılıyor…",
@@ -6891,7 +6907,133 @@
       "networkBody": "İnternet bağlantınızı kontrol edip tekrar deneyin.",
       "errorTitle": "Bir şeyler ters gitti",
       "errorBody": "Şu anda giriş yapılamadı. Lütfen biraz sonra tekrar deneyin.",
-      "retry": "Tekrar dene"
+      "retry": "Tekrar dene",
+      "twoFactorExpiredTitle": "Oturum açma süresi doldu",
+      "twoFactorExpiredBody": "Doğrulama adımının süresi doldu. Güvenliğiniz için e-postanız ve şifrenizle yeniden giriş yapın."
+    },
+    "twoFactor": {
+      "title": "İki adımlı doğrulama",
+      "subtitle": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin.",
+      "recoverySubtitle": "İki adımlı doğrulamayı kurarken kaydettiğiniz kurtarma kodlarından birini girin.",
+      "codeLabel": "Doğrulama kodu",
+      "recoveryLabel": "Kurtarma kodu",
+      "verify": "Doğrula",
+      "verifying": "Doğrulanıyor…",
+      "back": "Girişe dön",
+      "useRecovery": "Kurtarma kodu kullan",
+      "useApp": "Doğrulama uygulamasını kullan",
+      "locked": "Çok fazla hatalı kod. {minutes} dakika sonra tekrar deneyin.",
+      "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin."
+    }
+  },
+  "security": {
+    "reauth": {
+      "title": "Kimliğinizi doğrulayın",
+      "description": "Bu değişiklik ödemelerin nereye gideceğini etkiler. Devam etmek için şifrenizi girin.",
+      "password": "Mevcut şifre",
+      "code": "Doğrulama kodu",
+      "codeHint": "Kimlik doğrulama uygulamanızdaki 6 haneli kod.",
+      "passwordRequired": "Mevcut şifrenizi girin.",
+      "codeRequired": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin.",
+      "locked": "Çok fazla başarısız deneme. {minutes} dakika sonra tekrar deneyin.",
+      "setupRequired": "Platform ödeme anahtarları yalnızca iki adımlı doğrulaması açık bir hesaptan değiştirilebilir. Önce açın, sonra tekrar deneyin.",
+      "setupButton": "İki adımlı doğrulamayı kur",
+      "cancel": "İptal",
+      "confirm": "Onayla",
+      "stripeDescription": "Platformun Stripe anahtarlarını değiştiriyorsunuz. Kaydetmek için kimliğinizi doğrulayın.",
+      "stripeNote": "Herhangi bir anahtarı değiştirmek şifrenizi ve iki adımlı doğrulama kodunu gerektirir. Her değişiklik güvenlik günlüğüne kaydedilir ve tüm yöneticilere e-postayla bildirilir.",
+      "disconnectDescription": "Bağlantıyı kesmek, yeniden bir hesap bağlanana kadar kartla ödemeleri durdurur. Devam etmek için kimliğinizi doğrulayın.",
+      "kustomDescription": "Kustom satıcı bilgilerinizi değiştiriyorsunuz. Kaydetmek için kimliğinizi doğrulayın.",
+      "kustomRemoveDescription": "Kustom bilgilerini kaldırmak ödeme sayfasında Kustom’u kapatır. Devam etmek için kimliğinizi doğrulayın.",
+      "adminDescription": "Platforma kimlerin erişebileceğini değiştiriyorsunuz. Kimliğinizi doğrulayın — onay 5 dakika geçerli kalır.",
+      "setupRequiredAdmin": "Hesapları yönetmek için kendi hesabınızda iki adımlı doğrulama gerekir. Önce açın, sonra tekrar deneyin.",
+      "kustomEnvironmentDescription": "Kustom ortamını değiştirmek, canlı ödemelerinizi hangi Kustom sisteminin alacağını değiştirir. Devam etmek için kimliğinizi doğrulayın."
+    },
+    "twoFactor": {
+      "title": "İki adımlı doğrulama",
+      "statusOn": "Açık",
+      "statusOff": "Kapalı",
+      "description": "Hesabınızı şifrenize ek olarak bir kimlik doğrulama uygulamasındaki kodla koruyun (Google Authenticator, Microsoft Authenticator, 1Password…).",
+      "loadFailed": "İki adımlı doğrulama durumu yüklenemedi.",
+      "retry": "Tekrar dene",
+      "enabledSince": "{date} tarihinden beri açık.",
+      "enabledShort": "İki adımlı doğrulama açık.",
+      "recoveryRemaining": "{count, plural, =0 {Kurtarma kodu kalmadı.} other {# kurtarma kodu kaldı.}}",
+      "recoveryLow": "Kurtarma kodlarınız azalıyor. Hesabınıza erişimi kaybetmemek için yenilerini oluşturun.",
+      "regenerate": "Yeni kurtarma kodları",
+      "disable": "Kapat",
+      "enable": "Aç",
+      "locked": "Çok fazla başarısız deneme. {minutes} dakika sonra tekrar deneyin.",
+      "currentPassword": "Mevcut şifre",
+      "code": "Doğrulama kodu",
+      "enableTitle": "İki adımlı doğrulamayı aç",
+      "enablePasswordHint": "Başlamak için mevcut şifrenizi girin.",
+      "cancel": "İptal",
+      "continue": "Devam",
+      "scanTitle": "QR kodunu tarayın",
+      "scanHint": "Kimlik doğrulama uygulamanızı açın, bu kodu tarayın ve gösterilen 6 haneli kodu girin.",
+      "qrAlt": "Kimlik doğrulama uygulaması için QR kodu",
+      "manualHint": "Tarayamıyor musunuz? Bu anahtarı uygulamaya elle girin:",
+      "copySecret": "Anahtarı kopyala",
+      "activate": "Aç",
+      "codesTitle": "Kurtarma kodlarınızı kaydedin",
+      "codesHint": "Telefonunuzu kaybederseniz bu kodların her biri bir kez giriş yapmanızı sağlar. Yalnızca şimdi gösterilirler — güvenli bir yerde saklayın.",
+      "copied": "Kopyalandı",
+      "copyCodes": "Kodları kopyala",
+      "downloadCodes": ".txt indir",
+      "codesFileHeading": "İki adımlı doğrulama kurtarma kodları (her biri bir kez çalışır)",
+      "codesSavedConfirm": "Bu kodları güvenli bir yere kaydettim",
+      "done": "Tamam",
+      "disableTitle": "İki adımlı doğrulamayı kapat",
+      "disableHint": "Hesabınız yalnızca şifrenizle korunacak. Onaylamak için şifrenizi ve güncel bir kodu girin.",
+      "regenerateTitle": "Yeni kurtarma kodları oluştur",
+      "regenerateHint": "Eski kurtarma kodlarınız çalışmayı bırakacak. Onaylamak için şifrenizi ve güncel bir kodu girin.",
+      "disableConfirm": "Kapat",
+      "regenerateConfirm": "Kod oluştur"
+    },
+    "log": {
+      "title": "Güvenlik günlüğü",
+      "subtitle": "Ödeme anahtarlarında ve iki adımlı doğrulamada yapılan her değişiklik; kim tarafından ve nereden yapıldığıyla.",
+      "allActions": "Tüm olaylar",
+      "refresh": "Yenile",
+      "time": "Zaman",
+      "action": "Olay",
+      "actor": "Yapan",
+      "target": "Hedef",
+      "fields": "Değişen alanlar",
+      "ip": "IP adresi",
+      "empty": "Henüz güvenlik olayı yok.",
+      "loadFailed": "Güvenlik günlüğü yüklenemedi.",
+      "note": "Bu günlük düzenlenemez veya silinemez. Gizli değerler asla kaydedilmez — yalnızca değişen alanların adları.",
+      "pageOf": "Sayfa {page}/{pages} · {total} olay",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "targetPlatform": "Platform",
+      "actions": {
+        "payment_keys_platform_updated": "Platform ödeme anahtarları değişti",
+        "payment_keys_kustom_updated": "Kustom bilgileri değişti",
+        "payment_keys_stripe_connect_disconnected": "Stripe hesabı bağlantısı kesildi",
+        "two_factor_enabled": "İki adımlı doğrulama açıldı",
+        "two_factor_disabled": "İki adımlı doğrulama kapatıldı",
+        "two_factor_recovery_regenerated": "Kurtarma kodları yenilendi",
+        "two_factor_recovery_used": "Kurtarma koduyla giriş",
+        "two_factor_login_failed": "Hatalı giriş kodu",
+        "two_factor_locked": "Hatalı kodlar sonrası kilit",
+        "reauth_failed": "Kimlik doğrulama başarısız",
+        "two_factor_reset_by_admin": "İki adımlı doğrulama bir yönetici tarafından sıfırlandı",
+        "user_created_staff": "Ekip hesabı oluşturuldu",
+        "user_email_changed_by_admin": "E-posta bir yönetici tarafından değiştirildi",
+        "user_password_reset_by_admin": "Şifre bir yönetici tarafından sıfırlandı",
+        "user_status_changed": "Hesap durumu değiştirildi",
+        "user_deleted_by_admin": "Hesap bir yönetici tarafından silindi",
+        "reauth_granted": "Hesap yönetimi için kimlik doğrulandı (5 dk)"
+      },
+      "roles": {
+        "ADMIN": "Yönetici",
+        "CREATOR": "Mağaza sahibi",
+        "PROVIDER": "Tedarikçi",
+        "CUSTOMER": "Müşteri"
+      }
     }
   }
 }

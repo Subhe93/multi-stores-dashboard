@@ -2,27 +2,31 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, LinkIcon, LoaderCircle, RotateCw, ShieldCheck, Store, WifiOff, CircleAlert } from 'lucide-react';
+import { ArrowRight, Clock, LinkIcon, LoaderCircle, RotateCw, ShieldCheck, Store, WifiOff, CircleAlert } from 'lucide-react';
 import { api } from '@/lib/api';
-import { useAuth, type AuthTokens } from '@/lib/auth';
+import { isTwoFactorChallenge, useAuth, type AuthTokens, type TwoFactorChallenge } from '@/lib/auth';
 import { classifyMagicError, hasMagicToken, readMagicToken, roleHomePath, stripMagicToken, type MagicFailure } from '@/lib/magicLogin';
 import { usePlatformName } from '@/lib/usePlatformName';
 import { DashboardLocaleSwitcher } from '@/components/common/DashboardLocaleSwitcher';
 import { cn } from '@/lib/utils';
+import { TwoFactorPrompt } from '@/components/auth/TwoFactorPrompt';
 import { BrandPanel, MobileBrandBand } from '../login/BrandPanel';
 
-type Phase = 'loading' | 'customer' | MagicFailure;
+// twoFactor: the link was accepted but the account needs a code;
+// expired: that second step timed out (the link is already used).
+type Phase = 'loading' | 'customer' | 'twoFactor' | 'expired' | MagicFailure;
 
 // One request per token for the lifetime of the page. The token is single use,
 // so React strict mode's double effect (or a remount) must reuse the same
 // in-flight request instead of firing a second one that would always fail.
-const exchanges = new Map<string, Promise<AuthTokens>>();
+const exchanges = new Map<string, Promise<AuthTokens | TwoFactorChallenge>>();
 
-function exchangeToken(token: string): Promise<AuthTokens> {
+function exchangeToken(token: string): Promise<AuthTokens | TwoFactorChallenge> {
   let pending = exchanges.get(token);
   if (!pending) {
-    pending = api<AuthTokens>('/auth/magic-login', {
+    pending = api<AuthTokens | TwoFactorChallenge>('/auth/magic-login', {
       method: 'POST',
       body: JSON.stringify({ token }),
     });
@@ -38,11 +42,13 @@ function exchangeToken(token: string): Promise<AuthTokens> {
 
 export default function MagicLoginPage() {
   const { loginWithTokens } = useAuth();
+  const router = useRouter();
   const platformName = usePlatformName();
   const t = useTranslations('auth.magic');
   const tl = useTranslations('auth.login');
   const [phase, setPhase] = useState<Phase>('loading');
   const [attempt, setAttempt] = useState(0);
+  const [challenge, setChallenge] = useState<string | null>(null);
   // Read once: the URL is cleaned right after, so later effect runs use the ref.
   const tokenRef = useRef<string | null | undefined>(undefined);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -70,6 +76,11 @@ export default function MagicLoginPage() {
     exchange
       .then(async (data) => {
         if (cancelled) return;
+        if (isTwoFactorChallenge(data)) {
+          setChallenge(data.challenge_token);
+          setPhase('twoFactor');
+          return;
+        }
         // Customer accounts sign in on their store, never on the dashboard.
         if (!roleHomePath(data.user?.role)) {
           setPhase('customer');
@@ -87,7 +98,7 @@ export default function MagicLoginPage() {
 
   // Move focus to the result so screen-reader and keyboard users notice it.
   useEffect(() => {
-    if (phase !== 'loading') headingRef.current?.focus();
+    if (phase !== 'loading' && phase !== 'twoFactor') headingRef.current?.focus();
   }, [phase]);
 
   const retry = useCallback(() => {
@@ -101,6 +112,9 @@ export default function MagicLoginPage() {
     customer: { icon: Store, tone: 'neutral', title: t('customerTitle'), body: t('customerBody') },
     network: { icon: WifiOff, tone: 'warn', title: t('networkTitle'), body: t('networkBody') },
     error: { icon: CircleAlert, tone: 'warn', title: t('errorTitle'), body: t('errorBody') },
+    expired: { icon: Clock, tone: 'warn', title: t('twoFactorExpiredTitle'), body: t('twoFactorExpiredBody') },
+    // Not rendered through this view (TwoFactorPrompt replaces it).
+    twoFactor: { icon: ShieldCheck, tone: 'neutral', title: '', body: '' },
   }[phase];
   const Icon = view.icon;
   const canRetry = phase === 'network' || phase === 'error';
@@ -121,6 +135,18 @@ export default function MagicLoginPage() {
         </header>
 
         <div className="flex flex-1 justify-center px-6 pt-9 pb-10 sm:px-10 lg:items-center lg:py-10">
+          {phase === 'twoFactor' && challenge ? (
+          <div key="two-factor" className="login-rise w-full max-w-[380px]">
+            <TwoFactorPrompt
+              challenge={challenge}
+              onBack={() => router.push('/auth/login')}
+              onChallengeInvalid={() => {
+                setChallenge(null);
+                setPhase('expired');
+              }}
+            />
+          </div>
+          ) : (
           <div key={phase} className="login-rise w-full max-w-[380px]" aria-live="polite">
             <span
               aria-hidden="true"
@@ -180,6 +206,7 @@ export default function MagicLoginPage() {
               {tl('secureNote')}
             </p>
           </div>
+          )}
         </div>
 
         <footer className="px-6 pb-6 text-xs text-zinc-500 sm:px-10">

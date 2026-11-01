@@ -64,7 +64,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             label: t('notifications'),
             href: '/admin/notifications',
             icon: <Mail className="w-4 h-4" />,
-            children: [{ label: t('emailLog'), href: '/admin/email-log' }],
+            children: [
+              { label: t('emailLog'), href: '/admin/email-log' },
+              { label: t('securityLog'), href: '/admin/security-log' },
+            ],
           },
           { label: t('legalPages'), href: '/admin/legal', icon: <Scale className="w-4 h-4" /> },
         ],

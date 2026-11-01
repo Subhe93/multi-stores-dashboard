@@ -345,7 +345,8 @@
     "appsGroup": "Appar",
     "manageApps": "Hantera appar",
     "notifications": "Aviseringar",
-    "customers": "Kunder"
+    "customers": "Kunder",
+    "securityLog": "Säkerhetslogg"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -841,7 +842,10 @@
       "allStores": "Alla butiker"
     },
     "customersCreateHint": "Kunder tillhör en butik och läggs därför till på sidan Kunder.",
-    "customersCreateLink": "Öppna Kunder"
+    "customersCreateLink": "Öppna Kunder",
+    "resetTwoFactor": "Återställ tvåstegsverifiering",
+    "twoFactorResetConfirm": "Stäng av tvåstegsverifiering för det här kontot (förlorad telefon och förlorade återställningskoder). Bekräfta med ditt eget lösenord och din kod.",
+    "twoFactorResetDone": "Tvåstegsverifiering har stängts av för det här kontot"
   },
   "guide": {
     "title": "Driftguide",
@@ -5635,7 +5639,18 @@
     "STORE_REQUIRED": "Kundkonton kräver en butik.",
     "CUSTOMER_STORE_MISMATCH": "Kunden tillhör en annan butik.",
     "NOT_CUSTOMER_ACCOUNT": "Kontot är inte ett kundkonto.",
-    "CUSTOMER_NOT_FOUND": "Kunden hittades inte."
+    "CUSTOMER_NOT_FOUND": "Kunden hittades inte.",
+    "TWO_FACTOR_CHALLENGE_INVALID": "Inloggningen tog för lång tid. Logga in igen.",
+    "TWO_FACTOR_CODE_INVALID": "Koden stämmer inte. Kontrollera din autentiseringsapp och försök igen.",
+    "TWO_FACTOR_LOCKED": "För många felaktiga koder. Vänta några minuter och försök igen.",
+    "TWO_FACTOR_NOT_AVAILABLE": "Tvåstegsverifiering är inte tillgänglig för det här kontot.",
+    "TWO_FACTOR_ALREADY_ENABLED": "Tvåstegsverifiering är redan på.",
+    "TWO_FACTOR_NOT_ENABLED": "Tvåstegsverifiering är inte på.",
+    "TWO_FACTOR_SETUP_MISSING": "Konfigurationen har gått ut. Börja om med att aktivera tvåstegsverifiering.",
+    "REAUTH_REQUIRED": "Ange ditt nuvarande lösenord för att bekräfta ändringen.",
+    "REAUTH_PASSWORD_INVALID": "Lösenordet är fel.",
+    "REAUTH_2FA_REQUIRED": "Aktivera tvåstegsverifiering innan du ändrar plattformens betalnycklar.",
+    "TWO_FACTOR_RESET_SELF": "Använd dina återställningskoder för att återställa din egen tvåstegsverifiering."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -5783,6 +5798,12 @@
     "canonicalPlaceholder": "https://example.com/page",
     "savingEllipsis": "Sparar…",
     "saveSeo": "Spara SEO",
+    "pageUrl": "URL",
+    "pageUrlHint": "Sidans adress i din butik. Mellanslag och symboler städas upp när du lämnar fältet.",
+    "pageUrlRedirectHint": "Den gamla adressen {from} vidarebefordras till {to}.",
+    "pageUrlConfirmTitle": "Ändra sidans adress?",
+    "pageUrlConfirmBody": "Sidan är publicerad. Besökare och sökmotorer som använder den gamla adressen skickas automatiskt till den nya (301).",
+    "pageUrlConfirmAction": "Ändra adress",
     "confirmRestore": "Återställa denna version? Aktuella opublicerade ändringar ersätts.",
     "failedToRestore": "Det gick inte att återställa",
     "versionHistory": "Versionshistorik",
@@ -5912,13 +5933,7 @@
       },
       "overlay": "Mörka bilden",
       "previewHint": "Ändringar sparas automatiskt. Öppna /auth/login i din butik för att se dem."
-    },
-    "pageUrl": "URL",
-    "pageUrlHint": "Sidans adress i din butik. Mellanslag och symboler städas upp när du lämnar fältet.",
-    "pageUrlRedirectHint": "Den gamla adressen {from} vidarebefordras till {to}.",
-    "pageUrlConfirmTitle": "Ändra sidans adress?",
-    "pageUrlConfirmBody": "Sidan är publicerad. Besökare och sökmotorer som använder den gamla adressen skickas automatiskt till den nya (301).",
-    "pageUrlConfirmAction": "Ändra adress"
+    }
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",
@@ -6877,7 +6892,8 @@
       "mockInStock": "I lager",
       "mockAddToCart": "Lägg i varukorgen",
       "mockPaid": "Betalning mottagen",
-      "mockShipped": "Skickad"
+      "mockShipped": "Skickad",
+      "twoFactorExpired": "Inloggningen tog för lång tid. Ange din e-post och ditt lösenord igen."
     },
     "magic": {
       "signingIn": "Loggar in dig…",
@@ -6891,7 +6907,133 @@
       "networkBody": "Kontrollera din internetanslutning och försök igen.",
       "errorTitle": "Något gick fel",
       "errorBody": "Vi kunde inte logga in dig just nu. Försök igen om en stund.",
-      "retry": "Försök igen"
+      "retry": "Försök igen",
+      "twoFactorExpiredTitle": "Din inloggning har gått ut",
+      "twoFactorExpiredBody": "Verifieringssteget tog för lång tid. Logga in igen med e-post och lösenord för din säkerhet."
+    },
+    "twoFactor": {
+      "title": "Tvåstegsverifiering",
+      "subtitle": "Ange den 6-siffriga koden från din autentiseringsapp.",
+      "recoverySubtitle": "Ange en av återställningskoderna du sparade när du aktiverade tvåstegsverifiering.",
+      "codeLabel": "Verifieringskod",
+      "recoveryLabel": "Återställningskod",
+      "verify": "Verifiera",
+      "verifying": "Verifierar…",
+      "back": "Tillbaka till inloggning",
+      "useRecovery": "Använd en återställningskod",
+      "useApp": "Använd autentiseringsappen",
+      "locked": "För många felaktiga koder. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
+      "networkError": "Vi kunde inte nå servern. Kontrollera anslutningen och försök igen."
+    }
+  },
+  "security": {
+    "reauth": {
+      "title": "Bekräfta att det är du",
+      "description": "Ändringen påverkar vart betalningarna går. Ange ditt lösenord för att fortsätta.",
+      "password": "Nuvarande lösenord",
+      "code": "Verifieringskod",
+      "codeHint": "Den 6-siffriga koden från din autentiseringsapp.",
+      "passwordRequired": "Ange ditt nuvarande lösenord.",
+      "codeRequired": "Ange den 6-siffriga koden från din autentiseringsapp.",
+      "locked": "För många misslyckade försök. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
+      "setupRequired": "Plattformens betalnycklar kan bara ändras från ett konto med tvåstegsverifiering. Aktivera den först och försök sedan igen.",
+      "setupButton": "Konfigurera tvåstegsverifiering",
+      "cancel": "Avbryt",
+      "confirm": "Bekräfta",
+      "stripeDescription": "Du ändrar plattformens Stripe-nycklar. Bekräfta din identitet för att spara dem.",
+      "stripeNote": "Att ändra en nyckel kräver ditt lösenord och din tvåstegskod. Varje ändring registreras i säkerhetsloggen och mejlas till alla administratörer.",
+      "disconnectDescription": "Att koppla från stoppar kortbetalningar tills ett konto kopplas igen. Bekräfta din identitet för att fortsätta.",
+      "kustomDescription": "Du ändrar dina Kustom-handlaruppgifter. Bekräfta din identitet för att spara dem.",
+      "kustomRemoveDescription": "Att ta bort Kustom-uppgifterna stänger av Kustom i kassan. Bekräfta din identitet för att fortsätta.",
+      "adminDescription": "Du ändrar vem som har åtkomst till plattformen. Bekräfta din identitet – bekräftelsen gäller i 5 minuter.",
+      "setupRequiredAdmin": "Kontohantering kräver tvåstegsverifiering på ditt eget konto. Aktivera det först och försök sedan igen.",
+      "kustomEnvironmentDescription": "Att byta Kustom-miljö ändrar vilket Kustom-system som tar emot dina riktiga betalningar. Bekräfta din identitet för att fortsätta."
+    },
+    "twoFactor": {
+      "title": "Tvåstegsverifiering",
+      "statusOn": "På",
+      "statusOff": "Av",
+      "description": "Skydda ditt konto med en kod från en autentiseringsapp (Google Authenticator, Microsoft Authenticator, 1Password …) utöver lösenordet.",
+      "loadFailed": "Det gick inte att läsa in status för tvåstegsverifiering.",
+      "retry": "Försök igen",
+      "enabledSince": "På sedan {date}.",
+      "enabledShort": "Tvåstegsverifiering är på.",
+      "recoveryRemaining": "{count, plural, =0 {Inga återställningskoder kvar.} one {# återställningskod kvar.} other {# återställningskoder kvar.}}",
+      "recoveryLow": "Du har snart slut på återställningskoder. Skapa nya så att du inte blir utelåst.",
+      "regenerate": "Nya återställningskoder",
+      "disable": "Stäng av",
+      "enable": "Aktivera",
+      "locked": "För många misslyckade försök. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
+      "currentPassword": "Nuvarande lösenord",
+      "code": "Verifieringskod",
+      "enableTitle": "Aktivera tvåstegsverifiering",
+      "enablePasswordHint": "Ange ditt nuvarande lösenord för att börja.",
+      "cancel": "Avbryt",
+      "continue": "Fortsätt",
+      "scanTitle": "Skanna QR-koden",
+      "scanHint": "Öppna din autentiseringsapp, skanna koden och ange den 6-siffriga kod som visas.",
+      "qrAlt": "QR-kod för din autentiseringsapp",
+      "manualHint": "Kan du inte skanna? Ange den här nyckeln manuellt i appen:",
+      "copySecret": "Kopiera nyckel",
+      "activate": "Aktivera",
+      "codesTitle": "Spara dina återställningskoder",
+      "codesHint": "Om du tappar bort telefonen kan du logga in en gång med var och en av koderna. De visas bara nu – förvara dem säkert.",
+      "copied": "Kopierat",
+      "copyCodes": "Kopiera koder",
+      "downloadCodes": "Ladda ner .txt",
+      "codesFileHeading": "Återställningskoder för tvåstegsverifiering (var och en fungerar en gång)",
+      "codesSavedConfirm": "Jag har sparat koderna på ett säkert ställe",
+      "done": "Klar",
+      "disableTitle": "Stäng av tvåstegsverifiering",
+      "disableHint": "Ditt konto skyddas då bara av lösenordet. Ange lösenord och en aktuell kod för att bekräfta.",
+      "regenerateTitle": "Skapa nya återställningskoder",
+      "regenerateHint": "Dina gamla återställningskoder slutar fungera. Ange lösenord och en aktuell kod för att bekräfta.",
+      "disableConfirm": "Stäng av",
+      "regenerateConfirm": "Skapa koder"
+    },
+    "log": {
+      "title": "Säkerhetslogg",
+      "subtitle": "Varje ändring av betalnycklar och tvåstegsverifiering, med vem som gjorde den och varifrån.",
+      "allActions": "Alla händelser",
+      "refresh": "Uppdatera",
+      "time": "Tid",
+      "action": "Händelse",
+      "actor": "Av",
+      "target": "Mål",
+      "fields": "Ändrade fält",
+      "ip": "IP-adress",
+      "empty": "Inga säkerhetshändelser än.",
+      "loadFailed": "Det gick inte att läsa in säkerhetsloggen.",
+      "note": "Loggen kan inte redigeras eller raderas. Hemliga värden sparas aldrig – bara namnen på fälten som ändrades.",
+      "pageOf": "Sida {page} av {pages} · {total} händelser",
+      "previous": "Föregående",
+      "next": "Nästa",
+      "targetPlatform": "Plattform",
+      "actions": {
+        "payment_keys_platform_updated": "Plattformens betalnycklar ändrade",
+        "payment_keys_kustom_updated": "Kustom-uppgifter ändrade",
+        "payment_keys_stripe_connect_disconnected": "Stripe-konto frånkopplat",
+        "two_factor_enabled": "Tvåstegsverifiering aktiverad",
+        "two_factor_disabled": "Tvåstegsverifiering avstängd",
+        "two_factor_recovery_regenerated": "Nya återställningskoder skapade",
+        "two_factor_recovery_used": "Inloggning med återställningskod",
+        "two_factor_login_failed": "Fel inloggningskod",
+        "two_factor_locked": "Låst efter felaktiga koder",
+        "reauth_failed": "Identitetskontroll misslyckades",
+        "two_factor_reset_by_admin": "Tvåstegsverifiering återställd av en admin",
+        "user_created_staff": "Teamkonto skapat",
+        "user_email_changed_by_admin": "E-post ändrad av en admin",
+        "user_password_reset_by_admin": "Lösenord återställt av en admin",
+        "user_status_changed": "Kontostatus ändrad",
+        "user_deleted_by_admin": "Konto raderat av en admin",
+        "reauth_granted": "Identitet bekräftad för kontohantering (5 min)"
+      },
+      "roles": {
+        "ADMIN": "Administratör",
+        "CREATOR": "Butiksägare",
+        "PROVIDER": "Leverantör",
+        "CUSTOMER": "Kund"
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ import { usePlatformName } from '@/lib/usePlatformName';
 import { useApiError } from '@/lib/useApiError';
 import { Input } from '@/components/ui/input';
 import { DashboardLocaleSwitcher } from '@/components/common/DashboardLocaleSwitcher';
+import { TwoFactorPrompt } from '@/components/auth/TwoFactorPrompt';
 import { BrandPanel, MobileBrandBand } from './BrandPanel';
 
 const inputClass =
@@ -23,12 +24,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Set when the account needs a second factor: the code step replaces the form.
+  const [challenge, setChallenge] = useState<string | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
+    if (!challenge) emailRef.current?.focus();
+  }, [challenge]);
 
   // Move focus to the error so screen-reader and keyboard users notice it.
   useEffect(() => {
@@ -42,7 +45,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      if (result.status === 'two_factor') {
+        setPassword('');
+        setChallenge(result.challenge);
+      }
     } catch (err) {
       // fetch() rejects with a TypeError when the API is unreachable.
       setError(err instanceof TypeError ? t('networkError') : apiError(err));
@@ -67,7 +74,22 @@ export default function LoginPage() {
         </header>
 
         <div className="flex flex-1 justify-center px-6 pt-9 pb-10 sm:px-10 lg:items-center lg:py-10">
-          <div className="login-rise w-full max-w-[380px]">
+          {challenge ? (
+          <div key="two-factor" className="login-rise w-full max-w-[380px]">
+            <TwoFactorPrompt
+              challenge={challenge}
+              onBack={() => {
+                setChallenge(null);
+                setError('');
+              }}
+              onChallengeInvalid={() => {
+                setChallenge(null);
+                setError(t('twoFactorExpired'));
+              }}
+            />
+          </div>
+          ) : (
+          <div key="password" className="login-rise w-full max-w-[380px]">
             <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-zinc-950">{t('title')}</h1>
             <p className="mt-2 text-[15px] leading-relaxed text-zinc-500">{t('subtitle')}</p>
 
@@ -178,6 +200,7 @@ export default function LoginPage() {
               {t('secureNote')}
             </p>
           </div>
+          )}
         </div>
 
         <footer className="px-6 pb-6 text-xs text-zinc-500 sm:px-10">

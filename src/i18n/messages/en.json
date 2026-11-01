@@ -345,7 +345,8 @@
     "appsGroup": "Apps",
     "manageApps": "Manage apps",
     "notifications": "Notifications",
-    "customers": "Customers"
+    "customers": "Customers",
+    "securityLog": "Security log"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -841,7 +842,10 @@
       "allStores": "All stores"
     },
     "customersCreateHint": "Customers belong to a store, so they are added on the Customers page.",
-    "customersCreateLink": "Open Customers"
+    "customersCreateLink": "Open Customers",
+    "resetTwoFactor": "Reset two-factor authentication",
+    "twoFactorResetConfirm": "Turn off this account's two-factor authentication (for a lost phone and lost recovery codes). Confirm with your own password and code.",
+    "twoFactorResetDone": "Two-factor authentication was turned off for this account"
   },
   "guide": {
     "title": "Operations guide",
@@ -5635,7 +5639,18 @@
     "STORE_REQUIRED": "A store is required for customer accounts.",
     "CUSTOMER_STORE_MISMATCH": "This customer belongs to another store.",
     "NOT_CUSTOMER_ACCOUNT": "This account isn’t a customer account.",
-    "CUSTOMER_NOT_FOUND": "Customer not found."
+    "CUSTOMER_NOT_FOUND": "Customer not found.",
+    "TWO_FACTOR_CHALLENGE_INVALID": "Your sign-in took too long. Please sign in again.",
+    "TWO_FACTOR_CODE_INVALID": "That code is not correct. Check your authenticator app and try again.",
+    "TWO_FACTOR_LOCKED": "Too many incorrect codes. Please wait a few minutes and try again.",
+    "TWO_FACTOR_NOT_AVAILABLE": "Two-step verification is not available for this account.",
+    "TWO_FACTOR_ALREADY_ENABLED": "Two-step verification is already on.",
+    "TWO_FACTOR_NOT_ENABLED": "Two-step verification is not turned on.",
+    "TWO_FACTOR_SETUP_MISSING": "The setup expired. Start turning on two-step verification again.",
+    "REAUTH_REQUIRED": "Enter your current password to confirm this change.",
+    "REAUTH_PASSWORD_INVALID": "The password is not correct.",
+    "REAUTH_2FA_REQUIRED": "Turn on two-step verification before changing platform payment keys.",
+    "TWO_FACTOR_RESET_SELF": "Use your recovery codes to reset your own two-factor authentication."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -5783,6 +5798,12 @@
     "canonicalPlaceholder": "https://example.com/page",
     "savingEllipsis": "Saving…",
     "saveSeo": "Save SEO",
+    "pageUrl": "URL",
+    "pageUrlHint": "The page's address in your store. Spaces and symbols are tidied up when you leave the field.",
+    "pageUrlRedirectHint": "The old address {from} will redirect to {to}.",
+    "pageUrlConfirmTitle": "Change the page's address?",
+    "pageUrlConfirmBody": "This page is published. Visitors and search engines using the old address are sent to the new one automatically (301).",
+    "pageUrlConfirmAction": "Change address",
     "confirmRestore": "Restore this version? Current unpublished changes will be replaced.",
     "failedToRestore": "Failed to restore",
     "versionHistory": "Version history",
@@ -5912,13 +5933,7 @@
       },
       "overlay": "Darken image",
       "previewHint": "Changes save automatically. Open /auth/login on your store to see them."
-    },
-    "pageUrl": "URL",
-    "pageUrlHint": "The page's address in your store. Spaces and symbols are tidied up when you leave the field.",
-    "pageUrlRedirectHint": "The old address {from} will redirect to {to}.",
-    "pageUrlConfirmTitle": "Change the page's address?",
-    "pageUrlConfirmBody": "This page is published. Visitors and search engines using the old address are sent to the new one automatically (301).",
-    "pageUrlConfirmAction": "Change address"
+    }
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",
@@ -6877,7 +6892,8 @@
       "mockInStock": "In stock",
       "mockAddToCart": "Add to cart",
       "mockPaid": "Payment captured",
-      "mockShipped": "Shipped"
+      "mockShipped": "Shipped",
+      "twoFactorExpired": "Your sign-in took too long. Please enter your email and password again."
     },
     "magic": {
       "signingIn": "Signing you in…",
@@ -6891,7 +6907,133 @@
       "networkBody": "Check your internet connection and try again.",
       "errorTitle": "Something went wrong",
       "errorBody": "We couldn’t sign you in right now. Please try again in a moment.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "twoFactorExpiredTitle": "Your sign-in session expired",
+      "twoFactorExpiredBody": "The verification step timed out. For your security, sign in again with your email and password."
+    },
+    "twoFactor": {
+      "title": "Two-step verification",
+      "subtitle": "Enter the 6-digit code from your authenticator app.",
+      "recoverySubtitle": "Enter one of the recovery codes you saved when you set up two-step verification.",
+      "codeLabel": "Authentication code",
+      "recoveryLabel": "Recovery code",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "back": "Back to sign in",
+      "useRecovery": "Use a recovery code",
+      "useApp": "Use the authenticator app",
+      "locked": "Too many incorrect codes. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "networkError": "We couldn't reach the server. Check your connection and try again."
+    }
+  },
+  "security": {
+    "reauth": {
+      "title": "Confirm it’s you",
+      "description": "This change affects where payments go. Enter your password to continue.",
+      "password": "Current password",
+      "code": "Authentication code",
+      "codeHint": "The 6-digit code from your authenticator app.",
+      "passwordRequired": "Enter your current password.",
+      "codeRequired": "Enter the 6-digit code from your authenticator app.",
+      "locked": "Too many failed attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "setupRequired": "Platform payment keys can only be changed from an account with two-step verification. Turn it on first, then try again.",
+      "setupButton": "Set up two-step verification",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "stripeDescription": "You are changing the platform’s Stripe keys. Confirm your identity to save them.",
+      "stripeNote": "Changing any key asks for your password and two-step verification code. Every change is recorded in the security log and emailed to all admins.",
+      "disconnectDescription": "Disconnecting stops card payments until an account is connected again. Confirm your identity to continue.",
+      "kustomDescription": "You are changing your Kustom merchant credentials. Confirm your identity to save them.",
+      "kustomRemoveDescription": "Removing your Kustom credentials turns Kustom off at checkout. Confirm your identity to continue.",
+      "adminDescription": "You are changing who can access the platform. Confirm your identity — it stays confirmed for 5 minutes.",
+      "setupRequiredAdmin": "Managing accounts requires two-step verification on your own account. Turn it on first, then try again.",
+      "kustomEnvironmentDescription": "Switching the Kustom environment changes which Kustom system takes your live payments. Confirm your identity to continue."
+    },
+    "twoFactor": {
+      "title": "Two-step verification",
+      "statusOn": "On",
+      "statusOff": "Off",
+      "description": "Protect your account with a code from an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…) in addition to your password.",
+      "loadFailed": "Couldn't load the two-step verification status.",
+      "retry": "Retry",
+      "enabledSince": "On since {date}.",
+      "enabledShort": "Two-step verification is on.",
+      "recoveryRemaining": "{count, plural, =0 {No recovery codes left.} one {# recovery code left.} other {# recovery codes left.}}",
+      "recoveryLow": "You are running out of recovery codes. Generate new ones so you don’t get locked out.",
+      "regenerate": "New recovery codes",
+      "disable": "Turn off",
+      "enable": "Turn on",
+      "locked": "Too many failed attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+      "currentPassword": "Current password",
+      "code": "Authentication code",
+      "enableTitle": "Turn on two-step verification",
+      "enablePasswordHint": "Enter your current password to begin.",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "scanTitle": "Scan the QR code",
+      "scanHint": "Open your authenticator app, scan this code, then enter the 6-digit code it shows.",
+      "qrAlt": "QR code for your authenticator app",
+      "manualHint": "Can’t scan? Enter this key in the app manually:",
+      "copySecret": "Copy key",
+      "activate": "Turn on",
+      "codesTitle": "Save your recovery codes",
+      "codesHint": "If you lose your phone, each of these codes lets you sign in once. They are shown only now — keep them somewhere safe.",
+      "copied": "Copied",
+      "copyCodes": "Copy codes",
+      "downloadCodes": "Download .txt",
+      "codesFileHeading": "Two-step verification recovery codes (each works once)",
+      "codesSavedConfirm": "I have saved these codes in a safe place",
+      "done": "Done",
+      "disableTitle": "Turn off two-step verification",
+      "disableHint": "Your account will be protected by your password only. Enter your password and a current code to confirm.",
+      "regenerateTitle": "Generate new recovery codes",
+      "regenerateHint": "Your old recovery codes will stop working. Enter your password and a current code to confirm.",
+      "disableConfirm": "Turn off",
+      "regenerateConfirm": "Generate codes"
+    },
+    "log": {
+      "title": "Security log",
+      "subtitle": "Every change to payment keys and two-step verification, with who made it and from where.",
+      "allActions": "All events",
+      "refresh": "Refresh",
+      "time": "Time",
+      "action": "Event",
+      "actor": "By",
+      "target": "Target",
+      "fields": "Changed fields",
+      "ip": "IP address",
+      "empty": "No security events yet.",
+      "loadFailed": "Couldn't load the security log.",
+      "note": "This log cannot be edited or deleted. Secret values are never recorded — only the names of the fields that changed.",
+      "pageOf": "Page {page} of {pages} · {total} events",
+      "previous": "Previous",
+      "next": "Next",
+      "targetPlatform": "Platform",
+      "actions": {
+        "payment_keys_platform_updated": "Platform payment keys changed",
+        "payment_keys_kustom_updated": "Kustom credentials changed",
+        "payment_keys_stripe_connect_disconnected": "Stripe account disconnected",
+        "two_factor_enabled": "Two-step verification turned on",
+        "two_factor_disabled": "Two-step verification turned off",
+        "two_factor_recovery_regenerated": "Recovery codes regenerated",
+        "two_factor_recovery_used": "Recovery code used to sign in",
+        "two_factor_login_failed": "Wrong sign-in code",
+        "two_factor_locked": "Locked after failed codes",
+        "reauth_failed": "Identity check failed",
+        "two_factor_reset_by_admin": "Two-step verification reset by an admin",
+        "user_created_staff": "Staff account created",
+        "user_email_changed_by_admin": "Email changed by an admin",
+        "user_password_reset_by_admin": "Password reset by an admin",
+        "user_status_changed": "Account status changed",
+        "user_deleted_by_admin": "Account deleted by an admin",
+        "reauth_granted": "Identity confirmed for account management (5 min)"
+      },
+      "roles": {
+        "ADMIN": "Admin",
+        "CREATOR": "Creator",
+        "PROVIDER": "Provider",
+        "CUSTOMER": "Customer"
+      }
     }
   }
 }

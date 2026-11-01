@@ -345,7 +345,8 @@
     "appsGroup": "Apps",
     "manageApps": "Apps verwalten",
     "notifications": "Benachrichtigungen",
-    "customers": "Kunden"
+    "customers": "Kunden",
+    "securityLog": "Sicherheitsprotokoll"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -841,7 +842,10 @@
       "allStores": "Alle Shops"
     },
     "customersCreateHint": "Kunden gehören zu einem Shop und werden daher auf der Kundenseite angelegt.",
-    "customersCreateLink": "Kunden öffnen"
+    "customersCreateLink": "Kunden öffnen",
+    "resetTwoFactor": "Zwei-Faktor-Authentifizierung zurücksetzen",
+    "twoFactorResetConfirm": "Zwei-Faktor-Authentifizierung dieses Kontos deaktivieren (bei verlorenem Telefon und verlorenen Wiederherstellungscodes). Mit Ihrem eigenen Passwort und Code bestätigen.",
+    "twoFactorResetDone": "Die Zwei-Faktor-Authentifizierung wurde für dieses Konto deaktiviert"
   },
   "guide": {
     "title": "Betriebsleitfaden",
@@ -5635,7 +5639,18 @@
     "STORE_REQUIRED": "Für Kundenkonten ist ein Shop erforderlich.",
     "CUSTOMER_STORE_MISMATCH": "Dieser Kunde gehört zu einem anderen Shop.",
     "NOT_CUSTOMER_ACCOUNT": "Dieses Konto ist kein Kundenkonto.",
-    "CUSTOMER_NOT_FOUND": "Kunde nicht gefunden."
+    "CUSTOMER_NOT_FOUND": "Kunde nicht gefunden.",
+    "TWO_FACTOR_CHALLENGE_INVALID": "Die Anmeldung hat zu lange gedauert. Bitte melde dich erneut an.",
+    "TWO_FACTOR_CODE_INVALID": "Der Code ist nicht korrekt. Prüfe deine Authenticator-App und versuche es erneut.",
+    "TWO_FACTOR_LOCKED": "Zu viele falsche Codes. Bitte warte ein paar Minuten und versuche es erneut.",
+    "TWO_FACTOR_NOT_AVAILABLE": "Für dieses Konto ist die Zwei-Faktor-Authentifizierung nicht verfügbar.",
+    "TWO_FACTOR_ALREADY_ENABLED": "Die Zwei-Faktor-Authentifizierung ist bereits aktiv.",
+    "TWO_FACTOR_NOT_ENABLED": "Die Zwei-Faktor-Authentifizierung ist nicht aktiv.",
+    "TWO_FACTOR_SETUP_MISSING": "Die Einrichtung ist abgelaufen. Starte die Aktivierung erneut.",
+    "REAUTH_REQUIRED": "Gib dein aktuelles Passwort ein, um diese Änderung zu bestätigen.",
+    "REAUTH_PASSWORD_INVALID": "Das Passwort ist nicht korrekt.",
+    "REAUTH_2FA_REQUIRED": "Aktiviere die Zwei-Faktor-Authentifizierung, bevor du Zahlungsschlüssel der Plattform änderst.",
+    "TWO_FACTOR_RESET_SELF": "Verwenden Sie Ihre Wiederherstellungscodes, um Ihre eigene Zwei-Faktor-Authentifizierung zurückzusetzen."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -5783,6 +5798,12 @@
     "canonicalPlaceholder": "https://example.com/page",
     "savingEllipsis": "Wird gespeichert…",
     "saveSeo": "SEO speichern",
+    "pageUrl": "URL",
+    "pageUrlHint": "Die Adresse der Seite in deinem Shop. Leerzeichen und Symbole werden beim Verlassen des Feldes bereinigt.",
+    "pageUrlRedirectHint": "Die alte Adresse {from} leitet auf {to} weiter.",
+    "pageUrlConfirmTitle": "Adresse der Seite ändern?",
+    "pageUrlConfirmBody": "Diese Seite ist veröffentlicht. Besucher und Suchmaschinen mit der alten Adresse werden automatisch zur neuen weitergeleitet (301).",
+    "pageUrlConfirmAction": "Adresse ändern",
     "confirmRestore": "Diese Version wiederherstellen? Aktuelle, nicht veröffentlichte Änderungen werden ersetzt.",
     "failedToRestore": "Wiederherstellung fehlgeschlagen",
     "versionHistory": "Versionsverlauf",
@@ -5912,13 +5933,7 @@
       },
       "overlay": "Bild abdunkeln",
       "previewHint": "Änderungen werden automatisch gespeichert. Öffne /auth/login in deinem Shop, um sie zu sehen."
-    },
-    "pageUrl": "URL",
-    "pageUrlHint": "Die Adresse der Seite in deinem Shop. Leerzeichen und Symbole werden beim Verlassen des Feldes bereinigt.",
-    "pageUrlRedirectHint": "Die alte Adresse {from} leitet auf {to} weiter.",
-    "pageUrlConfirmTitle": "Adresse der Seite ändern?",
-    "pageUrlConfirmBody": "Diese Seite ist veröffentlicht. Besucher und Suchmaschinen mit der alten Adresse werden automatisch zur neuen weitergeleitet (301).",
-    "pageUrlConfirmAction": "Adresse ändern"
+    }
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",
@@ -6877,7 +6892,8 @@
       "mockInStock": "Auf Lager",
       "mockAddToCart": "In den Warenkorb",
       "mockPaid": "Zahlung erhalten",
-      "mockShipped": "Versendet"
+      "mockShipped": "Versendet",
+      "twoFactorExpired": "Die Anmeldung hat zu lange gedauert. Bitte gib E-Mail und Passwort erneut ein."
     },
     "magic": {
       "signingIn": "Du wirst angemeldet…",
@@ -6891,7 +6907,133 @@
       "networkBody": "Prüfe deine Internetverbindung und versuche es erneut.",
       "errorTitle": "Etwas ist schiefgelaufen",
       "errorBody": "Wir konnten dich gerade nicht anmelden. Bitte versuche es gleich noch einmal.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "twoFactorExpiredTitle": "Deine Anmeldesitzung ist abgelaufen",
+      "twoFactorExpiredBody": "Der Bestätigungsschritt ist abgelaufen. Melde dich zu deiner Sicherheit erneut mit E-Mail und Passwort an."
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "subtitle": "Gib den 6-stelligen Code aus deiner Authenticator-App ein.",
+      "recoverySubtitle": "Gib einen der Wiederherstellungscodes ein, die du bei der Einrichtung gespeichert hast.",
+      "codeLabel": "Bestätigungscode",
+      "recoveryLabel": "Wiederherstellungscode",
+      "verify": "Bestätigen",
+      "verifying": "Wird geprüft…",
+      "back": "Zurück zur Anmeldung",
+      "useRecovery": "Wiederherstellungscode verwenden",
+      "useApp": "Authenticator-App verwenden",
+      "locked": "Zu viele falsche Codes. Versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
+      "networkError": "Der Server ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
+    }
+  },
+  "security": {
+    "reauth": {
+      "title": "Bestätige deine Identität",
+      "description": "Diese Änderung beeinflusst, wohin Zahlungen gehen. Gib dein Passwort ein, um fortzufahren.",
+      "password": "Aktuelles Passwort",
+      "code": "Bestätigungscode",
+      "codeHint": "Der 6-stellige Code aus deiner Authenticator-App.",
+      "passwordRequired": "Gib dein aktuelles Passwort ein.",
+      "codeRequired": "Gib den 6-stelligen Code aus deiner Authenticator-App ein.",
+      "locked": "Zu viele fehlgeschlagene Versuche. Versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
+      "setupRequired": "Die Zahlungsschlüssel der Plattform können nur von einem Konto mit Zwei-Faktor-Authentifizierung geändert werden. Aktiviere sie zuerst und versuche es dann erneut.",
+      "setupButton": "Zwei-Faktor-Authentifizierung einrichten",
+      "cancel": "Abbrechen",
+      "confirm": "Bestätigen",
+      "stripeDescription": "Du änderst die Stripe-Schlüssel der Plattform. Bestätige deine Identität, um sie zu speichern.",
+      "stripeNote": "Jede Schlüsseländerung erfordert dein Passwort und den Zwei-Faktor-Code. Jede Änderung wird im Sicherheitsprotokoll erfasst und allen Admins per E-Mail gemeldet.",
+      "disconnectDescription": "Das Trennen stoppt Kartenzahlungen, bis wieder ein Konto verbunden ist. Bestätige deine Identität, um fortzufahren.",
+      "kustomDescription": "Du änderst deine Kustom-Händlerdaten. Bestätige deine Identität, um sie zu speichern.",
+      "kustomRemoveDescription": "Das Entfernen der Kustom-Daten deaktiviert Kustom im Checkout. Bestätige deine Identität, um fortzufahren.",
+      "adminDescription": "Sie ändern, wer auf die Plattform zugreifen kann. Bestätigen Sie Ihre Identität – die Bestätigung gilt 5 Minuten.",
+      "setupRequiredAdmin": "Für die Kontoverwaltung ist die Zwei-Schritt-Verifizierung in Ihrem eigenen Konto erforderlich. Aktivieren Sie sie zuerst und versuchen Sie es dann erneut.",
+      "kustomEnvironmentDescription": "Ein Wechsel der Kustom-Umgebung ändert, welches Kustom-System Ihre echten Zahlungen entgegennimmt. Bestätigen Sie Ihre Identität, um fortzufahren."
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung",
+      "statusOn": "Aktiv",
+      "statusOff": "Aus",
+      "description": "Schütze dein Konto zusätzlich zum Passwort mit einem Code aus einer Authenticator-App (Google Authenticator, Microsoft Authenticator, 1Password …).",
+      "loadFailed": "Der Status der Zwei-Faktor-Authentifizierung konnte nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "enabledSince": "Aktiv seit {date}.",
+      "enabledShort": "Zwei-Faktor-Authentifizierung ist aktiv.",
+      "recoveryRemaining": "{count, plural, =0 {Keine Wiederherstellungscodes mehr.} one {# Wiederherstellungscode übrig.} other {# Wiederherstellungscodes übrig.}}",
+      "recoveryLow": "Dir gehen die Wiederherstellungscodes aus. Erstelle neue, damit du dich nicht aussperrst.",
+      "regenerate": "Neue Wiederherstellungscodes",
+      "disable": "Deaktivieren",
+      "enable": "Aktivieren",
+      "locked": "Zu viele fehlgeschlagene Versuche. Versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
+      "currentPassword": "Aktuelles Passwort",
+      "code": "Bestätigungscode",
+      "enableTitle": "Zwei-Faktor-Authentifizierung aktivieren",
+      "enablePasswordHint": "Gib zum Start dein aktuelles Passwort ein.",
+      "cancel": "Abbrechen",
+      "continue": "Weiter",
+      "scanTitle": "QR-Code scannen",
+      "scanHint": "Öffne deine Authenticator-App, scanne diesen Code und gib den angezeigten 6-stelligen Code ein.",
+      "qrAlt": "QR-Code für deine Authenticator-App",
+      "manualHint": "Scannen klappt nicht? Gib diesen Schlüssel manuell in der App ein:",
+      "copySecret": "Schlüssel kopieren",
+      "activate": "Aktivieren",
+      "codesTitle": "Speichere deine Wiederherstellungscodes",
+      "codesHint": "Wenn du dein Telefon verlierst, kannst du dich mit jedem dieser Codes einmal anmelden. Sie werden nur jetzt angezeigt – bewahre sie sicher auf.",
+      "copied": "Kopiert",
+      "copyCodes": "Codes kopieren",
+      "downloadCodes": ".txt herunterladen",
+      "codesFileHeading": "Wiederherstellungscodes der Zwei-Faktor-Authentifizierung (jeder funktioniert einmal)",
+      "codesSavedConfirm": "Ich habe diese Codes sicher gespeichert",
+      "done": "Fertig",
+      "disableTitle": "Zwei-Faktor-Authentifizierung deaktivieren",
+      "disableHint": "Dein Konto ist dann nur noch durch dein Passwort geschützt. Gib zur Bestätigung dein Passwort und einen aktuellen Code ein.",
+      "regenerateTitle": "Neue Wiederherstellungscodes erstellen",
+      "regenerateHint": "Deine alten Wiederherstellungscodes funktionieren dann nicht mehr. Gib zur Bestätigung dein Passwort und einen aktuellen Code ein.",
+      "disableConfirm": "Deaktivieren",
+      "regenerateConfirm": "Codes erstellen"
+    },
+    "log": {
+      "title": "Sicherheitsprotokoll",
+      "subtitle": "Jede Änderung an Zahlungsschlüsseln und der Zwei-Faktor-Authentifizierung – mit Person und Herkunft.",
+      "allActions": "Alle Ereignisse",
+      "refresh": "Aktualisieren",
+      "time": "Zeit",
+      "action": "Ereignis",
+      "actor": "Von",
+      "target": "Ziel",
+      "fields": "Geänderte Felder",
+      "ip": "IP-Adresse",
+      "empty": "Noch keine Sicherheitsereignisse.",
+      "loadFailed": "Das Sicherheitsprotokoll konnte nicht geladen werden.",
+      "note": "Dieses Protokoll kann weder bearbeitet noch gelöscht werden. Geheime Werte werden nie gespeichert – nur die Namen der geänderten Felder.",
+      "pageOf": "Seite {page} von {pages} · {total} Ereignisse",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "targetPlatform": "Plattform",
+      "actions": {
+        "payment_keys_platform_updated": "Zahlungsschlüssel der Plattform geändert",
+        "payment_keys_kustom_updated": "Kustom-Daten geändert",
+        "payment_keys_stripe_connect_disconnected": "Stripe-Konto getrennt",
+        "two_factor_enabled": "Zwei-Faktor-Authentifizierung aktiviert",
+        "two_factor_disabled": "Zwei-Faktor-Authentifizierung deaktiviert",
+        "two_factor_recovery_regenerated": "Wiederherstellungscodes neu erstellt",
+        "two_factor_recovery_used": "Anmeldung mit Wiederherstellungscode",
+        "two_factor_login_failed": "Falscher Anmeldecode",
+        "two_factor_locked": "Gesperrt nach falschen Codes",
+        "reauth_failed": "Identitätsprüfung fehlgeschlagen",
+        "two_factor_reset_by_admin": "Zwei-Schritt-Verifizierung von einem Admin zurückgesetzt",
+        "user_created_staff": "Teamkonto erstellt",
+        "user_email_changed_by_admin": "E-Mail von einem Admin geändert",
+        "user_password_reset_by_admin": "Passwort von einem Admin zurückgesetzt",
+        "user_status_changed": "Kontostatus geändert",
+        "user_deleted_by_admin": "Konto von einem Admin gelöscht",
+        "reauth_granted": "Identität für die Kontoverwaltung bestätigt (5 Min.)"
+      },
+      "roles": {
+        "ADMIN": "Admin",
+        "CREATOR": "Shop-Inhaber",
+        "PROVIDER": "Anbieter",
+        "CUSTOMER": "Kunde"
+      }
     }
   }
 }

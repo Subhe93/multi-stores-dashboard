@@ -23,6 +23,7 @@ import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useBulkAction } from '@/components/common/useBulkAction';
+import { ReauthCancelled, useAdminGrant } from '@/components/security/useAdminGrant';
 import { locales } from '@/i18n/config';
 
 // Native language names for the credentials-email language picker.
@@ -72,6 +73,8 @@ export default function AdminUsers() {
   const t = useTranslations('admin');
   const tb = useTranslations('bulk');
   const bulk = useBulkAction();
+  // Staff accounts, deletes and passwords need the admin's own step-up.
+  const grant = useAdminGrant();
   const { token, user: me } = useAuth();
   const router = useRouter();
   const uiLocale = useLocale();
@@ -169,10 +172,19 @@ export default function AdminUsers() {
   const handleStatusChange = async (userId: string, newStatus: string) => {
     if (!token) return;
     try {
-      await api(`/admin/users/${userId}/status`, { method: 'PUT', token, body: JSON.stringify({ status: newStatus }) });
+      const target = users.find((u) => u.id === userId);
+      const send = (reauth_token?: string) =>
+        api(`/admin/users/${userId}/status`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ status: newStatus, reauth_token }),
+        });
+      if (target?.role === 'CUSTOMER') await send();
+      else await grant.run(send);
       flashSuccess(t('statusUpdated'));
       fetchUsers(page);
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToUpdateStatus'));
     }
   };
@@ -224,16 +236,20 @@ export default function AdminUsers() {
         payload.display_name = form.display_name || 'New Creator';
         payload.verified = form.verified;
       }
-      await api('/admin/users', {
-        method: 'POST',
-        token,
-        body: JSON.stringify(payload),
-      });
+      const send = (reauth_token?: string) =>
+        api('/admin/users', {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ ...payload, reauth_token }),
+        });
+      if (form.role === 'CUSTOMER') await send();
+      else await grant.run(send);
       setShowCreate(false);
       resetForm();
       flashSuccess(t('userCreated'));
       fetchUsers(1);
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToCreateUser'));
     } finally {
       setCreating(false);
@@ -244,11 +260,18 @@ export default function AdminUsers() {
     if (!token || !deleteTarget) return;
     setDeleting(true);
     try {
-      await api(`/admin/users/${deleteTarget.id}`, { method: 'DELETE', token });
+      await grant.run((reauth_token) =>
+        api(`/admin/users/${deleteTarget.id}`, {
+          method: 'DELETE',
+          token,
+          body: JSON.stringify({ reauth_token }),
+        }),
+      );
       flashSuccess(t('userDeleted'));
       setDeleteTarget(null);
       fetchUsers(page);
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError((err instanceof Error && err.message) || t('failedToDeleteUser'));
     } finally {
       setDeleting(false);
@@ -256,14 +279,28 @@ export default function AdminUsers() {
   };
 
   // Bulk status change mirrors the row buttons: admins are never suspended.
-  const bulkSetStatus = (rows: User[], status: 'ACTIVE' | 'SUSPENDED', clear: () => void) => {
+  const bulkSetStatus = async (rows: User[], status: 'ACTIVE' | 'SUSPENDED', clear: () => void) => {
     const targets = status === 'SUSPENDED'
       ? rows.filter((u) => u.status === 'ACTIVE' && u.role !== 'ADMIN')
       : rows.filter((u) => u.status === 'SUSPENDED');
+    if (targets.some((u) => u.role !== 'CUSTOMER')) {
+      try {
+        await grant.ensure();
+      } catch {
+        return; // cancelled
+      }
+    }
     const opts = {
       rows: targets,
-      fn: (u: User) =>
-        api(`/admin/users/${u.id}/status`, { method: 'PUT', token: token ?? undefined, body: JSON.stringify({ status }) }),
+      fn: (u: User) => {
+        const send = (reauth_token?: string) =>
+          api(`/admin/users/${u.id}/status`, {
+            method: 'PUT',
+            token: token ?? undefined,
+            body: JSON.stringify({ status, reauth_token }),
+          });
+        return u.role === 'CUSTOMER' ? send() : grant.run(send);
+      },
       done: (count: number) => tb('updatedCount', { count }),
       clear,
       after: () => fetchUsers(page),
@@ -378,10 +415,23 @@ export default function AdminUsers() {
               size="sm"
               className="h-7 text-xs text-red-600 hover:text-red-700"
               disabled={bulk.busy}
-              onClick={() => bulk.ask({
+              onClick={async () => {
+                try {
+                  await grant.ensure();
+                } catch {
+                  return; // cancelled
+                }
+                bulk.ask({
                 // The API refuses to delete the signed-in account.
                 rows: rows.filter((u) => u.id !== me?.id),
-                fn: (u) => api(`/admin/users/${u.id}`, { method: 'DELETE', token: token ?? undefined }),
+                fn: (u) =>
+                  grant.run((reauth_token) =>
+                    api(`/admin/users/${u.id}`, {
+                      method: 'DELETE',
+                      token: token ?? undefined,
+                      body: JSON.stringify({ reauth_token }),
+                    }),
+                  ),
                 done: (count) => tb('deletedCount', { count }),
                 clear,
                 after: () => fetchUsers(page),
@@ -389,7 +439,8 @@ export default function AdminUsers() {
                 description: tb('deleteUsersDescription'),
                 confirmLabel: t('deletePermanently'),
                 destructive: true,
-              })}
+              });
+              }}
             >
               <Trash2 className="w-3.5 h-3.5" />
               {tb('deleteCount', { count: rows.length })}
@@ -578,6 +629,7 @@ export default function AdminUsers() {
       </Dialog>
 
       {bulk.dialog}
+      {grant.dialog}
 
       {/* Delete Confirm Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>

@@ -13,6 +13,7 @@ import { useAuth, type ProviderProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { useTranslations } from 'next-intl';
+import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 
 /** GET /providers/me — auth profile plus the editable logo. */
 interface ProviderMe extends ProviderProfile {
@@ -222,6 +223,8 @@ export default function ProviderSettings() {
           )}
         </CardContent>
       </Card>
+
+      <TwoFactorCard />
 
       <div className="flex items-center gap-3 justify-end">
         {saved && <span className="text-xs text-emerald-600 font-medium">{t('settingsSaved')}</span>}

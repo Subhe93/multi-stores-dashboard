@@ -21,6 +21,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckoutSettingsCard } from '@/components/settings/CheckoutSettingsCard';
 import { TrackingSettingsCard, type TrackingSettings } from '@/components/settings/TrackingSettingsCard';
+import { TwoFactorCard } from '@/components/security/TwoFactorCard';
+import { useReauth } from '@/components/security/ReauthDialog';
+import type { ReauthCredentials } from '@/lib/twoFactor';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
 function resolveAvatarUrl(url?: string | null): string {
@@ -120,6 +123,13 @@ export default function CreatorSettingsPage() {
   const { token, replaceTokens } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
+  const ts = useTranslations('security');
+  // Payment-credential changes ask for the password (and 2FA code) first.
+  const reauth = useReauth({
+    twoFactorSetupHref: '#two-factor',
+    // The 2FA card lives on the security tab.
+    onSetupTwoFactor: () => changeSettingsTab('security'),
+  });
   const tc = useTranslations('common');
 
   // Active tab, mirrored in ?tab= so a reload keeps it. Coming back from
@@ -450,20 +460,25 @@ export default function CreatorSettingsPage() {
     }
   };
 
-  const handleDisconnectStripe = async () => {
+  const handleDisconnectStripe = () => {
     if (!token || disconnecting) return;
-    setDisconnecting(true);
     setStripeError('');
-    try {
-      await api('/payments/connect/disconnect', { method: 'POST', token });
-      const fresh = await api<StripeConnectStatus>('/payments/connect/status', { token });
-      setStripeStatus(fresh);
-      setConfirmDisconnect(false);
-    } catch (err) {
-      setStripeError((err instanceof Error && err.message) || t('settings.disconnectFailed'));
-    } finally {
-      setDisconnecting(false);
-    }
+    // Errors are shown inside the re-auth dialog, which stays open to retry.
+    reauth.request(async (credentials) => {
+      setDisconnecting(true);
+      try {
+        await api('/payments/connect/disconnect', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(credentials),
+        });
+        const fresh = await api<StripeConnectStatus>('/payments/connect/status', { token });
+        setStripeStatus(fresh);
+        setConfirmDisconnect(false);
+      } finally {
+        setDisconnecting(false);
+      }
+    }, ts('reauth.disconnectDescription'));
   };
 
   // Load Stripe Connect status (and refresh after returning from onboarding).
@@ -523,20 +538,35 @@ export default function CreatorSettingsPage() {
     if (kustomCaptureMode !== (kustom.capture_mode || 'on_shipment')) body.capture_mode = kustomCaptureMode;
     if (kustomEnabled !== kustom.enabled) body.enabled = kustomEnabled;
     if (Object.keys(body).length === 0) return;
-    setKustomSaving(true);
     setKustomMsg(null);
+    const save = async (credentials?: ReauthCredentials) => {
+      setKustomSaving(true);
+      try {
+        const updated = await api<KustomSettings>('/payments/kustom/settings', {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ ...body, ...(credentials ?? {}) }),
+        });
+        applyKustomSettings(updated);
+        setKustomMsg({ type: 'success', text: t('settings.kustomSaved') });
+      } finally {
+        setKustomSaving(false);
+      }
+    };
+    // A new merchant id or secret redirects payments, and the environment
+    // decides which Kustom system takes live payments: confirm identity first.
+    if ('merchant_id' in body || 'shared_secret' in body) {
+      reauth.request(save, ts('reauth.kustomDescription'));
+      return;
+    }
+    if ('environment' in body) {
+      reauth.request(save, ts('reauth.kustomEnvironmentDescription'));
+      return;
+    }
     try {
-      const updated = await api<KustomSettings>('/payments/kustom/settings', {
-        method: 'PUT',
-        token,
-        body: JSON.stringify(body),
-      });
-      applyKustomSettings(updated);
-      setKustomMsg({ type: 'success', text: t('settings.kustomSaved') });
+      await save();
     } catch (err) {
       setKustomMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.kustomSaveFailed') });
-    } finally {
-      setKustomSaving(false);
     }
   };
 
@@ -559,23 +589,23 @@ export default function CreatorSettingsPage() {
   };
 
   // Clears merchant id + secret and disables Kustom (two-step confirm).
-  const handleRemoveKustom = async () => {
+  const handleRemoveKustom = () => {
     if (!token || kustomRemoving) return;
-    setKustomRemoving(true);
     setKustomMsg(null);
-    try {
-      const updated = await api<KustomSettings>('/payments/kustom/settings', {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ merchant_id: '', shared_secret: '', enabled: false }),
-      });
-      applyKustomSettings(updated);
-      setConfirmKustomRemove(false);
-    } catch (err) {
-      setKustomMsg({ type: 'error', text: (err instanceof Error && err.message) || t('settings.kustomRemoveFailed') });
-    } finally {
-      setKustomRemoving(false);
-    }
+    reauth.request(async (credentials) => {
+      setKustomRemoving(true);
+      try {
+        const updated = await api<KustomSettings>('/payments/kustom/settings', {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ merchant_id: '', shared_secret: '', enabled: false, ...credentials }),
+        });
+        applyKustomSettings(updated);
+        setConfirmKustomRemove(false);
+      } finally {
+        setKustomRemoving(false);
+      }
+    }, ts('reauth.kustomRemoveDescription'));
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -1691,8 +1721,11 @@ export default function CreatorSettingsPage() {
             </form>
           </CardContent>
         </Card>
+
+        <TwoFactorCard />
       </TabsContent>
       </Tabs>
+      {reauth.dialog}
     </div>
   );
 }

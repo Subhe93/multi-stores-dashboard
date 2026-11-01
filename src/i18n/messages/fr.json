@@ -345,7 +345,8 @@
     "appsGroup": "Applications",
     "manageApps": "Gérer les applications",
     "notifications": "Notifications",
-    "customers": "Clients"
+    "customers": "Clients",
+    "securityLog": "Journal de sécurité"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -841,7 +842,10 @@
       "allStores": "Toutes les boutiques"
     },
     "customersCreateHint": "Les clients appartiennent à une boutique : ajoutez-les depuis la page Clients.",
-    "customersCreateLink": "Ouvrir Clients"
+    "customersCreateLink": "Ouvrir Clients",
+    "resetTwoFactor": "Réinitialiser l'authentification à deux facteurs",
+    "twoFactorResetConfirm": "Désactiver l'authentification à deux facteurs de ce compte (téléphone et codes de récupération perdus). Confirmez avec votre propre mot de passe et votre code.",
+    "twoFactorResetDone": "L'authentification à deux facteurs a été désactivée pour ce compte"
   },
   "guide": {
     "title": "Guide des opérations",
@@ -5635,7 +5639,18 @@
     "STORE_REQUIRED": "Une boutique est requise pour les comptes clients.",
     "CUSTOMER_STORE_MISMATCH": "Ce client appartient à une autre boutique.",
     "NOT_CUSTOMER_ACCOUNT": "Ce compte n’est pas un compte client.",
-    "CUSTOMER_NOT_FOUND": "Client introuvable."
+    "CUSTOMER_NOT_FOUND": "Client introuvable.",
+    "TWO_FACTOR_CHALLENGE_INVALID": "La connexion a pris trop de temps. Veuillez vous reconnecter.",
+    "TWO_FACTOR_CODE_INVALID": "Ce code est incorrect. Vérifiez votre application d’authentification et réessayez.",
+    "TWO_FACTOR_LOCKED": "Trop de codes incorrects. Patientez quelques minutes puis réessayez.",
+    "TWO_FACTOR_NOT_AVAILABLE": "La validation en deux étapes n’est pas disponible pour ce compte.",
+    "TWO_FACTOR_ALREADY_ENABLED": "La validation en deux étapes est déjà activée.",
+    "TWO_FACTOR_NOT_ENABLED": "La validation en deux étapes n’est pas activée.",
+    "TWO_FACTOR_SETUP_MISSING": "La configuration a expiré. Recommencez l’activation de la validation en deux étapes.",
+    "REAUTH_REQUIRED": "Saisissez votre mot de passe actuel pour confirmer cette modification.",
+    "REAUTH_PASSWORD_INVALID": "Le mot de passe est incorrect.",
+    "REAUTH_2FA_REQUIRED": "Activez la validation en deux étapes avant de modifier les clés de paiement de la plateforme.",
+    "TWO_FACTOR_RESET_SELF": "Utilisez vos codes de récupération pour réinitialiser votre propre authentification à deux facteurs."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -5783,6 +5798,12 @@
     "canonicalPlaceholder": "https://example.com/page",
     "savingEllipsis": "Enregistrement…",
     "saveSeo": "Enregistrer le SEO",
+    "pageUrl": "URL",
+    "pageUrlHint": "L’adresse de la page dans votre boutique. Les espaces et symboles sont nettoyés quand vous quittez le champ.",
+    "pageUrlRedirectHint": "L’ancienne adresse {from} redirigera vers {to}.",
+    "pageUrlConfirmTitle": "Modifier l’adresse de la page ?",
+    "pageUrlConfirmBody": "Cette page est publiée. Les visiteurs et moteurs de recherche qui utilisent l’ancienne adresse sont redirigés automatiquement vers la nouvelle (301).",
+    "pageUrlConfirmAction": "Modifier l’adresse",
     "confirmRestore": "Restaurer cette version ? Les modifications actuelles non publiées seront remplacées.",
     "failedToRestore": "Échec de la restauration",
     "versionHistory": "Historique des versions",
@@ -5912,13 +5933,7 @@
       },
       "overlay": "Assombrir l’image",
       "previewHint": "Les modifications sont enregistrées automatiquement. Ouvrez /auth/login sur votre boutique pour les voir."
-    },
-    "pageUrl": "URL",
-    "pageUrlHint": "L’adresse de la page dans votre boutique. Les espaces et symboles sont nettoyés quand vous quittez le champ.",
-    "pageUrlRedirectHint": "L’ancienne adresse {from} redirigera vers {to}.",
-    "pageUrlConfirmTitle": "Modifier l’adresse de la page ?",
-    "pageUrlConfirmBody": "Cette page est publiée. Les visiteurs et moteurs de recherche qui utilisent l’ancienne adresse sont redirigés automatiquement vers la nouvelle (301).",
-    "pageUrlConfirmAction": "Modifier l’adresse"
+    }
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",
@@ -6877,7 +6892,8 @@
       "mockInStock": "En stock",
       "mockAddToCart": "Ajouter au panier",
       "mockPaid": "Paiement encaissé",
-      "mockShipped": "Expédiée"
+      "mockShipped": "Expédiée",
+      "twoFactorExpired": "La connexion a pris trop de temps. Saisissez à nouveau votre e-mail et votre mot de passe."
     },
     "magic": {
       "signingIn": "Connexion en cours…",
@@ -6891,7 +6907,133 @@
       "networkBody": "Vérifiez votre connexion Internet et réessayez.",
       "errorTitle": "Une erreur est survenue",
       "errorBody": "Nous n’avons pas pu vous connecter pour le moment. Veuillez réessayer dans un instant.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "twoFactorExpiredTitle": "Votre session de connexion a expiré",
+      "twoFactorExpiredBody": "L’étape de vérification a expiré. Pour votre sécurité, reconnectez-vous avec votre e-mail et votre mot de passe."
+    },
+    "twoFactor": {
+      "title": "Validation en deux étapes",
+      "subtitle": "Saisissez le code à 6 chiffres de votre application d’authentification.",
+      "recoverySubtitle": "Saisissez l’un des codes de récupération enregistrés lors de l’activation de la validation en deux étapes.",
+      "codeLabel": "Code de vérification",
+      "recoveryLabel": "Code de récupération",
+      "verify": "Vérifier",
+      "verifying": "Vérification…",
+      "back": "Retour à la connexion",
+      "useRecovery": "Utiliser un code de récupération",
+      "useApp": "Utiliser l’application d’authentification",
+      "locked": "Trop de codes incorrects. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
+      "networkError": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez."
+    }
+  },
+  "security": {
+    "reauth": {
+      "title": "Confirmez votre identité",
+      "description": "Cette modification change la destination des paiements. Saisissez votre mot de passe pour continuer.",
+      "password": "Mot de passe actuel",
+      "code": "Code de vérification",
+      "codeHint": "Le code à 6 chiffres de votre application d’authentification.",
+      "passwordRequired": "Saisissez votre mot de passe actuel.",
+      "codeRequired": "Saisissez le code à 6 chiffres de votre application d’authentification.",
+      "locked": "Trop de tentatives échouées. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
+      "setupRequired": "Les clés de paiement de la plateforme ne peuvent être modifiées que depuis un compte avec la validation en deux étapes. Activez-la d’abord, puis réessayez.",
+      "setupButton": "Configurer la validation en deux étapes",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "stripeDescription": "Vous modifiez les clés Stripe de la plateforme. Confirmez votre identité pour les enregistrer.",
+      "stripeNote": "Toute modification de clé demande votre mot de passe et votre code de validation en deux étapes. Chaque modification est enregistrée dans le journal de sécurité et envoyée par e-mail à tous les administrateurs.",
+      "disconnectDescription": "La déconnexion arrête les paiements par carte jusqu’à la connexion d’un nouveau compte. Confirmez votre identité pour continuer.",
+      "kustomDescription": "Vous modifiez vos identifiants marchand Kustom. Confirmez votre identité pour les enregistrer.",
+      "kustomRemoveDescription": "Supprimer vos identifiants Kustom désactive Kustom au paiement. Confirmez votre identité pour continuer.",
+      "adminDescription": "Vous modifiez qui peut accéder à la plateforme. Confirmez votre identité — la confirmation reste valable 5 minutes.",
+      "setupRequiredAdmin": "La gestion des comptes exige la validation en deux étapes sur votre propre compte. Activez-la d’abord, puis réessayez.",
+      "kustomEnvironmentDescription": "Changer d'environnement Kustom modifie le système Kustom qui reçoit vos paiements réels. Confirmez votre identité pour continuer."
+    },
+    "twoFactor": {
+      "title": "Validation en deux étapes",
+      "statusOn": "Activée",
+      "statusOff": "Désactivée",
+      "description": "Protégez votre compte avec un code d’application d’authentification (Google Authenticator, Microsoft Authenticator, 1Password…) en plus de votre mot de passe.",
+      "loadFailed": "Impossible de charger l’état de la validation en deux étapes.",
+      "retry": "Réessayer",
+      "enabledSince": "Activée depuis le {date}.",
+      "enabledShort": "La validation en deux étapes est activée.",
+      "recoveryRemaining": "{count, plural, =0 {Plus aucun code de récupération.} one {# code de récupération restant.} other {# codes de récupération restants.}}",
+      "recoveryLow": "Il vous reste peu de codes de récupération. Générez-en de nouveaux pour ne pas perdre l’accès.",
+      "regenerate": "Nouveaux codes de récupération",
+      "disable": "Désactiver",
+      "enable": "Activer",
+      "locked": "Trop de tentatives échouées. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
+      "currentPassword": "Mot de passe actuel",
+      "code": "Code de vérification",
+      "enableTitle": "Activer la validation en deux étapes",
+      "enablePasswordHint": "Saisissez votre mot de passe actuel pour commencer.",
+      "cancel": "Annuler",
+      "continue": "Continuer",
+      "scanTitle": "Scannez le code QR",
+      "scanHint": "Ouvrez votre application d’authentification, scannez ce code, puis saisissez le code à 6 chiffres affiché.",
+      "qrAlt": "Code QR pour votre application d’authentification",
+      "manualHint": "Impossible de scanner ? Saisissez cette clé manuellement dans l’application :",
+      "copySecret": "Copier la clé",
+      "activate": "Activer",
+      "codesTitle": "Enregistrez vos codes de récupération",
+      "codesHint": "Si vous perdez votre téléphone, chacun de ces codes permet de vous connecter une fois. Ils ne sont affichés que maintenant : conservez-les en lieu sûr.",
+      "copied": "Copié",
+      "copyCodes": "Copier les codes",
+      "downloadCodes": "Télécharger le .txt",
+      "codesFileHeading": "Codes de récupération de la validation en deux étapes (chacun fonctionne une fois)",
+      "codesSavedConfirm": "J’ai enregistré ces codes en lieu sûr",
+      "done": "Terminé",
+      "disableTitle": "Désactiver la validation en deux étapes",
+      "disableHint": "Votre compte ne sera protégé que par votre mot de passe. Saisissez votre mot de passe et un code actuel pour confirmer.",
+      "regenerateTitle": "Générer de nouveaux codes de récupération",
+      "regenerateHint": "Vos anciens codes de récupération ne fonctionneront plus. Saisissez votre mot de passe et un code actuel pour confirmer.",
+      "disableConfirm": "Désactiver",
+      "regenerateConfirm": "Générer les codes"
+    },
+    "log": {
+      "title": "Journal de sécurité",
+      "subtitle": "Chaque modification des clés de paiement et de la validation en deux étapes, avec son auteur et sa provenance.",
+      "allActions": "Tous les événements",
+      "refresh": "Actualiser",
+      "time": "Date",
+      "action": "Événement",
+      "actor": "Par",
+      "target": "Cible",
+      "fields": "Champs modifiés",
+      "ip": "Adresse IP",
+      "empty": "Aucun événement de sécurité pour l’instant.",
+      "loadFailed": "Impossible de charger le journal de sécurité.",
+      "note": "Ce journal ne peut être ni modifié ni supprimé. Les valeurs secrètes ne sont jamais enregistrées, seulement le nom des champs modifiés.",
+      "pageOf": "Page {page} sur {pages} · {total} événements",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "targetPlatform": "Plateforme",
+      "actions": {
+        "payment_keys_platform_updated": "Clés de paiement de la plateforme modifiées",
+        "payment_keys_kustom_updated": "Identifiants Kustom modifiés",
+        "payment_keys_stripe_connect_disconnected": "Compte Stripe déconnecté",
+        "two_factor_enabled": "Validation en deux étapes activée",
+        "two_factor_disabled": "Validation en deux étapes désactivée",
+        "two_factor_recovery_regenerated": "Codes de récupération régénérés",
+        "two_factor_recovery_used": "Connexion avec un code de récupération",
+        "two_factor_login_failed": "Code de connexion erroné",
+        "two_factor_locked": "Verrouillé après des codes erronés",
+        "reauth_failed": "Échec de la vérification d’identité",
+        "two_factor_reset_by_admin": "Validation en deux étapes réinitialisée par un admin",
+        "user_created_staff": "Compte d'équipe créé",
+        "user_email_changed_by_admin": "E-mail modifié par un admin",
+        "user_password_reset_by_admin": "Mot de passe réinitialisé par un admin",
+        "user_status_changed": "Statut du compte modifié",
+        "user_deleted_by_admin": "Compte supprimé par un admin",
+        "reauth_granted": "Identité confirmée pour la gestion des comptes (5 min)"
+      },
+      "roles": {
+        "ADMIN": "Administrateur",
+        "CREATOR": "Créateur",
+        "PROVIDER": "Fournisseur",
+        "CUSTOMER": "Client"
+      }
     }
   }
 }
