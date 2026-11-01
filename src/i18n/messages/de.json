@@ -5895,7 +5895,13 @@
       },
       "overlay": "Bild abdunkeln",
       "previewHint": "Änderungen werden automatisch gespeichert. Öffne /auth/login in deinem Shop, um sie zu sehen."
-    }
+    },
+    "pageUrl": "URL",
+    "pageUrlHint": "Die Adresse der Seite in deinem Shop. Leerzeichen und Symbole werden beim Verlassen des Feldes bereinigt.",
+    "pageUrlRedirectHint": "Die alte Adresse {from} leitet auf {to} weiter.",
+    "pageUrlConfirmTitle": "Adresse der Seite ändern?",
+    "pageUrlConfirmBody": "Diese Seite ist veröffentlicht. Besucher und Suchmaschinen mit der alten Adresse werden automatisch zur neuen weitergeleitet (301).",
+    "pageUrlConfirmAction": "Adresse ändern"
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

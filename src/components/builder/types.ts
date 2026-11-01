@@ -17,6 +17,8 @@ export interface BuilderPage {
   slug: string | null;
   static_kind: string | null;
   status: 'DRAFT' | 'PUBLISHED';
+  /** Set once the page was published (the storefront serves that version). */
+  published_version_id?: string | null;
   seo: Record<string, unknown>;
   translations: PageTranslationRow[];
 }

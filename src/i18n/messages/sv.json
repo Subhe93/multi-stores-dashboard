@@ -5895,7 +5895,13 @@
       },
       "overlay": "Mörka bilden",
       "previewHint": "Ändringar sparas automatiskt. Öppna /auth/login i din butik för att se dem."
-    }
+    },
+    "pageUrl": "URL",
+    "pageUrlHint": "Sidans adress i din butik. Mellanslag och symboler städas upp när du lämnar fältet.",
+    "pageUrlRedirectHint": "Den gamla adressen {from} vidarebefordras till {to}.",
+    "pageUrlConfirmTitle": "Ändra sidans adress?",
+    "pageUrlConfirmBody": "Sidan är publicerad. Besökare och sökmotorer som använder den gamla adressen skickas automatiskt till den nya (301).",
+    "pageUrlConfirmAction": "Ändra adress"
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

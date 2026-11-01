@@ -5895,7 +5895,13 @@
       },
       "overlay": "Darken image",
       "previewHint": "Changes save automatically. Open /auth/login on your store to see them."
-    }
+    },
+    "pageUrl": "URL",
+    "pageUrlHint": "The page's address in your store. Spaces and symbols are tidied up when you leave the field.",
+    "pageUrlRedirectHint": "The old address {from} will redirect to {to}.",
+    "pageUrlConfirmTitle": "Change the page's address?",
+    "pageUrlConfirmBody": "This page is published. Visitors and search engines using the old address are sent to the new one automatically (301).",
+    "pageUrlConfirmAction": "Change address"
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",

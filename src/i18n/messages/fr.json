@@ -5895,7 +5895,13 @@
       },
       "overlay": "Assombrir l’image",
       "previewHint": "Les modifications sont enregistrées automatiquement. Ouvrez /auth/login sur votre boutique pour les voir."
-    }
+    },
+    "pageUrl": "URL",
+    "pageUrlHint": "L’adresse de la page dans votre boutique. Les espaces et symboles sont nettoyés quand vous quittez le champ.",
+    "pageUrlRedirectHint": "L’ancienne adresse {from} redirigera vers {to}.",
+    "pageUrlConfirmTitle": "Modifier l’adresse de la page ?",
+    "pageUrlConfirmBody": "Cette page est publiée. Les visiteurs et moteurs de recherche qui utilisent l’ancienne adresse sont redirigés automatiquement vers la nouvelle (301).",
+    "pageUrlConfirmAction": "Modifier l’adresse"
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",

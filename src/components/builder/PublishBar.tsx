@@ -17,6 +17,10 @@ interface PublishBarProps {
   pageId: string;
   pageTitle: string;
   pageType: string;
+  /** URL slug of a STATIC / LANDING page (edited in the SEO dialog). */
+  pageSlug?: string | null;
+  /** The page has a published version (its URL is public). */
+  isLive?: boolean;
   status: 'DRAFT' | 'PUBLISHED';
   storeUrl?: string;
   primaryLocale: string;
@@ -48,6 +52,8 @@ export function PublishBar({
   pageId,
   pageTitle,
   pageType,
+  pageSlug,
+  isLive,
   status,
   storeUrl,
   primaryLocale,
@@ -161,6 +167,8 @@ export function PublishBar({
         <SeoDialog
           pageId={pageId}
           pageType={pageType}
+          pageSlug={pageSlug}
+          isLive={isLive}
           initialSeo={seo}
           initialTranslations={translations}
           primaryLocale={primaryLocale}

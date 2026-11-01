@@ -143,3 +143,32 @@ export function slugHref(prefix: string, ...segments: string[]): string {
   const base = prefix.replace(/\/+$/, '');
   return `${base}/${segments.map((s) => encodeSlugForUrl(s)).join('/')}`;
 }
+
+// ── Page permalinks (builder) ─────────────────────────────────────────────────
+
+/** Page types served at `/<slug>`; the others (home, header, templates…) have no URL field. */
+export function pageTypeHasSlug(type: string | null | undefined): boolean {
+  const t = (type ?? '').toUpperCase();
+  return t === 'STATIC' || t === 'LANDING';
+}
+
+/** True when `next` is a different slug than `stored` (encoding / case differences do not count). */
+export function slugChanged(stored: string | null | undefined, next: string | null | undefined): boolean {
+  if (!next) return false;
+  if (!stored) return true;
+  return normalizeSlugForLookup(stored) !== normalizeSlugForLookup(next);
+}
+
+/**
+ * The 301 a permalink edit leaves behind (WP `_wp_old_slug`): the readable old
+ * and new paths when a live (published) page gets a different slug, else null
+ * (a draft has no public URL to keep working).
+ */
+export function pageSlugRedirect(
+  stored: string | null | undefined,
+  next: string | null | undefined,
+  live: boolean,
+): { from: string; to: string } | null {
+  if (!live || !stored || !next || !slugChanged(stored, next)) return null;
+  return { from: `/${stored}`, to: `/${next}` };
+}

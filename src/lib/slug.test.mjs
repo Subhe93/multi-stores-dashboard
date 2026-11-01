@@ -6,6 +6,8 @@ import {
   asciiHandle,
   asciiHandleTyping,
   initialSlugState,
+  pageSlugRedirect,
+  pageTypeHasSlug,
   resolveSlugForSubmit,
   slugFromText,
   slugHref,
@@ -13,6 +15,7 @@ import {
   slugProblem,
   slugStateOnBlur,
   slugStateOnInput,
+  slugChanged,
   slugStateOnTitle,
   slugWasAdjusted,
 } from './slug.ts';
@@ -105,4 +108,27 @@ test('preview path is readable, href is encoded per segment', () => {
   assert.equal(slugPreviewPath('/collections', 'parent', 'هدية'), '/collections/parent/هدية');
   assert.equal(slugPreviewPath('/products/', ''), '/products/…');
   assert.equal(slugHref('https://s.example/collections', 'parent', 'kläder'), 'https://s.example/collections/parent/kl%c3%a4der');
+});
+
+test('pageTypeHasSlug: only pages served at /<slug>', () => {
+  assert.equal(pageTypeHasSlug('STATIC'), true);
+  assert.equal(pageTypeHasSlug('landing'), true);
+  for (const t of ['HOME', 'HEADER', 'FOOTER', 'PRODUCT_TEMPLATE', 'CATALOG_TEMPLATE', 'COLLECTION_TEMPLATE', '', null]) {
+    assert.equal(pageTypeHasSlug(t), false);
+  }
+});
+
+test('slugChanged: lookup form, so case / encoding differences are no change', () => {
+  assert.equal(slugChanged('om-oss', 'om-namez'), true);
+  assert.equal(slugChanged('om-oss', 'om-oss'), false);
+  assert.equal(slugChanged('هدية', '%d9%87%d8%af%d9%8a%d8%a9'), false);
+  assert.equal(slugChanged('om-oss', ''), false);
+  assert.equal(slugChanged(null, 'ny'), true);
+});
+
+test('pageSlugRedirect: only a live page that moved leaves a 301', () => {
+  assert.deepEqual(pageSlugRedirect('om-oss', 'om-namez', true), { from: '/om-oss', to: '/om-namez' });
+  assert.equal(pageSlugRedirect('om-oss', 'om-namez', false), null);
+  assert.equal(pageSlugRedirect('om-oss', 'om-oss', true), null);
+  assert.equal(pageSlugRedirect(null, 'om-namez', true), null);
 });

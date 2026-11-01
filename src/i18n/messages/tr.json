@@ -5895,7 +5895,13 @@
       },
       "overlay": "Görseli karart",
       "previewHint": "Değişiklikler otomatik kaydedilir. Görmek için mağazanızda /auth/login sayfasını açın."
-    }
+    },
+    "pageUrl": "URL",
+    "pageUrlHint": "Sayfanın mağazanızdaki adresi. Alandan çıktığınızda boşluklar ve semboller düzenlenir.",
+    "pageUrlRedirectHint": "Eski adres {from}, {to} adresine yönlendirilecek.",
+    "pageUrlConfirmTitle": "Sayfanın adresi değiştirilsin mi?",
+    "pageUrlConfirmBody": "Bu sayfa yayında. Eski adresi kullanan ziyaretçiler ve arama motorları otomatik olarak yeni adrese yönlendirilir (301).",
+    "pageUrlConfirmAction": "Adresi değiştir"
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",

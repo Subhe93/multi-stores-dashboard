@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Camera, Loader2, Search } from 'lucide-react';
+import { ArrowRight, Camera, Loader2, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { pageSlugRedirect, pageTypeHasSlug, slugChanged } from '@/lib/slug';
+import { useSlugField } from '@/lib/useSlugField';
+import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +27,10 @@ import type { PageTranslationRow } from './types';
 interface SeoDialogProps {
   pageId: string;
   pageType: string;
+  /** Current URL slug (STATIC / LANDING pages only). */
+  pageSlug?: string | null;
+  /** The page has a published version, so its URL is public. */
+  isLive?: boolean;
   initialSeo: Record<string, unknown>;
   initialTranslations: PageTranslationRow[];
   primaryLocale: string;
@@ -46,6 +54,8 @@ const TWITTER_CARDS = ['summary', 'summary_large_image'];
 export function SeoDialog({
   pageId,
   pageType,
+  pageSlug = null,
+  isLive = false,
   initialSeo,
   initialTranslations,
   primaryLocale,
@@ -58,6 +68,9 @@ export function SeoDialog({
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Old -> new path awaiting the owner's confirmation (live page only).
+  const [confirmMove, setConfirmMove] = useState<{ from: string; to: string } | null>(null);
+  const { baseUrl } = useStorefrontUrl();
 
   // Page-level SEO settings (shared across locales).
   const [seo, setSeo] = useState<SeoState>(() => ({
@@ -103,6 +116,20 @@ export function SeoDialog({
 
   const current = translations[editLocale] || { locale: editLocale };
 
+  // Permalink (WP-style): the stored slug never follows the title; typed text
+  // is sanitized on blur / save, and the server's final slug is shown after.
+  const hasSlug = pageTypeHasSlug(pageType);
+  const slugField = useSlugField({
+    title: translations[primaryLocale]?.title || '',
+    locale: primaryLocale,
+  });
+  const resetSlug = slugField.reset;
+  useEffect(() => {
+    if (open) resetSlug(pageSlug);
+  }, [open, pageSlug, resetSlug]);
+  const slugMove = hasSlug ? pageSlugRedirect(pageSlug, slugField.preview, isLive) : null;
+  const originLabel = baseUrl ? baseUrl.replace(/^https?:\/\//, '') : '';
+
   function patchTranslation(partial: Partial<PageTranslationRow>) {
     setTranslations((prev) => ({
       ...prev,
@@ -124,10 +151,26 @@ export function SeoDialog({
     return (json.data?.url || json.url) as string;
   }
 
-  async function handleSave() {
+  async function handleSave(confirmed = false) {
     if (!token || saving) return;
-    setSaving(true);
     setError(null);
+    let slugToSend: string | undefined;
+    if (hasSlug) {
+      const slug = slugField.finalize();
+      if (!slug) {
+        setError(slugField.problem === 'unusable' ? t('common.slug.errUnusable') : t('common.slug.errRequired'));
+        return;
+      }
+      if (slugChanged(pageSlug, slug)) slugToSend = slug;
+      // Changing a published page's address: confirm first (old links 301).
+      const move = slugToSend ? pageSlugRedirect(pageSlug, slugToSend, isLive) : null;
+      if (move && !confirmed) {
+        setConfirmMove(move);
+        return;
+      }
+    }
+    setConfirmMove(null);
+    setSaving(true);
     try {
       const cleanedSeo: Record<string, unknown> = {};
       if (seo.og_image) cleanedSeo.og_image = seo.og_image;
@@ -150,14 +193,17 @@ export function SeoDialog({
           return row;
         });
 
-      await api(`/v2/pages/${pageId}`, {
+      const updated = await api<{ slug?: string | null } | null>(`/v2/pages/${pageId}`, {
         method: 'PUT',
         token,
         body: JSON.stringify({
           seo: cleanedSeo,
           translations: translationsToSend,
+          ...(slugToSend ? { slug: slugToSend } : {}),
         }),
       });
+      // The server may suffix a taken / reserved slug (`-2`): show the notice.
+      if (slugToSend) slugField.applySaved(updated?.slug, slugToSend);
       await onSaved();
       setOpen(false);
     } catch (e: unknown) {
@@ -186,8 +232,45 @@ export function SeoDialog({
         </DialogHeader>
 
         <div className="space-y-5 max-h-[60vh] overflow-y-auto -mx-6 px-6">
+          {/* Permalink (pages served at /<slug>) */}
+          {hasSlug && (
+            <section className="space-y-1.5">
+              <Label htmlFor="page-url-slug" className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                {t('builder.pageUrl')}
+              </Label>
+              <div
+                dir="ltr"
+                className="flex items-stretch h-8 rounded-md border border-input bg-white overflow-hidden focus-within:ring-2 focus-within:ring-ring/50"
+              >
+                <span
+                  className="flex items-center ps-2.5 pe-0.5 text-xs text-muted-foreground bg-zinc-50 border-e border-input max-w-[50%] truncate shrink-0 font-mono"
+                  title={baseUrl ? `${baseUrl}/` : undefined}
+                >
+                  {originLabel ? `${originLabel}/` : '/'}
+                </span>
+                <input
+                  id="page-url-slug"
+                  dir="auto"
+                  className="flex-1 min-w-0 px-2 text-sm font-mono outline-none bg-transparent"
+                  {...slugField.inputProps}
+                />
+              </div>
+              {slugField.problem ? (
+                <p className="text-[11px] text-red-600">
+                  {slugField.problem === 'unusable' ? t('common.slug.errUnusable') : t('common.slug.errRequired')}
+                </p>
+              ) : slugMove ? (
+                <p className="flex flex-wrap items-center gap-1 text-[11px] text-amber-700">
+                  {t('builder.pageUrlRedirectHint', { from: slugMove.from, to: slugMove.to })}
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">{t('builder.pageUrlHint')}</p>
+              )}
+            </section>
+          )}
+
           {/* Per-locale meta */}
-          <section className="space-y-3">
+          <section className={hasSlug ? 'space-y-3 border-t pt-5' : 'space-y-3'}>
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 {t('builder.meta')} ({editLocale})
@@ -361,7 +444,7 @@ export function SeoDialog({
           <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={() => handleSave()} disabled={saving || (hasSlug && !!slugField.problem)}>
             {saving ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -372,6 +455,27 @@ export function SeoDialog({
             )}
           </Button>
         </DialogFooter>
+        {/* Nested in the popup so confirming does not dismiss the SEO dialog. */}
+        <ConfirmDialog
+          open={!!confirmMove}
+          onOpenChange={(o) => { if (!o) setConfirmMove(null); }}
+          title={t('builder.pageUrlConfirmTitle')}
+          description={
+            confirmMove ? (
+              <span className="block space-y-2">
+                <span className="block">{t('builder.pageUrlConfirmBody')}</span>
+                <span dir="ltr" className="flex flex-wrap items-center gap-1.5 font-mono text-xs text-zinc-700">
+                  <span className="break-all">{confirmMove.from}</span>
+                  <ArrowRight className="size-3 shrink-0" />
+                  <span className="break-all">{confirmMove.to}</span>
+                </span>
+              </span>
+            ) : undefined
+          }
+          confirmLabel={t('builder.pageUrlConfirmAction')}
+          busy={saving}
+          onConfirm={() => handleSave(true)}
+        />
       </DialogContent>
     </Dialog>
   );

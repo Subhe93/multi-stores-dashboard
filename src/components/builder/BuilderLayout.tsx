@@ -88,6 +88,10 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const [selectedId, setSelectedId] = useState<string | null>(initialSections[0]?.id ?? null);
   const [activeLocale, setActiveLocale] = useState(store.language_config.primary_locale);
   const [pageStatus, setPageStatus] = useState<'DRAFT' | 'PUBLISHED'>(page.status);
+  // Permalink (editable in the SEO dialog) and whether the page is live: a
+  // live page's old URL 301s to the new one when the slug changes.
+  const [pageSlug, setPageSlug] = useState<string | null>(page.slug);
+  const [isLive, setIsLive] = useState(!!page.published_version_id);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   // Transient feedback chip (the builder has no global toaster). Cleared by
   // the timer below; a new notice restarts it.
@@ -731,6 +735,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       body: JSON.stringify({}),
     });
     setPageStatus('PUBLISHED');
+    setIsLive(true);
   }, [token, page.id, flushAutosave]);
 
   // Manually clear the storefront cache. Publishing already triggers this on
@@ -753,11 +758,15 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     const fresh = await api<{
       sections: SectionInstance[];
       status: 'DRAFT' | 'PUBLISHED';
+      slug: string | null;
+      published_version_id: string | null;
       seo: Record<string, unknown>;
       translations: typeof pageTranslations;
     }>(`/v2/pages/${page.id}`, { token });
     setSections(fresh.sections);
     setPageStatus(fresh.status);
+    setPageSlug(fresh.slug);
+    setIsLive(!!fresh.published_version_id);
     setPageSeo(fresh.seo || {});
     setPageTranslations(fresh.translations);
     setSelectedId(fresh.sections[0]?.id ?? null);
@@ -770,10 +779,14 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     if (!token) return;
     const fresh = await api<{
       status: 'DRAFT' | 'PUBLISHED';
+      slug: string | null;
+      published_version_id: string | null;
       seo: Record<string, unknown>;
       translations: typeof pageTranslations;
     }>(`/v2/pages/${page.id}`, { token });
     setPageStatus(fresh.status);
+    setPageSlug(fresh.slug);
+    setIsLive(!!fresh.published_version_id);
     setPageSeo(fresh.seo || {});
     setPageTranslations(fresh.translations);
   }, [token, page.id]);
@@ -881,7 +894,9 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     page.translations.find((t) => t.locale === store.language_config.primary_locale)?.title ||
     (knownPageTypes.has(pageTypeKey)
       ? tBuilder(`pageType.${pageTypeKey}`)
-      : page.slug || tBuilder('untitledPage'));
+      : pageSlug || tBuilder('untitledPage'));
+  // The switcher lists this page with its current slug after a permalink edit.
+  const switcherPages = allPages.map((p) => (p.id === page.id && pageSlug ? { ...p, slug: pageSlug } : p));
 
   return (
     <div className="h-screen w-full flex flex-col bg-zinc-50">
@@ -893,12 +908,14 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         pageId={page.id}
         pageTitle={pageTitle}
         pageType={page.type}
+        pageSlug={pageSlug}
+        isLive={isLive}
         status={pageStatus}
         storeUrl={`${WEB_ORIGIN}/store/${store.slug}`}
         primaryLocale={store.language_config.primary_locale}
         secondaryLocales={store.language_config.secondary_locales}
         activeLocale={activeLocale}
-        allPages={allPages}
+        allPages={switcherPages}
         seo={pageSeo}
         translations={pageTranslations}
         saveState={saveState}
