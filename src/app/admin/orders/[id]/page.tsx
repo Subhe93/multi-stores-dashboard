@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
+import { OrderCustomerCard } from '@/components/orders/OrderCustomerCard';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
 import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
 import type { CustomerB2bDefaults, OrderB2bSnapshot, OrderTaxExemptionFields } from '@/lib/b2b';
@@ -89,8 +90,17 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   paid_at?: string | null;
   payment_failure_message?: string | null;
   receipt_url?: string | null;
-  customer?: ({ first_name?: string | null; last_name?: string | null; phone?: string | null } & CustomerB2bDefaults) | null;
+  customer_id?: string | null;
+  market?: { name: string } | null;
+  customer?: ({
+    first_name?: string | null;
+    last_name?: string | null;
+    phone?: string | null;
+    // Account email / status from the user row.
+    user?: { email?: string | null; status?: string | null } | null;
+  } & CustomerB2bDefaults) | null;
   address?: {
+    phone?: string | null;
     full_name?: string | null;
     line1?: string | null;
     line2?: string | null;
@@ -375,15 +385,11 @@ export default function OrderDetailPage() {
 
         {/* Side info */}
         <div className="space-y-4">
-          <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('customer')}</CardTitle></CardHeader>
-            <CardContent className="text-xs space-y-1">
-              <p className="font-medium">{order.customer?.first_name} {order.customer?.last_name}</p>
-              <p className="text-muted-foreground">{order.customer?.phone || '—'}</p>
-              {/* Company snapshot (b2b app); renders nothing for person orders. */}
-              <OrderCompanyLines order={order} customer={order.customer} />
-            </CardContent>
-          </Card>
+          {/* Customer: contact, stats (admin customer detail), billing, language / market. */}
+          <OrderCustomerCard scope="admin" token={token} order={order} onOrderChanged={fetchOrder}>
+            {/* Company snapshot (b2b app); renders nothing for person orders. */}
+            <OrderCompanyLines order={order} customer={order.customer} />
+          </OrderCustomerCard>
 
           {/* Read-only reverse-charge / exemption evidence (b2b app M2.5). */}
           <OrderTaxExemptionCard order={order} />

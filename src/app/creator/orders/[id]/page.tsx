@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +14,7 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
+import { OrderCustomerCard } from '@/components/orders/OrderCustomerCard';
 import { useStoreType } from '@/lib/useStoreType';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
 import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
@@ -117,6 +117,8 @@ interface OrderAddress {
   postal_code?: string | null;
   country?: string | null;
   country_code?: string | null;
+  full_name?: string | null;
+  phone?: string | null;
 }
 
 // OrderB2bSnapshot: the five company columns written by the b2b app;
@@ -149,7 +151,15 @@ interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFi
   // Legacy orders carry a single commission object; newer ones an array.
   commission?: OrderCommission | OrderCommission[] | null;
   // Customer account; the b2b defaults are prefill, the order snapshot wins.
-  customer?: ({ id?: string; first_name?: string | null; last_name?: string | null; email?: string | null } & CustomerB2bDefaults) | null;
+  customer?: ({
+    id?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    // Account email / status from the user row.
+    user?: { email?: string | null; status?: string | null } | null;
+  } & CustomerB2bDefaults) | null;
   address?: OrderAddress | null;
   payouts?: { status?: string | null }[] | null;
 }
@@ -740,39 +750,20 @@ export default function CreatorOrderDetailPage() {
             </Card>
           )}
 
-          {/* Customer */}
-          <Card className="shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">{t('orderDetail.customer')}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs space-y-1">
-              {/* Registered customers link to their customer page; guests have no account. */}
-              {order.customer_id ?? order.customer?.id ? (
-                <Link
-                  href={`/creator/customers/${order.customer_id ?? order.customer?.id}`}
-                  className="block font-medium hover:underline"
-                >
-                  {order.customer?.first_name} {order.customer?.last_name}
-                </Link>
-              ) : (
-                <p className="font-medium">
-                  {order.customer?.first_name} {order.customer?.last_name}
-                </p>
-              )}
-              <p className="text-muted-foreground">{order.customer?.email ?? '—'}</p>
-              {/* Company snapshot (b2b app); renders nothing for person orders. */}
-              <OrderCompanyLines order={order} customer={order.customer} />
-              {/* Customer tax exemption (b2b app, D4/L7): active one or the action. */}
-              {reverseChargeOn && token && (
-                <CustomerTaxExemption
-                  token={token}
-                  orderId={id}
-                  customerId={order.customer_id ?? order.customer?.id ?? null}
-                  vatNumber={order.vat_validation?.vat_number ?? order.vat_number ?? null}
-                />
-              )}
-            </CardContent>
-          </Card>
+          {/* Customer: contact, store stats, billing address, language / market. */}
+          <OrderCustomerCard scope="creator" token={token} order={order} onOrderChanged={fetchOrder}>
+            {/* Company snapshot (b2b app); renders nothing for person orders. */}
+            <OrderCompanyLines order={order} customer={order.customer} />
+            {/* Customer tax exemption (b2b app, D4/L7): active one or the action. */}
+            {reverseChargeOn && token && (
+              <CustomerTaxExemption
+                token={token}
+                orderId={id}
+                customerId={order.customer_id ?? order.customer?.id ?? null}
+                vatNumber={order.vat_validation?.vat_number ?? order.vat_number ?? null}
+              />
+            )}
+          </OrderCustomerCard>
 
           {/* Why this order carries no VAT (VIES evidence / manual exemption). */}
           <OrderTaxExemptionCard order={order} />
@@ -818,8 +809,14 @@ export default function CreatorOrderDetailPage() {
                 {fmtOrder(totalEarnings)}
               </p>
               <p className="text-muted-foreground mt-1">
+                {/* Independent stores keep the whole amount; the note names
+                    where the money went for the order's payment method. */}
                 {storeType === 'INDEPENDENT'
-                  ? t('orderDetail.independentEarningsNote')
+                  ? order.payment_method === 'KUSTOM'
+                    ? t('orderDetail.independentEarningsNoteKustom')
+                    : order.payment_method === 'STRIPE'
+                      ? t('orderDetail.independentEarningsNote')
+                      : t('orderDetail.independentEarningsNoteCollected')
                   : t('orderDetail.creatorCommission')}
               </p>
               <div className="mt-3 space-y-1.5 border-t pt-2">
