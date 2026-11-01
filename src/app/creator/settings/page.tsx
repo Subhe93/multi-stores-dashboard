@@ -117,7 +117,7 @@ interface KustomSettings {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreatorSettingsPage() {
-  const { token } = useAuth();
+  const { token, replaceTokens } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
@@ -598,14 +598,19 @@ export default function CreatorSettingsPage() {
 
     setPasswordSaving(true);
     try {
-      await api('/auth/change-password', {
-        method: 'POST',
+      // PUT is the API's verb (POST answered 404). The API revokes every
+      // token issued before the change and returns a fresh pair.
+      const res = await api<{ access_token?: string; refresh_token?: string }>('/auth/change-password', {
+        method: 'PUT',
         token,
         body: JSON.stringify({
           current_password: currentPassword,
           new_password: newPassword,
         }),
       });
+      if (res?.access_token && res.refresh_token) {
+        replaceTokens({ access_token: res.access_token, refresh_token: res.refresh_token });
+      }
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

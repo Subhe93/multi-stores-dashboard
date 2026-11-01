@@ -344,7 +344,8 @@
     "onlineStore": "Webbutik",
     "appsGroup": "Appar",
     "manageApps": "Hantera appar",
-    "notifications": "Aviseringar"
+    "notifications": "Aviseringar",
+    "customers": "Kunder"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "Faktura utfärdad",
-    "orderStatus_CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad"
+    "orderStatus_CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad",
+    "customersPage": {
+      "title": "Kunder",
+      "subtitle": "Kundkonton i alla butiker. Varje kund tillhör en butik.",
+      "colStore": "Butik",
+      "storeFilter": "Butik",
+      "allStores": "Alla butiker"
+    },
+    "customersCreateHint": "Kunder tillhör en butik och läggs därför till på sidan Kunder.",
+    "customersCreateLink": "Öppna Kunder"
   },
   "guide": {
     "title": "Driftguide",
@@ -2178,6 +2188,19 @@
       "customDomain": "Anpassad domän",
       "customDomainPlaceholder": "shop.dittvarumarke.com",
       "customDomainHelp": "Fungerar med både en underdomän (shop.dittvarumarke.com) och en rotdomän (dittvarumarke.com). Lägg till en CNAME-post hos din DNS-leverantör från denna domän till {target}. För rotdomäner, använd Cloudflare (som stöder CNAME-flattening) eller en ALIAS/ANAME-post. Ändringar kan ta några minuter.",
+      "customDomainConnected": "Ansluten",
+      "customDomainLegacy": "Äldre domän",
+      "customDomainRemove": "Ta bort domän",
+      "customDomainRemoveHint": "Har du tagit bort domänens DNS eller använder du den inte längre? Ta bort den här så att butikens länkar slutar använda den.",
+      "customDomainLegacyMarketsHint": "Lades till innan Marknader aktiverades. Ta bort den om den inte längre pekar på din butik; marknadsdomäner hanteras på sidan Marknader.",
+      "customDomainReplaceHint": "För att byta till en annan domän skriver du in den nya ovan och sparar.",
+      "customDomainRemoveTitle": "Ta bort {domain}?",
+      "customDomainRemoveWarning": "Din butik öppnas inte längre på {domain}. Länkar använder {fallback}.",
+      "customDomainRemoveWarningMarkets": "Detta tar bort den äldre domäninställningen. Om {domain} även är en domän under Marknader fortsätter butiken att öppnas på den tills du tar bort den på sidan Marknader.",
+      "customDomainRemoving": "Tar bort…",
+      "customDomainRemoved": "{domain} har tagits bort. Länkar använder nu {fallback}.",
+      "customDomainStillInMarkets": "{domain} finns fortfarande som en domän under Marknader. Ta bort den där också för att sluta visa butiken på den.",
+      "customDomainRemoveFailed": "Det gick inte att ta bort domänen. Försök igen.",
       "dnsGuideTitle": "DNS-konfiguration",
       "dnsGuideIntro": "Öppna DNS-inställningarna för {zone} hos din leverantör och lägg till följande post:",
       "dnsType": "Typ",
@@ -4964,6 +4987,173 @@
           "failed": "Det gick inte att starta godkännandet hos Zoho. Försök igen."
         }
       }
+    },
+    "customers": {
+      "title": "Kunder",
+      "subtitle": "Personer med ett konto i din butik.",
+      "exportCsv": "Exportera CSV",
+      "exporting": "Exporterar…",
+      "newCustomer": "Ny kund",
+      "searchPlaceholder": "Sök på namn, e-post eller telefon",
+      "noMatches": "Inga kunder matchar filtren.",
+      "retry": "Försök igen",
+      "dismiss": "Stäng",
+      "working": "Arbetar…",
+      "companyBadge": "Företag",
+      "status": {
+        "ACTIVE": "Aktiv",
+        "PENDING": "Väntande",
+        "SUSPENDED": "Blockerad",
+        "BANNED": "Avstängd"
+      },
+      "cols": {
+        "customer": "Kund",
+        "phone": "Telefon",
+        "orders": "Ordrar",
+        "totalSpent": "Totalt spenderat",
+        "lastOrder": "Senaste order",
+        "created": "Skapad"
+      },
+      "filters": {
+        "hasOrders": "Ordrar",
+        "anyOrders": "Alla kunder",
+        "withOrders": "Har beställt",
+        "withoutOrders": "Inga ordrar än",
+        "type": "Kundtyp",
+        "anyType": "Alla typer",
+        "person": "Privatperson",
+        "company": "Företag",
+        "createdFrom": "Skapad från",
+        "createdTo": "till",
+        "clear": "Rensa filter"
+      },
+      "sort": {
+        "label": "Sortera",
+        "default": "Nyaste först",
+        "name_asc": "Namn A–Ö",
+        "name_desc": "Namn Ö–A",
+        "email_asc": "E-post A–Ö",
+        "email_desc": "E-post Ö–A",
+        "orders_count_desc": "Flest ordrar",
+        "orders_count_asc": "Minst antal ordrar",
+        "total_spent_desc": "Högst spenderat",
+        "total_spent_asc": "Lägst spenderat",
+        "last_order_at_desc": "Senast beställt",
+        "last_order_at_asc": "Längst sedan beställt",
+        "created_at_desc": "Nyaste först",
+        "created_at_asc": "Äldsta först"
+      },
+      "empty": {
+        "title": "Inga kunder än",
+        "body": "Kunder visas här när de skapar ett konto eller lägger en order i din butik. Du kan också lägga till en själv."
+      },
+      "actions": {
+        "sendLoginLink": "Skicka inloggningslänk",
+        "sendPasswordReset": "Skicka lösenordsåterställning",
+        "block": "Blockera",
+        "unblock": "Avblockera",
+        "bannedByPlatform": "Spärrad av plattformen"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {# kund blockerad} other {# kunder blockerade}}",
+        "unblocked": "{count, plural, one {# kund avblockerad} other {# kunder avblockerade}}",
+        "linksSent": "{count, plural, one {Inloggningslänk skickad till # kund} other {Inloggningslänkar skickade till # kunder}}",
+        "skipped": "{count} hoppades över",
+        "dailyLimit": "{count, plural, one {# skickades inte: dagliga e-postgränsen nådd} other {# skickades inte: dagliga e-postgränsen nådd}}",
+        "banned": "{count, plural, one {# hoppades över: spärrad av plattformen} other {# hoppades över: spärrade av plattformen}}"
+      },
+      "confirmBlock": {
+        "title": "Blockera {name}?",
+        "bulkTitle": "{count, plural, one {Blockera # kund?} other {Blockera # kunder?}}",
+        "description": "Blockerade kunder loggas ut överallt och kan inte logga in i din butik. Deras ordrar påverkas inte. Du kan avblockera dem när som helst."
+      },
+      "confirmUnblock": {
+        "title": "Avblockera {name}?",
+        "description": "Kunden kan logga in i din butik igen."
+      },
+      "confirmLoginLink": {
+        "title": "Skicka en inloggningslänk?",
+        "description": "{email} får ett mejl med en länk för att logga in i din butik med ett klick."
+      },
+      "confirmReset": {
+        "title": "Skicka lösenordsåterställning?",
+        "description": "{email} får ett mejl med en länk för att välja ett nytt lösenord."
+      },
+      "new": {
+        "title": "Ny kund",
+        "description": "Skapa ett konto för en kund i den här butiken. Ett lösenord genereras automatiskt.",
+        "store": "Butik",
+        "storePlaceholder": "Välj butik",
+        "storeRequired": "Välj butiken som kunden tillhör.",
+        "invalidEmail": "Ange en giltig e-postadress.",
+        "sendCredentials": "Mejla inloggningsuppgifterna till kunden",
+        "sendCredentialsHint": "Innehåller en inloggningslänk till din butik.",
+        "emailLanguage": "Mejlets språk",
+        "creating": "Skapar…",
+        "create": "Skapa kund",
+        "created": "Kunden har skapats."
+      },
+      "fields": {
+        "email": "E-post",
+        "firstName": "Förnamn",
+        "lastName": "Efternamn",
+        "phone": "Telefon",
+        "name": "Namn",
+        "customerType": "Kundtyp",
+        "typeUnset": "Inte angivet",
+        "companyName": "Företagsnamn",
+        "orgNumber": "Organisationsnummer",
+        "vatNumber": "Momsregistreringsnummer"
+      },
+      "detail": {
+        "back": "Tillbaka till kunder",
+        "saved": "Kunden har sparats.",
+        "loginLinkSent": "Inloggningslänk skickad till {email}.",
+        "resetSent": "Lösenordsåterställning skickad till {email}.",
+        "blocked": "Kunden har blockerats.",
+        "unblocked": "Kunden har avblockerats.",
+        "customerSince": "Kund sedan {date}",
+        "blockedNotice": "Kunden är blockerad och kan inte logga in i butiken.",
+        "orders": "Ordrar",
+        "noOrders": "Inga ordrar än.",
+        "colOrder": "Order",
+        "colDate": "Datum",
+        "colTotal": "Totalt",
+        "showingRecent": "Visar de {shown} senaste av {total} ordrar.",
+        "addresses": "Adresser",
+        "noAddresses": "Inga sparade adresser.",
+        "defaultAddress": "Standard",
+        "profile": "Profil",
+        "taxExemption": "Skattebefrielse",
+        "exemptSince": "Momsbefriad sedan {date}",
+        "noExemption": "Ingen skattebefrielse. Den kan läggas till från en av kundens ordrar.",
+        "bannedTooltip": "Plattformen har spärrat den här kunden. Endast plattformen kan häva spärren.",
+        "bannedNotice": "Den här kunden har spärrats av plattformen och kan inte logga in i butiken. Du kan inte ändra den här statusen."
+      },
+      "stats": {
+        "orders": "Ordrar",
+        "totalSpent": "Totalt spenderat",
+        "averageOrder": "Snittorder",
+        "lastOrder": "Senaste order"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "Det finns redan en kund med den här e-postadressen i butiken.",
+        "CUSTOMER_NOT_FOUND": "Kunden finns inte eller tillhör en annan butik.",
+        "STORE_REQUIRED": "Välj butiken som kunden tillhör.",
+        "STORE_NOT_FOUND": "Butiken hittades inte. Skapa din butik först.",
+        "CUSTOMER_STORE_MISMATCH": "Kunden tillhör en annan butik.",
+        "NOT_CUSTOMER_ACCOUNT": "Kontot är inte ett kundkonto.",
+        "invalidEmail": "Ange en giltig e-postadress.",
+        "invalidPhone": "Kontrollera telefonnumret.",
+        "invalidCompany": "Kontrollera organisations- och momsnumret (högst 32 tecken).",
+        "invalidInput": "Några fält är ogiltiga. Kontrollera dem och försök igen.",
+        "notFound": "Kunden hittades inte.",
+        "forbidden": "Du har inte åtkomst till den här kunden.",
+        "CUSTOMER_NOT_ACTIVE": "Kunden är blockerad. Avblockera kunden först för att skicka mejl.",
+        "CUSTOMER_INVALID_DATE": "Kontrollera filtrets datum.",
+        "CUSTOMER_BANNED_BY_ADMIN": "Den här kunden har spärrats av plattformen. Endast plattformen kan ändra den här statusen.",
+        "STORE_DAILY_EMAIL_LIMIT": "Din butik har nått den dagliga gränsen för den här typen av e-post. Försök igen i morgon."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "Ange både Client ID och Client Secret från Zoho API-konsolen.",
     "ZOHO_RECONNECT_REQUIRED": "Zoho godkänner inte längre den här kopplingen. Klicka på Auktorisera för att koppla igen.",
     "ZOHO_API_ERROR": "Zoho Mail returnerade ett fel. Försök igen om en stund.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "En bilaga är större än 10 MB, så mejlet skickades från plattformens avsändare i stället."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "En bilaga är större än 10 MB, så mejlet skickades från plattformens avsändare i stället.",
+    "STORE_REQUIRED": "Kundkonton kräver en butik.",
+    "CUSTOMER_STORE_MISMATCH": "Kunden tillhör en annan butik.",
+    "NOT_CUSTOMER_ACCOUNT": "Kontot är inte ett kundkonto.",
+    "CUSTOMER_NOT_FOUND": "Kunden hittades inte."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

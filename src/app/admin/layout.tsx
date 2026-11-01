@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import {
   Home,
   Users,
+  UserRound,
   ClipboardList,
   Landmark,
   Settings,
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         items: [
           { label: t('home'), href: '/admin', icon: <Home className="w-4 h-4" />, exact: true },
           { label: t('orders'), href: '/admin/orders', icon: <ClipboardList className="w-4 h-4" /> },
+          { label: t('customers'), href: '/admin/customers', icon: <UserRound className="w-4 h-4" /> },
           {
             label: t('products'),
             href: '/admin/products',

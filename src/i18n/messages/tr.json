@@ -344,7 +344,8 @@
     "onlineStore": "Online mağaza",
     "appsGroup": "Uygulamalar",
     "manageApps": "Uygulamaları yönet",
-    "notifications": "Bildirimler"
+    "notifications": "Bildirimler",
+    "customers": "Müşteriler"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "Fatura kesildi",
-    "orderStatus_CREDIT_NOTE_ISSUED": "İade faturası kesildi"
+    "orderStatus_CREDIT_NOTE_ISSUED": "İade faturası kesildi",
+    "customersPage": {
+      "title": "Müşteriler",
+      "subtitle": "Tüm mağazaların müşteri hesapları. Her müşteri tek bir mağazaya aittir.",
+      "colStore": "Mağaza",
+      "storeFilter": "Mağaza",
+      "allStores": "Tüm mağazalar"
+    },
+    "customersCreateHint": "Müşteriler bir mağazaya aittir, bu yüzden Müşteriler sayfasından eklenir.",
+    "customersCreateLink": "Müşterileri aç"
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -2178,6 +2188,19 @@
       "customDomain": "Özel Alan Adı",
       "customDomainPlaceholder": "shop.markaniz.com",
       "customDomainHelp": "Hem alt alan adı (shop.markaniz.com) hem de kök alan adı (markaniz.com) ile çalışır. DNS sağlayıcınızda bu alan adından {target} adresine bir CNAME kaydı ekleyin. Kök alan adları için Cloudflare (CNAME flattening destekler) veya ALIAS/ANAME kaydı kullanın. Değişiklikler birkaç dakika sürebilir.",
+      "customDomainConnected": "Bağlı",
+      "customDomainLegacy": "Eski alan adı",
+      "customDomainRemove": "Alan adını kaldır",
+      "customDomainRemoveHint": "Bu alan adının DNS kayıtlarını kaldırdınız mı veya artık kullanmıyor musunuz? Mağaza bağlantılarınızın onu kullanmayı bırakması için buradan kaldırın.",
+      "customDomainLegacyMarketsHint": "Pazarlar etkinleştirilmeden önce eklendi. Artık mağazanızı göstermiyorsa kaldırın; pazar alan adları Pazarlar sayfasından yönetilir.",
+      "customDomainReplaceHint": "Başka bir alan adına geçmek için yenisini yukarıya yazıp kaydedin.",
+      "customDomainRemoveTitle": "{domain} kaldırılsın mı?",
+      "customDomainRemoveWarning": "Mağazanız artık {domain} üzerinde açılmayacak. Bağlantılar {fallback} adresini kullanacak.",
+      "customDomainRemoveWarningMarkets": "Bu, eski alan adı ayarını kaldırır. {domain} aynı zamanda bir Pazarlar alan adıysa, Pazarlar sayfasından kaldırana kadar mağaza bu adreste açılmaya devam eder.",
+      "customDomainRemoving": "Kaldırılıyor…",
+      "customDomainRemoved": "{domain} kaldırıldı. Bağlantılar artık {fallback} adresini kullanıyor.",
+      "customDomainStillInMarkets": "{domain} hâlâ bir Pazarlar alan adı olarak listeleniyor. Yayını durdurmak için Pazarlar sayfasından da kaldırın.",
+      "customDomainRemoveFailed": "Alan adı kaldırılamadı. Lütfen tekrar deneyin.",
       "dnsGuideTitle": "DNS Kurulumu",
       "dnsGuideIntro": "{zone} için DNS ayarlarını sağlayıcınızda açın ve aşağıdaki kaydı ekleyin:",
       "dnsType": "Tür",
@@ -4964,6 +4987,173 @@
           "failed": "Zoho ile yetkilendirme başlatılamadı. Lütfen tekrar deneyin."
         }
       }
+    },
+    "customers": {
+      "title": "Müşteriler",
+      "subtitle": "Mağazanızda hesabı olan kişiler.",
+      "exportCsv": "CSV dışa aktar",
+      "exporting": "Dışa aktarılıyor…",
+      "newCustomer": "Yeni müşteri",
+      "searchPlaceholder": "Ad, e-posta veya telefonla ara",
+      "noMatches": "Bu filtrelere uyan müşteri yok.",
+      "retry": "Tekrar dene",
+      "dismiss": "Kapat",
+      "working": "İşleniyor…",
+      "companyBadge": "Şirket",
+      "status": {
+        "ACTIVE": "Aktif",
+        "PENDING": "Beklemede",
+        "SUSPENDED": "Engellendi",
+        "BANNED": "Yasaklandı"
+      },
+      "cols": {
+        "customer": "Müşteri",
+        "phone": "Telefon",
+        "orders": "Siparişler",
+        "totalSpent": "Toplam harcama",
+        "lastOrder": "Son sipariş",
+        "created": "Oluşturulma"
+      },
+      "filters": {
+        "hasOrders": "Siparişler",
+        "anyOrders": "Tüm müşteriler",
+        "withOrders": "Sipariş vermiş",
+        "withoutOrders": "Henüz sipariş yok",
+        "type": "Müşteri tipi",
+        "anyType": "Tüm tipler",
+        "person": "Bireysel",
+        "company": "Şirket",
+        "createdFrom": "Oluşturulma: başlangıç",
+        "createdTo": "bitiş",
+        "clear": "Filtreleri temizle"
+      },
+      "sort": {
+        "label": "Sırala",
+        "default": "En yeni önce",
+        "name_asc": "Ad A–Z",
+        "name_desc": "Ad Z–A",
+        "email_asc": "E-posta A–Z",
+        "email_desc": "E-posta Z–A",
+        "orders_count_desc": "En çok sipariş",
+        "orders_count_asc": "En az sipariş",
+        "total_spent_desc": "En yüksek harcama",
+        "total_spent_asc": "En düşük harcama",
+        "last_order_at_desc": "Son sipariş: en yeni",
+        "last_order_at_asc": "Son sipariş: en eski",
+        "created_at_desc": "En yeni önce",
+        "created_at_asc": "En eski önce"
+      },
+      "empty": {
+        "title": "Henüz müşteri yok",
+        "body": "Müşteriler mağazanızda hesap oluşturduğunda veya sipariş verdiğinde burada görünür. Kendiniz de ekleyebilirsiniz."
+      },
+      "actions": {
+        "sendLoginLink": "Giriş bağlantısı gönder",
+        "sendPasswordReset": "Şifre sıfırlama gönder",
+        "block": "Engelle",
+        "unblock": "Engeli kaldır",
+        "bannedByPlatform": "Platform tarafından yasaklandı"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {# müşteri engellendi} other {# müşteri engellendi}}",
+        "unblocked": "{count, plural, one {# müşterinin engeli kaldırıldı} other {# müşterinin engeli kaldırıldı}}",
+        "linksSent": "{count, plural, one {# müşteriye giriş bağlantısı gönderildi} other {# müşteriye giriş bağlantısı gönderildi}}",
+        "skipped": "{count} atlandı",
+        "dailyLimit": "{count, plural, one {# gönderilmedi: günlük e-posta sınırına ulaşıldı} other {# gönderilmedi: günlük e-posta sınırına ulaşıldı}}",
+        "banned": "{count, plural, one {# atlandı: platform tarafından yasaklı} other {# atlandı: platform tarafından yasaklı}}"
+      },
+      "confirmBlock": {
+        "title": "{name} engellensin mi?",
+        "bulkTitle": "{count, plural, one {# müşteri engellensin mi?} other {# müşteri engellensin mi?}}",
+        "description": "Engellenen müşterilerin tüm oturumları kapatılır ve mağazanıza giriş yapamazlar. Siparişleri olduğu gibi kalır. Engeli istediğiniz zaman kaldırabilirsiniz."
+      },
+      "confirmUnblock": {
+        "title": "{name} engeli kaldırılsın mı?",
+        "description": "Müşteri mağazanıza yeniden giriş yapabilir."
+      },
+      "confirmLoginLink": {
+        "title": "Giriş bağlantısı gönderilsin mi?",
+        "description": "{email} adresine mağazanıza tek tıkla giriş bağlantısı içeren bir e-posta gönderilir."
+      },
+      "confirmReset": {
+        "title": "Şifre sıfırlama gönderilsin mi?",
+        "description": "{email} adresine yeni şifre belirleme bağlantısı gönderilir."
+      },
+      "new": {
+        "title": "Yeni müşteri",
+        "description": "Bu mağazanın bir müşterisi için hesap oluşturun. Şifre otomatik oluşturulur.",
+        "store": "Mağaza",
+        "storePlaceholder": "Mağazayı seçin",
+        "storeRequired": "Bu müşterinin ait olduğu mağazayı seçin.",
+        "invalidEmail": "Geçerli bir e-posta adresi girin.",
+        "sendCredentials": "Giriş bilgilerini müşteriye e-postayla gönder",
+        "sendCredentialsHint": "Mağazanıza tek tıkla giriş bağlantısı içerir.",
+        "emailLanguage": "E-posta dili",
+        "creating": "Oluşturuluyor…",
+        "create": "Müşteri oluştur",
+        "created": "Müşteri oluşturuldu."
+      },
+      "fields": {
+        "email": "E-posta",
+        "firstName": "Ad",
+        "lastName": "Soyad",
+        "phone": "Telefon",
+        "name": "Ad soyad",
+        "customerType": "Müşteri tipi",
+        "typeUnset": "Belirtilmedi",
+        "companyName": "Şirket adı",
+        "orgNumber": "Sicil numarası",
+        "vatNumber": "KDV numarası"
+      },
+      "detail": {
+        "back": "Müşterilere dön",
+        "saved": "Müşteri kaydedildi.",
+        "loginLinkSent": "Giriş bağlantısı {email} adresine gönderildi.",
+        "resetSent": "Şifre sıfırlama {email} adresine gönderildi.",
+        "blocked": "Müşteri engellendi.",
+        "unblocked": "Müşterinin engeli kaldırıldı.",
+        "customerSince": "{date} tarihinden beri müşteri",
+        "blockedNotice": "Bu müşteri engellendi ve mağazaya giriş yapamaz.",
+        "orders": "Siparişler",
+        "noOrders": "Henüz sipariş yok.",
+        "colOrder": "Sipariş",
+        "colDate": "Tarih",
+        "colTotal": "Toplam",
+        "showingRecent": "{total} siparişin en yeni {shown} tanesi gösteriliyor.",
+        "addresses": "Adresler",
+        "noAddresses": "Kayıtlı adres yok.",
+        "defaultAddress": "Varsayılan",
+        "profile": "Profil",
+        "taxExemption": "Vergi muafiyeti",
+        "exemptSince": "{date} tarihinden beri KDV’den muaf",
+        "noExemption": "Vergi muafiyeti yok. Muafiyet, müşterinin siparişlerinden birinden eklenebilir.",
+        "bannedTooltip": "Platform bu müşteriyi yasakladı. Yasağı yalnızca platform kaldırabilir.",
+        "bannedNotice": "Bu müşteri platform tarafından yasaklandı ve mağazada oturum açamaz. Bu durumu değiştiremezsiniz."
+      },
+      "stats": {
+        "orders": "Siparişler",
+        "totalSpent": "Toplam harcama",
+        "averageOrder": "Ortalama sipariş",
+        "lastOrder": "Son sipariş"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "Bu mağazada bu e-postaya sahip bir müşteri zaten var.",
+        "CUSTOMER_NOT_FOUND": "Bu müşteri yok veya başka bir mağazaya ait.",
+        "STORE_REQUIRED": "Bu müşterinin ait olduğu mağazayı seçin.",
+        "STORE_NOT_FOUND": "Mağaza bulunamadı. Önce mağazanızı kurun.",
+        "CUSTOMER_STORE_MISMATCH": "Bu müşteri başka bir mağazaya ait.",
+        "NOT_CUSTOMER_ACCOUNT": "Bu hesap bir müşteri hesabı değil.",
+        "invalidEmail": "Geçerli bir e-posta adresi girin.",
+        "invalidPhone": "Telefon numarasını kontrol edin.",
+        "invalidCompany": "Sicil ve KDV numaralarını kontrol edin (en fazla 32 karakter).",
+        "invalidInput": "Bazı alanlar geçersiz. Kontrol edip tekrar deneyin.",
+        "notFound": "Bu müşteri bulunamadı.",
+        "forbidden": "Bu müşteriye erişiminiz yok.",
+        "CUSTOMER_NOT_ACTIVE": "Bu müşteri engelli. E-posta göndermek için önce engeli kaldırın.",
+        "CUSTOMER_INVALID_DATE": "Filtre tarihlerini kontrol edin.",
+        "CUSTOMER_BANNED_BY_ADMIN": "Bu müşteri platform tarafından yasaklandı. Bu durumu yalnızca platform değiştirebilir.",
+        "STORE_DAILY_EMAIL_LIMIT": "Mağazanız bu tür e-postalar için günlük sınıra ulaştı. Yarın tekrar deneyin."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "Zoho API konsolundaki Client ID ve Client Secret değerlerini girin.",
     "ZOHO_RECONNECT_REQUIRED": "Zoho bu bağlantıyı artık kabul etmiyor. Yeniden bağlanmak için Yetkilendir’e tıklayın.",
     "ZOHO_API_ERROR": "Zoho Mail bir hata döndürdü. Biraz sonra tekrar deneyin.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "Bir ek 10 MB’tan büyük olduğu için e-posta platform göndericisinden gönderildi."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "Bir ek 10 MB’tan büyük olduğu için e-posta platform göndericisinden gönderildi.",
+    "STORE_REQUIRED": "Müşteri hesapları için mağaza gereklidir.",
+    "CUSTOMER_STORE_MISMATCH": "Bu müşteri başka bir mağazaya ait.",
+    "NOT_CUSTOMER_ACCOUNT": "Bu hesap bir müşteri hesabı değil.",
+    "CUSTOMER_NOT_FOUND": "Müşteri bulunamadı."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

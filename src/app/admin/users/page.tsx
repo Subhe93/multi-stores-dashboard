@@ -79,8 +79,9 @@ export default function AdminUsers() {
   const defaultEmailLocale = (locales as readonly string[]).includes(uiLocale) ? uiLocale : 'en';
   const emailLocaleOptions = locales.map((l) => ({ value: l, label: EMAIL_LOCALE_LABELS[l] ?? l.toUpperCase() }));
 
+  // Customers belong to one store, so they are created on the Customers page
+  // (with a store picker), never here.
   const roleOptions = [
-    { value: 'CUSTOMER', label: t('roleCustomer'), description: t('roleCustomerDesc') },
     { value: 'PROVIDER', label: t('roleProvider'), description: t('roleProviderDesc') },
     { value: 'CREATOR', label: t('roleCreator'), description: t('roleCreatorDesc') },
     { value: 'ADMIN', label: t('roleAdmin'), description: t('roleAdminDesc') },
@@ -111,10 +112,8 @@ export default function AdminUsers() {
   const [form, setForm] = useState({
     email: '',
     password: '',
-    role: 'CUSTOMER',
+    role: 'CREATOR',
     status: 'ACTIVE',
-    first_name: '',
-    last_name: '',
     company_name: '',
     country: 'US',
     display_name: '',
@@ -153,6 +152,11 @@ export default function AdminUsers() {
   };
 
   const handleFilter = (filter: string) => {
+    // Customers have their own page (store column, store filter, per-store create).
+    if (filter === 'Customers') {
+      router.push('/admin/customers');
+      return;
+    }
     setActiveFilter(filter);
     const map: Record<string, { role?: string; status?: string }> = {
       All: {}, Providers: { role: 'PROVIDER' }, Creators: { role: 'CREATOR' },
@@ -177,10 +181,8 @@ export default function AdminUsers() {
     setForm({
       email: '',
       password: '',
-      role: 'CUSTOMER',
+      role: 'CREATOR',
       status: 'ACTIVE',
-      first_name: '',
-      last_name: '',
       company_name: '',
       country: 'US',
       display_name: '',
@@ -214,10 +216,7 @@ export default function AdminUsers() {
         send_credentials: form.send_credentials,
       };
       if (form.send_credentials) payload.locale = form.locale;
-      if (form.role === 'CUSTOMER') {
-        payload.first_name = form.first_name;
-        payload.last_name = form.last_name;
-      } else if (form.role === 'PROVIDER') {
+      if (form.role === 'PROVIDER') {
         payload.company_name = form.company_name || 'New Company';
         payload.country = form.country || 'US';
         payload.verified = form.verified;
@@ -463,30 +462,14 @@ export default function AdminUsers() {
               </div>
             </div>
 
-            <Separator />
+            <p className="text-[11px] text-muted-foreground">
+              {t('customersCreateHint')}{' '}
+              <Link href="/admin/customers" className="font-medium text-foreground underline underline-offset-2">
+                {t('customersCreateLink')}
+              </Link>
+            </p>
 
-            {form.role === 'CUSTOMER' && (
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground">{t('customerProfile')}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">{t('firstName')}</Label>
-                    <Input className="h-9 text-sm" value={form.first_name}
-                      onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">{t('lastName')}</Label>
-                    <Input className="h-9 text-sm" value={form.last_name}
-                      onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('phone')}</Label>
-                  <Input className="h-9 text-sm" value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                </div>
-              </div>
-            )}
+            <Separator />
 
             {form.role === 'PROVIDER' && (
               <div className="space-y-3">

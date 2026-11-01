@@ -344,7 +344,8 @@
     "onlineStore": "Online store",
     "appsGroup": "Apps",
     "manageApps": "Manage apps",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "customers": "Customers"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "Invoice issued",
-    "orderStatus_CREDIT_NOTE_ISSUED": "Credit note issued"
+    "orderStatus_CREDIT_NOTE_ISSUED": "Credit note issued",
+    "customersPage": {
+      "title": "Customers",
+      "subtitle": "Customer accounts of every store. Each customer belongs to one store.",
+      "colStore": "Store",
+      "storeFilter": "Store",
+      "allStores": "All stores"
+    },
+    "customersCreateHint": "Customers belong to a store, so they are added on the Customers page.",
+    "customersCreateLink": "Open Customers"
   },
   "guide": {
     "title": "Operations guide",
@@ -2178,6 +2188,19 @@
       "customDomain": "Custom Domain",
       "customDomainPlaceholder": "shop.yourbrand.com",
       "customDomainHelp": "Works with both a subdomain (shop.yourbrand.com) and an apex domain (yourbrand.com). In your DNS provider, add a CNAME record from this domain to {target}. For apex domains, use Cloudflare (which supports CNAME flattening) or an ALIAS/ANAME record. Changes may take a few minutes to take effect.",
+      "customDomainConnected": "Connected",
+      "customDomainLegacy": "Legacy domain",
+      "customDomainRemove": "Remove domain",
+      "customDomainRemoveHint": "Removed this domain's DNS or no longer use it? Remove it here so your store links stop using it.",
+      "customDomainLegacyMarketsHint": "Added before Markets was enabled. Remove it if it no longer points to your store; market domains are managed on the Markets page.",
+      "customDomainReplaceHint": "To switch to another domain, type the new one above and save.",
+      "customDomainRemoveTitle": "Remove {domain}?",
+      "customDomainRemoveWarning": "Your store will no longer open on {domain}. Links will use {fallback}.",
+      "customDomainRemoveWarningMarkets": "This removes the legacy domain setting. If {domain} is also a Markets domain, the store keeps opening on it until you remove it on the Markets page.",
+      "customDomainRemoving": "Removing…",
+      "customDomainRemoved": "{domain} was removed. Links now use {fallback}.",
+      "customDomainStillInMarkets": "{domain} is still listed as a Markets domain. Remove it on the Markets page too to stop serving it.",
+      "customDomainRemoveFailed": "Could not remove the domain. Please try again.",
       "dnsGuideTitle": "DNS Setup",
       "dnsGuideIntro": "Open the DNS settings for {zone} in your provider and add the following record:",
       "dnsType": "Type",
@@ -4964,6 +4987,173 @@
           "failed": "Could not start the authorization with Zoho. Please try again."
         }
       }
+    },
+    "customers": {
+      "title": "Customers",
+      "subtitle": "People with an account in your store.",
+      "exportCsv": "Export CSV",
+      "exporting": "Exporting…",
+      "newCustomer": "New customer",
+      "searchPlaceholder": "Search by name, email or phone",
+      "noMatches": "No customers match these filters.",
+      "retry": "Try again",
+      "dismiss": "Dismiss",
+      "working": "Working…",
+      "companyBadge": "Company",
+      "status": {
+        "ACTIVE": "Active",
+        "PENDING": "Pending",
+        "SUSPENDED": "Blocked",
+        "BANNED": "Banned"
+      },
+      "cols": {
+        "customer": "Customer",
+        "phone": "Phone",
+        "orders": "Orders",
+        "totalSpent": "Total spent",
+        "lastOrder": "Last order",
+        "created": "Created"
+      },
+      "filters": {
+        "hasOrders": "Orders",
+        "anyOrders": "Any orders",
+        "withOrders": "Has ordered",
+        "withoutOrders": "No orders yet",
+        "type": "Customer type",
+        "anyType": "All types",
+        "person": "Private person",
+        "company": "Company",
+        "createdFrom": "Created from",
+        "createdTo": "to",
+        "clear": "Clear filters"
+      },
+      "sort": {
+        "label": "Sort",
+        "default": "Newest first",
+        "name_asc": "Name A–Z",
+        "name_desc": "Name Z–A",
+        "email_asc": "Email A–Z",
+        "email_desc": "Email Z–A",
+        "orders_count_desc": "Most orders",
+        "orders_count_asc": "Fewest orders",
+        "total_spent_desc": "Highest spend",
+        "total_spent_asc": "Lowest spend",
+        "last_order_at_desc": "Ordered most recently",
+        "last_order_at_asc": "Ordered longest ago",
+        "created_at_desc": "Newest first",
+        "created_at_asc": "Oldest first"
+      },
+      "empty": {
+        "title": "No customers yet",
+        "body": "Customers appear here when they create an account or place an order in your store. You can also add one yourself."
+      },
+      "actions": {
+        "sendLoginLink": "Send login link",
+        "sendPasswordReset": "Send password reset",
+        "block": "Block",
+        "unblock": "Unblock",
+        "bannedByPlatform": "Banned by the platform"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {# customer blocked} other {# customers blocked}}",
+        "unblocked": "{count, plural, one {# customer unblocked} other {# customers unblocked}}",
+        "linksSent": "{count, plural, one {Login link sent to # customer} other {Login links sent to # customers}}",
+        "skipped": "{count} skipped",
+        "dailyLimit": "{count, plural, one {# not sent: daily email limit reached} other {# not sent: daily email limit reached}}",
+        "banned": "{count, plural, one {# skipped: banned by the platform} other {# skipped: banned by the platform}}"
+      },
+      "confirmBlock": {
+        "title": "Block {name}?",
+        "bulkTitle": "{count, plural, one {Block # customer?} other {Block # customers?}}",
+        "description": "Blocked customers are signed out everywhere and can’t sign in to your store. Their orders stay as they are. You can unblock them at any time."
+      },
+      "confirmUnblock": {
+        "title": "Unblock {name}?",
+        "description": "The customer can sign in to your store again."
+      },
+      "confirmLoginLink": {
+        "title": "Send a login link?",
+        "description": "{email} gets an email with a one-click link to sign in to your store."
+      },
+      "confirmReset": {
+        "title": "Send a password reset?",
+        "description": "{email} gets an email with a link to choose a new password."
+      },
+      "new": {
+        "title": "New customer",
+        "description": "Create an account for a customer of this store. A password is generated for them.",
+        "store": "Store",
+        "storePlaceholder": "Choose the store",
+        "storeRequired": "Choose the store this customer belongs to.",
+        "invalidEmail": "Enter a valid email address.",
+        "sendCredentials": "Email the customer their login details",
+        "sendCredentialsHint": "Includes a one-click login link to your store.",
+        "emailLanguage": "Email language",
+        "creating": "Creating…",
+        "create": "Create customer",
+        "created": "Customer created."
+      },
+      "fields": {
+        "email": "Email",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone",
+        "name": "Name",
+        "customerType": "Customer type",
+        "typeUnset": "Not set",
+        "companyName": "Company name",
+        "orgNumber": "Registration number",
+        "vatNumber": "VAT number"
+      },
+      "detail": {
+        "back": "Back to customers",
+        "saved": "Customer saved.",
+        "loginLinkSent": "Login link sent to {email}.",
+        "resetSent": "Password reset sent to {email}.",
+        "blocked": "Customer blocked.",
+        "unblocked": "Customer unblocked.",
+        "customerSince": "Customer since {date}",
+        "blockedNotice": "This customer is blocked and can’t sign in to the store.",
+        "orders": "Orders",
+        "noOrders": "No orders yet.",
+        "colOrder": "Order",
+        "colDate": "Date",
+        "colTotal": "Total",
+        "showingRecent": "Showing the {shown} most recent of {total} orders.",
+        "addresses": "Addresses",
+        "noAddresses": "No saved addresses.",
+        "defaultAddress": "Default",
+        "profile": "Profile",
+        "taxExemption": "Tax exemption",
+        "exemptSince": "Exempt from VAT since {date}",
+        "noExemption": "No tax exemption. An exemption can be added from one of the customer’s orders.",
+        "bannedTooltip": "The platform banned this customer. Only the platform can lift the ban.",
+        "bannedNotice": "This customer was banned by the platform and can’t sign in to the store. You can’t change this status."
+      },
+      "stats": {
+        "orders": "Orders",
+        "totalSpent": "Total spent",
+        "averageOrder": "Average order",
+        "lastOrder": "Last order"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "A customer with this email already exists in this store.",
+        "CUSTOMER_NOT_FOUND": "This customer doesn’t exist or belongs to another store.",
+        "STORE_REQUIRED": "Choose the store this customer belongs to.",
+        "STORE_NOT_FOUND": "The store couldn’t be found. Set up your store first.",
+        "CUSTOMER_STORE_MISMATCH": "This customer belongs to another store.",
+        "NOT_CUSTOMER_ACCOUNT": "This account isn’t a customer account.",
+        "invalidEmail": "Enter a valid email address.",
+        "invalidPhone": "Check the phone number.",
+        "invalidCompany": "Check the registration and VAT numbers (up to 32 characters).",
+        "invalidInput": "Some fields aren’t valid. Check them and try again.",
+        "notFound": "This customer couldn’t be found.",
+        "forbidden": "You don’t have access to this customer.",
+        "CUSTOMER_NOT_ACTIVE": "This customer is blocked. Unblock them first to send emails.",
+        "CUSTOMER_INVALID_DATE": "Check the dates of the filter.",
+        "CUSTOMER_BANNED_BY_ADMIN": "This customer was banned by the platform. Only the platform can change this status.",
+        "STORE_DAILY_EMAIL_LIMIT": "Your store reached its daily limit for this kind of email. Try again tomorrow."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "Enter both the Client ID and the Client Secret from the Zoho API console.",
     "ZOHO_RECONNECT_REQUIRED": "Zoho no longer accepts this connection. Click Authorize to connect again.",
     "ZOHO_API_ERROR": "Zoho Mail returned an error. Try again in a moment.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "An attachment is larger than 10 MB, so the email went out from the platform sender instead."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "An attachment is larger than 10 MB, so the email went out from the platform sender instead.",
+    "STORE_REQUIRED": "A store is required for customer accounts.",
+    "CUSTOMER_STORE_MISMATCH": "This customer belongs to another store.",
+    "NOT_CUSTOMER_ACCOUNT": "This account isn’t a customer account.",
+    "CUSTOMER_NOT_FOUND": "Customer not found."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

@@ -344,7 +344,8 @@
     "onlineStore": "Onlineshop",
     "appsGroup": "Apps",
     "manageApps": "Apps verwalten",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "customers": "Kunden"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "Rechnung ausgestellt",
-    "orderStatus_CREDIT_NOTE_ISSUED": "Gutschrift ausgestellt"
+    "orderStatus_CREDIT_NOTE_ISSUED": "Gutschrift ausgestellt",
+    "customersPage": {
+      "title": "Kunden",
+      "subtitle": "Kundenkonten aller Shops. Jeder Kunde gehört zu genau einem Shop.",
+      "colStore": "Shop",
+      "storeFilter": "Shop",
+      "allStores": "Alle Shops"
+    },
+    "customersCreateHint": "Kunden gehören zu einem Shop und werden daher auf der Kundenseite angelegt.",
+    "customersCreateLink": "Kunden öffnen"
   },
   "guide": {
     "title": "Betriebsleitfaden",
@@ -2178,6 +2188,19 @@
       "customDomain": "Eigene Domain",
       "customDomainPlaceholder": "shop.ihremarke.com",
       "customDomainHelp": "Funktioniert mit einer Subdomain (shop.ihremarke.com) und einer Root-Domain (ihremarke.com). Fügen Sie bei Ihrem DNS-Anbieter einen CNAME-Eintrag von dieser Domain auf {target} hinzu. Für Root-Domains nutzen Sie Cloudflare (unterstützt CNAME-Flattening) oder einen ALIAS/ANAME-Eintrag. Änderungen können einige Minuten dauern.",
+      "customDomainConnected": "Verbunden",
+      "customDomainLegacy": "Alte Domain",
+      "customDomainRemove": "Domain entfernen",
+      "customDomainRemoveHint": "DNS dieser Domain entfernt oder nutzen Sie sie nicht mehr? Entfernen Sie sie hier, damit Ihre Shop-Links sie nicht mehr verwenden.",
+      "customDomainLegacyMarketsHint": "Vor der Aktivierung von Märkte hinzugefügt. Entfernen Sie sie, wenn sie nicht mehr auf Ihren Shop zeigt; Markt-Domains werden auf der Seite Märkte verwaltet.",
+      "customDomainReplaceHint": "Um zu einer anderen Domain zu wechseln, geben Sie die neue oben ein und speichern Sie.",
+      "customDomainRemoveTitle": "{domain} entfernen?",
+      "customDomainRemoveWarning": "Ihr Shop wird nicht mehr unter {domain} geöffnet. Links verwenden {fallback}.",
+      "customDomainRemoveWarningMarkets": "Damit wird die alte Domain-Einstellung entfernt. Ist {domain} auch eine Markt-Domain, öffnet sich der Shop dort weiterhin, bis Sie sie auf der Seite Märkte entfernen.",
+      "customDomainRemoving": "Wird entfernt…",
+      "customDomainRemoved": "{domain} wurde entfernt. Links verwenden jetzt {fallback}.",
+      "customDomainStillInMarkets": "{domain} ist weiterhin als Markt-Domain eingetragen. Entfernen Sie sie auch auf der Seite Märkte, damit sie nicht mehr ausgeliefert wird.",
+      "customDomainRemoveFailed": "Die Domain konnte nicht entfernt werden. Bitte versuchen Sie es erneut.",
       "dnsGuideTitle": "DNS-Einrichtung",
       "dnsGuideIntro": "Öffnen Sie die DNS-Einstellungen für {zone} bei Ihrem Anbieter und fügen Sie den folgenden Eintrag hinzu:",
       "dnsType": "Typ",
@@ -4964,6 +4987,173 @@
           "failed": "Die Autorisierung bei Zoho konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
         }
       }
+    },
+    "customers": {
+      "title": "Kunden",
+      "subtitle": "Personen mit einem Konto in deinem Shop.",
+      "exportCsv": "CSV exportieren",
+      "exporting": "Wird exportiert…",
+      "newCustomer": "Neuer Kunde",
+      "searchPlaceholder": "Nach Name, E-Mail oder Telefon suchen",
+      "noMatches": "Keine Kunden passen zu diesen Filtern.",
+      "retry": "Erneut versuchen",
+      "dismiss": "Schließen",
+      "working": "Wird ausgeführt…",
+      "companyBadge": "Firma",
+      "status": {
+        "ACTIVE": "Aktiv",
+        "PENDING": "Ausstehend",
+        "SUSPENDED": "Gesperrt",
+        "BANNED": "Verbannt"
+      },
+      "cols": {
+        "customer": "Kunde",
+        "phone": "Telefon",
+        "orders": "Bestellungen",
+        "totalSpent": "Gesamtausgaben",
+        "lastOrder": "Letzte Bestellung",
+        "created": "Erstellt"
+      },
+      "filters": {
+        "hasOrders": "Bestellungen",
+        "anyOrders": "Alle Kunden",
+        "withOrders": "Hat bestellt",
+        "withoutOrders": "Noch keine Bestellung",
+        "type": "Kundentyp",
+        "anyType": "Alle Typen",
+        "person": "Privatperson",
+        "company": "Firma",
+        "createdFrom": "Erstellt von",
+        "createdTo": "bis",
+        "clear": "Filter zurücksetzen"
+      },
+      "sort": {
+        "label": "Sortieren",
+        "default": "Neueste zuerst",
+        "name_asc": "Name A–Z",
+        "name_desc": "Name Z–A",
+        "email_asc": "E-Mail A–Z",
+        "email_desc": "E-Mail Z–A",
+        "orders_count_desc": "Meiste Bestellungen",
+        "orders_count_asc": "Wenigste Bestellungen",
+        "total_spent_desc": "Höchste Ausgaben",
+        "total_spent_asc": "Niedrigste Ausgaben",
+        "last_order_at_desc": "Zuletzt bestellt",
+        "last_order_at_asc": "Am längsten nicht bestellt",
+        "created_at_desc": "Neueste zuerst",
+        "created_at_asc": "Älteste zuerst"
+      },
+      "empty": {
+        "title": "Noch keine Kunden",
+        "body": "Kunden erscheinen hier, sobald sie in deinem Shop ein Konto anlegen oder bestellen. Du kannst auch selbst einen anlegen."
+      },
+      "actions": {
+        "sendLoginLink": "Anmeldelink senden",
+        "sendPasswordReset": "Passwort-Reset senden",
+        "block": "Sperren",
+        "unblock": "Entsperren",
+        "bannedByPlatform": "Von der Plattform gesperrt"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {# Kunde gesperrt} other {# Kunden gesperrt}}",
+        "unblocked": "{count, plural, one {# Kunde entsperrt} other {# Kunden entsperrt}}",
+        "linksSent": "{count, plural, one {Anmeldelink an # Kunden gesendet} other {Anmeldelinks an # Kunden gesendet}}",
+        "skipped": "{count} übersprungen",
+        "dailyLimit": "{count, plural, one {# nicht gesendet: Tageslimit für E-Mails erreicht} other {# nicht gesendet: Tageslimit für E-Mails erreicht}}",
+        "banned": "{count, plural, one {# übersprungen: von der Plattform gesperrt} other {# übersprungen: von der Plattform gesperrt}}"
+      },
+      "confirmBlock": {
+        "title": "{name} sperren?",
+        "bulkTitle": "{count, plural, one {# Kunden sperren?} other {# Kunden sperren?}}",
+        "description": "Gesperrte Kunden werden überall abgemeldet und können sich nicht mehr in deinem Shop anmelden. Ihre Bestellungen bleiben unverändert. Du kannst sie jederzeit entsperren."
+      },
+      "confirmUnblock": {
+        "title": "{name} entsperren?",
+        "description": "Der Kunde kann sich wieder in deinem Shop anmelden."
+      },
+      "confirmLoginLink": {
+        "title": "Anmeldelink senden?",
+        "description": "{email} erhält eine E-Mail mit einem Link, um sich mit einem Klick in deinem Shop anzumelden."
+      },
+      "confirmReset": {
+        "title": "Passwort-Reset senden?",
+        "description": "{email} erhält eine E-Mail mit einem Link, um ein neues Passwort festzulegen."
+      },
+      "new": {
+        "title": "Neuer Kunde",
+        "description": "Lege ein Konto für einen Kunden dieses Shops an. Ein Passwort wird automatisch erzeugt.",
+        "store": "Shop",
+        "storePlaceholder": "Shop auswählen",
+        "storeRequired": "Wähle den Shop, zu dem dieser Kunde gehört.",
+        "invalidEmail": "Gib eine gültige E-Mail-Adresse ein.",
+        "sendCredentials": "Zugangsdaten per E-Mail senden",
+        "sendCredentialsHint": "Enthält einen Ein-Klick-Anmeldelink zu deinem Shop.",
+        "emailLanguage": "E-Mail-Sprache",
+        "creating": "Wird erstellt…",
+        "create": "Kunde anlegen",
+        "created": "Kunde angelegt."
+      },
+      "fields": {
+        "email": "E-Mail",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "phone": "Telefon",
+        "name": "Name",
+        "customerType": "Kundentyp",
+        "typeUnset": "Nicht festgelegt",
+        "companyName": "Firmenname",
+        "orgNumber": "Handelsregisternummer",
+        "vatNumber": "USt-IdNr."
+      },
+      "detail": {
+        "back": "Zurück zu den Kunden",
+        "saved": "Kunde gespeichert.",
+        "loginLinkSent": "Anmeldelink an {email} gesendet.",
+        "resetSent": "Passwort-Reset an {email} gesendet.",
+        "blocked": "Kunde gesperrt.",
+        "unblocked": "Kunde entsperrt.",
+        "customerSince": "Kunde seit {date}",
+        "blockedNotice": "Dieser Kunde ist gesperrt und kann sich nicht im Shop anmelden.",
+        "orders": "Bestellungen",
+        "noOrders": "Noch keine Bestellungen.",
+        "colOrder": "Bestellung",
+        "colDate": "Datum",
+        "colTotal": "Summe",
+        "showingRecent": "Die {shown} neuesten von {total} Bestellungen werden angezeigt.",
+        "addresses": "Adressen",
+        "noAddresses": "Keine gespeicherten Adressen.",
+        "defaultAddress": "Standard",
+        "profile": "Profil",
+        "taxExemption": "Steuerbefreiung",
+        "exemptSince": "Seit {date} von der USt. befreit",
+        "noExemption": "Keine Steuerbefreiung. Eine Befreiung kann über eine Bestellung des Kunden hinzugefügt werden.",
+        "bannedTooltip": "Die Plattform hat diesen Kunden gesperrt. Nur die Plattform kann die Sperre aufheben.",
+        "bannedNotice": "Dieser Kunde wurde von der Plattform gesperrt und kann sich nicht im Shop anmelden. Sie können diesen Status nicht ändern."
+      },
+      "stats": {
+        "orders": "Bestellungen",
+        "totalSpent": "Gesamtausgaben",
+        "averageOrder": "Durchschnittliche Bestellung",
+        "lastOrder": "Letzte Bestellung"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "In diesem Shop gibt es bereits einen Kunden mit dieser E-Mail.",
+        "CUSTOMER_NOT_FOUND": "Diesen Kunden gibt es nicht oder er gehört zu einem anderen Shop.",
+        "STORE_REQUIRED": "Wähle den Shop, zu dem dieser Kunde gehört.",
+        "STORE_NOT_FOUND": "Der Shop wurde nicht gefunden. Richte zuerst deinen Shop ein.",
+        "CUSTOMER_STORE_MISMATCH": "Dieser Kunde gehört zu einem anderen Shop.",
+        "NOT_CUSTOMER_ACCOUNT": "Dieses Konto ist kein Kundenkonto.",
+        "invalidEmail": "Gib eine gültige E-Mail-Adresse ein.",
+        "invalidPhone": "Prüfe die Telefonnummer.",
+        "invalidCompany": "Prüfe Handelsregister- und USt-Nummer (max. 32 Zeichen).",
+        "invalidInput": "Einige Felder sind ungültig. Prüfe sie und versuche es erneut.",
+        "notFound": "Dieser Kunde wurde nicht gefunden.",
+        "forbidden": "Du hast keinen Zugriff auf diesen Kunden.",
+        "CUSTOMER_NOT_ACTIVE": "Dieser Kunde ist gesperrt. Entsperre ihn zuerst, um E-Mails zu senden.",
+        "CUSTOMER_INVALID_DATE": "Prüfe die Datumsangaben des Filters.",
+        "CUSTOMER_BANNED_BY_ADMIN": "Dieser Kunde wurde von der Plattform gesperrt. Nur die Plattform kann diesen Status ändern.",
+        "STORE_DAILY_EMAIL_LIMIT": "Ihr Shop hat das Tageslimit für diese Art von E-Mail erreicht. Versuchen Sie es morgen erneut."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "Gib die Client-ID und das Client-Secret aus der Zoho-API-Konsole ein.",
     "ZOHO_RECONNECT_REQUIRED": "Zoho akzeptiert diese Verbindung nicht mehr. Klicke auf „Autorisieren“, um neu zu verbinden.",
     "ZOHO_API_ERROR": "Zoho Mail hat einen Fehler gemeldet. Versuche es gleich noch einmal.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "Ein Anhang ist größer als 10 MB, daher wurde die E-Mail über den Plattform-Absender verschickt."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "Ein Anhang ist größer als 10 MB, daher wurde die E-Mail über den Plattform-Absender verschickt.",
+    "STORE_REQUIRED": "Für Kundenkonten ist ein Shop erforderlich.",
+    "CUSTOMER_STORE_MISMATCH": "Dieser Kunde gehört zu einem anderen Shop.",
+    "NOT_CUSTOMER_ACCOUNT": "Dieses Konto ist kein Kundenkonto.",
+    "CUSTOMER_NOT_FOUND": "Kunde nicht gefunden."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

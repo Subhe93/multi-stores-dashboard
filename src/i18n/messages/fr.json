@@ -344,7 +344,8 @@
     "onlineStore": "Boutique en ligne",
     "appsGroup": "Applications",
     "manageApps": "Gérer les applications",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "customers": "Clients"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "Facture émise",
-    "orderStatus_CREDIT_NOTE_ISSUED": "Avoir émis"
+    "orderStatus_CREDIT_NOTE_ISSUED": "Avoir émis",
+    "customersPage": {
+      "title": "Clients",
+      "subtitle": "Comptes clients de toutes les boutiques. Chaque client appartient à une seule boutique.",
+      "colStore": "Boutique",
+      "storeFilter": "Boutique",
+      "allStores": "Toutes les boutiques"
+    },
+    "customersCreateHint": "Les clients appartiennent à une boutique : ajoutez-les depuis la page Clients.",
+    "customersCreateLink": "Ouvrir Clients"
   },
   "guide": {
     "title": "Guide des opérations",
@@ -2178,6 +2188,19 @@
       "customDomain": "Domaine personnalisé",
       "customDomainPlaceholder": "shop.votremarque.com",
       "customDomainHelp": "Fonctionne avec un sous-domaine (shop.votremarque.com) et un domaine racine (votremarque.com). Dans votre fournisseur DNS, ajoutez un enregistrement CNAME de ce domaine vers {target}. Pour les domaines racines, utilisez Cloudflare (qui prend en charge le CNAME flattening) ou un enregistrement ALIAS/ANAME. Les changements peuvent prendre quelques minutes.",
+      "customDomainConnected": "Connecté",
+      "customDomainLegacy": "Ancien domaine",
+      "customDomainRemove": "Supprimer le domaine",
+      "customDomainRemoveHint": "Vous avez supprimé le DNS de ce domaine ou ne l'utilisez plus ? Supprimez-le ici pour que les liens de votre boutique cessent de l'utiliser.",
+      "customDomainLegacyMarketsHint": "Ajouté avant l'activation de Marchés. Supprimez-le s'il ne pointe plus vers votre boutique ; les domaines des marchés se gèrent sur la page Marchés.",
+      "customDomainReplaceHint": "Pour passer à un autre domaine, saisissez le nouveau ci-dessus puis enregistrez.",
+      "customDomainRemoveTitle": "Supprimer {domain} ?",
+      "customDomainRemoveWarning": "Votre boutique ne s'ouvrira plus sur {domain}. Les liens utiliseront {fallback}.",
+      "customDomainRemoveWarningMarkets": "Cela supprime le paramètre de domaine hérité. Si {domain} est aussi un domaine de Marchés, la boutique continue de s'ouvrir dessus jusqu'à ce que vous le supprimiez sur la page Marchés.",
+      "customDomainRemoving": "Suppression…",
+      "customDomainRemoved": "{domain} a été supprimé. Les liens utilisent désormais {fallback}.",
+      "customDomainStillInMarkets": "{domain} figure encore comme domaine de Marchés. Supprimez-le aussi sur la page Marchés pour qu'il ne soit plus servi.",
+      "customDomainRemoveFailed": "Impossible de supprimer le domaine. Veuillez réessayer.",
       "dnsGuideTitle": "Configuration DNS",
       "dnsGuideIntro": "Ouvrez les paramètres DNS de {zone} chez votre fournisseur et ajoutez l'enregistrement suivant :",
       "dnsType": "Type",
@@ -4964,6 +4987,173 @@
           "failed": "Impossible de lancer l’autorisation avec Zoho. Veuillez réessayer."
         }
       }
+    },
+    "customers": {
+      "title": "Clients",
+      "subtitle": "Les personnes ayant un compte dans votre boutique.",
+      "exportCsv": "Exporter en CSV",
+      "exporting": "Export en cours…",
+      "newCustomer": "Nouveau client",
+      "searchPlaceholder": "Rechercher par nom, e-mail ou téléphone",
+      "noMatches": "Aucun client ne correspond à ces filtres.",
+      "retry": "Réessayer",
+      "dismiss": "Fermer",
+      "working": "En cours…",
+      "companyBadge": "Entreprise",
+      "status": {
+        "ACTIVE": "Actif",
+        "PENDING": "En attente",
+        "SUSPENDED": "Bloqué",
+        "BANNED": "Banni"
+      },
+      "cols": {
+        "customer": "Client",
+        "phone": "Téléphone",
+        "orders": "Commandes",
+        "totalSpent": "Total dépensé",
+        "lastOrder": "Dernière commande",
+        "created": "Créé le"
+      },
+      "filters": {
+        "hasOrders": "Commandes",
+        "anyOrders": "Tous les clients",
+        "withOrders": "A commandé",
+        "withoutOrders": "Aucune commande",
+        "type": "Type de client",
+        "anyType": "Tous les types",
+        "person": "Particulier",
+        "company": "Entreprise",
+        "createdFrom": "Créé du",
+        "createdTo": "au",
+        "clear": "Effacer les filtres"
+      },
+      "sort": {
+        "label": "Trier",
+        "default": "Plus récents d’abord",
+        "name_asc": "Nom A–Z",
+        "name_desc": "Nom Z–A",
+        "email_asc": "E-mail A–Z",
+        "email_desc": "E-mail Z–A",
+        "orders_count_desc": "Le plus de commandes",
+        "orders_count_asc": "Le moins de commandes",
+        "total_spent_desc": "Dépenses les plus élevées",
+        "total_spent_asc": "Dépenses les plus faibles",
+        "last_order_at_desc": "Commande la plus récente",
+        "last_order_at_asc": "Commande la plus ancienne",
+        "created_at_desc": "Plus récents d’abord",
+        "created_at_asc": "Plus anciens d’abord"
+      },
+      "empty": {
+        "title": "Aucun client pour le moment",
+        "body": "Les clients apparaissent ici dès qu’ils créent un compte ou passent commande dans votre boutique. Vous pouvez aussi en ajouter un vous-même."
+      },
+      "actions": {
+        "sendLoginLink": "Envoyer un lien de connexion",
+        "sendPasswordReset": "Envoyer la réinitialisation",
+        "block": "Bloquer",
+        "unblock": "Débloquer",
+        "bannedByPlatform": "Banni par la plateforme"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {# client bloqué} other {# clients bloqués}}",
+        "unblocked": "{count, plural, one {# client débloqué} other {# clients débloqués}}",
+        "linksSent": "{count, plural, one {Lien de connexion envoyé à # client} other {Liens de connexion envoyés à # clients}}",
+        "skipped": "{count} ignoré(s)",
+        "dailyLimit": "{count, plural, one {# non envoyé : limite quotidienne d’e-mails atteinte} other {# non envoyés : limite quotidienne d’e-mails atteinte}}",
+        "banned": "{count, plural, one {# ignoré : banni par la plateforme} other {# ignorés : bannis par la plateforme}}"
+      },
+      "confirmBlock": {
+        "title": "Bloquer {name} ?",
+        "bulkTitle": "{count, plural, one {Bloquer # client ?} other {Bloquer # clients ?}}",
+        "description": "Les clients bloqués sont déconnectés partout et ne peuvent plus se connecter à votre boutique. Leurs commandes restent inchangées. Vous pouvez les débloquer à tout moment."
+      },
+      "confirmUnblock": {
+        "title": "Débloquer {name} ?",
+        "description": "Le client pourra de nouveau se connecter à votre boutique."
+      },
+      "confirmLoginLink": {
+        "title": "Envoyer un lien de connexion ?",
+        "description": "{email} recevra un e-mail avec un lien pour se connecter à votre boutique en un clic."
+      },
+      "confirmReset": {
+        "title": "Envoyer une réinitialisation du mot de passe ?",
+        "description": "{email} recevra un e-mail avec un lien pour choisir un nouveau mot de passe."
+      },
+      "new": {
+        "title": "Nouveau client",
+        "description": "Créez un compte pour un client de cette boutique. Un mot de passe est généré automatiquement.",
+        "store": "Boutique",
+        "storePlaceholder": "Choisir la boutique",
+        "storeRequired": "Choisissez la boutique à laquelle appartient ce client.",
+        "invalidEmail": "Saisissez une adresse e-mail valide.",
+        "sendCredentials": "Envoyer les identifiants par e-mail",
+        "sendCredentialsHint": "Inclut un lien de connexion en un clic vers votre boutique.",
+        "emailLanguage": "Langue de l’e-mail",
+        "creating": "Création…",
+        "create": "Créer le client",
+        "created": "Client créé."
+      },
+      "fields": {
+        "email": "E-mail",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "phone": "Téléphone",
+        "name": "Nom",
+        "customerType": "Type de client",
+        "typeUnset": "Non défini",
+        "companyName": "Raison sociale",
+        "orgNumber": "Numéro d’immatriculation",
+        "vatNumber": "Numéro de TVA"
+      },
+      "detail": {
+        "back": "Retour aux clients",
+        "saved": "Client enregistré.",
+        "loginLinkSent": "Lien de connexion envoyé à {email}.",
+        "resetSent": "Réinitialisation envoyée à {email}.",
+        "blocked": "Client bloqué.",
+        "unblocked": "Client débloqué.",
+        "customerSince": "Client depuis le {date}",
+        "blockedNotice": "Ce client est bloqué et ne peut pas se connecter à la boutique.",
+        "orders": "Commandes",
+        "noOrders": "Aucune commande pour le moment.",
+        "colOrder": "Commande",
+        "colDate": "Date",
+        "colTotal": "Total",
+        "showingRecent": "Affichage des {shown} commandes les plus récentes sur {total}.",
+        "addresses": "Adresses",
+        "noAddresses": "Aucune adresse enregistrée.",
+        "defaultAddress": "Par défaut",
+        "profile": "Profil",
+        "taxExemption": "Exonération de TVA",
+        "exemptSince": "Exonéré de TVA depuis le {date}",
+        "noExemption": "Aucune exonération. Elle peut être ajoutée depuis une commande du client.",
+        "bannedTooltip": "La plateforme a banni ce client. Seule la plateforme peut lever le bannissement.",
+        "bannedNotice": "Ce client a été banni par la plateforme et ne peut pas se connecter à la boutique. Vous ne pouvez pas modifier ce statut."
+      },
+      "stats": {
+        "orders": "Commandes",
+        "totalSpent": "Total dépensé",
+        "averageOrder": "Panier moyen",
+        "lastOrder": "Dernière commande"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "Un client avec cet e-mail existe déjà dans cette boutique.",
+        "CUSTOMER_NOT_FOUND": "Ce client n’existe pas ou appartient à une autre boutique.",
+        "STORE_REQUIRED": "Choisissez la boutique à laquelle appartient ce client.",
+        "STORE_NOT_FOUND": "Boutique introuvable. Configurez d’abord votre boutique.",
+        "CUSTOMER_STORE_MISMATCH": "Ce client appartient à une autre boutique.",
+        "NOT_CUSTOMER_ACCOUNT": "Ce compte n’est pas un compte client.",
+        "invalidEmail": "Saisissez une adresse e-mail valide.",
+        "invalidPhone": "Vérifiez le numéro de téléphone.",
+        "invalidCompany": "Vérifiez les numéros d’immatriculation et de TVA (32 caractères max.).",
+        "invalidInput": "Certains champs ne sont pas valides. Vérifiez-les et réessayez.",
+        "notFound": "Ce client est introuvable.",
+        "forbidden": "Vous n’avez pas accès à ce client.",
+        "CUSTOMER_NOT_ACTIVE": "Ce client est bloqué. Débloquez-le d’abord pour envoyer des e-mails.",
+        "CUSTOMER_INVALID_DATE": "Vérifiez les dates du filtre.",
+        "CUSTOMER_BANNED_BY_ADMIN": "Ce client a été banni par la plateforme. Seule la plateforme peut modifier ce statut.",
+        "STORE_DAILY_EMAIL_LIMIT": "Votre boutique a atteint sa limite quotidienne pour ce type d’e-mail. Réessayez demain."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "Saisissez le Client ID et le Client Secret de la console API Zoho.",
     "ZOHO_RECONNECT_REQUIRED": "Zoho n’accepte plus cette connexion. Cliquez sur Autoriser pour vous reconnecter.",
     "ZOHO_API_ERROR": "Zoho Mail a renvoyé une erreur. Réessayez dans un instant.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "Une pièce jointe dépasse 10 Mo ; l’e-mail est donc parti depuis l’expéditeur de la plateforme."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "Une pièce jointe dépasse 10 Mo ; l’e-mail est donc parti depuis l’expéditeur de la plateforme.",
+    "STORE_REQUIRED": "Une boutique est requise pour les comptes clients.",
+    "CUSTOMER_STORE_MISMATCH": "Ce client appartient à une autre boutique.",
+    "NOT_CUSTOMER_ACCOUNT": "Ce compte n’est pas un compte client.",
+    "CUSTOMER_NOT_FOUND": "Client introuvable."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

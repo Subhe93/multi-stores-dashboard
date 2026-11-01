@@ -344,7 +344,8 @@
     "onlineStore": "المتجر الإلكتروني",
     "appsGroup": "التطبيقات",
     "manageApps": "إدارة التطبيقات",
-    "notifications": "الإشعارات"
+    "notifications": "الإشعارات",
+    "customers": "العملاء"
   },
   "table": {
     "searchPlaceholder": "بحث...",
@@ -831,7 +832,16 @@
       }
     },
     "orderStatus_INVOICE_ISSUED": "صدرت الفاتورة",
-    "orderStatus_CREDIT_NOTE_ISSUED": "صدر إشعار دائن"
+    "orderStatus_CREDIT_NOTE_ISSUED": "صدر إشعار دائن",
+    "customersPage": {
+      "title": "العملاء",
+      "subtitle": "حسابات العملاء في كل المتاجر. كل عميل ينتمي إلى متجر واحد.",
+      "colStore": "المتجر",
+      "storeFilter": "المتجر",
+      "allStores": "كل المتاجر"
+    },
+    "customersCreateHint": "العملاء يتبعون متجراً، لذلك يُضافون من صفحة العملاء.",
+    "customersCreateLink": "فتح العملاء"
   },
   "guide": {
     "title": "دليل العمليات",
@@ -2178,6 +2188,19 @@
       "customDomain": "نطاق مخصص",
       "customDomainPlaceholder": "shop.yourbrand.com",
       "customDomainHelp": "يعمل مع النطاق الفرعي (shop.yourbrand.com) ومع النطاق الجذر (yourbrand.com). في مزوّد DNS، أضف سجل CNAME من هذا النطاق إلى {target}. للنطاقات الجذرية استخدم Cloudflare (يدعم CNAME flattening) أو ALIAS/ANAME. قد تستغرق التغييرات بضع دقائق.",
+      "customDomainConnected": "متصل",
+      "customDomainLegacy": "نطاق قديم",
+      "customDomainRemove": "إزالة النطاق",
+      "customDomainRemoveHint": "هل حذفت إعدادات DNS لهذا النطاق أو لم تعد تستخدمه؟ أزله من هنا حتى تتوقف روابط متجرك عن استخدامه.",
+      "customDomainLegacyMarketsHint": "أُضيف قبل تفعيل الأسواق. أزله إن لم يعد يشير إلى متجرك؛ نطاقات الأسواق تُدار من صفحة الأسواق.",
+      "customDomainReplaceHint": "للانتقال إلى نطاق آخر، اكتب النطاق الجديد في الحقل أعلاه ثم احفظ.",
+      "customDomainRemoveTitle": "إزالة {domain}؟",
+      "customDomainRemoveWarning": "لن يفتح متجرك بعد الآن على {domain}. ستستخدم الروابط {fallback}.",
+      "customDomainRemoveWarningMarkets": "سيؤدي هذا إلى إزالة إعداد النطاق القديم. إن كان {domain} مضافاً أيضاً كنطاق في الأسواق، فسيبقى المتجر يفتح عليه حتى تزيله من صفحة الأسواق.",
+      "customDomainRemoving": "جارٍ الإزالة…",
+      "customDomainRemoved": "تمت إزالة {domain}. تستخدم الروابط الآن {fallback}.",
+      "customDomainStillInMarkets": "لا يزال {domain} مدرجاً كنطاق في الأسواق. أزله من صفحة الأسواق أيضاً لإيقاف تقديم المتجر عليه.",
+      "customDomainRemoveFailed": "تعذّرت إزالة النطاق. حاول مرة أخرى.",
       "dnsGuideTitle": "إعداد DNS",
       "dnsGuideIntro": "افتح إعدادات DNS لـ {zone} في مزوّد الخدمة وأضف السجل التالي:",
       "dnsType": "النوع",
@@ -4964,6 +4987,173 @@
           "failed": "تعذّر بدء منح الصلاحية مع Zoho. يُرجى المحاولة مرة أخرى."
         }
       }
+    },
+    "customers": {
+      "title": "العملاء",
+      "subtitle": "الأشخاص الذين لديهم حساب في متجرك.",
+      "exportCsv": "تصدير CSV",
+      "exporting": "جارٍ التصدير…",
+      "newCustomer": "عميل جديد",
+      "searchPlaceholder": "ابحث بالاسم أو البريد أو الهاتف",
+      "noMatches": "لا يوجد عملاء يطابقون هذه الفلاتر.",
+      "retry": "حاول مجدداً",
+      "dismiss": "إغلاق",
+      "working": "جارٍ التنفيذ…",
+      "companyBadge": "شركة",
+      "status": {
+        "ACTIVE": "نشط",
+        "PENDING": "قيد الانتظار",
+        "SUSPENDED": "محظور",
+        "BANNED": "مُبعَد"
+      },
+      "cols": {
+        "customer": "العميل",
+        "phone": "الهاتف",
+        "orders": "الطلبات",
+        "totalSpent": "إجمالي الإنفاق",
+        "lastOrder": "آخر طلب",
+        "created": "تاريخ الإنشاء"
+      },
+      "filters": {
+        "hasOrders": "الطلبات",
+        "anyOrders": "كل العملاء",
+        "withOrders": "لديهم طلبات",
+        "withoutOrders": "بلا طلبات بعد",
+        "type": "نوع العميل",
+        "anyType": "كل الأنواع",
+        "person": "فرد",
+        "company": "شركة",
+        "createdFrom": "أُنشئ من",
+        "createdTo": "إلى",
+        "clear": "مسح الفلاتر"
+      },
+      "sort": {
+        "label": "الترتيب",
+        "default": "الأحدث أولاً",
+        "name_asc": "الاسم أ–ي",
+        "name_desc": "الاسم ي–أ",
+        "email_asc": "البريد أ–ي",
+        "email_desc": "البريد ي–أ",
+        "orders_count_desc": "الأكثر طلبات",
+        "orders_count_asc": "الأقل طلبات",
+        "total_spent_desc": "الأعلى إنفاقاً",
+        "total_spent_asc": "الأقل إنفاقاً",
+        "last_order_at_desc": "آخر طلب: الأحدث",
+        "last_order_at_asc": "آخر طلب: الأقدم",
+        "created_at_desc": "الأحدث أولاً",
+        "created_at_asc": "الأقدم أولاً"
+      },
+      "empty": {
+        "title": "لا يوجد عملاء بعد",
+        "body": "يظهر العملاء هنا عندما ينشئون حساباً أو يطلبون من متجرك. ويمكنك أيضاً إضافة عميل بنفسك."
+      },
+      "actions": {
+        "sendLoginLink": "إرسال رابط دخول",
+        "sendPasswordReset": "إرسال إعادة تعيين كلمة المرور",
+        "block": "حظر",
+        "unblock": "إلغاء الحظر",
+        "bannedByPlatform": "محظور من المنصة"
+      },
+      "bulk": {
+        "blocked": "{count, plural, one {تم حظر عميل واحد} other {تم حظر # عملاء}}",
+        "unblocked": "{count, plural, one {تم إلغاء حظر عميل واحد} other {تم إلغاء حظر # عملاء}}",
+        "linksSent": "{count, plural, one {أُرسل رابط الدخول إلى عميل واحد} other {أُرسلت روابط الدخول إلى # عملاء}}",
+        "skipped": "تم تخطي {count}",
+        "dailyLimit": "{count, plural, one {لم يُرسل #: تم بلوغ الحد اليومي للرسائل} other {لم يُرسل #: تم بلوغ الحد اليومي للرسائل}}",
+        "banned": "{count, plural, one {تم تخطي #: محظور من المنصة} other {تم تخطي #: محظورون من المنصة}}"
+      },
+      "confirmBlock": {
+        "title": "حظر {name}؟",
+        "bulkTitle": "{count, plural, one {حظر عميل واحد؟} other {حظر # عملاء؟}}",
+        "description": "يُسجَّل خروج العميل المحظور من كل الأجهزة ولا يستطيع الدخول إلى متجرك. تبقى طلباته كما هي، ويمكنك إلغاء الحظر في أي وقت."
+      },
+      "confirmUnblock": {
+        "title": "إلغاء حظر {name}؟",
+        "description": "سيتمكن العميل من الدخول إلى متجرك مجدداً."
+      },
+      "confirmLoginLink": {
+        "title": "إرسال رابط دخول؟",
+        "description": "سيصل إلى {email} بريد برابط يدخل به إلى متجرك بنقرة واحدة."
+      },
+      "confirmReset": {
+        "title": "إرسال إعادة تعيين كلمة المرور؟",
+        "description": "سيصل إلى {email} بريد برابط لاختيار كلمة مرور جديدة."
+      },
+      "new": {
+        "title": "عميل جديد",
+        "description": "أنشئ حساباً لعميل في هذا المتجر. تُولَّد له كلمة مرور تلقائياً.",
+        "store": "المتجر",
+        "storePlaceholder": "اختر المتجر",
+        "storeRequired": "اختر المتجر الذي ينتمي إليه هذا العميل.",
+        "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً.",
+        "sendCredentials": "أرسل للعميل بيانات الدخول بالبريد",
+        "sendCredentialsHint": "يتضمن رابط دخول بنقرة واحدة إلى متجرك.",
+        "emailLanguage": "لغة البريد",
+        "creating": "جارٍ الإنشاء…",
+        "create": "إنشاء العميل",
+        "created": "تم إنشاء العميل."
+      },
+      "fields": {
+        "email": "البريد الإلكتروني",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "phone": "الهاتف",
+        "name": "الاسم",
+        "customerType": "نوع العميل",
+        "typeUnset": "غير محدد",
+        "companyName": "اسم الشركة",
+        "orgNumber": "رقم السجل",
+        "vatNumber": "الرقم الضريبي"
+      },
+      "detail": {
+        "back": "العودة إلى العملاء",
+        "saved": "تم حفظ العميل.",
+        "loginLinkSent": "أُرسل رابط الدخول إلى {email}.",
+        "resetSent": "أُرسلت إعادة تعيين كلمة المرور إلى {email}.",
+        "blocked": "تم حظر العميل.",
+        "unblocked": "تم إلغاء حظر العميل.",
+        "customerSince": "عميل منذ {date}",
+        "blockedNotice": "هذا العميل محظور ولا يستطيع الدخول إلى المتجر.",
+        "orders": "الطلبات",
+        "noOrders": "لا توجد طلبات بعد.",
+        "colOrder": "الطلب",
+        "colDate": "التاريخ",
+        "colTotal": "الإجمالي",
+        "showingRecent": "يُعرض أحدث {shown} من أصل {total} طلباً.",
+        "addresses": "العناوين",
+        "noAddresses": "لا توجد عناوين محفوظة.",
+        "defaultAddress": "الافتراضي",
+        "profile": "الملف الشخصي",
+        "taxExemption": "الإعفاء الضريبي",
+        "exemptSince": "معفى من ضريبة القيمة المضافة منذ {date}",
+        "noExemption": "لا يوجد إعفاء ضريبي. يمكن إضافة الإعفاء من أحد طلبات العميل.",
+        "bannedTooltip": "حظرت المنصة هذا العميل. المنصة وحدها يمكنها رفع الحظر.",
+        "bannedNotice": "حظرت المنصة هذا العميل ولا يمكنه تسجيل الدخول إلى المتجر. لا يمكنك تغيير هذه الحالة."
+      },
+      "stats": {
+        "orders": "الطلبات",
+        "totalSpent": "إجمالي الإنفاق",
+        "averageOrder": "متوسط الطلب",
+        "lastOrder": "آخر طلب"
+      },
+      "errors": {
+        "AUTH_EMAIL_EXISTS": "يوجد عميل بهذا البريد في هذا المتجر بالفعل.",
+        "CUSTOMER_NOT_FOUND": "هذا العميل غير موجود أو يتبع متجراً آخر.",
+        "STORE_REQUIRED": "اختر المتجر الذي ينتمي إليه هذا العميل.",
+        "STORE_NOT_FOUND": "تعذر العثور على المتجر. أنشئ متجرك أولاً.",
+        "CUSTOMER_STORE_MISMATCH": "هذا العميل يتبع متجراً آخر.",
+        "NOT_CUSTOMER_ACCOUNT": "هذا الحساب ليس حساب عميل.",
+        "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً.",
+        "invalidPhone": "تحقق من رقم الهاتف.",
+        "invalidCompany": "تحقق من رقم السجل والرقم الضريبي (حتى 32 حرفاً).",
+        "invalidInput": "بعض الحقول غير صحيحة. تحقق منها وحاول مجدداً.",
+        "notFound": "تعذر العثور على هذا العميل.",
+        "forbidden": "لا تملك صلاحية الوصول إلى هذا العميل.",
+        "CUSTOMER_NOT_ACTIVE": "هذا العميل محظور. ألغِ الحظر أولاً لإرسال الرسائل.",
+        "CUSTOMER_INVALID_DATE": "تحقق من تواريخ الفلتر.",
+        "CUSTOMER_BANNED_BY_ADMIN": "حظرت المنصة هذا العميل. المنصة وحدها يمكنها تغيير هذه الحالة.",
+        "STORE_DAILY_EMAIL_LIMIT": "بلغ متجرك الحد اليومي لهذا النوع من الرسائل. حاول مرة أخرى غداً."
+      }
     }
   },
   "components": {
@@ -5424,7 +5614,11 @@
     "ZOHO_INVALID_CLIENT": "أدخل Client ID وClient Secret من Zoho API Console.",
     "ZOHO_RECONNECT_REQUIRED": "لم يعد Zoho يقبل هذا الربط. اضغط Authorize لإعادة الربط.",
     "ZOHO_API_ERROR": "أعاد Zoho Mail خطأً. حاول مرة أخرى بعد قليل.",
-    "ZOHO_ATTACHMENT_TOO_LARGE": "أحد المرفقات أكبر من 10 ميغابايت، لذلك أُرسلت الرسالة من بريد المنصة بدلاً من Zoho."
+    "ZOHO_ATTACHMENT_TOO_LARGE": "أحد المرفقات أكبر من 10 ميغابايت، لذلك أُرسلت الرسالة من بريد المنصة بدلاً من Zoho.",
+    "STORE_REQUIRED": "حسابات العملاء تتطلب تحديد متجر.",
+    "CUSTOMER_STORE_MISMATCH": "هذا العميل يتبع متجراً آخر.",
+    "NOT_CUSTOMER_ACCOUNT": "هذا الحساب ليس حساب عميل.",
+    "CUSTOMER_NOT_FOUND": "العميل غير موجود."
   },
   "builder": {
     "failedToLoadPage": "تعذّر تحميل الصفحة",

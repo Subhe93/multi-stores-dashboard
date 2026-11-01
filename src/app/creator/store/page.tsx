@@ -24,6 +24,8 @@ import {
   Copy,
   Store as StoreIcon,
   Wallet,
+  Globe,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -32,6 +34,9 @@ import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { setCachedStoreType } from '@/lib/useStoreType';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
+import { invalidateMyStore } from '@/lib/useStorefrontUrl';
+import { domainRemovalFallbackHost } from '@/lib/customDomain';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,7 +106,9 @@ interface Store {
   description: string;
   logo_url: string;
   favicon_url: string;
-  custom_domain: string;
+  custom_domain: string | null;
+  /** Canonical public host (Markets default host, else custom_domain); null = platform subdomain. */
+  public_host?: string | null;
   is_active: boolean;
   store_type?: 'MARKETPLACE' | 'INDEPENDENT';
   theme_key?: string;
@@ -310,6 +317,65 @@ function ManagedInMarketsHint() {
   );
 }
 
+/** `DELETE /stores/my/store/custom-domain` response. */
+interface RemoveCustomDomainResponse {
+  removed: boolean;
+  removed_domain: string | null;
+  still_served_by_market: boolean;
+  public_host: string | null;
+}
+
+// The saved external domain with its status and a "Remove domain" action, so
+// an owner can detach a host whose DNS no longer points here.
+function ConnectedDomainRow({
+  domain,
+  legacyUnderMarkets,
+  onRemove,
+}: {
+  domain: string;
+  legacyUnderMarkets: boolean;
+  onRemove: () => void;
+}) {
+  const t = useTranslations('creator');
+  return (
+    <div className="rounded-md border border-zinc-200 bg-white px-3 py-2.5 space-y-1.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <Globe className="size-3.5 shrink-0 text-zinc-500" />
+        <a
+          href={`https://${domain}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          dir="ltr"
+          className="font-mono text-xs font-medium text-zinc-900 hover:underline truncate"
+        >
+          {domain}
+        </a>
+        {legacyUnderMarkets ? (
+          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 text-[10px]">
+            {t('myStore.customDomainLegacy')}
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 text-[10px]">
+            {t('myStore.customDomainConnected')}
+          </Badge>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="ms-auto h-7 text-destructive hover:text-destructive"
+          onClick={onRemove}
+        >
+          <Trash2 className="size-3.5 me-1.5" /> {t('myStore.customDomainRemove')}
+        </Button>
+      </div>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        {legacyUnderMarkets ? t('myStore.customDomainLegacyMarketsHint') : t('myStore.customDomainRemoveHint')}
+      </p>
+    </div>
+  );
+}
+
 function CustomDomainInstructions({ domain }: { domain: string }) {
   const t = useTranslations('creator');
   const parsed = parseDomainZone(domain);
@@ -365,6 +431,14 @@ export default function CreatorStorePage() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [translateError, setTranslateError] = useState('');
+
+  // "Remove domain" confirm flow for the saved external domain.
+  const [removeDomainOpen, setRemoveDomainOpen] = useState(false);
+  const [removingDomain, setRemovingDomain] = useState(false);
+  const [removeDomainError, setRemoveDomainError] = useState('');
+  const [domainRemoved, setDomainRemoved] = useState<
+    { domain: string; fallback: string; stillServed: boolean } | null
+  >(null);
 
   const [form, setForm] = useState(DEFAULT_FORM);
 
@@ -526,6 +600,40 @@ export default function CreatorStorePage() {
   };
 
   // ---------------------------------------------------------------------------
+  // Remove the external domain
+  // ---------------------------------------------------------------------------
+
+  const handleRemoveDomain = async () => {
+    if (!token || !store?.custom_domain) return;
+    const removed = store.custom_domain;
+    setRemovingDomain(true);
+    setRemoveDomainError('');
+    try {
+      const res = await api<RemoveCustomDomainResponse>('/stores/my/store/custom-domain', {
+        method: 'DELETE',
+        token,
+      });
+      // Header / list links read the shared store cache.
+      invalidateMyStore();
+      setStore((prev) => (prev ? { ...prev, custom_domain: null, public_host: res.public_host ?? null } : prev));
+      setField('custom_domain', '');
+      setDomainRemoved({
+        domain: res.removed_domain || removed,
+        fallback: domainRemovalFallbackHost(
+          { slug: store.slug, custom_domain: removed, public_host: res.public_host },
+          WEB_ORIGIN,
+        ),
+        stillServed: res.still_served_by_market,
+      });
+      setRemoveDomainOpen(false);
+    } catch (err) {
+      setRemoveDomainError((err instanceof Error && err.message) || t('myStore.customDomainRemoveFailed'));
+    } finally {
+      setRemovingDomain(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
   // Save
   // ---------------------------------------------------------------------------
 
@@ -617,6 +725,16 @@ export default function CreatorStorePage() {
               },
         ),
       });
+      // The slug / custom domain feed the shared storefront-link cache.
+      invalidateMyStore();
+      if (store) {
+        setStore({
+          ...store,
+          ...(form.slug && asciiHandle(form.slug) ? { slug: asciiHandle(form.slug) } : {}),
+          ...(!marketsEnabled ? { custom_domain: form.custom_domain || null } : {}),
+        });
+      }
+      if (form.custom_domain) setDomainRemoved(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -909,19 +1027,59 @@ export default function CreatorStorePage() {
             <>
               <div className="space-y-2">
                 <Label className="text-xs">{t('myStore.customDomain')}</Label>
+                {store.custom_domain && (
+                  <ConnectedDomainRow
+                    domain={store.custom_domain}
+                    legacyUnderMarkets={marketsEnabled}
+                    onRemove={() => { setRemoveDomainError(''); setRemoveDomainOpen(true); }}
+                  />
+                )}
+                {domainRemoved && (
+                  <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 space-y-1">
+                    {domainRemoved.stillServed ? (
+                      // The host still serves through Markets, so links did not move.
+                      <p className="text-amber-800">{t('myStore.customDomainStillInMarkets', { domain: domainRemoved.domain })}</p>
+                    ) : (
+                      <p>{t('myStore.customDomainRemoved', { domain: domainRemoved.domain, fallback: domainRemoved.fallback })}</p>
+                    )}
+                  </div>
+                )}
                 {marketsEnabled ? (
                   <ManagedInMarketsHint />
                 ) : (
                   <>
                     <Input
                       className="h-8 text-sm"
+                      dir="ltr"
                       value={form.custom_domain}
                       onChange={(e) => setField('custom_domain', e.target.value.trim().toLowerCase())}
                       placeholder={t('myStore.customDomainPlaceholder')}
                     />
+                    {store.custom_domain && (
+                      <p className="text-[11px] text-muted-foreground">{t('myStore.customDomainReplaceHint')}</p>
+                    )}
                     {form.custom_domain && <CustomDomainInstructions domain={form.custom_domain} />}
                   </>
                 )}
+                <ConfirmDialog
+                  open={removeDomainOpen}
+                  onOpenChange={setRemoveDomainOpen}
+                  title={t('myStore.customDomainRemoveTitle', { domain: store.custom_domain ?? '' })}
+                  description={
+                    marketsEnabled
+                      ? t('myStore.customDomainRemoveWarningMarkets', { domain: store.custom_domain ?? '' })
+                      : t('myStore.customDomainRemoveWarning', {
+                          domain: store.custom_domain ?? '',
+                          fallback: domainRemovalFallbackHost(store, WEB_ORIGIN),
+                        })
+                  }
+                  confirmLabel={t('myStore.customDomainRemove')}
+                  destructive
+                  busy={removingDomain}
+                  busyLabel={t('myStore.customDomainRemoving')}
+                  error={removeDomainError || undefined}
+                  onConfirm={handleRemoveDomain}
+                />
               </div>
               <Separator />
               <div className="flex items-center justify-between py-1">

@@ -54,6 +54,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithTokens: (data: AuthTokens) => Promise<void>;
+  /** Swap in a fresh token pair for the signed-in account (change-password
+   *  returns one: the API revokes every token issued before the change). */
+  replaceTokens: (data: { access_token: string; refresh_token: string }) => void;
   logout: () => void;
 }
 
@@ -119,6 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loginWithTokens(data);
   }, [loginWithTokens]);
 
+  const replaceTokens = useCallback((data: { access_token: string; refresh_token: string }) => {
+    localStorage.setItem('auth_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
+    setToken(data.access_token);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
@@ -137,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithTokens, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithTokens, replaceTokens, logout }}>
       {children}
     </AuthContext.Provider>
   );

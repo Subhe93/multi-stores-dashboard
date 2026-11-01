@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -745,9 +746,19 @@ export default function CreatorOrderDetailPage() {
               <CardTitle className="text-sm font-semibold">{t('orderDetail.customer')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-1">
-              <p className="font-medium">
-                {order.customer?.first_name} {order.customer?.last_name}
-              </p>
+              {/* Registered customers link to their customer page; guests have no account. */}
+              {order.customer_id ?? order.customer?.id ? (
+                <Link
+                  href={`/creator/customers/${order.customer_id ?? order.customer?.id}`}
+                  className="block font-medium hover:underline"
+                >
+                  {order.customer?.first_name} {order.customer?.last_name}
+                </Link>
+              ) : (
+                <p className="font-medium">
+                  {order.customer?.first_name} {order.customer?.last_name}
+                </p>
+              )}
               <p className="text-muted-foreground">{order.customer?.email ?? '—'}</p>
               {/* Company snapshot (b2b app); renders nothing for person orders. */}
               <OrderCompanyLines order={order} customer={order.customer} />

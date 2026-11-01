@@ -31,6 +31,7 @@ import {
   PenTool,
   Rss,
   AtSign,
+  Users,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -139,6 +140,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         items: [
           { label: t('home'), href: '/creator', icon: <Home className="w-4 h-4" />, exact: true },
           { label: t('orders'), href: '/creator/orders', icon: <ClipboardList className="w-4 h-4" /> },
+          { label: t('customers'), href: '/creator/customers', icon: <Users className="w-4 h-4" /> },
           productsItem,
           { label: t('discounts'), href: '/creator/promotions', icon: <Tag className="w-4 h-4" /> },
           {
