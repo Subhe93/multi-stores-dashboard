@@ -484,7 +484,7 @@
     "allProductsSubtitle": "Surveiller et gérer les produits à l'échelle de la plateforme",
     "product": "Produit",
     "provider": "Fournisseur",
-    "category": "Catégorie",
+    "category": "Catégorie de la marketplace",
     "basePrice": "Prix de base",
     "added": "Ajouté",
     "archive": "Archiver",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "Aucune commission pour le moment",
     "deleteCategoryConfirm": "Supprimer cette catégorie et toutes ses sous-catégories ?",
     "categories": "Catégories",
-    "categoriesSubtitle": "Gérer les catégories de produits et les modèles d'attributs",
+    "categoriesSubtitle": "Gérer les catégories de la marketplace et les modèles d’attributs",
     "addCategory": "Ajouter une catégorie",
     "noCategoriesYet": "Aucune catégorie pour le moment",
     "createCategory": "Créer une catégorie",
@@ -1468,7 +1468,7 @@
       "title": "Catalogue fournisseur",
       "subtitle": "Choisissez un produit à ajouter à votre boutique",
       "searchPlaceholder": "Rechercher des produits…",
-      "categories": "Catégories",
+      "categories": "Catégories de la marketplace",
       "allProducts": "Tous les produits",
       "noProducts": "Aucun produit trouvé",
       "tryDifferentSearch": "Essayez un autre terme de recherche",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {Supprimer # produit ?} other {Supprimer # produits ?}}",
       "bulkDeleteDesc": "Les produits sélectionnés seront définitivement supprimés. Cette action est irréversible.",
       "viewInStoreNotPublished": "Non publié — seuls les produits publiés sont visibles dans la boutique",
-      "viewInStoreNoSlug": "Ce produit n'a pas encore de slug d'URL"
+      "viewInStoreNoSlug": "Ce produit n'a pas encore de slug d'URL",
+      "filterTag": "Tag",
+      "allTags": "Tous les tags"
     },
     "customProductForm": {
       "newTitle": "Nouveau produit personnalisé",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "Collections",
         "PRODUCT_CATEGORY": "Liens de collection",
         "TAG": "Étiquettes",
+        "PRODUCT_TAG": "Liens de tags",
         "IMAGE": "Images produit",
         "FAQ": "FAQ",
         "OPTION_CONFIG": "Réglages des options",
@@ -3401,7 +3404,7 @@
         "notEditable": "Cet import ne peut plus être modifié. Lancez une nouvelle simulation pour changer la correspondance.",
         "planFailed": "La dernière simulation a échoué. Corrigez les réglages ci-dessous ou envoyez un nouvel export, puis relancez-la.",
         "sections": {
-          "category": "Catégorie de la plateforme",
+          "category": "Catégorie de la marketplace",
           "scopes": "Ce qui est importé",
           "products": "Produits",
           "attributes": "Options et noms",
@@ -3412,7 +3415,7 @@
           "content": "Anciennes pages et articles"
         },
         "categoryPlaceholder": "Choisir une catégorie",
-        "categoryHint": "Chaque produit importé est placé dans cette catégorie de la plateforme. Obligatoire.",
+        "categoryHint": "Chaque produit importé est placé dans cette catégorie de la marketplace. Obligatoire.",
         "scopes": {
           "categories": "Collections",
           "products": "Produits",
@@ -3487,7 +3490,7 @@
         "addRow": "Ajouter",
         "removeRow": "Retirer",
         "errors": {
-          "categoryRequired": "Choisissez une catégorie de la plateforme.",
+          "categoryRequired": "Choisissez une catégorie de la marketplace.",
           "daysInvalid": "Les délais doivent être des nombres entiers positifs ou nuls.",
           "daysOrder": "« De » ne peut pas dépasser « à ».",
           "overrideIncomplete": "Remplissez les deux colonnes ou retirez la ligne.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "Valeur d’option manquante",
         "W_LABEL_OVERRIDDEN": "Libellé d’option renommé",
         "W_SLUG_CONFLICT_SUFFIXED": "URL déjà prise, numéro ajouté",
+        "W_TAG_SLUG_SUFFIXED": "Adresse du tag déjà prise, numéro ajouté",
         "W_SKU_CONFLICT_CLEARED": "Référence (SKU) déjà utilisée, effacée",
         "W_MEDIA_MISSING_IN_BUNDLE": "Image absente de l’export",
         "W_MEDIA_FETCH_FAILED": "Image impossible à télécharger",
@@ -5286,8 +5290,15 @@
     "blockNumber": "Bloc {number}",
     "editBlockContent": "Modifier le contenu {type} ici...",
     "savePage": "Enregistrer la page",
-    "noInternalLabelsYetCreate": "Aucune catégorie interne pour l’instant. <link>Créez-en une</link> dans Collections avec la visibilité interne.",
-    "searchInternalLabels": "Rechercher des catégories internes…"
+    "noInternalLabelsYetCreate": "Aucun tag pour l’instant. Saisissez un nom dans la recherche et appuyez sur Entrée pour créer le premier.",
+    "searchInternalLabels": "Rechercher ou créer des tags…",
+    "newTag": "Nouveau tag",
+    "createTag": "Créer « {name} »",
+    "creatingTag": "Création…",
+    "tagCreated": "Tag « {name} » créé et sélectionné.",
+    "tagExists": "« {name} » existe déjà et a été sélectionné.",
+    "tagCreateFailed": "Impossible de créer le tag. Réessayez.",
+    "tagCreateHint": "Appuyez sur Entrée pour créer un tag qui n’existe pas encore."
   },
   "errors": {
     "generic": "Une erreur s'est produite. Veuillez réessayer.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "Un autre import est déjà en cours pour cette boutique. Attendez qu’il se termine.",
     "IMPORT_RUN_INVALID_STATE": "Cette action n’est pas possible dans l’état actuel de l’import. Actualisez et réessayez.",
     "IMPORT_PLAN_STALE": "La boutique a changé depuis la simulation. Relancez la simulation avant d’importer.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Choisissez une catégorie de la plateforme dans « Vérifier la correspondance » avant d’importer.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Choisissez une catégorie de la marketplace dans la revue du mappage avant d’importer.",
     "IMPORT_CURRENCY_MISMATCH": "La devise de la boutique source diffère de celle de votre boutique. Les prix importés seraient faux.",
     "IMPORT_RUN_TIMEOUT": "L’import a pris trop de temps et a été arrêté. Ce qui a déjà été importé peut être annulé.",
     "IMPORT_RUN_INTERRUPTED": "L’import a été interrompu plusieurs fois et a été arrêté. Ce qui a déjà été importé peut être annulé.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "Le GTIN n'est pas valide (clé de contrôle).",
     "FEED_NOT_FOUND": "Flux introuvable.",
     "DESIGNER_ADDONS_INVALID": "Les options ne sont pas valides. Vérifiez les champs signalés.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Une étiquette interne ne peut pas avoir de collection parente. Choisissez « Aucune (niveau supérieur) » ou faites-en une collection de la boutique.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Cette collection a des sous-collections et ne peut donc pas devenir une étiquette interne. Déplacez ou supprimez d'abord ses sous-collections.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "Une étiquette interne ne peut pas être une collection parente. Choisissez une collection de la boutique comme parente.",
-    "PRIMARY_COLLECTION_INTERNAL": "Une étiquette interne ne peut pas être la collection principale. Choisissez l'une des collections de la boutique sélectionnées comme principale.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Un tag ne peut pas avoir de collection parente. Choisissez « Aucune (niveau supérieur) » ou faites-en une collection.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Cette collection a des sous-collections, elle ne peut donc pas devenir un tag. Déplacez ou supprimez d’abord ses sous-collections.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Un tag ne peut pas être une collection parente. Choisissez une collection comme parent.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "Seuls les tags (entrées internes) de cette boutique peuvent être utilisés dans une règle de tags.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "Seuls des tags peuvent être utilisés dans une règle de tags ; choisissez des tags, pas des collections.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "Un tag (collection interne) n’a pas de page dans la boutique et ne peut pas être lié depuis un menu.",
+    "PRIMARY_COLLECTION_INTERNAL": "Un tag ne peut pas être la collection principale. Choisissez l’une des collections sélectionnées comme principale.",
     "ZOHO_NOT_CONFIGURED": "Votre client Zoho n’est pas encore configuré. Enregistrez d’abord le Client ID et le Client Secret (étape 4).",
     "ZOHO_APP_DISABLED": "L’application Zoho Mail est désactivée. Activez-la d’abord depuis la page Applications.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail est réservé aux boutiques indépendantes.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "Créez d’abord un menu",
     "menuNone": "— Aucun (liens en ligne) —",
     "selectMenu": "Sélectionner un menu…",
-    "loadingCategories": "Chargement des catégories…",
-    "createCategoryFirst": "Créez d’abord une catégorie",
-    "categoryNone": "— Aucune catégorie —",
-    "selectCategory": "Sélectionner une catégorie…",
+    "loadingCategories": "Chargement des collections…",
+    "createCategoryFirst": "Créez d’abord une collection",
+    "categoryNone": "— Aucune collection —",
+    "selectCategory": "Sélectionner une collection…",
     "replaceImage": "Remplacer l’image",
     "clickOrDropImage": "Cliquez ou déposez une image",
     "imageFormats": "PNG, JPG, WebP",
@@ -5915,8 +5929,8 @@
       "includes": "Comprend :"
     },
     "presetOccasionName": "Page d’occasion",
-    "presetOccasionDesc": "Bannière principale, les produits d’une collection ou d’une étiquette interne, un bloc de texte SEO, puis des questions-réponses — la mise en page d’une page cadeaux d’occasion.",
-    "internalLabelsGroup": "Étiquettes internes",
+    "presetOccasionDesc": "Bannière hero, les produits d’une collection ou d’un tag, un bloc de texte SEO, puis questions et réponses — la mise en page d’une page d’occasion cadeau.",
+    "internalLabelsGroup": "Tags",
     "missingCollection": "(collection introuvable)",
     "textColors": "Texte sur les couleurs",
     "textColorsHint": "Laisser vide pour le mode automatique : texte foncé sur les couleurs claires, blanc sur les foncées. Couleur des prix vide = couleur principale ; couleur des liens vide = couleur des prix.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",
     "errTitleRequired": "Le titre est requis",
-    "errCategoryRequired": "Veuillez sélectionner une catégorie",
+    "errCategoryRequired": "Veuillez sélectionner une catégorie de la marketplace",
     "errPricePositive": "Le prix doit être supérieur à zéro",
     "errSelectCustomization": "Veuillez sélectionner une méthode de personnalisation",
     "errComparePrice": "Le prix comparé doit être supérieur au prix",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "Broderie",
     "custHandmade": "Fait main",
     "custOther": "Autre",
-    "category": "Catégorie",
+    "category": "Catégorie de la marketplace",
     "pricing": "Tarification",
     "priceRequired": "Prix",
     "priceHelp": "Le prix que les clients paieront",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "Repasser en brouillon",
     "unsavedChanges": "Modifications non enregistrées",
     "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?",
-    "internalCategories": "Catégories internes",
-    "internalCategoriesHelp": "Pour votre organisation et vos filtres uniquement. Non affichées dans la boutique."
+    "internalCategories": "Tags",
+    "internalCategoriesHelp": "Pour votre organisation, vos filtres et vos collections intelligentes. Jamais affiché dans la boutique.",
+    "categoryHelp": "Sert à classer le produit dans le catalogue de la plateforme"
   },
   "customField": {
     "typeText": "Texte",
@@ -6568,8 +6583,8 @@
     "parentHint": "Jusqu'à trois niveaux : collection › sous-collection › sous-sous-collection.",
     "parentDepthLimited": "Certaines collections ne sont pas proposées, car les sous-collections de celle-ci dépasseraient alors trois niveaux.",
     "filter": "Filtre",
-    "includeByTags": "Inclure les produits par étiquettes",
-    "includeByTagsHint": "Les produits portant l'une de ces étiquettes sont ajoutés automatiquement.",
+    "includeByTags": "Inclure les produits avec des tags",
+    "includeByTagsHint": "Les produits liés à l’un de ces tags sont ajoutés automatiquement.",
     "addTagPlaceholder": "Ajouter une étiquette…",
     "manuallyAdd": "Ajouter des produits manuellement",
     "manuallyAddHint": "Choisissez des produits spécifiques à inclure dans cette collection.",
@@ -6597,24 +6612,24 @@
     },
     "type": "Type",
     "visibility": {
-      "PUBLIC": "Collection de la boutique",
-      "INTERNAL": "Étiquette interne"
+      "PUBLIC": "Collection (affichée en boutique)",
+      "INTERNAL": "Tag (interne, jamais affiché)"
     },
     "visibilityHint": {
       "PUBLIC": "Possède sa propre page et apparaît dans les menus, le fil d'Ariane et le plan du site.",
-      "INTERNAL": "Regroupe des produits uniquement pour les pages du builder ; jamais affichée comme collection dans la boutique. Ne peut être ni parente, ni enfant, ni la collection principale d'un produit."
+      "INTERNAL": "Regroupe les produits pour vos filtres, collections intelligentes et pages du builder ; jamais affiché dans la boutique. Ne peut être ni parent, ni enfant, ni collection principale d’un produit."
     },
-    "internalNote": "Les étiquettes internes ne sont jamais affichées dans la boutique ; utilisez-les depuis les pages du builder.",
-    "internalHasChildren": "Indisponible : cette collection a des sous-collections. Déplacez-les ou supprimez-les d'abord.",
-    "internalBadge": "Interne",
+    "internalNote": "Les tags ne sont jamais affichés dans la boutique ; utilisez-les dans les filtres, les collections intelligentes et les pages du builder.",
+    "internalHasChildren": "Indisponible : cette collection a des sous-collections, elle ne peut donc pas devenir un tag. Déplacez-les ou supprimez-les d’abord.",
+    "internalBadge": "Tag",
     "visibilityFilter": {
       "label": "Afficher",
       "all": "Toutes",
-      "storefront": "Boutique",
-      "internal": "Internes"
+      "storefront": "Collections",
+      "internal": "Tags"
     },
-    "internalLabelsGroup": "Étiquettes internes",
-    "internalLabelsHint": "Non affichées dans la boutique",
+    "internalLabelsGroup": "Tags",
+    "internalLabelsHint": "Jamais affiché dans la boutique",
     "viewMode": "Mode d’affichage",
     "viewList": "Vue liste",
     "viewGrid": "Vue grille",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "Réorganisation annulée. {name} est revenu en position {position}.",
     "sourceAll": "Tous",
     "sourceFilter": "Type de produit",
-    "productsLoadFailed": "Impossible de charger les produits."
+    "productsLoadFailed": "Impossible de charger les produits.",
+    "noTagsForRule": "Aucun tag pour l’instant. Créez-en un en saisissant son nom ci-dessus puis Entrée, ou ajoutez des tags aux produits depuis le formulaire produit."
   },
   "shipping": {
     "actionCannotBeUndone": "Cette action est irréversible.",

@@ -34,8 +34,8 @@ export const SECTION_PRESETS: SectionPreset[] = [
     id: 'occasion-page',
     name: { en: 'Occasion page', ar: 'صفحة مناسبة' },
     description: {
-      en: 'Hero banner, the products of one collection or internal label, an SEO text block, then questions and answers — the layout of a gift-occasion page.',
-      ar: 'بانر رئيسي، ثم منتجات مجموعة أو تصنيف داخلي، ثم كتلة نص لتحسين الظهور في محركات البحث، ثم أسئلة وأجوبة — تخطيط صفحة هدايا المناسبات.',
+      en: 'Hero banner, the products of one collection or tag, an SEO text block, then questions and answers — the layout of a gift-occasion page.',
+      ar: 'بانر رئيسي، ثم منتجات مجموعة أو وسم، ثم كتلة نص لتحسين الظهور في محركات البحث، ثم أسئلة وأجوبة — تخطيط صفحة هدايا المناسبات.',
     },
     i18n: { name: 'presetOccasionName', description: 'presetOccasionDesc' },
     icon: 'gift',
@@ -62,8 +62,8 @@ export const SECTION_PRESETS: SectionPreset[] = [
       },
       {
         section_key: 'collection-products',
-        // `category` stays empty: the creator picks the collection or internal
-        // label; the section shows its "pick a collection" prompt until then.
+        // `category` stays empty: the creator picks the collection or tag;
+        // the section shows its "pick a collection" prompt until then.
         // Keys and defaults are mirrored server-side in
         // multi-stores-api/src/modules/occasion-conversion/occasion-preset.ts.
         settings: { category: '', aspect: 'square', limit: 12, columns: 4, columns_tablet: 3, columns_mobile: 2 },

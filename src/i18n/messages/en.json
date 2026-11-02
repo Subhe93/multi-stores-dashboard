@@ -484,7 +484,7 @@
     "allProductsSubtitle": "Monitor and manage platform-wide products",
     "product": "Product",
     "provider": "Provider",
-    "category": "Category",
+    "category": "Marketplace category",
     "basePrice": "Base Price",
     "added": "Added",
     "archive": "Archive",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "No commissions yet",
     "deleteCategoryConfirm": "Delete this category and all its children?",
     "categories": "Categories",
-    "categoriesSubtitle": "Manage product categories and attribute templates",
+    "categoriesSubtitle": "Manage marketplace categories and attribute templates",
     "addCategory": "Add Category",
     "noCategoriesYet": "No categories yet",
     "createCategory": "Create Category",
@@ -1468,7 +1468,7 @@
       "title": "Provider Catalog",
       "subtitle": "Choose a product to add to your store",
       "searchPlaceholder": "Search products…",
-      "categories": "Categories",
+      "categories": "Marketplace categories",
       "allProducts": "All Products",
       "noProducts": "No products found",
       "tryDifferentSearch": "Try a different search term",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {Delete # product?} other {Delete # products?}}",
       "bulkDeleteDesc": "The selected products will be permanently deleted. This cannot be undone.",
       "viewInStoreNotPublished": "Not published — only published products are visible in the store",
-      "viewInStoreNoSlug": "This product has no URL slug yet"
+      "viewInStoreNoSlug": "This product has no URL slug yet",
+      "filterTag": "Tag",
+      "allTags": "All tags"
     },
     "customProductForm": {
       "newTitle": "New Custom Product",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "Collections",
         "PRODUCT_CATEGORY": "Collection links",
         "TAG": "Tags",
+        "PRODUCT_TAG": "Tag links",
         "IMAGE": "Product images",
         "FAQ": "FAQs",
         "OPTION_CONFIG": "Option settings",
@@ -3401,7 +3404,7 @@
         "notEditable": "This run can no longer be changed. Start a new dry run to change the mapping.",
         "planFailed": "The last dry run failed. Fix the settings below or upload a new export, then run it again.",
         "sections": {
-          "category": "Platform category",
+          "category": "Marketplace category",
           "scopes": "What to import",
           "products": "Products",
           "attributes": "Options and names",
@@ -3412,7 +3415,7 @@
           "content": "Old pages and posts"
         },
         "categoryPlaceholder": "Choose a category",
-        "categoryHint": "Every imported product is placed in this platform category. Required.",
+        "categoryHint": "Every imported product is placed in this marketplace category. Required.",
         "scopes": {
           "categories": "Collections",
           "products": "Products",
@@ -3487,7 +3490,7 @@
         "addRow": "Add",
         "removeRow": "Remove",
         "errors": {
-          "categoryRequired": "Choose a platform category.",
+          "categoryRequired": "Choose a marketplace category.",
           "daysInvalid": "Delivery days must be whole numbers of 0 or more.",
           "daysOrder": "“From” cannot be more than “to”.",
           "overrideIncomplete": "Fill in both columns or remove the row.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "Option value missing",
         "W_LABEL_OVERRIDDEN": "Option label renamed",
         "W_SLUG_CONFLICT_SUFFIXED": "URL already taken, number added",
+        "W_TAG_SLUG_SUFFIXED": "Tag address already taken, number added",
         "W_SKU_CONFLICT_CLEARED": "SKU already used, cleared",
         "W_MEDIA_MISSING_IN_BUNDLE": "Image missing from the export",
         "W_MEDIA_FETCH_FAILED": "Image could not be downloaded",
@@ -5286,8 +5290,15 @@
     "blockNumber": "Block {number}",
     "editBlockContent": "Edit {type} content here...",
     "savePage": "Save Page",
-    "noInternalLabelsYetCreate": "No internal categories yet. <link>Create one</link> under Collections and set its visibility to internal.",
-    "searchInternalLabels": "Search internal categories…"
+    "noInternalLabelsYetCreate": "No tags yet. Type a name in the search box and press Enter to create the first one.",
+    "searchInternalLabels": "Search or create tags…",
+    "newTag": "New tag",
+    "createTag": "Create \"{name}\"",
+    "creatingTag": "Creating…",
+    "tagCreated": "Tag \"{name}\" created and selected.",
+    "tagExists": "\"{name}\" already exists and was selected.",
+    "tagCreateFailed": "Could not create the tag. Try again.",
+    "tagCreateHint": "Press Enter to create a tag that does not exist yet."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "Another import is already running for this store. Wait for it to finish.",
     "IMPORT_RUN_INVALID_STATE": "This action is not possible in the run’s current state. Refresh and try again.",
     "IMPORT_PLAN_STALE": "The store changed since the dry run. Run the dry run again before importing.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Choose a platform category in Mapping review before importing.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Choose a marketplace category in Mapping review before importing.",
     "IMPORT_CURRENCY_MISMATCH": "The shop’s currency differs from your store currency. Imported prices would be wrong.",
     "IMPORT_RUN_TIMEOUT": "The import took too long and was stopped. What was imported so far can be rolled back.",
     "IMPORT_RUN_INTERRUPTED": "The import was interrupted several times and was stopped. What was imported so far can be rolled back.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "The GTIN is not valid (check digit).",
     "FEED_NOT_FOUND": "Feed not found.",
     "DESIGNER_ADDONS_INVALID": "The add-ons are not valid. Check the marked fields.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "An internal label cannot have a parent collection. Choose \"None (top level)\" or make it a storefront collection.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "This collection has sub-collections, so it cannot become an internal label. Move or delete its sub-collections first.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "An internal label cannot be a parent collection. Pick a storefront collection as the parent.",
-    "PRIMARY_COLLECTION_INTERNAL": "An internal label cannot be the primary collection. Pick one of the selected storefront collections as the primary.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "A tag cannot have a parent collection. Choose \"None (top level)\" or make it a collection.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "This collection has sub-collections, so it cannot become a tag. Move or delete its sub-collections first.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "A tag cannot be a parent collection. Pick a collection as the parent.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "Only tags (internal rows) of this store can be used in a tag rule.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "Only tags can be used in a tag rule; pick tags, not collections.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "A tag (internal collection) has no store page and cannot be linked from a menu.",
+    "PRIMARY_COLLECTION_INTERNAL": "A tag cannot be the primary collection. Pick one of the selected collections as the primary.",
     "ZOHO_NOT_CONFIGURED": "Your Zoho client is not set up yet. Save the Client ID and Client Secret first (step 4).",
     "ZOHO_APP_DISABLED": "The Zoho Mail app is turned off. Turn it on from the Apps page first.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail is only available for independent stores.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "Create a menu first",
     "menuNone": "— None (inline links) —",
     "selectMenu": "Select a menu…",
-    "loadingCategories": "Loading categories…",
-    "createCategoryFirst": "Create a category first",
-    "categoryNone": "— No category —",
-    "selectCategory": "Select a category…",
+    "loadingCategories": "Loading collections…",
+    "createCategoryFirst": "Create a collection first",
+    "categoryNone": "— No collection —",
+    "selectCategory": "Select a collection…",
     "replaceImage": "Replace image",
     "clickOrDropImage": "Click or drop an image",
     "imageFormats": "PNG, JPG, WebP",
@@ -5915,8 +5929,8 @@
       "includes": "Includes:"
     },
     "presetOccasionName": "Occasion page",
-    "presetOccasionDesc": "Hero banner, the products of one collection or internal label, an SEO text block, then questions and answers — the layout of a gift-occasion page.",
-    "internalLabelsGroup": "Internal labels",
+    "presetOccasionDesc": "Hero banner, the products of one collection or tag, an SEO text block, then questions and answers — the layout of a gift-occasion page.",
+    "internalLabelsGroup": "Tags",
     "missingCollection": "(missing collection)",
     "textColors": "Text on colours",
     "textColorsHint": "Leave empty for automatic: dark text on light colours, white on dark ones. Price colour empty = primary colour; link colour empty = price colour.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",
     "errTitleRequired": "Title is required",
-    "errCategoryRequired": "Please select a category",
+    "errCategoryRequired": "Please select a marketplace category",
     "errPricePositive": "Price must be greater than zero",
     "errSelectCustomization": "Please select a customization method",
     "errComparePrice": "Compare-at price must be higher than the price",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "Embroidery",
     "custHandmade": "Handmade",
     "custOther": "Other",
-    "category": "Category",
+    "category": "Marketplace category",
     "pricing": "Pricing",
     "priceRequired": "Price",
     "priceHelp": "The price customers will pay",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "Switch to draft",
     "unsavedChanges": "Unsaved changes",
     "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?",
-    "internalCategories": "Internal categories",
-    "internalCategoriesHelp": "For your own organisation and filtering. Not shown in the store."
+    "internalCategories": "Tags",
+    "internalCategoriesHelp": "For your own organisation, filters and smart collections. Never shown in the store.",
+    "categoryHelp": "Used to classify the product in the platform catalog"
   },
   "customField": {
     "typeText": "Text",
@@ -6568,8 +6583,8 @@
     "parentHint": "Up to three levels: collection › sub-collection › sub-sub-collection.",
     "parentDepthLimited": "Some collections are not offered because this collection's own sub-collections would then exceed three levels.",
     "filter": "Filter",
-    "includeByTags": "Include products by tags",
-    "includeByTagsHint": "Products with any of these tags are added automatically.",
+    "includeByTags": "Include products with tags",
+    "includeByTagsHint": "Products linked to any of these tags are added automatically.",
     "addTagPlaceholder": "Add a tag…",
     "manuallyAdd": "Manually add products",
     "manuallyAddHint": "Pick specific products to include in this collection.",
@@ -6597,24 +6612,24 @@
     },
     "type": "Type",
     "visibility": {
-      "PUBLIC": "Storefront collection",
-      "INTERNAL": "Internal label"
+      "PUBLIC": "Collection (shown in store)",
+      "INTERNAL": "Tag (internal, never shown)"
     },
     "visibilityHint": {
       "PUBLIC": "Has its own page, appears in menus, breadcrumbs and the sitemap.",
-      "INTERNAL": "Groups products for builder pages only; never shown as a collection in the store. Cannot be a parent, a child or a product's primary collection."
+      "INTERNAL": "Groups products for your own filters, smart collections and builder pages; never shown in the store. Cannot be a parent, a child or a product's primary collection."
     },
-    "internalNote": "Internal labels are never shown in the store; use them from builder pages.",
-    "internalHasChildren": "Not available: this collection has sub-collections. Move or delete them first.",
-    "internalBadge": "Internal",
+    "internalNote": "Tags are never shown in the store; use them in filters, smart collections and builder pages.",
+    "internalHasChildren": "Not available: this collection has sub-collections, so it cannot become a tag. Move or delete them first.",
+    "internalBadge": "Tag",
     "visibilityFilter": {
       "label": "Show",
       "all": "All",
-      "storefront": "Storefront",
-      "internal": "Internal"
+      "storefront": "Collections",
+      "internal": "Tags"
     },
-    "internalLabelsGroup": "Internal labels",
-    "internalLabelsHint": "Not shown in the store",
+    "internalLabelsGroup": "Tags",
+    "internalLabelsHint": "Never shown in the store",
     "viewMode": "View mode",
     "viewList": "List view",
     "viewGrid": "Grid view",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "Reordering cancelled. {name} returned to position {position}.",
     "sourceAll": "All",
     "sourceFilter": "Product type",
-    "productsLoadFailed": "Could not load products."
+    "productsLoadFailed": "Could not load products.",
+    "noTagsForRule": "No tags yet. Create one by typing its name above and pressing Enter, or add tags to products from the product form."
   },
   "shipping": {
     "actionCannotBeUndone": "This action cannot be undone.",

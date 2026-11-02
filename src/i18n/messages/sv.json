@@ -484,7 +484,7 @@
     "allProductsSubtitle": "Övervaka och hantera produkter över hela plattformen",
     "product": "Produkt",
     "provider": "Leverantör",
-    "category": "Kategori",
+    "category": "Marknadsplatskategori",
     "basePrice": "Grundpris",
     "added": "Tillagd",
     "archive": "Arkivera",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "Inga provisioner än",
     "deleteCategoryConfirm": "Ta bort denna kategori och alla dess underkategorier?",
     "categories": "Kategorier",
-    "categoriesSubtitle": "Hantera produktkategorier och attributmallar",
+    "categoriesSubtitle": "Hantera marknadsplatskategorier och attributmallar",
     "addCategory": "Lägg till kategori",
     "noCategoriesYet": "Inga kategorier än",
     "createCategory": "Skapa kategori",
@@ -1468,7 +1468,7 @@
       "title": "Leverantörskatalog",
       "subtitle": "Välj en produkt att lägga till i din butik",
       "searchPlaceholder": "Sök produkter…",
-      "categories": "Kategorier",
+      "categories": "Marknadsplatskategorier",
       "allProducts": "Alla produkter",
       "noProducts": "Inga produkter hittades",
       "tryDifferentSearch": "Prova en annan sökterm",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {Radera # produkt?} other {Radera # produkter?}}",
       "bulkDeleteDesc": "De valda produkterna raderas permanent. Det går inte att ångra.",
       "viewInStoreNotPublished": "Inte publicerad – endast publicerade produkter syns i butiken",
-      "viewInStoreNoSlug": "Den här produkten har ingen URL-slug än"
+      "viewInStoreNoSlug": "Den här produkten har ingen URL-slug än",
+      "filterTag": "Tagg",
+      "allTags": "Alla taggar"
     },
     "customProductForm": {
       "newTitle": "Ny anpassad produkt",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "Kollektioner",
         "PRODUCT_CATEGORY": "Kollektionskopplingar",
         "TAG": "Taggar",
+        "PRODUCT_TAG": "Taggkopplingar",
         "IMAGE": "Produktbilder",
         "FAQ": "Vanliga frågor",
         "OPTION_CONFIG": "Alternativinställningar",
@@ -3401,7 +3404,7 @@
         "notEditable": "Den här körningen kan inte längre ändras. Starta en ny testkörning för att ändra mappningen.",
         "planFailed": "Den senaste testkörningen misslyckades. Rätta inställningarna nedan eller ladda upp en ny export och kör igen.",
         "sections": {
-          "category": "Plattformskategori",
+          "category": "Marknadsplatskategori",
           "scopes": "Vad som importeras",
           "products": "Produkter",
           "attributes": "Alternativ och namn",
@@ -3412,7 +3415,7 @@
           "content": "Gamla sidor och inlägg"
         },
         "categoryPlaceholder": "Välj en kategori",
-        "categoryHint": "Alla importerade produkter placeras i den här plattformskategorin. Obligatoriskt.",
+        "categoryHint": "Alla importerade produkter placeras i den här marknadsplatskategorin. Obligatoriskt.",
         "scopes": {
           "categories": "Kollektioner",
           "products": "Produkter",
@@ -3487,7 +3490,7 @@
         "addRow": "Lägg till",
         "removeRow": "Ta bort",
         "errors": {
-          "categoryRequired": "Välj en plattformskategori.",
+          "categoryRequired": "Välj en marknadsplatskategori.",
           "daysInvalid": "Leveransdagar måste vara heltal, 0 eller mer.",
           "daysOrder": "”Från” kan inte vara större än ”till”.",
           "overrideIncomplete": "Fyll i båda kolumnerna eller ta bort raden.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "Alternativvärde saknas",
         "W_LABEL_OVERRIDDEN": "Alternativetikett omdöpt",
         "W_SLUG_CONFLICT_SUFFIXED": "URL upptagen, nummer tillagt",
+        "W_TAG_SLUG_SUFFIXED": "Taggadress upptagen, nummer tillagt",
         "W_SKU_CONFLICT_CLEARED": "Artikelnummer används redan, rensat",
         "W_MEDIA_MISSING_IN_BUNDLE": "Bild saknas i exporten",
         "W_MEDIA_FETCH_FAILED": "Bilden kunde inte hämtas",
@@ -5286,8 +5290,15 @@
     "blockNumber": "Block {number}",
     "editBlockContent": "Redigera {type}-innehåll här...",
     "savePage": "Spara sida",
-    "noInternalLabelsYetCreate": "Inga interna kategorier ännu. <link>Skapa en</link> under Kollektioner och sätt synligheten till intern.",
-    "searchInternalLabels": "Sök interna kategorier…"
+    "noInternalLabelsYetCreate": "Inga taggar ännu. Skriv ett namn i sökrutan och tryck på Enter för att skapa den första.",
+    "searchInternalLabels": "Sök eller skapa taggar…",
+    "newTag": "Ny tagg",
+    "createTag": "Skapa \"{name}\"",
+    "creatingTag": "Skapar…",
+    "tagCreated": "Taggen \"{name}\" skapades och valdes.",
+    "tagExists": "\"{name}\" finns redan och valdes.",
+    "tagCreateFailed": "Taggen kunde inte skapas. Försök igen.",
+    "tagCreateHint": "Tryck på Enter för att skapa en tagg som inte finns ännu."
   },
   "errors": {
     "generic": "Något gick fel. Försök igen.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "En annan import pågår redan för butiken. Vänta tills den är klar.",
     "IMPORT_RUN_INVALID_STATE": "Åtgärden går inte i importens nuvarande läge. Uppdatera och försök igen.",
     "IMPORT_PLAN_STALE": "Butiken har ändrats sedan testkörningen. Kör testkörningen igen innan du importerar.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Välj en plattformskategori under Granska mappning innan du importerar.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Välj en marknadsplatskategori under Granska mappning innan du importerar.",
     "IMPORT_CURRENCY_MISMATCH": "Butikens valuta skiljer sig från din butiks valuta. Importerade priser skulle bli fel.",
     "IMPORT_RUN_TIMEOUT": "Importen tog för lång tid och stoppades. Det som hunnit importeras kan återställas.",
     "IMPORT_RUN_INTERRUPTED": "Importen avbröts flera gånger och stoppades. Det som hunnit importeras kan återställas.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "GTIN är inte giltigt (kontrollsiffra).",
     "FEED_NOT_FOUND": "Flödet hittades inte.",
     "DESIGNER_ADDONS_INVALID": "Tillvalen är inte giltiga. Kontrollera de markerade fälten.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "En intern etikett kan inte ha en överordnad kollektion. Välj \"Ingen (toppnivå)\" eller gör den till en butikskollektion.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Den här kollektionen har underkollektioner och kan därför inte bli en intern etikett. Flytta eller ta bort underkollektionerna först.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "En intern etikett kan inte vara en överordnad kollektion. Välj en butikskollektion som överordnad.",
-    "PRIMARY_COLLECTION_INTERNAL": "En intern etikett kan inte vara den primära kollektionen. Välj en av de valda butikskollektionerna som primär.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "En tagg kan inte ha en överordnad kollektion. Välj \"Ingen (toppnivå)\" eller gör den till en kollektion.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Den här kollektionen har underkollektioner och kan därför inte bli en tagg. Flytta eller ta bort underkollektionerna först.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "En tagg kan inte vara en överordnad kollektion. Välj en kollektion som överordnad.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "Bara taggar (interna rader) i den här butiken kan användas i en taggregel.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "Bara taggar kan användas i en taggregel; välj taggar, inte kollektioner.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "En tagg (intern kollektion) har ingen butikssida och kan inte länkas från en meny.",
+    "PRIMARY_COLLECTION_INTERNAL": "En tagg kan inte vara den primära kollektionen. Välj en av de valda kollektionerna som primär.",
     "ZOHO_NOT_CONFIGURED": "Din Zoho-klient är inte konfigurerad än. Spara först Client ID och Client Secret (steg 4).",
     "ZOHO_APP_DISABLED": "Appen Zoho Mail är avstängd. Slå på den på sidan Appar först.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail är bara tillgängligt för fristående butiker.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "Skapa en meny först",
     "menuNone": "— Ingen (infogade länkar) —",
     "selectMenu": "Välj en meny…",
-    "loadingCategories": "Läser in kategorier…",
-    "createCategoryFirst": "Skapa en kategori först",
-    "categoryNone": "— Ingen kategori —",
-    "selectCategory": "Välj en kategori…",
+    "loadingCategories": "Läser in kollektioner…",
+    "createCategoryFirst": "Skapa en kollektion först",
+    "categoryNone": "— Ingen kollektion —",
+    "selectCategory": "Välj en kollektion…",
     "replaceImage": "Ersätt bild",
     "clickOrDropImage": "Klicka eller släpp en bild",
     "imageFormats": "PNG, JPG, WebP",
@@ -5915,8 +5929,8 @@
       "includes": "Innehåller:"
     },
     "presetOccasionName": "Högtidssida",
-    "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller intern etikett, ett SEO-textblock, sedan frågor och svar — layouten för en presentsida.",
-    "internalLabelsGroup": "Interna etiketter",
+    "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller tagg, ett SEO-textblock, sedan frågor och svar — layouten för en presentsida.",
+    "internalLabelsGroup": "Taggar",
     "missingCollection": "(kollektion saknas)",
     "textColors": "Text på färger",
     "textColorsHint": "Lämna tomt för automatiskt: mörk text på ljusa färger, vit på mörka. Prisfärg tom = primärfärg, länkfärg tom = prisfärg.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",
     "errTitleRequired": "Titel krävs",
-    "errCategoryRequired": "Välj en kategori",
+    "errCategoryRequired": "Välj en marknadsplatskategori",
     "errPricePositive": "Priset måste vara större än noll",
     "errSelectCustomization": "Välj en anpassningsmetod",
     "errComparePrice": "Jämförpriset måste vara högre än priset",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "Broderi",
     "custHandmade": "Handgjord",
     "custOther": "Övrigt",
-    "category": "Kategori",
+    "category": "Marknadsplatskategori",
     "pricing": "Prissättning",
     "priceRequired": "Pris",
     "priceHelp": "Priset som kunderna betalar",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "Gör till utkast",
     "unsavedChanges": "Osparade ändringar",
     "unsavedLeaveConfirm": "Du har osparade ändringar. Vill du lämna sidan och kasta dem?",
-    "internalCategories": "Interna kategorier",
-    "internalCategoriesHelp": "Endast för din egen ordning och filtrering. Visas inte i butiken."
+    "internalCategories": "Taggar",
+    "internalCategoriesHelp": "För din egen ordning, filter och smarta kollektioner. Visas aldrig i butiken.",
+    "categoryHelp": "Används för att klassificera produkten i plattformens katalog"
   },
   "customField": {
     "typeText": "Text",
@@ -6568,8 +6583,8 @@
     "parentHint": "Upp till tre nivåer: kollektion › underkollektion › under-underkollektion.",
     "parentDepthLimited": "Vissa kollektioner erbjuds inte eftersom den här kollektionens egna underkollektioner då skulle överskrida tre nivåer.",
     "filter": "Filter",
-    "includeByTags": "Inkludera produkter via taggar",
-    "includeByTagsHint": "Produkter med någon av dessa taggar läggs till automatiskt.",
+    "includeByTags": "Inkludera produkter med taggar",
+    "includeByTagsHint": "Produkter kopplade till någon av dessa taggar läggs till automatiskt.",
     "addTagPlaceholder": "Lägg till en tagg…",
     "manuallyAdd": "Lägg till produkter manuellt",
     "manuallyAddHint": "Välj specifika produkter att inkludera i den här kollektionen.",
@@ -6597,24 +6612,24 @@
     },
     "type": "Typ",
     "visibility": {
-      "PUBLIC": "Butikskollektion",
-      "INTERNAL": "Intern etikett"
+      "PUBLIC": "Kollektion (visas i butiken)",
+      "INTERNAL": "Tagg (intern, visas aldrig)"
     },
     "visibilityHint": {
       "PUBLIC": "Har en egen sida och visas i menyer, brödsmulor och webbplatskartan.",
-      "INTERNAL": "Grupperar produkter endast för builder-sidor; visas aldrig som en kollektion i butiken. Kan inte vara överordnad, underordnad eller en produkts primära kollektion."
+      "INTERNAL": "Grupperar produkter för egna filter, smarta kollektioner och builder-sidor; visas aldrig i butiken. Kan inte vara överordnad, underordnad eller en produkts primära kollektion."
     },
-    "internalNote": "Interna etiketter visas aldrig i butiken; använd dem från builder-sidor.",
-    "internalHasChildren": "Inte tillgängligt: den här kollektionen har underkollektioner. Flytta eller ta bort dem först.",
-    "internalBadge": "Intern",
+    "internalNote": "Taggar visas aldrig i butiken; använd dem i filter, smarta kollektioner och builder-sidor.",
+    "internalHasChildren": "Inte tillgängligt: den här kollektionen har underkollektioner och kan därför inte bli en tagg. Flytta eller ta bort dem först.",
+    "internalBadge": "Tagg",
     "visibilityFilter": {
       "label": "Visa",
       "all": "Alla",
-      "storefront": "Butik",
-      "internal": "Interna"
+      "storefront": "Kollektioner",
+      "internal": "Taggar"
     },
-    "internalLabelsGroup": "Interna etiketter",
-    "internalLabelsHint": "Visas inte i butiken",
+    "internalLabelsGroup": "Taggar",
+    "internalLabelsHint": "Visas aldrig i butiken",
     "viewMode": "Visningsläge",
     "viewList": "Listvy",
     "viewGrid": "Rutnätsvy",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "Omordningen avbröts. {name} är tillbaka på position {position}.",
     "sourceAll": "Alla",
     "sourceFilter": "Produkttyp",
-    "productsLoadFailed": "Produkterna kunde inte laddas."
+    "productsLoadFailed": "Produkterna kunde inte laddas.",
+    "noTagsForRule": "Inga taggar ännu. Skapa en genom att skriva namnet ovan och trycka på Enter, eller lägg till taggar på produkter från produktformuläret."
   },
   "shipping": {
     "actionCannotBeUndone": "Den här åtgärden kan inte ångras.",

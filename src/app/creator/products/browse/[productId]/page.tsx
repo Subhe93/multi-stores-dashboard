@@ -63,7 +63,6 @@ interface Product {
   }[];
   custom_fields?: { id: string; translations: { locale: string; label: string }[] }[];
   attributes?: { value: unknown; template: { translations: { locale: string; name: string }[] } }[];
-  tags?: { tag: string }[];
   faqs?: { translations: { locale: string; question: string; answer: string }[] }[];
   provider?: { company_name: string };
   shipping_profile?: { name: string; zones: ShippingZone[] };
@@ -450,14 +449,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Tags */}
-          {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {product.tags.map((tag, i) => (
-                <Badge key={i} variant="secondary" className="text-[10px]">#{tag.tag}</Badge>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 

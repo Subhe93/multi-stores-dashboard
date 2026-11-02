@@ -484,7 +484,7 @@
     "allProductsSubtitle": "Plattformweite Produkte überwachen und verwalten",
     "product": "Produkt",
     "provider": "Anbieter",
-    "category": "Kategorie",
+    "category": "Marktplatz-Kategorie",
     "basePrice": "Grundpreis",
     "added": "Hinzugefügt",
     "archive": "Archivieren",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "Noch keine Provisionen",
     "deleteCategoryConfirm": "Diese Kategorie und alle Unterkategorien löschen?",
     "categories": "Kategorien",
-    "categoriesSubtitle": "Produktkategorien und Attributvorlagen verwalten",
+    "categoriesSubtitle": "Marktplatz-Kategorien und Attributvorlagen verwalten",
     "addCategory": "Kategorie hinzufügen",
     "noCategoriesYet": "Noch keine Kategorien",
     "createCategory": "Kategorie erstellen",
@@ -1468,7 +1468,7 @@
       "title": "Anbieterkatalog",
       "subtitle": "Wählen Sie ein Produkt für Ihren Shop",
       "searchPlaceholder": "Produkte suchen…",
-      "categories": "Kategorien",
+      "categories": "Marktplatz-Kategorien",
       "allProducts": "Alle Produkte",
       "noProducts": "Keine Produkte gefunden",
       "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {# Produkt löschen?} other {# Produkte löschen?}}",
       "bulkDeleteDesc": "Die ausgewählten Produkte werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
       "viewInStoreNotPublished": "Nicht veröffentlicht – nur veröffentlichte Produkte sind im Shop sichtbar",
-      "viewInStoreNoSlug": "Dieses Produkt hat noch keinen URL-Slug"
+      "viewInStoreNoSlug": "Dieses Produkt hat noch keinen URL-Slug",
+      "filterTag": "Tag",
+      "allTags": "Alle Tags"
     },
     "customProductForm": {
       "newTitle": "Neues eigenes Produkt",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "Kollektionen",
         "PRODUCT_CATEGORY": "Kollektionszuordnungen",
         "TAG": "Tags",
+        "PRODUCT_TAG": "Tag-Verknüpfungen",
         "IMAGE": "Produktbilder",
         "FAQ": "FAQs",
         "OPTION_CONFIG": "Optionseinstellungen",
@@ -3401,7 +3404,7 @@
         "notEditable": "Dieser Lauf kann nicht mehr geändert werden. Starten Sie einen neuen Testlauf, um die Zuordnung zu ändern.",
         "planFailed": "Der letzte Testlauf ist fehlgeschlagen. Korrigieren Sie die Einstellungen unten oder laden Sie einen neuen Export hoch und starten Sie erneut.",
         "sections": {
-          "category": "Plattformkategorie",
+          "category": "Marktplatz-Kategorie",
           "scopes": "Was importiert wird",
           "products": "Produkte",
           "attributes": "Optionen und Namen",
@@ -3412,7 +3415,7 @@
           "content": "Alte Seiten und Beiträge"
         },
         "categoryPlaceholder": "Kategorie wählen",
-        "categoryHint": "Alle importierten Produkte kommen in diese Plattformkategorie. Pflichtfeld.",
+        "categoryHint": "Jedes importierte Produkt wird in diese Marktplatz-Kategorie eingeordnet. Pflichtfeld.",
         "scopes": {
           "categories": "Kollektionen",
           "products": "Produkte",
@@ -3487,7 +3490,7 @@
         "addRow": "Hinzufügen",
         "removeRow": "Entfernen",
         "errors": {
-          "categoryRequired": "Wählen Sie eine Plattformkategorie.",
+          "categoryRequired": "Wählen Sie eine Marktplatz-Kategorie.",
           "daysInvalid": "Liefertage müssen ganze Zahlen ab 0 sein.",
           "daysOrder": "„Ab“ darf nicht größer als „bis“ sein.",
           "overrideIncomplete": "Füllen Sie beide Spalten aus oder entferne die Zeile.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "Optionswert fehlt",
         "W_LABEL_OVERRIDDEN": "Options-Bezeichnung umbenannt",
         "W_SLUG_CONFLICT_SUFFIXED": "URL vergeben, Nummer angehängt",
+        "W_TAG_SLUG_SUFFIXED": "Tag-Adresse bereits vergeben, Nummer angehängt",
         "W_SKU_CONFLICT_CLEARED": "Artikelnummer bereits vergeben, geleert",
         "W_MEDIA_MISSING_IN_BUNDLE": "Bild fehlt im Export",
         "W_MEDIA_FETCH_FAILED": "Bild konnte nicht geladen werden",
@@ -5286,8 +5290,15 @@
     "blockNumber": "Block {number}",
     "editBlockContent": "{type}-Inhalt hier bearbeiten...",
     "savePage": "Seite speichern",
-    "noInternalLabelsYetCreate": "Noch keine internen Kategorien. <link>Lege eine an</link> unter Kollektionen und setze die Sichtbarkeit auf intern.",
-    "searchInternalLabels": "Interne Kategorien suchen…"
+    "noInternalLabelsYetCreate": "Noch keine Tags. Geben Sie einen Namen in das Suchfeld ein und drücken Sie die Eingabetaste, um den ersten zu erstellen.",
+    "searchInternalLabels": "Tags suchen oder erstellen…",
+    "newTag": "Neuer Tag",
+    "createTag": "„{name}“ erstellen",
+    "creatingTag": "Wird erstellt…",
+    "tagCreated": "Tag „{name}“ wurde erstellt und ausgewählt.",
+    "tagExists": "„{name}“ gibt es bereits und wurde ausgewählt.",
+    "tagCreateFailed": "Der Tag konnte nicht erstellt werden. Bitte erneut versuchen.",
+    "tagCreateHint": "Eingabetaste drücken, um einen noch nicht vorhandenen Tag zu erstellen."
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "Für diesen Shop läuft bereits ein anderer Import. Warten Sie, bis er fertig ist.",
     "IMPORT_RUN_INVALID_STATE": "Diese Aktion ist im aktuellen Zustand des Laufs nicht möglich. Aktualisieren Sie und versuchen Sie es erneut.",
     "IMPORT_PLAN_STALE": "Der Shop hat sich seit dem Testlauf geändert. Führen Sie den Testlauf vor dem Import erneut aus.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Wählen Sie vor dem Import unter „Zuordnung prüfen“ eine Plattformkategorie.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "Wählen Sie vor dem Import in der Zuordnungsprüfung eine Marktplatz-Kategorie.",
     "IMPORT_CURRENCY_MISMATCH": "Die Währung des Quell-Shops weicht von Ihrer Shop-Währung ab. Importierte Preise wären falsch.",
     "IMPORT_RUN_TIMEOUT": "Der Import hat zu lange gedauert und wurde gestoppt. Bereits Importiertes kann zurückgesetzt werden.",
     "IMPORT_RUN_INTERRUPTED": "Der Import wurde mehrmals unterbrochen und gestoppt. Bereits Importiertes kann zurückgesetzt werden.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "Die GTIN ist ungültig (Prüfziffer).",
     "FEED_NOT_FOUND": "Feed nicht gefunden.",
     "DESIGNER_ADDONS_INVALID": "Die Extras sind ungültig. Prüfe die markierten Felder.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Ein internes Label kann keine übergeordnete Kollektion haben. Wähle „Keine (oberste Ebene)“ oder mache es zu einer Shop-Kollektion.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Diese Kollektion hat Unterkollektionen und kann daher kein internes Label werden. Verschiebe oder lösche ihre Unterkollektionen zuerst.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "Ein internes Label kann keine übergeordnete Kollektion sein. Wähle eine Shop-Kollektion als übergeordnete Kollektion.",
-    "PRIMARY_COLLECTION_INTERNAL": "Ein internes Label kann nicht die primäre Kollektion sein. Wähle eine der ausgewählten Shop-Kollektionen als primäre Kollektion.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Ein Tag kann keine übergeordnete Kollektion haben. Wählen Sie „Keine (oberste Ebene)“ oder machen Sie daraus eine Kollektion.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Diese Kollektion hat Unterkollektionen und kann daher kein Tag werden. Verschieben oder löschen Sie zuerst die Unterkollektionen.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Ein Tag kann keine übergeordnete Kollektion sein. Wählen Sie eine Kollektion als übergeordnet.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "In einer Tag-Regel können nur Tags (interne Einträge) dieses Shops verwendet werden.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "In einer Tag-Regel können nur Tags verwendet werden; wählen Sie Tags, keine Kollektionen.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "Ein Tag (interne Kollektion) hat keine Shop-Seite und kann nicht aus einem Menü verlinkt werden.",
+    "PRIMARY_COLLECTION_INTERNAL": "Ein Tag kann nicht die primäre Kollektion sein. Wählen Sie eine der ausgewählten Kollektionen als primär.",
     "ZOHO_NOT_CONFIGURED": "Ihr Zoho-Client ist noch nicht eingerichtet. Speichern Sie zuerst Client ID und Client Secret (Schritt 4).",
     "ZOHO_APP_DISABLED": "Die App Zoho Mail ist ausgeschaltet. Schalten Sie sie zuerst auf der Seite „Apps“ ein.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail ist nur für unabhängige Shops verfügbar.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "Erstellen Sie zuerst ein Menü",
     "menuNone": "— Keines (Inline-Links) —",
     "selectMenu": "Menü auswählen…",
-    "loadingCategories": "Kategorien werden geladen…",
-    "createCategoryFirst": "Erstellen Sie zuerst eine Kategorie",
-    "categoryNone": "— Keine Kategorie —",
-    "selectCategory": "Kategorie auswählen…",
+    "loadingCategories": "Kollektionen werden geladen…",
+    "createCategoryFirst": "Zuerst eine Kollektion erstellen",
+    "categoryNone": "— Keine Kollektion —",
+    "selectCategory": "Kollektion auswählen…",
     "replaceImage": "Bild ersetzen",
     "clickOrDropImage": "Bild anklicken oder ablegen",
     "imageFormats": "PNG, JPG, WebP",
@@ -5915,8 +5929,8 @@
       "includes": "Enthält:"
     },
     "presetOccasionName": "Anlass-Seite",
-    "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines internen Labels, ein SEO-Textblock, dann Fragen und Antworten — das Layout einer Geschenkanlass-Seite.",
-    "internalLabelsGroup": "Interne Labels",
+    "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines Tags, ein SEO-Textblock, dann Fragen und Antworten — das Layout einer Geschenkanlass-Seite.",
+    "internalLabelsGroup": "Tags",
     "missingCollection": "(Kollektion fehlt)",
     "textColors": "Text auf Farben",
     "textColorsHint": "Leer lassen für automatisch: dunkler Text auf hellen Farben, weißer auf dunklen. Preisfarbe leer = Primärfarbe, Linkfarbe leer = Preisfarbe.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",
     "errTitleRequired": "Titel ist erforderlich",
-    "errCategoryRequired": "Bitte wählen Sie eine Kategorie",
+    "errCategoryRequired": "Bitte eine Marktplatz-Kategorie auswählen",
     "errPricePositive": "Der Preis muss größer als null sein",
     "errSelectCustomization": "Bitte wählen Sie eine Anpassungsmethode",
     "errComparePrice": "Der Vergleichspreis muss höher als der Preis sein",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "Stickerei",
     "custHandmade": "Handgefertigt",
     "custOther": "Sonstiges",
-    "category": "Kategorie",
+    "category": "Marktplatz-Kategorie",
     "pricing": "Preisgestaltung",
     "priceRequired": "Preis",
     "priceHelp": "Der Preis, den Kunden zahlen",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "Zu Entwurf machen",
     "unsavedChanges": "Ungespeicherte Änderungen",
     "unsavedLeaveConfirm": "Du hast ungespeicherte Änderungen. Seite verlassen und Änderungen verwerfen?",
-    "internalCategories": "Interne Kategorien",
-    "internalCategoriesHelp": "Nur für deine eigene Ordnung und Filter. Wird im Shop nicht angezeigt."
+    "internalCategories": "Tags",
+    "internalCategoriesHelp": "Für Ihre eigene Ordnung, Filter und smarte Kollektionen. Wird nie im Shop angezeigt.",
+    "categoryHelp": "Dient der Einordnung des Produkts im Plattformkatalog"
   },
   "customField": {
     "typeText": "Text",
@@ -6568,8 +6583,8 @@
     "parentHint": "Bis zu drei Ebenen: Kollektion › Unterkollektion › Unter-Unterkollektion.",
     "parentDepthLimited": "Einige Kollektionen werden nicht angeboten, weil die eigenen Unterkollektionen dieser Kollektion dann drei Ebenen überschreiten würden.",
     "filter": "Filter",
-    "includeByTags": "Produkte nach Tags einbeziehen",
-    "includeByTagsHint": "Produkte mit einem dieser Tags werden automatisch hinzugefügt.",
+    "includeByTags": "Produkte mit Tags aufnehmen",
+    "includeByTagsHint": "Produkte, die mit einem dieser Tags verknüpft sind, werden automatisch aufgenommen.",
     "addTagPlaceholder": "Tag hinzufügen…",
     "manuallyAdd": "Produkte manuell hinzufügen",
     "manuallyAddHint": "Wähle bestimmte Produkte für diese Kollektion aus.",
@@ -6597,24 +6612,24 @@
     },
     "type": "Typ",
     "visibility": {
-      "PUBLIC": "Shop-Kollektion",
-      "INTERNAL": "Internes Label"
+      "PUBLIC": "Kollektion (im Shop sichtbar)",
+      "INTERNAL": "Tag (intern, nie sichtbar)"
     },
     "visibilityHint": {
       "PUBLIC": "Hat eine eigene Seite und erscheint in Menüs, Breadcrumbs und der Sitemap.",
-      "INTERNAL": "Gruppiert Produkte nur für Builder-Seiten; wird im Shop nie als Kollektion angezeigt. Kann weder über- noch untergeordnet noch die primäre Kollektion eines Produkts sein."
+      "INTERNAL": "Gruppiert Produkte für eigene Filter, smarte Kollektionen und Builder-Seiten; wird nie im Shop angezeigt. Kann weder übergeordnet, untergeordnet noch die primäre Kollektion eines Produkts sein."
     },
-    "internalNote": "Interne Labels werden im Shop nie angezeigt; verwende sie auf Builder-Seiten.",
-    "internalHasChildren": "Nicht verfügbar: Diese Kollektion hat Unterkollektionen. Verschiebe oder lösche sie zuerst.",
-    "internalBadge": "Intern",
+    "internalNote": "Tags werden nie im Shop angezeigt; nutzen Sie sie in Filtern, smarten Kollektionen und Builder-Seiten.",
+    "internalHasChildren": "Nicht verfügbar: Diese Kollektion hat Unterkollektionen und kann daher kein Tag werden. Verschieben oder löschen Sie sie zuerst.",
+    "internalBadge": "Tag",
     "visibilityFilter": {
       "label": "Anzeigen",
       "all": "Alle",
-      "storefront": "Shop",
-      "internal": "Intern"
+      "storefront": "Kollektionen",
+      "internal": "Tags"
     },
-    "internalLabelsGroup": "Interne Labels",
-    "internalLabelsHint": "Nicht im Shop sichtbar",
+    "internalLabelsGroup": "Tags",
+    "internalLabelsHint": "Wird nie im Shop angezeigt",
     "viewMode": "Ansicht",
     "viewList": "Listenansicht",
     "viewGrid": "Rasteransicht",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "Sortieren abgebrochen. {name} ist zurück auf Position {position}.",
     "sourceAll": "Alle",
     "sourceFilter": "Produktart",
-    "productsLoadFailed": "Produkte konnten nicht geladen werden."
+    "productsLoadFailed": "Produkte konnten nicht geladen werden.",
+    "noTagsForRule": "Noch keine Tags. Erstellen Sie einen, indem Sie oben den Namen eingeben und die Eingabetaste drücken, oder fügen Sie Produkten im Produktformular Tags hinzu."
   },
   "shipping": {
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",

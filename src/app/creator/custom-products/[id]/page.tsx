@@ -1065,7 +1065,7 @@ export default function EditCustomProduct() {
           </CardContent>
         </Card>
 
-        {/* Internal categories: not shown in the store. */}
+        {/* Tags (INTERNAL collections): never shown in the store; created inline. */}
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">{tp('internalCategories')}</CardTitle>

@@ -6,6 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Package, Plus, ImageIcon, Search, X } from 'lucide-react';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
+import {
+  collectionFilterSelection,
+  splitCollectionFilterOptions,
+  type CollectionFilterNode,
+  type FilterOption,
+} from '@/lib/tags';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -57,12 +63,6 @@ interface OwnProduct {
   images?: { url: string }[];
 }
 
-interface CollectionNode {
-  id: string;
-  translations: { locale: string; name: string }[];
-  children?: CollectionNode[];
-}
-
 const SORTS = [
   'newest',
   'oldest',
@@ -77,21 +77,6 @@ const PAGE_SIZES = ['20', '50', '100'] as const;
 const STOCK_FILTERS = ['in_stock', 'out_of_stock'] as const;
 const LIST_PATH = '/creator/products/own';
 const editHref = (item: { id: string }) => `${LIST_PATH}/${item.id}`;
-
-/** Collections as path-labelled options ("Parent › Child"). */
-function flattenCollections(
-  nodes: CollectionNode[],
-  trail: string[] = [],
-): { value: string; label: string }[] {
-  return nodes.flatMap((n) => {
-    const name = n.translations[0]?.name ?? '—';
-    const path = [...trail, name];
-    return [
-      { value: n.id, label: path.join(' › ') },
-      ...flattenCollections(n.children ?? [], path),
-    ];
-  });
-}
 
 /**
  * Units on hand: the product's own stock, or the sum over active variants
@@ -185,7 +170,11 @@ export default function CreatorOwnProductsPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [searchInput, setSearchInput] = useState(query);
-  const [collections, setCollections] = useState<{ value: string; label: string }[]>([]);
+  // Both filters share `?collection=`: PUBLIC rows in the Collections select,
+  // INTERNAL rows (tags) in the Tags select.
+  const [collections, setCollections] = useState<FilterOption[]>([]);
+  const [tags, setTags] = useState<FilterOption[]>([]);
+  const { collection: collectionValue, tag: tagValue } = collectionFilterSelection(collection, tags);
   const [deleteTarget, setDeleteTarget] = useState<OwnProduct | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -239,10 +228,17 @@ export default function CreatorOwnProductsPage() {
 
   useEffect(() => {
     if (!token) return;
-    api<CollectionNode[]>('/creator-categories', { token })
-      .then((res) => setCollections(Array.isArray(res) ? flattenCollections(res) : []))
-      .catch(() => setCollections([]));
-  }, [token]);
+    api<CollectionFilterNode[]>('/creator-categories', { token })
+      .then((res) => {
+        const split = splitCollectionFilterOptions(Array.isArray(res) ? res : [], primaryLocale);
+        setCollections(split.collections);
+        setTags(split.tags);
+      })
+      .catch(() => {
+        setCollections([]);
+        setTags([]);
+      });
+  }, [token, primaryLocale]);
 
   const listQuery = useMemo(() => {
     const params = new URLSearchParams({ page: String(page), limit, sort });
@@ -545,7 +541,7 @@ export default function CreatorOwnProductsPage() {
         {collections.length > 0 && (
           <div className="w-56">
             <SearchableSelect
-              value={collection}
+              value={collectionValue}
               onChange={(v) => updateParams({ collection: v })}
               placeholder={tt('myProducts.filterCollection')}
               options={[
@@ -553,6 +549,16 @@ export default function CreatorOwnProductsPage() {
                 { value: 'none', label: tt('myProducts.noCollection') },
                 ...collections,
               ]}
+            />
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div className="w-48">
+            <SearchableSelect
+              value={tagValue}
+              onChange={(v) => updateParams({ collection: v })}
+              placeholder={tt('myProducts.filterTag')}
+              options={[{ value: '', label: tt('myProducts.allTags') }, ...tags]}
             />
           </div>
         )}

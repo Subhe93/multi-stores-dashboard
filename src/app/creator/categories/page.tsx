@@ -115,7 +115,9 @@ interface CategoryNode {
   visibility?: Visibility;
   thumbnail_url?: string | null;
   match_rule: MatchRule;
-  match_tags: string[];
+  /** TAGS rule: ids of the tags (INTERNAL rows); `match_tags` is the legacy alias. */
+  match_tag_ids?: string[];
+  match_tags?: string[];
   is_active: boolean;
   sort_order: number;
   created_at?: string;
@@ -769,7 +771,7 @@ export default function CreatorCategoriesPage() {
         <TableCell className="py-2">
           {row.match_rule === 'TAGS' ? (
             <span className="text-sm text-muted-foreground">
-              {t('collections.byTagsCount', { count: row.match_tags?.length || 0 })}
+              {t('collections.byTagsCount', { count: (row.match_tag_ids ?? row.match_tags)?.length || 0 })}
             </span>
           ) : (
             <span className="text-sm tabular-nums">{productCount}</span>

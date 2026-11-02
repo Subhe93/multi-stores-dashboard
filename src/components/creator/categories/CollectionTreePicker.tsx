@@ -1,12 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { ChevronRight, FolderTree, Plus, Search, Star, Tags, X } from 'lucide-react';
+import { ChevronRight, FolderTree, Loader2, Plus, Search, Star, Tags, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { canOfferCreate, decideTagEnter, normalizeTagName, type TagOption } from '@/lib/tags';
 
 interface Props {
   /** Ids of the checked collections (any depth). */
@@ -19,18 +21,24 @@ interface Props {
   primaryLocale?: string;
   /**
    * Which part to show: 'public' = storefront collections tree (with primary),
-   * 'internal' = internal labels only (no primary), 'all' = both (default).
+   * 'internal' = tags only (no primary), 'all' = both (default).
    * Two scoped pickers can share one `value`: each only adds/removes its own ids.
    */
   scope?: 'all' | 'public' | 'internal';
+}
+
+/** Notice shown under the tags list after an inline create / select. */
+interface TagNotice {
+  kind: 'created' | 'exists' | 'error';
+  text: string;
 }
 
 interface CollectionNode {
   id: string;
   slug: string;
   parent_id?: string | null;
-  // M6.3: INTERNAL labels are flat and never a product's primary collection;
-  // absent on older payloads = PUBLIC.
+  // M6.3: INTERNAL rows (tags) are flat and never a product's primary
+  // collection; absent on older payloads = PUBLIC.
   visibility?: 'PUBLIC' | 'INTERNAL';
   translations?: { locale: string; name: string }[];
   children?: CollectionNode[];
@@ -47,7 +55,7 @@ interface IndexedNode {
   depth: number;
   parentId: string | null;
   childIds: string[];
-  /** True for an internal label (listed in its own group, never primary). */
+  /** True for a tag (INTERNAL row: listed in its own group, never primary). */
   internal: boolean;
 }
 
@@ -67,7 +75,7 @@ function getName(node: CollectionNode, primaryLocale: string): string {
 
 /**
  * Flatten the tree into an id-indexed map that keeps parent/child links.
- * Internal labels are kept out of the tree (`rootIds`) and listed in
+ * Tags (INTERNAL rows) are kept out of the tree (`rootIds`) and listed in
  * `internalIds` for their own group.
  */
 function indexTree(
@@ -99,13 +107,18 @@ function indexTree(
  * checkbox tree. Checking a child never checks its parent. Exactly one of the
  * checked collections is the primary one (auto-picked when a single
  * collection is checked); it drives the storefront breadcrumb and URL path.
+ *
+ * With `scope="internal"` it is the tags picker: typing a name that matches
+ * no tag and pressing Enter (or clicking the "Create" row) creates the
+ * INTERNAL row through the API, named in the store's primary locale, and
+ * checks it at once; the surrounding form keeps its unsaved state.
  */
 export function CollectionTreePicker({
   value,
   onChange,
   primaryId,
   onPrimaryChange,
-  primaryLocale = 'en',
+  primaryLocale: primaryLocaleProp,
   scope = 'all',
 }: Props) {
   const showPublic = scope !== 'internal';
@@ -113,6 +126,11 @@ export function CollectionTreePicker({
   const { token } = useAuth();
   const t = useTranslations('components');
   const tcat = useTranslations('category');
+  const terr = useTranslations('errors');
+  // Names are shown (and new tags named) in the store's primary content
+  // locale: the caller's value when given, else the store summary's.
+  const { primaryLocale: storePrimaryLocale } = useStorefrontUrl();
+  const primaryLocale = primaryLocaleProp || storePrimaryLocale || 'en';
   // The fetched tree is tagged with the request it answers (token + retry
   // attempt); a mismatch means a request is in flight. A failed fetch is
   // shown as such (with a retry), never as "no collections".
@@ -124,8 +142,12 @@ export function CollectionTreePicker({
   const loading = current === null;
   const loadError = current ? current.error : false;
   const [search, setSearch] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
   // Ids whose children are hidden. Everything starts expanded, like WordPress.
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // Inline tag creation (tags picker): in-flight flag and the last notice.
+  const [creating, setCreating] = useState(false);
+  const [notice, setNotice] = useState<TagNotice | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -193,10 +215,83 @@ export function CollectionTreePicker({
     const next = value.includes(id) ? value.filter((v) => v !== id) : [...value, id];
     onChange(next);
     // Move the primary when it was unchecked, or auto-pick the first public
-    // one when none is set; an internal label is never emitted as primary.
+    // one when none is set; a tag is never emitted as primary.
     if (!showPublic) return;
     const nextPrimary = resolvePrimary(next, effectivePrimary);
     if (nextPrimary !== primaryId) onPrimaryChange(nextPrimary);
+  };
+
+  // A notice fades after a few seconds; an error stays until the next action.
+  useEffect(() => {
+    if (!notice || notice.kind === 'error') return;
+    const id = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(id);
+  }, [notice]);
+
+  // Tags known to this picker, for the Enter / "Create" decision.
+  const tagOptions: TagOption[] = useMemo(
+    () => internalIds.map((id) => ({ id, name: byId.get(id)?.name ?? '' })),
+    [internalIds, byId],
+  );
+
+  /**
+   * Creates an INTERNAL row named `name` in the primary locale (slug left
+   * to the server's WordPress rules), adds it to the loaded tree and checks
+   * it. Only the search box is cleared; the form around keeps its state.
+   */
+  const createTag = async (name: string) => {
+    if (!token || creating) return;
+    setCreating(true);
+    setNotice(null);
+    try {
+      const created = await api<CollectionNode>('/creator-categories', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({
+          slug: '',
+          visibility: 'INTERNAL',
+          match_rule: 'MANUAL',
+          translations: [{ locale: primaryLocale, name }],
+        }),
+      });
+      if (!created?.id) throw new Error('No id in the create response');
+      const node: CollectionNode = {
+        id: created.id,
+        slug: created.slug ?? '',
+        parent_id: null,
+        visibility: 'INTERNAL',
+        translations: created.translations?.length ? created.translations : [{ locale: primaryLocale, name }],
+      };
+      // Append to the tree the current request answered, so the new id is
+      // known as internal before the form sees it checked.
+      setLoaded((prev) => (prev ? { ...prev, tree: [...prev.tree, node] } : prev));
+      if (!value.includes(created.id)) onChange([...value, created.id]);
+      setSearch('');
+      setNotice({ kind: 'created', text: t('tagCreated', { name }) });
+      searchRef.current?.focus();
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : undefined;
+      setNotice({
+        kind: 'error',
+        text: code && terr.has(code) ? terr(code) : t('tagCreateFailed'),
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  /** Enter in the tags search box: select the exact match, else create. */
+  const onSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!showInternal || e.key !== 'Enter') return;
+    e.preventDefault();
+    const decision = decideTagEnter(search, tagOptions, value);
+    if (decision.kind === 'select') {
+      onChange([...value, decision.id]);
+      setSearch('');
+      setNotice({ kind: 'exists', text: t('tagExists', { name: decision.name }) });
+    } else if (decision.kind === 'create') {
+      void createTag(decision.name);
+    }
   };
 
   const toggleCollapsed = (id: string) =>
@@ -230,13 +325,14 @@ export function CollectionTreePicker({
     );
   }
 
-  // Empty state: no collections at all. Guide the user to create one.
-  if (!loading && shownRootIds.length === 0 && shownInternalIds.length === 0) {
+  // Empty state: no collections at all. Guide the user to create one. The
+  // tags picker never shows it: its search box is where tags get created.
+  if (!loading && scope !== 'internal' && shownRootIds.length === 0 && shownInternalIds.length === 0) {
     return (
       <div className="rounded-md border border-dashed bg-zinc-50/60 p-4 text-center">
         <FolderTree className="mx-auto mb-2 size-5 text-zinc-400" />
         <p className="text-xs text-muted-foreground mb-3">
-          {t.rich(scope === 'internal' ? 'noInternalLabelsYetCreate' : 'noCollectionsYetCreate', {
+          {t.rich('noCollectionsYetCreate', {
             link: (chunks) => (
               <Link href="/creator/categories" className="text-primary hover:underline font-medium">
                 {chunks}
@@ -328,7 +424,7 @@ export function CollectionTreePicker({
     );
   };
 
-  // Internal labels: checkbox only, no primary button, in their own group.
+  // Tags: checkbox only, no primary button, in their own group.
   const visibleInternalIds = visible ? shownInternalIds.filter((id) => visible.has(id)) : shownInternalIds;
   const renderInternalNode = (id: string): ReactNode => {
     const node = byId.get(id);
@@ -361,6 +457,21 @@ export function CollectionTreePicker({
 
   const anyVisible =
     (visible ? shownRootIds.some((id) => visible.has(id)) : shownRootIds.length > 0) || visibleInternalIds.length > 0;
+  // "Create "<name>"" row: offered while the query matches no tag by name.
+  const offerCreate = showInternal && !loading && canOfferCreate(search, tagOptions);
+  const createName = normalizeTagName(search);
+  const createRow = offerCreate && (
+    <button
+      type="button"
+      onClick={() => void createTag(createName)}
+      disabled={creating}
+      className="mt-1 flex w-full items-center gap-1.5 rounded border border-dashed border-amber-300 bg-amber-50/60 px-2 py-1.5 text-start text-sm text-amber-800 hover:bg-amber-50 disabled:opacity-60"
+    >
+      {creating ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : <Plus className="size-3.5 shrink-0" />}
+      <span className="truncate">{creating ? t('creatingTag') : t('createTag', { name: createName })}</span>
+    </button>
+  );
+  const noTagsYet = scope === 'internal' && !loading && shownInternalIds.length === 0 && !q;
 
   return (
     <div className="space-y-2">
@@ -410,9 +521,11 @@ export function CollectionTreePicker({
         <div className="flex items-center gap-2 border-b px-2">
           <Search className="size-3.5 shrink-0 text-zinc-400" />
           <input
+            ref={searchRef}
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={onSearchKeyDown}
             placeholder={scope === 'internal' ? t('searchInternalLabels') : t('searchCollections')}
             aria-label={scope === 'internal' ? t('searchInternalLabels') : t('searchCollections')}
             className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
@@ -421,8 +534,15 @@ export function CollectionTreePicker({
         <div className="max-h-64 overflow-y-auto p-1.5">
           {loading ? (
             <p className="py-6 text-center text-xs text-muted-foreground">{t('loadingCollections')}</p>
+          ) : noTagsYet ? (
+            <p className="py-6 px-2 text-center text-xs text-muted-foreground">{t('noInternalLabelsYetCreate')}</p>
           ) : !anyVisible ? (
-            <p className="py-6 text-center text-xs text-muted-foreground">{t('noCollectionsFound')}</p>
+            <>
+              {!offerCreate && (
+                <p className="py-6 text-center text-xs text-muted-foreground">{t('noCollectionsFound')}</p>
+              )}
+              {createRow}
+            </>
           ) : (
             <>
               {shownRootIds.length > 0 && (
@@ -444,13 +564,25 @@ export function CollectionTreePicker({
                   </ul>
                 </div>
               )}
+              {createRow}
             </>
           )}
         </div>
         <div className="flex items-center justify-between border-t bg-zinc-50/70 px-3 py-2">
-          <Link href="/creator/categories/new" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
-            <Plus className="size-3" /> {t('newCollection')}
-          </Link>
+          {scope === 'internal' ? (
+            // Inline action: a new tag is typed into the search box above.
+            <button
+              type="button"
+              onClick={() => searchRef.current?.focus()}
+              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+            >
+              <Plus className="size-3" /> {t('newTag')}
+            </button>
+          ) : (
+            <Link href="/creator/categories/new" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
+              <Plus className="size-3" /> {t('newCollection')}
+            </Link>
+          )}
           {selected.length > 0 && (
             <button
               type="button"
@@ -473,6 +605,16 @@ export function CollectionTreePicker({
         </div>
       </div>
       {showPublic && <p className="text-[11px] text-muted-foreground">{t('collectionPrimaryHint')}</p>}
+      {notice ? (
+        <p
+          role={notice.kind === 'error' ? 'alert' : 'status'}
+          className={cn('text-[11px]', notice.kind === 'error' ? 'text-red-600' : 'text-emerald-700')}
+        >
+          {notice.text}
+        </p>
+      ) : (
+        scope === 'internal' && <p className="text-[11px] text-muted-foreground">{t('tagCreateHint')}</p>
+      )}
     </div>
   );
 }

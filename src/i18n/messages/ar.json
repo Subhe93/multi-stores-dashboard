@@ -484,7 +484,7 @@
     "allProductsSubtitle": "مراقبة وإدارة المنتجات على مستوى المنصة",
     "product": "المنتج",
     "provider": "المزود",
-    "category": "الفئة",
+    "category": "فئة السوق",
     "basePrice": "السعر الأساسي",
     "added": "أُضيف",
     "archive": "أرشفة",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "لا توجد عمولات بعد",
     "deleteCategoryConfirm": "حذف هذه الفئة وجميع الفئات الفرعية؟",
     "categories": "الفئات",
-    "categoriesSubtitle": "إدارة فئات المنتجات وقوالب الخصائص",
+    "categoriesSubtitle": "إدارة فئات السوق وقوالب الخصائص",
     "addCategory": "إضافة فئة",
     "noCategoriesYet": "لا توجد فئات بعد",
     "createCategory": "إنشاء فئة",
@@ -1468,7 +1468,7 @@
       "title": "كتالوج المورّدين",
       "subtitle": "اختر منتجاً لإضافته إلى متجرك",
       "searchPlaceholder": "البحث عن منتجات…",
-      "categories": "الفئات",
+      "categories": "فئات السوق",
       "allProducts": "كل المنتجات",
       "noProducts": "لم يتم العثور على منتجات",
       "tryDifferentSearch": "جرّب مصطلح بحث آخر",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {حذف منتج واحد؟} two {حذف منتجين؟} few {حذف # منتجات؟} many {حذف # منتجًا؟} other {حذف # منتج؟}}",
       "bulkDeleteDesc": "سيتم حذف المنتجات المحددة نهائيًا. لا يمكن التراجع عن ذلك.",
       "viewInStoreNotPublished": "غير منشور — تظهر المنتجات المنشورة فقط في المتجر",
-      "viewInStoreNoSlug": "لا يوجد رابط مختصر (slug) لهذا المنتج بعد"
+      "viewInStoreNoSlug": "لا يوجد رابط مختصر (slug) لهذا المنتج بعد",
+      "filterTag": "وسم",
+      "allTags": "كل الوسوم"
     },
     "customProductForm": {
       "newTitle": "منتج مخصص جديد",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "المجموعات",
         "PRODUCT_CATEGORY": "روابط المجموعات",
         "TAG": "الوسوم",
+        "PRODUCT_TAG": "روابط الوسوم",
         "IMAGE": "صور المنتجات",
         "FAQ": "الأسئلة الشائعة",
         "OPTION_CONFIG": "إعدادات الخيارات",
@@ -3401,7 +3404,7 @@
         "notEditable": "لم يعد بالإمكان تعديل هذه العملية. ابدأ تشغيلاً تجريبياً جديداً لتغيير المطابقة.",
         "planFailed": "فشل آخر تشغيل تجريبي. صحّح الإعدادات أدناه أو ارفع تصديراً جديداً ثم أعد التشغيل.",
         "sections": {
-          "category": "تصنيف المنصة",
+          "category": "فئة السوق",
           "scopes": "ما الذي سيُستورد",
           "products": "المنتجات",
           "attributes": "الخيارات والأسماء",
@@ -3412,7 +3415,7 @@
           "content": "الصفحات والمقالات القديمة"
         },
         "categoryPlaceholder": "اختر تصنيفاً",
-        "categoryHint": "يوضع كل منتج مستورد في تصنيف المنصة هذا. إلزامي.",
+        "categoryHint": "يوضع كل منتج مستورد في فئة السوق هذه. مطلوب.",
         "scopes": {
           "categories": "المجموعات",
           "products": "المنتجات",
@@ -3487,7 +3490,7 @@
         "addRow": "إضافة",
         "removeRow": "إزالة",
         "errors": {
-          "categoryRequired": "اختر تصنيف المنصة.",
+          "categoryRequired": "اختر فئة السوق.",
           "daysInvalid": "يجب أن تكون أيام التوصيل أعداداً صحيحة من 0 فأكثر.",
           "daysOrder": "لا يمكن أن تكون «من» أكبر من «إلى».",
           "overrideIncomplete": "املأ العمودين أو أزل الصف.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "قيمة خيار ناقصة",
         "W_LABEL_OVERRIDDEN": "أُعيدت تسمية الخيار",
         "W_SLUG_CONFLICT_SUFFIXED": "الرابط مستخدم، أُضيف رقم",
+        "W_TAG_SLUG_SUFFIXED": "عنوان الوسم مستخدم، أُضيف رقم",
         "W_SKU_CONFLICT_CLEARED": "رمز SKU مستخدم مسبقاً، فأُفرغ",
         "W_MEDIA_MISSING_IN_BUNDLE": "صورة ناقصة من التصدير",
         "W_MEDIA_FETCH_FAILED": "تعذّر تنزيل الصورة",
@@ -5286,8 +5290,15 @@
     "blockNumber": "الكتلة {number}",
     "editBlockContent": "عدّل محتوى {type} هنا...",
     "savePage": "حفظ الصفحة",
-    "noInternalLabelsYetCreate": "لا توجد تصنيفات داخلية بعد. <link>أنشئ واحداً</link> من المجموعات واجعل ظهوره داخلياً.",
-    "searchInternalLabels": "ابحث في التصنيفات الداخلية…"
+    "noInternalLabelsYetCreate": "لا توجد وسوم بعد. اكتب اسماً في مربع البحث واضغط Enter لإنشاء أول وسم.",
+    "searchInternalLabels": "ابحث عن وسم أو أنشئ واحداً…",
+    "newTag": "وسم جديد",
+    "createTag": "إنشاء \"{name}\"",
+    "creatingTag": "جارٍ الإنشاء…",
+    "tagCreated": "تم إنشاء الوسم \"{name}\" وتحديده.",
+    "tagExists": "الوسم \"{name}\" موجود مسبقاً وتم تحديده.",
+    "tagCreateFailed": "تعذّر إنشاء الوسم. حاول مجدداً.",
+    "tagCreateHint": "اضغط Enter لإنشاء وسم غير موجود بعد."
   },
   "errors": {
     "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "يوجد استيراد آخر جارٍ لهذا المتجر. انتظر حتى ينتهي.",
     "IMPORT_RUN_INVALID_STATE": "لا يمكن تنفيذ هذا الإجراء في حالة الاستيراد الحالية. حدّث الصفحة وحاول مجدداً.",
     "IMPORT_PLAN_STALE": "تغيّر المتجر منذ التشغيل التجريبي. أعد التشغيل التجريبي قبل الاستيراد.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "اختر تصنيف المنصة في «مراجعة المطابقة» قبل الاستيراد.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "اختر فئة السوق في مراجعة الربط قبل الاستيراد.",
     "IMPORT_CURRENCY_MISMATCH": "عملة المتجر المصدر تختلف عن عملة متجرك، فستكون الأسعار المستوردة خاطئة.",
     "IMPORT_RUN_TIMEOUT": "استغرق الاستيراد وقتاً طويلاً فأُوقف. يمكن التراجع عمّا استُورد حتى الآن.",
     "IMPORT_RUN_INTERRUPTED": "انقطع الاستيراد عدة مرات فأُوقف. يمكن التراجع عمّا استُورد حتى الآن.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "رمز GTIN غير صالح (رقم التحقق).",
     "FEED_NOT_FOUND": "الخلاصة غير موجودة.",
     "DESIGNER_ADDONS_INVALID": "الإضافات غير صالحة. تحقق من الحقول المحددة.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "لا يمكن أن يكون للتصنيف الداخلي مجموعة أصل. اختر «لا شيء (المستوى الأعلى)» أو اجعله مجموعة في المتجر.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "لهذه المجموعة مجموعات فرعية، لذا لا يمكن تحويلها إلى تصنيف داخلي. انقل مجموعاتها الفرعية أو احذفها أولاً.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "لا يمكن أن يكون التصنيف الداخلي مجموعة أصل لمجموعات أخرى. اختر مجموعة في المتجر كمجموعة أصل.",
-    "PRIMARY_COLLECTION_INTERNAL": "لا يمكن أن يكون التصنيف الداخلي المجموعة الأساسية. اختر إحدى مجموعات المتجر المحددة كمجموعة أساسية.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "لا يمكن أن يكون للوسم مجموعة أصل. اختر \"بلا (المستوى الأعلى)\" أو اجعله مجموعة.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "هذه المجموعة تحتوي مجموعات فرعية، لذا لا يمكن تحويلها إلى وسم. انقل المجموعات الفرعية أو احذفها أولاً.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "لا يمكن أن يكون الوسم مجموعة أصل. اختر مجموعة كأصل.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "لا يمكن استخدام سوى وسوم هذا المتجر في قاعدة الوسوم.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "لا يمكن استخدام سوى الوسوم في قاعدة الوسوم؛ اختر وسوماً لا مجموعات.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "الوسم (مجموعة داخلية) ليست له صفحة في المتجر ولا يمكن ربطه من قائمة.",
+    "PRIMARY_COLLECTION_INTERNAL": "لا يمكن أن يكون الوسم المجموعة الأساسية. اختر إحدى المجموعات المحددة كأساسية.",
     "ZOHO_NOT_CONFIGURED": "لم يُعدّ تطبيق Zoho الخاص بك بعد. احفظ Client ID وClient Secret أولاً (الخطوة 4).",
     "ZOHO_APP_DISABLED": "تطبيق Zoho Mail متوقف. فعّله أولاً من صفحة التطبيقات.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail متاح للمتاجر المستقلة فقط.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "أنشئ قائمة أولاً",
     "menuNone": "— بدون (روابط مباشرة) —",
     "selectMenu": "اختر قائمة…",
-    "loadingCategories": "جارٍ تحميل الفئات…",
-    "createCategoryFirst": "أنشئ فئة أولاً",
-    "categoryNone": "— بدون فئة —",
-    "selectCategory": "اختر فئة…",
+    "loadingCategories": "جارٍ تحميل المجموعات…",
+    "createCategoryFirst": "أنشئ مجموعة أولاً",
+    "categoryNone": "— بلا مجموعة —",
+    "selectCategory": "اختر مجموعة…",
     "replaceImage": "تغيير الصورة",
     "clickOrDropImage": "انقر أو اسحب صورة هنا",
     "imageFormats": "PNG، JPG، WebP",
@@ -5915,8 +5929,8 @@
       "includes": "يتضمن:"
     },
     "presetOccasionName": "صفحة مناسبة",
-    "presetOccasionDesc": "بانر رئيسي، ثم منتجات مجموعة أو تصنيف داخلي، ثم كتلة نص لمحركات البحث، ثم أسئلة وأجوبة — تخطيط صفحة هدايا المناسبات.",
-    "internalLabelsGroup": "تصنيفات داخلية",
+    "presetOccasionDesc": "بانر رئيسي، منتجات مجموعة أو وسم واحد، كتلة نص SEO، ثم أسئلة وأجوبة — تخطيط صفحة مناسبة الهدايا.",
+    "internalLabelsGroup": "الوسوم",
     "missingCollection": "(مجموعة غير موجودة)",
     "textColors": "النص على الألوان",
     "textColorsHint": "اتركه فارغاً للوضع التلقائي: نص داكن على الألوان الفاتحة وأبيض على الداكنة. لون السعر فارغ = اللون الأساسي، ولون الروابط فارغ = لون السعر.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "الاسم والوصف معروضان من لغة متجر سابقة ({locale}). راجعهما ثم احفظ لتخزينهما باللغة الحالية.",
     "errTitleRequired": "العنوان مطلوب",
-    "errCategoryRequired": "يرجى اختيار فئة",
+    "errCategoryRequired": "يرجى اختيار فئة السوق",
     "errPricePositive": "يجب أن يكون السعر أكبر من صفر",
     "errSelectCustomization": "يرجى اختيار طريقة التخصيص",
     "errComparePrice": "يجب أن يكون سعر المقارنة أعلى من السعر",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "تطريز",
     "custHandmade": "صناعة يدوية",
     "custOther": "أخرى",
-    "category": "الفئة",
+    "category": "فئة السوق",
     "pricing": "التسعير",
     "priceRequired": "السعر",
     "priceHelp": "السعر الذي سيدفعه العملاء",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "التحويل إلى مسودة",
     "unsavedChanges": "تغييرات غير محفوظة",
     "unsavedLeaveConfirm": "لديك تغييرات غير محفوظة. هل تريد مغادرة الصفحة وتجاهلها؟",
-    "internalCategories": "التصنيفات الداخلية",
-    "internalCategoriesHelp": "لتنظيمك الداخلي والتصفية فقط، ولا تظهر في المتجر."
+    "internalCategories": "الوسوم",
+    "internalCategoriesHelp": "لتنظيمك الخاص والفلاتر والمجموعات الذكية. لا تظهر في المتجر أبداً.",
+    "categoryHelp": "تُستخدم لتصنيف المنتج في كتالوج المنصة"
   },
   "customField": {
     "typeText": "نص",
@@ -6568,8 +6583,8 @@
     "parentHint": "حتى ثلاثة مستويات: مجموعة › مجموعة فرعية › مجموعة فرعية ثانوية.",
     "parentDepthLimited": "بعض المجموعات غير متاحة لأن المجموعات الفرعية لهذه المجموعة ستتجاوز عندها ثلاثة مستويات.",
     "filter": "تصفية",
-    "includeByTags": "تضمين المنتجات حسب الوسوم",
-    "includeByTagsHint": "تُضاف المنتجات التي تحمل أيًا من هذه الوسوم تلقائيًا.",
+    "includeByTags": "تضمين المنتجات ذات الوسوم",
+    "includeByTagsHint": "تُضاف المنتجات المرتبطة بأيٍّ من هذه الوسوم تلقائياً.",
     "addTagPlaceholder": "أضف وسمًا…",
     "manuallyAdd": "إضافة المنتجات يدويًا",
     "manuallyAddHint": "اختر منتجات محددة لتضمينها في هذه المجموعة.",
@@ -6597,24 +6612,24 @@
     },
     "type": "النوع",
     "visibility": {
-      "PUBLIC": "مجموعة في المتجر",
-      "INTERNAL": "تصنيف داخلي"
+      "PUBLIC": "مجموعة (تظهر في المتجر)",
+      "INTERNAL": "وسم (داخلي، لا يظهر أبداً)"
     },
     "visibilityHint": {
       "PUBLIC": "لها صفحتها الخاصة وتظهر في القوائم ومسار التنقل وخريطة الموقع.",
-      "INTERNAL": "تجمع المنتجات لصفحات منشئ الصفحات فقط؛ لا تظهر أبداً كمجموعة في المتجر. لا يمكن أن تكون أصلاً أو فرعاً أو المجموعة الأساسية لمنتج."
+      "INTERNAL": "يجمع المنتجات لفلاترك والمجموعات الذكية وصفحات المنشئ؛ لا يظهر في المتجر أبداً. لا يمكن أن يكون أصلاً أو فرعاً أو المجموعة الأساسية لمنتج."
     },
-    "internalNote": "التصنيفات الداخلية لا تظهر أبداً في المتجر؛ استخدمها من صفحات منشئ الصفحات.",
-    "internalHasChildren": "غير متاح: لهذه المجموعة مجموعات فرعية. انقلها أو احذفها أولاً.",
-    "internalBadge": "داخلي",
+    "internalNote": "الوسوم لا تظهر في المتجر أبداً؛ استخدمها في الفلاتر والمجموعات الذكية وصفحات المنشئ.",
+    "internalHasChildren": "غير متاح: هذه المجموعة تحتوي مجموعات فرعية، لذا لا يمكن تحويلها إلى وسم. انقلها أو احذفها أولاً.",
+    "internalBadge": "وسم",
     "visibilityFilter": {
       "label": "عرض",
       "all": "الكل",
-      "storefront": "المتجر",
-      "internal": "داخلي"
+      "storefront": "المجموعات",
+      "internal": "الوسوم"
     },
-    "internalLabelsGroup": "التصنيفات الداخلية",
-    "internalLabelsHint": "لا تظهر في المتجر",
+    "internalLabelsGroup": "الوسوم",
+    "internalLabelsHint": "لا تظهر في المتجر أبداً",
     "viewMode": "طريقة العرض",
     "viewList": "عرض قائمة",
     "viewGrid": "عرض شبكة",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "أُلغيت إعادة الترتيب. عاد {name} إلى الموضع {position}.",
     "sourceAll": "الكل",
     "sourceFilter": "نوع المنتج",
-    "productsLoadFailed": "تعذّر تحميل المنتجات."
+    "productsLoadFailed": "تعذّر تحميل المنتجات.",
+    "noTagsForRule": "لا توجد وسوم بعد. أنشئ وسماً بكتابة اسمه أعلاه والضغط على Enter، أو أضف وسوماً للمنتجات من نموذج المنتج."
   },
   "shipping": {
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",

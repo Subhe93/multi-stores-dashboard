@@ -20,7 +20,6 @@ import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
-import { TagInput } from '@/components/common/TagInput';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -131,7 +130,6 @@ interface ProductResponse {
   stock_quantity?: number | null;
   weight?: number | string | null;
   weight_unit?: string | null;
-  tags?: { tag: string }[];
   status?: string | null;
   images?: ProductImage[];
   custom_fields?: CustomField[];
@@ -235,7 +233,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [stockQty, setStockQty] = useState('');
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
-  const [tags, setTags] = useState<string[]>([]);
   const [status, setStatus] = useState('DRAFT');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDesc, setMetaDesc] = useState('');
@@ -367,7 +364,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setStockQty(p.stock_quantity ? String(p.stock_quantity) : '');
       setWeight(p.weight ? String(p.weight) : '');
       setWeightUnit(p.weight_unit || 'kg');
-      setTags(p.tags?.map((t) => t.tag) || []);
       setStatus(p.status || 'DRAFT');
       setSavedStatus(p.status || 'DRAFT');
       setSavedSlug(pickProductSlug(p.translations, primaryLocale) || '');
@@ -531,7 +527,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     return stableJson({
       trans,
       categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
-      trackInventory, stockQty, weight, weightUnit, tags, status: statusOverride ?? status,
+      trackInventory, stockQty, weight, weightUnit, status: statusOverride ?? status,
       metaTitle, metaDesc,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
@@ -720,7 +716,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         status: finalStatus,
         translations: translationsPayload,
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
-        tags: tags.length > 0 ? tags : [],
         variants: variantsPayload,
         images: imagesPayload,
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
@@ -1342,19 +1337,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           </Card>
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.category')}</CardTitle></CardHeader>
-            <CardContent>
-              <SearchableSelect
-                value={categoryId}
-                onChange={v => { setCategoryId(v); if (fieldErrors.categoryId) setFieldErrors(p => ({ ...p, categoryId: '' })); }}
-                placeholder={t('common.select')} searchPlaceholder={t('common.searchEllipsis')}
-                options={categories}
-              />
-              <FieldError msg={fieldErrors.categoryId} />
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.pricing')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
@@ -1549,13 +1531,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </CardContent>
           </Card>
 
-          <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.tags')}</CardTitle></CardHeader>
-            <CardContent>
-              <TagInput tags={tags} onChange={setTags} placeholder={t('product.tagsPlaceholder')} />
-            </CardContent>
-          </Card>
-
           {/* Collections — creator-only; groups this product into the creator's
               own store collections (Shopify-style). */}
           {isCreator && (
@@ -1580,8 +1555,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </Card>
           )}
 
-          {/* Internal categories: not shown in the store, kept apart
-              from the storefront collections. Same id list as above. */}
+          {/* Tags (INTERNAL collections): never shown in the store, kept apart
+              from the storefront collections. Same id list as above; new
+              tags are created inline from the picker's search box. */}
           {isCreator && (
             <Card className="shadow-none">
               <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.internalCategories')}</CardTitle></CardHeader>
@@ -1598,6 +1574,22 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               </CardContent>
             </Card>
           )}
+
+          {/* Marketplace category (platform catalog): last, after the
+              store's own collections and tags. */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.category')}</CardTitle></CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-2">{t('product.categoryHelp')}</p>
+              <SearchableSelect
+                value={categoryId}
+                onChange={v => { setCategoryId(v); if (fieldErrors.categoryId) setFieldErrors(p => ({ ...p, categoryId: '' })); }}
+                placeholder={t('common.select')} searchPlaceholder={t('common.searchEllipsis')}
+                options={categories}
+              />
+              <FieldError msg={fieldErrors.categoryId} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

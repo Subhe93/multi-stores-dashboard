@@ -484,7 +484,7 @@
     "allProductsSubtitle": "Platform genelindeki ürünleri izleyin ve yönetin",
     "product": "Ürün",
     "provider": "Sağlayıcı",
-    "category": "Kategori",
+    "category": "Pazar yeri kategorisi",
     "basePrice": "Temel Fiyat",
     "added": "Eklendi",
     "archive": "Arşivle",
@@ -517,7 +517,7 @@
     "noCommissionsYet": "Henüz komisyon yok",
     "deleteCategoryConfirm": "Bu kategori ve tüm alt kategorileri silinsin mi?",
     "categories": "Kategoriler",
-    "categoriesSubtitle": "Ürün kategorilerini ve özellik şablonlarını yönetin",
+    "categoriesSubtitle": "Pazar yeri kategorilerini ve özellik şablonlarını yönetin",
     "addCategory": "Kategori Ekle",
     "noCategoriesYet": "Henüz kategori yok",
     "createCategory": "Kategori Oluştur",
@@ -1468,7 +1468,7 @@
       "title": "Tedarikçi Kataloğu",
       "subtitle": "Mağazanıza eklemek için bir ürün seçin",
       "searchPlaceholder": "Ürün ara…",
-      "categories": "Kategoriler",
+      "categories": "Pazar yeri kategorileri",
       "allProducts": "Tüm Ürünler",
       "noProducts": "Ürün bulunamadı",
       "tryDifferentSearch": "Farklı bir arama terimi deneyin",
@@ -1571,7 +1571,9 @@
       "bulkDeleteTitle": "{count, plural, one {# ürün silinsin mi?} other {# ürün silinsin mi?}}",
       "bulkDeleteDesc": "Seçili ürünler kalıcı olarak silinecek. Bu işlem geri alınamaz.",
       "viewInStoreNotPublished": "Yayında değil — mağazada yalnızca yayınlanmış ürünler görünür",
-      "viewInStoreNoSlug": "Bu ürünün henüz bir URL kısaltması (slug) yok"
+      "viewInStoreNoSlug": "Bu ürünün henüz bir URL kısaltması (slug) yok",
+      "filterTag": "Etiket",
+      "allTags": "Tüm etiketler"
     },
     "customProductForm": {
       "newTitle": "Yeni Özel Ürün",
@@ -3022,6 +3024,7 @@
         "CATEGORY": "Koleksiyonlar",
         "PRODUCT_CATEGORY": "Koleksiyon bağlantıları",
         "TAG": "Etiketler",
+        "PRODUCT_TAG": "Etiket bağlantıları",
         "IMAGE": "Ürün görselleri",
         "FAQ": "SSS",
         "OPTION_CONFIG": "Seçenek ayarları",
@@ -3401,7 +3404,7 @@
         "notEditable": "Bu içe aktarma artık değiştirilemez. Eşleştirmeyi değiştirmek için yeni bir deneme çalıştırması başlatın.",
         "planFailed": "Son deneme çalıştırması başarısız oldu. Aşağıdaki ayarları düzeltin veya yeni bir dışa aktarma yükleyip yeniden çalıştırın.",
         "sections": {
-          "category": "Platform kategorisi",
+          "category": "Pazar yeri kategorisi",
           "scopes": "Neler içe aktarılacak",
           "products": "Ürünler",
           "attributes": "Seçenekler ve adlar",
@@ -3412,7 +3415,7 @@
           "content": "Eski sayfalar ve yazılar"
         },
         "categoryPlaceholder": "Bir kategori seçin",
-        "categoryHint": "İçe aktarılan her ürün bu platform kategorisine yerleştirilir. Zorunlu.",
+        "categoryHint": "İçe aktarılan her ürün bu pazar yeri kategorisine yerleştirilir. Zorunlu.",
         "scopes": {
           "categories": "Koleksiyonlar",
           "products": "Ürünler",
@@ -3487,7 +3490,7 @@
         "addRow": "Ekle",
         "removeRow": "Kaldır",
         "errors": {
-          "categoryRequired": "Bir platform kategorisi seçin.",
+          "categoryRequired": "Bir pazar yeri kategorisi seçin.",
           "daysInvalid": "Teslimat günleri 0 veya daha büyük tam sayı olmalı.",
           "daysOrder": "“En az”, “en çok” değerinden büyük olamaz.",
           "overrideIncomplete": "İki sütunu da doldurun veya satırı kaldırın.",
@@ -3614,6 +3617,7 @@
         "W_TERM_MISSING": "Seçenek değeri eksik",
         "W_LABEL_OVERRIDDEN": "Seçenek etiketi yeniden adlandırıldı",
         "W_SLUG_CONFLICT_SUFFIXED": "URL dolu, numara eklendi",
+        "W_TAG_SLUG_SUFFIXED": "Etiket adresi kullanımda, numara eklendi",
         "W_SKU_CONFLICT_CLEARED": "Stok kodu zaten kullanılıyor, temizlendi",
         "W_MEDIA_MISSING_IN_BUNDLE": "Görsel dışa aktarmada yok",
         "W_MEDIA_FETCH_FAILED": "Görsel indirilemedi",
@@ -5286,8 +5290,15 @@
     "blockNumber": "Blok {number}",
     "editBlockContent": "{type} içeriğini buradan düzenleyin...",
     "savePage": "Sayfayı Kaydet",
-    "noInternalLabelsYetCreate": "Henüz dahili kategori yok. Koleksiyonlar altında <link>bir tane oluşturun</link> ve görünürlüğünü dahili yapın.",
-    "searchInternalLabels": "Dahili kategorilerde ara…"
+    "noInternalLabelsYetCreate": "Henüz etiket yok. Arama kutusuna bir ad yazıp Enter’a basarak ilk etiketi oluşturun.",
+    "searchInternalLabels": "Etiket ara veya oluştur…",
+    "newTag": "Yeni etiket",
+    "createTag": "\"{name}\" oluştur",
+    "creatingTag": "Oluşturuluyor…",
+    "tagCreated": "\"{name}\" etiketi oluşturuldu ve seçildi.",
+    "tagExists": "\"{name}\" zaten var ve seçildi.",
+    "tagCreateFailed": "Etiket oluşturulamadı. Tekrar deneyin.",
+    "tagCreateHint": "Henüz olmayan bir etiket oluşturmak için Enter’a basın."
   },
   "errors": {
     "generic": "Bir hata oluştu. Lütfen tekrar deneyin.",
@@ -5548,7 +5559,7 @@
     "IMPORT_RUN_BUSY": "Bu mağaza için zaten başka bir içe aktarma çalışıyor. Bitmesini bekleyin.",
     "IMPORT_RUN_INVALID_STATE": "Bu işlem içe aktarmanın mevcut durumunda yapılamaz. Sayfayı yenileyip tekrar deneyin.",
     "IMPORT_PLAN_STALE": "Deneme çalıştırmasından sonra mağaza değişti. İçe aktarmadan önce deneme çalıştırmasını yeniden yapın.",
-    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "İçe aktarmadan önce Eşleştirme kontrolü bölümünde bir platform kategorisi seçin.",
+    "IMPORT_PLATFORM_CATEGORY_REQUIRED": "İçe aktarmadan önce Eşleme incelemesinde bir pazar yeri kategorisi seçin.",
     "IMPORT_CURRENCY_MISMATCH": "Kaynak mağazanın para birimi mağazanızınkinden farklı. İçe aktarılan fiyatlar yanlış olur.",
     "IMPORT_RUN_TIMEOUT": "İçe aktarma çok uzun sürdü ve durduruldu. O ana kadar aktarılanlar geri alınabilir.",
     "IMPORT_RUN_INTERRUPTED": "İçe aktarma birkaç kez kesildi ve durduruldu. O ana kadar aktarılanlar geri alınabilir.",
@@ -5616,10 +5627,13 @@
     "PRODUCT_GTIN_INVALID": "GTIN geçerli değil (kontrol basamağı).",
     "FEED_NOT_FOUND": "Feed bulunamadı.",
     "DESIGNER_ADDONS_INVALID": "Ekstralar geçerli değil. İşaretli alanları kontrol edin.",
-    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Dahili bir etiketin üst koleksiyonu olamaz. \"Yok (üst düzey)\" seçeneğini seçin veya onu mağaza koleksiyonu yapın.",
-    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Bu koleksiyonun alt koleksiyonları olduğu için dahili etiket olamaz. Önce alt koleksiyonlarını taşıyın veya silin.",
-    "CREATOR_CATEGORY_PARENT_INTERNAL": "Dahili bir etiket üst koleksiyon olamaz. Üst koleksiyon olarak bir mağaza koleksiyonu seçin.",
-    "PRIMARY_COLLECTION_INTERNAL": "Dahili bir etiket birincil koleksiyon olamaz. Seçili mağaza koleksiyonlarından birini birincil olarak seçin.",
+    "CREATOR_CATEGORY_INTERNAL_NO_PARENT": "Bir etiketin üst koleksiyonu olamaz. \"Yok (üst düzey)\" seçin veya onu bir koleksiyon yapın.",
+    "CREATOR_CATEGORY_INTERNAL_HAS_CHILDREN": "Bu koleksiyonun alt koleksiyonları var, bu yüzden etiket olamaz. Önce alt koleksiyonları taşıyın veya silin.",
+    "CREATOR_CATEGORY_PARENT_INTERNAL": "Bir etiket üst koleksiyon olamaz. Üst olarak bir koleksiyon seçin.",
+    "CREATOR_CATEGORY_MATCH_TAG_UNKNOWN": "Etiket kuralında yalnızca bu mağazanın etiketleri (dahili kayıtlar) kullanılabilir.",
+    "CREATOR_CATEGORY_MATCH_TAG_NOT_INTERNAL": "Etiket kuralında yalnızca etiketler kullanılabilir; koleksiyon değil etiket seçin.",
+    "MENU_ITEM_INTERNAL_COLLECTION": "Etiketin (dahili koleksiyon) mağaza sayfası yoktur ve bir menüden bağlanamaz.",
+    "PRIMARY_COLLECTION_INTERNAL": "Bir etiket birincil koleksiyon olamaz. Seçili koleksiyonlardan birini birincil olarak seçin.",
     "ZOHO_NOT_CONFIGURED": "Zoho istemciniz henüz kurulmadı. Önce Client ID ve Client Secret değerlerini kaydedin (4. adım).",
     "ZOHO_APP_DISABLED": "Zoho Mail uygulaması kapalı. Önce Uygulamalar sayfasından açın.",
     "ZOHO_STORE_NOT_INDEPENDENT": "Zoho Mail yalnızca bağımsız mağazalar için kullanılabilir.",
@@ -5822,10 +5836,10 @@
     "createMenuFirst": "Önce bir menü oluşturun",
     "menuNone": "— Yok (satır içi bağlantılar) —",
     "selectMenu": "Bir menü seçin…",
-    "loadingCategories": "Kategoriler yükleniyor…",
-    "createCategoryFirst": "Önce bir kategori oluşturun",
-    "categoryNone": "— Kategori yok —",
-    "selectCategory": "Bir kategori seçin…",
+    "loadingCategories": "Koleksiyonlar yükleniyor…",
+    "createCategoryFirst": "Önce bir koleksiyon oluşturun",
+    "categoryNone": "— Koleksiyon yok —",
+    "selectCategory": "Bir koleksiyon seçin…",
     "replaceImage": "Görseli değiştir",
     "clickOrDropImage": "Bir görsel tıklayın veya bırakın",
     "imageFormats": "PNG, JPG, WebP",
@@ -5915,8 +5929,8 @@
       "includes": "İçerir:"
     },
     "presetOccasionName": "Özel gün sayfası",
-    "presetOccasionDesc": "Ana banner, bir koleksiyonun veya dahili etiketin ürünleri, bir SEO metin bloğu, ardından sorular ve cevaplar — hediye günü sayfasının düzeni.",
-    "internalLabelsGroup": "Dahili etiketler",
+    "presetOccasionDesc": "Hero banner, bir koleksiyonun veya etiketin ürünleri, bir SEO metin bloğu, ardından sorular ve cevaplar — hediye günü sayfasının düzeni.",
+    "internalLabelsGroup": "Etiketler",
     "missingCollection": "(koleksiyon bulunamadı)",
     "textColors": "Renkler üzerindeki metin",
     "textColorsHint": "Otomatik için boş bırakın: açık renklerde koyu, koyu renklerde beyaz metin. Fiyat rengi boşsa ana renk, bağlantı rengi boşsa fiyat rengi kullanılır.",
@@ -5938,7 +5952,7 @@
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",
     "errTitleRequired": "Başlık gereklidir",
-    "errCategoryRequired": "Lütfen bir kategori seçin",
+    "errCategoryRequired": "Lütfen bir pazar yeri kategorisi seçin",
     "errPricePositive": "Fiyat sıfırdan büyük olmalıdır",
     "errSelectCustomization": "Lütfen bir özelleştirme yöntemi seçin",
     "errComparePrice": "Karşılaştırma fiyatı fiyattan yüksek olmalıdır",
@@ -5981,7 +5995,7 @@
     "custEmbroidery": "Nakış",
     "custHandmade": "El yapımı",
     "custOther": "Diğer",
-    "category": "Kategori",
+    "category": "Pazar yeri kategorisi",
     "pricing": "Fiyatlandırma",
     "priceRequired": "Fiyat",
     "priceHelp": "Müşterilerin ödeyeceği fiyat",
@@ -6043,8 +6057,9 @@
     "switchToDraft": "Taslağa çevir",
     "unsavedChanges": "Kaydedilmemiş değişiklikler",
     "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?",
-    "internalCategories": "Dahili kategoriler",
-    "internalCategoriesHelp": "Yalnızca kendi düzeniniz ve filtreleme için. Mağazada gösterilmez."
+    "internalCategories": "Etiketler",
+    "internalCategoriesHelp": "Kendi düzeniniz, filtreler ve akıllı koleksiyonlar için. Mağazada asla gösterilmez.",
+    "categoryHelp": "Ürünü platform kataloğunda sınıflandırmak için kullanılır"
   },
   "customField": {
     "typeText": "Metin",
@@ -6568,8 +6583,8 @@
     "parentHint": "En fazla üç seviye: koleksiyon › alt koleksiyon › alt-alt koleksiyon.",
     "parentDepthLimited": "Bazı koleksiyonlar sunulmuyor çünkü bu koleksiyonun kendi alt koleksiyonları o zaman üç seviyeyi aşardı.",
     "filter": "Filtre",
-    "includeByTags": "Ürünleri etiketlere göre dahil et",
-    "includeByTagsHint": "Bu etiketlerden herhangi birine sahip ürünler otomatik olarak eklenir.",
+    "includeByTags": "Etiketli ürünleri dahil et",
+    "includeByTagsHint": "Bu etiketlerden herhangi birine bağlı ürünler otomatik olarak eklenir.",
     "addTagPlaceholder": "Etiket ekle…",
     "manuallyAdd": "Ürünleri elle ekle",
     "manuallyAddHint": "Bu koleksiyona dahil edilecek belirli ürünleri seçin.",
@@ -6597,24 +6612,24 @@
     },
     "type": "Tür",
     "visibility": {
-      "PUBLIC": "Mağaza koleksiyonu",
-      "INTERNAL": "Dahili etiket"
+      "PUBLIC": "Koleksiyon (mağazada gösterilir)",
+      "INTERNAL": "Etiket (dahili, asla gösterilmez)"
     },
     "visibilityHint": {
       "PUBLIC": "Kendi sayfası vardır; menülerde, gezinti yolunda ve site haritasında görünür.",
-      "INTERNAL": "Ürünleri yalnızca oluşturucu sayfaları için gruplar; mağazada asla koleksiyon olarak gösterilmez. Üst koleksiyon, alt koleksiyon veya bir ürünün birincil koleksiyonu olamaz."
+      "INTERNAL": "Ürünleri kendi filtreleriniz, akıllı koleksiyonlar ve builder sayfaları için gruplar; mağazada asla gösterilmez. Üst, alt veya bir ürünün birincil koleksiyonu olamaz."
     },
-    "internalNote": "Dahili etiketler mağazada asla gösterilmez; bunları oluşturucu sayfalarından kullanın.",
-    "internalHasChildren": "Kullanılamaz: bu koleksiyonun alt koleksiyonları var. Önce onları taşıyın veya silin.",
-    "internalBadge": "Dahili",
+    "internalNote": "Etiketler mağazada asla gösterilmez; onları filtrelerde, akıllı koleksiyonlarda ve builder sayfalarında kullanın.",
+    "internalHasChildren": "Kullanılamaz: bu koleksiyonun alt koleksiyonları var, bu yüzden etiket olamaz. Önce onları taşıyın veya silin.",
+    "internalBadge": "Etiket",
     "visibilityFilter": {
       "label": "Göster",
       "all": "Tümü",
-      "storefront": "Mağaza",
-      "internal": "Dahili"
+      "storefront": "Koleksiyonlar",
+      "internal": "Etiketler"
     },
-    "internalLabelsGroup": "Dahili etiketler",
-    "internalLabelsHint": "Mağazada gösterilmez",
+    "internalLabelsGroup": "Etiketler",
+    "internalLabelsHint": "Mağazada asla gösterilmez",
     "viewMode": "Görünüm",
     "viewList": "Liste görünümü",
     "viewGrid": "Izgara görünümü",
@@ -6640,7 +6655,8 @@
     "dndCancelled": "Sıralama iptal edildi. {name}, {position} konumuna geri döndü.",
     "sourceAll": "Tümü",
     "sourceFilter": "Ürün türü",
-    "productsLoadFailed": "Ürünler yüklenemedi."
+    "productsLoadFailed": "Ürünler yüklenemedi.",
+    "noTagsForRule": "Henüz etiket yok. Yukarıya adını yazıp Enter’a basarak bir etiket oluşturun veya ürün formundan ürünlere etiket ekleyin."
   },
   "shipping": {
     "actionCannotBeUndone": "Bu işlem geri alınamaz.",

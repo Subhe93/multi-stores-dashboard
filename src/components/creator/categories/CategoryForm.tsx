@@ -32,7 +32,7 @@ import {
   ParentCollectionPicker,
   MAX_CATEGORY_DEPTH,
 } from '@/components/creator/categories/ParentCollectionPicker';
-import { TagInput } from '@/components/common/TagInput';
+import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -67,6 +67,8 @@ type MatchRule = 'MANUAL' | 'TAGS';
 // pages only (no parent, no children, never a product's primary collection).
 type Visibility = 'PUBLIC' | 'INTERNAL';
 const VISIBILITY_OPTIONS: Visibility[] = ['PUBLIC', 'INTERNAL'];
+// The tags picker of the TAGS rule has no primary collection.
+const noopPrimary = () => {};
 
 interface CategoryTranslation {
   locale: string;
@@ -112,7 +114,10 @@ interface CategoryDetail {
   children?: { id: string }[];
   thumbnail_url?: string | null;
   match_rule: MatchRule;
-  match_tags: string[];
+  /** TAGS rule: ids of the INTERNAL collections (tags) whose products are included. */
+  match_tag_ids?: string[];
+  /** Legacy alias of `match_tag_ids` (older API builds). */
+  match_tags?: string[];
   is_active: boolean;
   noindex_when_empty?: boolean;
   sort_order: number;
@@ -207,7 +212,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
   const [detailHasChildren, setDetailHasChildren] = useState<boolean | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [matchRule, setMatchRule] = useState<MatchRule>('MANUAL');
-  const [matchTags, setMatchTags] = useState<string[]>([]);
+  // TAGS rule: ids of the tags (INTERNAL collections) a product must be linked to.
+  const [matchTagIds, setMatchTagIds] = useState<string[]>([]);
   const [productIds, setProductIds] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   // undefined = not loaded (older API): the field is then left out of the save.
@@ -279,7 +285,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         setDetailHasChildren(Array.isArray(detail.children) ? detail.children.length > 0 : null);
         setThumbnailUrl(detail.thumbnail_url ?? null);
         setMatchRule(detail.match_rule);
-        setMatchTags(detail.match_tags ?? []);
+        setMatchTagIds(detail.match_tag_ids ?? detail.match_tags ?? []);
         setIsActive(detail.is_active);
         if (typeof detail.noindex_when_empty === 'boolean') setNoindexWhenEmpty(detail.noindex_when_empty);
         const own = (detail.products ?? []).map((p) => p.product).filter(Boolean);
@@ -502,7 +508,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         parent_id: isInternal ? null : parentId || null,
         thumbnail_url: thumbnailUrl || null,
         match_rule: matchRule,
-        match_tags: matchRule === 'TAGS' ? matchTags : [],
+        match_tag_ids: matchRule === 'TAGS' ? matchTagIds : [],
         is_active: isActive,
         ...(!isInternal && noindexWhenEmpty !== undefined ? { noindex_when_empty: noindexWhenEmpty } : {}),
         translations: translationsPayload,
@@ -1003,40 +1009,49 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
               <CardTitle className="text-sm font-semibold">{t('category.filter')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
-              {/* Radio: TAGS */}
-              <label
-                className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer transition ${
+              {/* Radio: TAGS. Only the header is the label, so clicks in the
+                  tags picker below never re-target the radio. */}
+              <div
+                className={`rounded-md border p-3 transition ${
                   matchRule === 'TAGS'
                     ? 'border-zinc-900 bg-zinc-50/60'
                     : 'border-zinc-200 hover:bg-zinc-50/40'
                 }`}
               >
-                <input
-                  type="radio"
-                  name="match_rule"
-                  className="mt-0.5"
-                  checked={matchRule === 'TAGS'}
-                  onChange={() => setMatchRule('TAGS')}
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Tag className="size-3.5 text-zinc-500" />
-                    <span className="text-sm font-medium">
-                      {t('category.includeByTags')}
-                    </span>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="match_rule"
+                    className="mt-0.5"
+                    checked={matchRule === 'TAGS'}
+                    onChange={() => setMatchRule('TAGS')}
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Tag className="size-3.5 text-zinc-500" />
+                      <span className="text-sm font-medium">
+                        {t('category.includeByTags')}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t('category.includeByTagsHint')}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t('category.includeByTagsHint')}
-                  </p>
-                  {matchRule === 'TAGS' && (
-                    <TagInput
-                      tags={matchTags}
-                      onChange={setMatchTags}
-                      placeholder={t('category.addTagPlaceholder')}
+                </label>
+                {matchRule === 'TAGS' && (
+                  <div className="mt-3">
+                    {/* Tags = INTERNAL collections; the picker also creates new ones inline. */}
+                    <CollectionTreePicker
+                      scope="internal"
+                      value={matchTagIds}
+                      onChange={setMatchTagIds}
+                      primaryId={null}
+                      onPrimaryChange={noopPrimary}
+                      primaryLocale={primaryLocale}
                     />
-                  )}
-                </div>
-              </label>
+                  </div>
+                )}
+              </div>
 
               {/* Radio: MANUAL. Only the header is the label, so clicks in the
                   product picker below never re-target the radio. */}

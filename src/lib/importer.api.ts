@@ -291,6 +291,7 @@ export const SUMMARY_ENTITY_TYPES = [
   'CATEGORY',
   'PRODUCT_CATEGORY',
   'TAG',
+  'PRODUCT_TAG',
   'IMAGE',
   'FAQ',
   'OPTION_CONFIG',
