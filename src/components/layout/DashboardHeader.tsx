@@ -33,7 +33,7 @@ const DARK_BELL =
 
 /** Shopify-style dark top bar: menu + brand, global search, actions + account. */
 export function DashboardHeader({ extras }: DashboardHeaderProps) {
-  const { nav, user, brandTitle, mobileNavOpen, setMobileNavOpen } = useShell();
+  const { nav, user, brandTitle, mobileNavOpen, setMobileNavOpen, hideNav } = useShell();
   const t = useTranslations('shell');
 
   const homeHref = nav.groups[0]?.items[0]?.href ?? '/';
@@ -42,18 +42,20 @@ export function DashboardHeader({ extras }: DashboardHeaderProps) {
     <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-zinc-950 px-2 text-white sm:gap-3 sm:px-4">
       {/* Inline-start: mobile menu + brand */}
       <div className="flex min-w-0 items-center gap-1.5 lg:w-56 lg:shrink-0">
-        <button
-          type="button"
-          onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          aria-label={mobileNavOpen ? t('closeMenu') : t('openMenu')}
-          aria-expanded={mobileNavOpen}
-          className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-md text-zinc-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden',
-            DARK_FOCUS_RING,
-          )}
-        >
-          {mobileNavOpen ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-        </button>
+        {!hideNav && (
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            aria-label={mobileNavOpen ? t('closeMenu') : t('openMenu')}
+            aria-expanded={mobileNavOpen}
+            className={cn(
+              'flex size-9 shrink-0 items-center justify-center rounded-md text-zinc-300 transition-colors hover:bg-white/10 hover:text-white lg:hidden',
+              DARK_FOCUS_RING,
+            )}
+          >
+            {mobileNavOpen ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
+          </button>
+        )}
 
         <Link
           href={homeHref}

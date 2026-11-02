@@ -21,6 +21,9 @@ import { TimeSeriesChart, type TimeSeriesChartLabels } from './TimeSeriesChart';
 import { BarList } from './BarList';
 import { TodoStrip, TodoStripSkeleton } from './TodoStrip';
 import { ChecklistCard } from './ChecklistCard';
+import { StoreStatusCard } from './StoreStatusCard';
+import type { MyStoreSummary } from '@/lib/useStorefrontUrl';
+import { effectiveStoreStatus } from '@/lib/useStorefrontUrl';
 import { LowStockList, TopProductsList } from './ProductLists';
 import { RecentOrdersTable } from './RecentOrders';
 import { RangeSelector } from './RangeSelector';
@@ -57,6 +60,10 @@ export interface OverviewViewProps {
   currency: string;
   /** Local hour for the greeting; set after mount to avoid a hydration mismatch. */
   hour?: number | null;
+  /** The creator's store with its lifecycle fields (status card + checklist). */
+  store?: MyStoreSummary | null;
+  /** Reloads the store after a status change. */
+  onStoreChanged?: () => void;
 }
 
 function Panel({
@@ -156,7 +163,7 @@ function greetingKey(hour: number): 'greetMorning' | 'greetAfternoon' | 'greetEv
 
 export function OverviewView(props: OverviewViewProps) {
   const t = useTranslations('creator.overview');
-  const { state, range, onRangeChange, refreshing, refreshFailed, updatedAt, onRefresh, name, storeUrl } = props;
+  const { state, range, onRangeChange, refreshing, refreshFailed, updatedAt, onRefresh, name, storeUrl, store, onStoreChanged } = props;
   const full = state.status === 'ready' && state.result.kind === 'full' ? state.result.data : null;
   const fallback = state.status === 'ready' && state.result.kind === 'fallback' ? state.result.data : null;
   const currency = full?.currency || props.currency;
@@ -165,6 +172,7 @@ export function OverviewView(props: OverviewViewProps) {
   const hour = props.hour ?? null;
   const productsHref = independent ? '/creator/products/own' : '/creator/custom-products';
   const newProductHref = independent ? '/creator/products/own/new' : '/creator/custom-products/new';
+  const live = store ? effectiveStoreStatus(store) === 'LIVE' : true;
 
   return (
     <div className={cn('space-y-5', VIZ_TOKENS)}>
@@ -213,6 +221,11 @@ export function OverviewView(props: OverviewViewProps) {
         )}
       </div>
 
+      {/* Lifecycle first: what the store's status means and the next action. */}
+      {store && (
+        <StoreStatusCard store={store} storeUrl={storeUrl ?? null} independent={independent} onChanged={onStoreChanged ?? (() => undefined)} />
+      )}
+
       {state.status === 'loading' && <LoadingBody />}
 
       {state.status === 'error' && (
@@ -240,6 +253,7 @@ export function OverviewView(props: OverviewViewProps) {
             productsHref={productsHref}
             newProductHref={newProductHref}
             storeUrl={storeUrl}
+            store={store}
           />
         </div>
       )}
@@ -252,6 +266,9 @@ export function OverviewView(props: OverviewViewProps) {
             independent={independent}
             productsHref={productsHref}
             newProductHref={newProductHref}
+            store={store}
+            live={live}
+            storeUrl={storeUrl}
           />
         </div>
       )}
@@ -299,7 +316,8 @@ function FullBody({
   productsHref,
   newProductHref,
   storeUrl,
-}: BodyProps & { data: OverviewResponse; storeUrl?: string | null }) {
+  store,
+}: BodyProps & { data: OverviewResponse; storeUrl?: string | null; store?: MyStoreSummary | null }) {
   const t = useTranslations('creator.overview');
   const tc = useTranslations('creator');
   const { kpis, granularity } = data;
@@ -348,7 +366,7 @@ function FullBody({
     <>
       <TodoStrip todo={data.todo} independent={independent} />
 
-      <ChecklistCard setup={data.setup} independent={independent} />
+      {store && <ChecklistCard store={store} setup={data.setup} independent={independent} storeUrl={storeUrl} />}
 
       {/* KPI row */}
       <div
@@ -569,14 +587,28 @@ function FullBody({
   );
 }
 
-function FallbackBody({ data, fmt, independent, productsHref, newProductHref }: BodyProps & { data: OverviewFallback }) {
+function FallbackBody({
+  data,
+  fmt,
+  independent,
+  productsHref,
+  newProductHref,
+  store,
+  live,
+  storeUrl,
+}: BodyProps & { data: OverviewFallback; store?: MyStoreSummary | null; live: boolean; storeUrl?: string | null }) {
   const t = useTranslations('creator.overview');
   return (
     <>
-      <div className="flex items-start gap-2 rounded-xl border border-dashed bg-card px-4 py-3 text-xs text-muted-foreground">
-        <Info className="mt-px size-4 shrink-0" aria-hidden="true" />
-        {t('fallbackNote')}
-      </div>
+      {store && <ChecklistCard store={store} independent={independent} storeUrl={storeUrl} />}
+      {/* A store that is not public yet has no analytics to wait for: the
+          status card and checklist above are its real state. */}
+      {live && (
+        <div className="flex items-start gap-2 rounded-xl border border-dashed bg-card px-4 py-3 text-xs text-muted-foreground">
+          <Info className="mt-px size-4 shrink-0" aria-hidden="true" />
+          {t('fallbackNote')}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <KpiCard
           label={independent ? t('myProducts') : t('customProducts')}

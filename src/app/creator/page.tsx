@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
 import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { useMyStore } from '@/lib/useMyStore';
 import { OverviewView, type OverviewState } from '@/components/overview/OverviewView';
 import { parseRange, DEFAULT_RANGE, type OverviewRange } from '@/components/overview/overview.api';
 import { useOverview } from '@/components/overview/useOverview';
@@ -23,6 +24,8 @@ function CreatorOverviewInner() {
   const independent = storeType === 'INDEPENDENT';
   const { currency } = useCurrency();
   const { baseUrl } = useStorefrontUrl();
+  // Lifecycle fields (status, go-live checklist) for the status card.
+  const { store, refetch: refetchStore } = useMyStore();
   // Client-only: the greeting depends on the viewer's local time (null on the server).
   const hour = useSyncExternalStore(subscribeNoop, localHour, () => null);
 
@@ -63,6 +66,11 @@ function CreatorOverviewInner() {
       independent={independent}
       currency={currency}
       hour={hour}
+      store={store}
+      onStoreChanged={() => {
+        refetchStore();
+        refetch();
+      }}
     />
   );
 }

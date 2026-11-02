@@ -11,6 +11,8 @@ export interface ShellContextValue {
   /** Mobile navigation drawer (below the lg breakpoint). */
   mobileNavOpen: boolean;
   setMobileNavOpen: (open: boolean) => void;
+  /** No navigation at all (onboarding before the store exists). */
+  hideNav?: boolean;
 }
 
 export const ShellContext = createContext<ShellContextValue | null>(null);

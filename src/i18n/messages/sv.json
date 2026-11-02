@@ -690,11 +690,11 @@
     "noMinimum": "Inget minimum",
     "leaveBlankAnyAmount": "Lämna tomt för att tillåta valfritt belopp.",
     "registrationApprovals": "Registreringsgodkännanden",
-    "registrationApprovalsHint": "När detta är aktiverat kräver nya registreringar manuellt admingodkännande innan kontot aktiveras.",
+    "registrationApprovalsHint": "Styr vad som händer när en leverantör registrerar sig och när en butiksägare begär publicering.",
     "providerApprovalRequired": "Leverantörsgodkännande krävs",
-    "providerApprovalHint": "Nya leverantörer måste verifieras av admin innan de lägger till produkter",
+    "providerApprovalHint": "Leverantörers produkter är dolda i katalogen tills leverantören är verifierad.",
     "creatorApprovalRequired": "Skapargodkännande krävs",
-    "creatorApprovalHint": "Nya skapare måste verifieras av admin innan de öppnar sin butik",
+    "creatorApprovalHint": "Granska varje publiceringsbegäran manuellt; när det är av publiceras butiker vars uppgifter klarar kontrollerna automatiskt.",
     "settingsSavedSuccessfully": "Inställningarna sparades!",
     "paymentsStripe": "Betalningar (Stripe)",
     "paymentsStripeSubtitle": "Plattformens Stripe-konto som används för att ta emot betalningar och fördela utbetalningar till kreatörer.",
@@ -845,7 +845,69 @@
     "customersCreateLink": "Öppna Kunder",
     "resetTwoFactor": "Återställ tvåstegsverifiering",
     "twoFactorResetConfirm": "Stäng av tvåstegsverifiering för det här kontot (förlorad telefon och förlorade återställningskoder). Bekräfta med ditt eget lösenord och din kod.",
-    "twoFactorResetDone": "Tvåstegsverifiering har stängts av för det här kontot"
+    "twoFactorResetDone": "Tvåstegsverifiering har stängts av för det här kontot",
+    "storesPendingReview": "Butiker som väntar på publiceringsgranskning",
+    "storesQueue": {
+      "title": "Butiker",
+      "subtitle": "Publiceringsgranskningar, pauser och avstängningar för alla butiker på plattformen.",
+      "pendingReview": "Väntar på granskning",
+      "allStatuses": "Alla statusar",
+      "status": {
+        "DRAFT": "Utkast",
+        "PENDING_REVIEW": "Granskas",
+        "CHANGES_REQUESTED": "Ändringar begärda",
+        "LIVE": "Publicerad",
+        "PAUSED": "Pausad",
+        "SUSPENDED": "Avstängd"
+      },
+      "cols": {
+        "store": "Butik",
+        "owner": "Ägare",
+        "checklist": "Checklista",
+        "created": "Skapad",
+        "requested": "Publicering begärd"
+      },
+      "check": {
+        "verified": "E-post verifierad",
+        "trader": "Företagsuppgifter",
+        "product": "Publicerad produkt"
+      },
+      "actions": {
+        "approve": "Godkänn",
+        "requestChanges": "Begär ändringar",
+        "pause": "Pausa",
+        "resume": "Återuppta",
+        "suspend": "Stäng av",
+        "openCreator": "Öppna skaparsidan",
+        "openStorefront": "Öppna butiken"
+      },
+      "dialog": {
+        "approveTitle": "Publicera den här butiken?",
+        "resumeTitle": "Återuppta den här butiken?",
+        "approveBody": "”{store}” blir publik direkt och ägaren meddelas via e-post.",
+        "changesTitle": "Begär ändringar",
+        "changesBody": "”{store}” förblir privat; ägaren får din motivering via e-post och kan skicka in igen.",
+        "suspendTitle": "Stäng av den här butiken?",
+        "suspendBody": "”{store}” tas offline (besökare får 404) och ägaren meddelas med din motivering.",
+        "pauseTitle": "Pausa den här butiken?",
+        "pauseBody": "Besökare på ”{store}” ser en sida ”tillfälligt stängt” tills den återupptas."
+      },
+      "reason": "Motivering",
+      "reasonRequired": "Ange en motivering.",
+      "reasonPlaceholderChanges": "Vad ska ägaren åtgärda innan butiken kan publiceras?",
+      "reasonPlaceholderSuspend": "Varför stängs den här butiken av?",
+      "reasonHint": "Skickas till ägaren via e-post och visas i deras panel.",
+      "confirm": {
+        "LIVE": "Publicera",
+        "CHANGES_REQUESTED": "Skicka begäran",
+        "SUSPENDED": "Stäng av butiken",
+        "PAUSED": "Pausa butiken"
+      },
+      "searchPlaceholder": "Sök på butik, slug eller ägarens e-post",
+      "emptyPending": "Inga butiker väntar på granskning.",
+      "empty": "Inga butiker matchar filtren.",
+      "retry": "Försök igen"
+    }
   },
   "guide": {
     "title": "Driftguide",
@@ -1225,7 +1287,11 @@
     "rejectionReasonPlaceholder": "t.ex. Bilden du laddade upp använder upphovsrättsskyddat material utan tillstånd...",
     "rejectionNote": "Skaparen ser detta meddelande och kan revidera produkten.",
     "rejecting": "Avvisar...",
-    "sendRejection": "Skicka avvisning"
+    "sendRejection": "Skicka avvisning",
+    "unverified": {
+      "title": "Dina produkter är dolda för butiker tills en administratör verifierar ditt konto",
+      "body": "Butiksägare kan inte se eller importera din katalog ännu. Du får ett mejl så snart ditt konto är verifierat."
+    }
   },
   "creator": {
     "overview": {
@@ -1337,13 +1403,21 @@
         "done": "klar",
         "todo": "inte klar",
         "items": {
-          "has_products": "Lägg till din första produkt",
-          "has_logo": "Ladda upp din logotyp",
-          "has_payment": "Ställ in betalningar",
-          "has_shipping": "Ställ in frakt",
-          "has_published_theme": "Publicera ett tema",
-          "has_domain": "Anslut din domän"
-        }
+          "verify_email": "Verifiera din e-post",
+          "create_store": "Skapa din butik",
+          "first_product": "Lägg till din första produkt",
+          "theme": "Välj ett tema och redigera din startsida",
+          "shipping": "Ställ in frakt",
+          "payments": "Ställ in betalningar",
+          "trader_details": "Företagsuppgifter och juridiska sidor",
+          "preview": "Förhandsgranska din butik",
+          "request_golive": "Begär publicering"
+        },
+        "nextUp": "Nästa: {step}",
+        "dismissHint": "Du kan öppna den igen från Inställningar",
+        "required": "Obligatoriskt",
+        "hiddenHint": "Installationsguiden på din startsida är dold.",
+        "show": "Visa installationsguiden"
       },
       "recentOrdersTitle": "Senaste ordrar"
     },
@@ -1426,7 +1500,10 @@
       "productionNotStarted": "Ej påbörjad",
       "productionReady": "Produktion klar",
       "tabManufacturing": "Tillverkas",
-      "tabQualityCheck": "Kvalitetskontroll"
+      "tabQualityCheck": "Kvalitetskontroll",
+      "emptyTitle": "Inga beställningar ännu",
+      "emptyHint": "Beställningar visas här så snart en kund går till kassan. Lägg till produkter och dela din butik för att komma igång.",
+      "emptyCta": "Lägg till en produkt"
     },
     "products": {
       "title": "Produkter",
@@ -2275,7 +2352,17 @@
       "primaryNameRequired": "Ange ett butiksnamn på ditt huvudspråk innan du sparar.",
       "saveFailed": "Det gick inte att spara dina ändringar. Försök igen.",
       "translateFailed": "Den automatiska översättningen misslyckades. Försök igen eller fyll i fälten manuellt.",
-      "failedCreateStore": "Det gick inte att skapa butiken"
+      "failedCreateStore": "Det gick inte att skapa butiken",
+      "slugChecking": "Kontrollerar tillgänglighet…",
+      "slugAvailable": "Adressen är ledig",
+      "slugTaken": "Adressen är redan upptagen",
+      "slugReserved": "Adressen är reserverad – välj en annan",
+      "pauseStore": "Butiken är publicerad",
+      "pauseStoreDesc": "Stäng av för att pausa butiken: besökare ser en sida ”tillfälligt stängt”.",
+      "resumeStore": "Butiken är pausad",
+      "resumeStoreDesc": "Slå på för att göra butiken publik igen.",
+      "notLiveHint": "Din butik är inte publik ännu. Begär publicering från startsidan i panelen.",
+      "goToStatus": "Gå till butiksstatus"
     },
     "settings": {
       "title": "Inställningar",
@@ -2427,7 +2514,8 @@
         "store": "Butik",
         "taxes": "Skatter",
         "payments": "Betalningar",
-        "security": "Säkerhet"
+        "security": "Säkerhet",
+        "business": "Företagsuppgifter"
       },
       "checkout": {
         "title": "Kassabeteende",
@@ -5179,6 +5267,127 @@
         "CUSTOMER_BANNED_BY_ADMIN": "Den här kunden har spärrats av plattformen. Endast plattformen kan ändra den här statusen.",
         "STORE_DAILY_EMAIL_LIMIT": "Din butik har nått den dagliga gränsen för den här typen av e-post. Försök igen i morgon."
       }
+    },
+    "storeStatus": {
+      "labels": {
+        "DRAFT": "Utkast",
+        "PENDING_REVIEW": "Granskas",
+        "CHANGES_REQUESTED": "Ändringar begärda",
+        "LIVE": "Publicerad",
+        "PAUSED": "Pausad",
+        "SUSPENDED": "Avstängd"
+      },
+      "title": {
+        "DRAFT": "Din butik är inte publik ännu",
+        "PENDING_REVIEW": "Din butik granskas",
+        "CHANGES_REQUESTED": "Ändringar begärda före publicering",
+        "LIVE": "Din butik är publicerad",
+        "PAUSED": "Din butik är pausad",
+        "SUSPENDED": "Din butik är avstängd"
+      },
+      "body": {
+        "DRAFT": "Bara du kan se den. Förhandsgranska, slutför de obligatoriska stegen och begär sedan publicering.",
+        "PENDING_REVIEW": "Vi granskar butiker vanligtvis inom 1 arbetsdag. Du kan fortsätta redigera under tiden.",
+        "PENDING_REVIEW_dated": "Begärd {date}. Vi granskar butiker vanligtvis inom 1 arbetsdag – du kan fortsätta redigera under tiden.",
+        "CHANGES_REQUESTED": "Åtgärda punkterna nedan och skicka in butiken för granskning igen.",
+        "LIVE": "Kunder kan handla på din publika adress. Dela den för att få dina första beställningar.",
+        "LIVE_dated": "Publicerad sedan {date}. Kunder kan handla på din publika adress – dela den för att få dina första beställningar.",
+        "PAUSED": "Besökare ser en sida ”tillfälligt stängt”. Återuppta när du är redo.",
+        "SUSPENDED": "Butiken har tagits offline av plattformen. Kontakta supporten för mer information."
+      },
+      "reason": "Motivering",
+      "blockingTitle": "Innan du kan begära publicering:",
+      "blocking": {
+        "email_verified": "Verifiera din e-postadress",
+        "trader_details_complete": "Fyll i dina företagsuppgifter",
+        "has_published_product": "Publicera minst en produkt",
+        "has_published_theme": "Välj ett tema",
+        "payments_ready": "Ställ in betalningar",
+        "legal_pages_published": "Publicera dina juridiska sidor"
+      },
+      "checklistUnavailable": "Checklistan är inte tillgänglig ännu – ladda om sidan.",
+      "copyUrl": "Kopiera länk",
+      "copied": "Kopierad",
+      "preview": "Förhandsgranska butiken",
+      "requestGoLive": "Begär publicering",
+      "resubmit": "Skicka in igen",
+      "openStore": "Öppna butiken",
+      "resume": "Återuppta butiken",
+      "nowLive": "Grattis – din butik är publicerad!",
+      "submitted": "Tack! Din butik granskas nu."
+    },
+    "onboarding": {
+      "stepsLabel": "Installationssteg",
+      "steps": {
+        "survey": "Om dig",
+        "store": "Din butik"
+      },
+      "welcome": "Välkommen, {name}!",
+      "welcomeHint": "Två snabba frågor för att anpassa din uppsättning – du kan hoppa över dem.",
+      "stage": {
+        "label": "Var befinner du dig i dag?",
+        "starting": "Jag har precis börjat",
+        "selling_online": "Jag säljer redan online",
+        "physical_shop": "Jag driver en fysisk butik",
+        "agency": "Jag bygger butiker åt kunder"
+      },
+      "sells": {
+        "label": "Vad ska du sälja?",
+        "own": "Mina egna produkter",
+        "suppliers": "Leverantörers produkter",
+        "both": "Båda",
+        "hint": "Att sälja leverantörers produkter kräver en marknadsplatsbutik; vi förväljer rätt typ."
+      },
+      "country": "Land",
+      "skip": "Hoppa över",
+      "continue": "Fortsätt",
+      "createTitle": "Skapa din butik",
+      "createHint": "Namn, adress och språk kan ändras senare; butikstypen kan inte ändras.",
+      "afterCreate": "Därefter hamnar du på din panel med en checklista för uppsättningen.",
+      "backToSurvey": "Tillbaka"
+    },
+    "traderDetails": {
+      "title": "Företagsuppgifter",
+      "subtitle": "Säljarens juridiska identitet som visas i butikens sidfot och krävs före publicering (e-handelslagen).",
+      "complete": "Komplett",
+      "saved": "Företagsuppgifterna har sparats.",
+      "fixFields": "Kontrollera de markerade fälten.",
+      "fields": {
+        "legal_name": "Juridiskt namn",
+        "business_type": "Företagsform",
+        "org_number": "Organisations-/personnummer",
+        "vat_number": "Momsregistreringsnummer",
+        "address_line1": "Adress",
+        "address_line2": "Adressrad 2",
+        "postal_code": "Postnummer",
+        "city": "Ort",
+        "country": "Land",
+        "phone": "Telefon",
+        "support_email": "Support-e-post"
+      },
+      "businessType": {
+        "company": "Företag",
+        "companyDesc": "Registrerat företag (AB, HB, enskild firma, …)",
+        "private": "Privatperson",
+        "privateDesc": "Säljer som privatperson"
+      },
+      "orgNumberHintSe": "10 siffror, t.ex. 556016-0680 (kontrollsiffran valideras).",
+      "vatHint": "Valfritt. Landskod följt av numret, t.ex. SE556016068001.",
+      "supportEmailHint": "Visas för kunder vid frågor och returer.",
+      "footerNote": "Fält markerade med * är obligatoriska.",
+      "errors": {
+        "generic": "Kontrollera det här fältet.",
+        "legal_name": "Ange det juridiska namnet.",
+        "business_type": "Välj företagsform.",
+        "org_number": "Ange ett giltigt organisations- eller personnummer.",
+        "vat_number": "Format för momsnummer: 2 bokstäver + 2–12 tecken.",
+        "address_line1": "Ange gatuadressen.",
+        "postal_code": "Ange postnumret.",
+        "city": "Ange orten.",
+        "country": "Välj ett land.",
+        "phone": "Ange ett giltigt telefonnummer.",
+        "support_email": "Ange en giltig e-postadress."
+      }
     }
   },
   "components": {
@@ -5664,7 +5873,20 @@
     "REAUTH_REQUIRED": "Ange ditt nuvarande lösenord för att bekräfta ändringen.",
     "REAUTH_PASSWORD_INVALID": "Lösenordet är fel.",
     "REAUTH_2FA_REQUIRED": "Aktivera tvåstegsverifiering innan du ändrar plattformens betalnycklar.",
-    "TWO_FACTOR_RESET_SELF": "Använd dina återställningskoder för att återställa din egen tvåstegsverifiering."
+    "TWO_FACTOR_RESET_SELF": "Använd dina återställningskoder för att återställa din egen tvåstegsverifiering.",
+    "AUTH_TERMS_REQUIRED": "Godkänn villkoren och integritetspolicyn för att fortsätta.",
+    "AUTH_EMAIL_DISPOSABLE": "Tillfälliga e-postadresser kan inte användas. Använd en permanent adress.",
+    "EMAIL_VERIFY_INVALID": "Verifieringslänken är ogiltig, har gått ut eller har redan använts. Logga in och begär en ny.",
+    "ACCOUNT_EMAIL_UNVERIFIED": "Verifiera din e-postadress för att göra detta. Verifieringslänken finns i din inkorg.",
+    "ACCOUNT_EMAIL_UNVERIFIED_EXPIRED": "Ditt konto är låst tills du verifierar din e-postadress. Skicka verifieringsmejlet igen från banderollen ovan.",
+    "AUTH_RESEND_RATE_LIMITED": "För många verifieringsmejl. Försök igen om en timme.",
+    "AUTH_ALREADY_VERIFIED": "Den här e-postadressen är redan verifierad. Ladda om sidan.",
+    "STORE_SLUG_RESERVED": "Den här butiksadressen är reserverad. Välj en annan.",
+    "STORE_GOLIVE_NOT_READY": "Slutför de obligatoriska stegen innan du begär publicering.",
+    "STORE_STATUS_TRANSITION": "Ändringen är inte tillåten i butikens nuvarande status.",
+    "STORE_NOT_LIVE": "Butiken är inte publik ännu.",
+    "TRADER_DETAILS_INVALID": "Vissa företagsuppgifter saknas eller är ogiltiga.",
+    "STORE_STATUS_REASON_REQUIRED": "En motivering krävs för den här statusen."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -6940,6 +7162,36 @@
       "useApp": "Använd autentiseringsappen",
       "locked": "För många felaktiga koder. Försök igen om {minutes, plural, one {# minut} other {# minuter}}.",
       "networkError": "Vi kunde inte nå servern. Kontrollera anslutningen och försök igen."
+    },
+    "verify": {
+      "verifying": "Verifierar din e-post…",
+      "verifyingHint": "Vi kontrollerar din verifieringslänk. Det tar bara ett ögonblick.",
+      "successTitle": "E-posten är verifierad",
+      "successBody": "Tack! Din adress är bekräftad och du loggas in.",
+      "invalidTitle": "Verifieringslänken har gått ut eller har redan använts",
+      "invalidBody": "För din säkerhet fungerar varje länk bara en gång och i 24 timmar.",
+      "resendHint": "Logga in med e-post och lösenord och använd ”Skicka igen” i banderollen för att få en ny länk.",
+      "networkTitle": "Kan inte nå servern",
+      "networkBody": "Kontrollera din internetanslutning och försök igen.",
+      "errorTitle": "Något gick fel",
+      "errorBody": "Vi kunde inte verifiera din e-post just nu. Försök igen om en stund.",
+      "retry": "Försök igen",
+      "goToLogin": "Gå till inloggning"
+    },
+    "unverified": {
+      "title": "Verifiera din e-post för att publicera din butik",
+      "titleProvider": "Verifiera din e-post för att behålla full åtkomst",
+      "expiredTitle": "Ditt konto är låst tills du verifierar din e-post",
+      "daysLeft": "{days, plural, one {# dag kvar.} other {# dagar kvar.}}",
+      "sentTo": "Vi skickade länken till {email}.",
+      "resent": "Ett nytt verifieringsmejl är på väg.",
+      "resend": "Skicka mejlet igen",
+      "throttled": "För många förfrågningar. Vänta en stund innan du skickar ett nytt mejl.",
+      "dialogTitle": "Verifiera din e-post först",
+      "dialogBody": "Den här åtgärden kräver en verifierad e-postadress. Öppna länken i verifieringsmejlet eller skicka ett nytt.",
+      "dialogExpiredTitle": "Ditt konto är låst",
+      "dialogExpiredBody": "Den 7 dagar långa respiten har gått ut. Verifiera din e-postadress för att låsa upp kontot.",
+      "later": "Senare"
     }
   },
   "security": {

@@ -690,11 +690,11 @@
     "noMinimum": "Kein Minimum",
     "leaveBlankAnyAmount": "Leer lassen, um jeden Betrag zuzulassen.",
     "registrationApprovals": "Registrierungsgenehmigungen",
-    "registrationApprovalsHint": "Wenn aktiviert, erfordern neue Registrierungen eine manuelle Admin-Genehmigung, bevor das Konto aktiviert wird.",
+    "registrationApprovalsHint": "Legt fest, was passiert, wenn sich ein Lieferant registriert und wenn ein Shop-Betreiber die Freischaltung anfordert.",
     "providerApprovalRequired": "Anbietergenehmigung erforderlich",
-    "providerApprovalHint": "Neue Anbieter müssen vom Admin verifiziert werden, bevor sie Produkte hinzufügen können",
+    "providerApprovalHint": "Lieferantenprodukte bleiben im Katalog verborgen, bis der Lieferant verifiziert ist.",
     "creatorApprovalRequired": "Erstellergenehmigung erforderlich",
-    "creatorApprovalHint": "Neue Ersteller müssen vom Admin verifiziert werden, bevor sie ihren Shop eröffnen können",
+    "creatorApprovalHint": "Jede Freischaltungsanfrage manuell prüfen; wenn aus, gehen Shops, deren Angaben die Prüfungen bestehen, automatisch live.",
     "settingsSavedSuccessfully": "Einstellungen erfolgreich gespeichert!",
     "paymentsStripe": "Zahlungen (Stripe)",
     "paymentsStripeSubtitle": "Das Stripe-Konto der Plattform zum Einziehen von Zahlungen und Aufteilen der Auszahlungen an Creator.",
@@ -845,7 +845,69 @@
     "customersCreateLink": "Kunden öffnen",
     "resetTwoFactor": "Zwei-Faktor-Authentifizierung zurücksetzen",
     "twoFactorResetConfirm": "Zwei-Faktor-Authentifizierung dieses Kontos deaktivieren (bei verlorenem Telefon und verlorenen Wiederherstellungscodes). Mit Ihrem eigenen Passwort und Code bestätigen.",
-    "twoFactorResetDone": "Die Zwei-Faktor-Authentifizierung wurde für dieses Konto deaktiviert"
+    "twoFactorResetDone": "Die Zwei-Faktor-Authentifizierung wurde für dieses Konto deaktiviert",
+    "storesPendingReview": "Shops mit ausstehender Freischaltungsprüfung",
+    "storesQueue": {
+      "title": "Shops",
+      "subtitle": "Freischaltungsprüfungen, Pausen und Sperren für jeden Shop der Plattform.",
+      "pendingReview": "Prüfung ausstehend",
+      "allStatuses": "Alle Status",
+      "status": {
+        "DRAFT": "Entwurf",
+        "PENDING_REVIEW": "In Prüfung",
+        "CHANGES_REQUESTED": "Änderungen erbeten",
+        "LIVE": "Live",
+        "PAUSED": "Pausiert",
+        "SUSPENDED": "Gesperrt"
+      },
+      "cols": {
+        "store": "Shop",
+        "owner": "Betreiber",
+        "checklist": "Checkliste",
+        "created": "Erstellt",
+        "requested": "Freischaltung angefordert"
+      },
+      "check": {
+        "verified": "E-Mail bestätigt",
+        "trader": "Unternehmensangaben",
+        "product": "Veröffentlichtes Produkt"
+      },
+      "actions": {
+        "approve": "Freischalten",
+        "requestChanges": "Änderungen erbitten",
+        "pause": "Pausieren",
+        "resume": "Fortsetzen",
+        "suspend": "Sperren",
+        "openCreator": "Creator-Seite öffnen",
+        "openStorefront": "Storefront öffnen"
+      },
+      "dialog": {
+        "approveTitle": "Diesen Shop live schalten?",
+        "resumeTitle": "Diesen Shop fortsetzen?",
+        "approveBody": "„{store}“ wird sofort öffentlich und der Betreiber per E-Mail benachrichtigt.",
+        "changesTitle": "Änderungen erbitten",
+        "changesBody": "„{store}“ bleibt privat; der Betreiber erhält deine Begründung per E-Mail und kann erneut einreichen.",
+        "suspendTitle": "Diesen Shop sperren?",
+        "suspendBody": "„{store}“ wird offline genommen (Besucher erhalten 404) und der Betreiber mit deiner Begründung benachrichtigt.",
+        "pauseTitle": "Diesen Shop pausieren?",
+        "pauseBody": "Besucher von „{store}“ sehen eine Seite „vorübergehend geschlossen“, bis er fortgesetzt wird."
+      },
+      "reason": "Begründung",
+      "reasonRequired": "Bitte gib eine Begründung ein.",
+      "reasonPlaceholderChanges": "Was soll der Betreiber beheben, bevor der Shop live gehen kann?",
+      "reasonPlaceholderSuspend": "Warum wird dieser Shop gesperrt?",
+      "reasonHint": "Wird dem Betreiber per E-Mail gesendet und in seinem Dashboard angezeigt.",
+      "confirm": {
+        "LIVE": "Live schalten",
+        "CHANGES_REQUESTED": "Anfrage senden",
+        "SUSPENDED": "Shop sperren",
+        "PAUSED": "Shop pausieren"
+      },
+      "searchPlaceholder": "Nach Shop, Slug oder Betreiber-E-Mail suchen",
+      "emptyPending": "Keine Shops warten auf Prüfung.",
+      "empty": "Keine Shops entsprechen diesen Filtern.",
+      "retry": "Erneut versuchen"
+    }
   },
   "guide": {
     "title": "Betriebsleitfaden",
@@ -1225,7 +1287,11 @@
     "rejectionReasonPlaceholder": "z. B. Das hochgeladene Bild verwendet urheberrechtlich geschütztes Material ohne Erlaubnis...",
     "rejectionNote": "Der Creator sieht diese Nachricht und kann das Produkt überarbeiten.",
     "rejecting": "Wird abgelehnt...",
-    "sendRejection": "Ablehnung senden"
+    "sendRejection": "Ablehnung senden",
+    "unverified": {
+      "title": "Deine Produkte bleiben für Shops verborgen, bis ein Admin dein Konto verifiziert",
+      "body": "Shop-Betreiber können deinen Katalog noch nicht sehen oder importieren. Du erhältst eine E-Mail, sobald dein Konto verifiziert ist."
+    }
   },
   "creator": {
     "overview": {
@@ -1337,13 +1403,21 @@
         "done": "erledigt",
         "todo": "offen",
         "items": {
-          "has_products": "Erstes Produkt hinzufügen",
-          "has_logo": "Logo hochladen",
-          "has_payment": "Zahlungen einrichten",
-          "has_shipping": "Versand einrichten",
-          "has_published_theme": "Ein Theme veröffentlichen",
-          "has_domain": "Domain verbinden"
-        }
+          "verify_email": "E-Mail bestätigen",
+          "create_store": "Shop erstellen",
+          "first_product": "Erstes Produkt anlegen",
+          "theme": "Theme wählen & Startseite bearbeiten",
+          "shipping": "Versand einrichten",
+          "payments": "Zahlungen einrichten",
+          "trader_details": "Unternehmensangaben & rechtliche Seiten",
+          "preview": "Shop-Vorschau ansehen",
+          "request_golive": "Freischaltung anfordern"
+        },
+        "nextUp": "Als Nächstes: {step}",
+        "dismissHint": "Du kannst sie in den Einstellungen wieder öffnen",
+        "required": "Erforderlich",
+        "hiddenHint": "Die Einrichtungshilfe auf deiner Startseite ist ausgeblendet.",
+        "show": "Einrichtungshilfe anzeigen"
       },
       "recentOrdersTitle": "Neueste Bestellungen"
     },
@@ -1426,7 +1500,10 @@
       "productionNotStarted": "Nicht begonnen",
       "productionReady": "Produktion fertig",
       "tabManufacturing": "In Fertigung",
-      "tabQualityCheck": "Qualitätsprüfung"
+      "tabQualityCheck": "Qualitätsprüfung",
+      "emptyTitle": "Noch keine Bestellungen",
+      "emptyHint": "Bestellungen erscheinen hier, sobald ein Kunde zur Kasse geht. Lege Produkte an und teile deinen Shop, um loszulegen.",
+      "emptyCta": "Produkt anlegen"
     },
     "products": {
       "title": "Produkte",
@@ -2275,7 +2352,17 @@
       "primaryNameRequired": "Bitte geben Sie vor dem Speichern einen Shop-Namen in Ihrer Hauptsprache ein.",
       "saveFailed": "Ihre Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
       "translateFailed": "Die automatische Übersetzung ist fehlgeschlagen. Bitte versuchen Sie es erneut oder füllen Sie die Felder manuell aus.",
-      "failedCreateStore": "Shop konnte nicht erstellt werden"
+      "failedCreateStore": "Shop konnte nicht erstellt werden",
+      "slugChecking": "Verfügbarkeit wird geprüft…",
+      "slugAvailable": "Diese Adresse ist verfügbar",
+      "slugTaken": "Diese Adresse ist bereits vergeben",
+      "slugReserved": "Diese Adresse ist reserviert – wähle eine andere",
+      "pauseStore": "Shop ist live",
+      "pauseStoreDesc": "Ausschalten, um den Shop zu pausieren: Besucher sehen eine Seite „vorübergehend geschlossen“.",
+      "resumeStore": "Shop ist pausiert",
+      "resumeStoreDesc": "Einschalten, um den Shop wieder öffentlich zu machen.",
+      "notLiveHint": "Dein Shop ist noch nicht öffentlich. Fordere die Freischaltung auf der Startseite des Dashboards an.",
+      "goToStatus": "Zum Shop-Status"
     },
     "settings": {
       "title": "Einstellungen",
@@ -2427,7 +2514,8 @@
         "store": "Shop",
         "taxes": "Steuern",
         "payments": "Zahlungen",
-        "security": "Sicherheit"
+        "security": "Sicherheit",
+        "business": "Unternehmensangaben"
       },
       "checkout": {
         "title": "Verhalten im Checkout",
@@ -5179,6 +5267,127 @@
         "CUSTOMER_BANNED_BY_ADMIN": "Dieser Kunde wurde von der Plattform gesperrt. Nur die Plattform kann diesen Status ändern.",
         "STORE_DAILY_EMAIL_LIMIT": "Ihr Shop hat das Tageslimit für diese Art von E-Mail erreicht. Versuchen Sie es morgen erneut."
       }
+    },
+    "storeStatus": {
+      "labels": {
+        "DRAFT": "Entwurf",
+        "PENDING_REVIEW": "In Prüfung",
+        "CHANGES_REQUESTED": "Änderungen erbeten",
+        "LIVE": "Live",
+        "PAUSED": "Pausiert",
+        "SUSPENDED": "Gesperrt"
+      },
+      "title": {
+        "DRAFT": "Dein Shop ist noch nicht öffentlich",
+        "PENDING_REVIEW": "Dein Shop wird geprüft",
+        "CHANGES_REQUESTED": "Änderungen vor der Freischaltung erbeten",
+        "LIVE": "Dein Shop ist live",
+        "PAUSED": "Dein Shop ist pausiert",
+        "SUSPENDED": "Dein Shop ist gesperrt"
+      },
+      "body": {
+        "DRAFT": "Nur du kannst ihn sehen. Sieh dir die Vorschau an, erledige die erforderlichen Schritte und fordere dann die Freischaltung an.",
+        "PENDING_REVIEW": "Wir prüfen Shops in der Regel innerhalb von 1 Werktag. Du kannst währenddessen weiter bearbeiten.",
+        "PENDING_REVIEW_dated": "Angefordert am {date}. Wir prüfen Shops in der Regel innerhalb von 1 Werktag – du kannst währenddessen weiter bearbeiten.",
+        "CHANGES_REQUESTED": "Behebe die Punkte unten und reiche deinen Shop erneut zur Prüfung ein.",
+        "LIVE": "Kunden können unter deiner öffentlichen Adresse einkaufen. Teile sie, um erste Bestellungen zu erhalten.",
+        "LIVE_dated": "Live seit {date}. Kunden können unter deiner öffentlichen Adresse einkaufen – teile sie, um erste Bestellungen zu erhalten.",
+        "PAUSED": "Besucher sehen eine Seite „vorübergehend geschlossen“. Setze fort, wann immer du bereit bist.",
+        "SUSPENDED": "Der Shop wurde von der Plattform offline genommen. Wende dich für Details an den Support."
+      },
+      "reason": "Begründung",
+      "blockingTitle": "Bevor du die Freischaltung anfordern kannst:",
+      "blocking": {
+        "email_verified": "E-Mail-Adresse bestätigen",
+        "trader_details_complete": "Unternehmensangaben vervollständigen",
+        "has_published_product": "Mindestens ein Produkt veröffentlichen",
+        "has_published_theme": "Ein Theme wählen",
+        "payments_ready": "Zahlungen einrichten",
+        "legal_pages_published": "Rechtliche Seiten veröffentlichen"
+      },
+      "checklistUnavailable": "Checkliste noch nicht verfügbar – lade die Seite neu.",
+      "copyUrl": "Link kopieren",
+      "copied": "Kopiert",
+      "preview": "Shop-Vorschau",
+      "requestGoLive": "Freischaltung anfordern",
+      "resubmit": "Erneut zur Prüfung einreichen",
+      "openStore": "Shop öffnen",
+      "resume": "Shop fortsetzen",
+      "nowLive": "Glückwunsch – dein Shop ist live!",
+      "submitted": "Danke! Dein Shop wird jetzt geprüft."
+    },
+    "onboarding": {
+      "stepsLabel": "Einrichtungsschritte",
+      "steps": {
+        "survey": "Über dich",
+        "store": "Dein Shop"
+      },
+      "welcome": "Willkommen, {name}!",
+      "welcomeHint": "Zwei kurze Fragen, um deine Einrichtung anzupassen – du kannst sie überspringen.",
+      "stage": {
+        "label": "Wo stehst du heute?",
+        "starting": "Ich fange gerade an",
+        "selling_online": "Ich verkaufe bereits online",
+        "physical_shop": "Ich habe ein Ladengeschäft",
+        "agency": "Ich baue Shops für Kunden"
+      },
+      "sells": {
+        "label": "Was wirst du verkaufen?",
+        "own": "Eigene Produkte",
+        "suppliers": "Produkte von Lieferanten",
+        "both": "Beides",
+        "hint": "Für Lieferantenprodukte braucht es einen Marktplatz-Shop; wir wählen den passenden Typ vor."
+      },
+      "country": "Land",
+      "skip": "Überspringen",
+      "continue": "Weiter",
+      "createTitle": "Erstelle deinen Shop",
+      "createHint": "Name, Adresse und Sprache lassen sich später ändern, der Shop-Typ nicht.",
+      "afterCreate": "Danach landest du auf deinem Dashboard mit einer Einrichtungs-Checkliste.",
+      "backToSurvey": "Zurück"
+    },
+    "traderDetails": {
+      "title": "Unternehmensangaben",
+      "subtitle": "Rechtliche Verkäuferidentität, die im Footer deines Shops erscheint und vor der Freischaltung erforderlich ist (schwedisches E-Commerce-Recht).",
+      "complete": "Vollständig",
+      "saved": "Unternehmensangaben gespeichert.",
+      "fixFields": "Bitte prüfe die markierten Felder.",
+      "fields": {
+        "legal_name": "Rechtlicher Name",
+        "business_type": "Unternehmensform",
+        "org_number": "Organisations-/Personennummer",
+        "vat_number": "USt-IdNr.",
+        "address_line1": "Adresse",
+        "address_line2": "Adresszusatz",
+        "postal_code": "Postleitzahl",
+        "city": "Ort",
+        "country": "Land",
+        "phone": "Telefon",
+        "support_email": "Support-E-Mail"
+      },
+      "businessType": {
+        "company": "Unternehmen",
+        "companyDesc": "Eingetragenes Unternehmen (AB, HB, Einzelfirma, …)",
+        "private": "Privatperson",
+        "privateDesc": "Verkauf als Einzelperson"
+      },
+      "orgNumberHintSe": "10 Ziffern, z. B. 556016-0680 (schwedische Prüfziffer wird geprüft).",
+      "vatHint": "Optional. Ländercode gefolgt von der Nummer, z. B. SE556016068001.",
+      "supportEmailHint": "Wird Kunden für Fragen und Rücksendungen angezeigt.",
+      "footerNote": "Mit * markierte Felder sind Pflichtfelder.",
+      "errors": {
+        "generic": "Bitte prüfe dieses Feld.",
+        "legal_name": "Gib den rechtlichen Namen ein.",
+        "business_type": "Wähle eine Unternehmensform.",
+        "org_number": "Gib eine gültige Organisations- oder Personennummer ein.",
+        "vat_number": "Format der USt-IdNr.: 2 Buchstaben + 2–12 Zeichen.",
+        "address_line1": "Gib die Straßenadresse ein.",
+        "postal_code": "Gib die Postleitzahl ein.",
+        "city": "Gib den Ort ein.",
+        "country": "Wähle ein Land.",
+        "phone": "Gib eine gültige Telefonnummer ein.",
+        "support_email": "Gib eine gültige E-Mail-Adresse ein."
+      }
     }
   },
   "components": {
@@ -5664,7 +5873,20 @@
     "REAUTH_REQUIRED": "Gib dein aktuelles Passwort ein, um diese Änderung zu bestätigen.",
     "REAUTH_PASSWORD_INVALID": "Das Passwort ist nicht korrekt.",
     "REAUTH_2FA_REQUIRED": "Aktiviere die Zwei-Faktor-Authentifizierung, bevor du Zahlungsschlüssel der Plattform änderst.",
-    "TWO_FACTOR_RESET_SELF": "Verwenden Sie Ihre Wiederherstellungscodes, um Ihre eigene Zwei-Faktor-Authentifizierung zurückzusetzen."
+    "TWO_FACTOR_RESET_SELF": "Verwenden Sie Ihre Wiederherstellungscodes, um Ihre eigene Zwei-Faktor-Authentifizierung zurückzusetzen.",
+    "AUTH_TERMS_REQUIRED": "Bitte akzeptiere die AGB und die Datenschutzerklärung, um fortzufahren.",
+    "AUTH_EMAIL_DISPOSABLE": "Wegwerf-E-Mail-Adressen können nicht verwendet werden. Bitte nutze eine dauerhafte Adresse.",
+    "EMAIL_VERIFY_INVALID": "Dieser Bestätigungslink ist ungültig, abgelaufen oder wurde bereits verwendet. Melde dich an und fordere einen neuen an.",
+    "ACCOUNT_EMAIL_UNVERIFIED": "Bestätige deine E-Mail-Adresse, um das zu tun. Den Bestätigungslink findest du in deinem Posteingang.",
+    "ACCOUNT_EMAIL_UNVERIFIED_EXPIRED": "Dein Konto ist gesperrt, bis du deine E-Mail-Adresse bestätigst. Sende die Bestätigungs-E-Mail über das Banner oben erneut.",
+    "AUTH_RESEND_RATE_LIMITED": "Zu viele Bestätigungs-E-Mails. Versuche es in einer Stunde erneut.",
+    "AUTH_ALREADY_VERIFIED": "Diese E-Mail-Adresse ist bereits bestätigt. Lade die Seite neu.",
+    "STORE_SLUG_RESERVED": "Diese Shop-Adresse ist reserviert. Bitte wähle eine andere.",
+    "STORE_GOLIVE_NOT_READY": "Schließe die erforderlichen Einrichtungsschritte ab, bevor du die Freischaltung anforderst.",
+    "STORE_STATUS_TRANSITION": "Diese Änderung ist im aktuellen Status des Shops nicht erlaubt.",
+    "STORE_NOT_LIVE": "Der Shop ist noch nicht öffentlich.",
+    "TRADER_DETAILS_INVALID": "Einige Unternehmensangaben fehlen oder sind ungültig.",
+    "STORE_STATUS_REASON_REQUIRED": "Für diesen Status ist eine Begründung erforderlich."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -6940,6 +7162,36 @@
       "useApp": "Authenticator-App verwenden",
       "locked": "Zu viele falsche Codes. Versuche es in {minutes, plural, one {# Minute} other {# Minuten}} erneut.",
       "networkError": "Der Server ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut."
+    },
+    "verify": {
+      "verifying": "E-Mail wird bestätigt…",
+      "verifyingHint": "Wir prüfen deinen Bestätigungslink. Das dauert nur einen Moment.",
+      "successTitle": "E-Mail bestätigt",
+      "successBody": "Danke! Deine Adresse ist bestätigt und du wirst angemeldet.",
+      "invalidTitle": "Dieser Bestätigungslink ist abgelaufen oder wurde bereits verwendet",
+      "invalidBody": "Zu deiner Sicherheit funktioniert jeder Link nur einmal und 24 Stunden lang.",
+      "resendHint": "Melde dich mit E-Mail und Passwort an und nutze „Erneut senden“ im Banner, um einen neuen Link zu erhalten.",
+      "networkTitle": "Server nicht erreichbar",
+      "networkBody": "Prüfe deine Internetverbindung und versuche es erneut.",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "errorBody": "Wir konnten deine E-Mail gerade nicht bestätigen. Bitte versuche es gleich noch einmal.",
+      "retry": "Erneut versuchen",
+      "goToLogin": "Zur Anmeldung"
+    },
+    "unverified": {
+      "title": "Bestätige deine E-Mail, um deinen Shop zu veröffentlichen",
+      "titleProvider": "Bestätige deine E-Mail, um den vollen Zugriff zu behalten",
+      "expiredTitle": "Dein Konto ist gesperrt, bis du deine E-Mail bestätigst",
+      "daysLeft": "{days, plural, one {Noch # Tag.} other {Noch # Tage.}}",
+      "sentTo": "Wir haben den Link an {email} gesendet.",
+      "resent": "Eine neue Bestätigungs-E-Mail ist unterwegs.",
+      "resend": "E-Mail erneut senden",
+      "throttled": "Zu viele Anfragen. Bitte warte etwas, bevor du eine weitere E-Mail sendest.",
+      "dialogTitle": "Bestätige zuerst deine E-Mail",
+      "dialogBody": "Diese Aktion erfordert eine bestätigte E-Mail-Adresse. Öffne den Link in der Bestätigungs-E-Mail oder sende eine neue.",
+      "dialogExpiredTitle": "Dein Konto ist gesperrt",
+      "dialogExpiredBody": "Die 7-tägige Frist ist abgelaufen. Bestätige deine E-Mail-Adresse, um dein Konto freizuschalten.",
+      "later": "Später"
     }
   },
   "security": {

@@ -2,6 +2,8 @@
 
 import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { UnverifiedBanner, VerifyEmailDialog } from '@/components/auth/UnverifiedBanner';
+import { ProviderUnverifiedBanner } from '@/components/auth/ProviderUnverifiedBanner';
 import type { ShellNav } from '@/components/layout/nav-types';
 import { useAuth } from '@/lib/auth';
 import { usePlatformName } from '@/lib/usePlatformName';
@@ -56,6 +58,9 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
         brandTitle={platformName}
         onLogout={logout}
       >
+        <UnverifiedBanner />
+        <ProviderUnverifiedBanner />
+        <VerifyEmailDialog />
         {children}
       </AppShell>
     </ProtectedRoute>

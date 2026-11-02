@@ -13,6 +13,17 @@ export interface ProviderProfile {
   phone?: string | null;
   country?: string | null;
   verified?: boolean;
+  /** GET /providers/me: products stay hidden from stores until verified while true. */
+  approval_required?: boolean;
+}
+
+/** Sign-up card + survey answers (SPEC §1 `Creator.onboarding_profile`). */
+export interface OnboardingProfile {
+  account_kind?: 'independent' | 'marketplace';
+  sells?: 'own' | 'suppliers' | 'both';
+  stage?: 'starting' | 'selling_online' | 'physical_shop' | 'agency';
+  country?: string;
+  completed_at?: string;
 }
 
 export interface CreatorProfile {
@@ -21,6 +32,7 @@ export interface CreatorProfile {
   phone?: string | null;
   bio?: string | null;
   verified?: boolean;
+  onboarding_profile?: OnboardingProfile | null;
 }
 
 export interface CustomerProfile {
@@ -41,6 +53,11 @@ export interface User {
   customer?: CustomerProfile | null;
   /** True when the account signs in with an authenticator code (GET /auth/me). */
   two_factor_enabled?: boolean;
+  /** When the email was verified; null while the account is still PENDING (GET /auth/me). */
+  email_verified_at?: string | null;
+  /** End of the unverified grace period (created_at + 7 days) while PENDING, else null. */
+  verification_deadline?: string | null;
+  created_at?: string;
 }
 
 /** Body returned by /auth/login and /auth/magic-login. */

@@ -690,11 +690,11 @@
     "noMinimum": "Minimum yok",
     "leaveBlankAnyAmount": "Herhangi bir tutara izin vermek için boş bırakın.",
     "registrationApprovals": "Kayıt Onayları",
-    "registrationApprovalsHint": "Etkinleştirildiğinde, yeni kayıtlar hesap etkinleştirilmeden önce manuel yönetici onayı gerektirir.",
+    "registrationApprovalsHint": "Bir tedarikçi kaydolduğunda ve bir mağaza sahibi yayına alma talep ettiğinde ne olacağını belirler.",
     "providerApprovalRequired": "Sağlayıcı Onayı Gerekli",
-    "providerApprovalHint": "Yeni Sağlayıcıların ürün eklemeden önce yönetici tarafından doğrulanması gerekir",
+    "providerApprovalHint": "Tedarikçi doğrulanana kadar tedarikçi ürünleri katalogdan gizlenir.",
     "creatorApprovalRequired": "Üretici Onayı Gerekli",
-    "creatorApprovalHint": "Yeni Üreticilerin mağazalarını açmadan önce yönetici tarafından doğrulanması gerekir",
+    "creatorApprovalHint": "Her yayına alma talebini elle inceleyin; kapalıyken bilgileri kontrolleri geçen mağazalar otomatik olarak yayına alınır.",
     "settingsSavedSuccessfully": "Ayarlar başarıyla kaydedildi!",
     "paymentsStripe": "Ödemeler (Stripe)",
     "paymentsStripeSubtitle": "Ödemeleri tahsil etmek ve içerik üreticilere dağıtmak için kullanılan platform Stripe hesabı.",
@@ -845,7 +845,69 @@
     "customersCreateLink": "Müşterileri aç",
     "resetTwoFactor": "İki adımlı doğrulamayı sıfırla",
     "twoFactorResetConfirm": "Bu hesabın iki adımlı doğrulamasını kapatın (telefon ve kurtarma kodları kaybolduysa). Kendi şifreniz ve kodunuzla onaylayın.",
-    "twoFactorResetDone": "Bu hesap için iki adımlı doğrulama kapatıldı"
+    "twoFactorResetDone": "Bu hesap için iki adımlı doğrulama kapatıldı",
+    "storesPendingReview": "Yayına alma incelemesi bekleyen mağazalar",
+    "storesQueue": {
+      "title": "Mağazalar",
+      "subtitle": "Platformdaki her mağaza için yayına alma incelemeleri, duraklatma ve askıya alma.",
+      "pendingReview": "İnceleme bekliyor",
+      "allStatuses": "Tüm durumlar",
+      "status": {
+        "DRAFT": "Taslak",
+        "PENDING_REVIEW": "İnceleniyor",
+        "CHANGES_REQUESTED": "Değişiklik istendi",
+        "LIVE": "Yayında",
+        "PAUSED": "Duraklatıldı",
+        "SUSPENDED": "Askıya alındı"
+      },
+      "cols": {
+        "store": "Mağaza",
+        "owner": "Sahip",
+        "checklist": "Kontrol listesi",
+        "created": "Oluşturulma",
+        "requested": "Yayına alma talebi"
+      },
+      "check": {
+        "verified": "E-posta doğrulandı",
+        "trader": "İşletme bilgileri",
+        "product": "Yayınlanmış ürün"
+      },
+      "actions": {
+        "approve": "Onayla",
+        "requestChanges": "Değişiklik iste",
+        "pause": "Duraklat",
+        "resume": "Devam ettir",
+        "suspend": "Askıya al",
+        "openCreator": "Oluşturucu sayfasını aç",
+        "openStorefront": "Mağaza vitrinini aç"
+      },
+      "dialog": {
+        "approveTitle": "Bu mağaza yayına alınsın mı?",
+        "resumeTitle": "Bu mağaza devam ettirilsin mi?",
+        "approveBody": "“{store}” hemen herkese açık olur ve sahibi e-posta ile bilgilendirilir.",
+        "changesTitle": "Değişiklik iste",
+        "changesBody": "“{store}” gizli kalır; sahibi gerekçenizi e-posta ile alır ve yeniden gönderebilir.",
+        "suspendTitle": "Bu mağaza askıya alınsın mı?",
+        "suspendBody": "“{store}” çevrimdışına alınır (ziyaretçiler 404 görür) ve sahibi gerekçenizle bilgilendirilir.",
+        "pauseTitle": "Bu mağaza duraklatılsın mı?",
+        "pauseBody": "“{store}” ziyaretçileri, devam ettirilene kadar “geçici olarak kapalı” sayfasını görür."
+      },
+      "reason": "Gerekçe",
+      "reasonRequired": "Lütfen bir gerekçe girin.",
+      "reasonPlaceholderChanges": "Mağaza yayına alınmadan önce sahibi neyi düzeltmeli?",
+      "reasonPlaceholderSuspend": "Bu mağaza neden askıya alınıyor?",
+      "reasonHint": "Sahibine e-posta ile gönderilir ve panelinde gösterilir.",
+      "confirm": {
+        "LIVE": "Yayına al",
+        "CHANGES_REQUESTED": "Talebi gönder",
+        "SUSPENDED": "Mağazayı askıya al",
+        "PAUSED": "Mağazayı duraklat"
+      },
+      "searchPlaceholder": "Mağaza, adres veya sahip e-postasına göre ara",
+      "emptyPending": "İnceleme bekleyen mağaza yok.",
+      "empty": "Bu filtrelerle eşleşen mağaza yok.",
+      "retry": "Tekrar dene"
+    }
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -1225,7 +1287,11 @@
     "rejectionReasonPlaceholder": "ör. Yüklediğiniz görsel, izin alınmadan telif hakkıyla korunan bir eser kullanıyor...",
     "rejectionNote": "İçerik üreticisi bu mesajı görecek ve ürünü revize edebilecek.",
     "rejecting": "Reddediliyor...",
-    "sendRejection": "Reddi gönder"
+    "sendRejection": "Reddi gönder",
+    "unverified": {
+      "title": "Bir yönetici hesabınızı doğrulayana kadar ürünleriniz mağazalardan gizli kalır",
+      "body": "Mağaza sahipleri kataloğunuzu henüz göremez veya içe aktaramaz. Hesabınız doğrulanır doğrulanmaz bir e-posta alacaksınız."
+    }
   },
   "creator": {
     "overview": {
@@ -1337,13 +1403,21 @@
         "done": "tamamlandı",
         "todo": "tamamlanmadı",
         "items": {
-          "has_products": "İlk ürününüzü ekleyin",
-          "has_logo": "Logonuzu yükleyin",
-          "has_payment": "Ödemeleri ayarlayın",
-          "has_shipping": "Kargoyu ayarlayın",
-          "has_published_theme": "Bir tema yayınlayın",
-          "has_domain": "Alan adınızı bağlayın"
-        }
+          "verify_email": "E-postanızı doğrulayın",
+          "create_store": "Mağazanızı oluşturun",
+          "first_product": "İlk ürününüzü ekleyin",
+          "theme": "Bir tema seçin ve ana sayfanızı düzenleyin",
+          "shipping": "Kargoyu ayarlayın",
+          "payments": "Ödemeleri ayarlayın",
+          "trader_details": "İşletme bilgileri ve yasal sayfalar",
+          "preview": "Mağazanızı önizleyin",
+          "request_golive": "Yayına alma talebinde bulunun"
+        },
+        "nextUp": "Sıradaki: {step}",
+        "dismissHint": "Ayarlar’dan yeniden açabilirsiniz",
+        "required": "Gerekli",
+        "hiddenHint": "Ana sayfanızdaki kurulum rehberi gizli.",
+        "show": "Kurulum rehberini göster"
       },
       "recentOrdersTitle": "Son siparişler"
     },
@@ -1426,7 +1500,10 @@
       "productionNotStarted": "Başlanmadı",
       "productionReady": "Üretim hazır",
       "tabManufacturing": "Üretimde",
-      "tabQualityCheck": "Kalite Kontrolü"
+      "tabQualityCheck": "Kalite Kontrolü",
+      "emptyTitle": "Henüz sipariş yok",
+      "emptyHint": "Bir müşteri ödeme yaptığında siparişler burada görünür. Başlamak için ürün ekleyin ve mağazanızı paylaşın.",
+      "emptyCta": "Ürün ekle"
     },
     "products": {
       "title": "Ürünler",
@@ -2275,7 +2352,17 @@
       "primaryNameRequired": "Kaydetmeden önce lütfen ana dilde bir mağaza adı girin.",
       "saveFailed": "Değişiklikler kaydedilemedi. Lütfen tekrar deneyin.",
       "translateFailed": "Otomatik çeviri başarısız oldu. Lütfen tekrar deneyin veya alanları elle doldurun.",
-      "failedCreateStore": "Mağaza oluşturulamadı"
+      "failedCreateStore": "Mağaza oluşturulamadı",
+      "slugChecking": "Uygunluk kontrol ediliyor…",
+      "slugAvailable": "Bu adres kullanılabilir",
+      "slugTaken": "Bu adres zaten alınmış",
+      "slugReserved": "Bu adres ayrılmış — başka bir adres seçin",
+      "pauseStore": "Mağaza yayında",
+      "pauseStoreDesc": "Mağazanızı duraklatmak için kapatın: ziyaretçiler “geçici olarak kapalı” sayfasını görür.",
+      "resumeStore": "Mağaza duraklatıldı",
+      "resumeStoreDesc": "Mağazanızı yeniden herkese açmak için açın.",
+      "notLiveHint": "Mağazanız henüz yayında değil. Panel ana sayfasından yayına alma talebinde bulunun.",
+      "goToStatus": "Mağaza durumuna git"
     },
     "settings": {
       "title": "Ayarlar",
@@ -2427,7 +2514,8 @@
         "store": "Mağaza",
         "taxes": "Vergiler",
         "payments": "Ödemeler",
-        "security": "Güvenlik"
+        "security": "Güvenlik",
+        "business": "İşletme bilgileri"
       },
       "checkout": {
         "title": "Ödeme davranışı",
@@ -5179,6 +5267,127 @@
         "CUSTOMER_BANNED_BY_ADMIN": "Bu müşteri platform tarafından yasaklandı. Bu durumu yalnızca platform değiştirebilir.",
         "STORE_DAILY_EMAIL_LIMIT": "Mağazanız bu tür e-postalar için günlük sınıra ulaştı. Yarın tekrar deneyin."
       }
+    },
+    "storeStatus": {
+      "labels": {
+        "DRAFT": "Taslak",
+        "PENDING_REVIEW": "İnceleniyor",
+        "CHANGES_REQUESTED": "Değişiklik istendi",
+        "LIVE": "Yayında",
+        "PAUSED": "Duraklatıldı",
+        "SUSPENDED": "Askıya alındı"
+      },
+      "title": {
+        "DRAFT": "Mağazanız henüz yayında değil",
+        "PENDING_REVIEW": "Mağazanız inceleniyor",
+        "CHANGES_REQUESTED": "Yayına almadan önce değişiklik istendi",
+        "LIVE": "Mağazanız yayında",
+        "PAUSED": "Mağazanız duraklatıldı",
+        "SUSPENDED": "Mağazanız askıya alındı"
+      },
+      "body": {
+        "DRAFT": "Yalnızca siz görebilirsiniz. Önizleyin, gerekli adımları tamamlayın ve ardından yayına alma talebinde bulunun.",
+        "PENDING_REVIEW": "Mağazaları genellikle 1 iş günü içinde inceleriz. Bu arada düzenlemeye devam edebilirsiniz.",
+        "PENDING_REVIEW_dated": "{date} tarihinde talep edildi. Mağazaları genellikle 1 iş günü içinde inceleriz — bu arada düzenlemeye devam edebilirsiniz.",
+        "CHANGES_REQUESTED": "Aşağıdaki noktaları düzeltip mağazanızı yeniden incelemeye gönderin.",
+        "LIVE": "Müşteriler herkese açık adresinizden alışveriş yapabilir. İlk siparişleriniz için paylaşın.",
+        "LIVE_dated": "{date} tarihinden beri yayında. Müşteriler herkese açık adresinizden alışveriş yapabilir — ilk siparişleriniz için paylaşın.",
+        "PAUSED": "Ziyaretçiler “geçici olarak kapalı” sayfasını görür. Hazır olduğunuzda devam ettirin.",
+        "SUSPENDED": "Mağaza platform tarafından çevrimdışına alındı. Ayrıntılar için destekle iletişime geçin."
+      },
+      "reason": "Gerekçe",
+      "blockingTitle": "Yayına alma talebinde bulunmadan önce:",
+      "blocking": {
+        "email_verified": "E-posta adresinizi doğrulayın",
+        "trader_details_complete": "İşletme bilgilerinizi tamamlayın",
+        "has_published_product": "En az bir ürün yayınlayın",
+        "has_published_theme": "Bir tema seçin",
+        "payments_ready": "Ödemeleri ayarlayın",
+        "legal_pages_published": "Yasal sayfalarınızı yayınlayın"
+      },
+      "checklistUnavailable": "Kontrol listesi henüz kullanılamıyor — sayfayı yenileyin.",
+      "copyUrl": "Bağlantıyı kopyala",
+      "copied": "Kopyalandı",
+      "preview": "Mağazayı önizle",
+      "requestGoLive": "Yayına alma talebi",
+      "resubmit": "Yeniden incelemeye gönder",
+      "openStore": "Mağazayı aç",
+      "resume": "Mağazayı devam ettir",
+      "nowLive": "Tebrikler — mağazanız yayında!",
+      "submitted": "Teşekkürler! Mağazanız artık inceleniyor."
+    },
+    "onboarding": {
+      "stepsLabel": "Kurulum adımları",
+      "steps": {
+        "survey": "Sizin hakkınızda",
+        "store": "Mağazanız"
+      },
+      "welcome": "Hoş geldiniz, {name}!",
+      "welcomeHint": "Kurulumunuzu kişiselleştirmek için iki kısa soru — atlayabilirsiniz.",
+      "stage": {
+        "label": "Bugün neredesiniz?",
+        "starting": "Yeni başlıyorum",
+        "selling_online": "Zaten çevrimiçi satış yapıyorum",
+        "physical_shop": "Fiziksel bir mağazam var",
+        "agency": "Müşteriler için mağaza kuruyorum"
+      },
+      "sells": {
+        "label": "Ne satacaksınız?",
+        "own": "Kendi ürünlerim",
+        "suppliers": "Tedarikçi ürünleri",
+        "both": "Her ikisi",
+        "hint": "Tedarikçi ürünleri satmak için pazar yeri mağazası gerekir; doğru türü önceden seçeceğiz."
+      },
+      "country": "Ülke",
+      "skip": "Atla",
+      "continue": "Devam et",
+      "createTitle": "Mağazanızı oluşturun",
+      "createHint": "Ad, adres ve dil daha sonra değiştirilebilir; mağaza türü değiştirilemez.",
+      "afterCreate": "Bundan sonra kurulum kontrol listesiyle birlikte panelinize yönlendirileceksiniz.",
+      "backToSurvey": "Geri"
+    },
+    "traderDetails": {
+      "title": "İşletme bilgileri",
+      "subtitle": "Mağaza alt bilginizde gösterilen ve yayına almadan önce gerekli olan yasal satıcı kimliği (İsveç e-ticaret yasası).",
+      "complete": "Tamamlandı",
+      "saved": "İşletme bilgileri kaydedildi.",
+      "fixFields": "Lütfen vurgulanan alanları kontrol edin.",
+      "fields": {
+        "legal_name": "Yasal ad",
+        "business_type": "İşletme türü",
+        "org_number": "Kuruluş / kişisel numara",
+        "vat_number": "KDV numarası",
+        "address_line1": "Adres",
+        "address_line2": "Adres satırı 2",
+        "postal_code": "Posta kodu",
+        "city": "Şehir",
+        "country": "Ülke",
+        "phone": "Telefon",
+        "support_email": "Destek e-postası"
+      },
+      "businessType": {
+        "company": "Şirket",
+        "companyDesc": "Kayıtlı şirket (AB, HB, şahıs firması, …)",
+        "private": "Özel kişi",
+        "privateDesc": "Birey olarak satış"
+      },
+      "orgNumberHintSe": "10 hane, ör. 556016-0680 (İsveç sağlama toplamı doğrulanır).",
+      "vatHint": "İsteğe bağlı. Ülke kodu ve ardından numara, ör. SE556016068001.",
+      "supportEmailHint": "Sorular ve iadeler için müşterilere gösterilir.",
+      "footerNote": "* ile işaretli alanlar zorunludur.",
+      "errors": {
+        "generic": "Lütfen bu alanı kontrol edin.",
+        "legal_name": "Yasal adı girin.",
+        "business_type": "Bir işletme türü seçin.",
+        "org_number": "Geçerli bir kuruluş veya kişisel numara girin.",
+        "vat_number": "KDV numarası biçimi: 2 harf + 2–12 karakter.",
+        "address_line1": "Sokak adresini girin.",
+        "postal_code": "Posta kodunu girin.",
+        "city": "Şehri girin.",
+        "country": "Bir ülke seçin.",
+        "phone": "Geçerli bir telefon numarası girin.",
+        "support_email": "Geçerli bir e-posta adresi girin."
+      }
     }
   },
   "components": {
@@ -5664,7 +5873,20 @@
     "REAUTH_REQUIRED": "Bu değişikliği onaylamak için mevcut şifrenizi girin.",
     "REAUTH_PASSWORD_INVALID": "Şifre hatalı.",
     "REAUTH_2FA_REQUIRED": "Platform ödeme anahtarlarını değiştirmeden önce iki adımlı doğrulamayı açın.",
-    "TWO_FACTOR_RESET_SELF": "Kendi iki adımlı doğrulamanızı sıfırlamak için kurtarma kodlarınızı kullanın."
+    "TWO_FACTOR_RESET_SELF": "Kendi iki adımlı doğrulamanızı sıfırlamak için kurtarma kodlarınızı kullanın.",
+    "AUTH_TERMS_REQUIRED": "Devam etmek için şartları ve gizlilik politikasını kabul edin.",
+    "AUTH_EMAIL_DISPOSABLE": "Geçici e-posta adresleri kullanılamaz. Lütfen kalıcı bir adres kullanın.",
+    "EMAIL_VERIFY_INVALID": "Bu doğrulama bağlantısı geçersiz, süresi dolmuş veya zaten kullanılmış. Giriş yapıp yeni bir bağlantı isteyin.",
+    "ACCOUNT_EMAIL_UNVERIFIED": "Bunu yapmak için e-posta adresinizi doğrulayın. Doğrulama bağlantısı için gelen kutunuzu kontrol edin.",
+    "ACCOUNT_EMAIL_UNVERIFIED_EXPIRED": "E-posta adresinizi doğrulayana kadar hesabınız kilitli. Doğrulama e-postasını yukarıdaki şeritten yeniden gönderin.",
+    "AUTH_RESEND_RATE_LIMITED": "Çok fazla doğrulama e-postası gönderildi. Bir saat sonra tekrar deneyin.",
+    "AUTH_ALREADY_VERIFIED": "Bu e-posta adresi zaten doğrulanmış. Sayfayı yenileyin.",
+    "STORE_SLUG_RESERVED": "Bu mağaza adresi ayrılmış. Lütfen başka bir adres seçin.",
+    "STORE_GOLIVE_NOT_READY": "Yayına alma talebinden önce gerekli kurulum adımlarını tamamlayın.",
+    "STORE_STATUS_TRANSITION": "Mağazanın mevcut durumunda bu değişikliğe izin verilmiyor.",
+    "STORE_NOT_LIVE": "Mağaza henüz yayında değil.",
+    "TRADER_DETAILS_INVALID": "Bazı işletme bilgileri eksik veya geçersiz.",
+    "STORE_STATUS_REASON_REQUIRED": "Bu durum için bir gerekçe gerekli."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -6940,6 +7162,36 @@
       "useApp": "Doğrulama uygulamasını kullan",
       "locked": "Çok fazla hatalı kod. {minutes} dakika sonra tekrar deneyin.",
       "networkError": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "verify": {
+      "verifying": "E-postanız doğrulanıyor…",
+      "verifyingHint": "Doğrulama bağlantınız kontrol ediliyor. Bu yalnızca bir an sürer.",
+      "successTitle": "E-posta doğrulandı",
+      "successBody": "Teşekkürler! Adresiniz onaylandı ve oturumunuz açılıyor.",
+      "invalidTitle": "Bu doğrulama bağlantısının süresi dolmuş veya zaten kullanılmış",
+      "invalidBody": "Güvenliğiniz için her bağlantı yalnızca bir kez ve 24 saat boyunca çalışır.",
+      "resendHint": "E-posta ve şifrenizle giriş yapın ve yeni bir bağlantı için şeritteki “Yeniden gönder” seçeneğini kullanın.",
+      "networkTitle": "Sunucuya ulaşılamıyor",
+      "networkBody": "İnternet bağlantınızı kontrol edip tekrar deneyin.",
+      "errorTitle": "Bir şeyler ters gitti",
+      "errorBody": "E-postanızı şu anda doğrulayamadık. Lütfen biraz sonra tekrar deneyin.",
+      "retry": "Tekrar dene",
+      "goToLogin": "Girişe git"
+    },
+    "unverified": {
+      "title": "Mağazanızı yayınlamak için e-postanızı doğrulayın",
+      "titleProvider": "Tam erişimi korumak için e-postanızı doğrulayın",
+      "expiredTitle": "E-postanızı doğrulayana kadar hesabınız kilitli",
+      "daysLeft": "{days, plural, one {# gün kaldı.} other {# gün kaldı.}}",
+      "sentTo": "Bağlantıyı {email} adresine gönderdik.",
+      "resent": "Yeni bir doğrulama e-postası yolda.",
+      "resend": "E-postayı yeniden gönder",
+      "throttled": "Çok fazla istek. Yeni bir e-posta göndermeden önce biraz bekleyin.",
+      "dialogTitle": "Önce e-postanızı doğrulayın",
+      "dialogBody": "Bu işlem doğrulanmış bir e-posta adresi gerektirir. Doğrulama e-postasındaki bağlantıyı açın veya yeni bir tane gönderin.",
+      "dialogExpiredTitle": "Hesabınız kilitli",
+      "dialogExpiredBody": "7 günlük ek süre sona erdi. Hesabınızın kilidini açmak için e-posta adresinizi doğrulayın.",
+      "later": "Daha sonra"
     }
   },
   "security": {

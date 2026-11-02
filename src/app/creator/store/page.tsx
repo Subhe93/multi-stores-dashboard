@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,8 +23,6 @@ import {
   Palette,
   ArrowRight,
   Copy,
-  Store as StoreIcon,
-  Wallet,
   Globe,
   Trash2,
 } from 'lucide-react';
@@ -31,10 +30,11 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
-import { setCachedStoreType } from '@/lib/useStoreType';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { DEFAULT_THEME_KEY } from '@/lib/themes-catalog';
 import { invalidateMyStore } from '@/lib/useStorefrontUrl';
+import { canToggleActive, type StoreStatus } from '@/lib/storeStatus';
+import { StoreStatusBadge } from '@/components/creator/StoreStatusBadge';
 import { domainRemovalFallbackHost } from '@/lib/customDomain';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
@@ -110,6 +110,9 @@ interface Store {
   /** Canonical public host (Markets default host, else custom_domain); null = platform subdomain. */
   public_host?: string | null;
   is_active: boolean;
+  /** Lifecycle status (SPEC §3); the active toggle only exists for LIVE/PAUSED. */
+  status?: StoreStatus;
+  status_reason?: string | null;
   store_type?: 'MARKETPLACE' | 'INDEPENDENT';
   theme_key?: string;
   theme_customizations?: Record<string, unknown>;
@@ -417,6 +420,7 @@ function CustomDomainInstructions({ domain }: { domain: string }) {
 
 export default function CreatorStorePage() {
   const { token } = useAuth();
+  const router = useRouter();
   const t = useTranslations('creator');
   const tcom = useTranslations('common');
   const { pickAndUpload, uploading: heroUploading } = useImageUpload(token);
@@ -427,6 +431,10 @@ export default function CreatorStorePage() {
 
   const [store, setStore] = useState<Store | null>(null);
   const [loading, setLoading] = useState(true);
+  // No store yet: the first-run onboarding creates it.
+  useEffect(() => {
+    if (!loading && !store) router.replace('/creator/onboarding');
+  }, [loading, store, router]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -691,7 +699,9 @@ export default function CreatorStorePage() {
           ...(store && !marketsEnabled && form.custom_domain !== (store.custom_domain ?? '')
             ? { custom_domain: form.custom_domain }
             : {}),
-          is_active: form.is_active,
+          ...(store && canToggleActive(store.status) && form.is_active !== store.is_active
+            ? { is_active: form.is_active }
+            : {}),
         }),
       });
       await api('/stores/my/theme', {
@@ -732,6 +742,11 @@ export default function CreatorStorePage() {
           ...store,
           ...(form.slug && asciiHandle(form.slug) ? { slug: asciiHandle(form.slug) } : {}),
           ...(!marketsEnabled ? { custom_domain: form.custom_domain || null } : {}),
+          // The pause / resume toggle moves the status (LIVE <-> PAUSED); keep
+          // the local copy in step so the next save compares against it.
+          ...(canToggleActive(store.status)
+            ? { is_active: form.is_active, status: (form.is_active ? 'LIVE' : 'PAUSED') as StoreStatus }
+            : {}),
         });
       }
       if (form.custom_domain) setDomainRemoved(null);
@@ -919,23 +934,9 @@ export default function CreatorStorePage() {
 
   if (!store) {
     return (
-      <CreateStoreForm
-        token={token ?? ''}
-        onCreated={(s) => {
-          setStore(s);
-          const tc = s.theme_config ?? {};
-          const primary = s.language_config?.primary_locale ?? 'en';
-          const secondary = s.language_config?.secondary_locales ?? [];
-          setForm({
-            ...DEFAULT_FORM,
-            slug: s.slug ?? '',
-            primary_locale: primary,
-            secondary_locales: secondary.filter((l) => l !== primary),
-          });
-          setTranslations({ [primary]: { ...EMPTY_TRANSLATABLE, name: s.name ?? '', description: s.description ?? '' } });
-          setActiveLocale(primary);
-        }}
-      />
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
+      </div>
     );
   }
 
@@ -945,7 +946,10 @@ export default function CreatorStorePage() {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t('myStore.title')}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-semibold tracking-tight">{t('myStore.title')}</h1>
+            <StoreStatusBadge status={store.status} isActive={store.is_active} />
+          </div>
           <p className="text-sm text-muted-foreground">{t('myStore.subtitle')}</p>
         </div>
         <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
@@ -1081,14 +1085,26 @@ export default function CreatorStorePage() {
                   onConfirm={handleRemoveDomain}
                 />
               </div>
-              <Separator />
-              <div className="flex items-center justify-between py-1">
-                <div>
-                  <p className="text-sm font-medium">{t('myStore.storeActive')}</p>
-                  <p className="text-[11px] text-muted-foreground">{t('myStore.storeActiveDesc')}</p>
-                </div>
-                <Toggle checked={form.is_active} onChange={(v) => setField('is_active', v)} />
-              </div>
+              {canToggleActive(store.status) ? (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between py-1">
+                    <div>
+                      <p className="text-sm font-medium">{form.is_active ? t('myStore.pauseStore') : t('myStore.resumeStore')}</p>
+                      <p className="text-[11px] text-muted-foreground">{form.is_active ? t('myStore.pauseStoreDesc') : t('myStore.resumeStoreDesc')}</p>
+                    </div>
+                    <Toggle checked={form.is_active} onChange={(v) => setField('is_active', v)} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Separator />
+                  <p className="py-1 text-[11px] text-muted-foreground">
+                    {t('myStore.notLiveHint')}{' '}
+                    <Link href="/creator#store-status" className="font-medium underline underline-offset-2">{t('myStore.goToStatus')}</Link>
+                  </p>
+                </>
+              )}
             </>
           )}
         </CardContent>
@@ -1266,167 +1282,6 @@ export default function CreatorStorePage() {
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Create Store form (shown when creator has no store yet)
-// ---------------------------------------------------------------------------
-
-type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
-
-function CreateStoreForm({ token, onCreated }: { token: string; onCreated: (store: Store) => void }) {
-  const t = useTranslations('creator');
-  const tcom = useTranslations('common');
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [description, setDescription] = useState('');
-  const [primaryLocale, setPrimaryLocale] = useState('en');
-  const [storeType, setStoreType] = useState<StoreType>('MARKETPLACE');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-    // Store slug = DNS label: ASCII only, derived from the name until edited.
-    if (!slugTouched) setSlug(asciiHandle(val));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || submitting) return;
-    setError('');
-    const finalSlug = asciiHandle(slug);
-    if (!name.trim() || !finalSlug) {
-      setError(t('myStore.nameSlugRequired'));
-      return;
-    }
-    setSlug(finalSlug);
-    setSubmitting(true);
-    try {
-      const created = await api<Store>('/stores', {
-        method: 'POST', token,
-        body: JSON.stringify({
-          name: name.trim(),
-          slug: finalSlug,
-          description: description.trim() || undefined,
-          primary_locale: primaryLocale,
-          secondary_locales: [],
-          store_type: storeType,
-        }),
-      });
-      // Update the session cache immediately so the sidebar switches to the
-      // right layout without requiring a reload.
-      setCachedStoreType(created.store_type === 'INDEPENDENT' ? 'INDEPENDENT' : 'MARKETPLACE');
-      onCreated(created);
-    } catch (err) {
-      setError((err instanceof Error && err.message) || t('myStore.failedCreateStore'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t('myStore.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('myStore.setUpToSell')}</p>
-      </div>
-      <Card className="shadow-none">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">{t('myStore.createYourStore')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('myStore.storeName')} <span className="text-red-500">*</span></Label>
-              <Input className="h-9 text-sm" value={name} onChange={(e) => handleNameChange(e.target.value)} placeholder={t('myStore.storeNamePlaceholder')} required />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('myStore.slug')} <span className="text-red-500">*</span></Label>
-              <div className="flex items-center">
-                <Input
-                  className="h-9 text-sm rounded-e-none border-e-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  dir="ltr"
-                  value={slug}
-                  onChange={(e) => { setSlug(asciiHandleTyping(e.target.value)); setSlugTouched(true); }}
-                  onBlur={() => setSlug(asciiHandle(slug))}
-                  placeholder="my-store"
-                  required
-                />
-                <span className="h-9 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-r-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">{t('myStore.slugHint')}</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">{tcom('description')}</Label>
-              <Textarea className="text-sm resize-none" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('myStore.descriptionPlaceholder')} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('myStore.primaryLanguage')}</Label>
-              <SearchableSelect value={primaryLocale} onChange={setPrimaryLocale} options={LOCALES} placeholder={t('myStore.selectLanguage')} />
-            </div>
-
-            {/* Store type — chosen once at creation, immutable afterwards */}
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('myStore.storeTypeLabel')}</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label={t('myStore.storeTypeLabel')}>
-                {([
-                  {
-                    value: 'MARKETPLACE' as StoreType,
-                    icon: <StoreIcon className="size-4" />,
-                    title: t('myStore.storeTypeMarketplace'),
-                    desc: t('myStore.storeTypeMarketplaceDesc'),
-                  },
-                  {
-                    value: 'INDEPENDENT' as StoreType,
-                    icon: <Wallet className="size-4" />,
-                    title: t('myStore.storeTypeIndependent'),
-                    desc: t('myStore.storeTypeIndependentDesc'),
-                  },
-                ]).map((opt) => {
-                  const selected = storeType === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setStoreType(opt.value)}
-                      className={`rounded-lg border p-3 text-start transition ${
-                        selected
-                          ? 'border-zinc-900 ring-1 ring-zinc-900 bg-zinc-50'
-                          : 'border-zinc-200 hover:border-zinc-400'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={selected ? 'text-zinc-900' : 'text-zinc-500'}>{opt.icon}</span>
-                        <span className="text-sm font-medium">{opt.title}</span>
-                        {selected && <Check className="size-3.5 ms-auto text-zinc-900" />}
-                      </div>
-                      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{opt.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[11px] text-muted-foreground">{t('myStore.storeTypeHint')}</p>
-            </div>
-
-            {error && <p className="text-xs text-red-600">{error}</p>}
-
-            <div className="pt-2">
-              <Button type="submit" size="sm" disabled={submitting}>
-                {submitting ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {t('myStore.creating')}</> : t('myStore.createStore')}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
     </div>
   );
 }

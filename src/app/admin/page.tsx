@@ -11,6 +11,7 @@ import { Users, Store, Package, DollarSign } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { countPendingReviewStores } from '@/lib/adminStores.api';
 
 interface DashboardStats {
   totalUsers: number;
@@ -43,6 +44,7 @@ export default function AdminOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
   const [platformSummary, setPlatformSummary] = useState<PlatformSummary | null>(null);
+  const [pendingStores, setPendingStores] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,11 +54,13 @@ export default function AdminOverview() {
       api<DashboardStats>('/admin/users/stats', { token }),
       api<RecentUser[]>('/admin/users/recent', { token }),
       api<PlatformSummary>('/commissions/platform', { token }).catch(() => null),
+      countPendingReviewStores(token).catch(() => 0),
     ])
-      .then(([s, users, comm]) => {
+      .then(([s, users, comm, stores]) => {
         setStats(s);
         setRecentUsers(Array.isArray(users) ? users : []);
         setPlatformSummary(comm);
+        setPendingStores(stores);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -94,19 +98,21 @@ export default function AdminOverview() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">{t('pendingApprovals')}</CardTitle>
               <Badge variant="destructive" className="text-[10px]">
-                {(stats?.pendingProviders ?? 0) + (stats?.pendingCreators ?? 0)}
+                {pendingStores + (stats?.pendingProviders ?? 0)}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <button onClick={() => router.push('/admin/providers')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-left">
+              {/* Stores waiting for a go-live review (SPEC §3). */}
+              <button onClick={() => router.push('/admin/stores?status=PENDING_REVIEW')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-start">
+                <span className="text-sm text-muted-foreground">{t('storesPendingReview')}</span>
+                <Badge variant="secondary">{pendingStores}</Badge>
+              </button>
+              {/* Suppliers whose products stay hidden until verified (SPEC §4). */}
+              <button onClick={() => router.push('/admin/providers')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-start">
                 <span className="text-sm text-muted-foreground">{t('providerApplications')}</span>
                 <Badge variant="secondary">{stats?.pendingProviders ?? 0}</Badge>
-              </button>
-              <button onClick={() => router.push('/admin/creators')} className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-50 transition text-left">
-                <span className="text-sm text-muted-foreground">{t('creatorApplications')}</span>
-                <Badge variant="secondary">{stats?.pendingCreators ?? 0}</Badge>
               </button>
             </div>
           </CardContent>

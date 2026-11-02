@@ -14,6 +14,8 @@ import { countryName, taxCountryOptions } from '@/lib/taxCountries';
 import { localizedTaxText, type MyTaxSettings, type TaxBasis, type TaxPricingMode } from '@/lib/taxRate';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TraderDetailsForm } from '@/components/creator/TraderDetailsForm';
+import { SetupGuideToggle } from '@/components/creator/SetupGuideToggle';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -138,7 +140,7 @@ export default function CreatorSettingsPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const wanted = params.get('tab');
-    if (wanted && ['account', 'store', 'taxes', 'payments', 'security'].includes(wanted)) {
+    if (wanted && ['account', 'store', 'business', 'taxes', 'payments', 'security'].includes(wanted)) {
       setSettingsTab(wanted);
     } else if ([...params.keys()].some((k) => k.toLowerCase().includes('stripe'))) {
       setSettingsTab('payments');
@@ -668,6 +670,9 @@ export default function CreatorSettingsPage() {
           <TabsTrigger value="store" className="flex-none px-3">
             {t('settings.tabs.store')}
           </TabsTrigger>
+          <TabsTrigger value="business" className="flex-none px-3">
+            {t('settings.tabs.business')}
+          </TabsTrigger>
           <TabsTrigger value="taxes" className="flex-none px-3">
             {t('settings.tabs.taxes')}
           </TabsTrigger>
@@ -680,6 +685,8 @@ export default function CreatorSettingsPage() {
         </TabsList>
 
       <TabsContent value="account" className="max-w-2xl space-y-4 pt-4">
+        {/* Reopens the dashboard-home setup checklist after it was dismissed. */}
+        <SetupGuideToggle />
         {/* Account Info card */}
         <Card className="shadow-none">
           <CardHeader className="pb-2">
@@ -1073,6 +1080,11 @@ export default function CreatorSettingsPage() {
             onSaved={(settings: TrackingSettings) => setStore((s) => (s ? { ...s, ...settings } : s))}
           />
         )}
+      </TabsContent>
+
+      <TabsContent value="business" className="max-w-2xl space-y-4 pt-4">
+        {/* Legal trader details: required before the store can go live. */}
+        <TraderDetailsForm />
       </TabsContent>
 
       <TabsContent value="taxes" className="max-w-2xl space-y-4 pt-4">

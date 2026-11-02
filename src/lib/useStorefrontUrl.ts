@@ -2,15 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { GoLiveChecklist, StoreStatus, TraderDetails } from '@/lib/storeStatus';
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
 /** The slice of `GET /stores/my/store` the storefront link helpers read. */
 export interface MyStoreSummary {
+  id?: string;
   slug: string;
   name: string;
   is_active: boolean;
+  store_type?: 'MARKETPLACE' | 'INDEPENDENT';
+  /** Lifecycle state (SPEC §3); older API builds omit it (treated as LIVE/PAUSED by is_active). */
+  status?: StoreStatus;
+  status_reason?: string | null;
+  trader_details?: TraderDetails | null;
+  golive_requested_at?: string | null;
+  went_live_at?: string | null;
+  golive_checklist?: GoLiveChecklist | null;
+  created_at?: string;
   custom_domain?: string | null;
   /** Canonical public host (default market's primary domain, else custom_domain); null = platform subdomain. */
   public_host?: string | null;
@@ -33,15 +44,38 @@ export function fetchMyStore(token: string): Promise<MyStoreSummary> {
   const promise = api<MyStoreSummary>('/stores/my/store', { token });
   const entry = { token, at: Date.now(), promise };
   cached = entry;
-  promise.catch(() => {
+  promise.catch((err: unknown) => {
+    // "No store yet" (404) is a stable answer during onboarding: keep it for
+    // the TTL so the layout, header and pages share one request. Other
+    // failures are retried on the next call.
+    if (err instanceof ApiError && err.status === 404) return;
     if (cached === entry) cached = null;
   });
   return promise;
 }
 
-/** Drops the cached store (call after changing the slug / custom domain). */
+/** Effective lifecycle status; API builds without `status` derive it from `is_active`. */
+export function effectiveStoreStatus(store: Pick<MyStoreSummary, 'status' | 'is_active'>): StoreStatus {
+  return store.status ?? (store.is_active ? 'LIVE' : 'PAUSED');
+}
+
+// Mounted `useMyStore` hooks (creator layout, home, settings) reload when the
+// cache is dropped, so creating the store or changing its status is seen by
+// every subscriber at once instead of only by the component that did it.
+const invalidationListeners = new Set<() => void>();
+
+/** Runs `listener` after every `invalidateMyStore()`; returns the unsubscribe. */
+export function subscribeMyStoreInvalidation(listener: () => void): () => void {
+  invalidationListeners.add(listener);
+  return () => {
+    invalidationListeners.delete(listener);
+  };
+}
+
+/** Drops the cached store (call after creating it or changing slug / domain / status). */
 export function invalidateMyStore(): void {
   cached = null;
+  for (const listener of invalidationListeners) listener();
 }
 
 /**

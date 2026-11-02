@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
+import { countPendingReviewStores } from '@/lib/adminStores.api';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import type { ShellNav } from '@/components/layout/nav-types';
 import { useAuth } from '@/lib/auth';
@@ -19,12 +21,23 @@ import {
   BookOpen,
   DatabaseBackup,
   Blocks,
+  Store,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const platformName = usePlatformName();
   const t = useTranslations('nav');
+  // Stores waiting for a go-live review (badge on the Stores entry).
+  const [pendingStores, setPendingStores] = useState<number>(0);
+  useEffect(() => {
+    if (!token) return;
+    const ac = new AbortController();
+    countPendingReviewStores(token, ac.signal)
+      .then((n) => { if (!ac.signal.aborted) setPendingStores(n); })
+      .catch(() => undefined);
+    return () => ac.abort();
+  }, [token]);
 
   const nav: ShellNav = {
     groups: [
@@ -34,6 +47,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           { label: t('home'), href: '/admin', icon: <Home className="w-4 h-4" />, exact: true },
           { label: t('orders'), href: '/admin/orders', icon: <ClipboardList className="w-4 h-4" /> },
           { label: t('customers'), href: '/admin/customers', icon: <UserRound className="w-4 h-4" /> },
+          // Store queue: go-live reviews, pause / suspend (SPEC §3).
+          {
+            label: t('stores'),
+            href: '/admin/stores',
+            icon: <Store className="w-4 h-4" />,
+            badge: pendingStores > 0 ? pendingStores : undefined,
+          },
           {
             label: t('products'),
             href: '/admin/products',

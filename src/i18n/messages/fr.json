@@ -690,11 +690,11 @@
     "noMinimum": "Aucun minimum",
     "leaveBlankAnyAmount": "Laisser vide pour autoriser tout montant.",
     "registrationApprovals": "Approbations d'inscription",
-    "registrationApprovalsHint": "Lorsque cette option est activée, les nouvelles inscriptions nécessitent une approbation manuelle de l'admin avant l'activation du compte.",
+    "registrationApprovalsHint": "Détermine ce qui se passe à l’inscription d’un fournisseur et lorsqu’un propriétaire de boutique demande la mise en ligne.",
     "providerApprovalRequired": "Approbation du fournisseur requise",
-    "providerApprovalHint": "Les nouveaux fournisseurs doivent être vérifiés par l'admin avant d'ajouter des produits",
+    "providerApprovalHint": "Les produits des fournisseurs sont masqués du catalogue jusqu’à la vérification du fournisseur.",
     "creatorApprovalRequired": "Approbation du créateur requise",
-    "creatorApprovalHint": "Les nouveaux créateurs doivent être vérifiés par l'admin avant d'ouvrir leur boutique",
+    "creatorApprovalHint": "Examiner manuellement chaque demande de mise en ligne ; désactivé, les boutiques dont les informations passent les contrôles sont mises en ligne automatiquement.",
     "settingsSavedSuccessfully": "Paramètres enregistrés avec succès !",
     "paymentsStripe": "Paiements (Stripe)",
     "paymentsStripeSubtitle": "Le compte Stripe de la plateforme utilisé pour encaisser les paiements et répartir les versements aux créateurs.",
@@ -845,7 +845,69 @@
     "customersCreateLink": "Ouvrir Clients",
     "resetTwoFactor": "Réinitialiser l'authentification à deux facteurs",
     "twoFactorResetConfirm": "Désactiver l'authentification à deux facteurs de ce compte (téléphone et codes de récupération perdus). Confirmez avec votre propre mot de passe et votre code.",
-    "twoFactorResetDone": "L'authentification à deux facteurs a été désactivée pour ce compte"
+    "twoFactorResetDone": "L'authentification à deux facteurs a été désactivée pour ce compte",
+    "storesPendingReview": "Boutiques en attente d’examen de mise en ligne",
+    "storesQueue": {
+      "title": "Boutiques",
+      "subtitle": "Examens de mise en ligne, pauses et suspensions pour chaque boutique de la plateforme.",
+      "pendingReview": "En attente d’examen",
+      "allStatuses": "Tous les états",
+      "status": {
+        "DRAFT": "Brouillon",
+        "PENDING_REVIEW": "En cours d’examen",
+        "CHANGES_REQUESTED": "Modifications demandées",
+        "LIVE": "En ligne",
+        "PAUSED": "En pause",
+        "SUSPENDED": "Suspendue"
+      },
+      "cols": {
+        "store": "Boutique",
+        "owner": "Propriétaire",
+        "checklist": "Liste de contrôle",
+        "created": "Créée le",
+        "requested": "Mise en ligne demandée"
+      },
+      "check": {
+        "verified": "E-mail vérifié",
+        "trader": "Informations entreprise",
+        "product": "Produit publié"
+      },
+      "actions": {
+        "approve": "Approuver",
+        "requestChanges": "Demander des modifications",
+        "pause": "Mettre en pause",
+        "resume": "Reprendre",
+        "suspend": "Suspendre",
+        "openCreator": "Ouvrir la page du créateur",
+        "openStorefront": "Ouvrir la vitrine"
+      },
+      "dialog": {
+        "approveTitle": "Mettre cette boutique en ligne ?",
+        "resumeTitle": "Reprendre cette boutique ?",
+        "approveBody": "« {store} » devient publique immédiatement et le propriétaire est averti par e-mail.",
+        "changesTitle": "Demander des modifications",
+        "changesBody": "« {store} » reste privée ; le propriétaire reçoit votre motif par e-mail et peut soumettre à nouveau.",
+        "suspendTitle": "Suspendre cette boutique ?",
+        "suspendBody": "« {store} » est mise hors ligne (les visiteurs obtiennent une 404) et le propriétaire est averti avec votre motif.",
+        "pauseTitle": "Mettre cette boutique en pause ?",
+        "pauseBody": "Les visiteurs de « {store} » voient une page « temporairement fermée » jusqu’à la reprise."
+      },
+      "reason": "Motif",
+      "reasonRequired": "Veuillez saisir un motif.",
+      "reasonPlaceholderChanges": "Que doit corriger le propriétaire avant la mise en ligne ?",
+      "reasonPlaceholderSuspend": "Pourquoi cette boutique est-elle suspendue ?",
+      "reasonHint": "Envoyé au propriétaire par e-mail et affiché dans son tableau de bord.",
+      "confirm": {
+        "LIVE": "Mettre en ligne",
+        "CHANGES_REQUESTED": "Envoyer la demande",
+        "SUSPENDED": "Suspendre la boutique",
+        "PAUSED": "Mettre en pause"
+      },
+      "searchPlaceholder": "Rechercher par boutique, slug ou e-mail du propriétaire",
+      "emptyPending": "Aucune boutique en attente d’examen.",
+      "empty": "Aucune boutique ne correspond à ces filtres.",
+      "retry": "Réessayer"
+    }
   },
   "guide": {
     "title": "Guide des opérations",
@@ -1225,7 +1287,11 @@
     "rejectionReasonPlaceholder": "p. ex. L'image que vous avez téléversée utilise une œuvre protégée par le droit d'auteur sans autorisation...",
     "rejectionNote": "Le créateur verra ce message et pourra réviser le produit.",
     "rejecting": "Rejet...",
-    "sendRejection": "Envoyer le rejet"
+    "sendRejection": "Envoyer le rejet",
+    "unverified": {
+      "title": "Vos produits restent masqués pour les boutiques jusqu’à la vérification de votre compte par un administrateur",
+      "body": "Les propriétaires de boutiques ne peuvent pas encore voir ni importer votre catalogue. Vous recevrez un e-mail dès que votre compte sera vérifié."
+    }
   },
   "creator": {
     "overview": {
@@ -1337,13 +1403,21 @@
         "done": "terminé",
         "todo": "à faire",
         "items": {
-          "has_products": "Ajoutez votre premier produit",
-          "has_logo": "Importez votre logo",
-          "has_payment": "Configurez les paiements",
-          "has_shipping": "Configurez la livraison",
-          "has_published_theme": "Publiez un thème",
-          "has_domain": "Connectez votre domaine"
-        }
+          "verify_email": "Vérifiez votre e-mail",
+          "create_store": "Créez votre boutique",
+          "first_product": "Ajoutez votre premier produit",
+          "theme": "Choisissez un thème et modifiez votre page d’accueil",
+          "shipping": "Configurez la livraison",
+          "payments": "Configurez les paiements",
+          "trader_details": "Informations de l’entreprise et pages légales",
+          "preview": "Prévisualisez votre boutique",
+          "request_golive": "Demandez la mise en ligne"
+        },
+        "nextUp": "Ensuite : {step}",
+        "dismissHint": "Vous pourrez le rouvrir depuis les Paramètres",
+        "required": "Requis",
+        "hiddenHint": "Le guide de configuration de votre page d’accueil est masqué.",
+        "show": "Afficher le guide de configuration"
       },
       "recentOrdersTitle": "Commandes récentes"
     },
@@ -1426,7 +1500,10 @@
       "productionNotStarted": "Non commencée",
       "productionReady": "Production terminée",
       "tabManufacturing": "En fabrication",
-      "tabQualityCheck": "Contrôle qualité"
+      "tabQualityCheck": "Contrôle qualité",
+      "emptyTitle": "Aucune commande pour le moment",
+      "emptyHint": "Les commandes apparaîtront ici dès qu’un client passera en caisse. Ajoutez des produits et partagez votre boutique pour commencer.",
+      "emptyCta": "Ajouter un produit"
     },
     "products": {
       "title": "Produits",
@@ -2275,7 +2352,17 @@
       "primaryNameRequired": "Veuillez saisir un nom de boutique dans votre langue principale avant d'enregistrer.",
       "saveFailed": "Impossible d'enregistrer vos modifications. Veuillez réessayer.",
       "translateFailed": "La traduction automatique a échoué. Veuillez réessayer ou remplir les champs manuellement.",
-      "failedCreateStore": "Échec de la création de la boutique"
+      "failedCreateStore": "Échec de la création de la boutique",
+      "slugChecking": "Vérification de la disponibilité…",
+      "slugAvailable": "Cette adresse est disponible",
+      "slugTaken": "Cette adresse est déjà prise",
+      "slugReserved": "Cette adresse est réservée — choisissez-en une autre",
+      "pauseStore": "Boutique en ligne",
+      "pauseStoreDesc": "Désactivez pour mettre la boutique en pause : les visiteurs verront une page « temporairement fermée ».",
+      "resumeStore": "Boutique en pause",
+      "resumeStoreDesc": "Activez pour rendre votre boutique à nouveau publique.",
+      "notLiveHint": "Votre boutique n’est pas encore publique. Demandez la mise en ligne depuis l’accueil du tableau de bord.",
+      "goToStatus": "Voir l’état de la boutique"
     },
     "settings": {
       "title": "Paramètres",
@@ -2427,7 +2514,8 @@
         "store": "Boutique",
         "taxes": "Taxes",
         "payments": "Paiements",
-        "security": "Sécurité"
+        "security": "Sécurité",
+        "business": "Entreprise"
       },
       "checkout": {
         "title": "Comportement du paiement",
@@ -5179,6 +5267,127 @@
         "CUSTOMER_BANNED_BY_ADMIN": "Ce client a été banni par la plateforme. Seule la plateforme peut modifier ce statut.",
         "STORE_DAILY_EMAIL_LIMIT": "Votre boutique a atteint sa limite quotidienne pour ce type d’e-mail. Réessayez demain."
       }
+    },
+    "storeStatus": {
+      "labels": {
+        "DRAFT": "Brouillon",
+        "PENDING_REVIEW": "En cours d’examen",
+        "CHANGES_REQUESTED": "Modifications demandées",
+        "LIVE": "En ligne",
+        "PAUSED": "En pause",
+        "SUSPENDED": "Suspendue"
+      },
+      "title": {
+        "DRAFT": "Votre boutique n’est pas encore publique",
+        "PENDING_REVIEW": "Votre boutique est en cours d’examen",
+        "CHANGES_REQUESTED": "Modifications demandées avant la mise en ligne",
+        "LIVE": "Votre boutique est en ligne",
+        "PAUSED": "Votre boutique est en pause",
+        "SUSPENDED": "Votre boutique est suspendue"
+      },
+      "body": {
+        "DRAFT": "Vous seul pouvez la voir. Prévisualisez-la, terminez les étapes requises, puis demandez la mise en ligne.",
+        "PENDING_REVIEW": "Nous examinons généralement les boutiques sous 1 jour ouvré. Vous pouvez continuer à modifier entre-temps.",
+        "PENDING_REVIEW_dated": "Demande envoyée le {date}. Nous examinons généralement les boutiques sous 1 jour ouvré — vous pouvez continuer à modifier entre-temps.",
+        "CHANGES_REQUESTED": "Corrigez les points ci-dessous puis soumettez à nouveau votre boutique.",
+        "LIVE": "Les clients peuvent acheter à votre adresse publique. Partagez-la pour obtenir vos premières commandes.",
+        "LIVE_dated": "En ligne depuis le {date}. Les clients peuvent acheter à votre adresse publique — partagez-la pour obtenir vos premières commandes.",
+        "PAUSED": "Les visiteurs voient une page « temporairement fermée ». Reprenez quand vous êtes prêt.",
+        "SUSPENDED": "La boutique a été mise hors ligne par la plateforme. Contactez le support pour en savoir plus."
+      },
+      "reason": "Motif",
+      "blockingTitle": "Avant de pouvoir demander la mise en ligne :",
+      "blocking": {
+        "email_verified": "Vérifiez votre adresse e-mail",
+        "trader_details_complete": "Complétez les informations de votre entreprise",
+        "has_published_product": "Publiez au moins un produit",
+        "has_published_theme": "Choisissez un thème",
+        "payments_ready": "Configurez les paiements",
+        "legal_pages_published": "Publiez vos pages légales"
+      },
+      "checklistUnavailable": "Liste de contrôle indisponible pour le moment — rechargez la page.",
+      "copyUrl": "Copier le lien",
+      "copied": "Copié",
+      "preview": "Prévisualiser la boutique",
+      "requestGoLive": "Demander la mise en ligne",
+      "resubmit": "Soumettre à nouveau",
+      "openStore": "Ouvrir la boutique",
+      "resume": "Reprendre la boutique",
+      "nowLive": "Félicitations — votre boutique est en ligne !",
+      "submitted": "Merci ! Votre boutique est maintenant en cours d’examen."
+    },
+    "onboarding": {
+      "stepsLabel": "Étapes de configuration",
+      "steps": {
+        "survey": "À propos de vous",
+        "store": "Votre boutique"
+      },
+      "welcome": "Bienvenue, {name} !",
+      "welcomeHint": "Deux questions rapides pour adapter votre configuration — vous pouvez les passer.",
+      "stage": {
+        "label": "Où en êtes-vous aujourd’hui ?",
+        "starting": "Je débute",
+        "selling_online": "Je vends déjà en ligne",
+        "physical_shop": "J’ai une boutique physique",
+        "agency": "Je crée des boutiques pour des clients"
+      },
+      "sells": {
+        "label": "Que vendrez-vous ?",
+        "own": "Mes propres produits",
+        "suppliers": "Des produits de fournisseurs",
+        "both": "Les deux",
+        "hint": "Vendre des produits de fournisseurs nécessite une boutique marketplace ; nous présélectionnerons le bon type."
+      },
+      "country": "Pays",
+      "skip": "Passer",
+      "continue": "Continuer",
+      "createTitle": "Créez votre boutique",
+      "createHint": "Le nom, l’adresse et la langue peuvent être modifiés plus tard ; pas le type de boutique.",
+      "afterCreate": "Vous arriverez ensuite sur votre tableau de bord avec une liste de configuration.",
+      "backToSurvey": "Retour"
+    },
+    "traderDetails": {
+      "title": "Informations de l’entreprise",
+      "subtitle": "Identité légale du vendeur affichée dans le pied de page de votre boutique et requise avant la mise en ligne (loi suédoise sur le commerce électronique).",
+      "complete": "Complet",
+      "saved": "Informations de l’entreprise enregistrées.",
+      "fixFields": "Veuillez vérifier les champs en surbrillance.",
+      "fields": {
+        "legal_name": "Raison sociale",
+        "business_type": "Type d’entreprise",
+        "org_number": "Numéro d’organisation / personnel",
+        "vat_number": "Numéro de TVA",
+        "address_line1": "Adresse",
+        "address_line2": "Complément d’adresse",
+        "postal_code": "Code postal",
+        "city": "Ville",
+        "country": "Pays",
+        "phone": "Téléphone",
+        "support_email": "E-mail du support"
+      },
+      "businessType": {
+        "company": "Entreprise",
+        "companyDesc": "Société enregistrée (AB, HB, entreprise individuelle, …)",
+        "private": "Particulier",
+        "privateDesc": "Vente en tant que particulier"
+      },
+      "orgNumberHintSe": "10 chiffres, ex. 556016-0680 (la somme de contrôle suédoise est vérifiée).",
+      "vatHint": "Facultatif. Code pays suivi du numéro, ex. SE556016068001.",
+      "supportEmailHint": "Affiché aux clients pour les questions et les retours.",
+      "footerNote": "Les champs marqués * sont obligatoires.",
+      "errors": {
+        "generic": "Veuillez vérifier ce champ.",
+        "legal_name": "Saisissez la raison sociale.",
+        "business_type": "Choisissez un type d’entreprise.",
+        "org_number": "Saisissez un numéro d’organisation ou personnel valide.",
+        "vat_number": "Format du numéro de TVA : 2 lettres + 2 à 12 caractères.",
+        "address_line1": "Saisissez l’adresse.",
+        "postal_code": "Saisissez le code postal.",
+        "city": "Saisissez la ville.",
+        "country": "Choisissez un pays.",
+        "phone": "Saisissez un numéro de téléphone valide.",
+        "support_email": "Saisissez une adresse e-mail valide."
+      }
     }
   },
   "components": {
@@ -5664,7 +5873,20 @@
     "REAUTH_REQUIRED": "Saisissez votre mot de passe actuel pour confirmer cette modification.",
     "REAUTH_PASSWORD_INVALID": "Le mot de passe est incorrect.",
     "REAUTH_2FA_REQUIRED": "Activez la validation en deux étapes avant de modifier les clés de paiement de la plateforme.",
-    "TWO_FACTOR_RESET_SELF": "Utilisez vos codes de récupération pour réinitialiser votre propre authentification à deux facteurs."
+    "TWO_FACTOR_RESET_SELF": "Utilisez vos codes de récupération pour réinitialiser votre propre authentification à deux facteurs.",
+    "AUTH_TERMS_REQUIRED": "Veuillez accepter les conditions et la politique de confidentialité pour continuer.",
+    "AUTH_EMAIL_DISPOSABLE": "Les adresses e-mail temporaires ne sont pas acceptées. Utilisez une adresse permanente.",
+    "EMAIL_VERIFY_INVALID": "Ce lien de vérification est invalide, expiré ou déjà utilisé. Connectez-vous et demandez-en un nouveau.",
+    "ACCOUNT_EMAIL_UNVERIFIED": "Vérifiez votre adresse e-mail pour effectuer cette action. Le lien de vérification se trouve dans votre boîte de réception.",
+    "ACCOUNT_EMAIL_UNVERIFIED_EXPIRED": "Votre compte est verrouillé jusqu’à la vérification de votre e-mail. Renvoyez l’e-mail de vérification depuis le bandeau ci-dessus.",
+    "AUTH_RESEND_RATE_LIMITED": "Trop d’e-mails de vérification. Réessayez dans une heure.",
+    "AUTH_ALREADY_VERIFIED": "Cette adresse e-mail est déjà vérifiée. Rechargez la page.",
+    "STORE_SLUG_RESERVED": "Cette adresse de boutique est réservée. Veuillez en choisir une autre.",
+    "STORE_GOLIVE_NOT_READY": "Terminez les étapes de configuration requises avant de demander la mise en ligne.",
+    "STORE_STATUS_TRANSITION": "Ce changement n’est pas autorisé dans l’état actuel de la boutique.",
+    "STORE_NOT_LIVE": "La boutique n’est pas encore publique.",
+    "TRADER_DETAILS_INVALID": "Certaines informations de l’entreprise sont manquantes ou invalides.",
+    "STORE_STATUS_REASON_REQUIRED": "Un motif est requis pour cet état."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -6940,6 +7162,36 @@
       "useApp": "Utiliser l’application d’authentification",
       "locked": "Trop de codes incorrects. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
       "networkError": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez."
+    },
+    "verify": {
+      "verifying": "Vérification de votre e-mail…",
+      "verifyingHint": "Nous vérifions votre lien. Cela ne prend qu’un instant.",
+      "successTitle": "E-mail vérifié",
+      "successBody": "Merci ! Votre adresse est confirmée et vous êtes en cours de connexion.",
+      "invalidTitle": "Ce lien de vérification a expiré ou a déjà été utilisé",
+      "invalidBody": "Pour votre sécurité, chaque lien ne fonctionne qu’une seule fois et pendant 24 heures.",
+      "resendHint": "Connectez-vous avec votre e-mail et votre mot de passe, puis utilisez « Renvoyer » dans le bandeau pour obtenir un nouveau lien.",
+      "networkTitle": "Serveur injoignable",
+      "networkBody": "Vérifiez votre connexion Internet et réessayez.",
+      "errorTitle": "Une erreur s’est produite",
+      "errorBody": "Impossible de vérifier votre e-mail pour le moment. Réessayez dans un instant.",
+      "retry": "Réessayer",
+      "goToLogin": "Aller à la connexion"
+    },
+    "unverified": {
+      "title": "Vérifiez votre e-mail pour publier votre boutique",
+      "titleProvider": "Vérifiez votre e-mail pour conserver l’accès complet",
+      "expiredTitle": "Votre compte est verrouillé jusqu’à la vérification de votre e-mail",
+      "daysLeft": "{days, plural, one {# jour restant.} other {# jours restants.}}",
+      "sentTo": "Nous avons envoyé le lien à {email}.",
+      "resent": "Un nouvel e-mail de vérification est en route.",
+      "resend": "Renvoyer l’e-mail",
+      "throttled": "Trop de demandes. Patientez un moment avant d’envoyer un autre e-mail.",
+      "dialogTitle": "Vérifiez d’abord votre e-mail",
+      "dialogBody": "Cette action nécessite une adresse e-mail vérifiée. Ouvrez le lien de l’e-mail de vérification ou envoyez-en un nouveau.",
+      "dialogExpiredTitle": "Votre compte est verrouillé",
+      "dialogExpiredBody": "Le délai de grâce de 7 jours est terminé. Vérifiez votre adresse e-mail pour déverrouiller votre compte.",
+      "later": "Plus tard"
     }
   },
   "security": {

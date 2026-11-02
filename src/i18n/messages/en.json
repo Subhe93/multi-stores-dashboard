@@ -690,11 +690,11 @@
     "noMinimum": "No minimum",
     "leaveBlankAnyAmount": "Leave blank to allow any amount.",
     "registrationApprovals": "Registration Approvals",
-    "registrationApprovalsHint": "When enabled, new registrations require manual admin approval before the account is activated.",
+    "registrationApprovalsHint": "Controls what happens when a supplier signs up and when a store owner requests go-live.",
     "providerApprovalRequired": "Provider Approval Required",
-    "providerApprovalHint": "New Providers must be verified by admin before adding products",
+    "providerApprovalHint": "Supplier products are hidden from the catalog until the supplier is verified.",
     "creatorApprovalRequired": "Creator Approval Required",
-    "creatorApprovalHint": "New Creators must be verified by admin before opening their store",
+    "creatorApprovalHint": "Review every go-live request manually; when off, stores whose details pass the checks go live automatically.",
     "settingsSavedSuccessfully": "Settings saved successfully!",
     "paymentsStripe": "Payments (Stripe)",
     "paymentsStripeSubtitle": "The platform Stripe account used to collect payments and split payouts to creators.",
@@ -845,7 +845,69 @@
     "customersCreateLink": "Open Customers",
     "resetTwoFactor": "Reset two-factor authentication",
     "twoFactorResetConfirm": "Turn off this account's two-factor authentication (for a lost phone and lost recovery codes). Confirm with your own password and code.",
-    "twoFactorResetDone": "Two-factor authentication was turned off for this account"
+    "twoFactorResetDone": "Two-factor authentication was turned off for this account",
+    "storesPendingReview": "Stores awaiting go-live review",
+    "storesQueue": {
+      "title": "Stores",
+      "subtitle": "Go-live reviews, pauses and suspensions for every store on the platform.",
+      "pendingReview": "Pending review",
+      "allStatuses": "All statuses",
+      "status": {
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Under review",
+        "CHANGES_REQUESTED": "Changes requested",
+        "LIVE": "Live",
+        "PAUSED": "Paused",
+        "SUSPENDED": "Suspended"
+      },
+      "cols": {
+        "store": "Store",
+        "owner": "Owner",
+        "checklist": "Checklist",
+        "created": "Created",
+        "requested": "Go-live requested"
+      },
+      "check": {
+        "verified": "Email verified",
+        "trader": "Business details",
+        "product": "Published product"
+      },
+      "actions": {
+        "approve": "Approve",
+        "requestChanges": "Request changes",
+        "pause": "Pause",
+        "resume": "Resume",
+        "suspend": "Suspend",
+        "openCreator": "Open creator page",
+        "openStorefront": "Open storefront"
+      },
+      "dialog": {
+        "approveTitle": "Make this store live?",
+        "resumeTitle": "Resume this store?",
+        "approveBody": "“{store}” becomes public immediately and the owner is notified by email.",
+        "changesTitle": "Request changes",
+        "changesBody": "“{store}” stays private; the owner receives your reason by email and can resubmit.",
+        "suspendTitle": "Suspend this store?",
+        "suspendBody": "“{store}” is taken offline (visitors get a 404) and the owner is notified with your reason.",
+        "pauseTitle": "Pause this store?",
+        "pauseBody": "Visitors of “{store}” see a “temporarily closed” page until it is resumed."
+      },
+      "reason": "Reason",
+      "reasonRequired": "Please enter a reason.",
+      "reasonPlaceholderChanges": "What should the owner fix before the store can go live?",
+      "reasonPlaceholderSuspend": "Why is this store being suspended?",
+      "reasonHint": "Sent to the owner by email and shown in their dashboard.",
+      "confirm": {
+        "LIVE": "Set live",
+        "CHANGES_REQUESTED": "Send request",
+        "SUSPENDED": "Suspend store",
+        "PAUSED": "Pause store"
+      },
+      "searchPlaceholder": "Search by store, slug or owner email",
+      "emptyPending": "No stores are waiting for review.",
+      "empty": "No stores match these filters.",
+      "retry": "Try again"
+    }
   },
   "guide": {
     "title": "Operations guide",
@@ -1225,7 +1287,11 @@
     "rejectionReasonPlaceholder": "e.g. The image you uploaded uses copyrighted artwork without permission...",
     "rejectionNote": "The creator will see this message and can revise the product.",
     "rejecting": "Rejecting...",
-    "sendRejection": "Send rejection"
+    "sendRejection": "Send rejection",
+    "unverified": {
+      "title": "Your products stay hidden from stores until an admin verifies your account",
+      "body": "Store owners can’t see or import your catalog yet. You’ll get an email as soon as your account is verified."
+    }
   },
   "creator": {
     "overview": {
@@ -1337,13 +1403,21 @@
         "done": "done",
         "todo": "not done",
         "items": {
-          "has_products": "Add your first product",
-          "has_logo": "Upload your logo",
-          "has_payment": "Set up payments",
-          "has_shipping": "Set up shipping",
-          "has_published_theme": "Publish a theme",
-          "has_domain": "Connect your domain"
-        }
+          "verify_email": "Verify your email",
+          "create_store": "Create your store",
+          "first_product": "Add your first product",
+          "theme": "Choose a theme & edit your home page",
+          "shipping": "Set up shipping",
+          "payments": "Set up payments",
+          "trader_details": "Business details & legal pages",
+          "preview": "Preview your store",
+          "request_golive": "Request go-live"
+        },
+        "nextUp": "Next: {step}",
+        "dismissHint": "You can reopen it from Settings",
+        "required": "Required",
+        "hiddenHint": "The setup guide on your home page is hidden.",
+        "show": "Show setup guide"
       },
       "recentOrdersTitle": "Recent orders"
     },
@@ -1426,7 +1500,10 @@
       "productionNotStarted": "Not started",
       "productionReady": "Production ready",
       "tabManufacturing": "Manufacturing",
-      "tabQualityCheck": "Quality check"
+      "tabQualityCheck": "Quality check",
+      "emptyTitle": "No orders yet",
+      "emptyHint": "Orders appear here as soon as a customer checks out. Add products and share your store to get started.",
+      "emptyCta": "Add a product"
     },
     "products": {
       "title": "Products",
@@ -2275,7 +2352,17 @@
       "primaryNameRequired": "Please enter a store name in your primary language before saving.",
       "saveFailed": "Could not save your changes. Please try again.",
       "translateFailed": "Automatic translation failed. Please try again or fill in the fields manually.",
-      "failedCreateStore": "Failed to create store"
+      "failedCreateStore": "Failed to create store",
+      "slugChecking": "Checking availability…",
+      "slugAvailable": "This address is available",
+      "slugTaken": "This address is already taken",
+      "slugReserved": "This address is reserved — choose another one",
+      "pauseStore": "Store is live",
+      "pauseStoreDesc": "Switch off to pause your store: visitors see a “temporarily closed” page.",
+      "resumeStore": "Store is paused",
+      "resumeStoreDesc": "Switch on to make your store public again.",
+      "notLiveHint": "Your store isn’t public yet. Request go-live from the dashboard home.",
+      "goToStatus": "Go to store status"
     },
     "settings": {
       "title": "Settings",
@@ -2427,7 +2514,8 @@
         "store": "Store",
         "taxes": "Taxes",
         "payments": "Payments",
-        "security": "Security"
+        "security": "Security",
+        "business": "Business details"
       },
       "checkout": {
         "title": "Checkout behaviour",
@@ -5179,6 +5267,127 @@
         "CUSTOMER_BANNED_BY_ADMIN": "This customer was banned by the platform. Only the platform can change this status.",
         "STORE_DAILY_EMAIL_LIMIT": "Your store reached its daily limit for this kind of email. Try again tomorrow."
       }
+    },
+    "storeStatus": {
+      "labels": {
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Under review",
+        "CHANGES_REQUESTED": "Changes requested",
+        "LIVE": "Live",
+        "PAUSED": "Paused",
+        "SUSPENDED": "Suspended"
+      },
+      "title": {
+        "DRAFT": "Your store is not public yet",
+        "PENDING_REVIEW": "Your store is under review",
+        "CHANGES_REQUESTED": "Changes requested before going live",
+        "LIVE": "Your store is live",
+        "PAUSED": "Your store is paused",
+        "SUSPENDED": "Your store is suspended"
+      },
+      "body": {
+        "DRAFT": "Only you can see it. Preview it, finish the required steps, then request go-live.",
+        "PENDING_REVIEW": "We usually review stores within 1 business day. You can keep editing meanwhile.",
+        "PENDING_REVIEW_dated": "Requested on {date}. We usually review stores within 1 business day — you can keep editing meanwhile.",
+        "CHANGES_REQUESTED": "Fix the points below and resubmit your store for review.",
+        "LIVE": "Customers can shop at your public address. Share it to get your first orders.",
+        "LIVE_dated": "Live since {date}. Customers can shop at your public address — share it to get your first orders.",
+        "PAUSED": "Visitors see a “temporarily closed” page. Resume whenever you’re ready.",
+        "SUSPENDED": "The store has been taken offline by the platform. Contact support for details."
+      },
+      "reason": "Reason",
+      "blockingTitle": "Before you can request go-live:",
+      "blocking": {
+        "email_verified": "Verify your email address",
+        "trader_details_complete": "Complete your business details",
+        "has_published_product": "Publish at least one product",
+        "has_published_theme": "Choose a theme",
+        "payments_ready": "Set up payments",
+        "legal_pages_published": "Publish your legal pages"
+      },
+      "checklistUnavailable": "Checklist not available yet — reload the page.",
+      "copyUrl": "Copy link",
+      "copied": "Copied",
+      "preview": "Preview store",
+      "requestGoLive": "Request go-live",
+      "resubmit": "Resubmit for review",
+      "openStore": "Open store",
+      "resume": "Resume store",
+      "nowLive": "Congratulations — your store is live!",
+      "submitted": "Thanks! Your store is now under review."
+    },
+    "onboarding": {
+      "stepsLabel": "Setup steps",
+      "steps": {
+        "survey": "About you",
+        "store": "Your store"
+      },
+      "welcome": "Welcome, {name}!",
+      "welcomeHint": "Two quick questions to tailor your setup — you can skip them.",
+      "stage": {
+        "label": "Where are you today?",
+        "starting": "Just starting out",
+        "selling_online": "Already selling online",
+        "physical_shop": "I run a physical shop",
+        "agency": "I build stores for clients"
+      },
+      "sells": {
+        "label": "What will you sell?",
+        "own": "My own products",
+        "suppliers": "Supplier products",
+        "both": "Both",
+        "hint": "Selling supplier products needs a marketplace store; we’ll pre-select the right type."
+      },
+      "country": "Country",
+      "skip": "Skip",
+      "continue": "Continue",
+      "createTitle": "Create your store",
+      "createHint": "Name, address and language can be changed later; the store type can’t.",
+      "afterCreate": "After this you’ll land on your dashboard with a setup checklist.",
+      "backToSurvey": "Back"
+    },
+    "traderDetails": {
+      "title": "Business details",
+      "subtitle": "Legal seller identity shown in your store footer and required before going live (Swedish e-commerce law).",
+      "complete": "Complete",
+      "saved": "Business details saved.",
+      "fixFields": "Please check the highlighted fields.",
+      "fields": {
+        "legal_name": "Legal name",
+        "business_type": "Business type",
+        "org_number": "Organisation / personal number",
+        "vat_number": "VAT number",
+        "address_line1": "Address",
+        "address_line2": "Address line 2",
+        "postal_code": "Postal code",
+        "city": "City",
+        "country": "Country",
+        "phone": "Phone",
+        "support_email": "Support email"
+      },
+      "businessType": {
+        "company": "Company",
+        "companyDesc": "Registered company (AB, HB, enskild firma, …)",
+        "private": "Private person",
+        "privateDesc": "Selling as an individual"
+      },
+      "orgNumberHintSe": "10 digits, e.g. 556016-0680 (Swedish checksum is validated).",
+      "vatHint": "Optional. Country code followed by the number, e.g. SE556016068001.",
+      "supportEmailHint": "Shown to customers for questions and returns.",
+      "footerNote": "Fields marked * are required.",
+      "errors": {
+        "generic": "Please check this field.",
+        "legal_name": "Enter the legal name.",
+        "business_type": "Choose a business type.",
+        "org_number": "Enter a valid organisation or personal number.",
+        "vat_number": "VAT number format: 2 letters + 2–12 characters.",
+        "address_line1": "Enter the street address.",
+        "postal_code": "Enter the postal code.",
+        "city": "Enter the city.",
+        "country": "Choose a country.",
+        "phone": "Enter a valid phone number.",
+        "support_email": "Enter a valid email address."
+      }
     }
   },
   "components": {
@@ -5664,7 +5873,20 @@
     "REAUTH_REQUIRED": "Enter your current password to confirm this change.",
     "REAUTH_PASSWORD_INVALID": "The password is not correct.",
     "REAUTH_2FA_REQUIRED": "Turn on two-step verification before changing platform payment keys.",
-    "TWO_FACTOR_RESET_SELF": "Use your recovery codes to reset your own two-factor authentication."
+    "TWO_FACTOR_RESET_SELF": "Use your recovery codes to reset your own two-factor authentication.",
+    "AUTH_TERMS_REQUIRED": "Please accept the terms and privacy policy to continue.",
+    "AUTH_EMAIL_DISPOSABLE": "Temporary email addresses can’t be used. Please use a permanent address.",
+    "EMAIL_VERIFY_INVALID": "This verification link is invalid, expired or already used. Sign in and request a new one.",
+    "ACCOUNT_EMAIL_UNVERIFIED": "Verify your email address to do this. Check your inbox for the verification link.",
+    "ACCOUNT_EMAIL_UNVERIFIED_EXPIRED": "Your account is locked until you verify your email address. Resend the verification email from the banner above.",
+    "AUTH_RESEND_RATE_LIMITED": "Too many verification emails. Try again in an hour.",
+    "AUTH_ALREADY_VERIFIED": "This email address is already verified. Reload the page.",
+    "STORE_SLUG_RESERVED": "This store address is reserved. Please choose another one.",
+    "STORE_GOLIVE_NOT_READY": "Complete the required setup steps before requesting go-live.",
+    "STORE_STATUS_TRANSITION": "This change isn’t allowed in the store’s current status.",
+    "STORE_NOT_LIVE": "The store isn’t public yet.",
+    "TRADER_DETAILS_INVALID": "Some business details are missing or invalid.",
+    "STORE_STATUS_REASON_REQUIRED": "A reason is required for this status."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -6940,6 +7162,36 @@
       "useApp": "Use the authenticator app",
       "locked": "Too many incorrect codes. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
       "networkError": "We couldn't reach the server. Check your connection and try again."
+    },
+    "verify": {
+      "verifying": "Verifying your email…",
+      "verifyingHint": "Checking your verification link. This only takes a moment.",
+      "successTitle": "Email verified",
+      "successBody": "Thanks! Your address is confirmed and you are being signed in.",
+      "invalidTitle": "This verification link has expired or was already used",
+      "invalidBody": "For your security, each link works only once and for 24 hours.",
+      "resendHint": "Sign in with your email and password and use “Resend” in the banner to get a new link.",
+      "networkTitle": "Can’t reach the server",
+      "networkBody": "Check your internet connection and try again.",
+      "errorTitle": "Something went wrong",
+      "errorBody": "We couldn’t verify your email right now. Please try again in a moment.",
+      "retry": "Try again",
+      "goToLogin": "Go to login"
+    },
+    "unverified": {
+      "title": "Verify your email to publish your store",
+      "titleProvider": "Verify your email to keep full access",
+      "expiredTitle": "Your account is locked until you verify your email",
+      "daysLeft": "{days, plural, one {# day left.} other {# days left.}}",
+      "sentTo": "We sent the link to {email}.",
+      "resent": "A new verification email is on its way.",
+      "resend": "Resend email",
+      "throttled": "Too many requests. Please wait a while before sending another email.",
+      "dialogTitle": "Verify your email first",
+      "dialogBody": "This action needs a verified email address. Open the link in the verification email or send a new one.",
+      "dialogExpiredTitle": "Your account is locked",
+      "dialogExpiredBody": "The 7-day grace period has ended. Verify your email address to unlock your account.",
+      "later": "Later"
     }
   },
   "security": {

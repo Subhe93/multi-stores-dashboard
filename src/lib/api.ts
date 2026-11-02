@@ -14,6 +14,13 @@ export class ApiError extends Error {
   payload?: Record<string, unknown>;
 }
 
+/**
+ * Window event fired for every ApiError that carries a code, so global UI
+ * (e.g. the "verify your email" dialog) can react without every call site
+ * handling the code itself. Detail: the ApiError.
+ */
+export const API_ERROR_EVENT = 'ms-api-error';
+
 export async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { token, ...fetchOptions } = options;
 
@@ -47,6 +54,9 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
     // translate `errors.<code>`, falling back to the English `message` above.
     err.code = typeof json.code === 'string' ? json.code : undefined;
     err.payload = json && typeof json === 'object' ? json : undefined;
+    if (err.code && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent<ApiError>(API_ERROR_EVENT, { detail: err }));
+    }
     throw err;
   }
 

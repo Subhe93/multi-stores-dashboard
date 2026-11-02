@@ -20,13 +20,15 @@ interface AppShellProps {
   onLogout: () => void;
   /** Extra controls placed in the header (e.g. the "View store" button). */
   headerExtras?: ReactNode;
+  /** Hides the sidebar and the mobile menu (first-run onboarding, no store yet). */
+  hideNav?: boolean;
   children: ReactNode;
 }
 
 /** Tailwind's `lg` breakpoint: the persistent sidebar takes over from here. */
 const DESKTOP_QUERY = '(min-width: 1024px)';
 
-export function AppShell({ nav, user, brandTitle, onLogout, headerExtras, children }: AppShellProps) {
+export function AppShell({ nav, user, brandTitle, onLogout, headerExtras, hideNav = false, children }: AppShellProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations('shell');
@@ -51,8 +53,8 @@ export function AppShell({ nav, user, brandTitle, onLogout, headerExtras, childr
   }, []);
 
   const ctx = useMemo<ShellContextValue>(
-    () => ({ nav, user, brandTitle, onLogout, mobileNavOpen, setMobileNavOpen }),
-    [nav, user, brandTitle, onLogout, mobileNavOpen],
+    () => ({ nav, user, brandTitle, onLogout, mobileNavOpen, setMobileNavOpen, hideNav }),
+    [nav, user, brandTitle, onLogout, mobileNavOpen, hideNav],
   );
 
   // The Sheet only knows physical sides; pick the inline-start edge.
@@ -64,9 +66,11 @@ export function AppShell({ nav, user, brandTitle, onLogout, headerExtras, childr
         <DashboardHeader extras={headerExtras} />
 
         <div className="flex flex-1">
-          <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col border-e border-zinc-200 bg-zinc-50 lg:flex">
-            <AppSidebar nav={nav} />
-          </aside>
+          {!hideNav && (
+            <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col border-e border-zinc-200 bg-zinc-50 lg:flex">
+              <AppSidebar nav={nav} />
+            </aside>
+          )}
 
           <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
         </div>

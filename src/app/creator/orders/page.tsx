@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/common/DataTable';
+import { ListEmptyState } from '@/components/common/ListEmptyState';
+import { ClipboardList } from 'lucide-react';
 import { useBulkAction } from '@/components/common/useBulkAction';
 import {
   OrderBulkActions,
@@ -20,6 +22,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { useStoreType } from '@/lib/useStoreType';
 import { useMarkets } from '@/lib/useMarkets';
 import type { BuyerType } from '@/lib/b2b';
 import { ProductionProgressBar } from '@/components/production/ProductionProgressBar';
@@ -125,6 +128,9 @@ export default function CreatorOrdersPage() {
       ? `&production=${encodeURIComponent(production)}`
       : '';
   const tabs = productionEnabled ? PRODUCTION_TABS : TABS;
+  // Zero orders with no filter active: the real empty state instead of a bare table.
+  const { storeType } = useStoreType();
+  const unfiltered = activeTab === 'All' && !marketKey && !buyer && !production;
   // Bulk status targets mirror the creator detail page's status dropdown:
   // QUALITY_CHECK only with the production app's quality-check step on.
   const qualityCheckEnabled =
@@ -430,6 +436,16 @@ export default function CreatorOrdersPage() {
             {t('orders.retry')}
           </Button>
         </div>
+      ) : !loading && orders.length === 0 && unfiltered ? (
+        <ListEmptyState
+          icon={<ClipboardList />}
+          title={t('orders.emptyTitle')}
+          hint={t('orders.emptyHint')}
+          cta={{
+            label: t('orders.emptyCta'),
+            href: storeType === 'INDEPENDENT' ? '/creator/products/own/new' : '/creator/custom-products/new',
+          }}
+        />
       ) : (
         <>
           {bulk.notice}

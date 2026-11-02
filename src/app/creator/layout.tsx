@@ -1,7 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { UnverifiedBanner, VerifyEmailDialog } from '@/components/auth/UnverifiedBanner';
+import { useMyStore } from '@/lib/useMyStore';
 import type { NavItem, ShellNav } from '@/components/layout/nav-types';
 import { StoreLinkButton } from '@/components/creator/StoreLinkButton';
 import { StorefrontEditHandoff } from '@/components/creator/StorefrontEditHandoff';
@@ -38,6 +42,15 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   const { user, token, logout } = useAuth();
   const platformName = usePlatformName();
   const t = useTranslations('nav');
+  const pathname = usePathname();
+  const router = useRouter();
+  // Store-required redirect: without a store every creator route leads to
+  // the onboarding page, and the sidebar stays hidden until it exists.
+  const { missing: storeMissing } = useMyStore();
+  const onboarding = pathname === '/creator/onboarding';
+  useEffect(() => {
+    if (storeMissing && !onboarding) router.replace('/creator/onboarding');
+  }, [storeMissing, onboarding, router]);
   // Independent stores sell only their own products, so marketplace-only
   // entries (provider catalog, imported products) are hidden from the nav.
   const { storeType } = useStoreType();
@@ -187,11 +200,14 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
         }}
         brandTitle={platformName}
         onLogout={logout}
-        headerExtras={<StoreLinkButton />}
+        headerExtras={storeMissing ? undefined : <StoreLinkButton />}
+        hideNav={storeMissing || onboarding}
       >
         {/* Storefront links open with the owner edit-button hand-off. */}
         <StorefrontEditHandoff />
-        {children}
+        <UnverifiedBanner />
+        <VerifyEmailDialog />
+        {storeMissing && !onboarding ? null : children}
       </AppShell>
     </ProtectedRoute>
   );
