@@ -12,7 +12,7 @@ import { TwoFactorPrompt } from '@/components/auth/TwoFactorPrompt';
 import { BrandPanel, MobileBrandBand } from './BrandPanel';
 
 const inputClass =
-  'h-11 rounded-xl border-zinc-200 bg-white ps-10 text-[15px] shadow-xs transition-[border-color,box-shadow] placeholder:text-zinc-400 hover:border-zinc-300 focus-visible:border-zinc-900 focus-visible:ring-4 focus-visible:ring-zinc-900/10 md:text-sm';
+  'h-11 rounded-xl border-zinc-200 bg-white ps-10 text-[15px] shadow-xs transition-[border-color,box-shadow] placeholder:text-zinc-400 hover:border-zinc-300 focus-visible:border-[#142D36] focus-visible:ring-4 focus-visible:ring-[#15B8A6]/20 md:text-sm';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -90,7 +90,7 @@ export default function LoginPage() {
           </div>
           ) : (
           <div key="password" className="login-rise w-full max-w-[380px]">
-            <h1 className="text-[28px] leading-tight font-semibold tracking-tight text-zinc-950">{t('title')}</h1>
+            <h1 className="font-brand text-[28px] leading-tight font-extrabold tracking-tight text-[#142D36]">{t('title')}</h1>
             <p className="mt-2 text-[15px] leading-relaxed text-zinc-500">{t('subtitle')}</p>
 
             <form onSubmit={handleSubmit} className="mt-9 space-y-5">
@@ -176,7 +176,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 aria-busy={loading}
-                className="group relative mt-2 inline-flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-zinc-950 text-[15px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(9,9,11,0.6)] transition-[background-color,transform] outline-none hover:bg-zinc-800 focus-visible:ring-4 focus-visible:ring-zinc-900/20 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
+                className="group relative mt-2 inline-flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[#142D36] text-[15px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(20,45,54,0.6)] transition-[background-color,transform] outline-none hover:bg-[#1B3A45] focus-visible:ring-4 focus-visible:ring-[#15B8A6]/30 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? (
                   <>

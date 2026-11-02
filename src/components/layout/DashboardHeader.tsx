@@ -9,7 +9,8 @@ import { NotificationBell } from '@/components/common/NotificationBell';
 import { useShell } from './shell-context';
 import { CommandSearch } from './header/CommandSearch';
 import { UserMenu } from './header/UserMenu';
-import { DARK_FOCUS_RING, initialsOf } from './header/utils';
+import { DARK_FOCUS_RING } from './header/utils';
+import { BrandTile } from '@/components/brand/BrandLockup';
 
 interface DashboardHeaderProps {
   /** Extra controls placed before the notifications (e.g. the "Visit store" button). */
@@ -59,14 +60,10 @@ export function DashboardHeader({ extras }: DashboardHeaderProps) {
           aria-label={t('brandHome', { name: brandTitle })}
           className={cn('flex min-w-0 items-center gap-2.5 rounded-md py-1 pe-1.5', DARK_FOCUS_RING)}
         >
-          <span
-            aria-hidden="true"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-[11px] font-bold tracking-tight text-zinc-950"
-          >
-            {initialsOf(brandTitle, '•')}
-          </span>
+          {/* ShopsDoor mark on a small ivory tile (the bar itself is dark). */}
+          <BrandTile tone="ivory" className="size-8 rounded-lg" />
           <span className="hidden min-w-0 flex-col leading-tight min-[420px]:flex">
-            <span className="truncate text-sm font-semibold text-white">{brandTitle}</span>
+            <span className="font-brand truncate text-[15px] font-extrabold tracking-[-0.03em] text-white">{brandTitle}</span>
             {user.roleLabel && (
               <span className="truncate text-[11px] font-medium text-zinc-400">{user.roleLabel}</span>
             )}

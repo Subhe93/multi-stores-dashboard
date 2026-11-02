@@ -83,7 +83,7 @@ export default function AdminSettings() {
     default_currency: 'EUR',
     default_locale: 'en',
     supported_locales: ['en'],
-    platform_name: 'Multi Stores',
+    platform_name: 'ShopsDoor',
     support_email: '',
     min_order_amount: null,
     require_provider_approval: true,
@@ -136,7 +136,7 @@ export default function AdminSettings() {
           default_currency: config.default_currency || 'EUR',
           default_locale: config.default_locale || 'en',
           supported_locales: config.supported_locales?.length ? config.supported_locales : ['en'],
-          platform_name: config.platform_name || 'Multi Stores',
+          platform_name: config.platform_name || 'ShopsDoor',
           support_email: config.support_email || '',
           min_order_amount: config.min_order_amount ? Number(config.min_order_amount) : null,
           require_provider_approval: config.require_provider_approval ?? true,
@@ -328,7 +328,7 @@ export default function AdminSettings() {
                 className="h-8 text-sm"
                 value={form.platform_name}
                 onChange={e => setField('platform_name', e.target.value)}
-                placeholder="Multi Stores"
+                placeholder="ShopsDoor"
               />
             </div>
             <div className="space-y-1.5">
@@ -687,7 +687,7 @@ export default function AdminSettings() {
           <div className="grid grid-cols-3 gap-3 items-end">
             <div className="col-span-2 space-y-1.5">
               <Label className="text-xs">{t('smtpFrom')}</Label>
-              <Input className="h-8 text-sm" value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} placeholder="Multi Stores <no-reply@yourdomain.com>" />
+              <Input className="h-8 text-sm" value={smtpFrom} onChange={(e) => setSmtpFrom(e.target.value)} placeholder="ShopsDoor <no-reply@shopsdoor.com>" />
             </div>
             <label className="flex items-center gap-2 h-8 cursor-pointer select-none">
               <input type="checkbox" checked={smtpSecure} onChange={(e) => setSmtpSecure(e.target.checked)} className="w-4 h-4 rounded border-zinc-300" />

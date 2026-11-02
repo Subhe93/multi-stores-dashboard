@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-export const DEFAULT_PLATFORM_NAME = 'Multi Stores';
+export const DEFAULT_PLATFORM_NAME = 'ShopsDoor';
 
 // Module-level cache so the shell doesn't refetch on every navigation.
 let cached: string | null = null;

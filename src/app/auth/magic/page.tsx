@@ -163,7 +163,7 @@ export default function MagicLoginPage() {
             <h1
               ref={headingRef}
               tabIndex={-1}
-              className="mt-6 text-[26px] leading-tight font-semibold tracking-tight text-zinc-950 outline-none"
+              className="font-brand mt-6 text-[26px] leading-tight font-extrabold tracking-tight text-[#142D36] outline-none"
             >
               {view.title}
             </h1>
@@ -175,7 +175,7 @@ export default function MagicLoginPage() {
                   <button
                     type="button"
                     onClick={retry}
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 text-[15px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(9,9,11,0.6)] transition-[background-color,transform] outline-none hover:bg-zinc-800 focus-visible:ring-4 focus-visible:ring-zinc-900/20 active:translate-y-px"
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#142D36] text-[15px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(20,45,54,0.6)] transition-[background-color,transform] outline-none hover:bg-[#1B3A45] focus-visible:ring-4 focus-visible:ring-[#15B8A6]/30 active:translate-y-px"
                   >
                     <RotateCw className="size-4" aria-hidden="true" />
                     {t('retry')}
@@ -188,7 +188,7 @@ export default function MagicLoginPage() {
                       'group inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-[15px] font-medium transition-[background-color,border-color,transform] outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/20 active:translate-y-px',
                       canRetry
                         ? 'border border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50'
-                        : 'bg-zinc-950 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(9,9,11,0.6)] hover:bg-zinc-800',
+                        : 'bg-[#142D36] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_-8px_rgba(20,45,54,0.6)] hover:bg-[#1B3A45]',
                     )}
                   >
                     {t('goToLogin')}
