@@ -286,7 +286,7 @@ function FileUploadField({
               <button
                 type="button"
                 onClick={handleRemove}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity shadow-sm"
+                className="absolute -top-1.5 -inset-e-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity shadow-sm"
                 title={tc('remove')}
               >
                 <X className="w-3 h-3" />
@@ -301,7 +301,7 @@ function FileUploadField({
               <button
                 type="button"
                 onClick={handleRemove}
-                className="ml-auto text-zinc-400 hover:text-red-500 shrink-0"
+                className="ms-auto text-zinc-400 hover:text-red-500 shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

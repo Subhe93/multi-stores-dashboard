@@ -638,7 +638,7 @@ export default function NewCustomProductPage() {
           onClick={() => router.back()}
           className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
         </button>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t('customProductForm.newTitle')}</h1>
@@ -734,7 +734,7 @@ export default function NewCustomProductPage() {
                         key={product.id}
                         type="button"
                         onClick={() => handleSelectProduct(product)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-muted transition ${
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-start hover:bg-muted transition ${
                           isSelected ? 'ring-2 ring-inset ring-zinc-900 bg-zinc-50' : ''
                         }`}
                       >
@@ -768,7 +768,7 @@ export default function NewCustomProductPage() {
               <ImportModeSelector value={importMode} onChange={handleImportModeChange} />
             ) : (
               <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="w-4 h-4 animate-spin me-2" />
                 {t('customProductForm.loadingProduct')}
               </div>
             )
@@ -825,7 +825,7 @@ export default function NewCustomProductPage() {
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium">
                     {t('customProductForm.images')}
-                    <span className="text-muted-foreground font-normal ml-1">{t('customProductForm.selectedCount', { count: selectedImageUrls.length })}</span>
+                    <span className="text-muted-foreground font-normal ms-1">{t('customProductForm.selectedCount', { count: selectedImageUrls.length })}</span>
                   </Label>
                   <Button
                     type="button"
@@ -842,7 +842,7 @@ export default function NewCustomProductPage() {
                       }
                     }}
                   >
-                    {imageUploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                    {imageUploading ? <Loader2 className="w-3 h-3 animate-spin me-1" /> : <Upload className="w-3 h-3 me-1" />}
                     {t('customProductForm.upload')}
                   </Button>
                 </div>
@@ -860,7 +860,7 @@ export default function NewCustomProductPage() {
                         <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border-2 border-zinc-200">
                           <img src={imgUrl} alt="" className="w-full h-full object-cover" />
                           {isFeatured && (
-                            <div className="absolute top-1 left-1 bg-amber-500 text-white rounded-full p-0.5">
+                            <div className="absolute top-1 inset-s-1 bg-amber-500 text-white rounded-full p-0.5">
                               <Star className="w-3 h-3 fill-current" />
                             </div>
                           )}
@@ -917,7 +917,7 @@ export default function NewCustomProductPage() {
                           >
                             <img src={imgUrl} alt="" className="w-full h-full object-cover" />
                             {isSelected && (
-                              <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-zinc-900 flex items-center justify-center">
+                              <div className="absolute top-0.5 inset-e-0.5 w-4 h-4 rounded-full bg-zinc-900 flex items-center justify-center">
                                 <Check className="w-2.5 h-2.5 text-white" />
                               </div>
                             )}
@@ -951,7 +951,7 @@ export default function NewCustomProductPage() {
                     type="button"
                     onClick={() => handleTranslateTo(activeLocale)}
                     disabled={!!translatingLocale || !primaryTitle.trim()}
-                    className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
                   >
                     {translatingLocale === activeLocale ? (
                       <><Loader2 className="w-3 h-3 animate-spin" /> {t('customProductForm.translating')}</>
@@ -1169,7 +1169,7 @@ export default function NewCustomProductPage() {
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           <p className="font-medium mb-1">{t('customProductForm.couldNotSave')}</p>
           {submitError.includes(' • ') ? (
-            <ul className="list-disc pl-5 space-y-0.5">
+            <ul className="list-disc ps-5 space-y-0.5">
               {submitError.split(' • ').map((m, i) => (
                 <li key={i}>{m}</li>
               ))}
@@ -1183,7 +1183,7 @@ export default function NewCustomProductPage() {
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={goBack} disabled={currentStep === 1 || saving}>
-          <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+          <ArrowLeft className="w-3.5 h-3.5 me-1 rtl:-scale-x-100" />
           {tc('back')}
         </Button>
         <div className="flex items-center gap-2">
@@ -1194,7 +1194,7 @@ export default function NewCustomProductPage() {
           ) : (
             <Button size="sm" onClick={goNext} disabled={!canGoNext()}>
               {tc('next')}
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              <ArrowRight className="w-3.5 h-3.5 ms-1 rtl:-scale-x-100" />
             </Button>
           )}
         </div>

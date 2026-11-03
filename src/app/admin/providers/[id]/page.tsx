@@ -54,7 +54,7 @@ export default function ProviderDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/admin/providers" className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
           </Link>
           <div>
             <h1 className="text-xl font-semibold tracking-tight">{provider.company_name}</h1>
@@ -62,8 +62,8 @@ export default function ProviderDetailPage() {
           </div>
         </div>
         {provider.verified
-          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" />{t('verified')}</Badge>
-          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 mr-1" />{t('pending')}</Badge>
+          ? <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200"><CheckCircle2 className="w-3 h-3 me-1" />{t('verified')}</Badge>
+          : <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200"><Clock className="w-3 h-3 me-1" />{t('pending')}</Badge>
         }
       </div>
 

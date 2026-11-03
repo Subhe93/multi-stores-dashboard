@@ -156,7 +156,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
       <DialogTrigger
         render={
           <Button variant="outline" size="sm" className="w-full justify-start">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            <Plus className="w-3.5 h-3.5 me-1.5" />
             {t('builder.addSection')}
           </Button>
         }

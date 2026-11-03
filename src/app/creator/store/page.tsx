@@ -862,7 +862,7 @@ export default function CreatorStorePage() {
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" size="sm" disabled={heroUploading}
                       onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
-                      {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} {t('myStore.replace')}
+                      {heroUploading ? <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" /> : null} {t('myStore.replace')}
                     </Button>
                     <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive"
                       onClick={() => setHero(page, 'image_url', '')}>
@@ -873,7 +873,7 @@ export default function CreatorStorePage() {
               ) : (
                 <Button type="button" variant="outline" size="sm" disabled={heroUploading}
                   onClick={async () => { const imgs = await pickAndUpload('store-hero'); if (imgs.length) setHero(page, 'image_url', imgs[0]!.url); }}>
-                  {heroUploading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : null} {t('myStore.uploadImage')}
+                  {heroUploading ? <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" /> : null} {t('myStore.uploadImage')}
                 </Button>
               )}
               <p className="text-[11px] text-muted-foreground">{t('myStore.leaveEmptyGradient')}</p>
@@ -960,7 +960,7 @@ export default function CreatorStorePage() {
         </div>
         <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
           <Button variant="outline" size="sm">
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> {t('myStore.visitStore')}
+            <ExternalLink className="w-3.5 h-3.5 me-1.5" /> {t('myStore.visitStore')}
           </Button>
         </a>
       </div>
@@ -983,7 +983,7 @@ export default function CreatorStorePage() {
             <Link href="/creator/pages">
               <Button size="sm" className="shrink-0">
                 {t('myStore.openBuilder')}
-                <ArrowRight className="size-3.5 ms-1.5" />
+                <ArrowRight className="size-3.5 ms-1.5 rtl:-scale-x-100" />
               </Button>
             </Link>
           </div>
@@ -1226,7 +1226,7 @@ export default function CreatorStorePage() {
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition-colors ${isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'} ${isPrimary ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                   >
                     {locale.label}
-                    {isPrimary && <Badge variant="secondary" className="ml-1 text-[9px] px-1 py-0 h-auto">{t('myStore.primary')}</Badge>}
+                    {isPrimary && <Badge variant="secondary" className="ms-1 text-[9px] px-1 py-0 h-auto">{t('myStore.primary')}</Badge>}
                   </button>
                 );
               })}
@@ -1277,14 +1277,14 @@ export default function CreatorStorePage() {
       <div className="flex items-center justify-between pb-8">
         <a href={storeUrl(store.slug)} target="_blank" rel="noopener noreferrer">
           <Button variant="ghost" size="sm" type="button">
-            <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> {t('myStore.visitStore')}
+            <ExternalLink className="w-3.5 h-3.5 me-1.5" /> {t('myStore.visitStore')}
           </Button>
         </a>
         <div className="flex items-center gap-3">
           {saveError && <span className="text-xs text-red-600 font-medium text-start">{saveError}</span>}
           {saved && <span className="text-xs text-emerald-600 font-medium">{t('myStore.savedExclaim')}</span>}
           <Button size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {tcom('saving')}</> : t('myStore.saveSettings')}
+            {saving ? <><Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" /> {tcom('saving')}</> : t('myStore.saveSettings')}
           </Button>
         </div>
       </div>

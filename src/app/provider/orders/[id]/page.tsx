@@ -267,7 +267,7 @@ export default function ProviderOrderDetail() {
         <div className="flex items-center gap-3">
           <Link href="/provider/orders"
             className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
           </Link>
           <div>
             <h1 className="text-xl font-semibold tracking-tight font-mono">{order.order_number}</h1>
@@ -315,7 +315,7 @@ export default function ProviderOrderDetail() {
                 disabled={updating}
                 onClick={() => setShowTracking(true)}
               >
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> {t('approveShipOrder')}
+                <CheckCircle2 className="w-3.5 h-3.5 me-1.5" /> {t('approveShipOrder')}
               </Button>
               <Button
                 variant="outline"
@@ -324,7 +324,7 @@ export default function ProviderOrderDetail() {
                 disabled={updating}
                 onClick={() => handleStatusUpdate('MANUFACTURING', t('noteBackToManufacturing'))}
               >
-                <XCircle className="w-3.5 h-3.5 mr-1.5" /> {t('rejectBackToManufacturing')}
+                <XCircle className="w-3.5 h-3.5 me-1.5" /> {t('rejectBackToManufacturing')}
               </Button>
             </div>
           </CardContent>
@@ -415,7 +415,7 @@ export default function ProviderOrderDetail() {
                           <span>{t('qtyLabel', { quantity: item.quantity })}</span>
                           <span>·</span>
                           <span>{t('eachPrice', { price: fmt(Number(item.unit_price)) })}</span>
-                          <span className="ml-auto font-semibold text-foreground text-sm">
+                          <span className="ms-auto font-semibold text-foreground text-sm">
                             {fmt(Number(item.total_price || item.unit_price * item.quantity))}
                           </span>
                         </div>
@@ -617,7 +617,7 @@ export default function ProviderOrderDetail() {
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowTracking(false)}>{tc('cancel')}</Button>
             <Button size="sm" onClick={handleAddTracking} disabled={!trackingNumber || updating}>
-              <Truck className="w-3.5 h-3.5 mr-1.5" />
+              <Truck className="w-3.5 h-3.5 me-1.5" />
               {updating ? t('shippingInProgress') : t('markAsShipped')}
             </Button>
           </DialogFooter>

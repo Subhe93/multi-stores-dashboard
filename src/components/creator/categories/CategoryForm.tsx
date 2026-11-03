@@ -607,7 +607,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
             >
               {saving ? (
                 <>
-                  <Loader2 className="size-3.5 mr-1 animate-spin" />
+                  <Loader2 className="size-3.5 me-1 animate-spin" />
                   {t('category.saving')}
                 </>
               ) : mode === 'create' ? (
@@ -781,9 +781,9 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                       disabled={imageUploading}
                     >
                       {imageUploading ? (
-                        <Loader2 className="size-3.5 mr-1 animate-spin" />
+                        <Loader2 className="size-3.5 me-1 animate-spin" />
                       ) : (
-                        <Upload className="size-3.5 mr-1" />
+                        <Upload className="size-3.5 me-1" />
                       )}
                       {t('category.replace')}
                     </Button>
@@ -794,7 +794,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
                       className="text-destructive hover:text-destructive"
                       onClick={() => setThumbnailUrl(null)}
                     >
-                      <Trash2 className="size-3.5 mr-1" />
+                      <Trash2 className="size-3.5 me-1" />
                       {t('common.remove')}
                     </Button>
                     <p className="text-[11px] text-muted-foreground mt-1">
@@ -1172,7 +1172,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
           {/* Auto-translate hint when on a non-primary locale */}
           {hasMultipleLocales && activeLocale !== primaryLocale && (
             <div className="rounded-lg border border-dashed bg-zinc-50/60 p-3 text-[11px] text-muted-foreground">
-              <Languages className="inline size-3 mr-1" />
+              <Languages className="inline size-3 me-1" />
               {t('category.fillNameIn')}{' '}
               <strong>{LOCALE_LABELS[activeLocale] || activeLocale}</strong>{' '}
               {t('category.toTranslate')}
@@ -1186,7 +1186,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           <p className="font-medium mb-1">{t('category.couldNotSave')}</p>
           {submitError.includes(' • ') ? (
-            <ul className="list-disc pl-5 space-y-0.5">
+            <ul className="list-disc ps-5 space-y-0.5">
               {submitError.split(' • ').map((m, i) => (
                 <li key={i}>{m}</li>
               ))}

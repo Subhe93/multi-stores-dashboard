@@ -127,7 +127,7 @@ export default function CreatorProductsPage() {
               onClick={() => router.push('/creator/products/browse')}
             >
               {t('products.browseCatalog')}
-              <ArrowRight className="size-3.5" />
+              <ArrowRight className="size-3.5 rtl:-scale-x-100" />
             </Button>
           </CardContent>
         </Card>
@@ -181,7 +181,7 @@ export default function CreatorProductsPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3">
                   <div className="h-4 w-40 animate-pulse rounded bg-zinc-100" />
-                  <div className="ml-auto h-4 w-16 animate-pulse rounded bg-zinc-100" />
+                  <div className="ms-auto h-4 w-16 animate-pulse rounded bg-zinc-100" />
                 </div>
               ))}
             </div>

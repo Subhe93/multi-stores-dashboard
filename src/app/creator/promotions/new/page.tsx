@@ -208,7 +208,7 @@ export default function NewPromotionPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon-sm" onClick={() => router.push('/creator/promotions')}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 rtl:-scale-x-100" />
         </Button>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{tt('promotionForm.createTitle')}</h1>
@@ -239,7 +239,7 @@ export default function NewPromotionPage() {
                     key={t}
                     type="button"
                     onClick={() => setType(t)}
-                    className={`flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex flex-col items-start gap-1.5 rounded-xl border p-3 text-start transition-all ${
                       selected
                         ? 'border-zinc-900 bg-zinc-900 text-white'
                         : 'border-border bg-background hover:border-zinc-400'

@@ -253,7 +253,7 @@ export default function UserDetailPage() {
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
         <Link href="/admin/users" className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
         </Link>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{t('userDetails')}</h1>
@@ -275,10 +275,10 @@ export default function UserDetailPage() {
               <CardTitle className="text-sm font-semibold">{t('accountInformation')}</CardTitle>
               <div className="flex gap-1">
                 <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={openEditProfile}>
-                  <Pencil className="w-3 h-3 mr-1" /> {t('editProfile')}
+                  <Pencil className="w-3 h-3 me-1" /> {t('editProfile')}
                 </Button>
                 <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={() => { setError(''); setShowResetPassword(true); }}>
-                  <Key className="w-3 h-3 mr-1" /> {t('resetPassword')}
+                  <Key className="w-3 h-3 me-1" /> {t('resetPassword')}
                 </Button>
               </div>
             </div>
@@ -439,7 +439,7 @@ export default function UserDetailPage() {
                     className="w-full text-xs text-red-600 border-red-200 hover:bg-red-50"
                     onClick={() => { setError(''); setShowDelete(true); }}
                   >
-                    <Trash2 className="w-3 h-3 mr-1" /> {t('deleteUser')}
+                    <Trash2 className="w-3 h-3 me-1" /> {t('deleteUser')}
                   </Button>
                 </>
               )}

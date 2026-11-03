@@ -176,7 +176,7 @@ export default function FaqManager({
           <span className="text-xs text-muted-foreground">({faqs.length})</span>
         </div>
         <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openAdd}>
-          <Plus className="w-3 h-3 mr-1" /> {t('faq.addFaq')}
+          <Plus className="w-3 h-3 me-1" /> {t('faq.addFaq')}
         </Button>
       </div>
 
@@ -192,7 +192,7 @@ export default function FaqManager({
                 <button
                   type="button"
                   onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-                  className="flex-1 text-left flex items-center gap-2"
+                  className="flex-1 text-start flex items-center gap-2"
                 >
                   {expandedIndex === i ? (
                     <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" />
@@ -217,7 +217,7 @@ export default function FaqManager({
                 </button>
               </div>
               {expandedIndex === i && (
-                <p className="text-xs text-muted-foreground mt-1.5 ml-5 whitespace-pre-wrap">
+                <p className="text-xs text-muted-foreground mt-1.5 ms-5 whitespace-pre-wrap">
                   {primaryA(faq)}
                 </p>
               )}
@@ -254,7 +254,7 @@ export default function FaqManager({
                   type="button"
                   onClick={() => handleTranslateTo(activeLocale)}
                   disabled={!!translatingLocale || !formData[primaryLocale]?.question?.trim()}
-                  className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                  className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
                 >
                   {translatingLocale === activeLocale ? (
                     <><Loader2 className="w-3 h-3 animate-spin" /> {t('faq.translating')}</>

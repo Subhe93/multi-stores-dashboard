@@ -123,7 +123,7 @@ export default function ProviderStoreDetails() {
     return (
       <div className="space-y-4">
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => router.push('/provider/stores')}>
-          <ArrowLeft className="w-3 h-3 mr-1" /> {tc('back')}
+          <ArrowLeft className="w-3 h-3 me-1 rtl:-scale-x-100" /> {tc('back')}
         </Button>
         <Card className="shadow-none">
           <CardContent className="py-12 text-center">
@@ -175,7 +175,7 @@ export default function ProviderStoreDetails() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => router.push('/provider/stores')}>
-          <ArrowLeft className="w-3 h-3 mr-1" /> {t('backToStores')}
+          <ArrowLeft className="w-3 h-3 me-1 rtl:-scale-x-100" /> {t('backToStores')}
         </Button>
         {storeUrl && (
           <a
@@ -237,7 +237,7 @@ export default function ProviderStoreDetails() {
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Package2 className="w-4 h-4" />
                 {t('yourProductsInStore')}
-                <Badge variant="secondary" className="text-[10px] ml-1">
+                <Badge variant="secondary" className="text-[10px] ms-1">
                   {store.custom_products_using.length}
                 </Badge>
               </CardTitle>
@@ -255,7 +255,7 @@ export default function ProviderStoreDetails() {
                       <button
                         key={cp.id}
                         onClick={() => router.push(`/provider/products/${cp.product.id}`)}
-                        className="w-full flex items-center gap-3 py-2 px-2 rounded hover:bg-zinc-50 transition text-left"
+                        className="w-full flex items-center gap-3 py-2 px-2 rounded hover:bg-zinc-50 transition text-start"
                       >
                         <div className="h-10 w-10 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                           {img ? <img src={resolveUrl(img)} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-3.5 h-3.5 text-zinc-300" />}

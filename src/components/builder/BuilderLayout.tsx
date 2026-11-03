@@ -943,7 +943,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       />
 
       <div className="flex-1 grid grid-cols-[280px_1fr_360px] min-h-0">
-        <aside className="border-r bg-white overflow-hidden flex flex-col">
+        <aside className="border-e bg-white overflow-hidden flex flex-col">
           {/* Mode switcher — toggles the left pane between section catalog
               and theme/design controls. Right inspector + canvas stay put. */}
           <ModeSwitch mode={leftMode} onChange={setLeftMode} primaryLocale={store.language_config.primary_locale} />
@@ -1021,7 +1021,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
           )}
         </section>
 
-        <aside className="border-l bg-white overflow-hidden">
+        <aside className="border-s bg-white overflow-hidden">
           <SectionInspector
             section={selected}
             locale={activeLocale}

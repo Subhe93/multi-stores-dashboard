@@ -141,7 +141,7 @@ export default function ProviderSettings() {
                     const imgs = await pickAndUpload('logos', false);
                     if (imgs.length) setLogoUrl(imgs[0]!.url);
                   }}>
-                  {uploading ? t('uploading') : <><Upload className="w-3 h-3 mr-1" /> {t('uploadLogo')}</>}
+                  {uploading ? t('uploading') : <><Upload className="w-3 h-3 me-1" /> {t('uploadLogo')}</>}
                 </Button>
                 {logoUrl && (
                   <button onClick={() => setLogoUrl('')} className="block text-[10px] text-red-500 mt-1 hover:underline">{t('removeLogo')}</button>

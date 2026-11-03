@@ -186,7 +186,7 @@ export default function ReviewDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon-sm" onClick={() => router.push('/provider/reviews')}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 rtl:-scale-x-100" />
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
@@ -395,12 +395,12 @@ export default function ReviewDetailPage() {
                                   {t('qtyAndDiscount', { quantity: offer.quantity, discount: formatDiscount(offer) })}
                                 </p>
                               </div>
-                              <div className="shrink-0 text-right">
+                              <div className="shrink-0 text-end">
                                 <span className="font-semibold tabular-nums">
                                   {fmt(totals.final.toFixed(2))}
                                 </span>
                                 {totals.original > totals.final && (
-                                  <span className="ml-2 text-muted-foreground line-through tabular-nums">
+                                  <span className="ms-2 text-muted-foreground line-through tabular-nums">
                                     {fmt(totals.original.toFixed(2))}
                                   </span>
                                 )}
@@ -431,7 +431,7 @@ export default function ReviewDetailPage() {
                   onClick={handleApprove}
                   disabled={actionLoading}
                 >
-                  <Check className="w-4 h-4 mr-1.5" />
+                  <Check className="w-4 h-4 me-1.5" />
                   {t('approveAndPublish')}
                 </Button>
                 <Button
@@ -440,7 +440,7 @@ export default function ReviewDetailPage() {
                   onClick={() => setShowRejectDialog(true)}
                   disabled={actionLoading}
                 >
-                  <X className="w-4 h-4 mr-1.5" />
+                  <X className="w-4 h-4 me-1.5" />
                   {t('rejectWithReason')}
                 </Button>
               </CardContent>

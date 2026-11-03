@@ -154,7 +154,7 @@ export default function NewPage() {
     return (
       <div className="space-y-4 max-w-2xl">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
+          <ArrowLeft className="w-4 h-4 me-1 rtl:-scale-x-100" /> {tc('back')}
         </Button>
         <Card className="shadow-none">
           <CardContent className="py-12 text-center">
@@ -174,7 +174,7 @@ export default function NewPage() {
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
+          <ArrowLeft className="w-4 h-4 me-1 rtl:-scale-x-100" /> {tc('back')}
         </Button>
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t('newPage.title')}</h1>
@@ -219,7 +219,7 @@ export default function NewPage() {
               </span>
               <button type="button" onClick={() => handleTranslateTo(activeLocale)}
                 disabled={!!translatingLocale || !primaryTitle.trim()}
-                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
               >
                 {translatingLocale === activeLocale
                   ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('newPage.translating')}</>

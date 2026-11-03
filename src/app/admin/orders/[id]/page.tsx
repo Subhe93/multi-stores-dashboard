@@ -253,7 +253,7 @@ export default function OrderDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/admin/orders" className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
           </Link>
           <div>
             <h1 className="text-xl font-semibold tracking-tight font-mono">{order.order_number}</h1>
@@ -332,7 +332,7 @@ export default function OrderDetailPage() {
                           <span>{t('qtyLabel', { qty: item.quantity })}</span>
                           <span>·</span>
                           <span>{t('eachPrice', { price: fmt(Number(item.unit_price)) })}</span>
-                          <span className="ml-auto font-semibold text-foreground text-sm">
+                          <span className="ms-auto font-semibold text-foreground text-sm">
                             {fmt(Number(item.total_price))}
                           </span>
                         </div>

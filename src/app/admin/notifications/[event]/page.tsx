@@ -226,7 +226,7 @@ export default function AdminNotificationTemplateEditorPage() {
                   title={empty ? t('notifEmptyForLocale') : undefined}
                 >
                   <span>{locale.label}</span>
-                  <span className="ml-1.5 opacity-60 text-[10px] uppercase">{locale.code}</span>
+                  <span className="ms-1.5 opacity-60 text-[10px] uppercase">{locale.code}</span>
                   {empty && (
                     <span
                       className={`absolute -top-0.5 -inset-e-0.5 w-2 h-2 rounded-full ${

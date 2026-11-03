@@ -220,7 +220,7 @@ export default function EditPage() {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> {tc('back')}
+          <ArrowLeft className="w-4 h-4 me-1 rtl:-scale-x-100" /> {tc('back')}
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{t('editPage.title')}</h1>
@@ -296,7 +296,7 @@ export default function EditPage() {
               </span>
               <button type="button" onClick={() => handleTranslateTo(activeLocale)}
                 disabled={!!translatingLocale || !primaryTitle.trim()}
-                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
               >
                 {translatingLocale === activeLocale
                   ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('editPage.translating')}</>
@@ -368,7 +368,7 @@ export default function EditPage() {
       <div className="flex items-center justify-between">
         <Button variant="outline" size="sm" className="text-red-500 border-red-200 hover:bg-red-50"
           onClick={() => { setDeleteError(''); setDeleteConfirm(true); }}>
-          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('editPage.deletePage')}
+          <Trash2 className="w-3.5 h-3.5 me-1.5" /> {t('editPage.deletePage')}
         </Button>
         <div className="flex items-center gap-3">
           {saved && <span className="text-xs text-emerald-600 font-medium">{t('editPage.savedExclaim')}</span>}

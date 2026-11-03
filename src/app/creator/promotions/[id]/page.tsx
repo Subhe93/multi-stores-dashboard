@@ -283,7 +283,7 @@ export default function EditPromotionPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon-sm" onClick={() => router.push('/creator/promotions')}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 rtl:-scale-x-100" />
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">{tt('promotionForm.editTitle')}</h1>
@@ -318,7 +318,7 @@ export default function EditPromotionPage() {
                 return (
                   <div
                     key={t}
-                    className={`flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all ${
+                    className={`flex flex-col items-start gap-1.5 rounded-xl border p-3 text-start transition-all ${
                       selected
                         ? 'border-zinc-900 bg-zinc-900 text-white'
                         : 'border-border bg-background opacity-40'

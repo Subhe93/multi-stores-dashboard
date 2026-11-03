@@ -505,7 +505,7 @@ function MigrationPrompt({
             ) : (
               <>
                 {t('upgradeToBuilder')}
-                <ArrowRight className="size-3.5 ms-1.5" />
+                <ArrowRight className="size-3.5 ms-1.5 rtl:-scale-x-100" />
               </>
             )}
           </Button>

@@ -202,7 +202,7 @@ export function BundleOfferEditor({
             type="button"
             onClick={() => handleTranslateTo(activeLocale)}
             disabled={!!translatingLocale}
-            className="ml-3 flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+            className="ms-3 flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
           >
             {translatingLocale === activeLocale ? (
               <>

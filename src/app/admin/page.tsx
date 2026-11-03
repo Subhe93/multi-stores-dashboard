@@ -131,7 +131,7 @@ export default function AdminOverview() {
             ) : (
               <div className="space-y-2">
                 {recentUsers.map(u => (
-                  <button key={u.id} onClick={() => router.push(`/admin/users/${u.id}`)} className="w-full flex items-center justify-between py-1.5 px-2 rounded hover:bg-zinc-50 transition text-left">
+                  <button key={u.id} onClick={() => router.push(`/admin/users/${u.id}`)} className="w-full flex items-center justify-between py-1.5 px-2 rounded hover:bg-zinc-50 transition text-start">
                     <div>
                       <p className="text-xs font-medium">{getName(u)}</p>
                       <p className="text-[10px] text-muted-foreground">{u.email}</p>

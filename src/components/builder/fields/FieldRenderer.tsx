@@ -234,7 +234,7 @@ function FieldShell({
           {description && (
             <span className="relative inline-block" tabIndex={0}>
               <HelpCircle className="size-3 text-zinc-300 hover:text-zinc-600 transition cursor-help" />
-              <span className="pointer-events-none absolute z-30 bottom-full mb-1 inset-s-1/2 -translate-x-1/2 w-max max-w-50 rounded-md bg-zinc-900 text-white text-[10.5px] leading-snug px-2 py-1 shadow-lg opacity-0 group-focus-within:opacity-100 hover:opacity-100 transition-opacity">
+              <span className="pointer-events-none absolute z-30 bottom-full mb-1 inset-s-1/2 -translate-x-1/2 rtl:translate-x-1/2 w-max max-w-50 rounded-md bg-zinc-900 text-white text-[10.5px] leading-snug px-2 py-1 shadow-lg opacity-0 group-focus-within:opacity-100 hover:opacity-100 transition-opacity">
                 {description}
               </span>
             </span>

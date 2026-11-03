@@ -241,7 +241,7 @@ export default function ProviderOverview() {
               </span>
             </div>
             <Button variant="outline" size="sm" className="h-7 text-xs border-amber-300 text-amber-700" onClick={() => router.push('/provider/orders')}>
-              {t('viewOrders')} <ArrowRight className="w-3 h-3 ml-1" />
+              {t('viewOrders')} <ArrowRight className="w-3 h-3 ms-1 rtl:-scale-x-100" />
             </Button>
           </CardContent>
         </Card>
@@ -265,7 +265,7 @@ export default function ProviderOverview() {
                   <button
                     key={o.id}
                     onClick={() => router.push(`/provider/orders/${o.id}`)}
-                    className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-100 transition text-left"
+                    className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-zinc-100 transition text-start"
                   >
                     <div>
                       <p className="text-xs font-mono font-medium">{o.order_number}</p>
@@ -332,7 +332,7 @@ export default function ProviderOverview() {
                       <button
                         key={p.id}
                         onClick={() => router.push(`/provider/products/${p.id}`)}
-                        className="w-full flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-100 transition text-left"
+                        className="w-full flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-100 transition text-start"
                       >
                         <div className="h-7 w-7 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                           {img ? <img src={img} className="h-full w-full object-cover" /> : <ImageIcon className="w-3 h-3 text-zinc-300" />}
@@ -379,7 +379,7 @@ export default function ProviderOverview() {
                     <button
                       key={s.id}
                       onClick={() => router.push(`/provider/stores/${s.id}`)}
-                      className="w-full flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-100 transition text-left"
+                      className="w-full flex items-center gap-2 py-1 px-1 rounded hover:bg-zinc-100 transition text-start"
                     >
                       <div className="h-7 w-7 rounded bg-zinc-100 border overflow-hidden flex items-center justify-center shrink-0">
                         {s.logo_url

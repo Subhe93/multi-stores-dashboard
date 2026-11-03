@@ -180,7 +180,7 @@ function EntityTable({
                 variant="outline"
                 className="text-[10px] text-emerald-700 border-emerald-200 bg-emerald-50 shrink-0"
               >
-                <Check className="w-2.5 h-2.5 mr-1" />
+                <Check className="w-2.5 h-2.5 me-1" />
                 {t('translations.translated')}
               </Badge>
             ) : (
@@ -188,7 +188,7 @@ function EntityTable({
                 variant="outline"
                 className="text-[10px] text-zinc-400 border-zinc-200 shrink-0"
               >
-                <X className="w-2.5 h-2.5 mr-1" />
+                <X className="w-2.5 h-2.5 me-1" />
                 {t('translations.missing')}
               </Badge>
             )}

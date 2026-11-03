@@ -334,7 +334,7 @@ export function ParentCollectionPicker({
         )}
         aria-live="polite"
       >
-        <CornerDownRight className="size-3.5 shrink-0 text-zinc-400" />
+        <CornerDownRight className="size-3.5 shrink-0 text-zinc-400 rtl:-scale-x-100" />
         <span className="text-muted-foreground">{t('category.parentPicker.previewLabel')}</span>
         <span className="flex min-w-0 flex-wrap items-center gap-1 font-medium">
           {previewPath.map((part, i) => (

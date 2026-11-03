@@ -185,7 +185,7 @@ export default function AdminCategories() {
           <p className="text-sm text-muted-foreground">{t('categoriesSubtitle')}</p>
         </div>
         <Button size="sm" onClick={() => { resetForm(); setShowCreate(true); }}>
-          <Plus className="w-4 h-4 mr-1.5" /> {t('addCategory')}
+          <Plus className="w-4 h-4 me-1.5" /> {t('addCategory')}
         </Button>
       </div>
 
@@ -339,11 +339,11 @@ function CatRow({ cat, level, onEdit, onDelete, onLink, t }: {
 
   return (
     <div>
-      <div className="py-2 px-2 flex items-center justify-between hover:bg-zinc-50 rounded-md group" style={{ paddingLeft: `${8 + level * 24}px` }}>
+      <div className="py-2 px-2 flex items-center justify-between hover:bg-zinc-50 rounded-md group" style={{ paddingInlineStart: `${8 + level * 24}px` }}>
         <div className="flex items-center gap-2">
           {hasChildren ? (
             <button onClick={() => setExpanded(!expanded)} className="p-0.5">
-              {expanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
+              {expanded ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground rtl:-scale-x-100" />}
             </button>
           ) : <span className="w-4.5" />}
           <FolderTree className="w-4 h-4 text-muted-foreground" />

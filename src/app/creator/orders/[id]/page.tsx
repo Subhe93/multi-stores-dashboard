@@ -383,7 +383,7 @@ export default function CreatorOrderDetailPage() {
             onClick={() => router.back()}
             className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
           </button>
           <div>
             <h1 className="text-xl font-semibold tracking-tight font-mono">
@@ -542,7 +542,7 @@ export default function CreatorOrderDetailPage() {
                                   </span>
                                 )}
                               </span>
-                              <span className="ml-auto flex flex-col items-end">
+                              <span className="ms-auto flex flex-col items-end">
                                 <span className="font-semibold text-foreground text-sm">
                                   {fmtOrder(lineTotal)}
                                 </span>

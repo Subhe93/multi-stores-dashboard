@@ -1065,7 +1065,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     type="button"
                     onClick={() => handleTranslateTo(activeLocale)}
                     disabled={!!translatingLocale || !primaryTitle.trim()}
-                    className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
                   >
                     {translatingLocale === activeLocale
                       ? <><Loader2 className="w-3 h-3 animate-spin" /> {t('product.translating')}</>
@@ -1194,7 +1194,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">
                   {t('product.specifications')}
-                  <Badge variant="secondary" className="ml-2 text-[10px]">{t('product.fieldsCount', { count: categoryAttrs.length })}</Badge>
+                  <Badge variant="secondary" className="ms-2 text-[10px]">{t('product.fieldsCount', { count: categoryAttrs.length })}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1342,7 +1342,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('product.priceRequired')}</Label>
                 <div className={`flex items-stretch rounded-lg border ${fieldErrors.basePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
-                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-e text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
                     type="number"
                     step="0.01"
@@ -1361,7 +1361,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('product.compareAt')}</Label>
                 <div className={`flex items-stretch rounded-lg border ${fieldErrors.comparePrice ? 'border-red-400' : 'border-input'} overflow-hidden focus-within:ring-2 focus-within:ring-ring/40`}>
-                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-e text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
                     type="number"
                     step="0.01"
@@ -1382,7 +1382,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('product.costPerItem')}</Label>
                 <div className="flex items-stretch rounded-lg border border-input overflow-hidden focus-within:ring-2 focus-within:ring-ring/40">
-                  <span className="flex items-center px-2.5 bg-zinc-50 border-r text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
+                  <span className="flex items-center px-2.5 bg-zinc-50 border-e text-[11px] font-semibold text-muted-foreground tracking-wide">{currency}</span>
                   <Input
                     type="number"
                     step="0.01"

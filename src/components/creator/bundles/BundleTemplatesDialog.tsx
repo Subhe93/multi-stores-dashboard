@@ -78,7 +78,7 @@ export function BundleTemplatesDialog({ open, onOpenChange, onPick }: Props) {
                     onPick(tpl);
                     onOpenChange(false);
                   }}
-                  className="flex flex-col items-start gap-2 rounded-lg border bg-white p-4 text-left transition hover:border-zinc-400 hover:shadow-sm"
+                  className="flex flex-col items-start gap-2 rounded-lg border bg-white p-4 text-start transition hover:border-zinc-400 hover:shadow-sm"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-100 text-zinc-700">
                     <Icon className="size-4" />

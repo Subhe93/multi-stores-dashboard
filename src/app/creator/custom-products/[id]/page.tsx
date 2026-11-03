@@ -601,7 +601,7 @@ export default function EditCustomProduct() {
             <p className="text-xs text-muted-foreground">{t('editCustomProduct.providerProduct')}</p>
             <p className="text-sm font-medium">{providerName}</p>
           </div>
-          <Badge variant="secondary" className="ml-auto text-[10px]">{t('editCustomProduct.basePrice', { price: fmt(basePrice) })}</Badge>
+          <Badge variant="secondary" className="ms-auto text-[10px]">{t('editCustomProduct.basePrice', { price: fmt(basePrice) })}</Badge>
         </CardContent>
       </Card>
 
@@ -650,7 +650,7 @@ export default function EditCustomProduct() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">
                 {t('editCustomProduct.images')}
-                <span className="text-muted-foreground font-normal ml-1 text-xs">
+                <span className="text-muted-foreground font-normal ms-1 text-xs">
                   {t('editCustomProduct.selectedCount', { count: selectedImageUrls.length })}
                 </span>
               </CardTitle>
@@ -669,7 +669,7 @@ export default function EditCustomProduct() {
                     }
                   }}
                 >
-                  {imageUploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                  {imageUploading ? <Loader2 className="w-3 h-3 animate-spin me-1" /> : <Upload className="w-3 h-3 me-1" />}
                   {t('editCustomProduct.upload')}
                 </Button>
               </div>
@@ -692,7 +692,7 @@ export default function EditCustomProduct() {
                     <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border-2 border-zinc-200">
                       {imgUrl && <img src={imgUrl} alt="" className="w-full h-full object-cover" />}
                       {isFeatured && (
-                        <div className="absolute top-1 left-1 bg-amber-500 text-white rounded-full p-0.5">
+                        <div className="absolute top-1 inset-s-1 bg-amber-500 text-white rounded-full p-0.5">
                           <Star className="w-3 h-3 fill-current" />
                         </div>
                       )}
@@ -758,7 +758,7 @@ export default function EditCustomProduct() {
                       >
                         {imgUrl && <img src={imgUrl} alt="" className="w-full h-full object-cover" />}
                         {isSelected && (
-                          <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-zinc-900 flex items-center justify-center">
+                          <div className="absolute top-0.5 inset-e-0.5 w-4 h-4 rounded-full bg-zinc-900 flex items-center justify-center">
                             <Check className="w-2.5 h-2.5 text-white" />
                           </div>
                         )}
@@ -829,7 +829,7 @@ export default function EditCustomProduct() {
                 type="button"
                 onClick={() => handleTranslateTo(activeLocale)}
                 disabled={!!translatingLocale || !primaryTitle.trim()}
-                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-3"
+                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ms-3"
               >
                 {translatingLocale === activeLocale ? (
                   <><Loader2 className="w-3 h-3 animate-spin" /> {t('editCustomProduct.translating')}</>
@@ -1028,7 +1028,7 @@ export default function EditCustomProduct() {
                 <button
                   type="button"
                   onClick={() => setSaveError('')}
-                  className="text-[10px] text-red-500 hover:underline pl-5"
+                  className="text-[10px] text-red-500 hover:underline ps-5"
                 >
                   {t('editCustomProduct.dismiss')}
                 </button>
@@ -1040,7 +1040,7 @@ export default function EditCustomProduct() {
               className="w-full text-red-500 border-red-200 hover:bg-red-50"
               onClick={() => setDeleteConfirm(true)}
             >
-              <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {tc('delete')}
+              <Trash2 className="w-3.5 h-3.5 me-1.5" /> {tc('delete')}
             </Button>
           </CardContent>
         </Card>

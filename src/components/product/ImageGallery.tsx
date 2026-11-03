@@ -52,7 +52,7 @@ function SortableImage({ img, onSetFeatured, onDelete, t }: {
       <img src={resolveMediaUrl(img.url)} alt={img.alt_text || ''} className="w-full h-full object-cover pointer-events-none" />
 
       {img.is_featured && (
-        <div className="absolute top-1 left-1">
+        <div className="absolute top-1 inset-s-1">
           <Badge className="text-[8px] bg-amber-500 hover:bg-amber-500 gap-0.5 px-1 py-0">
             <Star className="w-2.5 h-2.5 fill-current" /> {t('image.featured')}
           </Badge>
@@ -121,7 +121,7 @@ export function ImageGallery({ images, onChange, onPickAndUpload, uploading = fa
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleUpload(true)} disabled={uploading}>
-            {uploading ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Upload className="w-3 h-3 mr-1" />}
+            {uploading ? <Loader2 className="w-3 h-3 me-1 animate-spin" /> : <Upload className="w-3 h-3 me-1" />}
             {t('image.uploadImages')}
           </Button>
         </div>

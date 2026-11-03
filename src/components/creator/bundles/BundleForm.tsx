@@ -565,7 +565,7 @@ export function BundleForm({ mode, initial }: Props) {
           onClick={() => router.push('/creator/bundles')}
           aria-label={t('bundle.backToBundles')}
         >
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 rtl:-scale-x-100" />
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">
@@ -633,7 +633,7 @@ export function BundleForm({ mode, initial }: Props) {
                     type="button"
                     onClick={() => handleTranslateName(activeNameLocale)}
                     disabled={!!translatingName}
-                    className="ml-3 flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                    className="ms-3 flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {translatingName === activeNameLocale ? (
                       <>
@@ -683,7 +683,7 @@ export function BundleForm({ mode, initial }: Props) {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">
                 {t('bundle.offers')}
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                <span className="ms-2 text-xs font-normal text-muted-foreground">
                   ({offers.length})
                 </span>
               </h2>

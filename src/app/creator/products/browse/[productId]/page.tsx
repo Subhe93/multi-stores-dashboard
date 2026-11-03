@@ -193,10 +193,10 @@ export default function ProductDetailPage() {
       {/* Back */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-4 rtl:-scale-x-100" />
         </Button>
         <span className="text-sm text-muted-foreground">{t('productDetail.providerCatalog')}</span>
-        <ChevronRight className="size-3.5 text-muted-foreground" />
+        <ChevronRight className="size-3.5 text-muted-foreground rtl:-scale-x-100" />
         <span className="text-sm font-medium truncate">{trans?.title || t('productDetail.product')}</span>
       </div>
 
@@ -219,7 +219,7 @@ export default function ProductDetailPage() {
               </div>
             )}
             {images.length > 1 && (
-              <span className="absolute bottom-3 right-3 px-2 py-1 text-xs font-semibold text-white bg-black/50 rounded-full backdrop-blur-sm">
+              <span className="absolute bottom-3 inset-e-3 px-2 py-1 text-xs font-semibold text-white bg-black/50 rounded-full backdrop-blur-sm">
                 {selectedImage + 1} / {images.length}
               </span>
             )}
@@ -362,7 +362,7 @@ export default function ProductDetailPage() {
                                 </div>
                               )}
                               {isSelected && (
-                                <div className="absolute top-1 right-1 w-4 h-4 bg-zinc-900 rounded-full flex items-center justify-center">
+                                <div className="absolute top-1 inset-e-1 w-4 h-4 bg-zinc-900 rounded-full flex items-center justify-center">
                                   <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                                 </div>
                               )}
@@ -415,7 +415,7 @@ export default function ProductDetailPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                       <p className="text-xs font-semibold text-zinc-800">{fmt(zone.base_cost)}</p>
                       {zone.free_threshold && (
                         <p className="text-[10px] text-green-600 font-medium">
@@ -435,7 +435,7 @@ export default function ProductDetailPage() {
             className="w-full rounded-xl"
             onClick={() => router.push(`/creator/custom-products/new?product_id=${product.id}`)}
           >
-            <ShoppingBag className="w-4 h-4 mr-2" />
+            <ShoppingBag className="w-4 h-4 me-2" />
             {t('productDetail.addToMyStore')}
           </Button>
 
@@ -500,7 +500,7 @@ export default function ProductDetailPage() {
                   <details key={i} className="group">
                     <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-medium hover:bg-zinc-50 transition list-none">
                       {q}
-                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-90" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 transition-transform group-open:rotate-90 rtl:-scale-x-100 rtl:group-open:scale-x-100" />
                     </summary>
                     <div
                       className="px-5 pb-4 text-sm text-muted-foreground prose prose-sm max-w-none"

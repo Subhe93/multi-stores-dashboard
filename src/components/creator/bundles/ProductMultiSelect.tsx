@@ -131,7 +131,7 @@ export function ProductMultiSelect({
               <span className="max-w-[180px] truncate">{p.name}</span>
               <button
                 type="button"
-                className="ml-0.5 text-zinc-400 hover:text-zinc-700"
+                className="ms-0.5 text-zinc-400 hover:text-zinc-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggle(p.id);
@@ -143,7 +143,7 @@ export function ProductMultiSelect({
             </span>
           ))
         )}
-        <ChevronsUpDown className="ml-auto size-3.5 shrink-0 opacity-40" />
+        <ChevronsUpDown className="ms-auto size-3.5 shrink-0 opacity-40" />
       </div>
 
       {open && typeof document !== 'undefined' &&
@@ -186,7 +186,7 @@ export function ProductMultiSelect({
                       type="button"
                       onClick={() => toggle(p.id)}
                       className={cn(
-                        'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition',
+                        'flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm transition',
                         isSel ? 'bg-zinc-100' : 'hover:bg-zinc-50',
                       )}
                     >

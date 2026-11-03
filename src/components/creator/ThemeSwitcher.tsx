@@ -89,7 +89,7 @@ export function ThemeSwitcher({
             (trigger as React.ReactElement)
           ) : (
             <Button variant="outline" size="sm">
-              <Palette className="w-3.5 h-3.5 mr-1.5" />
+              <Palette className="w-3.5 h-3.5 me-1.5" />
               {ar ? 'تغيير الثيم' : 'Change Theme'}
             </Button>
           )
@@ -130,7 +130,7 @@ export function ThemeSwitcher({
                 type="button"
                 onClick={() => setSelected(CUSTOM)}
                 className={cn(
-                  'group relative flex flex-col rounded-xl border-2 text-left transition overflow-hidden',
+                  'group relative flex flex-col rounded-xl border-2 text-start transition overflow-hidden',
                   selected === CUSTOM ? 'border-zinc-900 ring-2 ring-zinc-900/10' : 'border-zinc-200 hover:border-zinc-400',
                 )}
               >
@@ -150,7 +150,7 @@ export function ThemeSwitcher({
                   </p>
                 </div>
                 {selected === CUSTOM && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center">
+                  <div className="absolute top-2 inset-e-2 w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center">
                     <Check className="w-3 h-3" />
                   </div>
                 )}
@@ -165,7 +165,7 @@ export function ThemeSwitcher({
                   type="button"
                   onClick={() => setSelected(theme.key)}
                   className={cn(
-                    'group relative flex flex-col rounded-xl border-2 text-left transition overflow-hidden',
+                    'group relative flex flex-col rounded-xl border-2 text-start transition overflow-hidden',
                     isSelected
                       ? 'border-zinc-900 ring-2 ring-zinc-900/10'
                       : 'border-zinc-200 hover:border-zinc-400',
@@ -186,7 +186,7 @@ export function ThemeSwitcher({
                     </p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center">
+                    <div className="absolute top-2 inset-e-2 w-5 h-5 rounded-full bg-zinc-900 text-white flex items-center justify-center">
                       <Check className="w-3 h-3" />
                     </div>
                   )}
@@ -205,7 +205,7 @@ export function ThemeSwitcher({
               <Button type="button" onClick={doApply} disabled={applying}>
                 {applying ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
                     {ar ? 'جارٍ التطبيق…' : 'Applying…'}
                   </>
                 ) : (
@@ -225,7 +225,7 @@ export function ThemeSwitcher({
               >
                 {applying ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
                     {ar ? 'جارٍ التطبيق…' : 'Applying…'}
                   </>
                 ) : (

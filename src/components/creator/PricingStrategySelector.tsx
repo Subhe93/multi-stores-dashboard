@@ -157,7 +157,7 @@ export default function PricingStrategySelector({
           <p className="text-[11px] text-muted-foreground">{t('providerBasePrice')}</p>
           <p className="text-sm font-semibold text-zinc-900">{fmt(basePrice)}</p>
         </div>
-        <p className="text-[10px] text-muted-foreground text-right shrink-0">
+        <p className="text-[10px] text-muted-foreground text-end shrink-0">
           {t('chooseHowToPrice')}
         </p>
       </div>
@@ -180,7 +180,7 @@ export default function PricingStrategySelector({
                 }`}
               >
                 {selected && (
-                  <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <span className="absolute top-1.5 inset-e-1.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
                     <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                   </span>
                 )}

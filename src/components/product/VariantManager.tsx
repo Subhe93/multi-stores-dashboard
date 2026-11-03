@@ -639,7 +639,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           </div>
           <Button variant="ghost" size="sm" className="h-7 text-xs text-primary"
             onClick={() => onOptionsChange([...options, { name: '', style: 'text', values: [] }])}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> {t('variant.addNewOption')}
+            <Plus className="w-3.5 h-3.5 me-1" /> {t('variant.addNewOption')}
           </Button>
         </div>
       </CardHeader>
@@ -763,7 +763,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     return (
                       <div
                         key={vi}
-                        className="inline-flex items-center gap-1.5 pl-1 pr-0.5 py-0.5 rounded-md border border-zinc-200 bg-white text-xs"
+                        className="inline-flex items-center gap-1.5 ps-1 pe-0.5 py-0.5 rounded-md border border-zinc-200 bg-white text-xs"
                       >
                         {option.style === 'color' && (
                           <ColorEditorPopover
@@ -840,7 +840,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           <div className="pt-2">
             {/* Quick filter bar */}
             <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-              <span className="text-xs font-medium text-muted-foreground mr-1">{t('variant.select')}</span>
+              <span className="text-xs font-medium text-muted-foreground me-1">{t('variant.select')}</span>
               <button onClick={selectAll} className="text-xs text-primary hover:underline font-medium">{t('variant.all')}</button>
               <button onClick={selectNone} className="text-xs text-primary hover:underline font-medium">{t('variant.none')}</button>
               {allFilterValues.map((fv, i) => (
@@ -909,7 +909,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     setShowSamePriceAll(true);
                   }}
                 >
-                  <Pencil className="w-3 h-3 mr-1" /> {t('variant.samePriceForAll')}
+                  <Pencil className="w-3 h-3 me-1" /> {t('variant.samePriceForAll')}
                 </Button>
 
                 {optionNames.length > 0 && (
@@ -920,7 +920,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                     className="h-7 text-xs"
                     onClick={openPricePerOption}
                   >
-                    <Pencil className="w-3 h-3 mr-1" /> {t('variant.setPricePerOption')}
+                    <Pencil className="w-3 h-3 me-1" /> {t('variant.setPricePerOption')}
                   </Button>
                 )}
               </div>
@@ -940,7 +940,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                 {pricingStatus.allSame ? (
                   <>
                     {t('variant.allSamePrice')}
-                    <span className="font-semibold ml-0.5">
+                    <span className="font-semibold ms-0.5">
                       ({currency} {(pricingStatus.sharedPrice ?? 0).toFixed(2)})
                     </span>
                   </>
@@ -1040,14 +1040,14 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs">{t('variant.price')}</Label>
-              <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
+              <div className="relative"><span className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <Input type="number" step="0.01" className="ps-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
                   value={bulkPriceVal} onChange={e => setBulkPriceVal(e.target.value)} /></div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">{t('variant.compareAtPrice')}</Label>
-              <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
-                <Input type="number" step="0.01" className="pl-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
+              <div className="relative"><span className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <Input type="number" step="0.01" className="ps-14 h-9 text-sm" placeholder={t('variant.leaveEmptyKeep')}
                   value={bulkCompareVal} onChange={e => setBulkCompareVal(e.target.value)} /></div>
             </div>
           </div>
@@ -1089,11 +1089,11 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             <div className="space-y-1.5">
               <Label className="text-xs">{t('variant.price')}</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <span className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
                 <Input
                   type="number"
                   step="0.01"
-                  className="pl-14 h-9 text-sm"
+                  className="ps-14 h-9 text-sm"
                   placeholder="0.00"
                   value={samePriceVal}
                   onChange={e => setSamePriceVal(e.target.value)}
@@ -1104,11 +1104,11 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
             <div className="space-y-1.5">
               <Label className="text-xs">{t('variant.compareAtPrice')} <span className="text-muted-foreground font-normal">{t('variant.optional')}</span></Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
+                <span className="absolute inset-s-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{currency}</span>
                 <Input
                   type="number"
                   step="0.01"
-                  className="pl-14 h-9 text-sm"
+                  className="ps-14 h-9 text-sm"
                   placeholder={t('variant.leaveEmptyKeep')}
                   value={sameCompareVal}
                   onChange={e => setSameCompareVal(e.target.value)}
@@ -1158,8 +1158,8 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
               <div className="space-y-2 max-h-64 overflow-y-auto -mx-1 px-1">
                 <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center text-[10px] text-muted-foreground uppercase tracking-wide pb-1 border-b">
                   <span>{pricePerOption}</span>
-                  <span className="w-24 text-right">{t('variant.price')}</span>
-                  <span className="w-24 text-right">{t('variant.compare')}</span>
+                  <span className="w-24 text-end">{t('variant.price')}</span>
+                  <span className="w-24 text-end">{t('variant.compare')}</span>
                 </div>
                 {selectedOptionValues.map(val => (
                   <div key={val} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">

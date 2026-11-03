@@ -73,7 +73,7 @@ export function BundlePreview({ offers, primaryLocale, unitPrice = 50, pricingTy
                 }`}
               >
                 {sticker && (
-                  <span className="absolute -top-2 right-3 rounded bg-blue-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  <span className="absolute -top-2 inset-e-3 rounded bg-blue-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
                     {sticker}
                   </span>
                 )}

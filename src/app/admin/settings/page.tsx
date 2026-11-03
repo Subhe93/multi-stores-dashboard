@@ -373,11 +373,11 @@ export default function AdminSettings() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="h-8 text-sm pr-8"
+                  className="h-8 text-sm pe-8"
                   value={form.commission_value}
                   onChange={e => setField('commission_value', parseFloat(e.target.value) || 0)}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                <span className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                   {form.commission_type === 'percentage' ? '%' : form.default_currency}
                 </span>
               </div>
@@ -444,7 +444,7 @@ export default function AdminSettings() {
                     }`}
                   >
                     {locale.label}
-                    {isDefault && <span className="ml-1.5 opacity-60 text-[10px]">{t('defaultLabel')}</span>}
+                    {isDefault && <span className="ms-1.5 opacity-60 text-[10px]">{t('defaultLabel')}</span>}
                   </button>
                 );
               })}
@@ -468,12 +468,12 @@ export default function AdminSettings() {
               <Input
                 type="number"
                 step="0.01"
-                className="h-8 text-sm pr-10"
+                className="h-8 text-sm pe-10"
                 placeholder={t('noMinimum')}
                 value={form.min_order_amount ?? ''}
                 onChange={e => setField('min_order_amount', e.target.value ? parseFloat(e.target.value) : null)}
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+              <span className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                 {form.default_currency}
               </span>
             </div>

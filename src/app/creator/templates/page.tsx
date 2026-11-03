@@ -128,7 +128,7 @@ export default function TemplatesPage() {
               {/* Preview — gradient placeholder until bundled images ship */}
               <div className={`relative flex h-40 items-center justify-center bg-linear-to-br ${gradientFor(kit.id)}`}>
                 <Sparkles className="size-7 text-white/70" />
-                <span className="absolute bottom-3 left-3 text-lg font-semibold text-white drop-shadow">
+                <span className="absolute bottom-3 inset-s-3 text-lg font-semibold text-white drop-shadow">
                   {loc(kit.name, primaryLocale)}
                 </span>
               </div>

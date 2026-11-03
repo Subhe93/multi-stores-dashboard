@@ -160,7 +160,7 @@ function SectionRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group flex items-center gap-2 rounded-md border bg-white text-left transition',
+        'group flex items-center gap-2 rounded-md border bg-white text-start transition',
         selected ? 'border-zinc-900 ring-1 ring-zinc-900/10 shadow-sm' : 'border-zinc-200 hover:border-zinc-300',
         isDragging && 'opacity-50',
         section.is_hidden && 'opacity-60',
@@ -184,7 +184,7 @@ function SectionRow({
       <button
         type="button"
         onClick={onSelect}
-        className="flex-1 min-w-0 py-2 pr-2 text-left"
+        className="flex-1 min-w-0 py-2 pe-2 text-start"
       >
         <div className="text-xs font-medium truncate">{title}</div>
         {previewText ? (

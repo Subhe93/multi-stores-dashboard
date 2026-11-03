@@ -90,7 +90,7 @@ export function PublishBar({
           className="p-1.5 rounded-md hover:bg-zinc-100 text-zinc-500 shrink-0"
           aria-label={t('common.back')}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
         </button>
         <PageSwitcher
           currentPageId={pageId}
@@ -196,11 +196,11 @@ export function PublishBar({
             title={t('builder.clearCacheTooltip')}
           >
             {flushing ? (
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
             ) : justFlushed ? (
-              <Check className="w-3.5 h-3.5 mr-1.5" />
+              <Check className="w-3.5 h-3.5 me-1.5" />
             ) : (
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              <RefreshCw className="w-3.5 h-3.5 me-1.5" />
             )}
             {justFlushed ? t('builder.cleared') : t('builder.clearCache')}
           </Button>
@@ -208,7 +208,7 @@ export function PublishBar({
         {storeUrl && (
           <a href={storeUrl} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">
-              <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+              <ExternalLink className="w-3.5 h-3.5 me-1.5" />
               {t('builder.view')}
             </Button>
           </a>
@@ -230,12 +230,12 @@ export function PublishBar({
         >
           {publishing ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
               {t('builder.publishing')}
             </>
           ) : justPublished ? (
             <>
-              <Check className="w-3.5 h-3.5 mr-1.5" />
+              <Check className="w-3.5 h-3.5 me-1.5" />
               {t('builder.published')}
             </>
           ) : (

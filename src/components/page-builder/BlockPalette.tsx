@@ -29,7 +29,7 @@ export function BlockPalette({ onAddBlock }: BlockPaletteProps) {
           <button
             key={block.type}
             onClick={() => onAddBlock(block.type)}
-            className="flex items-center gap-2 p-2.5 rounded-lg border text-left hover:bg-blue-50 hover:border-blue-300 transition text-xs"
+            className="flex items-center gap-2 p-2.5 rounded-lg border text-start hover:bg-blue-50 hover:border-blue-300 transition text-xs"
           >
             <span className="text-lg">{block.icon}</span>
             <div>
