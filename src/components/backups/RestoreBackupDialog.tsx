@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { describeBackupError, type Backup, type RestoreBackupResponse } from '@/lib/backups';
+import { describeBackupError, hasBackupFile, type Backup, type RestoreBackupResponse } from '@/lib/backups';
 
 interface RestoreBackupDialogProps {
   backup: Backup | null;
@@ -43,7 +43,7 @@ export function RestoreBackupDialog({ backup, onClose, onRestored }: RestoreBack
     setResult(null);
   }, [backup?.id]);
 
-  const hasUploads = !!backup?.uploads_file;
+  const hasUploads = !!backup && hasBackupFile(backup, 'uploads');
   const confirmed = phrase.trim() === CONFIRM_PHRASE;
 
   const handleRestore = async () => {

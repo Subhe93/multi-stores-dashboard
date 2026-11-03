@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronDown, ChevronUp, Database, FolderArchive, HardDrive, Loader2, RotateCcw, Trash2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, CloudUpload, Copy, Database, FolderArchive, HardDrive, Loader2, RotateCcw, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,9 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import {
+  backupOffsiteState,
   describeBackupError,
   downloadBackupFile,
   formatBytes,
+  hasBackupFile,
   isBackupInFlight,
   type Backup,
   type BackupDiskInfo,
@@ -65,6 +67,8 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
   const { token } = useAuth();
 
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+  const [expandedOffsite, setExpandedOffsite] = useState<Set<string>>(new Set());
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null); // `${id}:${file}`
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -95,6 +99,25 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
       else next.add(id);
       return next;
     });
+
+  const toggleOffsite = (id: string) =>
+    setExpandedOffsite((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Copies an S3 object key; the check mark reverts after a short delay.
+  const copyKey = async (key: string) => {
+    try {
+      await navigator.clipboard.writeText(key);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey((current) => (current === key ? null : current)), 1500);
+    } catch {
+      // Clipboard unavailable (insecure context / denied); the key stays selectable as text.
+    }
+  };
 
   const handleDownload = async (backup: Backup, file: BackupFile) => {
     if (!token || downloading) return;
@@ -194,17 +217,18 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                 <TableHead className="text-end">{t('colDbSize')}</TableHead>
                 <TableHead className="text-end">{t('colUploadsSize')}</TableHead>
                 <TableHead>{t('note')}</TableHead>
+                <TableHead>{t('colOffsite')}</TableHead>
                 <TableHead className="text-end">{tc('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
+                  <TableCell colSpan={9} className="py-8 text-center text-xs text-muted-foreground">{tc('loading')}</TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-xs text-muted-foreground">{t('noBackups')}</TableCell>
+                  <TableCell colSpan={9} className="py-8 text-center text-xs text-muted-foreground">{t('noBackups')}</TableCell>
                 </TableRow>
               ) : (
                 items.map((backup) => {
@@ -214,6 +238,9 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                   const confirming = confirmDeleteId === backup.id;
                   const deleting = deletingId === backup.id;
                   const rowError = rowErrors[backup.id];
+                  const offsite = backupOffsiteState(backup);
+                  const hasKeys = !!(backup.s3_key || backup.s3_files_key);
+                  const offsiteOpen = expandedOffsite.has(backup.id);
                   return (
                     <Fragment key={backup.id}>
                       <TableRow data-state={selection.isSelected(backup.id) ? 'selected' : undefined}>
@@ -257,6 +284,43 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                         <TableCell className="max-w-[16rem] truncate text-xs" title={backup.note || undefined}>
                           {backup.note || <span className="text-muted-foreground">—</span>}
                         </TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          <div className="flex items-center gap-1">
+                            {offsite === 'done' && backup.offsite_at ? (
+                              <Badge
+                                variant="outline"
+                                className="border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700"
+                                title={t('offsiteDoneTitle', { date: new Date(backup.offsite_at).toLocaleString(locale) })}
+                              >
+                                <Check className="size-3" />
+                                {new Date(backup.offsite_at).toLocaleDateString(locale)}
+                              </Badge>
+                            ) : offsite === 'failed' ? (
+                              <Badge
+                                variant="outline"
+                                className="border-red-200 bg-red-50 text-[10px] font-semibold text-red-700"
+                                title={backup.offsite_error || undefined}
+                              >
+                                {t('offsiteFailed')}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                            {hasKeys && (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className="size-6"
+                                onClick={() => toggleOffsite(backup.id)}
+                                aria-expanded={offsiteOpen}
+                                aria-label={t('showOffsiteDetails')}
+                                title={t('showOffsiteDetails')}
+                              >
+                                {offsiteOpen ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-end">
                           {confirming ? (
                             <div className="flex items-center justify-end gap-1">
@@ -276,12 +340,12 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                                 size="icon-sm"
                                 title={t('downloadDb')}
                                 aria-label={t('downloadDb')}
-                                disabled={!completed || !backup.db_file || !!downloading}
+                                disabled={!completed || !hasBackupFile(backup, 'db') || !!downloading}
                                 onClick={() => handleDownload(backup, 'db')}
                               >
                                 {downloading === `${backup.id}:db` ? <Loader2 className="size-3.5 animate-spin" /> : <Database className="size-3.5" />}
                               </Button>
-                              {backup.uploads_file && (
+                              {hasBackupFile(backup, 'uploads') && (
                                 <Button
                                   variant="ghost"
                                   size="icon-sm"
@@ -298,7 +362,7 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                                 size="icon-sm"
                                 title={t('restore')}
                                 aria-label={t('restore')}
-                                disabled={!completed || !backup.db_file || running}
+                                disabled={!completed || !hasBackupFile(backup, 'db') || running}
                                 onClick={() => setRestoreTarget(backup)}
                               >
                                 <RotateCcw className="size-3.5" />
@@ -320,11 +384,49 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
                       </TableRow>
                       {(rowError || (errorOpen && backup.error)) && (
                         <TableRow className="bg-red-50/60 hover:bg-red-50/60">
-                          <TableCell colSpan={8} className="py-2">
+                          <TableCell colSpan={9} className="py-2">
                             {rowError && <p className="text-[11px] text-red-600">{rowError}</p>}
                             {errorOpen && backup.error && (
                               <pre className="max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-red-700">{backup.error}</pre>
                             )}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {offsiteOpen && hasKeys && (
+                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                          <TableCell colSpan={9} className="py-2">
+                            <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                              <CloudUpload className="size-3.5" />
+                              {t('offsiteKeys')}
+                            </div>
+                            <dl className="mt-1 space-y-1">
+                              {(
+                                [
+                                  ['db', t('offsiteKeyDb'), backup.s3_key],
+                                  ['uploads', t('offsiteKeyUploads'), backup.s3_files_key],
+                                  ['etag', t('offsiteEtag'), backup.s3_etag],
+                                ] as const
+                              ).map(([id, label, value]) =>
+                                value ? (
+                                  <div key={id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                                    <dt className="w-24 shrink-0 text-muted-foreground">{label}</dt>
+                                    <dd className="flex min-w-0 items-center gap-1">
+                                      <code className="select-all break-all rounded bg-muted px-1 py-0.5 font-mono text-[11px]">{value}</code>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="size-6 shrink-0"
+                                        title={t('copyKey')}
+                                        aria-label={t('copyKey')}
+                                        onClick={() => void copyKey(value)}
+                                      >
+                                        {copiedKey === value ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+                                      </Button>
+                                    </dd>
+                                  </div>
+                                ) : null,
+                              )}
+                            </dl>
                           </TableCell>
                         </TableRow>
                       )}

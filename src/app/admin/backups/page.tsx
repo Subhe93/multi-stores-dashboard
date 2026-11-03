@@ -87,11 +87,17 @@ export default function AdminBackupsPage() {
     void fetchSettings();
   };
 
+  // Offsite copies are opt-in (docs/OPERATIONS.md §5.1); hint when none landed yet.
+  const offsiteConfigured = items.some((b) => !!b.offsite_at);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
+        {!listLoading && !listError && !offsiteConfigured && (
+          <p className="mt-1 text-xs text-muted-foreground">{t('offsiteNotConfigured')}</p>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

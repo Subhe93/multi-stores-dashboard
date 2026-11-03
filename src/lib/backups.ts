@@ -24,6 +24,12 @@ export interface Backup {
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
+  // Offsite (S3) copy, all null when the feature is off (see docs/OPERATIONS.md §5.1).
+  s3_key: string | null;
+  s3_files_key: string | null;
+  s3_etag: string | null;
+  offsite_at: string | null;
+  offsite_error: string | null;
 }
 
 export interface BackupDiskInfo {
@@ -73,6 +79,24 @@ export const BACKUP_IN_FLIGHT_STATUSES: BackupStatus[] = ['PENDING', 'RUNNING'];
 
 export function isBackupInFlight(backup: Pick<Backup, 'status'>): boolean {
   return BACKUP_IN_FLIGHT_STATUSES.includes(backup.status);
+}
+
+export type BackupOffsiteState = 'done' | 'failed' | 'off';
+
+// Per-row offsite state: `done` once the copy landed, `failed` when the last
+// upload attempt errored, `off` when the feature is not configured.
+export function backupOffsiteState(
+  backup: Pick<Backup, 'offsite_at' | 'offsite_error' | 's3_key'>,
+): BackupOffsiteState {
+  if (backup.offsite_at) return 'done';
+  if (backup.offsite_error) return 'failed';
+  return 'off';
+}
+
+// A file can be downloaded / restored when it is on disk or in the bucket
+// (the API fetches rotated-out files back from the offsite copy).
+export function hasBackupFile(backup: Pick<Backup, 'db_file' | 'uploads_file' | 's3_key' | 's3_files_key'>, file: BackupFile): boolean {
+  return file === 'db' ? !!(backup.db_file || backup.s3_key) : !!(backup.uploads_file || backup.s3_files_key);
 }
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'] as const;
