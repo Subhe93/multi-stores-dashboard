@@ -15,7 +15,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { useStoreType } from '@/lib/useStoreType';
 import { collectionPathFromTree } from '@/lib/collection-url';
@@ -44,9 +44,7 @@ import {
   type OwnProductRow,
 } from '@/components/creator/categories/CollectionProductsPicker';
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-).replace('/api', '');
+const API_BASE = API_ORIGIN;
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
 const LOCALE_LABELS: Record<string, string> = {
@@ -464,7 +462,7 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
       return {
         url: u.startsWith('http')
           ? u
-          : `${API_URL.replace('/api', '')}${u}`,
+          : `${API_ORIGIN}${u}`,
       };
     })();
     if (url) setThumbnailUrl(url);

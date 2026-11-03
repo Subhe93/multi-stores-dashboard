@@ -31,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { BundleOfferEditor } from './BundleOfferEditor';
 import { BundlePreview } from './BundlePreview';
 import { BundleTemplatesDialog } from './BundleTemplatesDialog';
@@ -49,9 +49,7 @@ import {
 
 type Translator = ReturnType<typeof useTranslations>;
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-).replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 // Uploaded thumbnails are stored as API-relative paths; make them absolute.
 function resolveUrl(url?: string | null): string | null {

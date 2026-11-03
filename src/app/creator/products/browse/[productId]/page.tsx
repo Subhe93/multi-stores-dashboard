@@ -5,14 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Package, ShoppingBag, ChevronRight, Truck, Globe, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCurrency } from '@/lib/useCurrency';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 function resolveUrl(url?: string): string | undefined {
   if (!url) return undefined;

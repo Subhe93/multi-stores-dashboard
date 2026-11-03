@@ -9,11 +9,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Store as StoreIcon, ImageIcon, ExternalLink, Search, Package2, BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { useRowOpen } from '@/components/common/useTableSelection';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 function resolveUrl(url?: string | null): string {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;

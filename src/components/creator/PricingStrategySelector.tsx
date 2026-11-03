@@ -1,5 +1,6 @@
 'use client';
 
+import { API_ORIGIN } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DollarSign, Layers, TrendingUp, Check, Package } from 'lucide-react';
@@ -31,7 +32,7 @@ interface VariantOptionConfig {
   dualColorMap?: Record<string, [string, string]>;
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 function resolveImageUrl(url: string): string {
   return url.startsWith('http') ? url : `${API_BASE}${url}`;

@@ -1,5 +1,8 @@
 // Exported so non-JSON requests (CSV downloads) can reuse the same base URL.
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Origin of the API host for files it serves (`/uploads/...`). Anchored strip of
+// the `/api` SUFFIX only: a host such as api.shopsdoor.com contains "api" too.
+export const API_ORIGIN = API_URL.replace(/\/api\/?$/, '');
 
 interface FetchOptions extends RequestInit {
   token?: string;

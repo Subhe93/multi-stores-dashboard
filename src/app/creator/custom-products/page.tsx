@@ -22,12 +22,12 @@ import {
 } from '@/components/ui/dialog';
 import { Layers, Plus, ImageIcon, Copy } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 function resolveUrl(url?: string): string | undefined {
   if (!url) return undefined;
   return url.startsWith('http') ? url : `${API_BASE}${url}`;

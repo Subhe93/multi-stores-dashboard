@@ -1,5 +1,6 @@
 'use client';
 
+import { API_ORIGIN } from '@/lib/api';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
@@ -47,7 +48,7 @@ interface CustomFieldRendererProps {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-const API_BASE = API_URL.replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 export default function CustomFieldRenderer({
   fields,

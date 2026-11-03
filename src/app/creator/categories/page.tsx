@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { pageWindow } from '@/components/common/pageWindow';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { runBulk } from '@/lib/bulk';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useRowOpen, useTableSelection } from '@/components/common/useTableSelection';
@@ -57,9 +57,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-).replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 /** Deepest level a collection may sit on: root = 0, child = 1, grandchild = 2. */
 const MAX_CATEGORY_DEPTH = 2;

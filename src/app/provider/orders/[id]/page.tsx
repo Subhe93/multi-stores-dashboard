@@ -14,7 +14,7 @@ import {
   XCircle, ExternalLink, Package, Info,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -116,7 +116,7 @@ interface OrderDetail {
   } | null;
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 function resolveUrl(url?: string | null): string {
   if (!url) return '';
   if (url.startsWith('http')) return url;

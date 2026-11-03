@@ -1,5 +1,6 @@
 'use client';
 
+import { API_ORIGIN } from '@/lib/api';
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ApiError, API_ERROR_EVENT } from './api';
@@ -60,7 +61,7 @@ export function useImageUpload(token: string | null) {
         setError(null);
         return {
           id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          url: data.url.startsWith('http') ? data.url : `${API_URL.replace('/api', '')}${data.url}`,
+          url: data.url.startsWith('http') ? data.url : `${API_ORIGIN}${data.url}`,
           file_type: data.file_type,
           file_size: data.file_size,
         };

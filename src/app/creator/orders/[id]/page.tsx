@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Clock, Package, Info, Tag, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
@@ -38,7 +38,7 @@ const OrderDesignCard = dynamic(() => import('@/components/designer/OrderDesignC
   ssr: false,
 });
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 function resolveUrl(url?: string | null): string {
   if (!url) return '';
   if (url.startsWith('http')) return url;

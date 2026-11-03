@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { useStoreType } from '@/lib/useStoreType';
 import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNotice';
@@ -34,7 +34,7 @@ import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',

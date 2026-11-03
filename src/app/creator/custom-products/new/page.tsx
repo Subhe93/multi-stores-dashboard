@@ -21,7 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
@@ -41,7 +41,7 @@ import { computeProductPricingForBundleCheck } from '@/components/creator/bundle
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',

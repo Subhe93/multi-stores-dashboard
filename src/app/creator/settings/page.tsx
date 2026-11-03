@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle, Camera, CheckCircle2, ExternalLink, Loader2, RefreshCw, Trash2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_ORIGIN } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
@@ -27,7 +27,7 @@ import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 import { useReauth } from '@/components/security/ReauthDialog';
 import type { ReauthCredentials } from '@/lib/twoFactor';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+const API_BASE = API_ORIGIN;
 function resolveAvatarUrl(url?: string | null): string {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
