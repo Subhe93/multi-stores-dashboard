@@ -13,9 +13,14 @@ export function withEditHint(href: string, token: string): string {
 /**
  * Whether `href` points at this creator's storefront: one of its hosts
  * (custom domain or any served market domain from `storefront_hosts`, each
- * with or without www, or the platform subdomain) or the platform's
- * `/store/<slug>` path (redirected to the subdomain, fragment kept by the
- * browser).
+ * with or without www, or the platform subdomain under ANY platform host)
+ * or a platform host's `/store/<slug>` path (redirected to the subdomain,
+ * fragment kept by the browser).
+ *
+ * `webOrigin` is the primary platform origin (port kept for dev);
+ * `platformHosts` the extra hostnames the platform is served on during a
+ * domain move (see platformHosts.ts), so a link to the old or the new
+ * platform subdomain is recognised either way.
  */
 export function isOwnStorefrontUrl(
   href: string,
@@ -26,6 +31,7 @@ export function isOwnStorefrontUrl(
     storefront_hosts?: string[] | null;
   },
   webOrigin: string,
+  platformHosts: readonly string[] = [],
 ): boolean {
   let url: URL;
   let web: URL;
@@ -42,9 +48,16 @@ export function isOwnStorefrontUrl(
     const known = h?.trim().toLowerCase().replace(/^www\./, '');
     if (known && bare === known) return true;
   }
-  if (host === `${store.slug}.${web.host}`.toLowerCase()) return true;
-  return (
-    host === web.host.toLowerCase() &&
-    (url.pathname === `/store/${store.slug}` || url.pathname.startsWith(`/store/${store.slug}/`))
-  );
+  const slug = store.slug.toLowerCase();
+  const isStorePath =
+    url.pathname === `/store/${store.slug}` || url.pathname.startsWith(`/store/${store.slug}/`);
+  // Primary origin: host with port (dev) — then every listed platform host.
+  const platform = [web.host.toLowerCase(), ...platformHosts.map((h) => h.trim().toLowerCase())];
+  const hostname = url.hostname.toLowerCase();
+  for (const p of platform) {
+    if (!p) continue;
+    if (host === `${slug}.${p}` || hostname === `${slug}.${p}`) return true;
+    if ((host === p || hostname === p) && isStorePath) return true;
+  }
+  return false;
 }

@@ -50,3 +50,20 @@ test('isOwnStorefrontUrl: anything else is not the own storefront', () => {
   assert.equal(isOwnStorefrontUrl('not a url', namez, WEB), false);
   assert.equal(isOwnStorefrontUrl('https://x.iwings-digital.com/', { slug: 'x', custom_domain: null }, WEB), true);
 });
+
+test('isOwnStorefrontUrl: domain-move overlap — every listed platform host counts', () => {
+  const hosts = ['shopsdoor.com', 'www.shopsdoor.com', 'iwings-digital.com', 'www.iwings-digital.com'];
+  const web = 'https://shopsdoor.com';
+  const muba = { slug: 'muba', custom_domain: null };
+  assert.equal(isOwnStorefrontUrl('https://muba.shopsdoor.com/products/x', muba, web, hosts), true);
+  assert.equal(isOwnStorefrontUrl('https://muba.iwings-digital.com/', muba, web, hosts), true);
+  assert.equal(isOwnStorefrontUrl('https://iwings-digital.com/store/muba/om-oss', muba, web, hosts), true);
+  assert.equal(isOwnStorefrontUrl('https://www.shopsdoor.com/store/muba', muba, web, hosts), true);
+  assert.equal(isOwnStorefrontUrl('https://other.iwings-digital.com/', muba, web, hosts), false);
+  assert.equal(isOwnStorefrontUrl('https://app.shopsdoor.com/creator', muba, web, hosts), false);
+  assert.equal(isOwnStorefrontUrl('https://muba.example.com/', muba, web, hosts), false);
+  // Without the list only the primary origin is known (today's behaviour).
+  assert.equal(isOwnStorefrontUrl('https://muba.iwings-digital.com/', muba, web), false);
+  // Dev: the primary origin keeps its port.
+  assert.equal(isOwnStorefrontUrl('http://muba.localhost:3003/', muba, 'http://localhost:3003', ['localhost']), true);
+});

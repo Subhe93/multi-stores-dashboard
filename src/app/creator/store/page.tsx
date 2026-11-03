@@ -36,6 +36,7 @@ import { invalidateMyStore } from '@/lib/useStorefrontUrl';
 import { canToggleActive, type StoreStatus } from '@/lib/storeStatus';
 import { StoreStatusBadge } from '@/components/creator/StoreStatusBadge';
 import { domainRemovalFallbackHost } from '@/lib/customDomain';
+import { platformHosts } from '@/lib/platformHosts';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 // ---------------------------------------------------------------------------
@@ -160,6 +161,10 @@ const DEFAULT_TYPOGRAPHY: StoreTypography = {
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
+// Every platform host (old + new apex during a domain move); link GENERATION
+// below still follows the single primary WEB_ORIGIN.
+const PLATFORM_HOSTS = platformHosts();
+
 // Hostname suffix shown next to the store slug input, derived from the web
 // origin so dev shows ".localhost:3003" and prod shows the real platform host.
 const PLATFORM_DOMAIN_SUFFIX = (() => {
@@ -172,7 +177,7 @@ const PLATFORM_DOMAIN_SUFFIX = (() => {
 
 // CNAME target the creator must point their domain to. Strips the port — DNS
 // records can't contain one — so dev shows "localhost" (useless but harmless)
-// and prod shows the real platform host like "iwings-digital.com".
+// and prod shows the real platform host (the apex of NEXT_PUBLIC_WEB_URL).
 const PLATFORM_CNAME_TARGET = PLATFORM_DOMAIN_SUFFIX
   .replace(/^\./, '')
   .replace(/:\d+$/, '');
@@ -630,6 +635,7 @@ export default function CreatorStorePage() {
         fallback: domainRemovalFallbackHost(
           { slug: store.slug, custom_domain: removed, public_host: res.public_host },
           WEB_ORIGIN,
+          PLATFORM_HOSTS,
         ),
         stillServed: res.still_served_by_market,
       });
@@ -1074,7 +1080,7 @@ export default function CreatorStorePage() {
                       ? t('myStore.customDomainRemoveWarningMarkets', { domain: store.custom_domain ?? '' })
                       : t('myStore.customDomainRemoveWarning', {
                           domain: store.custom_domain ?? '',
-                          fallback: domainRemovalFallbackHost(store, WEB_ORIGIN),
+                          fallback: domainRemovalFallbackHost(store, WEB_ORIGIN, PLATFORM_HOSTS),
                         })
                   }
                   confirmLabel={t('myStore.customDomainRemove')}

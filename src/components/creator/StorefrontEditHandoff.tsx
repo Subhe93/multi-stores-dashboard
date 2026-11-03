@@ -5,8 +5,12 @@ import { useAuth } from '@/lib/auth';
 import { useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { cachedEditHintToken, prefetchEditHintToken } from '@/lib/storefrontEditHint';
 import { isOwnStorefrontUrl, withEditHint } from '@/lib/storefrontEditHintUrl';
+import { platformHosts } from '@/lib/platformHosts';
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
+// Every platform host (old + new apex during a domain move): a link to
+// `<slug>.<any of them>` is the creator's own storefront too.
+const PLATFORM_HOSTS = platformHosts();
 
 /**
  * Renders nothing. Adds the storefront edit-hint hand-off to EVERY link to
@@ -28,7 +32,7 @@ export function StorefrontEditHandoff() {
     const ownLink = (target: EventTarget | null): HTMLAnchorElement | null => {
       const a = target instanceof Element ? target.closest('a[href]') : null;
       if (!(a instanceof HTMLAnchorElement)) return null;
-      return isOwnStorefrontUrl(a.href, store, WEB_ORIGIN) ? a : null;
+      return isOwnStorefrontUrl(a.href, store, WEB_ORIGIN, PLATFORM_HOSTS) ? a : null;
     };
 
     const warm = (e: Event) => {

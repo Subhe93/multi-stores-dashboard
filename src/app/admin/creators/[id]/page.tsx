@@ -46,6 +46,16 @@ interface CreatorDetail {
 
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
+// Hostname suffix shown next to the slug input: the host of NEXT_PUBLIC_WEB_URL
+// (".localhost:3003" in dev, the real platform apex in production).
+const PLATFORM_DOMAIN_SUFFIX = (() => {
+  try {
+    return `.${new URL(WEB_ORIGIN).host}`;
+  } catch {
+    return '.localhost:3003';
+  }
+})();
+
 function storeUrl(slug: string): string {
   const u = new URL(WEB_ORIGIN);
   return `${u.protocol}//${slug}.${u.host}`;
@@ -267,7 +277,7 @@ export default function CreatorDetailPage() {
                       onBlur={() => setSlug(asciiHandle(slug))}
                       placeholder="store-slug"
                     />
-                    <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-e-md text-xs text-muted-foreground whitespace-nowrap">.platform.com</span>
+                    <span className="h-8 px-3 flex items-center bg-zinc-50 border border-zinc-200 rounded-e-md text-xs text-muted-foreground whitespace-nowrap">{PLATFORM_DOMAIN_SUFFIX}</span>
                   </div>
                   <Button
                     size="sm"

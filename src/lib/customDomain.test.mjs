@@ -2,7 +2,7 @@
 // Run: node --experimental-strip-types --test src/lib/customDomain.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { domainRemovalFallbackHost, platformSubdomainHost } from './customDomain.ts';
+import { domainRemovalFallbackHost, isPlatformSubdomainHost, platformSubdomainHost } from './customDomain.ts';
 
 const WEB = 'https://iwings-digital.com';
 
@@ -28,6 +28,24 @@ test('public host equal to the removed domain is not a fallback', () => {
 test('a different Markets public host wins', () => {
   assert.equal(
     domainRemovalFallbackHost({ slug: 'namez', custom_domain: 'resumely.net', public_host: 'namez.se' }, WEB),
+    'namez.se',
+  );
+});
+
+test('domain move: a public host that is the platform subdomain under ANY listed host follows the primary origin', () => {
+  const hosts = ['shopsdoor.com', 'iwings-digital.com'];
+  assert.equal(isPlatformSubdomainHost('namez.iwings-digital.com', 'namez', hosts), true);
+  assert.equal(isPlatformSubdomainHost('namez.se', 'namez', hosts), false);
+  assert.equal(
+    domainRemovalFallbackHost(
+      { slug: 'namez', custom_domain: 'resumely.net', public_host: 'namez.iwings-digital.com' },
+      'https://shopsdoor.com',
+      hosts,
+    ),
+    'namez.shopsdoor.com',
+  );
+  assert.equal(
+    domainRemovalFallbackHost({ slug: 'namez', custom_domain: 'resumely.net', public_host: 'namez.se' }, 'https://shopsdoor.com', hosts),
     'namez.se',
   );
 });
