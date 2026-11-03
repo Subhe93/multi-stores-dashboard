@@ -612,7 +612,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       c('bg_color', 'Background color', 'لون الخلفية'),
     ],
     defaultSettings: { separator: '✦', size: 'lg', speed: 'normal', style: 'solid' },
-    defaultContent: { text: 'Free shipping worldwide' },
+    defaultContent: { text: 'Welcome to our store' },
   },
   {
     id: 'rich-text',
@@ -1045,7 +1045,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     defaultSettings: { layout: 'cards', padding: 'comfortable' },
     defaultContent: {
       items: [
-        { icon: 'truck', label: 'Free shipping', description: 'On orders over $50' },
+        { icon: 'shield', label: 'Secure payment', description: 'Card payments via Stripe' },
         { icon: 'refresh', label: '30-day returns', description: 'Easy and free' },
         { icon: 'shield', label: 'Secure checkout', description: 'Protected payments' },
         { icon: 'headphones', label: 'Friendly support', description: 'Available 7 days a week' },
@@ -2353,9 +2353,25 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       ar: 'جسم المنتج الكامل — المعرض، السعر، الباندلز، الخيارات، الحقول المخصّصة، الشحن والتابات. مطابق لتصميم صفحة المنتج الكامل.',
     },
     pageTypes: ['PRODUCT_TEMPLATE'],
-    translatable: [],
+    // `trust_badges` is per-locale content: the owner writes each claim
+    // themselves, so nothing is asserted on their behalf. Legacy sections may
+    // still carry `settings.show_trust_badges`; it is ignored everywhere.
+    translatable: ['trust_badges'],
     schema: [
-      { key: 'show_trust_badges', type: 'boolean', label: { en: 'Show trust badges', ar: 'إظهار شارات الثقة' }, defaultValue: true },
+      {
+        key: 'trust_badges',
+        type: 'repeater',
+        label: { en: 'Trust badges', ar: 'شارات الثقة' },
+        description: {
+          en: 'Only state what is true for this store (e.g. shipping terms, returns, payment). Nothing is shown until you add badges.',
+          ar: 'اذكر فقط ما ينطبق فعلاً على متجرك (مثل شروط الشحن، الإرجاع، الدفع). لا يظهر شيء حتى تضيف شارات.',
+        },
+        fields: [
+          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: ICON_OPTIONS },
+          { key: 'label', type: 'text', label: { en: 'Label', ar: 'التسمية' } },
+          { key: 'description', type: 'text', label: { en: 'Description (optional)', ar: 'الوصف (اختياري)' } },
+        ],
+      },
       { key: 'show_shipping', type: 'boolean', label: { en: 'Show shipping & delivery', ar: 'إظهار الشحن والتوصيل' }, defaultValue: true },
       { key: 'show_tabs', type: 'boolean', label: { en: 'Show tabs (description / specs / FAQ)', ar: 'إظهار التابات (الوصف / المواصفات / الأسئلة)' }, defaultValue: true },
       {
@@ -2381,7 +2397,6 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       },
     ],
     defaultSettings: {
-      show_trust_badges: true,
       show_shipping: true,
       show_tabs: true,
       button_style: 'solid',
@@ -2882,7 +2897,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       link_style: 'text',
     },
     defaultContent: {
-      messages: [{ text: 'Free shipping on orders over $50', link_label: 'Shop now', link_url: '/products' }],
+      messages: [{ text: 'Welcome to our store', link_label: 'Shop now', link_url: '/products' }],
     },
   },
   {
