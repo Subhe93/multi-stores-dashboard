@@ -2367,6 +2367,7 @@
       "slugAvailable": "Diese Adresse ist verfügbar",
       "slugTaken": "Diese Adresse ist bereits vergeben",
       "slugReserved": "Diese Adresse ist reserviert – wähle eine andere",
+      "slugInvalid": "2–50 Kleinbuchstaben, Ziffern und Bindestriche verwenden",
       "pauseStore": "Shop ist live",
       "pauseStoreDesc": "Ausschalten, um den Shop zu pausieren: Besucher sehen eine Seite „vorübergehend geschlossen“.",
       "resumeStore": "Shop ist pausiert",
@@ -5397,6 +5398,12 @@
         "country": "Wähle ein Land.",
         "phone": "Gib eine gültige Telefonnummer ein.",
         "support_email": "Gib eine gültige E-Mail-Adresse ein."
+      },
+      "vies": {
+        "verified": "USt-IdNr. in VIES bestätigt",
+        "unavailable": "Die USt-IdNr. konnte gerade nicht geprüft werden (VIES nicht erreichbar). Sie ist gespeichert und blockiert die Veröffentlichung nicht; beim nächsten Speichern wird erneut geprüft.",
+        "invalid": "VIES kennt diese USt-IdNr. nicht. Prüfen Sie sie oder lassen Sie das Feld leer; die übrigen Angaben wurden nicht gespeichert.",
+        "invalidShort": "Nicht in VIES registriert."
       }
     }
   },
@@ -5633,7 +5640,8 @@
     "MENU_NOT_OWNED": "Nicht dein Menü",
     "MENU_KEY_ALREADY_EXISTS": "Ein Menü mit diesem Schlüssel existiert bereits",
     "UPLOAD_NO_FILE": "Keine Datei bereitgestellt",
-    "UPLOAD_FILE_TOO_LARGE": "Datei zu groß (max. 50 MB)",
+    "UPLOAD_FILE_TOO_LARGE": "Die Datei ist zu groß. Die maximale Größe beträgt 50 MB.",
+    "UPLOAD_FILE_TOO_LARGE_MAX": "Die Datei ist zu groß. Die maximale Größe beträgt {max} MB.",
     "UPLOAD_IMAGE_PROCESS_FAILED": "Bild konnte nicht verarbeitet werden — die Datei ist möglicherweise beschädigt",
     "TEMPLATE_NOT_FOUND": "Vorlage nicht gefunden",
     "TEMPLATE_CREATOR_NOT_FOUND": "Creator nicht gefunden",
@@ -5896,7 +5904,10 @@
     "STORE_STATUS_TRANSITION": "Diese Änderung ist im aktuellen Status des Shops nicht erlaubt.",
     "STORE_NOT_LIVE": "Der Shop ist noch nicht öffentlich.",
     "TRADER_DETAILS_INVALID": "Einige Unternehmensangaben fehlen oder sind ungültig.",
-    "STORE_STATUS_REASON_REQUIRED": "Für diesen Status ist eine Begründung erforderlich."
+    "STORE_STATUS_REASON_REQUIRED": "Für diesen Status ist eine Begründung erforderlich.",
+    "TRADER_VAT_INVALID": "Die USt-IdNr. ist nicht in VIES registriert. Prüfen Sie sie oder lassen Sie das Feld leer.",
+    "AUTH_CAPTCHA_FAILED": "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "Die Sicherheitsprüfung ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

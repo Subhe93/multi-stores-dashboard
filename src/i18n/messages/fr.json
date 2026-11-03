@@ -2367,6 +2367,7 @@
       "slugAvailable": "Cette adresse est disponible",
       "slugTaken": "Cette adresse est déjà prise",
       "slugReserved": "Cette adresse est réservée — choisissez-en une autre",
+      "slugInvalid": "Utilisez 2 à 50 lettres minuscules, chiffres et tirets",
       "pauseStore": "Boutique en ligne",
       "pauseStoreDesc": "Désactivez pour mettre la boutique en pause : les visiteurs verront une page « temporairement fermée ».",
       "resumeStore": "Boutique en pause",
@@ -5397,6 +5398,12 @@
         "country": "Choisissez un pays.",
         "phone": "Saisissez un numéro de téléphone valide.",
         "support_email": "Saisissez une adresse e-mail valide."
+      },
+      "vies": {
+        "verified": "Numéro de TVA vérifié dans VIES",
+        "unavailable": "Le numéro de TVA n’a pas pu être vérifié pour le moment (VIES indisponible). Il est enregistré et ne bloque pas la mise en ligne ; il sera revérifié au prochain enregistrement.",
+        "invalid": "VIES ne reconnaît pas ce numéro de TVA. Vérifiez-le ou laissez le champ vide ; les autres informations n’ont pas été enregistrées.",
+        "invalidShort": "Non enregistré dans VIES."
       }
     }
   },
@@ -5633,7 +5640,8 @@
     "MENU_NOT_OWNED": "Ce n'est pas votre menu",
     "MENU_KEY_ALREADY_EXISTS": "Un menu avec cette clé existe déjà",
     "UPLOAD_NO_FILE": "Aucun fichier fourni",
-    "UPLOAD_FILE_TOO_LARGE": "Fichier trop volumineux (max 50 Mo)",
+    "UPLOAD_FILE_TOO_LARGE": "Le fichier est trop volumineux. La taille maximale est de 50 Mo.",
+    "UPLOAD_FILE_TOO_LARGE_MAX": "Le fichier est trop volumineux. La taille maximale est de {max} Mo.",
     "UPLOAD_IMAGE_PROCESS_FAILED": "Impossible de traiter l'image — le fichier est peut-être corrompu",
     "TEMPLATE_NOT_FOUND": "Modèle introuvable",
     "TEMPLATE_CREATOR_NOT_FOUND": "Créateur introuvable",
@@ -5896,7 +5904,10 @@
     "STORE_STATUS_TRANSITION": "Ce changement n’est pas autorisé dans l’état actuel de la boutique.",
     "STORE_NOT_LIVE": "La boutique n’est pas encore publique.",
     "TRADER_DETAILS_INVALID": "Certaines informations de l’entreprise sont manquantes ou invalides.",
-    "STORE_STATUS_REASON_REQUIRED": "Un motif est requis pour cet état."
+    "STORE_STATUS_REASON_REQUIRED": "Un motif est requis pour cet état.",
+    "TRADER_VAT_INVALID": "Le numéro de TVA n’est pas enregistré dans VIES. Vérifiez-le ou laissez le champ vide.",
+    "AUTH_CAPTCHA_FAILED": "La vérification de sécurité a échoué. Veuillez réessayer.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "La vérification de sécurité est temporairement indisponible. Veuillez réessayer dans un instant."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

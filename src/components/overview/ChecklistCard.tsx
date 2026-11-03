@@ -8,7 +8,8 @@ import type { OverviewSetup } from './overview.api';
 import type { MyStoreSummary } from '@/lib/useStorefrontUrl';
 import { effectiveStoreStatus } from '@/lib/useStorefrontUrl';
 import { computeSetupChecklist, setupStepHref, type OnboardingSurvey } from '@/lib/storeStatus';
-import { PREVIEWED_KEY, readOnboardingSurvey, SETUP_DISMISS_KEY } from '@/lib/onboardingSurvey';
+import { hasSurveyAnswers, PREVIEWED_KEY, resolveOnboardingSurvey, SETUP_DISMISS_KEY } from '@/lib/onboardingSurvey';
+import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 const subscribeNoop = () => () => {};
@@ -22,9 +23,10 @@ function readFlag(key: string): boolean {
 }
 const readDismissed = () => readFlag(SETUP_DISMISS_KEY);
 const readPreviewed = () => readFlag(PREVIEWED_KEY);
-// Survey read once per mount through the external-store hook (SSR → none).
-let surveyCache: OnboardingSurvey | null = null;
-const readSurvey = () => (surveyCache ??= readOnboardingSurvey());
+// Browser copy of the survey, read once (SSR → none); the server profile
+// (`GET /auth/me` → creator.onboarding_profile) wins when it has answers.
+let localSurveyCache: OnboardingSurvey | null = null;
+const readLocalSurvey = () => (localSurveyCache ??= resolveOnboardingSurvey(null));
 
 interface ChecklistCardProps {
   store: MyStoreSummary;
@@ -45,7 +47,10 @@ export function ChecklistCard({ store, setup, independent, storeUrl }: Checklist
   const t = useTranslations('creator.overview.setup');
   const storedDismissed = useSyncExternalStore(subscribeNoop, readDismissed, () => true);
   const previewed = useSyncExternalStore(subscribeNoop, readPreviewed, () => false);
-  const survey = useSyncExternalStore(subscribeNoop, readSurvey, () => null);
+  const { user } = useAuth();
+  const localSurvey = useSyncExternalStore(subscribeNoop, readLocalSurvey, () => null);
+  const profile = user?.creator?.onboarding_profile;
+  const survey = hasSurveyAnswers(profile) ? resolveOnboardingSurvey(profile) : localSurvey;
   const [dismissedNow, setDismissedNow] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dismissed = storedDismissed || dismissedNow;

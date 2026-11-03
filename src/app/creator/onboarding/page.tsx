@@ -11,7 +11,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { CreateStoreForm } from '@/components/onboarding/CreateStoreForm';
 import { useAuth } from '@/lib/auth';
 import { useMyStore } from '@/lib/useMyStore';
-import { readOnboardingSurvey, writeOnboardingSurvey } from '@/lib/onboardingSurvey';
+import { resolveOnboardingSurvey, saveOnboardingSurvey } from '@/lib/onboardingSurvey';
 import { countryFromLocale, suggestedStoreType, SURVEY_SELLS, SURVEY_STAGES, type OnboardingSurvey, type SurveySells, type SurveyStage } from '@/lib/storeStatus';
 import { taxCountryOptions } from '@/lib/taxCountries';
 import { cn } from '@/lib/utils';
@@ -42,17 +42,21 @@ function OptionCard({ selected, title, onClick }: { selected: boolean; title: st
  * `GET /stores/my/store` answers 404 and hides the sidebar meanwhile.
  */
 export default function CreatorOnboardingPage() {
-  const { token, user } = useAuth();
+  const { token, user, refreshProfile } = useAuth();
   const router = useRouter();
   const t = useTranslations('creator.onboarding');
   const locale = useLocale();
   const { store, loading } = useMyStore();
   const [step, setStep] = useState<Step>('survey');
-  // Stored answers + the browser locale's country (SE when unknown). This
-  // page only mounts client-side (behind the auth gate), so reading the
-  // browser here is safe; the server branch keeps the initializer pure.
+  const [saving, setSaving] = useState(false);
+  // Stored answers (server profile, else the browser copy) + the browser
+  // locale's country (SE when unknown). This page only mounts client-side
+  // (behind the auth gate), so reading the browser here is safe; the server
+  // branch keeps the initializer pure.
   const [survey, setSurvey] = useState<OnboardingSurvey>(() =>
-    typeof window === 'undefined' ? {} : { country: countryFromLocale(navigator.language), ...readOnboardingSurvey() },
+    typeof window === 'undefined'
+      ? {}
+      : { country: countryFromLocale(navigator.language), ...resolveOnboardingSurvey(user?.creator?.onboarding_profile) },
   );
 
   // A store already exists: nothing to onboard.
@@ -70,8 +74,16 @@ export default function CreatorOnboardingPage() {
   const accountKind = user?.creator?.onboarding_profile?.account_kind ?? null;
   const defaultStoreType = suggestedStoreType(accountKind, survey);
 
-  const continueToStore = (save: boolean) => {
-    if (save) writeOnboardingSurvey(survey);
+  // Saves through `PUT /creators/me/onboarding-profile` (localStorage is the
+  // fallback inside saveOnboardingSurvey); a failed save never blocks the
+  // flow, the answers still shape this session.
+  const continueToStore = async (save: boolean) => {
+    if (save) {
+      setSaving(true);
+      const stored = await saveOnboardingSurvey(token ?? '', survey);
+      if (stored) await refreshProfile().catch(() => undefined);
+      setSaving(false);
+    }
     setStep('store');
   };
 
@@ -136,10 +148,11 @@ export default function CreatorOnboardingPage() {
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => continueToStore(false)}>
+                <Button type="button" variant="ghost" size="sm" disabled={saving} onClick={() => void continueToStore(false)}>
                   {t('skip')}
                 </Button>
-                <Button type="button" size="sm" onClick={() => continueToStore(true)}>
+                <Button type="button" size="sm" disabled={saving} onClick={() => void continueToStore(true)}>
+                  {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
                   {t('continue')}
                   <ArrowRight className="size-3.5 rtl:-scale-x-100" />
                 </Button>

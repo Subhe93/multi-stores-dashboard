@@ -2367,6 +2367,7 @@
       "slugAvailable": "Bu adres kullanılabilir",
       "slugTaken": "Bu adres zaten alınmış",
       "slugReserved": "Bu adres ayrılmış — başka bir adres seçin",
+      "slugInvalid": "2–50 küçük harf, rakam ve tire kullanın",
       "pauseStore": "Mağaza yayında",
       "pauseStoreDesc": "Mağazanızı duraklatmak için kapatın: ziyaretçiler “geçici olarak kapalı” sayfasını görür.",
       "resumeStore": "Mağaza duraklatıldı",
@@ -5397,6 +5398,12 @@
         "country": "Bir ülke seçin.",
         "phone": "Geçerli bir telefon numarası girin.",
         "support_email": "Geçerli bir e-posta adresi girin."
+      },
+      "vies": {
+        "verified": "KDV numarası VIES üzerinden doğrulandı",
+        "unavailable": "KDV numarası şu anda doğrulanamadı (VIES kullanılamıyor). Kaydedildi ve yayına almayı engellemez; bir sonraki kayıtta yeniden kontrol edilir.",
+        "invalid": "VIES bu KDV numarasını tanımıyor. Numarayı kontrol edin veya alanı boş bırakın; diğer bilgiler kaydedilmedi.",
+        "invalidShort": "VIES’te kayıtlı değil."
       }
     }
   },
@@ -5633,7 +5640,8 @@
     "MENU_NOT_OWNED": "Bu sizin menünüz değil",
     "MENU_KEY_ALREADY_EXISTS": "Bu anahtara sahip bir menü zaten var",
     "UPLOAD_NO_FILE": "Dosya sağlanmadı",
-    "UPLOAD_FILE_TOO_LARGE": "Dosya çok büyük (en fazla 50 MB)",
+    "UPLOAD_FILE_TOO_LARGE": "Dosya çok büyük. İzin verilen en büyük boyut 50 MB'tır.",
+    "UPLOAD_FILE_TOO_LARGE_MAX": "Dosya çok büyük. İzin verilen en büyük boyut {max} MB'tır.",
     "UPLOAD_IMAGE_PROCESS_FAILED": "Görüntü işlenemedi — dosya bozuk olabilir",
     "TEMPLATE_NOT_FOUND": "Şablon bulunamadı",
     "TEMPLATE_CREATOR_NOT_FOUND": "Üretici bulunamadı",
@@ -5896,7 +5904,10 @@
     "STORE_STATUS_TRANSITION": "Mağazanın mevcut durumunda bu değişikliğe izin verilmiyor.",
     "STORE_NOT_LIVE": "Mağaza henüz yayında değil.",
     "TRADER_DETAILS_INVALID": "Bazı işletme bilgileri eksik veya geçersiz.",
-    "STORE_STATUS_REASON_REQUIRED": "Bu durum için bir gerekçe gerekli."
+    "STORE_STATUS_REASON_REQUIRED": "Bu durum için bir gerekçe gerekli.",
+    "TRADER_VAT_INVALID": "KDV numarası VIES sisteminde kayıtlı değil. Numarayı kontrol edin veya alanı boş bırakın.",
+    "AUTH_CAPTCHA_FAILED": "Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "Güvenlik doğrulaması geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

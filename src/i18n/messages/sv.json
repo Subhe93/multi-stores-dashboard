@@ -2367,6 +2367,7 @@
       "slugAvailable": "Adressen är ledig",
       "slugTaken": "Adressen är redan upptagen",
       "slugReserved": "Adressen är reserverad – välj en annan",
+      "slugInvalid": "Använd 2–50 små bokstäver, siffror och bindestreck",
       "pauseStore": "Butiken är publicerad",
       "pauseStoreDesc": "Stäng av för att pausa butiken: besökare ser en sida ”tillfälligt stängt”.",
       "resumeStore": "Butiken är pausad",
@@ -5397,6 +5398,12 @@
         "country": "Välj ett land.",
         "phone": "Ange ett giltigt telefonnummer.",
         "support_email": "Ange en giltig e-postadress."
+      },
+      "vies": {
+        "verified": "Momsregistreringsnumret är verifierat i VIES",
+        "unavailable": "Momsregistreringsnumret kunde inte verifieras just nu (VIES otillgängligt). Det är sparat och hindrar inte publicering; det kontrolleras igen nästa gång du sparar.",
+        "invalid": "VIES känner inte igen detta momsregistreringsnummer. Kontrollera det eller lämna fältet tomt; övriga uppgifter sparades inte.",
+        "invalidShort": "Inte registrerat i VIES."
       }
     }
   },
@@ -5633,7 +5640,8 @@
     "MENU_NOT_OWNED": "Inte din meny",
     "MENU_KEY_ALREADY_EXISTS": "En meny med denna nyckel finns redan",
     "UPLOAD_NO_FILE": "Ingen fil tillhandahölls",
-    "UPLOAD_FILE_TOO_LARGE": "Filen är för stor (max 50 MB)",
+    "UPLOAD_FILE_TOO_LARGE": "Filen är för stor. Maximal storlek är 50 MB.",
+    "UPLOAD_FILE_TOO_LARGE_MAX": "Filen är för stor. Maximal storlek är {max} MB.",
     "UPLOAD_IMAGE_PROCESS_FAILED": "Det gick inte att bearbeta bilden — filen kan vara skadad",
     "TEMPLATE_NOT_FOUND": "Mallen hittades inte",
     "TEMPLATE_CREATOR_NOT_FOUND": "Skaparen hittades inte",
@@ -5896,7 +5904,10 @@
     "STORE_STATUS_TRANSITION": "Ändringen är inte tillåten i butikens nuvarande status.",
     "STORE_NOT_LIVE": "Butiken är inte publik ännu.",
     "TRADER_DETAILS_INVALID": "Vissa företagsuppgifter saknas eller är ogiltiga.",
-    "STORE_STATUS_REASON_REQUIRED": "En motivering krävs för den här statusen."
+    "STORE_STATUS_REASON_REQUIRED": "En motivering krävs för den här statusen.",
+    "TRADER_VAT_INVALID": "Momsregistreringsnumret finns inte i VIES. Kontrollera det eller lämna fältet tomt.",
+    "AUTH_CAPTCHA_FAILED": "Säkerhetskontrollen misslyckades. Försök igen.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "Säkerhetskontrollen är tillfälligt otillgänglig. Försök igen om en stund."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

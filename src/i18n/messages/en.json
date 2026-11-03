@@ -2367,6 +2367,7 @@
       "slugAvailable": "This address is available",
       "slugTaken": "This address is already taken",
       "slugReserved": "This address is reserved — choose another one",
+      "slugInvalid": "Use 2–50 lowercase letters, digits and hyphens",
       "pauseStore": "Store is live",
       "pauseStoreDesc": "Switch off to pause your store: visitors see a “temporarily closed” page.",
       "resumeStore": "Store is paused",
@@ -5397,6 +5398,12 @@
         "country": "Choose a country.",
         "phone": "Enter a valid phone number.",
         "support_email": "Enter a valid email address."
+      },
+      "vies": {
+        "verified": "VAT number verified in VIES",
+        "unavailable": "The VAT number could not be verified right now (VIES unavailable). It is saved and does not block going live; it will be checked again the next time you save.",
+        "invalid": "VIES does not recognise this VAT number. Check it or leave the field empty; the other details were not saved.",
+        "invalidShort": "Not registered in VIES."
       }
     }
   },
@@ -5633,7 +5640,8 @@
     "MENU_NOT_OWNED": "Not your menu",
     "MENU_KEY_ALREADY_EXISTS": "A menu with this key already exists",
     "UPLOAD_NO_FILE": "No file provided",
-    "UPLOAD_FILE_TOO_LARGE": "File too large (max 50MB)",
+    "UPLOAD_FILE_TOO_LARGE": "The file is too large. Maximum size is 50 MB.",
+    "UPLOAD_FILE_TOO_LARGE_MAX": "The file is too large. Maximum size is {max} MB.",
     "UPLOAD_IMAGE_PROCESS_FAILED": "Could not process image — file may be corrupt",
     "TEMPLATE_NOT_FOUND": "Template not found",
     "TEMPLATE_CREATOR_NOT_FOUND": "Creator not found",
@@ -5896,7 +5904,10 @@
     "STORE_STATUS_TRANSITION": "This change isn’t allowed in the store’s current status.",
     "STORE_NOT_LIVE": "The store isn’t public yet.",
     "TRADER_DETAILS_INVALID": "Some business details are missing or invalid.",
-    "STORE_STATUS_REASON_REQUIRED": "A reason is required for this status."
+    "STORE_STATUS_REASON_REQUIRED": "A reason is required for this status.",
+    "TRADER_VAT_INVALID": "The VAT number is not registered in VIES. Check it or leave the field empty.",
+    "AUTH_CAPTCHA_FAILED": "The security check failed. Please try again.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "The security check is temporarily unavailable. Please try again in a moment."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

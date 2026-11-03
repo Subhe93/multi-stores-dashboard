@@ -32,6 +32,14 @@ export interface GoLiveChecklist {
   blocking: string[];
 }
 
+/** VIES answer stored with the trader details (wave 3); `valid` null = not verifiable now. */
+export interface TraderVatCheck {
+  valid: boolean | null;
+  checked_at: string;
+  name?: string;
+  address?: string;
+}
+
 /** Legal trader identity stored as `Store.trader_details` (SPEC §1). */
 export interface TraderDetails {
   legal_name: string;
@@ -46,6 +54,7 @@ export interface TraderDetails {
   phone: string;
   support_email: string;
   completed_at?: string;
+  vat_check?: TraderVatCheck | null;
 }
 
 /** Badge tone per store status (Tailwind classes live in the components). */
@@ -297,6 +306,26 @@ export function needsEmailVerification(user: {
 /** The two guard codes that mean "verify your email first". */
 export function isUnverifiedCode(code: string | null | undefined): boolean {
   return code === 'ACCOUNT_EMAIL_UNVERIFIED' || code === 'ACCOUNT_EMAIL_UNVERIFIED_EXPIRED';
+}
+
+// ── Slug availability (`GET /stores/slug-available`) ──────────────────────
+
+export type SlugAvailabilityReason = 'taken' | 'reserved' | 'invalid';
+
+export interface SlugAvailability {
+  slug: string;
+  normalized: string;
+  available: boolean;
+  reason?: SlugAvailabilityReason;
+}
+
+export type SlugCheckState = 'idle' | 'checking' | 'available' | SlugAvailabilityReason;
+
+/** Maps the API answer to the hint state shown under the slug input. */
+export function slugCheckState(answer: SlugAvailability | null | undefined): SlugCheckState {
+  if (!answer) return 'idle';
+  if (answer.available) return 'available';
+  return answer.reason ?? 'taken';
 }
 
 // ── Reserved slugs (mirrors the API constant for the live hint) ───────────

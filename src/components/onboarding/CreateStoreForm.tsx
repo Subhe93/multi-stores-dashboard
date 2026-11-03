@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Loader2, Store as StoreIcon, Wallet, CircleAlert } from 'lucide-react';
+import { Check, CheckCircle2, Loader2, Store as StoreIcon, Wallet, CircleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { useApiError } from '@/lib/useApiError';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { setCachedStoreType } from '@/lib/useStoreType';
 import { invalidateMyStore, type MyStoreSummary } from '@/lib/useStorefrontUrl';
-import { isReservedStoreSlug } from '@/lib/storeStatus';
+import { isReservedStoreSlug, slugCheckState, type SlugAvailability, type SlugCheckState } from '@/lib/storeStatus';
 
 export type StoreType = 'MARKETPLACE' | 'INDEPENDENT';
 
@@ -38,27 +38,27 @@ const PLATFORM_DOMAIN_SUFFIX = (() => {
   }
 })();
 
-type SlugCheck = 'idle' | 'checking' | 'taken' | 'reserved';
-
 /**
- * Live availability of a store slug: reserved names are known locally
- * (SPEC §1); for the rest the public `GET /stores/:slug` answers 200 only
- * for a LIVE store. A 404 does not prove the slug is free (non-LIVE stores
- * are hidden from anonymous callers), so only "taken" is ever asserted; the
- * final answer is `POST /stores` (409 STORE_SLUG_TAKEN). Debounced; keyed by
- * slug so a stale response never describes the current input.
+ * Live availability of a store slug through the creator endpoint
+ * `GET /stores/slug-available?slug=` (wave 3): available / taken / reserved
+ * / invalid, with the same WP normalisation as `POST /stores`. Reserved names
+ * are also known locally so they never cost a request. Debounced 400 ms;
+ * keyed by slug so a stale response never describes the current input. The
+ * final answer is still `POST /stores` (409 STORE_SLUG_TAKEN / 400
+ * STORE_SLUG_RESERVED).
  */
-function useSlugAvailability(slug: string): SlugCheck {
-  const [answer, setAnswer] = useState<{ slug: string; state: 'taken' | 'idle' } | null>(null);
-  const active = slug.length >= 2 && !isReservedStoreSlug(slug);
+function useSlugAvailability(slug: string, token: string): SlugCheckState {
+  const [answer, setAnswer] = useState<{ slug: string; state: SlugCheckState } | null>(null);
+  const active = slug.length >= 2 && !!token && !isReservedStoreSlug(slug);
   useEffect(() => {
     if (!active) return;
     const ac = new AbortController();
     const timer = setTimeout(() => {
-      api(`/stores/${encodeURIComponent(slug)}`, { signal: ac.signal })
-        .then(() => setAnswer({ slug, state: 'taken' }))
+      api<SlugAvailability>(`/stores/slug-available?slug=${encodeURIComponent(slug)}`, { token, signal: ac.signal })
+        .then((res) => setAnswer({ slug, state: slugCheckState(res) }))
         .catch(() => {
           if (ac.signal.aborted) return;
+          // Network / throttle: no claim either way; the submit decides.
           setAnswer({ slug, state: 'idle' });
         });
     }, 400);
@@ -66,9 +66,10 @@ function useSlugAvailability(slug: string): SlugCheck {
       clearTimeout(timer);
       ac.abort();
     };
-  }, [slug, active]);
+  }, [slug, active, token]);
   if (slug.length < 2) return 'idle';
-  if (!active) return 'reserved';
+  if (isReservedStoreSlug(slug)) return 'reserved';
+  if (!token) return 'idle';
   return answer?.slug === slug ? answer.state : 'checking';
 }
 
@@ -96,7 +97,7 @@ export function CreateStoreForm({ token, onCreated, defaultStoreType, defaultLoc
   const [storeType, setStoreType] = useState<StoreType>(defaultStoreType || 'INDEPENDENT');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const availability = useSlugAvailability(asciiHandle(slug));
+  const availability = useSlugAvailability(asciiHandle(slug), token);
 
   const handleNameChange = (val: string) => {
     setName(val);
@@ -146,6 +147,16 @@ export function CreateStoreForm({ token, onCreated, defaultStoreType, defaultLoc
   const slugHint = {
     idle: null,
     checking: <span className="text-muted-foreground">{t('myStore.slugChecking')}</span>,
+    available: (
+      <span className="inline-flex items-center gap-1 text-emerald-700">
+        <CheckCircle2 className="size-3" /> {t('myStore.slugAvailable')}
+      </span>
+    ),
+    invalid: (
+      <span className="inline-flex items-center gap-1 text-red-600">
+        <CircleAlert className="size-3" /> {t('myStore.slugInvalid')}
+      </span>
+    ),
     taken: (
       <span className="inline-flex items-center gap-1 text-red-600">
         <CircleAlert className="size-3" /> {t('myStore.slugTaken')}
@@ -188,7 +199,7 @@ export function CreateStoreForm({ token, onCreated, defaultStoreType, defaultLoc
             }}
             onBlur={() => setSlug(asciiHandle(slug))}
             placeholder="my-store"
-            aria-invalid={availability === 'taken' || availability === 'reserved'}
+            aria-invalid={availability === 'taken' || availability === 'reserved' || availability === 'invalid'}
             required
           />
           <span className="flex h-9 items-center whitespace-nowrap rounded-e-md border border-zinc-200 bg-zinc-50 px-3 text-xs text-muted-foreground" dir="ltr">
