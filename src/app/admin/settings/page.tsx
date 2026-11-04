@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import { clearCurrencyCache } from '@/lib/useCurrency';
 import { CURRENCIES } from '@/lib/currencies';
 import { AdminFxRatesCard } from '@/components/markets/AdminFxRatesCard';
@@ -584,6 +584,25 @@ export default function AdminSettings() {
             />
           </div>
 
+          {/* The URLs to register in Stripe → Developers → Webhooks; they follow
+              NEXT_PUBLIC_API_URL, so they always show the current API host. */}
+          <div className="space-y-2 rounded-md border p-3">
+            <p className="text-xs font-medium">{t('stripeWebhookEndpointsTitle')}</p>
+            <p className="text-[10px] text-muted-foreground">{t('stripeWebhookEndpointsHint')}</p>
+            <EndpointUrl
+              label={t('stripeWebhookEndpointPlatform')}
+              url={`${API_URL}/payments/webhook`}
+              copyLabel={t('copyUrl')}
+              copiedLabel={t('copiedUrl')}
+            />
+            <EndpointUrl
+              label={t('stripeWebhookEndpointConnect')}
+              url={`${API_URL}/payments/webhook/connect`}
+              copyLabel={t('copyUrl')}
+              copiedLabel={t('copiedUrl')}
+            />
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">{t('stripeWebhookSecret')}</Label>
             <Input
@@ -727,6 +746,33 @@ export default function AdminSettings() {
         {saved && <span className="text-xs text-emerald-600 font-medium">{t('settingsSavedSuccessfully')}</span>}
         <Button size="sm" onClick={handleSave} disabled={saving}>
           {saving ? t('saving') : t('saveSettings')}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Read-only endpoint URL with a copy button (Stripe webhook endpoints). */
+function EndpointUrl({ label, url, copyLabel, copiedLabel }: { label: string; url: string; copyLabel: string; copiedLabel: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="space-y-1">
+      <Label className="text-[11px] text-muted-foreground">{label}</Label>
+      <div className="flex items-center gap-2">
+        <code dir="ltr" className="flex-1 truncate rounded-md border bg-muted/40 px-2 py-1 text-xs select-all">{url}</code>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          onClick={() => {
+            void navigator.clipboard?.writeText(url).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            });
+          }}
+        >
+          {copied ? copiedLabel : copyLabel}
         </Button>
       </div>
     </div>

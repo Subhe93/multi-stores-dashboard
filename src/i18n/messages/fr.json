@@ -917,7 +917,13 @@
       "emptyPending": "Aucune boutique en attente d’examen.",
       "empty": "Aucune boutique ne correspond à ces filtres.",
       "retry": "Réessayer"
-    }
+    },
+    "stripeWebhookEndpointsTitle": "Points de terminaison webhook à enregistrer dans Stripe",
+    "stripeWebhookEndpointsHint": "Dans Stripe → Developers → Webhooks, ajoutez ces URL (plateforme : payment_intent.succeeded, payment_intent.payment_failed, charge.refunded ; Connect : account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, avec « Listen to events on Connected accounts »), puis collez chaque secret de signature ci-dessous.",
+    "stripeWebhookEndpointPlatform": "Point de terminaison plateforme",
+    "stripeWebhookEndpointConnect": "Point de terminaison Connect",
+    "copyUrl": "Copier",
+    "copiedUrl": "Copié"
   },
   "guide": {
     "title": "Guide des opérations",

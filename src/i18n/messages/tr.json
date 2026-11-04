@@ -917,7 +917,13 @@
       "emptyPending": "İnceleme bekleyen mağaza yok.",
       "empty": "Bu filtrelerle eşleşen mağaza yok.",
       "retry": "Tekrar dene"
-    }
+    },
+    "stripeWebhookEndpointsTitle": "Stripe'a kaydedilecek webhook uç noktaları",
+    "stripeWebhookEndpointsHint": "Stripe → Developers → Webhooks bölümüne bu URL'leri ekleyin (platform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, \"Listen to events on Connected accounts\" ile), ardından her imza anahtarını aşağıya yapıştırın.",
+    "stripeWebhookEndpointPlatform": "Platform uç noktası",
+    "stripeWebhookEndpointConnect": "Connect uç noktası",
+    "copyUrl": "Kopyala",
+    "copiedUrl": "Kopyalandı"
   },
   "guide": {
     "title": "Operasyon rehberi",

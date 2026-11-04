@@ -917,7 +917,13 @@
       "emptyPending": "No stores are waiting for review.",
       "empty": "No stores match these filters.",
       "retry": "Try again"
-    }
+    },
+    "stripeWebhookEndpointsTitle": "Webhook endpoints to register in Stripe",
+    "stripeWebhookEndpointsHint": "In Stripe → Developers → Webhooks, add these URLs (platform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, with \"Listen to events on Connected accounts\"), then paste each signing secret below.",
+    "stripeWebhookEndpointPlatform": "Platform endpoint",
+    "stripeWebhookEndpointConnect": "Connect endpoint",
+    "copyUrl": "Copy",
+    "copiedUrl": "Copied"
   },
   "guide": {
     "title": "Operations guide",

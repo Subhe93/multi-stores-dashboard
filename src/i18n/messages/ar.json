@@ -917,7 +917,13 @@
       "emptyPending": "لا توجد متاجر بانتظار المراجعة.",
       "empty": "لا توجد متاجر تطابق هذه المرشحات.",
       "retry": "حاول مجدداً"
-    }
+    },
+    "stripeWebhookEndpointsTitle": "عناوين Webhook التي تُسجَّل في Stripe",
+    "stripeWebhookEndpointsHint": "في Stripe ← Developers ← Webhooks أضف هذين العنوانين (المنصة: payment_intent.succeeded وpayment_intent.payment_failed وcharge.refunded؛ Connect: account.updated وpayment_intent.succeeded وpayment_intent.payment_failed وcharge.refunded مع خيار \"Listen to events on Connected accounts\")، ثم الصق سرّ التوقيع لكل منهما في الأسفل.",
+    "stripeWebhookEndpointPlatform": "عنوان المنصة",
+    "stripeWebhookEndpointConnect": "عنوان Connect",
+    "copyUrl": "نسخ",
+    "copiedUrl": "تم النسخ"
   },
   "guide": {
     "title": "دليل العمليات",

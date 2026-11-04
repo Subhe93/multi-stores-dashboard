@@ -917,7 +917,13 @@
       "emptyPending": "Keine Shops warten auf Prüfung.",
       "empty": "Keine Shops entsprechen diesen Filtern.",
       "retry": "Erneut versuchen"
-    }
+    },
+    "stripeWebhookEndpointsTitle": "Webhook-Endpunkte für Stripe",
+    "stripeWebhookEndpointsHint": "Fügen Sie diese URLs unter Stripe → Developers → Webhooks hinzu (Plattform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, mit \"Listen to events on Connected accounts\") und fügen Sie das jeweilige Signatur-Secret unten ein.",
+    "stripeWebhookEndpointPlatform": "Plattform-Endpunkt",
+    "stripeWebhookEndpointConnect": "Connect-Endpunkt",
+    "copyUrl": "Kopieren",
+    "copiedUrl": "Kopiert"
   },
   "guide": {
     "title": "Betriebsleitfaden",
