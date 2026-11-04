@@ -197,6 +197,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    // Revoke the session on the API (fire and forget: local sign-out never
+    // waits on the network). Sending the refresh token makes the API record
+    // it as revoked, so a copy taken earlier stops working too.
+    const accessToken = localStorage.getItem('auth_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (accessToken) {
+      void api('/auth/logout', {
+        method: 'POST',
+        token: accessToken,
+        body: JSON.stringify(refreshToken ? { refresh_token: refreshToken } : {}),
+        keepalive: true,
+      }).catch(() => {
+        // Already expired or offline: local state is cleared regardless.
+      });
+    }
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     // Clear the session-scoped store-type cache (written by useStoreType) so
