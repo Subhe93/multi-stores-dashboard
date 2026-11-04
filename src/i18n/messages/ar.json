@@ -7315,7 +7315,12 @@
         "user_password_reset_by_admin": "أعاد مدير تعيين كلمة المرور",
         "user_status_changed": "تغيير حالة الحساب",
         "user_deleted_by_admin": "حذف مدير الحساب",
-        "reauth_granted": "تأكيد الهوية لإدارة الحسابات (5 دقائق)"
+        "reauth_granted": "تأكيد الهوية لإدارة الحسابات (5 دقائق)",
+        "store_status_changed": "تغيّرت حالة المتجر",
+        "backup_created": "أُنشئت نسخة احتياطية",
+        "backup_downloaded": "نُزّلت نسخة احتياطية",
+        "backup_restored": "استُعيدت نسخة احتياطية",
+        "backup_deleted": "حُذفت نسخة احتياطية"
       },
       "roles": {
         "ADMIN": "مدير",

@@ -640,7 +640,8 @@ export default function CreatorSettingsPage() {
           new_password: newPassword,
         }),
       });
-      if (res?.access_token && res.refresh_token) {
+      // The refresh token comes back in the httpOnly cookie.
+      if (res?.access_token) {
         replaceTokens({ access_token: res.access_token, refresh_token: res.refresh_token });
       }
       setCurrentPassword('');

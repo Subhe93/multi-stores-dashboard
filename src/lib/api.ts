@@ -24,7 +24,74 @@ export class ApiError extends Error {
  */
 export const API_ERROR_EVENT = 'ms-api-error';
 
+/** localStorage keys: the access token, and the refresh token of sessions
+ *  signed in before the httpOnly cookie (read once, then dropped). */
+export const ACCESS_TOKEN_KEY = 'auth_token';
+export const LEGACY_REFRESH_KEY = 'refresh_token';
+
+/** Window event with the new access token after a silent refresh (detail). */
+export const AUTH_TOKEN_EVENT = 'ms-auth-token';
+
+/**
+ * Auth routes run with the httpOnly refresh cookie: the API keeps the
+ * refresh token in a cookie scoped to /api/auth (only for this dashboard's
+ * origin) instead of the JSON body, so page scripts never see it.
+ */
+function isAuthRoute(endpoint: string): boolean {
+  return endpoint.startsWith('/auth/');
+}
+
+function storage(): Storage | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+let refreshing: Promise<string | null> | null = null;
+
+/**
+ * New access token from the refresh cookie (or a legacy stored refresh
+ * token). One request at a time: parallel 401s share it. Resolves null when
+ * the session is gone.
+ */
+export function refreshAccessToken(): Promise<string | null> {
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    const store = storage();
+    const legacy = store?.getItem(LEGACY_REFRESH_KEY) ?? null;
+    try {
+      const res = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Cookie': '1' },
+        body: JSON.stringify(legacy ? { refresh_token: legacy } : {}),
+      });
+      if (!res.ok) return null;
+      const json = (await res.json()) as { data?: { access_token?: string; refresh_token?: string } };
+      const access = json.data?.access_token;
+      if (!access) return null;
+      store?.setItem(ACCESS_TOKEN_KEY, access);
+      // The API now keeps the refresh token in the cookie.
+      if (json.data?.refresh_token) store?.setItem(LEGACY_REFRESH_KEY, json.data.refresh_token);
+      else store?.removeItem(LEGACY_REFRESH_KEY);
+      window.dispatchEvent(new CustomEvent<string>(AUTH_TOKEN_EVENT, { detail: access }));
+      return access;
+    } catch {
+      return null;
+    } finally {
+      refreshing = null;
+    }
+  })();
+  return refreshing;
+}
+
 export async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  return request<T>(endpoint, options, true);
+}
+
+async function request<T>(endpoint: string, options: FetchOptions, mayRefresh: boolean): Promise<T> {
   const { token, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
@@ -35,11 +102,20 @@ export async function api<T>(endpoint: string, options: FetchOptions = {}): Prom
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+  const auth = isAuthRoute(endpoint);
+  if (auth) headers['X-Auth-Cookie'] = '1';
 
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
+    ...(auth ? { credentials: 'include' as const } : {}),
   });
+
+  // Expired access token: refresh once through the cookie and retry.
+  if (res.status === 401 && token && mayRefresh && endpoint !== '/auth/refresh' && endpoint !== '/auth/logout') {
+    const fresh = await refreshAccessToken();
+    if (fresh) return request<T>(endpoint, { ...options, token: fresh }, false);
+  }
 
   // 204 No Content (e.g. DELETE routes) has no body: resolve with `undefined`
   // instead of failing on `res.json()`.

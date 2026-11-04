@@ -7315,7 +7315,12 @@
         "user_password_reset_by_admin": "Şifre bir yönetici tarafından sıfırlandı",
         "user_status_changed": "Hesap durumu değiştirildi",
         "user_deleted_by_admin": "Hesap bir yönetici tarafından silindi",
-        "reauth_granted": "Hesap yönetimi için kimlik doğrulandı (5 dk)"
+        "reauth_granted": "Hesap yönetimi için kimlik doğrulandı (5 dk)",
+        "store_status_changed": "Mağaza durumu değişti",
+        "backup_created": "Yedek oluşturuldu",
+        "backup_downloaded": "Yedek indirildi",
+        "backup_restored": "Yedek geri yüklendi",
+        "backup_deleted": "Yedek silindi"
       },
       "roles": {
         "ADMIN": "Yönetici",

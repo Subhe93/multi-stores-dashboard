@@ -37,7 +37,7 @@ interface SetupResponse {
 interface EnableResponse {
   recovery_codes: string[];
   access_token: string;
-  refresh_token: string;
+  refresh_token?: string;
 }
 
 type Flow =

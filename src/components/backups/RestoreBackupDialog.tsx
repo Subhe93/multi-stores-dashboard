@@ -9,13 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { describeBackupError, hasBackupFile, type Backup, type RestoreBackupResponse } from '@/lib/backups';
+import { describeBackupError, hasBackupFile, reauthHeaders, type Backup, type RestoreBackupResponse } from '@/lib/backups';
+import { ReauthCancelled } from '@/components/security/useAdminGrant';
 
 interface RestoreBackupDialogProps {
   backup: Backup | null;
   onClose: () => void;
   // Called after a successful restore so the list can show the PRE_RESTORE row.
   onRestored: (result: RestoreBackupResponse) => void;
+  // Runs the request with an admin re-auth grant (useAdminGrant().run).
+  withGrant: <T>(fn: (reauthToken: string) => Promise<T>) => Promise<T>;
 }
 
 const CONFIRM_PHRASE = 'RESTORE';
@@ -23,7 +26,7 @@ const CONFIRM_PHRASE = 'RESTORE';
 // Restore dialog: typed confirmation, optional uploads restore, then
 // POST /admin/backups/:id/restore { confirm: 'RESTORE', restore_uploads }.
 // The request is synchronous on the server (up to 10 minutes).
-export function RestoreBackupDialog({ backup, onClose, onRestored }: RestoreBackupDialogProps) {
+export function RestoreBackupDialog({ backup, onClose, onRestored, withGrant }: RestoreBackupDialogProps) {
   const t = useTranslations('backups');
   const tc = useTranslations('common');
   const locale = useLocale();
@@ -52,10 +55,18 @@ export function RestoreBackupDialog({ backup, onClose, onRestored }: RestoreBack
     setError('');
     try {
       const body = { confirm: CONFIRM_PHRASE, restore_uploads: hasUploads && restoreUploads };
-      const res = await api<RestoreBackupResponse>(`/admin/backups/${backup.id}/restore`, { method: 'POST', token, body: JSON.stringify(body) });
+      const res = await withGrant((reauthToken) =>
+        api<RestoreBackupResponse>(`/admin/backups/${backup.id}/restore`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify(body),
+          headers: reauthHeaders(reauthToken),
+        }),
+      );
       setResult(res);
       onRestored(res);
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setError(describeBackupError(err, t, t('restoreFailed')));
     } finally {
       setRestoring(false);

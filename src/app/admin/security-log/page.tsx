@@ -52,6 +52,11 @@ const ACTIONS = [
   'user.password_reset_by_admin',
   'user.status_changed',
   'user.deleted_by_admin',
+  'store.status_changed',
+  'backup.created',
+  'backup.downloaded',
+  'backup.restored',
+  'backup.deleted',
 ] as const;
 
 const KNOWN_ACTIONS = new Set<string>(ACTIONS);

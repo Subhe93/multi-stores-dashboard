@@ -7315,7 +7315,12 @@
         "user_password_reset_by_admin": "Passwort von einem Admin zurückgesetzt",
         "user_status_changed": "Kontostatus geändert",
         "user_deleted_by_admin": "Konto von einem Admin gelöscht",
-        "reauth_granted": "Identität für die Kontoverwaltung bestätigt (5 Min.)"
+        "reauth_granted": "Identität für die Kontoverwaltung bestätigt (5 Min.)",
+        "store_status_changed": "Shopstatus geändert",
+        "backup_created": "Backup erstellt",
+        "backup_downloaded": "Backup heruntergeladen",
+        "backup_restored": "Backup wiederhergestellt",
+        "backup_deleted": "Backup gelöscht"
       },
       "roles": {
         "ADMIN": "Admin",

@@ -23,6 +23,8 @@ import {
   type BackupStatus,
 } from '@/lib/backups';
 import { RestoreBackupDialog } from '@/components/backups/RestoreBackupDialog';
+import { ReauthCancelled, useAdminGrant } from '@/components/security/useAdminGrant';
+import { reauthHeaders } from '@/lib/backups';
 import { runBulk } from '@/lib/bulk';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useTableSelection } from '@/components/common/useTableSelection';
@@ -65,6 +67,8 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
   const tc = useTranslations('common');
   const locale = useLocale();
   const { token } = useAuth();
+  // Download / restore / delete need a fresh password + 2FA grant (API).
+  const grant = useAdminGrant();
 
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
   const [expandedOffsite, setExpandedOffsite] = useState<Set<string>>(new Set());
@@ -125,8 +129,9 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
     setDownloading(key);
     clearRowError(backup.id);
     try {
-      await downloadBackupFile(backup, file, token);
+      await grant.run((reauthToken) => downloadBackupFile(backup, file, token, reauthToken));
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setRowError(backup.id, describeBackupError(err, t, t('downloadFailed')));
     } finally {
       setDownloading(null);
@@ -138,10 +143,13 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
     setDeletingId(backup.id);
     clearRowError(backup.id);
     try {
-      await api<{ deleted: boolean }>(`/admin/backups/${backup.id}`, { method: 'DELETE', token });
+      await grant.run((reauthToken) =>
+        api<{ deleted: boolean }>(`/admin/backups/${backup.id}`, { method: 'DELETE', token, headers: reauthHeaders(reauthToken) }),
+      );
       setConfirmDeleteId(null);
       onChanged();
     } catch (err) {
+      if (err instanceof ReauthCancelled) return;
       setRowError(backup.id, describeBackupError(err, t, t('deleteFailed')));
     } finally {
       setDeletingId(null);
@@ -150,12 +158,23 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
 
   const handleBulkDelete = async () => {
     if (!token) return;
+    // One confirmation covers the whole batch (the grant lasts 5 minutes).
+    try {
+      await grant.ensure();
+    } catch (err) {
+      if (err instanceof ReauthCancelled) return;
+      throw err;
+    }
     setBulkBusy(true);
     // Re-throw with the friendly text so the summary shows it.
     const result = await runBulk(bulkDeletable, (b) =>
-      api<{ deleted: boolean }>(`/admin/backups/${b.id}`, { method: 'DELETE', token }).catch((err: unknown) => {
-        throw new Error(describeBackupError(err, t, t('deleteFailed')));
-      }),
+      grant
+        .run((reauthToken) =>
+          api<{ deleted: boolean }>(`/admin/backups/${b.id}`, { method: 'DELETE', token, headers: reauthHeaders(reauthToken) }),
+        )
+        .catch((err: unknown) => {
+          throw new Error(describeBackupError(err, t, t('deleteFailed')));
+        }),
     );
     setBulkBusy(false);
     setBulkDeleteOpen(false);
@@ -450,7 +469,13 @@ export function BackupsTable({ items, loading, error, running, disk, onChanged }
         onConfirm={handleBulkDelete}
       />
 
-      <RestoreBackupDialog backup={restoreTarget} onClose={() => setRestoreTarget(null)} onRestored={() => onChanged()} />
+      <RestoreBackupDialog
+        backup={restoreTarget}
+        onClose={() => setRestoreTarget(null)}
+        onRestored={() => onChanged()}
+        withGrant={grant.run}
+      />
+      {grant.dialog}
     </div>
   );
 }

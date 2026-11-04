@@ -140,9 +140,19 @@ export function defaultBackupFilename(backup: Pick<Backup, 'id' | 'created_at'>,
 // Authenticated download: GET /admin/backups/:id/download?file=db|uploads with
 // a Bearer token, saved through a blob URL. Throws ApiError on failure so the
 // caller can translate `code` the same way as JSON requests.
-export async function downloadBackupFile(backup: Pick<Backup, 'id' | 'created_at'>, file: BackupFile, token: string): Promise<void> {
+// Download, restore and delete send the admin re-auth grant in this header.
+export function reauthHeaders(reauthToken: string): Record<string, string> {
+  return { 'X-Reauth-Token': reauthToken };
+}
+
+export async function downloadBackupFile(
+  backup: Pick<Backup, 'id' | 'created_at'>,
+  file: BackupFile,
+  token: string,
+  reauthToken: string,
+): Promise<void> {
   const res = await fetch(`${API_URL}/admin/backups/${backup.id}/download?file=${file}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, ...reauthHeaders(reauthToken) },
   });
   if (!res.ok) {
     const err = new ApiError('Download failed');

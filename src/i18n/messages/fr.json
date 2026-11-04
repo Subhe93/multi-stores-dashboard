@@ -7315,7 +7315,12 @@
         "user_password_reset_by_admin": "Mot de passe réinitialisé par un admin",
         "user_status_changed": "Statut du compte modifié",
         "user_deleted_by_admin": "Compte supprimé par un admin",
-        "reauth_granted": "Identité confirmée pour la gestion des comptes (5 min)"
+        "reauth_granted": "Identité confirmée pour la gestion des comptes (5 min)",
+        "store_status_changed": "Statut de la boutique modifié",
+        "backup_created": "Sauvegarde créée",
+        "backup_downloaded": "Sauvegarde téléchargée",
+        "backup_restored": "Sauvegarde restaurée",
+        "backup_deleted": "Sauvegarde supprimée"
       },
       "roles": {
         "ADMIN": "Administrateur",

@@ -7315,7 +7315,12 @@
         "user_password_reset_by_admin": "Lösenord återställt av en admin",
         "user_status_changed": "Kontostatus ändrad",
         "user_deleted_by_admin": "Konto raderat av en admin",
-        "reauth_granted": "Identitet bekräftad för kontohantering (5 min)"
+        "reauth_granted": "Identitet bekräftad för kontohantering (5 min)",
+        "store_status_changed": "Butikens status ändrad",
+        "backup_created": "Säkerhetskopia skapad",
+        "backup_downloaded": "Säkerhetskopia nedladdad",
+        "backup_restored": "Säkerhetskopia återställd",
+        "backup_deleted": "Säkerhetskopia raderad"
       },
       "roles": {
         "ADMIN": "Administratör",

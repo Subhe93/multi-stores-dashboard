@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from './api';
+import { ACCESS_TOKEN_KEY, AUTH_TOKEN_EVENT, LEGACY_REFRESH_KEY, api } from './api';
 import { clearCachedStoreApps } from './useStoreApps';
 import { roleHomePath } from './magicLogin';
 
@@ -60,11 +60,19 @@ export interface User {
   created_at?: string;
 }
 
-/** Body returned by /auth/login and /auth/magic-login. */
+/** Body returned by /auth/login and /auth/magic-login. The refresh token
+ *  normally stays in the httpOnly cookie; only an older API returns it here. */
 export interface AuthTokens {
   user: User;
   access_token: string;
-  refresh_token: string;
+  refresh_token?: string;
+}
+
+/** Keep the access token; a body refresh token only from an older API. */
+function storeTokens(data: { access_token: string; refresh_token?: string }) {
+  localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token);
+  if (data.refresh_token) localStorage.setItem(LEGACY_REFRESH_KEY, data.refresh_token);
+  else localStorage.removeItem(LEGACY_REFRESH_KEY);
 }
 
 /** Returned by /auth/login and /auth/magic-login instead of tokens when the
@@ -101,7 +109,7 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   /** Swap in a fresh token pair for the signed-in account (change-password
    *  returns one: the API revokes every token issued before the change). */
-  replaceTokens: (data: { access_token: string; refresh_token: string }) => void;
+  replaceTokens: (data: { access_token: string; refresh_token?: string }) => void;
   logout: () => void;
 }
 
@@ -113,9 +121,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // A silent refresh (api.ts, after a 401) swapped the access token.
+  useEffect(() => {
+    const onToken = (e: Event) => setToken((e as CustomEvent<string>).detail);
+    window.addEventListener(AUTH_TOKEN_EVENT, onToken);
+    return () => window.removeEventListener(AUTH_TOKEN_EVENT, onToken);
+  }, []);
+
   // Load token from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('auth_token');
+    const stored = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (stored) {
       setToken(stored);
       fetchProfile(stored);
@@ -128,10 +143,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await api<User>('/auth/me', { token: accessToken });
       setUser(profile);
-      setToken(accessToken);
+      // A 401 may have been healed by a silent refresh: use the stored token.
+      setToken(localStorage.getItem(ACCESS_TOKEN_KEY) ?? accessToken);
     } catch {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(LEGACY_REFRESH_KEY);
       setToken(null);
       setUser(null);
     } finally {
@@ -142,8 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Shared by password login and the one-click (magic link) login: store the
   // tokens, load the full profile, then redirect by role.
   const loginWithTokens = useCallback(async (data: AuthTokens) => {
-    localStorage.setItem('auth_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+    storeTokens(data);
     setToken(data.access_token);
     // The login response carries only id/email/role/status; pages need the
     // full profile (creator/provider ids), so load it before redirecting.
@@ -180,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loginWithTokens]);
 
   const refreshProfile = useCallback(async () => {
-    const current = localStorage.getItem('auth_token');
+    const current = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (!current) return;
     try {
       const profile = await api<User>('/auth/me', { token: current });
@@ -190,18 +205,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const replaceTokens = useCallback((data: { access_token: string; refresh_token: string }) => {
-    localStorage.setItem('auth_token', data.access_token);
-    localStorage.setItem('refresh_token', data.refresh_token);
+  const replaceTokens = useCallback((data: { access_token: string; refresh_token?: string }) => {
+    storeTokens(data);
     setToken(data.access_token);
   }, []);
 
   const logout = useCallback(() => {
     // Revoke the session on the API (fire and forget: local sign-out never
-    // waits on the network). Sending the refresh token makes the API record
-    // it as revoked, so a copy taken earlier stops working too.
-    const accessToken = localStorage.getItem('auth_token');
-    const refreshToken = localStorage.getItem('refresh_token');
+    // waits on the network). The API revokes the refresh token from the
+    // cookie (or a legacy stored one) and clears the cookie.
+    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const refreshToken = localStorage.getItem(LEGACY_REFRESH_KEY);
     if (accessToken) {
       void api('/auth/logout', {
         method: 'POST',
@@ -212,8 +226,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Already expired or offline: local state is cleared regardless.
       });
     }
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(LEGACY_REFRESH_KEY);
     // Clear the session-scoped store-type cache (written by useStoreType) so
     // the next login doesn't render the previous account's sidebar layout.
     try {
