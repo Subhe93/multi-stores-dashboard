@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,8 @@ import { Upload, ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth, type ProviderProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { taxCountryOptions } from '@/lib/taxCountries';
 import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 
 /** GET /providers/me — auth profile plus the editable logo. */
@@ -30,18 +31,7 @@ interface StripeConnectStatus {
 export default function ProviderSettings() {
   const t = useTranslations('provider');
   const tc = useTranslations('common');
-  const countries = [
-    { value: 'DE', label: t('countryDE'), description: 'Deutschland' },
-    { value: 'AT', label: t('countryAT'), description: 'Österreich' },
-    { value: 'CH', label: t('countryCH'), description: 'Schweiz' },
-    { value: 'FR', label: t('countryFR') },
-    { value: 'NL', label: t('countryNL') },
-    { value: 'TR', label: t('countryTR'), description: 'Türkiye' },
-    { value: 'SA', label: t('countrySA') },
-    { value: 'AE', label: t('countryAE') },
-    { value: 'US', label: t('countryUS') },
-    { value: 'GB', label: t('countryGB') },
-  ];
+  const locale = useLocale();
   const { token } = useAuth();
   const { pickAndUpload, uploading } = useImageUpload(token);
   const [profile, setProfile] = useState<ProviderMe | null>(null);
@@ -53,6 +43,9 @@ export default function ProviderSettings() {
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
+  // Full localized country list (same source as the trader details form);
+  // keeps a stored code that is not in the list selectable.
+  const countries = useMemo(() => taxCountryOptions(locale, country ? [country] : []), [locale, country]);
   const [logoUrl, setLogoUrl] = useState('');
 
   // Stripe Connect (payout account) state

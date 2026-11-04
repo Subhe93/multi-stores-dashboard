@@ -152,6 +152,7 @@ export type SetupStepKey =
   | 'shipping'
   | 'payments'
   | 'trader_details'
+  | 'legal_pages'
   | 'preview'
   | 'request_golive';
 
@@ -174,6 +175,8 @@ export interface ChecklistInput {
   setup?: SetupSignals | null;
   /** The creator opened the storefront preview at least once (local flag). */
   previewed?: boolean;
+  /** INDEPENDENT stores publish their own legal pages (required for go-live). */
+  independent?: boolean;
 }
 
 const DEFAULT_ORDER: readonly SetupStepKey[] = [
@@ -184,6 +187,7 @@ const DEFAULT_ORDER: readonly SetupStepKey[] = [
   'shipping',
   'payments',
   'trader_details',
+  'legal_pages',
   'preview',
   'request_golive',
 ];
@@ -200,6 +204,7 @@ export function setupStepOrder(survey?: OnboardingSurvey | null): SetupStepKey[]
       'create_store',
       'first_product',
       'trader_details',
+      'legal_pages',
       'shipping',
       'payments',
       'theme',
@@ -214,7 +219,8 @@ export function setupStepOrder(survey?: OnboardingSurvey | null): SetupStepKey[]
  * Computes the setup checklist shown on the dashboard home. The store exists
  * whenever this runs (no store → the onboarding page), so "create store" is
  * always done. Go-live counts as done once the store is or was live, or a
- * request is pending review.
+ * request is pending review. INDEPENDENT stores get a required "legal pages"
+ * step (own Privacy policy + Terms of sale published).
  */
 export function computeSetupChecklist(input: ChecklistInput, survey?: OnboardingSurvey | null): SetupStep[] {
   const c = input.checklist ?? {};
@@ -228,11 +234,16 @@ export function computeSetupChecklist(input: ChecklistInput, survey?: Onboarding
     shipping: !!input.setup?.has_shipping,
     payments: !!c.payments_ready || !!input.setup?.has_payment,
     trader_details: !!c.trader_details_complete,
+    legal_pages: !!c.legal_pages_published,
     preview: !!input.previewed || requested,
     request_golive: requested,
   };
   const required = new Set<SetupStepKey>(['verify_email', 'create_store', 'first_product', 'trader_details', 'request_golive']);
-  return setupStepOrder(survey).map((key) => ({ key, done: done[key], required: required.has(key) }));
+  if (input.independent) required.add('legal_pages');
+  // MARKETPLACE stores use the platform's legal texts: no legal pages step.
+  return setupStepOrder(survey)
+    .filter((key) => key !== 'legal_pages' || !!input.independent)
+    .map((key) => ({ key, done: done[key], required: required.has(key) }));
 }
 
 /** Dashboard routes per checklist step (`independent` picks the product form). */
@@ -252,6 +263,8 @@ export function setupStepHref(key: SetupStepKey, independent: boolean, storeUrl?
       return '/creator/settings?tab=payments';
     case 'trader_details':
       return '/creator/settings?tab=business';
+    case 'legal_pages':
+      return '/creator/pages#legal-pages';
     case 'preview':
       return storeUrl || '/creator/store';
     case 'request_golive':
@@ -275,6 +288,17 @@ export function blockingToStep(item: string): SetupStepKey | null {
     default:
       return null;
   }
+}
+
+/**
+ * Dashboard link for an API `blocking` key: the checklist step route when it
+ * maps to one; INDEPENDENT stores' legal pages open the "Legal pages" card on
+ * /creator/pages. Null = plain text.
+ */
+export function blockingHref(item: string, independent: boolean, storeUrl?: string | null): string | null {
+  if (item === 'legal_pages_published') return independent ? setupStepHref('legal_pages', independent, storeUrl) : null;
+  const step = blockingToStep(item);
+  return step ? setupStepHref(step, independent, storeUrl) : null;
 }
 
 // ── Unverified email grace period ─────────────────────────────────────────

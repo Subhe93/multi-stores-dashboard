@@ -1425,7 +1425,8 @@
           "theme": "Choose a theme & edit your home page",
           "shipping": "Set up shipping",
           "payments": "Set up payments",
-          "trader_details": "Business details & legal pages",
+          "trader_details": "Business details",
+          "legal_pages": "Publish your legal pages",
           "preview": "Preview your store",
           "request_golive": "Request go-live"
         },
@@ -2032,7 +2033,44 @@
       "deleteTitle": "Delete Page",
       "deleteConfirmPrefix": "Are you sure you want to delete",
       "deleteConfirmSuffix": "? This action cannot be undone.",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "legal": {
+        "title": "Legal pages",
+        "explainer": "Your store shows a standard text with your business details until you publish your own version. Privacy policy and terms of sale are needed before your store can go live.",
+        "disclaimer": "Templates are a starting point, not legal advice. Review them and adapt them to your business.",
+        "marketplace": "Your store uses the platform’s legal pages, because the platform is the seller on marketplace stores. Nothing to do here.",
+        "traderHint": "Your business details are incomplete, so the templates have gaps.",
+        "traderHintLink": "Complete business details",
+        "names": {
+          "privacy": "Privacy policy",
+          "terms": "Terms of sale",
+          "refund": "Returns and right of withdrawal",
+          "shipping": "Shipping policy"
+        },
+        "statePublished": "Published",
+        "stateDraft": "Draft",
+        "stateDraftHint": "Visitors see the standard text until you publish this page.",
+        "stateTemplate": "Standard text shown",
+        "required": "Required to go live",
+        "creating": "Creating…",
+        "edit": "Edit",
+        "view": "View on store",
+        "createFailed": "Could not create the page. Please try again.",
+        "loadFailed": "Could not load your legal pages.",
+        "retry": "Try again",
+        "empty": "No legal pages to show yet.",
+        "copyNote": "Your page is a copy. If you change your business details later, update your pages too.",
+        "reviewHint": "Before publishing, check: who pays return shipping, your return address, the payment methods you offer, and whether you take part in ARN. The texts follow Swedish law.",
+        "builderDraftNote": "Visitors still see the standard text until you click Publish.",
+        "reviewAndPublish": "Review and publish",
+        "recommended": "Recommended",
+        "requiredPublished": "Required pages are published. Request go-live from the overview",
+        "confirmTitle": "Your business details are incomplete",
+        "confirmBody": "The page is filled with your business details. Details you have not entered yet will be missing from the text, and you will have to add them yourself. You can complete your business details first.",
+        "confirmContinue": "Continue anyway"
+      },
+      "legalBadge": "Legal page",
+      "deleteLegalNote": "After deleting, visitors see the standard text again."
     },
     "newPage": {
       "title": "New Page",
@@ -5320,7 +5358,8 @@
         "has_published_product": "Publish at least one product",
         "has_published_theme": "Choose a theme",
         "payments_ready": "Set up payments",
-        "legal_pages_published": "Publish your legal pages"
+        "legal_pages_published": "Publish your legal pages",
+        "legal_pages_published_independent": "Publish your privacy policy and terms of sale"
       },
       "checklistUnavailable": "Checklist not available yet — reload the page.",
       "copyUrl": "Copy link",

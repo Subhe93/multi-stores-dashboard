@@ -1425,7 +1425,8 @@
           "theme": "Bir tema seçin ve ana sayfanızı düzenleyin",
           "shipping": "Kargoyu ayarlayın",
           "payments": "Ödemeleri ayarlayın",
-          "trader_details": "İşletme bilgileri ve yasal sayfalar",
+          "trader_details": "İşletme bilgileri",
+          "legal_pages": "Yasal sayfalarını yayınla",
           "preview": "Mağazanızı önizleyin",
           "request_golive": "Yayına alma talebinde bulunun"
         },
@@ -2032,7 +2033,44 @@
       "deleteTitle": "Sayfayı Sil",
       "deleteConfirmPrefix": "Silmek istediğinizden emin misiniz:",
       "deleteConfirmSuffix": "? Bu işlem geri alınamaz.",
-      "deleting": "Siliniyor..."
+      "deleting": "Siliniyor...",
+      "legal": {
+        "title": "Yasal sayfalar",
+        "explainer": "Mağazan, kendi sürümünü yayınlayana kadar işletme bilgilerini içeren standart bir metin gösterir. Mağazanın yayına alınabilmesi için gizlilik politikası ve satış koşulları gereklidir.",
+        "disclaimer": "Şablonlar bir başlangıç noktasıdır, hukuki tavsiye değildir. Gözden geçirip işletmenize göre uyarlayın.",
+        "marketplace": "Pazaryeri mağazalarında satıcı platform olduğu için mağazanız platformun yasal sayfalarını kullanır. Burada yapmanız gereken bir şey yok.",
+        "traderHint": "İşletme bilgileriniz eksik, bu yüzden şablonlarda boşluklar var.",
+        "traderHintLink": "İşletme bilgilerini tamamla",
+        "names": {
+          "privacy": "Gizlilik politikası",
+          "terms": "Satış koşulları",
+          "refund": "Cayma hakkı ve iadeler",
+          "shipping": "Kargo politikası"
+        },
+        "statePublished": "Yayında",
+        "stateDraft": "Taslak",
+        "stateDraftHint": "Bu sayfayı yayınlayana kadar ziyaretçiler standart metni görür.",
+        "stateTemplate": "Standart metin gösteriliyor",
+        "required": "Yayına girmek için zorunlu",
+        "creating": "Oluşturuluyor…",
+        "edit": "Düzenle",
+        "view": "Mağazada görüntüle",
+        "createFailed": "Sayfa oluşturulamadı. Lütfen tekrar deneyin.",
+        "loadFailed": "Yasal sayfalarınız yüklenemedi.",
+        "retry": "Tekrar dene",
+        "empty": "Henüz gösterilecek yasal sayfa yok.",
+        "copyNote": "Sayfan bir kopyadır. İşletme bilgilerini daha sonra değiştirirsen sayfalarını da güncelle.",
+        "reviewHint": "Yayınlamadan önce kontrol et: iade kargo ücretini kimin ödediği, iade adresin, sunduğun ödeme yöntemleri ve ARN’ye katılıp katılmadığın. Metinler İsveç hukukuna göre hazırlanmıştır.",
+        "builderDraftNote": "“Yayınla”ya tıklayana kadar ziyaretçiler standart metni görmeye devam eder.",
+        "reviewAndPublish": "İncele ve yayınla",
+        "recommended": "Önerilir",
+        "requiredPublished": "Gerekli sayfalar yayınlandı. Yayına alma talebini genel bakıştan gönder",
+        "confirmTitle": "İşletme bilgilerin eksik",
+        "confirmBody": "Sayfa işletme bilgilerinle doldurulur. Henüz girmediğin bilgiler metinde eksik olur ve bunları kendin eklemen gerekir. Önce işletme bilgilerini tamamlayabilirsin.",
+        "confirmContinue": "Yine de devam et"
+      },
+      "legalBadge": "Yasal sayfa",
+      "deleteLegalNote": "Silindikten sonra ziyaretçiler yeniden standart metni görür."
     },
     "newPage": {
       "title": "Yeni Sayfa",
@@ -5320,7 +5358,8 @@
         "has_published_product": "En az bir ürün yayınlayın",
         "has_published_theme": "Bir tema seçin",
         "payments_ready": "Ödemeleri ayarlayın",
-        "legal_pages_published": "Yasal sayfalarınızı yayınlayın"
+        "legal_pages_published": "Yasal sayfalarınızı yayınlayın",
+        "legal_pages_published_independent": "Gizlilik politikanı ve satış koşullarını yayınla"
       },
       "checklistUnavailable": "Kontrol listesi henüz kullanılamıyor — sayfayı yenileyin.",
       "copyUrl": "Bağlantıyı kopyala",

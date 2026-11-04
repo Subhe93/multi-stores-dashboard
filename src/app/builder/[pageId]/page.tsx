@@ -26,6 +26,8 @@ interface StoreResponse {
     primary_locale?: string;
     secondary_locales?: string[];
   } | null;
+  /** Legal trader identity (only the country is read: the legal texts follow Swedish law). */
+  trader_details?: { country?: string | null } | null;
 }
 
 // Row shapes from the two page list endpoints (only the fields used below).
@@ -260,6 +262,7 @@ function BuilderInner() {
         theme_config: store.theme_config || {},
         logo_url: store.logo_url || '',
         favicon_url: store.favicon_url || '',
+        trader_country: store.trader_details?.country || null,
         language_config: {
           primary_locale: store.language_config?.primary_locale || 'en',
           secondary_locales: store.language_config?.secondary_locales || [],

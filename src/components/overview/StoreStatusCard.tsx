@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
 import { useTransientFlag } from '@/lib/useTransientFlag';
 import { effectiveStoreStatus, type MyStoreSummary } from '@/lib/useStorefrontUrl';
-import { blockingToStep, canRequestGoLive, setupStepHref } from '@/lib/storeStatus';
+import { blockingHref, canRequestGoLive } from '@/lib/storeStatus';
 import { PREVIEWED_KEY } from '@/lib/onboardingSurvey';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { StoreStatusBadge } from '@/components/creator/StoreStatusBadge';
@@ -160,13 +160,15 @@ export function StoreStatusCard({ store, storeUrl, independent, onChanged }: Sto
               <p className="font-medium text-zinc-800">{t('blockingTitle')}</p>
               <ul className="mt-1 space-y-1">
                 {blocking.map((item) => {
-                  const step = blockingToStep(item);
-                  const label = t.has(`blocking.${item}`) ? t(`blocking.${item}`) : item;
+                  const href = blockingHref(item, independent, storeUrl);
+                  // INDEPENDENT stores publish their own Privacy + Terms (not the platform texts).
+                  const key = item === 'legal_pages_published' && independent ? 'legal_pages_published_independent' : item;
+                  const label = t.has(`blocking.${key}`) ? t(`blocking.${key}`) : item;
                   return (
                     <li key={item} className="flex items-center gap-2">
                       <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-                      {step ? (
-                        <Link href={setupStepHref(step, independent, storeUrl)} className="underline underline-offset-2 hover:text-foreground">
+                      {href ? (
+                        <Link href={href} className="underline underline-offset-2 hover:text-foreground">
                           {label}
                         </Link>
                       ) : (

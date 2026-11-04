@@ -1425,7 +1425,8 @@
           "theme": "Theme wählen & Startseite bearbeiten",
           "shipping": "Versand einrichten",
           "payments": "Zahlungen einrichten",
-          "trader_details": "Unternehmensangaben & rechtliche Seiten",
+          "trader_details": "Unternehmensangaben",
+          "legal_pages": "Rechtliche Seiten veröffentlichen",
           "preview": "Shop-Vorschau ansehen",
           "request_golive": "Freischaltung anfordern"
         },
@@ -2032,7 +2033,44 @@
       "deleteTitle": "Seite löschen",
       "deleteConfirmPrefix": "Möchten Sie wirklich löschen:",
       "deleteConfirmSuffix": "? Diese Aktion kann nicht rückgängig gemacht werden.",
-      "deleting": "Wird gelöscht..."
+      "deleting": "Wird gelöscht...",
+      "legal": {
+        "title": "Rechtliche Seiten",
+        "explainer": "Dein Shop zeigt einen Standardtext mit deinen Unternehmensangaben, bis du deine eigene Version veröffentlichst. Datenschutzerklärung und Verkaufsbedingungen sind nötig, bevor dein Shop live gehen kann.",
+        "disclaimer": "Vorlagen sind ein Ausgangspunkt und keine Rechtsberatung. Prüfe sie und passe sie an dein Unternehmen an.",
+        "marketplace": "Dein Shop verwendet die rechtlichen Seiten der Plattform, da bei Marktplatz-Shops die Plattform der Verkäufer ist. Hier ist nichts zu tun.",
+        "traderHint": "Deine Unternehmensangaben sind unvollständig, daher haben die Vorlagen Lücken.",
+        "traderHintLink": "Unternehmensangaben vervollständigen",
+        "names": {
+          "privacy": "Datenschutzerklärung",
+          "terms": "Verkaufsbedingungen",
+          "refund": "Widerrufsrecht und Rücksendungen",
+          "shipping": "Versandbedingungen"
+        },
+        "statePublished": "Veröffentlicht",
+        "stateDraft": "Entwurf",
+        "stateDraftHint": "Besucher sehen den Standardtext, bis du diese Seite veröffentlichst.",
+        "stateTemplate": "Standardtext wird angezeigt",
+        "required": "Pflicht für den Livegang",
+        "creating": "Wird erstellt…",
+        "edit": "Bearbeiten",
+        "view": "Im Shop ansehen",
+        "createFailed": "Die Seite konnte nicht erstellt werden. Bitte versuche es erneut.",
+        "loadFailed": "Deine rechtlichen Seiten konnten nicht geladen werden.",
+        "retry": "Erneut versuchen",
+        "empty": "Noch keine rechtlichen Seiten vorhanden.",
+        "copyNote": "Deine Seite ist eine Kopie. Wenn du deine Unternehmensangaben später änderst, aktualisiere auch deine Seiten.",
+        "reviewHint": "Prüfe vor dem Veröffentlichen: wer die Rücksendekosten trägt, deine Rücksendeadresse, die angebotenen Zahlungsarten und ob du an der ARN teilnimmst. Die Texte folgen schwedischem Recht.",
+        "builderDraftNote": "Besucher sehen weiterhin den Standardtext, bis du auf „Veröffentlichen“ klickst.",
+        "reviewAndPublish": "Prüfen und veröffentlichen",
+        "recommended": "Empfohlen",
+        "requiredPublished": "Die erforderlichen Seiten sind veröffentlicht. Beantrage den Livegang in der Übersicht",
+        "confirmTitle": "Deine Unternehmensangaben sind unvollständig",
+        "confirmBody": "Die Seite wird mit deinen Unternehmensangaben ausgefüllt. Angaben, die du noch nicht gemacht hast, fehlen im Text und müssen von dir ergänzt werden. Du kannst deine Unternehmensangaben zuerst vervollständigen.",
+        "confirmContinue": "Trotzdem fortfahren"
+      },
+      "legalBadge": "Rechtliche Seite",
+      "deleteLegalNote": "Nach dem Löschen sehen Besucher wieder den Standardtext."
     },
     "newPage": {
       "title": "Neue Seite",
@@ -5320,7 +5358,8 @@
         "has_published_product": "Mindestens ein Produkt veröffentlichen",
         "has_published_theme": "Ein Theme wählen",
         "payments_ready": "Zahlungen einrichten",
-        "legal_pages_published": "Rechtliche Seiten veröffentlichen"
+        "legal_pages_published": "Rechtliche Seiten veröffentlichen",
+        "legal_pages_published_independent": "Veröffentliche deine Datenschutzerklärung und deine Verkaufsbedingungen"
       },
       "checklistUnavailable": "Checkliste noch nicht verfügbar – lade die Seite neu.",
       "copyUrl": "Link kopieren",

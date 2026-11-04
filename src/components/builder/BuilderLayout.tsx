@@ -19,6 +19,8 @@ import type { ThemeTokenCustomizations } from './ThemeCustomizer';
 import type { StorePageSummary } from './PageSwitcher';
 import type { BuilderPage, SectionInstance } from './types';
 import { StorefrontEditHandoff } from '@/components/creator/StorefrontEditHandoff';
+import { LegalReviewHint } from '@/components/creator/LegalPagesCard';
+import { legalSlugForKind } from '@/lib/legalPages';
 
 interface BuilderLayoutProps {
   page: BuilderPage;
@@ -33,6 +35,8 @@ interface BuilderLayoutProps {
     theme_config: Record<string, unknown>;
     logo_url: string;
     favicon_url: string;
+    /** Trader country (store trader_details); drives the legal-page review warning. */
+    trader_country?: string | null;
     language_config: {
       primary_locale: string;
       secondary_locales: string[];
@@ -897,6 +901,9 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       : pageSlug || tBuilder('untitledPage'));
   // The switcher lists this page with its current slug after a permalink edit.
   const switcherPages = allPages.map((p) => (p.id === page.id && pageSlug ? { ...p, slug: pageSlug } : p));
+  // Legal-kind STATIC pages are served at /legal/<slug> on the storefront.
+  const legalSlug = page.type === 'STATIC' ? legalSlugForKind(page.static_kind) : null;
+  const storeUrl = `${WEB_ORIGIN}/store/${store.slug}`;
 
   return (
     <div className="h-screen w-full flex flex-col bg-zinc-50">
@@ -911,7 +918,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         pageSlug={pageSlug}
         isLive={isLive}
         status={pageStatus}
-        storeUrl={`${WEB_ORIGIN}/store/${store.slug}`}
+        storeUrl={legalSlug ? `${storeUrl}/legal/${legalSlug}` : storeUrl}
         primaryLocale={store.language_config.primary_locale}
         secondaryLocales={store.language_config.secondary_locales}
         activeLocale={activeLocale}
@@ -941,6 +948,15 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         onSeoSaved={reloadPageMeta}
         onFlushCache={flushCache}
       />
+
+      {/* Legal pages: review checklist; until published visitors see the standard text. */}
+      {legalSlug && (
+        <LegalReviewHint
+          traderCountry={store.trader_country}
+          draftNote={!isLive}
+          className="rounded-none border-x-0 border-t-0 px-4"
+        />
+      )}
 
       <div className="flex-1 grid grid-cols-[280px_1fr_360px] min-h-0">
         <aside className="border-e bg-white overflow-hidden flex flex-col">

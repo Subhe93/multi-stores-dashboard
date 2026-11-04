@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  blockingHref,
   blockingToStep,
   canRequestGoLive,
   canToggleActive,
@@ -12,6 +13,7 @@ import {
   isUnverifiedCode,
   needsEmailVerification,
   parseSurvey,
+  setupStepHref,
   setupStepOrder,
   storeStatusTone,
   suggestedStoreType,
@@ -72,9 +74,25 @@ test('computeSetupChecklist: go-live and preview count as done once requested or
   assert.equal(changes.find((s) => s.key === 'request_golive').done, false);
 });
 
+test('computeSetupChecklist: INDEPENDENT stores get a required legal pages step', () => {
+  const steps = computeSetupChecklist({ status: 'DRAFT', checklist: { ...fullChecklist, legal_pages_published: false }, independent: true });
+  assert.equal(steps.length, 10);
+  const legal = steps.find((s) => s.key === 'legal_pages');
+  assert.deepEqual(legal, { key: 'legal_pages', done: false, required: true });
+  // Right after the trader details in the default order.
+  assert.equal(steps[steps.findIndex((s) => s.key === 'trader_details') + 1].key, 'legal_pages');
+  const published = computeSetupChecklist({ status: 'DRAFT', checklist: fullChecklist, independent: true });
+  assert.equal(published.find((s) => s.key === 'legal_pages').done, true);
+  // MARKETPLACE stores use the platform texts: no step at all.
+  const marketplace = computeSetupChecklist({ status: 'DRAFT', checklist: fullChecklist, independent: false });
+  assert.equal(marketplace.some((s) => s.key === 'legal_pages'), false);
+  assert.equal(setupStepHref('legal_pages', true), '/creator/pages#legal-pages');
+});
+
 test('setupStepOrder: established sellers get legal details and shipping earlier', () => {
   assert.equal(setupStepOrder({ stage: 'physical_shop' })[3], 'trader_details');
-  assert.equal(setupStepOrder({ stage: 'selling_online' })[4], 'shipping');
+  assert.equal(setupStepOrder({ stage: 'selling_online' })[4], 'legal_pages');
+  assert.equal(setupStepOrder({ stage: 'selling_online' })[5], 'shipping');
   assert.equal(setupStepOrder({ stage: 'starting' })[3], 'theme');
   assert.equal(setupStepOrder(null)[3], 'theme');
   // Same steps in every order.
@@ -136,6 +154,9 @@ test('status helpers', () => {
   assert.equal(canRequestGoLive('PENDING_REVIEW'), false);
   assert.equal(blockingToStep('trader_details_complete'), 'trader_details');
   assert.equal(blockingToStep('unknown'), null);
+  assert.equal(blockingHref('legal_pages_published', true), '/creator/pages#legal-pages');
+  assert.equal(blockingHref('legal_pages_published', false), null);
+  assert.equal(blockingHref('payments_ready', true), '/creator/settings?tab=payments');
   assert.equal(isUnverifiedCode('ACCOUNT_EMAIL_UNVERIFIED_EXPIRED'), true);
   assert.equal(isUnverifiedCode('STORE_NOT_LIVE'), false);
   assert.equal(isReservedStoreSlug('Admin'), true);

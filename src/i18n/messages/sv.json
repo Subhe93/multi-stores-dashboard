@@ -1425,7 +1425,8 @@
           "theme": "Välj ett tema och redigera din startsida",
           "shipping": "Ställ in frakt",
           "payments": "Ställ in betalningar",
-          "trader_details": "Företagsuppgifter och juridiska sidor",
+          "trader_details": "Företagsuppgifter",
+          "legal_pages": "Publicera dina juridiska sidor",
           "preview": "Förhandsgranska din butik",
           "request_golive": "Begär publicering"
         },
@@ -2032,7 +2033,44 @@
       "deleteTitle": "Ta bort sida",
       "deleteConfirmPrefix": "Är du säker på att du vill ta bort",
       "deleteConfirmSuffix": "? Den här åtgärden kan inte ångras.",
-      "deleting": "Tar bort..."
+      "deleting": "Tar bort...",
+      "legal": {
+        "title": "Juridiska sidor",
+        "explainer": "Butiken visar en standardtext med dina företagsuppgifter tills du publicerar din egen version. Integritetspolicy och köpvillkor behövs innan butiken kan gå live.",
+        "disclaimer": "Mallarna är en utgångspunkt, inte juridisk rådgivning. Granska dem och anpassa dem efter ditt företag.",
+        "marketplace": "Din butik använder plattformens juridiska sidor, eftersom plattformen är säljare i marknadsplatsbutiker. Inget att göra här.",
+        "traderHint": "Dina företagsuppgifter är ofullständiga, så mallarna har luckor.",
+        "traderHintLink": "Fyll i företagsuppgifter",
+        "names": {
+          "privacy": "Integritetspolicy",
+          "terms": "Köpvillkor",
+          "refund": "Ångerrätt och returer",
+          "shipping": "Leveransvillkor"
+        },
+        "statePublished": "Publicerad",
+        "stateDraft": "Utkast",
+        "stateDraftHint": "Besökarna ser standardtexten tills du publicerar den här sidan.",
+        "stateTemplate": "Standardtext visas",
+        "required": "Krävs för att gå live",
+        "creating": "Skapar…",
+        "edit": "Redigera",
+        "view": "Visa i butiken",
+        "createFailed": "Det gick inte att skapa sidan. Försök igen.",
+        "loadFailed": "Det gick inte att läsa in dina juridiska sidor.",
+        "retry": "Försök igen",
+        "empty": "Inga juridiska sidor att visa ännu.",
+        "copyNote": "Sidan är en kopia. Ändrar du dina företagsuppgifter senare behöver du uppdatera sidorna också.",
+        "reviewHint": "Kontrollera innan du publicerar: vem som betalar returfrakten, din returadress, vilka betalsätt du erbjuder och om du deltar i ARN. Texterna följer svensk lag.",
+        "builderDraftNote": "Besökarna ser fortfarande standardtexten tills du klickar på Publicera.",
+        "reviewAndPublish": "Granska och publicera",
+        "recommended": "Rekommenderas",
+        "requiredPublished": "De obligatoriska sidorna är publicerade. Begär att gå live från översikten",
+        "confirmTitle": "Dina företagsuppgifter är ofullständiga",
+        "confirmBody": "Sidan fylls i med dina företagsuppgifter. Uppgifter som du inte har angett än kommer att saknas i texten, och du får lägga till dem själv. Du kan fylla i företagsuppgifterna först.",
+        "confirmContinue": "Fortsätt ändå"
+      },
+      "legalBadge": "Juridisk sida",
+      "deleteLegalNote": "Efter borttagning ser besökarna standardtexten igen."
     },
     "newPage": {
       "title": "Ny sida",
@@ -5320,7 +5358,8 @@
         "has_published_product": "Publicera minst en produkt",
         "has_published_theme": "Välj ett tema",
         "payments_ready": "Ställ in betalningar",
-        "legal_pages_published": "Publicera dina juridiska sidor"
+        "legal_pages_published": "Publicera dina juridiska sidor",
+        "legal_pages_published_independent": "Publicera din integritetspolicy och dina köpvillkor"
       },
       "checklistUnavailable": "Checklistan är inte tillgänglig ännu – ladda om sidan.",
       "copyUrl": "Kopiera länk",

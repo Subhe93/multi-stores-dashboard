@@ -38,7 +38,8 @@ interface ChecklistCardProps {
 
 /**
  * Setup checklist (PLAN §2.4): verify email · create store · first product ·
- * theme · shipping · payments · trader details · preview · request go-live,
+ * theme · shipping · payments · trader details · legal pages (independent)
+ * · preview · request go-live,
  * computed from the API go-live checklist plus the overview setup signals.
  * Collapsible; dismissable per browser (Settings → "Show setup guide"
  * reopens it). Hidden once every step is done.
@@ -61,6 +62,7 @@ export function ChecklistCard({ store, setup, independent, storeUrl }: Checklist
       checklist: store.golive_checklist,
       setup: { has_shipping: setup?.has_shipping, has_payment: setup?.has_payment },
       previewed,
+      independent,
     },
     survey,
   );

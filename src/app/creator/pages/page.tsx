@@ -25,6 +25,8 @@ import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
 import { useBulkAction } from '@/components/common/useBulkAction';
+import { LegalPagesCard } from '@/components/creator/LegalPagesCard';
+import { legalSlugForKind } from '@/lib/legalPages';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -125,6 +127,11 @@ export default function CreatorPagesPage() {
   const [pages, setPages] = useState<PageRow[]>([]);
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const [allLocales, setAllLocales] = useState<string[]>(['en']);
+  // INDEPENDENT stores serve legal-kind pages at /legal/<slug> (MARKETPLACE
+  // stores use the platform texts, so their legal-kind pages are ordinary).
+  const [ownsLegalPages, setOwnsLegalPages] = useState(false);
+  // Bumped after deleting a legal page so the "Legal pages" card reloads.
+  const [legalReloadKey, setLegalReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<PageRow | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -248,9 +255,11 @@ export default function CreatorPagesPage() {
       // languages, not the dashboard UI language).
       const store = await api<{
         id: string;
+        store_type?: 'MARKETPLACE' | 'INDEPENDENT';
         language_config?: { primary_locale?: string; secondary_locales?: string[] };
       }>('/stores/my/store', { token: token! });
       setStoreId(store.id);
+      setOwnsLegalPages(store.store_type === 'INDEPENDENT');
       const primary = store.language_config?.primary_locale || 'en';
       const secondary = store.language_config?.secondary_locales || [];
       setPrimaryLocale(primary);
@@ -306,6 +315,8 @@ export default function CreatorPagesPage() {
     }
   };
 
+  const isLegalRow = (row: PageRow) => ownsLegalPages && legalSlugForKind(row.type) !== null;
+
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
     setDeleting(true);
@@ -314,6 +325,7 @@ export default function CreatorPagesPage() {
         deleteTarget.system === 'v2' ? `/v2/pages/${deleteTarget.id}` : `/pages/${deleteTarget.id}`;
       await api(path, { method: 'DELETE', token });
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      if (isLegalRow(deleteTarget)) setLegalReloadKey((k) => k + 1);
       setDeleteTarget(null);
     } catch (err) {
       console.error('Failed to delete page:', err);
@@ -427,11 +439,18 @@ export default function CreatorPagesPage() {
       key: 'type',
       label: t('storePages.colType'),
       render: (item: PageRow) => (
-        <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 text-[10px] font-medium text-zinc-600">
-          {item.type && item.type !== 'CUSTOM'
-            ? item.type.toLowerCase().replace(/_/g, ' ')
-            : t('storePages.typeCustom')}
-        </span>
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="inline-flex h-5 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 text-[10px] font-medium text-zinc-600">
+            {item.type && item.type !== 'CUSTOM'
+              ? item.type.toLowerCase().replace(/_/g, ' ')
+              : t('storePages.typeCustom')}
+          </span>
+          {isLegalRow(item) && (
+            <span className="inline-flex h-5 items-center rounded-full border border-sky-200 bg-sky-50 px-2 text-[10px] font-medium text-sky-700">
+              {t('storePages.legalBadge')}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -518,6 +537,9 @@ export default function CreatorPagesPage() {
           {t('storePages.newPage')}
         </Button>
       </div>
+
+      {/* Legal pages — own pages vs. the default template (INDEPENDENT); one info line for MARKETPLACE. */}
+      <LegalPagesCard reloadKey={legalReloadKey} />
 
       {/* Builder callouts — Home, Product / Catalog / Collection templates, Header, Footer.
           Each provisions its singleton page on demand and opens the builder. */}
@@ -828,6 +850,9 @@ export default function CreatorPagesPage() {
                 {deleteTarget ? pageTitle(deleteTarget.translations, primaryLocale, t) : ''}
               </span>
               {t('storePages.deleteConfirmSuffix')}
+              {deleteTarget && isLegalRow(deleteTarget) && (
+                <span className="mt-2 block">{t('storePages.deleteLegalNote')}</span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -1425,7 +1425,8 @@
           "theme": "Choisissez un thème et modifiez votre page d’accueil",
           "shipping": "Configurez la livraison",
           "payments": "Configurez les paiements",
-          "trader_details": "Informations de l’entreprise et pages légales",
+          "trader_details": "Informations de l’entreprise",
+          "legal_pages": "Publier vos pages légales",
           "preview": "Prévisualisez votre boutique",
           "request_golive": "Demandez la mise en ligne"
         },
@@ -2032,7 +2033,44 @@
       "deleteTitle": "Supprimer la page",
       "deleteConfirmPrefix": "Voulez-vous vraiment supprimer",
       "deleteConfirmSuffix": " ? Cette action est irréversible.",
-      "deleting": "Suppression..."
+      "deleting": "Suppression...",
+      "legal": {
+        "title": "Pages légales",
+        "explainer": "Votre boutique affiche un texte standard avec les informations de votre entreprise jusqu’à ce que vous publiiez votre propre version. La politique de confidentialité et les conditions de vente sont nécessaires avant la mise en ligne de votre boutique.",
+        "disclaimer": "Les modèles sont un point de départ, pas un conseil juridique. Relisez-les et adaptez-les à votre activité.",
+        "marketplace": "Votre boutique utilise les pages légales de la plateforme, car la plateforme est le vendeur sur les boutiques marketplace. Rien à faire ici.",
+        "traderHint": "Les informations de votre entreprise sont incomplètes, les modèles comportent donc des manques.",
+        "traderHintLink": "Compléter les informations de l’entreprise",
+        "names": {
+          "privacy": "Politique de confidentialité",
+          "terms": "Conditions de vente",
+          "refund": "Droit de rétractation et retours",
+          "shipping": "Politique de livraison"
+        },
+        "statePublished": "Publiée",
+        "stateDraft": "Brouillon",
+        "stateDraftHint": "Les visiteurs voient le texte standard tant que vous n’avez pas publié cette page.",
+        "stateTemplate": "Texte standard affiché",
+        "required": "Requise pour la mise en ligne",
+        "creating": "Création…",
+        "edit": "Modifier",
+        "view": "Voir dans la boutique",
+        "createFailed": "Impossible de créer la page. Veuillez réessayer.",
+        "loadFailed": "Impossible de charger vos pages légales.",
+        "retry": "Réessayer",
+        "empty": "Aucune page légale à afficher pour le moment.",
+        "copyNote": "Votre page est une copie. Si vous modifiez plus tard les informations de votre entreprise, mettez aussi vos pages à jour.",
+        "reviewHint": "Avant de publier, vérifiez : qui paie les frais de retour, votre adresse de retour, les moyens de paiement proposés et si vous adhérez à l’ARN. Les textes suivent le droit suédois.",
+        "builderDraftNote": "Les visiteurs voient toujours le texte standard tant que vous n’avez pas cliqué sur « Publier ».",
+        "reviewAndPublish": "Vérifier et publier",
+        "recommended": "Recommandée",
+        "requiredPublished": "Les pages obligatoires sont publiées. Demandez la mise en ligne depuis la vue d’ensemble",
+        "confirmTitle": "Les informations de votre entreprise sont incomplètes",
+        "confirmBody": "La page est remplie avec les informations de votre entreprise. Celles que vous n’avez pas encore saisies manqueront dans le texte et vous devrez les ajouter vous-même. Vous pouvez d’abord compléter les informations de votre entreprise.",
+        "confirmContinue": "Continuer quand même"
+      },
+      "legalBadge": "Page légale",
+      "deleteLegalNote": "Après la suppression, les visiteurs voient de nouveau le texte standard."
     },
     "newPage": {
       "title": "Nouvelle page",
@@ -5320,7 +5358,8 @@
         "has_published_product": "Publiez au moins un produit",
         "has_published_theme": "Choisissez un thème",
         "payments_ready": "Configurez les paiements",
-        "legal_pages_published": "Publiez vos pages légales"
+        "legal_pages_published": "Publiez vos pages légales",
+        "legal_pages_published_independent": "Publiez votre politique de confidentialité et vos conditions de vente"
       },
       "checklistUnavailable": "Liste de contrôle indisponible pour le moment — rechargez la page.",
       "copyUrl": "Copier le lien",
