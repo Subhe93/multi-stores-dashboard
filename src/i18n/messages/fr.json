@@ -2067,7 +2067,8 @@
         "requiredPublished": "Les pages obligatoires sont publiées. Demandez la mise en ligne depuis la vue d’ensemble",
         "confirmTitle": "Les informations de votre entreprise sont incomplètes",
         "confirmBody": "La page est remplie avec les informations de votre entreprise. Celles que vous n’avez pas encore saisies manqueront dans le texte et vous devrez les ajouter vous-même. Vous pouvez d’abord compléter les informations de votre entreprise.",
-        "confirmContinue": "Continuer quand même"
+        "confirmContinue": "Continuer quand même",
+        "pageSubtitle": "Ce que voient les visiteurs sous /legal/… dans votre boutique : confidentialité, conditions de vente, retours et livraison."
       },
       "legalBadge": "Page légale",
       "deleteLegalNote": "Après la suppression, les visiteurs voient de nouveau le texte standard."

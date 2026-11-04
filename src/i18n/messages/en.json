@@ -333,7 +333,7 @@
     "menus": "Menus",
     "landingPages": "Landing Pages",
     "translations": "Translations",
-    "legalPages": "Legal Pages",
+    "legalPages": "Legal pages",
     "notificationTemplates": "Notification Templates",
     "email": "Email",
     "guide": "Guide",
@@ -2067,7 +2067,8 @@
         "requiredPublished": "Required pages are published. Request go-live from the overview",
         "confirmTitle": "Your business details are incomplete",
         "confirmBody": "The page is filled with your business details. Details you have not entered yet will be missing from the text, and you will have to add them yourself. You can complete your business details first.",
-        "confirmContinue": "Continue anyway"
+        "confirmContinue": "Continue anyway",
+        "pageSubtitle": "What visitors see at /legal/… on your store: privacy policy, terms of sale, returns and shipping."
       },
       "legalBadge": "Legal page",
       "deleteLegalNote": "After deleting, visitors see the standard text again."

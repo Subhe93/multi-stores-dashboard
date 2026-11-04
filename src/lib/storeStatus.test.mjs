@@ -86,7 +86,7 @@ test('computeSetupChecklist: INDEPENDENT stores get a required legal pages step'
   // MARKETPLACE stores use the platform texts: no step at all.
   const marketplace = computeSetupChecklist({ status: 'DRAFT', checklist: fullChecklist, independent: false });
   assert.equal(marketplace.some((s) => s.key === 'legal_pages'), false);
-  assert.equal(setupStepHref('legal_pages', true), '/creator/pages#legal-pages');
+  assert.equal(setupStepHref('legal_pages', true), '/creator/legal');
 });
 
 test('setupStepOrder: established sellers get legal details and shipping earlier', () => {
@@ -154,7 +154,7 @@ test('status helpers', () => {
   assert.equal(canRequestGoLive('PENDING_REVIEW'), false);
   assert.equal(blockingToStep('trader_details_complete'), 'trader_details');
   assert.equal(blockingToStep('unknown'), null);
-  assert.equal(blockingHref('legal_pages_published', true), '/creator/pages#legal-pages');
+  assert.equal(blockingHref('legal_pages_published', true), '/creator/legal');
   assert.equal(blockingHref('legal_pages_published', false), null);
   assert.equal(blockingHref('payments_ready', true), '/creator/settings?tab=payments');
   assert.equal(isUnverifiedCode('ACCOUNT_EMAIL_UNVERIFIED_EXPIRED'), true);

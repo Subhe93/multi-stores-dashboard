@@ -333,7 +333,7 @@
     "menus": "Menüler",
     "landingPages": "Açılış Sayfaları",
     "translations": "Çeviriler",
-    "legalPages": "Yasal Sayfalar",
+    "legalPages": "Yasal sayfalar",
     "notificationTemplates": "Bildirim Şablonları",
     "email": "E-posta",
     "guide": "Rehber",
@@ -2067,7 +2067,8 @@
         "requiredPublished": "Gerekli sayfalar yayınlandı. Yayına alma talebini genel bakıştan gönder",
         "confirmTitle": "İşletme bilgilerin eksik",
         "confirmBody": "Sayfa işletme bilgilerinle doldurulur. Henüz girmediğin bilgiler metinde eksik olur ve bunları kendin eklemen gerekir. Önce işletme bilgilerini tamamlayabilirsin.",
-        "confirmContinue": "Yine de devam et"
+        "confirmContinue": "Yine de devam et",
+        "pageSubtitle": "Ziyaretçilerin mağazanızda /legal/… altında gördükleri: gizlilik, satış koşulları, iadeler ve kargo."
       },
       "legalBadge": "Yasal sayfa",
       "deleteLegalNote": "Silindikten sonra ziyaretçiler yeniden standart metni görür."

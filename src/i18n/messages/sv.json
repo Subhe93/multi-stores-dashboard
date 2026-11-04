@@ -2067,7 +2067,8 @@
         "requiredPublished": "De obligatoriska sidorna är publicerade. Begär att gå live från översikten",
         "confirmTitle": "Dina företagsuppgifter är ofullständiga",
         "confirmBody": "Sidan fylls i med dina företagsuppgifter. Uppgifter som du inte har angett än kommer att saknas i texten, och du får lägga till dem själv. Du kan fylla i företagsuppgifterna först.",
-        "confirmContinue": "Fortsätt ändå"
+        "confirmContinue": "Fortsätt ändå",
+        "pageSubtitle": "Det besökarna ser under /legal/… i din butik: integritetspolicy, köpvillkor, returer och leverans."
       },
       "legalBadge": "Juridisk sida",
       "deleteLegalNote": "Efter borttagning ser besökarna standardtexten igen."

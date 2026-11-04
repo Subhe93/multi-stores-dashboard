@@ -25,7 +25,6 @@ import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
 import { useBulkAction } from '@/components/common/useBulkAction';
-import { LegalPagesCard } from '@/components/creator/LegalPagesCard';
 import { legalSlugForKind } from '@/lib/legalPages';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,7 +130,6 @@ export default function CreatorPagesPage() {
   // stores use the platform texts, so their legal-kind pages are ordinary).
   const [ownsLegalPages, setOwnsLegalPages] = useState(false);
   // Bumped after deleting a legal page so the "Legal pages" card reloads.
-  const [legalReloadKey, setLegalReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<PageRow | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -325,7 +323,6 @@ export default function CreatorPagesPage() {
         deleteTarget.system === 'v2' ? `/v2/pages/${deleteTarget.id}` : `/pages/${deleteTarget.id}`;
       await api(path, { method: 'DELETE', token });
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-      if (isLegalRow(deleteTarget)) setLegalReloadKey((k) => k + 1);
       setDeleteTarget(null);
     } catch (err) {
       console.error('Failed to delete page:', err);
@@ -537,9 +534,6 @@ export default function CreatorPagesPage() {
           {t('storePages.newPage')}
         </Button>
       </div>
-
-      {/* Legal pages — own pages vs. the default template (INDEPENDENT); one info line for MARKETPLACE. */}
-      <LegalPagesCard reloadKey={legalReloadKey} />
 
       {/* Builder callouts — Home, Product / Catalog / Collection templates, Header, Footer.
           Each provisions its singleton page on demand and opens the builder. */}

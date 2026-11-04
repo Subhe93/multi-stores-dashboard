@@ -2067,7 +2067,8 @@
         "requiredPublished": "Die erforderlichen Seiten sind veröffentlicht. Beantrage den Livegang in der Übersicht",
         "confirmTitle": "Deine Unternehmensangaben sind unvollständig",
         "confirmBody": "Die Seite wird mit deinen Unternehmensangaben ausgefüllt. Angaben, die du noch nicht gemacht hast, fehlen im Text und müssen von dir ergänzt werden. Du kannst deine Unternehmensangaben zuerst vervollständigen.",
-        "confirmContinue": "Trotzdem fortfahren"
+        "confirmContinue": "Trotzdem fortfahren",
+        "pageSubtitle": "Was Besucher unter /legal/… in deinem Shop sehen: Datenschutz, AGB, Widerruf und Versand."
       },
       "legalBadge": "Rechtliche Seite",
       "deleteLegalNote": "Nach dem Löschen sehen Besucher wieder den Standardtext."

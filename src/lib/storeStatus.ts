@@ -264,7 +264,7 @@ export function setupStepHref(key: SetupStepKey, independent: boolean, storeUrl?
     case 'trader_details':
       return '/creator/settings?tab=business';
     case 'legal_pages':
-      return '/creator/pages#legal-pages';
+      return '/creator/legal';
     case 'preview':
       return storeUrl || '/creator/store';
     case 'request_golive':
