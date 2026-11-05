@@ -357,7 +357,8 @@
     "manageApps": "Gérer les applications",
     "notifications": "Notifications",
     "customers": "Clients",
-    "securityLog": "Journal de sécurité"
+    "securityLog": "Journal de sécurité",
+    "redirects": "Redirections"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -3765,85 +3766,6 @@
           "overwrite_hint": "Les réimports remplacent le stock par la valeur WooCommerce."
         }
       },
-      "redirects": {
-        "intro": "Les anciennes URL de la boutique qui envoient les visiteurs (et les moteurs de recherche) vers la bonne page de votre boutique. Les redirections importées restent même si vous désactivez l’importateur.",
-        "search": "Rechercher",
-        "searchPlaceholder": "/produit/…",
-        "sourceFilter": "Origine",
-        "allSources": "Toutes",
-        "source": {
-          "IMPORT": "Importée",
-          "MANUAL": "Manuelle",
-          "SLUG_CHANGE": "URL modifiée"
-        },
-        "add": "Ajouter une redirection",
-        "edit": "Modifier",
-        "delete": "Supprimer",
-        "active": "Active",
-        "inactive": "Inactive",
-        "empty": "Aucune redirection pour le moment.",
-        "csvImport": {
-          "button": "Importer un CSV",
-          "title": "Importer des redirections depuis un CSV",
-          "body": "Une redirection par ligne : from_path,to_path,status. Le statut est facultatif (301 par défaut). Jusqu’à 5000 lignes ; les chemins déjà utilisés sont signalés comme conflits.",
-          "file": "Fichier CSV",
-          "run": "Importer",
-          "result": "{created, plural, one {# redirection créée} other {# redirections créées}} · {conflicts, plural, =0 {aucun conflit} one {# conflit} other {# conflits}}",
-          "conflictsTitle": "Conflits",
-          "tooMany": "Le fichier dépasse 5000 lignes.",
-          "invalidLine": "La ligne {line} n’est pas une redirection valide.",
-          "empty": "Le fichier ne contient aucune redirection."
-        },
-        "emptyFiltered": "Aucune redirection ne correspond aux filtres.",
-        "columns": {
-          "paths": "De → vers",
-          "code": "Code",
-          "source": "Origine",
-          "active": "Active",
-          "updated": "Mise à jour"
-        },
-        "deleteTitle": "Supprimer cette redirection ?",
-        "deleteBody": "Les visiteurs de {from} verront une page « introuvable » à la place.",
-        "test": {
-          "title": "Tester une URL",
-          "placeholder": "/produit/ancien-nom ou https://ancienne-boutique.fr/produit/ancien-nom",
-          "run": "Tester",
-          "matched": "Redirige avec {code} vers :",
-          "viaRule": "Trouvée via",
-          "noMatch": "Aucune redirection pour"
-        },
-        "form": {
-          "createTitle": "Ajouter une redirection",
-          "editTitle": "Modifier la redirection",
-          "description": "Envoyez un ancien chemin vers une page de votre boutique.",
-          "importedHint": "Cette redirection a été importée. Une fois modifiée, les imports suivants ne la changent plus.",
-          "from": "Ancien chemin",
-          "fromHint": "Le chemin seul, commençant par /. Les paramètres de requête sont conservés lors de la redirection.",
-          "to": "Nouveau chemin",
-          "toHint": "Une page de votre boutique, par exemple /products/nouveau-nom.",
-          "code": "Type",
-          "codes": {
-            "301": "301 · Permanente (recommandée)",
-            "302": "302 · Temporaire",
-            "307": "307 · Temporaire, méthode conservée",
-            "308": "308 · Permanente, méthode conservée"
-          },
-          "active": "Active",
-          "create": "Ajouter la redirection",
-          "errors": {
-            "required": "Saisissez un chemin.",
-            "slash": "Commencez le chemin par un seul /.",
-            "scheme": "Saisissez uniquement le chemin, sans https:// ni domaine.",
-            "tooLong": "Le chemin est trop long.",
-            "same": "Le nouveau chemin doit être différent de l’ancien.",
-            "invalidEither": "L’un des chemins n’est pas valide. Utilisez des chemins commençant par /.",
-            "field": {
-              "from_path": "Vérifiez l’ancien chemin.",
-              "to_path": "Vérifiez le nouveau chemin."
-            }
-          }
-        }
-      },
       "warnings": {
         "W_PRODUCT_SKIPPED_BY_RULE": "Produit ignoré selon vos réglages",
         "W_PRODUCT_PRIVATE_AS_DRAFT": "Produit privé importé en brouillon",
@@ -5552,6 +5474,141 @@
         "invalid": "VIES ne reconnaît pas ce numéro de TVA. Vérifiez-le ou laissez le champ vide ; les autres informations n’ont pas été enregistrées.",
         "invalidShort": "Non enregistré dans VIES."
       }
+    },
+    "redirects": {
+      "intro": "Les anciennes URL de la boutique qui envoient les visiteurs (et les moteurs de recherche) vers la bonne page de votre boutique. Les redirections importées restent même si vous désactivez l’importateur.",
+      "search": "Rechercher",
+      "searchPlaceholder": "/produit/…",
+      "sourceFilter": "Origine",
+      "allSources": "Toutes",
+      "source": {
+        "IMPORT": "Importée",
+        "MANUAL": "Manuelle",
+        "SLUG_CHANGE": "URL modifiée"
+      },
+      "add": "Ajouter une redirection",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "active": "Active",
+      "inactive": "Inactive",
+      "empty": "Aucune redirection pour l'instant. Elles sont ajoutées quand vous changez une adresse ou supprimez un élément, ou vous pouvez en ajouter une ici.",
+      "csvImport": {
+        "button": "Importer un CSV",
+        "title": "Importer des redirections depuis un CSV",
+        "body": "Une redirection par ligne : ancien chemin, nouveau chemin et éventuellement le statut (301 par défaut). Les liens complets sont acceptés ; seul leur chemin est utilisé. Jusqu'à 5000 lignes ; les adresses déjà utilisées sont signalées comme conflits.",
+        "file": "Fichier CSV",
+        "run": "Importer",
+        "result": "{created, plural, one {# redirection créée} other {# redirections créées}} · {conflicts, plural, =0 {aucun conflit} one {# conflit} other {# conflits}}",
+        "conflictsTitle": "Conflits",
+        "tooMany": "Le fichier dépasse 5000 lignes.",
+        "invalidLine": "Ligne {line} : utilisez des chemins comme /ancienne-page ou des liens complets.",
+        "empty": "Le fichier ne contient aucune redirection.",
+        "separatorLine": "Ligne {line} : un chemin contient une virgule, un point-virgule ou une tabulation. Supprimez-la ou encodez-la (par exemple %2C).",
+        "statusLine": "Ligne {line} : le statut doit être 301, 302, 307 ou 308.",
+        "sameLine": "Ligne {line} : l'ancien et le nouveau chemin sont identiques.",
+        "invalidTitle": "{count, plural, one {# ligne ne peut pas être importée et est ignorée :} other {# lignes ne peuvent pas être importées et sont ignorées :}}",
+        "sample": "Télécharger un exemple de CSV",
+        "lineLabel": "Ligne {line}",
+        "ready": "{name} · {count, plural, one {# redirection prête} other {# redirections prêtes}}",
+        "runValid": "{count, plural, one {Importer # ligne valide} other {Importer # lignes valides}}"
+      },
+      "emptyFiltered": "Aucune redirection ne correspond aux filtres.",
+      "columns": {
+        "paths": "De → vers",
+        "code": "Code",
+        "source": "Origine",
+        "active": "Active",
+        "updated": "Mise à jour"
+      },
+      "deleteTitle": "Supprimer cette redirection ?",
+      "deleteBody": "Les visiteurs de {from} verront une page « introuvable » à la place.",
+      "test": {
+        "title": "Tester une URL",
+        "placeholder": "/produit/ancien-nom ou https://ancienne-boutique.fr/produit/ancien-nom",
+        "run": "Tester",
+        "matched": "{code, select, 301 {Les visiteurs sont envoyés vers (permanente, 301) :} 308 {Les visiteurs sont envoyés vers (permanente, 308) :} other {Les visiteurs sont envoyés vers (temporaire, {code}) :}}",
+        "viaRule": "Trouvée via",
+        "noMatch": "Aucune redirection pour",
+        "live": "Cette adresse affiche {kind, select, product {un produit publié} collection {une collection publiée} page {une page publiée} other {un élément publié}}.",
+        "liveShadowed": "{kind, select, product {Un produit publié} collection {Une collection publiée} page {Une page publiée} other {Un élément publié}} utilise aussi cette adresse, mais la redirection est prioritaire : les visiteurs ne le voient jamais. Désactivez ou supprimez la redirection pour l'afficher à nouveau."
+      },
+      "form": {
+        "createTitle": "Ajouter une redirection",
+        "editTitle": "Modifier la redirection",
+        "description": "Envoyez un ancien chemin vers une page de votre boutique.",
+        "importedHint": "Cette redirection a été importée. Une fois modifiée, les imports suivants ne la changent plus.",
+        "from": "Ancien chemin",
+        "fromHint": "Le chemin, commençant par /. Vous pouvez aussi coller un lien complet ; seul son chemin est utilisé. Les paramètres de requête sont conservés lors de la redirection.",
+        "to": "Nouveau chemin",
+        "toHint": "Une page de votre boutique, par exemple /products/nouveau-nom.",
+        "code": "Type",
+        "codes": {
+          "301": "301 · Permanente (recommandée)",
+          "302": "302 · Temporaire",
+          "307": "307 · Temporaire, méthode conservée",
+          "308": "308 · Permanente, méthode conservée"
+        },
+        "active": "Active",
+        "create": "Ajouter la redirection",
+        "errors": {
+          "required": "Saisissez un chemin.",
+          "slash": "Commencez le chemin par un seul /.",
+          "scheme": "Saisissez un chemin commençant par / ou un lien https:// complet.",
+          "tooLong": "Le chemin est trop long.",
+          "same": "Le nouveau chemin doit être différent de l’ancien.",
+          "invalidEither": "L’un des chemins n’est pas valide. Utilisez des chemins commençant par /.",
+          "field": {
+            "from_path": "Vérifiez l’ancien chemin.",
+            "to_path": "Vérifiez le nouveau chemin."
+          },
+          "shadowsLive": "{kind, select, product {Un produit publié} collection {Une collection publiée} page {Une page publiée} other {Un élément publié}} utilise cette adresse. Supprimez-le, dépubliez-le ou renommez-le d'abord, puis ajoutez la redirection."
+        },
+        "advanced": "Avancé",
+        "advancedHint": "307 et 308 conservent la méthode de la requête (par exemple un formulaire envoyé). La plupart des boutiques n'ont besoin que de 301."
+      },
+      "pageSubtitle": "Envoyez les visiteurs et les moteurs de recherche depuis d’anciennes adresses ou des adresses supprimées vers une page active de votre boutique. Les redirections ajoutées ici, importées ou créées lors d’un changement d’adresse apparaissent toutes dans cette liste.",
+      "importerNote": "Les redirections font désormais partie de chaque boutique, sous Boutique en ligne → Redirections. Les redirections importées y apparaissent aussi.",
+      "importerNoteLink": "Ouvrir les redirections",
+      "onDelete": {
+        "label": "{count, plural, one {Rediriger l’ancienne adresse} other {Rediriger les anciennes adresses}}",
+        "hint": "Les visiteurs et les moteurs de recherche qui l’ouvrent sont redirigés de façon permanente (301) au lieu de voir « page introuvable ».",
+        "oldAddress": "{count, plural, one {Ancienne adresse} other {Anciennes adresses}}",
+        "more": "et {count} de plus",
+        "skipped": "{count, plural, one {# élément sélectionné n’a pas d’adresse publique et sera ignoré.} other {# éléments sélectionnés n’ont pas d’adresse publique et seront ignorés.}}",
+        "target": "Envoyer les visiteurs vers",
+        "customOption": "Une autre page",
+        "customHint": "Un chemin de votre boutique, par exemple /products/new-name. Vous pouvez aussi coller un lien complet.",
+        "urlKeepsPath": "Seul le chemin est utilisé :",
+        "errors": {
+          "required": "Indiquez la page vers laquelle envoyer les visiteurs.",
+          "scheme": "Utilisez un chemin de votre boutique ou un lien complet en https://.",
+          "slash": "Commencez le chemin par un seul /.",
+          "tooLong": "Le chemin est trop long.",
+          "same": "Choisissez une adresse différente de celle qui est supprimée."
+        },
+        "targets": {
+          "home": "Page d’accueil",
+          "products": "Tous les produits",
+          "collections": "Toutes les collections",
+          "parentCollection": "Collection parente ({name})"
+        },
+        "legalNote": "Cette page légale s’ouvre sous /legal/… et affiche le texte standard après sa suppression : aucune redirection n’est nécessaire.",
+        "failedOne": "Supprimé, mais la redirection n’a pas pu être créée pour",
+        "failedMany": "Supprimé, mais {count, plural, one {# redirection n’a pas pu être créée} other {# redirections n’ont pas pu être créées}}",
+        "openRedirects": "Ouvrir les redirections",
+        "dismiss": "Fermer",
+        "deletedTitle": "Supprimé. La redirection n’a pas pu être créée ; vous pouvez l’ajouter depuis la page Redirections.",
+        "backToList": "Retour à la liste",
+        "success": "{count, plural, one {Supprimé. Les visiteurs de <path>{from}</path> sont maintenant envoyés vers <path>{to}</path>.} other {Supprimé. {count} anciennes adresses mènent maintenant à <path>{to}</path>.}}",
+        "shadowsLive": "{kind, select, product {Un autre produit publié utilise encore cette adresse, elle n'a donc pas été redirigée.} collection {Une autre collection publiée utilise encore cette adresse, elle n'a donc pas été redirigée.} page {Une autre page publiée utilise encore cette adresse, elle n'a donc pas été redirigée.} other {Un autre élément publié utilise encore cette adresse, elle n'a donc pas été redirigée.}}",
+        "childrenMove": "{count, plural, one {Sa sous-collection passe au niveau supérieur. Son ancienne adresse est redirigée automatiquement.} other {Ses {count} sous-collections passent au niveau supérieur. Leurs anciennes adresses sont redirigées automatiquement.}}",
+        "pickPlaceholder": "Choisir un élément publié",
+        "pickSearch": "Rechercher par nom ou adresse…",
+        "customHintPick": "Choisissez un élément ci-dessus ou saisissez un chemin de votre boutique, par exemple /products/new-name. Vous pouvez aussi coller un lien complet.",
+        "defaultOnNote": "Activé par défaut pour les éléments publiés afin que les liens et le classement Google continuent de fonctionner. Décochez si vous ne voulez pas de redirection."
+      },
+      "propagationNote": "Les modifications peuvent mettre jusqu’à 2 minutes environ pour s’appliquer à votre boutique.",
+      "unknownTarget": "Aucun contenu publié n'a été trouvé à cette adresse. Vérifiez-la avant de continuer."
     }
   },
   "components": {
@@ -6056,7 +6113,10 @@
     "AUTH_CAPTCHA_FAILED": "La vérification de sécurité a échoué. Veuillez réessayer.",
     "AUTH_CAPTCHA_UNAVAILABLE": "La vérification de sécurité est temporairement indisponible. Veuillez réessayer dans un instant.",
     "ORDER_FULFILLMENT_BACKWARDS": "Un article expédié ou livré ne peut pas revenir à une étape antérieure.",
-    "TRANSLATION_UNAVAILABLE": "Le service de traduction est indisponible pour le moment. Veuillez réessayer plus tard."
+    "TRANSLATION_UNAVAILABLE": "Le service de traduction est indisponible pour le moment. Veuillez réessayer plus tard.",
+    "REDIRECT_SHADOWS_LIVE": "Cette adresse affiche encore une page ou un produit publié. Supprimez-le, dépubliez-le ou renommez-le d’abord, puis ajoutez la redirection.",
+    "REDIRECT_CHAIN_TOO_LONG": "Cette redirection passerait par trop d’autres redirections.",
+    "REDIRECT_BULK_TOO_MANY": "Importez au maximum 5000 redirections à la fois."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

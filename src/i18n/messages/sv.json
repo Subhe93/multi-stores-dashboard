@@ -357,7 +357,8 @@
     "manageApps": "Hantera appar",
     "notifications": "Aviseringar",
     "customers": "Kunder",
-    "securityLog": "Säkerhetslogg"
+    "securityLog": "Säkerhetslogg",
+    "redirects": "Omdirigeringar"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -3765,85 +3766,6 @@
           "overwrite_hint": "Nya importer ersätter lagret med värdet från WooCommerce."
         }
       },
-      "redirects": {
-        "intro": "Gamla butiks-URL:er som skickar besökare (och sökmotorer) till rätt sida i din butik. Importerade omdirigeringar finns kvar även om du stänger av importören.",
-        "search": "Sök",
-        "searchPlaceholder": "/produkt/…",
-        "sourceFilter": "Källa",
-        "allSources": "Alla",
-        "source": {
-          "IMPORT": "Importerad",
-          "MANUAL": "Manuell",
-          "SLUG_CHANGE": "Ändrad URL"
-        },
-        "add": "Lägg till omdirigering",
-        "edit": "Redigera",
-        "delete": "Ta bort",
-        "active": "Aktiv",
-        "inactive": "Inaktiv",
-        "empty": "Inga omdirigeringar ännu.",
-        "csvImport": {
-          "button": "Importera CSV",
-          "title": "Importera omdirigeringar från CSV",
-          "body": "En omdirigering per rad: from_path,to_path,status. Status är valfri (301 som standard). Upp till 5000 rader; sökvägar som redan används rapporteras som konflikter.",
-          "file": "CSV-fil",
-          "run": "Importera",
-          "result": "{created, plural, one {# omdirigering skapad} other {# omdirigeringar skapade}} · {conflicts, plural, =0 {inga konflikter} one {# konflikt} other {# konflikter}}",
-          "conflictsTitle": "Konflikter",
-          "tooMany": "Filen har fler än 5000 rader.",
-          "invalidLine": "Rad {line} är inte en giltig omdirigering.",
-          "empty": "Filen innehåller inga omdirigeringar."
-        },
-        "emptyFiltered": "Inga omdirigeringar matchar filtren.",
-        "columns": {
-          "paths": "Från → till",
-          "code": "Kod",
-          "source": "Källa",
-          "active": "Aktiv",
-          "updated": "Uppdaterad"
-        },
-        "deleteTitle": "Ta bort den här omdirigeringen?",
-        "deleteBody": "Besökare till {from} får se ”sidan hittades inte” i stället.",
-        "test": {
-          "title": "Testa en URL",
-          "placeholder": "/produkt/gammalt-namn eller https://gammal-butik.se/produkt/gammalt-namn",
-          "run": "Testa",
-          "matched": "Omdirigeras med {code} till:",
-          "viaRule": "Matchad av",
-          "noMatch": "Ingen omdirigering för"
-        },
-        "form": {
-          "createTitle": "Lägg till omdirigering",
-          "editTitle": "Redigera omdirigering",
-          "description": "Skicka en gammal sökväg till en sida i din butik.",
-          "importedHint": "Den här omdirigeringen importerades. När du har ändrat den ändrar senare importer den inte längre.",
-          "from": "Gammal sökväg",
-          "fromHint": "Bara sökvägen, med inledande /. Frågesträngar behålls vid omdirigering.",
-          "to": "Ny sökväg",
-          "toHint": "En sida i din butik, till exempel /products/nytt-namn.",
-          "code": "Typ",
-          "codes": {
-            "301": "301 · Permanent (rekommenderas)",
-            "302": "302 · Tillfällig",
-            "307": "307 · Tillfällig, behåll metod",
-            "308": "308 · Permanent, behåll metod"
-          },
-          "active": "Aktiv",
-          "create": "Lägg till omdirigering",
-          "errors": {
-            "required": "Ange en sökväg.",
-            "slash": "Börja sökvägen med ett enda /.",
-            "scheme": "Ange bara sökvägen, utan https:// och domän.",
-            "tooLong": "Sökvägen är för lång.",
-            "same": "Den nya sökvägen måste skilja sig från den gamla.",
-            "invalidEither": "En av sökvägarna är ogiltig. Använd sökvägar som börjar med /.",
-            "field": {
-              "from_path": "Kontrollera den gamla sökvägen.",
-              "to_path": "Kontrollera den nya sökvägen."
-            }
-          }
-        }
-      },
       "warnings": {
         "W_PRODUCT_SKIPPED_BY_RULE": "Produkt överhoppad enligt dina inställningar",
         "W_PRODUCT_PRIVATE_AS_DRAFT": "Privat produkt importerad som utkast",
@@ -5552,6 +5474,141 @@
         "invalid": "VIES känner inte igen detta momsregistreringsnummer. Kontrollera det eller lämna fältet tomt; övriga uppgifter sparades inte.",
         "invalidShort": "Inte registrerat i VIES."
       }
+    },
+    "redirects": {
+      "intro": "Gamla butiks-URL:er som skickar besökare (och sökmotorer) till rätt sida i din butik. Importerade omdirigeringar finns kvar även om du stänger av importören.",
+      "search": "Sök",
+      "searchPlaceholder": "/produkt/…",
+      "sourceFilter": "Källa",
+      "allSources": "Alla",
+      "source": {
+        "IMPORT": "Importerad",
+        "MANUAL": "Manuell",
+        "SLUG_CHANGE": "Ändrad URL"
+      },
+      "add": "Lägg till omdirigering",
+      "edit": "Redigera",
+      "delete": "Ta bort",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "empty": "Inga omdirigeringar än. De läggs till när du ändrar en adress eller tar bort något, eller så lägger du till en här.",
+      "csvImport": {
+        "button": "Importera CSV",
+        "title": "Importera omdirigeringar från CSV",
+        "body": "En omdirigering per rad: gammal sökväg, ny sökväg och eventuellt status (301 som standard). Fullständiga länkar fungerar; bara sökvägen används. Upp till 5000 rader; adresser som redan används rapporteras som konflikter.",
+        "file": "CSV-fil",
+        "run": "Importera",
+        "result": "{created, plural, one {# omdirigering skapad} other {# omdirigeringar skapade}} · {conflicts, plural, =0 {inga konflikter} one {# konflikt} other {# konflikter}}",
+        "conflictsTitle": "Konflikter",
+        "tooMany": "Filen har fler än 5000 rader.",
+        "invalidLine": "Rad {line}: använd sökvägar som /gammal-sida eller fullständiga länkar.",
+        "empty": "Filen innehåller inga omdirigeringar.",
+        "separatorLine": "Rad {line}: en sökväg innehåller kommatecken, semikolon eller tabb. Ta bort det eller koda det (till exempel %2C).",
+        "statusLine": "Rad {line}: statusen måste vara 301, 302, 307 eller 308.",
+        "sameLine": "Rad {line}: den gamla och den nya sökvägen är samma.",
+        "invalidTitle": "{count, plural, one {# rad kan inte importeras och hoppas över:} other {# rader kan inte importeras och hoppas över:}}",
+        "sample": "Ladda ner en exempel-CSV",
+        "lineLabel": "Rad {line}",
+        "ready": "{name} · {count, plural, one {# omdirigering klar} other {# omdirigeringar klara}}",
+        "runValid": "{count, plural, one {Importera # giltig rad} other {Importera # giltiga rader}}"
+      },
+      "emptyFiltered": "Inga omdirigeringar matchar filtren.",
+      "columns": {
+        "paths": "Från → till",
+        "code": "Kod",
+        "source": "Källa",
+        "active": "Aktiv",
+        "updated": "Uppdaterad"
+      },
+      "deleteTitle": "Ta bort den här omdirigeringen?",
+      "deleteBody": "Besökare till {from} får se ”sidan hittades inte” i stället.",
+      "test": {
+        "title": "Testa en URL",
+        "placeholder": "/produkt/gammalt-namn eller https://gammal-butik.se/produkt/gammalt-namn",
+        "run": "Testa",
+        "matched": "{code, select, 301 {Besökare skickas till (permanent, 301):} 308 {Besökare skickas till (permanent, 308):} other {Besökare skickas till (tillfällig, {code}):}}",
+        "viaRule": "Matchad av",
+        "noMatch": "Ingen omdirigering för",
+        "live": "Adressen visar {kind, select, product {en publicerad produkt} collection {en publicerad kollektion} page {en publicerad sida} other {ett publicerat objekt}}.",
+        "liveShadowed": "{kind, select, product {En publicerad produkt} collection {En publicerad kollektion} page {En publicerad sida} other {Ett publicerat objekt}} använder också adressen, men omdirigeringen går före, så besökare ser den aldrig. Stäng av eller ta bort omdirigeringen för att visa den igen."
+      },
+      "form": {
+        "createTitle": "Lägg till omdirigering",
+        "editTitle": "Redigera omdirigering",
+        "description": "Skicka en gammal sökväg till en sida i din butik.",
+        "importedHint": "Den här omdirigeringen importerades. När du har ändrat den ändrar senare importer den inte längre.",
+        "from": "Gammal sökväg",
+        "fromHint": "Sökvägen, som börjar med /. Du kan också klistra in en fullständig länk; bara sökvägen används. Frågesträngar behålls vid omdirigering.",
+        "to": "Ny sökväg",
+        "toHint": "En sida i din butik, till exempel /products/nytt-namn.",
+        "code": "Typ",
+        "codes": {
+          "301": "301 · Permanent (rekommenderas)",
+          "302": "302 · Tillfällig",
+          "307": "307 · Tillfällig, behåll metod",
+          "308": "308 · Permanent, behåll metod"
+        },
+        "active": "Aktiv",
+        "create": "Lägg till omdirigering",
+        "errors": {
+          "required": "Ange en sökväg.",
+          "slash": "Börja sökvägen med ett enda /.",
+          "scheme": "Ange en sökväg som börjar med / eller en fullständig https://-länk.",
+          "tooLong": "Sökvägen är för lång.",
+          "same": "Den nya sökvägen måste skilja sig från den gamla.",
+          "invalidEither": "En av sökvägarna är ogiltig. Använd sökvägar som börjar med /.",
+          "field": {
+            "from_path": "Kontrollera den gamla sökvägen.",
+            "to_path": "Kontrollera den nya sökvägen."
+          },
+          "shadowsLive": "{kind, select, product {En publicerad produkt} collection {En publicerad kollektion} page {En publicerad sida} other {Ett publicerat objekt}} använder adressen. Ta bort, avpublicera eller byt namn på den först och lägg sedan till omdirigeringen."
+        },
+        "advanced": "Avancerat",
+        "advancedHint": "307 och 308 behåller anropsmetoden (till exempel ett skickat formulär). De flesta butiker behöver bara 301."
+      },
+      "pageSubtitle": "Skicka besökare och sökmotorer från gamla eller borttagna adresser till en aktiv sida i din butik. Omdirigeringar du lägger till här, importerade och de som skapas när en adress ändras visas alla i den här listan.",
+      "importerNote": "Omdirigeringar finns nu i varje butik under Onlinebutik → Omdirigeringar. Importerade omdirigeringar visas också där.",
+      "importerNoteLink": "Öppna Omdirigeringar",
+      "onDelete": {
+        "label": "{count, plural, one {Omdirigera den gamla adressen} other {Omdirigera de gamla adresserna}}",
+        "hint": "Besökare och sökmotorer som öppnar den skickas vidare med en permanent (301) omdirigering i stället för att se ”sidan hittades inte”.",
+        "oldAddress": "{count, plural, one {Gammal adress} other {Gamla adresser}}",
+        "more": "och {count} till",
+        "skipped": "{count, plural, one {# valt objekt saknar offentlig adress och hoppas över.} other {# valda objekt saknar offentlig adress och hoppas över.}}",
+        "target": "Skicka besökare till",
+        "customOption": "En annan sida",
+        "customHint": "En sökväg i din butik, till exempel /products/new-name. Du kan också klistra in en fullständig länk.",
+        "urlKeepsPath": "Endast sökvägen används:",
+        "errors": {
+          "required": "Ange sidan som besökarna ska skickas till.",
+          "scheme": "Använd en sökväg i din butik eller en fullständig https://-länk.",
+          "slash": "Börja sökvägen med ett enda /.",
+          "tooLong": "Sökvägen är för lång.",
+          "same": "Välj en annan adress än den som tas bort."
+        },
+        "targets": {
+          "home": "Startsida",
+          "products": "Alla produkter",
+          "collections": "Alla kollektioner",
+          "parentCollection": "Överordnad kollektion ({name})"
+        },
+        "legalNote": "Den här juridiska sidan öppnas under /legal/… och visar standardtexten efter att den tagits bort, så ingen omdirigering behövs.",
+        "failedOne": "Borttaget, men omdirigeringen kunde inte skapas för",
+        "failedMany": "Borttaget, men {count, plural, one {# omdirigering} other {# omdirigeringar}} kunde inte skapas",
+        "openRedirects": "Öppna Omdirigeringar",
+        "dismiss": "Stäng",
+        "deletedTitle": "Borttaget. Omdirigeringen kunde inte skapas; du kan lägga till den på sidan Omdirigeringar.",
+        "backToList": "Tillbaka till listan",
+        "success": "{count, plural, one {Borttaget. Besökare till <path>{from}</path> skickas nu till <path>{to}</path>.} other {Borttaget. {count} gamla adresser skickas nu till <path>{to}</path>.}}",
+        "shadowsLive": "En annan publicerad {kind, select, product {produkt} collection {kollektion} page {sida} other {post}} använder fortfarande adressen, så den omdirigerades inte.",
+        "childrenMove": "{count, plural, one {Dess underkollektion flyttas till översta nivån. Dess gamla adress omdirigeras automatiskt.} other {Dess {count} underkollektioner flyttas till översta nivån. Deras gamla adresser omdirigeras automatiskt.}}",
+        "pickPlaceholder": "Välj ett publicerat objekt",
+        "pickSearch": "Sök på namn eller adress…",
+        "customHintPick": "Välj ett objekt ovan eller ange en sökväg i din butik, till exempel /products/new-name. Du kan också klistra in en fullständig länk.",
+        "defaultOnNote": "Påslaget som standard för publicerade objekt så att länkar och Google-placeringar fortsätter fungera. Avmarkera om du inte vill ha en omdirigering."
+      },
+      "propagationNote": "Det kan ta upp till cirka 2 minuter innan ändringar syns i din butik.",
+      "unknownTarget": "Inget publicerat hittades på den här adressen. Kontrollera den innan du fortsätter."
     }
   },
   "components": {
@@ -6056,7 +6113,10 @@
     "AUTH_CAPTCHA_FAILED": "Säkerhetskontrollen misslyckades. Försök igen.",
     "AUTH_CAPTCHA_UNAVAILABLE": "Säkerhetskontrollen är tillfälligt otillgänglig. Försök igen om en stund.",
     "ORDER_FULFILLMENT_BACKWARDS": "En skickad eller levererad artikel kan inte flyttas tillbaka till ett tidigare steg.",
-    "TRANSLATION_UNAVAILABLE": "Översättningstjänsten är inte tillgänglig just nu. Försök igen senare."
+    "TRANSLATION_UNAVAILABLE": "Översättningstjänsten är inte tillgänglig just nu. Försök igen senare.",
+    "REDIRECT_SHADOWS_LIVE": "Den här adressen visar fortfarande en publicerad sida eller produkt. Ta bort, avpublicera eller byt namn på den först och lägg sedan till omdirigeringen.",
+    "REDIRECT_CHAIN_TOO_LONG": "Den här omdirigeringen skulle gå via för många andra omdirigeringar.",
+    "REDIRECT_BULK_TOO_MANY": "Ladda upp högst 5000 omdirigeringar åt gången."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

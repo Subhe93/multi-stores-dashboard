@@ -357,7 +357,8 @@
     "manageApps": "Apps verwalten",
     "notifications": "Benachrichtigungen",
     "customers": "Kunden",
-    "securityLog": "Sicherheitsprotokoll"
+    "securityLog": "Sicherheitsprotokoll",
+    "redirects": "Weiterleitungen"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -3765,85 +3766,6 @@
           "overwrite_hint": "Erneute Importe ersetzen den Bestand durch den WooCommerce-Wert."
         }
       },
-      "redirects": {
-        "intro": "Alte Shop-URLs, die Besucher (und Suchmaschinen) zur richtigen Seite in Ihrem Shop schicken. Importierte Weiterleitungen bleiben auch, wenn Sie den Importer ausschaltest.",
-        "search": "Suchen",
-        "searchPlaceholder": "/product/…",
-        "sourceFilter": "Herkunft",
-        "allSources": "Alle",
-        "source": {
-          "IMPORT": "Importiert",
-          "MANUAL": "Manuell",
-          "SLUG_CHANGE": "URL geändert"
-        },
-        "add": "Weiterleitung hinzufügen",
-        "edit": "Bearbeiten",
-        "delete": "Löschen",
-        "active": "Aktiv",
-        "inactive": "Inaktiv",
-        "empty": "Noch keine Weiterleitungen.",
-        "csvImport": {
-          "button": "CSV importieren",
-          "title": "Weiterleitungen aus CSV importieren",
-          "body": "Eine Weiterleitung pro Zeile: from_path,to_path,status. Der Status ist optional (Standard 301). Bis zu 5000 Zeilen; bereits verwendete Pfade werden als Konflikte gemeldet.",
-          "file": "CSV-Datei",
-          "run": "Importieren",
-          "result": "{created, plural, one {# Weiterleitung erstellt} other {# Weiterleitungen erstellt}} · {conflicts, plural, =0 {keine Konflikte} one {# Konflikt} other {# Konflikte}}",
-          "conflictsTitle": "Konflikte",
-          "tooMany": "Die Datei hat mehr als 5000 Zeilen.",
-          "invalidLine": "Zeile {line} ist keine gültige Weiterleitung.",
-          "empty": "Die Datei enthält keine Weiterleitungen."
-        },
-        "emptyFiltered": "Keine Weiterleitungen entsprechen den Filtern.",
-        "columns": {
-          "paths": "Von → nach",
-          "code": "Code",
-          "source": "Herkunft",
-          "active": "Aktiv",
-          "updated": "Aktualisiert"
-        },
-        "deleteTitle": "Diese Weiterleitung löschen?",
-        "deleteBody": "Besucher von {from} sehen dann „Seite nicht gefunden“.",
-        "test": {
-          "title": "URL testen",
-          "placeholder": "/product/alter-name oder https://alter-shop.de/product/alter-name",
-          "run": "Testen",
-          "matched": "Leitet mit {code} weiter nach:",
-          "viaRule": "Gefunden über",
-          "noMatch": "Keine Weiterleitung für"
-        },
-        "form": {
-          "createTitle": "Weiterleitung hinzufügen",
-          "editTitle": "Weiterleitung bearbeiten",
-          "description": "Leiten Sie einen alten Pfad auf eine Seite in Ihrem Shop.",
-          "importedHint": "Diese Weiterleitung wurde importiert. Nach Ihrer Bearbeitung ändern spätere Importe sie nicht mehr.",
-          "from": "Alter Pfad",
-          "fromHint": "Nur der Pfad, beginnend mit /. Query-Strings bleiben bei der Weiterleitung erhalten.",
-          "to": "Neuer Pfad",
-          "toHint": "Eine Seite in Ihrem Shop, zum Beispiel /products/neuer-name.",
-          "code": "Art",
-          "codes": {
-            "301": "301 · Dauerhaft (empfohlen)",
-            "302": "302 · Vorübergehend",
-            "307": "307 · Vorübergehend, Methode beibehalten",
-            "308": "308 · Dauerhaft, Methode beibehalten"
-          },
-          "active": "Aktiv",
-          "create": "Weiterleitung hinzufügen",
-          "errors": {
-            "required": "Geben Sie einen Pfad ein.",
-            "slash": "Beginnen Sie den Pfad mit einem einzelnen /.",
-            "scheme": "Geben Sie nur den Pfad ein, ohne https:// und Domain.",
-            "tooLong": "Der Pfad ist zu lang.",
-            "same": "Der neue Pfad muss sich vom alten unterscheiden.",
-            "invalidEither": "Einer der Pfade ist ungültig. Verwenden Sie Pfade, die mit / beginnen.",
-            "field": {
-              "from_path": "Prüfen Sie den alten Pfad.",
-              "to_path": "Prüfen Sie den neuen Pfad."
-            }
-          }
-        }
-      },
       "warnings": {
         "W_PRODUCT_SKIPPED_BY_RULE": "Produkt laut Ihren Einstellungen übersprungen",
         "W_PRODUCT_PRIVATE_AS_DRAFT": "Privates Produkt als Entwurf importiert",
@@ -5552,6 +5474,141 @@
         "invalid": "VIES kennt diese USt-IdNr. nicht. Prüfen Sie sie oder lassen Sie das Feld leer; die übrigen Angaben wurden nicht gespeichert.",
         "invalidShort": "Nicht in VIES registriert."
       }
+    },
+    "redirects": {
+      "intro": "Alte Shop-URLs, die Besucher (und Suchmaschinen) zur richtigen Seite in Ihrem Shop schicken. Importierte Weiterleitungen bleiben auch, wenn Sie den Importer ausschaltest.",
+      "search": "Suchen",
+      "searchPlaceholder": "/product/…",
+      "sourceFilter": "Herkunft",
+      "allSources": "Alle",
+      "source": {
+        "IMPORT": "Importiert",
+        "MANUAL": "Manuell",
+        "SLUG_CHANGE": "URL geändert"
+      },
+      "add": "Weiterleitung hinzufügen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "empty": "Noch keine Weiterleitungen. Sie werden hinzugefügt, wenn du eine Adresse änderst oder etwas löschst, oder du fügst hier eine hinzu.",
+      "csvImport": {
+        "button": "CSV importieren",
+        "title": "Weiterleitungen aus CSV importieren",
+        "body": "Eine Weiterleitung pro Zeile: alter Pfad, neuer Pfad und optional der Status (standardmäßig 301). Vollständige Links sind erlaubt; nur ihr Pfad wird verwendet. Bis zu 5000 Zeilen; bereits verwendete Adressen werden als Konflikte gemeldet.",
+        "file": "CSV-Datei",
+        "run": "Importieren",
+        "result": "{created, plural, one {# Weiterleitung erstellt} other {# Weiterleitungen erstellt}} · {conflicts, plural, =0 {keine Konflikte} one {# Konflikt} other {# Konflikte}}",
+        "conflictsTitle": "Konflikte",
+        "tooMany": "Die Datei hat mehr als 5000 Zeilen.",
+        "invalidLine": "Zeile {line}: Verwende Pfade wie /alte-seite oder vollständige Links.",
+        "empty": "Die Datei enthält keine Weiterleitungen.",
+        "separatorLine": "Zeile {line}: Ein Pfad enthält ein Komma, Semikolon oder Tabulator. Entferne es oder kodiere es (zum Beispiel %2C).",
+        "statusLine": "Zeile {line}: Der Status muss 301, 302, 307 oder 308 sein.",
+        "sameLine": "Zeile {line}: Alter und neuer Pfad sind gleich.",
+        "invalidTitle": "{count, plural, one {# Zeile kann nicht importiert werden und wird übersprungen:} other {# Zeilen können nicht importiert werden und werden übersprungen:}}",
+        "sample": "Beispiel-CSV herunterladen",
+        "lineLabel": "Zeile {line}",
+        "ready": "{name} · {count, plural, one {# Weiterleitung bereit} other {# Weiterleitungen bereit}}",
+        "runValid": "{count, plural, one {# gültige Zeile importieren} other {# gültige Zeilen importieren}}"
+      },
+      "emptyFiltered": "Keine Weiterleitungen entsprechen den Filtern.",
+      "columns": {
+        "paths": "Von → nach",
+        "code": "Code",
+        "source": "Herkunft",
+        "active": "Aktiv",
+        "updated": "Aktualisiert"
+      },
+      "deleteTitle": "Diese Weiterleitung löschen?",
+      "deleteBody": "Besucher von {from} sehen dann „Seite nicht gefunden“.",
+      "test": {
+        "title": "URL testen",
+        "placeholder": "/product/alter-name oder https://alter-shop.de/product/alter-name",
+        "run": "Testen",
+        "matched": "{code, select, 301 {Besucher werden weitergeleitet zu (dauerhaft, 301):} 308 {Besucher werden weitergeleitet zu (dauerhaft, 308):} other {Besucher werden weitergeleitet zu (vorübergehend, {code}):}}",
+        "viaRule": "Gefunden über",
+        "noMatch": "Keine Weiterleitung für",
+        "live": "Diese Adresse zeigt {kind, select, product {ein veröffentlichtes Produkt} collection {eine veröffentlichte Kollektion} page {eine veröffentlichte Seite} other {einen veröffentlichten Eintrag}}.",
+        "liveShadowed": "{kind, select, product {Ein veröffentlichtes Produkt} collection {Eine veröffentlichte Kollektion} page {Eine veröffentlichte Seite} other {Ein veröffentlichter Eintrag}} nutzt diese Adresse ebenfalls, aber die Weiterleitung hat Vorrang, daher sehen Besucher es nie. Deaktiviere oder lösche die Weiterleitung, um es wieder anzuzeigen."
+      },
+      "form": {
+        "createTitle": "Weiterleitung hinzufügen",
+        "editTitle": "Weiterleitung bearbeiten",
+        "description": "Leiten Sie einen alten Pfad auf eine Seite in Ihrem Shop.",
+        "importedHint": "Diese Weiterleitung wurde importiert. Nach Ihrer Bearbeitung ändern spätere Importe sie nicht mehr.",
+        "from": "Alter Pfad",
+        "fromHint": "Der Pfad, beginnend mit /. Du kannst auch einen vollständigen Link einfügen; nur sein Pfad wird verwendet. Query-Strings bleiben bei der Weiterleitung erhalten.",
+        "to": "Neuer Pfad",
+        "toHint": "Eine Seite in Ihrem Shop, zum Beispiel /products/neuer-name.",
+        "code": "Art",
+        "codes": {
+          "301": "301 · Dauerhaft (empfohlen)",
+          "302": "302 · Vorübergehend",
+          "307": "307 · Vorübergehend, Methode beibehalten",
+          "308": "308 · Dauerhaft, Methode beibehalten"
+        },
+        "active": "Aktiv",
+        "create": "Weiterleitung hinzufügen",
+        "errors": {
+          "required": "Geben Sie einen Pfad ein.",
+          "slash": "Beginnen Sie den Pfad mit einem einzelnen /.",
+          "scheme": "Gib einen Pfad ein, der mit / beginnt, oder einen vollständigen https://-Link.",
+          "tooLong": "Der Pfad ist zu lang.",
+          "same": "Der neue Pfad muss sich vom alten unterscheiden.",
+          "invalidEither": "Einer der Pfade ist ungültig. Verwenden Sie Pfade, die mit / beginnen.",
+          "field": {
+            "from_path": "Prüfen Sie den alten Pfad.",
+            "to_path": "Prüfen Sie den neuen Pfad."
+          },
+          "shadowsLive": "{kind, select, product {Ein veröffentlichtes Produkt} collection {Eine veröffentlichte Kollektion} page {Eine veröffentlichte Seite} other {Ein veröffentlichter Eintrag}} nutzt diese Adresse. Lösche, verberge oder benenne es zuerst um und füge dann die Weiterleitung hinzu."
+        },
+        "advanced": "Erweitert",
+        "advancedHint": "307 und 308 behalten die Anfragemethode bei (zum Beispiel ein abgeschicktes Formular). Die meisten Shops brauchen nur 301."
+      },
+      "pageSubtitle": "Leite Besucher und Suchmaschinen von alten oder gelöschten Adressen auf eine aktive Seite deines Shops weiter. Hier hinzugefügte, importierte und bei einer Adressänderung erstellte Weiterleitungen erscheinen alle in dieser Liste.",
+      "importerNote": "Weiterleitungen gehören jetzt zu jedem Shop unter Onlineshop → Weiterleitungen. Importierte Weiterleitungen erscheinen ebenfalls dort.",
+      "importerNoteLink": "Weiterleitungen öffnen",
+      "onDelete": {
+        "label": "{count, plural, one {Alte Adresse weiterleiten} other {Alte Adressen weiterleiten}}",
+        "hint": "Besucher und Suchmaschinen, die sie öffnen, werden dauerhaft (301) weitergeleitet, statt „Seite nicht gefunden“ zu sehen.",
+        "oldAddress": "{count, plural, one {Alte Adresse} other {Alte Adressen}}",
+        "more": "und {count} weitere",
+        "skipped": "{count, plural, one {# ausgewähltes Element hat keine öffentliche Adresse und wird übersprungen.} other {# ausgewählte Elemente haben keine öffentliche Adresse und werden übersprungen.}}",
+        "target": "Besucher weiterleiten zu",
+        "customOption": "Andere Seite",
+        "customHint": "Ein Pfad in deinem Shop, zum Beispiel /products/new-name. Du kannst auch einen vollständigen Link einfügen.",
+        "urlKeepsPath": "Nur der Pfad wird verwendet:",
+        "errors": {
+          "required": "Gib die Seite ein, zu der Besucher weitergeleitet werden.",
+          "scheme": "Verwende einen Pfad in deinem Shop oder einen vollständigen https://-Link.",
+          "slash": "Beginne den Pfad mit einem einzelnen /.",
+          "tooLong": "Der Pfad ist zu lang.",
+          "same": "Wähle eine andere Adresse als die, die gelöscht wird."
+        },
+        "targets": {
+          "home": "Startseite",
+          "products": "Alle Produkte",
+          "collections": "Alle Kollektionen",
+          "parentCollection": "Übergeordnete Kollektion ({name})"
+        },
+        "legalNote": "Diese Rechtsseite wird unter /legal/… geöffnet und zeigt nach dem Löschen den Standardtext, daher ist keine Weiterleitung nötig.",
+        "failedOne": "Gelöscht, aber die Weiterleitung konnte nicht erstellt werden für",
+        "failedMany": "Gelöscht, aber {count, plural, one {# Weiterleitung konnte} other {# Weiterleitungen konnten}} nicht erstellt werden",
+        "openRedirects": "Weiterleitungen öffnen",
+        "dismiss": "Schließen",
+        "deletedTitle": "Gelöscht. Die Weiterleitung konnte nicht erstellt werden; du kannst sie auf der Seite Weiterleitungen hinzufügen.",
+        "backToList": "Zurück zur Liste",
+        "success": "{count, plural, one {Gelöscht. Besucher von <path>{from}</path> landen jetzt auf <path>{to}</path>.} other {Gelöscht. {count} alte Adressen führen jetzt zu <path>{to}</path>.}}",
+        "shadowsLive": "{kind, select, product {Ein anderes veröffentlichtes Produkt nutzt diese Adresse noch, daher wurde sie nicht weitergeleitet.} collection {Eine andere veröffentlichte Kollektion nutzt diese Adresse noch, daher wurde sie nicht weitergeleitet.} page {Eine andere veröffentlichte Seite nutzt diese Adresse noch, daher wurde sie nicht weitergeleitet.} other {Ein anderer veröffentlichter Eintrag nutzt diese Adresse noch, daher wurde sie nicht weitergeleitet.}}",
+        "childrenMove": "{count, plural, one {Ihre Unterkollektion wird auf die oberste Ebene verschoben. Ihre alte Adresse wird automatisch weitergeleitet.} other {Ihre {count} Unterkollektionen werden auf die oberste Ebene verschoben. Ihre alten Adressen werden automatisch weitergeleitet.}}",
+        "pickPlaceholder": "Veröffentlichten Eintrag wählen",
+        "pickSearch": "Nach Name oder Adresse suchen…",
+        "customHintPick": "Wähle oben einen Eintrag oder gib einen Pfad in deinem Shop ein, zum Beispiel /products/new-name. Du kannst auch einen vollständigen Link einfügen.",
+        "defaultOnNote": "Für veröffentlichte Einträge standardmäßig aktiv, damit Links und Google-Rankings erhalten bleiben. Deaktiviere es, wenn du keine Weiterleitung möchtest."
+      },
+      "propagationNote": "Änderungen können bis zu etwa 2 Minuten brauchen, bis sie in deinem Shop wirksam sind.",
+      "unknownTarget": "Unter dieser Adresse wurde nichts Veröffentlichtes gefunden. Prüfe sie, bevor du fortfährst."
     }
   },
   "components": {
@@ -6056,7 +6113,10 @@
     "AUTH_CAPTCHA_FAILED": "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "AUTH_CAPTCHA_UNAVAILABLE": "Die Sicherheitsprüfung ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.",
     "ORDER_FULFILLMENT_BACKWARDS": "Ein versandter oder zugestellter Artikel kann nicht auf eine frühere Stufe zurückgesetzt werden.",
-    "TRANSLATION_UNAVAILABLE": "Der Übersetzungsdienst ist derzeit nicht verfügbar. Bitte versuche es später erneut."
+    "TRANSLATION_UNAVAILABLE": "Der Übersetzungsdienst ist derzeit nicht verfügbar. Bitte versuche es später erneut.",
+    "REDIRECT_SHADOWS_LIVE": "Diese Adresse zeigt noch eine veröffentlichte Seite oder ein Produkt. Lösche, depubliziere oder benenne es zuerst um und füge dann die Weiterleitung hinzu.",
+    "REDIRECT_CHAIN_TOO_LONG": "Diese Weiterleitung würde über zu viele andere Weiterleitungen laufen.",
+    "REDIRECT_BULK_TOO_MANY": "Lade höchstens 5000 Weiterleitungen auf einmal hoch."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

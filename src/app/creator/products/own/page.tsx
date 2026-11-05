@@ -22,6 +22,11 @@ import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 import { BulkNotice, useBulkNotice } from '@/components/product/BulkNotice';
 import { runBulk } from '@/lib/bulk';
 import { pickLocalized, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import {
+  DeleteRedirectField,
+  useDeleteRedirect,
+  type RedirectTargetSuggestion,
+} from '@/components/redirects/DeleteRedirect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -183,6 +188,26 @@ export default function CreatorOwnProductsPage() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkDelete, setBulkDelete] = useState<{ rows: OwnProduct[]; clear: () => void } | null>(null);
   const { notice, setNotice } = useBulkNotice();
+  // "Redirect the old address?" option of the delete dialogs.
+  const tRedirect = useTranslations('creator.redirects.onDelete');
+  const redirect = useDeleteRedirect();
+  /** Storefront address of a product (`/products/<slug>`), or null without a slug. */
+  const publicPath = (item: OwnProduct): string | null => {
+    const slug = pickProductSlug(item.translations, primaryLocale);
+    return slug ? `/products/${slug}` : null;
+  };
+  const redirectSuggestions = [
+    { path: '/products', label: tRedirect('targets.products') },
+    { path: '/', label: tRedirect('targets.home') },
+  ];
+  /** Published products of the loaded list, offered as redirect targets. */
+  const knownTargets = (exclude: readonly OwnProduct[]): RedirectTargetSuggestion[] => {
+    const skip = new Set(exclude.map((r) => r.id));
+    return items.flatMap((item) => {
+      const path = item.status === 'PUBLISHED' && !skip.has(item.id) ? publicPath(item) : null;
+      return path ? [{ path, label: pickLocalized(item.translations, primaryLocale)?.title || path }] : [];
+    });
+  };
 
   /** Writes params to the URL; any change other than the page resets to page 1. */
   const updateParams = useCallback(
@@ -299,12 +324,20 @@ export default function CreatorOwnProductsPage() {
 
   const handleDelete = async () => {
     if (!token || !deleteTarget) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     setDeleteError('');
     try {
+      // Every public address (per-locale slugs) is read before the delete.
+      const sources = await redirect.productSources(plan, [
+        { kind: 'product', id: deleteTarget.id, fallback: publicPath(deleteTarget) },
+      ]);
       await api(`/products/${deleteTarget.id}`, { method: 'DELETE', token });
       setDeleteTarget(null);
       fetchItems();
+      // The product is gone either way; the redirect outcome shows in a notice.
+      void redirect.apply(plan, sources);
     } catch (err) {
       const e = err as { message?: string };
       setDeleteError(e?.message || tt('myProducts.deleteFailed'));
@@ -349,7 +382,15 @@ export default function CreatorOwnProductsPage() {
 
   const confirmBulkDelete = async () => {
     if (!token || !bulkDelete) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setBulkBusy(true);
+    // Every public address (per-locale slugs) is read before the delete.
+    const sources = await redirect.productSources(
+      plan,
+      bulkDelete.rows.map((r) => ({ kind: 'product' as const, id: r.id, fallback: publicPath(r) })),
+    );
+    const sourceOf = new Map(bulkDelete.rows.map((r, i) => [r.id, sources[i]]));
     const result = await runBulk(bulkDelete.rows, (r) =>
       api(`/products/${r.id}`, { method: 'DELETE', token }),
     );
@@ -358,6 +399,8 @@ export default function CreatorOwnProductsPage() {
     setBulkDelete(null);
     reportBulk(result.ok.length, result.failed, 'bulkDeleted');
     fetchItems();
+    // Redirects for every deleted product to the chosen target.
+    void redirect.apply(plan, result.ok.map((r) => sourceOf.get(r.id)));
   };
 
   const bulkActions = (selected: OwnProduct[], clear: () => void) => (
@@ -629,6 +672,7 @@ export default function CreatorOwnProductsPage() {
       </div>
 
       <BulkNotice notice={notice} onDismiss={() => setNotice(null)} />
+      {redirect.notice}
 
       {/* Error state */}
       {loadError && !loading ? (
@@ -682,7 +726,20 @@ export default function CreatorOwnProductsPage() {
         busy={bulkBusy}
         busyLabel={tt('myProducts.deleting')}
         onConfirm={confirmBulkDelete}
-      />
+      >
+        {bulkDelete && (
+          <DeleteRedirectField
+            key={bulkDelete.rows.map((r) => r.id).join(',')}
+            choiceRef={redirect.choiceRef}
+            paths={bulkDelete.rows.map(publicPath).filter((p): p is string => !!p)}
+            defaultEnabled={bulkDelete.rows.some((r) => r.status === 'PUBLISHED' && !!publicPath(r))}
+            suggestions={redirectSuggestions}
+            knownTargets={knownTargets(bulkDelete.rows)}
+            skipped={bulkDelete.rows.filter((r) => !publicPath(r)).length}
+            disabled={bulkBusy}
+          />
+        )}
+      </ConfirmDialog>
 
       {/* Delete confirmation dialog */}
       <Dialog
@@ -694,7 +751,7 @@ export default function CreatorOwnProductsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{tt('myProducts.deleteTitleProduct')}</DialogTitle>
             <DialogDescription>
@@ -705,6 +762,17 @@ export default function CreatorOwnProductsPage() {
               {tt('myProducts.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {deleteTarget && (
+            <DeleteRedirectField
+              key={deleteTarget.id}
+              choiceRef={redirect.choiceRef}
+              paths={publicPath(deleteTarget) ? [publicPath(deleteTarget)!] : []}
+              defaultEnabled={deleteTarget.status === 'PUBLISHED'}
+              suggestions={redirectSuggestions}
+              knownTargets={knownTargets([deleteTarget])}
+              disabled={deleting}
+            />
+          )}
           {deleteError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               {deleteError}

@@ -1,7 +1,7 @@
 // Typed client for the store redirects endpoints (M4.4 §6.3, `redirects/my`).
 // Mirrors multi-stores-api/src/modules/redirects/redirects-creator.controller.ts
-// and `RedirectView` in redirects.service.ts. Listing and deleting stay open
-// with the importer app off; create, edit and test require it.
+// and `RedirectView` in redirects.service.ts. Redirects are a core store
+// feature (Online store -> Redirects); the importer app also writes them.
 
 import { api } from '@/lib/api';
 
@@ -47,6 +47,8 @@ export interface RedirectInput {
 export interface RedirectTestResult {
   /** The normalized path that was matched. */
   path: string;
+  /** Published content at this path. An active redirect from the same path wins over it (the proxy matches redirects first). */
+  live?: 'product' | 'collection' | 'page' | null;
   match: Pick<RedirectView, 'id' | 'from_path' | 'to_path' | 'status_code' | 'source'> | null;
 }
 
@@ -87,34 +89,104 @@ export interface RedirectBulkRow {
   from_path: string;
   to_path: string;
   status_code?: RedirectStatusCode;
+  /** 1-based line of the uploaded file (maps API conflicts back to it). */
+  line?: number;
+}
+
+export interface RedirectBulkConflict {
+  from_path: string;
+  to_path?: string;
+  reason?: string;
+  /** Line of the uploaded file, when known. */
+  line?: number;
 }
 
 export interface RedirectBulkResult {
   created: number;
   /** Rows the API refused (path already redirected, loop, invalid). */
-  conflicts: { from_path: string; to_path?: string; reason?: string }[];
+  conflicts: RedirectBulkConflict[];
 }
 
 /** API limit on rows per bulk call. */
 export const REDIRECT_BULK_MAX = 5000;
 
-/**
- * Creates many redirects at once (rows parsed client-side from a CSV
- * `from_path,to_path,status`). A 404 means the API does not offer the route
- * yet; the UI hides the feature after one probe (`probeRedirectBulk`).
- */
-export function bulkCreateRedirects(token: string, rows: RedirectBulkRow[]): Promise<RedirectBulkResult> {
-  return api<RedirectBulkResult>('/redirects/my/bulk', { method: 'POST', token, body: JSON.stringify({ rows }) });
+/** Raw answer of `POST redirects/my/bulk` (M5 B17). */
+interface RedirectBulkResponse {
+  created: number | { id: string }[];
+  conflicts?: { from_path: string; to_path?: string; code?: string; reason?: string; line?: number }[];
 }
 
-/** True when the bulk route exists (anything but 404, an empty payload is a no-op). */
-export async function probeRedirectBulk(token: string): Promise<boolean> {
-  try {
-    await bulkCreateRedirects(token, []);
-    return true;
-  } catch (err) {
-    return (err as { status?: number } | null)?.status !== 404;
+/**
+ * Creates many redirects at once. The API takes CSV text
+ * (`from_path,to_path[,status]` per line), so the rows parsed client-side are
+ * serialised back to that shape, one row per line. Callers must reject cells
+ * that contain `,`, `;` or a tab first (the API splits on all three). The
+ * API reports conflicts by line of that text; they are mapped back to the
+ * row's own `line`.
+ */
+export async function bulkCreateRedirects(token: string, rows: RedirectBulkRow[]): Promise<RedirectBulkResult> {
+  const csv = rows.map((r) => [r.from_path, r.to_path, r.status_code ?? ''].join(',')).join('\n');
+  const res = await api<RedirectBulkResponse>('/redirects/my/bulk', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ csv }),
+  });
+  return {
+    created: Array.isArray(res?.created) ? res.created.length : Number(res?.created ?? 0),
+    conflicts: (res?.conflicts ?? []).map((c) => ({
+      from_path: c.from_path,
+      to_path: c.to_path,
+      reason: c.reason ?? c.code,
+      line: typeof c.line === 'number' ? (rows[c.line - 1]?.line ?? c.line) : undefined,
+    })),
+  };
+}
+
+// ─── Delete-flow helpers ─────────────────────────────────────────────────────
+
+/** `GET redirects/my/locale-prefixes`: every `/<locale>` prefix the storefront serves (markets included). */
+export interface RedirectLocalePrefixes {
+  primary_locale: string;
+  prefixes: string[];
+}
+
+export function getRedirectLocalePrefixes(token: string): Promise<RedirectLocalePrefixes> {
+  return api<RedirectLocalePrefixes>('/redirects/my/locale-prefixes', { token });
+}
+
+export type ProductPathKind = 'product' | 'custom-product';
+
+export interface ProductPathsItem {
+  kind: ProductPathKind;
+  id: string;
+  /** Every public storefront path of the product (per-locale slugs and prefixes). */
+  paths: string[];
+}
+
+/** Public paths of one product; call it BEFORE the product is deleted. */
+export async function getProductPaths(token: string, kind: ProductPathKind, id: string): Promise<ProductPathsItem> {
+  const res = await api<{ items?: ProductPathsItem[] } | ProductPathsItem>(
+    `/redirects/my/product-paths/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`,
+    { token },
+  );
+  if (res && 'items' in res && Array.isArray(res.items)) {
+    return res.items[0] ?? { kind, id, paths: [] };
   }
+  return res as ProductPathsItem;
+}
+
+/** Public paths of many products in one call; call it BEFORE they are deleted. */
+export async function getProductPathsBatch(
+  token: string,
+  items: { kind: ProductPathKind; id: string }[],
+): Promise<ProductPathsItem[]> {
+  if (!items.length) return [];
+  const res = await api<{ items?: ProductPathsItem[] }>('/redirects/my/product-paths', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ items }),
+  });
+  return res?.items ?? [];
 }
 
 /** "Test a URL": what the storefront would do with this path right now. */

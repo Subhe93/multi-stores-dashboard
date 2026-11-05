@@ -25,6 +25,8 @@ interface ConfirmDialogProps {
   busyLabel?: ReactNode;
   /** Error from the last attempt, shown above the buttons. */
   error?: ReactNode;
+  /** Extra content between the text and the buttons (e.g. a redirect option). */
+  children?: ReactNode;
   onConfirm: () => void;
 }
 
@@ -39,16 +41,18 @@ export function ConfirmDialog({
   busy,
   busyLabel,
   error,
+  children,
   onConfirm,
 }: ConfirmDialogProps) {
   const tc = useTranslations('common');
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!busy) onOpenChange(o); }}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className={children ? 'sm:max-w-md' : 'max-w-sm'}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
+        {children}
         {error && (
           <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}

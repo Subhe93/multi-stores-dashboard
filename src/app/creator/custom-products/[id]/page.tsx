@@ -31,6 +31,11 @@ import { useCurrency } from '@/lib/useCurrency';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
+import {
+  DeleteRedirectFailures,
+  DeleteRedirectField,
+  useDeleteRedirect,
+} from '@/components/redirects/DeleteRedirect';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 
@@ -138,6 +143,11 @@ export default function EditCustomProduct() {
   const { token } = useAuth();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tRedirect = useTranslations('creator.redirects.onDelete');
+  // "Redirect the old address?" option of the delete dialog; when the delete
+  // went through but the redirect failed, the dialog stays to say so.
+  const redirect = useDeleteRedirect();
+  const [deletedWithIssue, setDeletedWithIssue] = useState(false);
   const tSlug = useTranslations('common.slug');
   // Save-state / storefront-link strings shared with the own-product editor.
   const tp = useTranslations('product');
@@ -504,12 +514,31 @@ export default function EditCustomProduct() {
     }
   };
 
+  /** Storefront address of the stored product (`/products/<slug>`), or null. */
+  const storedPath = (): string | null => {
+    const slug = pickProductSlug(product?.translations, primaryLocale);
+    return slug ? `/products/${slug}` : null;
+  };
+
   const handleDelete = async () => {
     if (!token) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     setDeleteError('');
     try {
+      // Every public address (per-locale slugs) is read before the delete.
+      const sources = await redirect.productSources(plan, [
+        { kind: 'custom-product', id: String(id), fallback: storedPath() },
+      ]);
       await api(`/custom-products/${id}`, { method: 'DELETE', token });
+      // A success is shown on the list page this editor returns to.
+      const failed = await redirect.apply(plan, sources, { flash: true });
+      if (failed.length) {
+        setDeleting(false);
+        setDeletedWithIssue(true);
+        return;
+      }
       router.push('/creator/custom-products');
     } catch (err) {
       const e = err as { message?: string };
@@ -1124,17 +1153,41 @@ export default function EditCustomProduct() {
       <Dialog
         open={deleteConfirm}
         onOpenChange={(open) => {
+          if (deletedWithIssue) {
+            router.push('/creator/custom-products');
+            return;
+          }
           setDeleteConfirm(open);
           if (!open) setDeleteError('');
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('editCustomProduct.deleteTitle')}</DialogTitle>
           </DialogHeader>
+          {deletedWithIssue ? (
+            <>
+              <p className="py-2 text-sm text-muted-foreground">{tRedirect('deletedTitle')}</p>
+              <DeleteRedirectFailures failures={redirect.failures} />
+              <DialogFooter>
+                <Button size="sm" onClick={() => router.push('/creator/custom-products')}>{tRedirect('backToList')}</Button>
+              </DialogFooter>
+            </>
+          ) : (
+          <>
           <p className="text-sm text-muted-foreground py-2">
             {t('editCustomProduct.deleteConfirm')}
           </p>
+          <DeleteRedirectField
+            choiceRef={redirect.choiceRef}
+            paths={storedPath() ? [storedPath()!] : []}
+            defaultEnabled={product.status === 'PUBLISHED'}
+            suggestions={[
+              { path: '/products', label: tRedirect('targets.products') },
+              { path: '/', label: tRedirect('targets.home') },
+            ]}
+            disabled={deleting}
+          />
           {deleteError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               {deleteError}
@@ -1146,6 +1199,8 @@ export default function EditCustomProduct() {
               {deleting ? t('editCustomProduct.deleting') : tc('delete')}
             </Button>
           </DialogFooter>
+          </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

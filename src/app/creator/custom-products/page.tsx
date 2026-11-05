@@ -10,6 +10,11 @@ import { ViewInStoreButton } from '@/components/product/ViewInStoreButton';
 import { BulkNotice, useBulkNotice } from '@/components/product/BulkNotice';
 import { runBulk } from '@/lib/bulk';
 import { pickLocalized, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import {
+  DeleteRedirectField,
+  useDeleteRedirect,
+  type RedirectTargetSuggestion,
+} from '@/components/redirects/DeleteRedirect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -123,6 +128,35 @@ export default function CustomProductsPage() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkDelete, setBulkDelete] = useState<{ rows: Row[]; clear: () => void } | null>(null);
   const { notice, setNotice } = useBulkNotice();
+  // "Redirect the old address?" option of the delete dialogs.
+  const tRedirect = useTranslations('creator.redirects.onDelete');
+  const redirect = useDeleteRedirect();
+  /**
+   * Storefront address of a row (`/products/<slug>`). Custom products use
+   * their own slug; a row without one has no public URL and gets no prompt.
+   */
+  const publicPath = (row: Row): string | null => {
+    const slug = pickProductSlug(row.translations, primaryLocale);
+    return slug ? `/products/${slug}` : null;
+  };
+  const redirectSuggestions = [
+    { path: '/products', label: tRedirect('targets.products') },
+    { path: '/', label: tRedirect('targets.home') },
+  ];
+  /** Kind and id the product-paths endpoint takes for a row. */
+  const pathRef = (row: Row) => ({
+    kind: row.kind === 'custom' ? ('custom-product' as const) : ('product' as const),
+    id: row.id,
+    fallback: publicPath(row),
+  });
+  /** Published rows of the loaded list, offered as redirect targets. */
+  const knownTargets = (exclude: readonly Row[]): RedirectTargetSuggestion[] => {
+    const skip = new Set(exclude.map(rowKey));
+    return rows.flatMap((row) => {
+      const path = row.status === 'PUBLISHED' && !skip.has(rowKey(row)) ? publicPath(row) : null;
+      return path ? [{ path, label: pickLocalized(row.translations, primaryLocale)?.title || path }] : [];
+    });
+  };
 
   const creatorId = user?.creator?.id;
 
@@ -171,6 +205,8 @@ export default function CustomProductsPage() {
 
   const handleDelete = async () => {
     if (!token || !deleteTarget) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     setDeleteError('');
     try {
@@ -178,9 +214,13 @@ export default function CustomProductsPage() {
         deleteTarget.kind === 'custom'
           ? `/custom-products/${deleteTarget.id}`
           : `/products/${deleteTarget.id}`;
+      // Every public address (per-locale slugs) is read before the delete.
+      const sources = await redirect.productSources(plan, [pathRef(deleteTarget)]);
       await api(path, { method: 'DELETE', token });
       setDeleteTarget(null);
       fetchItems();
+      // The product is gone either way; the redirect outcome shows in a notice.
+      void redirect.apply(plan, sources);
     } catch (err) {
       console.error(err);
       const e = err as { message?: string };
@@ -283,7 +323,12 @@ export default function CustomProductsPage() {
 
   const confirmBulkDelete = async () => {
     if (!token || !bulkDelete) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setBulkBusy(true);
+    // Every public address (per-locale slugs) is read before the delete.
+    const sources = await redirect.productSources(plan, bulkDelete.rows.map(pathRef));
+    const sourceOf = new Map(bulkDelete.rows.map((r, i) => [rowKey(r), sources[i]]));
     const result = await runBulk(bulkDelete.rows, (r) =>
       api(r.kind === 'custom' ? `/custom-products/${r.id}` : `/products/${r.id}`, {
         method: 'DELETE',
@@ -295,6 +340,8 @@ export default function CustomProductsPage() {
     setBulkDelete(null);
     reportBulk(result.ok.length, result.failed, 'bulkDeleted');
     fetchItems();
+    // Redirects for every deleted product to the chosen target.
+    void redirect.apply(plan, result.ok.map((r) => sourceOf.get(rowKey(r))));
   };
 
   const bulkActions = (selected: Row[], clear: () => void) => (
@@ -571,6 +618,7 @@ export default function CustomProductsPage() {
       </div>
 
       <BulkNotice notice={notice} onDismiss={() => setNotice(null)} />
+      {redirect.notice}
 
       {!loading && rows.length === 0 ? (
         emptyState
@@ -598,7 +646,20 @@ export default function CustomProductsPage() {
         busy={bulkBusy}
         busyLabel={tt('myProducts.deleting')}
         onConfirm={confirmBulkDelete}
-      />
+      >
+        {bulkDelete && (
+          <DeleteRedirectField
+            key={bulkDelete.rows.map(rowKey).join(',')}
+            choiceRef={redirect.choiceRef}
+            paths={bulkDelete.rows.map(publicPath).filter((p): p is string => !!p)}
+            defaultEnabled={bulkDelete.rows.some((r) => r.status === 'PUBLISHED' && !!publicPath(r))}
+            suggestions={redirectSuggestions}
+            knownTargets={knownTargets(bulkDelete.rows)}
+            skipped={bulkDelete.rows.filter((r) => !publicPath(r)).length}
+            disabled={bulkBusy}
+          />
+        )}
+      </ConfirmDialog>
 
       {/* Delete confirmation dialog */}
       <Dialog
@@ -610,7 +671,7 @@ export default function CustomProductsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {deleteTarget?.kind === 'own'
@@ -625,6 +686,17 @@ export default function CustomProductsPage() {
               {tt('myProducts.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {deleteTarget && (
+            <DeleteRedirectField
+              key={rowKey(deleteTarget)}
+              choiceRef={redirect.choiceRef}
+              paths={publicPath(deleteTarget) ? [publicPath(deleteTarget)!] : []}
+              defaultEnabled={deleteTarget.status === 'PUBLISHED'}
+              suggestions={redirectSuggestions}
+              knownTargets={knownTargets([deleteTarget])}
+              disabled={deleting}
+            />
+          )}
           {deleteError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               {deleteError}

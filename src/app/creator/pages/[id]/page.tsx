@@ -15,6 +15,14 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useSlugField } from '@/lib/useSlugField';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { legalSlugForKind } from '@/lib/legalPages';
+import { useStoreType } from '@/lib/useStoreType';
+import {
+  DeleteRedirectFailures,
+  DeleteRedirectField,
+  DeleteRedirectLegalNote,
+  useDeleteRedirect,
+} from '@/components/redirects/DeleteRedirect';
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
@@ -53,6 +61,13 @@ export default function EditPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  // Deleted, but the requested redirect failed: the dialog stays to say so.
+  const [deletedWithIssue, setDeletedWithIssue] = useState(false);
+  const redirect = useDeleteRedirect();
+  const { storeType, loading: storeTypeLoading } = useStoreType();
+  // The legal-page note depends on the store type: decide only once it is known.
+  const storeTypeKnown = storeType !== null || !storeTypeLoading;
+  const tRedirect = useTranslations('creator.redirects.onDelete');
 
   // Language config
   const [primaryLocale, setPrimaryLocale] = useState('en');
@@ -194,12 +209,26 @@ export default function EditPage() {
     }
   };
 
+  // Legal-kind pages of independent stores are served at /legal/...; other
+  // pages at /<slug> (the stored slug, not the unsaved field).
+  const isLegalPage = storeType === 'INDEPENDENT' && legalSlugForKind(page?.type) !== null;
+  const oldPath = page && !isLegalPage && page.slug ? `/${page.slug}` : null;
+
   const handleDelete = async () => {
-    if (!token || !page) return;
+    if (!token || !page || !storeTypeKnown) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     setDeleteError('');
     try {
       await api(`/pages/${id}`, { method: 'DELETE', token });
+      // A success is shown on the list page this editor returns to.
+      const failed = await redirect.apply(plan, [oldPath], { flash: true });
+      if (failed.length) {
+        setDeleting(false);
+        setDeletedWithIssue(true);
+        return;
+      }
       router.push('/creator/pages');
     } catch (err) {
       console.error(err);
@@ -379,12 +408,39 @@ export default function EditPage() {
         </div>
       </div>
 
-      <Dialog open={deleteConfirm} onOpenChange={setDeleteConfirm}>
-        <DialogContent className="max-w-sm">
+      <Dialog
+        open={deleteConfirm}
+        onOpenChange={(o) => {
+          if (deletedWithIssue) router.push('/creator/pages');
+          else setDeleteConfirm(o);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{t('editPage.deletePage')}</DialogTitle></DialogHeader>
+          {deletedWithIssue ? (
+            <>
+              <p className="py-2 text-sm text-muted-foreground">{tRedirect('deletedTitle')}</p>
+              <DeleteRedirectFailures failures={redirect.failures} />
+              <DialogFooter>
+                <Button size="sm" onClick={() => router.push('/creator/pages')}>{tRedirect('backToList')}</Button>
+              </DialogFooter>
+            </>
+          ) : (
+          <>
           <p className="text-sm text-muted-foreground py-2">
             {t('editPage.deleteConfirm', { title: primaryTitle })}
           </p>
+          {!storeTypeKnown ? null : isLegalPage ? (
+            <DeleteRedirectLegalNote />
+          ) : (
+            <DeleteRedirectField
+              choiceRef={redirect.choiceRef}
+              paths={oldPath ? [oldPath] : []}
+              defaultEnabled={page.status === 'PUBLISHED'}
+              suggestions={[{ path: '/', label: tRedirect('targets.home') }]}
+              disabled={deleting}
+            />
+          )}
           {deleteError && (
             <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -393,8 +449,10 @@ export default function EditPage() {
           )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setDeleteConfirm(false)} disabled={deleting}>{tc('cancel')}</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>{tc('delete')}</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting || !storeTypeKnown}>{tc('delete')}</Button>
           </DialogFooter>
+          </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -357,7 +357,8 @@
     "manageApps": "Manage apps",
     "notifications": "Notifications",
     "customers": "Customers",
-    "securityLog": "Security log"
+    "securityLog": "Security log",
+    "redirects": "Redirects"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -3765,85 +3766,6 @@
           "overwrite_hint": "Re-imports replace the stock with the WooCommerce value."
         }
       },
-      "redirects": {
-        "intro": "Old shop URLs that send visitors (and search engines) to the right page in your store. Imported redirects stay even if you turn the importer off.",
-        "search": "Search",
-        "searchPlaceholder": "/product/…",
-        "sourceFilter": "Source",
-        "allSources": "All",
-        "source": {
-          "IMPORT": "Imported",
-          "MANUAL": "Manual",
-          "SLUG_CHANGE": "URL changed"
-        },
-        "add": "Add redirect",
-        "edit": "Edit",
-        "delete": "Delete",
-        "active": "Active",
-        "inactive": "Inactive",
-        "empty": "No redirects yet.",
-        "csvImport": {
-          "button": "Import CSV",
-          "title": "Import redirects from CSV",
-          "body": "One redirect per line: from_path,to_path,status. The status is optional (301 by default). Up to 5000 lines; paths already in use are reported as conflicts.",
-          "file": "CSV file",
-          "run": "Import",
-          "result": "{created, plural, one {# redirect created} other {# redirects created}} · {conflicts, plural, =0 {no conflicts} one {# conflict} other {# conflicts}}",
-          "conflictsTitle": "Conflicts",
-          "tooMany": "The file has more than 5000 lines.",
-          "invalidLine": "Line {line} is not a valid redirect.",
-          "empty": "The file has no redirects."
-        },
-        "emptyFiltered": "No redirects match the filters.",
-        "columns": {
-          "paths": "From → to",
-          "code": "Code",
-          "source": "Source",
-          "active": "Active",
-          "updated": "Updated"
-        },
-        "deleteTitle": "Delete this redirect?",
-        "deleteBody": "Visitors to {from} will see a “page not found” instead.",
-        "test": {
-          "title": "Test a URL",
-          "placeholder": "/product/old-name or https://old-shop.com/product/old-name",
-          "run": "Test",
-          "matched": "Redirects with {code} to:",
-          "viaRule": "Matched by",
-          "noMatch": "No redirect for"
-        },
-        "form": {
-          "createTitle": "Add redirect",
-          "editTitle": "Edit redirect",
-          "description": "Send an old path to a page in your store.",
-          "importedHint": "This redirect was imported. After you edit it, later imports no longer change it.",
-          "from": "Old path",
-          "fromHint": "The path only, starting with /. Query strings are kept when redirecting.",
-          "to": "New path",
-          "toHint": "A page in your store, for example /products/new-name.",
-          "code": "Type",
-          "codes": {
-            "301": "301 · Permanent (recommended)",
-            "302": "302 · Temporary",
-            "307": "307 · Temporary, keep method",
-            "308": "308 · Permanent, keep method"
-          },
-          "active": "Active",
-          "create": "Add redirect",
-          "errors": {
-            "required": "Enter a path.",
-            "slash": "Start the path with a single /.",
-            "scheme": "Enter only the path, without https:// and the domain.",
-            "tooLong": "The path is too long.",
-            "same": "The new path must differ from the old one.",
-            "invalidEither": "One of the paths is not valid. Use paths that start with /.",
-            "field": {
-              "from_path": "Check the old path.",
-              "to_path": "Check the new path."
-            }
-          }
-        }
-      },
       "warnings": {
         "W_PRODUCT_SKIPPED_BY_RULE": "Product skipped by your settings",
         "W_PRODUCT_PRIVATE_AS_DRAFT": "Private product imported as draft",
@@ -5552,6 +5474,141 @@
         "invalid": "VIES does not recognise this VAT number. Check it or leave the field empty; the other details were not saved.",
         "invalidShort": "Not registered in VIES."
       }
+    },
+    "redirects": {
+      "intro": "Old shop URLs that send visitors (and search engines) to the right page in your store. Imported redirects stay even if you turn the importer off.",
+      "search": "Search",
+      "searchPlaceholder": "/product/…",
+      "sourceFilter": "Source",
+      "allSources": "All",
+      "source": {
+        "IMPORT": "Imported",
+        "MANUAL": "Manual",
+        "SLUG_CHANGE": "URL changed"
+      },
+      "add": "Add redirect",
+      "edit": "Edit",
+      "delete": "Delete",
+      "active": "Active",
+      "inactive": "Inactive",
+      "empty": "No redirects yet. They're added when you change an address or delete an item, or you can add one here.",
+      "csvImport": {
+        "button": "Import CSV",
+        "title": "Import redirects from CSV",
+        "body": "One redirect per line: old path, new path and optionally the status (301 by default). Full links are accepted; only their path is used. Up to 5000 lines; addresses already in use are reported as conflicts.",
+        "file": "CSV file",
+        "run": "Import",
+        "result": "{created, plural, one {# redirect created} other {# redirects created}} · {conflicts, plural, =0 {no conflicts} one {# conflict} other {# conflicts}}",
+        "conflictsTitle": "Conflicts",
+        "tooMany": "The file has more than 5000 lines.",
+        "invalidLine": "Line {line}: use paths like /old-page or full links.",
+        "empty": "The file has no redirects.",
+        "separatorLine": "Line {line}: a path contains a comma, semicolon or tab. Remove it or encode it (for example %2C).",
+        "statusLine": "Line {line}: the status must be 301, 302, 307 or 308.",
+        "sameLine": "Line {line}: the old and new paths are the same.",
+        "invalidTitle": "{count, plural, one {# line can't be imported and is skipped:} other {# lines can't be imported and are skipped:}}",
+        "sample": "Download a sample CSV",
+        "lineLabel": "Line {line}",
+        "ready": "{name} · {count, plural, one {# redirect ready} other {# redirects ready}}",
+        "runValid": "{count, plural, one {Import # valid line} other {Import # valid lines}}"
+      },
+      "emptyFiltered": "No redirects match the filters.",
+      "columns": {
+        "paths": "From → to",
+        "code": "Code",
+        "source": "Source",
+        "active": "Active",
+        "updated": "Updated"
+      },
+      "deleteTitle": "Delete this redirect?",
+      "deleteBody": "Visitors to {from} will see a “page not found” instead.",
+      "test": {
+        "title": "Test a URL",
+        "placeholder": "/product/old-name or https://old-shop.com/product/old-name",
+        "run": "Test",
+        "matched": "{code, select, 301 {Visitors are sent to (permanent, 301):} 308 {Visitors are sent to (permanent, 308):} other {Visitors are sent to (temporary, {code}):}}",
+        "viaRule": "Matched by",
+        "noMatch": "No redirect for",
+        "live": "This address shows a published {kind, select, product {product} collection {collection} page {page} other {item}}.",
+        "liveShadowed": "A published {kind, select, product {product} collection {collection} page {page} other {item}} also uses this address, but the redirect takes priority, so visitors never see it. Turn the redirect off or delete it to show it again."
+      },
+      "form": {
+        "createTitle": "Add redirect",
+        "editTitle": "Edit redirect",
+        "description": "Send an old path to a page in your store.",
+        "importedHint": "This redirect was imported. After you edit it, later imports no longer change it.",
+        "from": "Old path",
+        "fromHint": "The path, starting with /. You can also paste a full link; only its path is used. Query strings are kept when redirecting.",
+        "to": "New path",
+        "toHint": "A page in your store, for example /products/new-name.",
+        "code": "Type",
+        "codes": {
+          "301": "301 · Permanent (recommended)",
+          "302": "302 · Temporary",
+          "307": "307 · Temporary, keep method",
+          "308": "308 · Permanent, keep method"
+        },
+        "active": "Active",
+        "create": "Add redirect",
+        "errors": {
+          "required": "Enter a path.",
+          "slash": "Start the path with a single /.",
+          "scheme": "Enter a path starting with / or a full https:// link.",
+          "tooLong": "The path is too long.",
+          "same": "The new path must differ from the old one.",
+          "invalidEither": "One of the paths is not valid. Use paths that start with /.",
+          "field": {
+            "from_path": "Check the old path.",
+            "to_path": "Check the new path."
+          },
+          "shadowsLive": "A published {kind, select, product {product} collection {collection} page {page} other {item}} uses this address. Delete, unpublish or rename it first, then add the redirect."
+        },
+        "advanced": "Advanced",
+        "advancedHint": "307 and 308 keep the request method (for example a submitted form). Most stores only need 301."
+      },
+      "pageSubtitle": "Send visitors and search engines from old or deleted addresses to a live page in your store. Redirects you add here, imported ones and those created when an address changes all appear in this list.",
+      "importerNote": "Redirects are now part of every store under Online store → Redirects. Imported redirects appear there too.",
+      "importerNoteLink": "Open Redirects",
+      "onDelete": {
+        "label": "{count, plural, one {Redirect the old address} other {Redirect the old addresses}}",
+        "hint": "Visitors and search engines that open it are sent on with a permanent (301) redirect instead of seeing “page not found”.",
+        "oldAddress": "{count, plural, one {Old address} other {Old addresses}}",
+        "more": "and {count} more",
+        "skipped": "{count, plural, one {# selected item has no public address and is skipped.} other {# selected items have no public address and are skipped.}}",
+        "target": "Send visitors to",
+        "customOption": "Another page",
+        "customHint": "A path in your store, for example /products/new-name. You can also paste a full link.",
+        "urlKeepsPath": "Only the path is used:",
+        "errors": {
+          "required": "Enter the page to send visitors to.",
+          "scheme": "Use a path in your store or a full https:// link.",
+          "slash": "Start the path with a single /.",
+          "tooLong": "The path is too long.",
+          "same": "Choose a different address than the one being deleted."
+        },
+        "targets": {
+          "home": "Home page",
+          "products": "All products",
+          "collections": "All collections",
+          "parentCollection": "Parent collection ({name})"
+        },
+        "legalNote": "This legal page is opened at /legal/… and shows the standard text after it is deleted, so no redirect is needed.",
+        "failedOne": "Deleted, but the redirect could not be created for",
+        "failedMany": "Deleted, but {count, plural, one {# redirect} other {# redirects}} could not be created",
+        "openRedirects": "Open Redirects",
+        "dismiss": "Dismiss",
+        "deletedTitle": "Deleted. The redirect could not be created; you can add it on the Redirects page.",
+        "backToList": "Back to the list",
+        "success": "{count, plural, one {Deleted. Visitors to <path>{from}</path> now go to <path>{to}</path>.} other {Deleted. {count} old addresses now go to <path>{to}</path>.}}",
+        "shadowsLive": "Another published {kind, select, product {product} collection {collection} page {page} other {item}} still uses this address, so it wasn't redirected.",
+        "childrenMove": "{count, plural, one {Its subcollection moves to the top level. Its old address is redirected automatically.} other {Its {count} subcollections move to the top level. Their old addresses are redirected automatically.}}",
+        "pickPlaceholder": "Choose a published item",
+        "pickSearch": "Search by name or address…",
+        "customHintPick": "Choose an item above or enter a path in your store, for example /products/new-name. You can also paste a full link.",
+        "defaultOnNote": "On by default for published items so links and Google rankings keep working. Untick if you don't want a redirect."
+      },
+      "propagationNote": "Changes can take up to about 2 minutes to reach your storefront.",
+      "unknownTarget": "Nothing published was found at this address. Check it before you continue."
     }
   },
   "components": {
@@ -6056,7 +6113,10 @@
     "AUTH_CAPTCHA_FAILED": "The security check failed. Please try again.",
     "AUTH_CAPTCHA_UNAVAILABLE": "The security check is temporarily unavailable. Please try again in a moment.",
     "ORDER_FULFILLMENT_BACKWARDS": "A shipped or delivered item can't be moved back to an earlier stage.",
-    "TRANSLATION_UNAVAILABLE": "The translation service is unavailable right now. Please try again later."
+    "TRANSLATION_UNAVAILABLE": "The translation service is unavailable right now. Please try again later.",
+    "REDIRECT_SHADOWS_LIVE": "This address still shows a published page or product. Delete, unpublish or rename it first, then add the redirect.",
+    "REDIRECT_CHAIN_TOO_LONG": "This redirect would pass through too many other redirects.",
+    "REDIRECT_BULK_TOO_MANY": "Upload at most 5000 redirects at a time."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

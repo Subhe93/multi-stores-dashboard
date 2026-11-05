@@ -24,6 +24,8 @@ interface BulkRunOptions<T> {
   clear?: () => void;
   /** Refreshes the list after the run (called even when some rows failed). */
   after?: () => void;
+  /** Receives the rows that succeeded, before `after` (e.g. follow-up writes). */
+  onSettled?: (ok: T[]) => void | Promise<void>;
   /** Parallel requests (default 4; use 1 for downloads or throttled endpoints). */
   concurrency?: number;
 }
@@ -33,6 +35,10 @@ interface BulkAskOptions<T> extends BulkRunOptions<T> {
   description?: ReactNode;
   confirmLabel?: ReactNode;
   destructive?: boolean;
+  /** Extra dialog content between the text and the buttons. */
+  content?: ReactNode;
+  /** Runs on confirm; returning false keeps the dialog open without running. */
+  confirm?: () => boolean;
 }
 
 /**
@@ -49,7 +55,7 @@ export function useBulkAction() {
   // Stored untyped: the pending request is only ever handed back to `run`.
   const [pending, setPending] = useState<BulkAskOptions<unknown> | null>(null);
 
-  const run = async <T,>({ rows, fn, done, clear, after, concurrency }: BulkRunOptions<T>) => {
+  const run = async <T,>({ rows, fn, done, clear, after, onSettled, concurrency }: BulkRunOptions<T>) => {
     if (rows.length === 0 || busy) return;
     setBusy(true);
     setOutcome(null);
@@ -65,6 +71,7 @@ export function useBulkAction() {
     // Keep the failed rows selected only when nothing went through; otherwise
     // the list changes and a fresh selection is clearer.
     if (res.ok.length > 0) clear?.();
+    if (onSettled && res.ok.length > 0) await onSettled(res.ok);
     after?.();
   };
 
@@ -83,8 +90,13 @@ export function useBulkAction() {
       destructive={pending?.destructive}
       busy={busy}
       busyLabel={t('working')}
-      onConfirm={() => { if (pending) void run(pending); }}
-    />
+      onConfirm={() => {
+        if (!pending || (pending.confirm && !pending.confirm())) return;
+        void run(pending);
+      }}
+    >
+      {pending?.content}
+    </ConfirmDialog>
   );
 
   const notice = outcome ? (

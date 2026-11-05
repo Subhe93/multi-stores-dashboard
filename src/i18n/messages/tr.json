@@ -357,7 +357,8 @@
     "manageApps": "Uygulamaları yönet",
     "notifications": "Bildirimler",
     "customers": "Müşteriler",
-    "securityLog": "Güvenlik günlüğü"
+    "securityLog": "Güvenlik günlüğü",
+    "redirects": "Yönlendirmeler"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -3765,85 +3766,6 @@
           "overwrite_hint": "Yeniden içe aktarmalar stoğu WooCommerce değeriyle değiştirir."
         }
       },
-      "redirects": {
-        "intro": "Ziyaretçileri (ve arama motorlarını) mağazanızdaki doğru sayfaya gönderen eski mağaza URL’leri. İçe aktarılan yönlendirmeler, içe aktarıcıyı kapatsanız da kalır.",
-        "search": "Ara",
-        "searchPlaceholder": "/urun/…",
-        "sourceFilter": "Kaynak",
-        "allSources": "Tümü",
-        "source": {
-          "IMPORT": "İçe aktarılan",
-          "MANUAL": "Manuel",
-          "SLUG_CHANGE": "URL değişikliği"
-        },
-        "add": "Yönlendirme ekle",
-        "edit": "Düzenle",
-        "delete": "Sil",
-        "active": "Aktif",
-        "inactive": "Pasif",
-        "empty": "Henüz yönlendirme yok.",
-        "csvImport": {
-          "button": "CSV içe aktar",
-          "title": "Yönlendirmeleri CSV’den içe aktar",
-          "body": "Her satırda bir yönlendirme: from_path,to_path,status. Durum isteğe bağlıdır (varsayılan 301). En fazla 5000 satır; zaten kullanılan yollar çakışma olarak bildirilir.",
-          "file": "CSV dosyası",
-          "run": "İçe aktar",
-          "result": "{created, plural, one {# yönlendirme oluşturuldu} other {# yönlendirme oluşturuldu}} · {conflicts, plural, =0 {çakışma yok} one {# çakışma} other {# çakışma}}",
-          "conflictsTitle": "Çakışmalar",
-          "tooMany": "Dosyada 5000’den fazla satır var.",
-          "invalidLine": "{line}. satır geçerli bir yönlendirme değil.",
-          "empty": "Dosyada yönlendirme yok."
-        },
-        "emptyFiltered": "Filtrelerle eşleşen yönlendirme yok.",
-        "columns": {
-          "paths": "Kaynak → hedef",
-          "code": "Kod",
-          "source": "Kaynak",
-          "active": "Aktif",
-          "updated": "Güncellendi"
-        },
-        "deleteTitle": "Bu yönlendirme silinsin mi?",
-        "deleteBody": "{from} adresine gelen ziyaretçiler bunun yerine “sayfa bulunamadı” görür.",
-        "test": {
-          "title": "Bir URL’yi test et",
-          "placeholder": "/urun/eski-ad veya https://eski-magaza.com/urun/eski-ad",
-          "run": "Test et",
-          "matched": "{code} ile şuraya yönlendirir:",
-          "viaRule": "Eşleşen kural",
-          "noMatch": "Yönlendirme yok:"
-        },
-        "form": {
-          "createTitle": "Yönlendirme ekle",
-          "editTitle": "Yönlendirmeyi düzenle",
-          "description": "Eski bir yolu mağazanızdaki bir sayfaya gönderin.",
-          "importedHint": "Bu yönlendirme içe aktarıldı. Düzenledikten sonra sonraki içe aktarmalar onu değiştirmez.",
-          "from": "Eski yol",
-          "fromHint": "Yalnızca yol, / ile başlayarak. Sorgu parametreleri yönlendirmede korunur.",
-          "to": "Yeni yol",
-          "toHint": "Mağazanızda bir sayfa, örneğin /products/yeni-ad.",
-          "code": "Tür",
-          "codes": {
-            "301": "301 · Kalıcı (önerilen)",
-            "302": "302 · Geçici",
-            "307": "307 · Geçici, yöntemi korur",
-            "308": "308 · Kalıcı, yöntemi korur"
-          },
-          "active": "Aktif",
-          "create": "Yönlendirme ekle",
-          "errors": {
-            "required": "Bir yol girin.",
-            "slash": "Yolu tek bir / ile başlatın.",
-            "scheme": "https:// ve alan adı olmadan yalnızca yolu girin.",
-            "tooLong": "Yol çok uzun.",
-            "same": "Yeni yol eskisinden farklı olmalı.",
-            "invalidEither": "Yollardan biri geçersiz. / ile başlayan yollar kullanın.",
-            "field": {
-              "from_path": "Eski yolu kontrol edin.",
-              "to_path": "Yeni yolu kontrol edin."
-            }
-          }
-        }
-      },
       "warnings": {
         "W_PRODUCT_SKIPPED_BY_RULE": "Ürün ayarlarınıza göre atlandı",
         "W_PRODUCT_PRIVATE_AS_DRAFT": "Özel ürün taslak olarak aktarıldı",
@@ -5552,6 +5474,141 @@
         "invalid": "VIES bu KDV numarasını tanımıyor. Numarayı kontrol edin veya alanı boş bırakın; diğer bilgiler kaydedilmedi.",
         "invalidShort": "VIES’te kayıtlı değil."
       }
+    },
+    "redirects": {
+      "intro": "Ziyaretçileri (ve arama motorlarını) mağazanızdaki doğru sayfaya gönderen eski mağaza URL’leri. İçe aktarılan yönlendirmeler, içe aktarıcıyı kapatsanız da kalır.",
+      "search": "Ara",
+      "searchPlaceholder": "/urun/…",
+      "sourceFilter": "Kaynak",
+      "allSources": "Tümü",
+      "source": {
+        "IMPORT": "İçe aktarılan",
+        "MANUAL": "Manuel",
+        "SLUG_CHANGE": "URL değişikliği"
+      },
+      "add": "Yönlendirme ekle",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "empty": "Henüz yönlendirme yok. Bir adresi değiştirdiğinizde veya bir öğeyi sildiğinizde eklenir; buradan da ekleyebilirsiniz.",
+      "csvImport": {
+        "button": "CSV içe aktar",
+        "title": "Yönlendirmeleri CSV’den içe aktar",
+        "body": "Her satıra bir yönlendirme: eski yol, yeni yol ve isteğe bağlı durum kodu (varsayılan 301). Tam bağlantılar kabul edilir; yalnızca yolları kullanılır. En fazla 5000 satır; zaten kullanılan adresler çakışma olarak bildirilir.",
+        "file": "CSV dosyası",
+        "run": "İçe aktar",
+        "result": "{created, plural, one {# yönlendirme oluşturuldu} other {# yönlendirme oluşturuldu}} · {conflicts, plural, =0 {çakışma yok} one {# çakışma} other {# çakışma}}",
+        "conflictsTitle": "Çakışmalar",
+        "tooMany": "Dosyada 5000’den fazla satır var.",
+        "invalidLine": "Satır {line}: /eski-sayfa gibi yollar veya tam bağlantılar kullanın.",
+        "empty": "Dosyada yönlendirme yok.",
+        "separatorLine": "Satır {line}: bir yol virgül, noktalı virgül veya sekme içeriyor. Kaldırın ya da kodlayın (örneğin %2C).",
+        "statusLine": "Satır {line}: durum kodu 301, 302, 307 veya 308 olmalıdır.",
+        "sameLine": "Satır {line}: eski ve yeni yol aynı.",
+        "invalidTitle": "{count, plural, one {# satır içe aktarılamıyor ve atlanıyor:} other {# satır içe aktarılamıyor ve atlanıyor:}}",
+        "sample": "Örnek CSV indir",
+        "lineLabel": "Satır {line}",
+        "ready": "{name} · {count, plural, one {# yönlendirme hazır} other {# yönlendirme hazır}}",
+        "runValid": "{count, plural, one {# geçerli satırı içe aktar} other {# geçerli satırı içe aktar}}"
+      },
+      "emptyFiltered": "Filtrelerle eşleşen yönlendirme yok.",
+      "columns": {
+        "paths": "Kaynak → hedef",
+        "code": "Kod",
+        "source": "Kaynak",
+        "active": "Aktif",
+        "updated": "Güncellendi"
+      },
+      "deleteTitle": "Bu yönlendirme silinsin mi?",
+      "deleteBody": "{from} adresine gelen ziyaretçiler bunun yerine “sayfa bulunamadı” görür.",
+      "test": {
+        "title": "Bir URL’yi test et",
+        "placeholder": "/urun/eski-ad veya https://eski-magaza.com/urun/eski-ad",
+        "run": "Test et",
+        "matched": "{code, select, 301 {Ziyaretçiler şuraya gönderilir (kalıcı, 301):} 308 {Ziyaretçiler şuraya gönderilir (kalıcı, 308):} other {Ziyaretçiler şuraya gönderilir (geçici, {code}):}}",
+        "viaRule": "Eşleşen kural",
+        "noMatch": "Yönlendirme yok:",
+        "live": "Bu adres yayınlanmış bir {kind, select, product {ürün} collection {koleksiyon} page {sayfa} other {öğe}} gösteriyor.",
+        "liveShadowed": "Yayınlanmış bir {kind, select, product {ürün} collection {koleksiyon} page {sayfa} other {öğe}} de bu adresi kullanıyor, ancak yönlendirme önceliklidir; ziyaretçiler onu hiç görmez. Yeniden göstermek için yönlendirmeyi kapatın veya silin."
+      },
+      "form": {
+        "createTitle": "Yönlendirme ekle",
+        "editTitle": "Yönlendirmeyi düzenle",
+        "description": "Eski bir yolu mağazanızdaki bir sayfaya gönderin.",
+        "importedHint": "Bu yönlendirme içe aktarıldı. Düzenledikten sonra sonraki içe aktarmalar onu değiştirmez.",
+        "from": "Eski yol",
+        "fromHint": "/ ile başlayan yol. Tam bir bağlantı da yapıştırabilirsiniz; yalnızca yolu kullanılır. Sorgu dizeleri yönlendirmede korunur.",
+        "to": "Yeni yol",
+        "toHint": "Mağazanızda bir sayfa, örneğin /products/yeni-ad.",
+        "code": "Tür",
+        "codes": {
+          "301": "301 · Kalıcı (önerilen)",
+          "302": "302 · Geçici",
+          "307": "307 · Geçici, yöntemi korur",
+          "308": "308 · Kalıcı, yöntemi korur"
+        },
+        "active": "Aktif",
+        "create": "Yönlendirme ekle",
+        "errors": {
+          "required": "Bir yol girin.",
+          "slash": "Yolu tek bir / ile başlatın.",
+          "scheme": "/ ile başlayan bir yol veya tam bir https:// bağlantısı girin.",
+          "tooLong": "Yol çok uzun.",
+          "same": "Yeni yol eskisinden farklı olmalı.",
+          "invalidEither": "Yollardan biri geçersiz. / ile başlayan yollar kullanın.",
+          "field": {
+            "from_path": "Eski yolu kontrol edin.",
+            "to_path": "Yeni yolu kontrol edin."
+          },
+          "shadowsLive": "Yayınlanmış bir {kind, select, product {ürün} collection {koleksiyon} page {sayfa} other {öğe}} bu adresi kullanıyor. Önce silin, yayından kaldırın veya adını değiştirin, ardından yönlendirmeyi ekleyin."
+        },
+        "advanced": "Gelişmiş",
+        "advancedHint": "307 ve 308 istek yöntemini korur (örneğin gönderilen bir form). Çoğu mağazanın yalnızca 301'e ihtiyacı vardır."
+      },
+      "pageSubtitle": "Ziyaretçileri ve arama motorlarını eski veya silinmiş adreslerden mağazanızdaki yayındaki bir sayfaya gönderin. Burada eklediğiniz, içe aktarılan ve bir adres değiştiğinde oluşturulan yönlendirmelerin tümü bu listede görünür.",
+      "importerNote": "Yönlendirmeler artık her mağazada Online mağaza → Yönlendirmeler altında. İçe aktarılan yönlendirmeler de orada görünür.",
+      "importerNoteLink": "Yönlendirmeleri aç",
+      "onDelete": {
+        "label": "{count, plural, one {Eski adresi yönlendir} other {Eski adresleri yönlendir}}",
+        "hint": "Bu adresi açan ziyaretçiler ve arama motorları “sayfa bulunamadı” yerine kalıcı (301) yönlendirmeyle gönderilir.",
+        "oldAddress": "{count, plural, one {Eski adres} other {Eski adresler}}",
+        "more": "ve {count} tane daha",
+        "skipped": "{count, plural, one {Seçilen # öğenin herkese açık adresi yok, atlanacak.} other {Seçilen # öğenin herkese açık adresi yok, atlanacak.}}",
+        "target": "Ziyaretçileri şuraya gönder",
+        "customOption": "Başka bir sayfa",
+        "customHint": "Mağazanızda bir yol, örneğin /products/new-name. Tam bir bağlantı da yapıştırabilirsiniz.",
+        "urlKeepsPath": "Yalnızca yol kullanılır:",
+        "errors": {
+          "required": "Ziyaretçilerin gönderileceği sayfayı girin.",
+          "scheme": "Mağazanızda bir yol veya tam bir https:// bağlantısı kullanın.",
+          "slash": "Yolu tek bir / ile başlatın.",
+          "tooLong": "Yol çok uzun.",
+          "same": "Silinen adresten farklı bir adres seçin."
+        },
+        "targets": {
+          "home": "Ana sayfa",
+          "products": "Tüm ürünler",
+          "collections": "Tüm koleksiyonlar",
+          "parentCollection": "Üst koleksiyon ({name})"
+        },
+        "legalNote": "Bu yasal sayfa /legal/… adresinde açılır ve silindikten sonra standart metni gösterir; yönlendirme gerekmez.",
+        "failedOne": "Silindi, ancak şu adres için yönlendirme oluşturulamadı:",
+        "failedMany": "Silindi, ancak {count, plural, one {# yönlendirme} other {# yönlendirme}} oluşturulamadı",
+        "openRedirects": "Yönlendirmeleri aç",
+        "dismiss": "Kapat",
+        "deletedTitle": "Silindi. Yönlendirme oluşturulamadı; Yönlendirmeler sayfasından ekleyebilirsiniz.",
+        "backToList": "Listeye dön",
+        "success": "{count, plural, one {Silindi. <path>{from}</path> ziyaretçileri artık <path>{to}</path> adresine gidiyor.} other {Silindi. {count} eski adres artık <path>{to}</path> adresine gidiyor.}}",
+        "shadowsLive": "Yayınlanmış başka bir {kind, select, product {ürün} collection {koleksiyon} page {sayfa} other {öğe}} hâlâ bu adresi kullanıyor, bu yüzden yönlendirilmedi.",
+        "childrenMove": "{count, plural, one {Alt koleksiyonu en üst düzeye taşınır. Eski adresi otomatik olarak yönlendirilir.} other {{count} alt koleksiyonu en üst düzeye taşınır. Eski adresleri otomatik olarak yönlendirilir.}}",
+        "pickPlaceholder": "Yayınlanmış bir öğe seçin",
+        "pickSearch": "Ada veya adrese göre ara…",
+        "customHintPick": "Yukarıdan bir öğe seçin veya mağazanızda bir yol girin, örneğin /products/new-name. Tam bir bağlantı da yapıştırabilirsiniz.",
+        "defaultOnNote": "Bağlantılar ve Google sıralamaları çalışmaya devam etsin diye yayınlanmış öğelerde varsayılan olarak açıktır. Yönlendirme istemiyorsanız işareti kaldırın."
+      },
+      "propagationNote": "Değişikliklerin mağazanıza yansıması yaklaşık 2 dakika sürebilir.",
+      "unknownTarget": "Bu adreste yayınlanmış bir içerik bulunamadı. Devam etmeden önce kontrol edin."
     }
   },
   "components": {
@@ -6056,7 +6113,10 @@
     "AUTH_CAPTCHA_FAILED": "Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.",
     "AUTH_CAPTCHA_UNAVAILABLE": "Güvenlik doğrulaması geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
     "ORDER_FULFILLMENT_BACKWARDS": "Kargoya verilmiş veya teslim edilmiş bir ürün önceki bir aşamaya geri alınamaz.",
-    "TRANSLATION_UNAVAILABLE": "Çeviri hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin."
+    "TRANSLATION_UNAVAILABLE": "Çeviri hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
+    "REDIRECT_SHADOWS_LIVE": "Bu adres hâlâ yayındaki bir sayfayı veya ürünü gösteriyor. Önce silin, yayından kaldırın veya adını değiştirin, ardından yönlendirmeyi ekleyin.",
+    "REDIRECT_CHAIN_TOO_LONG": "Bu yönlendirme çok fazla başka yönlendirmeden geçer.",
+    "REDIRECT_BULK_TOO_MANY": "Tek seferde en fazla 5000 yönlendirme yükleyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

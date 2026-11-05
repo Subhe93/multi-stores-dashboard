@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -26,6 +26,13 @@ import { api, ApiError } from '@/lib/api';
 import { DataTable } from '@/components/common/DataTable';
 import { useBulkAction } from '@/components/common/useBulkAction';
 import { legalSlugForKind } from '@/lib/legalPages';
+import {
+  DeleteRedirectField,
+  DeleteRedirectLegalNote,
+  useDeleteRedirect,
+  type DeleteRedirectPlan,
+  type RedirectTargetSuggestion,
+} from '@/components/redirects/DeleteRedirect';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -118,7 +125,11 @@ export default function CreatorPagesPage() {
   const t = useTranslations('creator');
   const tc = useTranslations('common');
   const tb = useTranslations('bulk');
+  const tRedirect = useTranslations('creator.redirects.onDelete');
   const bulk = useBulkAction();
+  // "Redirect the old address?" option of the delete dialogs.
+  const redirect = useDeleteRedirect();
+  const bulkRedirectPlan = useRef<DeleteRedirectPlan | null>(null);
 
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeError, setStoreError] = useState(false);
@@ -316,15 +327,33 @@ export default function CreatorPagesPage() {
 
   const isLegalRow = (row: PageRow) => ownsLegalPages && legalSlugForKind(row.type) !== null;
 
+  // Storefront address of a page: root pages are served at /<slug>; legal
+  // pages of independent stores at /legal/... (no redirect needed).
+  const publicPath = (row: PageRow): string | null => (isLegalRow(row) || !row.slug ? null : `/${row.slug}`);
+  const redirectSuggestions = [{ path: '/', label: tRedirect('targets.home') }];
+  /** Published pages of the list, offered as redirect targets. */
+  const knownTargets = (exclude: readonly PageRow[]): RedirectTargetSuggestion[] => {
+    const skip = new Set(exclude.map((p) => p.id));
+    return pages.flatMap((p) => {
+      const path = p.isPublished && !skip.has(p.id) ? publicPath(p) : null;
+      return path ? [{ path, label: pageTitle(p.translations, primaryLocale, t) }] : [];
+    });
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     try {
       const path =
         deleteTarget.system === 'v2' ? `/v2/pages/${deleteTarget.id}` : `/pages/${deleteTarget.id}`;
       await api(path, { method: 'DELETE', token });
+      const oldPath = publicPath(deleteTarget);
       setPages((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setDeleteTarget(null);
+      // The page is gone either way; the redirect outcome shows in a notice.
+      void redirect.apply(plan, [oldPath]);
     } catch (err) {
       console.error('Failed to delete page:', err);
     } finally {
@@ -727,6 +756,7 @@ export default function CreatorPagesPage() {
       </div>
 
       {bulk.notice}
+      {redirect.notice}
       {bulk.dialog}
 
       {/* Table — simple client-side filter by title or slug */}
@@ -767,6 +797,27 @@ export default function CreatorPagesPage() {
               title: tb('deleteTitle', { count: rows.filter((p) => !p.isRequired).length }),
               description: tb('deleteDescription'),
               destructive: true,
+              content: (() => {
+                const deletable = rows.filter((p) => !p.isRequired);
+                const paths = deletable.map(publicPath).filter((p): p is string => !!p);
+                return (
+                  <DeleteRedirectField
+                    key={deletable.map((p) => p.id).join(',')}
+                    choiceRef={redirect.choiceRef}
+                    paths={paths}
+                    defaultEnabled={deletable.some((p) => p.isPublished && !!publicPath(p))}
+                    suggestions={redirectSuggestions}
+                    knownTargets={knownTargets(deletable)}
+                    skipped={deletable.length - paths.length}
+                    disabled={bulk.busy}
+                  />
+                );
+              })(),
+              confirm: () => {
+                bulkRedirectPlan.current = redirect.prepare();
+                return !!bulkRedirectPlan.current;
+              },
+              onSettled: (ok) => redirect.apply(bulkRedirectPlan.current, ok.map(publicPath)).then(() => undefined),
             })}
           >
             <Trash2 className="size-3.5" />
@@ -850,6 +901,20 @@ export default function CreatorPagesPage() {
               )}
             </DialogDescription>
           </DialogHeader>
+          {deleteTarget &&
+            (isLegalRow(deleteTarget) ? (
+              <DeleteRedirectLegalNote />
+            ) : (
+              <DeleteRedirectField
+                key={deleteTarget.id}
+                choiceRef={redirect.choiceRef}
+                paths={publicPath(deleteTarget) ? [publicPath(deleteTarget)!] : []}
+                defaultEnabled={deleteTarget.isPublished}
+                suggestions={redirectSuggestions}
+                knownTargets={knownTargets([deleteTarget])}
+                disabled={deleting}
+              />
+            ))}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
               {tc('cancel')}

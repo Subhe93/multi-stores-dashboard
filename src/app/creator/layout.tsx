@@ -171,6 +171,7 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
               { label: t('templates'), href: '/creator/templates' },
               { label: t('pages'), href: '/creator/pages' },
               { label: t('legalPages'), href: '/creator/legal' },
+              { label: t('redirects'), href: '/creator/redirects' },
               { label: t('menus'), href: '/creator/menus' },
               { label: t('landingPages'), href: '/creator/landing-pages' },
               { label: t('translations'), href: '/creator/translations' },

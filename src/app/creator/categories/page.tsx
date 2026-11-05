@@ -49,6 +49,12 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
+  DeleteRedirectField,
+  useDeleteRedirect,
+  type DeleteRedirectPlan,
+  type RedirectTargetSuggestion,
+} from '@/components/redirects/DeleteRedirect';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -327,6 +333,47 @@ export default function CreatorCategoriesPage() {
   const sortedTree = useMemo(() => sortTree(tree, sort, primaryLocale), [tree, sort, primaryLocale]);
   const rows = useMemo(() => flattenTree(sortedTree, primaryLocale), [sortedTree, primaryLocale]);
   const byId = useMemo(() => new Map(rows.map((r) => [r.id, r])), [rows]);
+
+  // "Redirect the old address?" option of the delete dialogs.
+  const tRedirect = useTranslations('creator.redirects.onDelete');
+  const redirect = useDeleteRedirect();
+  /**
+   * Storefront address of a collection (`/collections/<root>/.../<self>`).
+   * Internal labels are never shown in the store: no address, no prompt.
+   */
+  const publicPath = (row: FlatRow): string | null => {
+    if (row.visibility === 'INTERNAL' || !row.slug) return null;
+    const segments = row.ancestorIds.map((id) => byId.get(id)?.slug);
+    if (segments.some((seg) => !seg)) return null;
+    return `/collections/${[...segments, row.slug].join('/')}`;
+  };
+  /** Served right now: active itself and under active ancestors. */
+  const isLive = (row: FlatRow): boolean =>
+    row.is_active && row.ancestorIds.every((id) => byId.get(id)?.is_active !== false);
+  const baseSuggestions: RedirectTargetSuggestion[] = [
+    { path: '/collections', label: tRedirect('targets.collections') },
+    { path: '/products', label: tRedirect('targets.products') },
+  ];
+  /**
+   * Live collections offered as redirect targets, without the deleted ones
+   * and their descendants (re-rooted children get new addresses).
+   */
+  const knownTargets = (deleted: readonly FlatRow[]): RedirectTargetSuggestion[] => {
+    const gone = new Set(deleted.map((r) => r.id));
+    return rows.flatMap((row) => {
+      if (gone.has(row.id) || row.ancestorIds.some((id) => gone.has(id)) || !isLive(row)) return [];
+      const path = publicPath(row);
+      return path ? [{ path, label: [...row.ancestors, row.name].join(' / ') }] : [];
+    });
+  };
+  /** Single delete: the parent collection first when it is live. */
+  const suggestionsFor = (row: FlatRow): RedirectTargetSuggestion[] => {
+    const parent = row.parent_id ? byId.get(row.parent_id) : undefined;
+    const parentPath = parent && isLive(parent) ? publicPath(parent) : null;
+    return parentPath
+      ? [{ path: parentPath, label: tRedirect('targets.parentCollection', { name: parent!.name }) }, ...baseSuggestions]
+      : baseSuggestions;
+  };
   const parentIds = useMemo(() => rows.filter((r) => r.childIds.length > 0).map((r) => r.id), [rows]);
 
   // The visibility switch alone keeps the normal tree (internal labels are
@@ -494,8 +541,13 @@ export default function CreatorCategoriesPage() {
   // deleted parent become top-level, same as the single delete.
   const handleBulkDelete = async () => {
     if (!token) return;
+    const plan: DeleteRedirectPlan | null = redirect.prepare();
+    if (!plan) return;
     setBulkBusy(true);
     const targets = [...selection.selectedRows].sort((a, b) => b.depth - a.depth);
+    // Read before the delete: the redirect rows cover every locale prefix.
+    // Paths are taken before the delete: deleting a parent re-roots children.
+    const pathOf = new Map(targets.map((row) => [row.id, publicPath(row)]));
     const result = await runBulk(
       targets,
       (row) => api(`/creator-categories/${row.id}`, { method: 'DELETE', token }),
@@ -506,6 +558,8 @@ export default function CreatorCategoriesPage() {
     selection.clear();
     setBulkNotice(bulkSummary(result));
     await fetchCategories();
+    // Redirects for every deleted collection to the chosen target.
+    void redirect.apply(plan, result.ok.map((row) => pathOf.get(row.id)));
   };
 
   const updateCollapsed = (next: Set<string>) => {
@@ -577,15 +631,21 @@ export default function CreatorCategoriesPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget || !token) return;
+    const plan = redirect.prepare();
+    if (!plan) return;
     setDeleting(true);
     setDeleteError('');
     try {
+      const oldPath = publicPath(deleteTarget);
       await api(`/creator-categories/${deleteTarget.id}`, {
         method: 'DELETE',
         token,
       });
       await fetchCategories();
       setDeleteTarget(null);
+      // The collection is gone either way; the redirect outcome shows in a notice.
+      // Its subcollections are re-rooted and redirected by the API itself.
+      void redirect.apply(plan, [oldPath]);
     } catch (err) {
       console.error('Failed to delete collection:', err);
       const e = err as { message?: string };
@@ -1018,6 +1078,7 @@ export default function CreatorCategoriesPage() {
       )}
 
       <BulkNotice notice={bulkNotice} onDismiss={() => setBulkNotice(null)} />
+      {redirect.notice}
 
       {/* Tree table */}
       {loading ? (
@@ -1166,7 +1227,20 @@ export default function CreatorCategoriesPage() {
         busy={bulkBusy}
         busyLabel={t('collections.deleting')}
         onConfirm={handleBulkDelete}
-      />
+      >
+        {bulkDeleteOpen && (
+          <DeleteRedirectField
+            key={selection.selectedRows.map((r) => r.id).join(',')}
+            choiceRef={redirect.choiceRef}
+            paths={selection.selectedRows.map(publicPath).filter((p): p is string => !!p)}
+            defaultEnabled={selection.selectedRows.some((r) => isLive(r) && !!publicPath(r))}
+            suggestions={baseSuggestions}
+            knownTargets={knownTargets(selection.selectedRows)}
+            skipped={selection.selectedRows.filter((r) => !publicPath(r)).length}
+            disabled={bulkBusy}
+          />
+        )}
+      </ConfirmDialog>
 
       {/* Delete confirm dialog */}
       <Dialog
@@ -1187,6 +1261,22 @@ export default function CreatorCategoriesPage() {
               {t('collections.deleteConfirmSuffix')}
             </DialogDescription>
           </DialogHeader>
+          {deleteTarget && deleteTarget.childIds.length > 0 && (
+            <p className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+              {tRedirect('childrenMove', { count: deleteTarget.childIds.length })}
+            </p>
+          )}
+          {deleteTarget && (
+            <DeleteRedirectField
+              key={deleteTarget.id}
+              choiceRef={redirect.choiceRef}
+              paths={publicPath(deleteTarget) ? [publicPath(deleteTarget)!] : []}
+              defaultEnabled={isLive(deleteTarget)}
+              suggestions={suggestionsFor(deleteTarget)}
+              knownTargets={knownTargets([deleteTarget])}
+              disabled={deleting}
+            />
+          )}
           {deleteError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
               {deleteError}
