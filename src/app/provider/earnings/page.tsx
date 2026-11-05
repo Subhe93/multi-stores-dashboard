@@ -1,139 +1,383 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { StatCard } from '@/components/common/StatCard';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { ArrowLeftRight, Clock, Download, RotateCw, Undo2, Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { DollarSign, TrendingUp, Clock, CreditCard, Download } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DataTable } from '@/components/common/DataTable';
+import { StatCard } from '@/components/common/StatCard';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { useCurrency } from '@/lib/useCurrency';
-import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { useRowOpen } from '@/components/common/useTableSelection';
+import { downloadAuthed } from '@/lib/http';
 
-type Translator = ReturnType<typeof useTranslations>;
+/** Payout state of one order line (GET /commissions/provider/lines). */
+type LineStatus = 'pending' | 'unpaid' | 'transferred' | 'failed' | 'offline' | 'refunded' | 'cancelled';
+const LINE_STATUSES: LineStatus[] = ['pending', 'unpaid', 'transferred', 'failed', 'offline', 'refunded', 'cancelled'];
 
-/** Commission split attached to an order (decimals may arrive as strings). */
-interface OrderCommission {
-  platform_amount: number | string;
-  creator_amount: number | string;
-  provider_amount: number | string;
+/** One currency of GET /commissions/provider/summary (major units). */
+interface CurrencySummary {
+  currency: string;
+  orders: number;
+  refunded_orders: number;
+  gross: number;
+  earned: number;
+  pending: number;
+  failed: number;
+  unpaid: number;
+  /** Paid without a platform charge (COD, ...): in `earned`, not in `pending`. */
+  offline: number;
+  transferred: number;
+  refunded: number;
+  refunded_after_transfer: number;
 }
 
-/** Subset of the order row used by the earnings table and CSV export. */
-interface EarningsOrder {
-  id: string;
+interface EarningsLine {
+  order_id: string;
   order_number: string;
   created_at: string;
-  total: number | string;
-  status: string;
-  commission?: OrderCommission | null;
+  order_status: string;
+  store: { id: string; name: string | null } | null;
+  items_count: number;
+  gross: number;
+  amount: number;
+  currency: string;
+  status: LineStatus;
+  payout: { status: string; updated_at: string; stripe_transfer_id: string | null } | null;
 }
 
-/** Response of GET /commissions/summary. */
-interface EarningsSummary {
-  total_earnings?: number | string | null;
-  this_month?: number | string | null;
-  pending?: number | string | null;
-  total_orders?: number;
+interface PayoutRow {
+  id: string;
+  order_id: string;
+  order_number: string;
+  amount: number;
+  currency: string;
+  status: string;
+  stripe_transfer_id: string | null;
+  error: string | null;
+  order_refunded: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PageMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
-  CONFIRMED:      'bg-blue-50 text-blue-700 border-blue-200',
-  PROCESSING:     'bg-indigo-50 text-indigo-700 border-indigo-200',
-  MANUFACTURING:  'bg-purple-50 text-purple-700 border-purple-200',
-  QUALITY_CHECK:  'bg-orange-50 text-orange-700 border-orange-200',
-  SHIPPED:        'bg-sky-50 text-sky-700 border-sky-200',
-  DELIVERED:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-  CANCELLED:      'bg-zinc-100 text-zinc-500 border-zinc-200',
-  REFUNDED:       'bg-zinc-100 text-zinc-500 border-zinc-200',
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  unpaid: 'bg-zinc-50 text-zinc-600 border-zinc-200',
+  transferred: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  failed: 'bg-red-50 text-red-700 border-red-200',
+  offline: 'bg-sky-50 text-sky-700 border-sky-200',
+  refunded: 'bg-zinc-100 text-zinc-500 border-zinc-200',
+  cancelled: 'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
 
-const DATE_FILTERS = [
-  { labelKey: 'filterThisMonth',   value: 'this_month' },
-  { labelKey: 'filterLastMonth',   value: 'last_month' },
-  { labelKey: 'filterLast3Months', value: 'last_3_months' },
-  { labelKey: 'filterAllTime',     value: 'all' },
+type Preset = 'this_month' | 'last_month' | 'last_3_months' | 'all' | 'custom';
+const PRESETS: { key: Preset; labelKey: string }[] = [
+  { key: 'this_month', labelKey: 'filterThisMonth' },
+  { key: 'last_month', labelKey: 'filterLastMonth' },
+  { key: 'last_3_months', labelKey: 'filterLast3Months' },
+  { key: 'all', labelKey: 'filterAllTime' },
 ];
 
-function filterByDate(orders: EarningsOrder[], filter: string): EarningsOrder[] {
-  const now = new Date();
-  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
-  return orders.filter(o => {
-    const d = new Date(o.created_at);
-    if (filter === 'this_month') return d >= startOf(now);
-    if (filter === 'last_month') {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end   = new Date(now.getFullYear(), now.getMonth(), 1);
-      return d >= start && d < end;
-    }
-    if (filter === 'last_3_months') {
-      const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-      return d >= start;
-    }
-    return true;
-  });
+/** YYYY-MM-DD in the viewer's local calendar. */
+function ymd(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function exportCsv(rows: EarningsOrder[], t: Translator) {
-  const header = [t('csvOrder'), t('csvDate'), t('csvOrderTotal'), t('csvPlatformFee'), t('csvCreatorShare'), t('csvYourEarnings'), t('csvStatus')];
-  const lines = rows.map(o => [
-    o.order_number,
-    new Date(o.created_at).toLocaleDateString(),
-    Number(o.total).toFixed(2),
-    o.commission ? Number(o.commission.platform_amount).toFixed(2) : '—',
-    o.commission ? Number(o.commission.creator_amount).toFixed(2) : '—',
-    o.commission ? Number(o.commission.provider_amount).toFixed(2) : '—',
-    o.status,
-  ].join(','));
-  const csv = [header.join(','), ...lines].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `earnings-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+/** Inclusive from/to bounds of a preset (empty strings = unbounded). */
+function presetRange(preset: Preset): { from: string; to: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  if (preset === 'this_month') return { from: ymd(new Date(y, m, 1)), to: ymd(new Date(y, m + 1, 0)) };
+  if (preset === 'last_month') return { from: ymd(new Date(y, m - 1, 1)), to: ymd(new Date(y, m, 0)) };
+  if (preset === 'last_3_months') return { from: ymd(new Date(y, m - 2, 1)), to: ymd(new Date(y, m + 1, 0)) };
+  return { from: '', to: '' };
+}
+
+/**
+ * ISO instants of the viewer's local day bounds, so the API filters on the
+ * same calendar days the viewer picked (a date-only value would be a UTC day).
+ */
+function localDayStart(value: string): string {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+}
+function localDayEnd(value: string): string {
+  const [y, m, d] = value.split('-').map(Number);
+  return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
+}
+
+/** Row cap of the CSV export (mirrors CSV_MAX_ROWS in the API). */
+const CSV_MAX_ROWS = 20000;
+
+function buildQuery(params: Record<string, string | number | undefined>): string {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== '') q.set(k, String(v));
+  }
+  const s = q.toString();
+  return s ? `?${s}` : '';
 }
 
 export default function ProviderEarnings() {
-  const { fmt } = useCurrency();
   const { token } = useAuth();
-  const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations('provider');
-  const { linkRow } = useRowOpen();
-  const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
-  const [orders, setOrders] = useState<EarningsOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState('this_month');
+  const te = useTranslations('provider.earningsPage');
+  const tc = useTranslations('common');
+
+  const [preset, setPreset] = useState<Preset>('this_month');
+  const [range, setRange] = useState(() => presetRange('this_month'));
+  const [status, setStatus] = useState<LineStatus | ''>('');
+  const [tab, setTab] = useState<'lines' | 'payouts'>('lines');
+
+  const [summary, setSummary] = useState<CurrencySummary[] | null>(null);
+  const [lines, setLines] = useState<{ data: EarningsLine[]; meta: PageMeta } | null>(null);
+  const [linesPage, setLinesPage] = useState(1);
+  const [payouts, setPayouts] = useState<{ data: PayoutRow[]; meta: PageMeta } | null>(null);
+  const [payoutsPage, setPayoutsPage] = useState(1);
+  // One error per data source, so a failing list never hides a loaded summary.
+  const [summaryError, setSummaryError] = useState(false);
+  const [linesError, setLinesError] = useState(false);
+  const [payoutsError, setPayoutsError] = useState(false);
+  const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [reload, setReload] = useState({ summary: 0, lines: 0, payouts: 0 });
+  const [exporting, setExporting] = useState(false);
+
+  const fmtIn = useCallback(
+    (currency: string, amount: number | null | undefined) => {
+      try {
+        return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(Number(amount ?? 0));
+      } catch {
+        return `${Number(amount ?? 0).toFixed(2)} ${currency}`;
+      }
+    },
+    [locale],
+  );
+  const fmtDate = useCallback(
+    (iso: string) => new Date(iso).toLocaleDateString(locale),
+    [locale],
+  );
+
+  const rangeQuery = useMemo(
+    () => ({
+      from: range.from ? localDayStart(range.from) : '',
+      to: range.to ? localDayEnd(range.to) : '',
+    }),
+    [range],
+  );
 
   useEffect(() => {
     if (!token) return;
-    Promise.all([
-      api<EarningsSummary>('/commissions/summary', { token }).catch(() => null),
-      api<{ data: EarningsOrder[] }>('/orders?limit=100', { token }).catch(() => ({ data: [] })),
-    ]).then(([earn, ords]) => {
-      setEarnings(earn);
-      setOrders(ords?.data || []);
-    }).finally(() => setLoading(false));
-  }, [token]);
+    let cancelled = false;
+    setSummaryError(false);
+    api<{ by_currency: CurrencySummary[] }>(`/commissions/provider/summary${buildQuery(rangeQuery)}`, { token })
+      .then((res) => {
+        if (cancelled) return;
+        setSummary(res?.by_currency ?? []);
+      })
+      .catch(() => !cancelled && setSummaryError(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [token, rangeQuery, reload.summary]);
 
-  const filteredOrders = useMemo(() => filterByDate(orders, dateFilter), [orders, dateFilter]);
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    setLinesError(false);
+    api<{ data: EarningsLine[]; meta: PageMeta }>(
+      `/commissions/provider/lines${buildQuery({ ...rangeQuery, status, page: linesPage, limit: 20 })}`,
+      { token },
+    )
+      .then((res) => !cancelled && setLines(res))
+      .catch(() => !cancelled && setLinesError(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [token, rangeQuery, status, linesPage, reload.lines]);
 
-  // Computed stats for current filter
-  const filteredEarnings = filteredOrders.reduce((sum, o) => sum + Number(o.commission?.provider_amount || 0), 0);
-  const filteredRevenue  = filteredOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-  const avgOrderValue    = filteredOrders.length ? filteredRevenue / filteredOrders.length : 0;
+  useEffect(() => {
+    if (!token || tab !== 'payouts') return;
+    let cancelled = false;
+    setPayoutsError(false);
+    api<{ data: PayoutRow[]; meta: PageMeta }>(
+      `/commissions/provider/payouts${buildQuery({ page: payoutsPage, limit: 20 })}`,
+      { token },
+    )
+      .then((res) => !cancelled && setPayouts(res))
+      .catch(() => !cancelled && setPayoutsError(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [token, tab, payoutsPage, reload.payouts]);
+
+  const retry = (key: 'summary' | 'lines' | 'payouts') => setReload((r) => ({ ...r, [key]: r[key] + 1 }));
+
+  const choosePreset = (p: Preset) => {
+    setPreset(p);
+    setRange(presetRange(p));
+    setLinesPage(1);
+  };
+  const setBound = (key: 'from' | 'to', value: string) => {
+    setPreset('custom');
+    setRange((r) => ({ ...r, [key]: value }));
+    setLinesPage(1);
+  };
+
+  const exportCsv = async () => {
+    if (!token) return;
+    setExporting(true);
+    setExportNotice(null);
+    try {
+      let truncated = false;
+      await downloadAuthed(
+        `/commissions/provider/lines.csv${buildQuery({ ...rangeQuery, status })}`,
+        token,
+        `earnings-${ymd(new Date())}.csv`,
+        { onHeaders: (h) => (truncated = h.get('x-truncated') === '1') },
+      );
+      if (truncated) {
+        setExportNotice(te('csvTruncated', { count: CSV_MAX_ROWS.toLocaleString(locale) }));
+      }
+    } catch {
+      setExportNotice(te('exportError'));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const statusLabel = (s: string) => te(`status.${s}` as 'status.pending');
+
+  const lineColumns = [
+    {
+      key: 'order_number',
+      label: t('csvOrder'),
+      render: (l: EarningsLine) => (
+        <Link href={`/provider/orders/${l.order_id}`} className="text-xs font-mono hover:underline">
+          {l.order_number}
+        </Link>
+      ),
+    },
+    {
+      key: 'created_at',
+      label: t('csvDate'),
+      render: (l: EarningsLine) => <span className="text-xs text-muted-foreground">{fmtDate(l.created_at)}</span>,
+    },
+    {
+      key: 'store',
+      label: te('store'),
+      render: (l: EarningsLine) => <span className="text-xs">{l.store?.name ?? '—'}</span>,
+    },
+    {
+      key: 'items_count',
+      label: te('items'),
+      render: (l: EarningsLine) => <span className="text-xs tabular-nums">{l.items_count}</span>,
+    },
+    {
+      key: 'gross',
+      label: te('grossBase'),
+      render: (l: EarningsLine) => <span className="text-xs tabular-nums text-zinc-500">{fmtIn(l.currency, l.gross)}</span>,
+    },
+    {
+      key: 'amount',
+      label: t('csvYourEarnings'),
+      render: (l: EarningsLine) => (
+        <span
+          className={`text-xs font-semibold tabular-nums ${
+            l.status === 'refunded' || l.status === 'cancelled' ? 'text-zinc-400 line-through' : 'text-emerald-700'
+          }`}
+        >
+          {fmtIn(l.currency, l.amount)}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: te('payoutStatus'),
+      render: (l: EarningsLine) => (
+        <Badge variant="outline" className={`text-[10px] ${STATUS_COLORS[l.status] ?? ''}`}>
+          {statusLabel(l.status)}
+        </Badge>
+      ),
+    },
+  ];
+
+  const payoutColumns = [
+    {
+      key: 'created_at',
+      label: t('csvDate'),
+      render: (p: PayoutRow) => <span className="text-xs text-muted-foreground">{fmtDate(p.created_at)}</span>,
+    },
+    {
+      key: 'order_number',
+      label: t('csvOrder'),
+      render: (p: PayoutRow) => (
+        <Link href={`/provider/orders/${p.order_id}`} className="text-xs font-mono hover:underline">
+          {p.order_number}
+        </Link>
+      ),
+    },
+    {
+      key: 'amount',
+      label: te('amount'),
+      render: (p: PayoutRow) => <span className="text-xs font-semibold tabular-nums">{fmtIn(p.currency, p.amount)}</span>,
+    },
+    {
+      key: 'status',
+      label: t('csvStatus'),
+      render: (p: PayoutRow) => (
+        <div className="flex flex-col items-start gap-1">
+          <Badge variant="outline" className={`text-[10px] ${STATUS_COLORS[p.status] ?? ''}`}>
+            {p.status === 'paid' ? statusLabel('transferred') : statusLabel('failed')}
+          </Badge>
+          {p.order_refunded && (
+            <span className="text-[10px] text-amber-700">{te('refundedAfterTransfer')}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'stripe_transfer_id',
+      label: te('transferId'),
+      render: (p: PayoutRow) => (
+        <span className="text-xs font-mono text-muted-foreground" dir="ltr">
+          {p.stripe_transfer_id ?? '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'error',
+      label: te('failureReason'),
+      render: (p: PayoutRow) =>
+        p.error ? <span className="text-[11px] text-red-600 leading-snug">{p.error}</span> : <span className="text-xs">—</span>,
+    },
+  ];
+
+  const statusOptions = [
+    { value: '', label: te('allStatuses') },
+    ...LINE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) })),
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{t('earnings')}</h1>
           <p className="text-sm text-muted-foreground">{t('earningsSubtitle')}</p>
@@ -142,158 +386,175 @@ export default function ProviderEarnings() {
           variant="outline"
           size="sm"
           className="h-8 text-xs gap-1.5"
-          disabled={filteredOrders.length === 0}
-          onClick={() => exportCsv(filteredOrders, t)}
+          disabled={exporting || !lines || lines.meta.total === 0}
+          onClick={exportCsv}
         >
           <Download className="w-3.5 h-3.5" /> {t('exportCsv')}
         </Button>
       </div>
 
-      {/* Global stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title={t('totalEarnings')}
-          value={loading ? '...' : fmt(earnings?.total_earnings)}
-          subtitle={t('allTime')}
-          icon={<DollarSign className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('thisMonth')}
-          value={loading ? '...' : fmt(earnings?.this_month)}
-          icon={<TrendingUp className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('pendingPayout')}
-          value={loading ? '...' : fmt(earnings?.pending)}
-          subtitle={t('awaitingSettlement')}
-          icon={<Clock className="w-4 h-4" />}
-        />
-        <StatCard
-          title={t('totalOrders')}
-          value={loading ? '...' : earnings?.total_orders ?? 0}
-          subtitle={t('allTime')}
-          icon={<CreditCard className="w-4 h-4" />}
-        />
-      </div>
+      {exportNotice && (
+        <p className="text-sm text-red-600" role="alert">
+          {exportNotice}
+        </p>
+      )}
 
-      {/* Date filter + period stats */}
+      {/* Date range filter */}
       <Card className="shadow-none">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <CardTitle className="text-sm font-semibold">{t('revenueBreakdown')}</CardTitle>
-            <div className="flex gap-1">
-              {DATE_FILTERS.map(f => (
-                <Button
-                  key={f.value}
-                  variant={dateFilter === f.value ? 'default' : 'ghost'}
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => setDateFilter(f.value)}
-                >
-                  {t(f.labelKey)}
-                </Button>
-              ))}
+        <CardContent className="p-4 flex flex-wrap items-end gap-3">
+          <div className="flex gap-1 flex-wrap">
+            {PRESETS.map((p) => (
+              <Button
+                key={p.key}
+                variant={preset === p.key ? 'default' : 'ghost'}
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => choosePreset(p.key)}
+              >
+                {t(p.labelKey)}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-end gap-2 ms-auto">
+            <div className="space-y-1">
+              <Label htmlFor="earnings-from" className="text-[11px] text-muted-foreground">
+                {te('from')}
+              </Label>
+              <Input
+                id="earnings-from"
+                type="date"
+                className="h-8 text-xs w-36"
+                value={range.from}
+                max={range.to || undefined}
+                onChange={(e) => setBound('from', e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="earnings-to" className="text-[11px] text-muted-foreground">
+                {te('to')}
+              </Label>
+              <Input
+                id="earnings-to"
+                type="date"
+                className="h-8 text-xs w-36"
+                value={range.to}
+                min={range.from || undefined}
+                onChange={(e) => setBound('to', e.target.value)}
+              />
             </div>
           </div>
-        </CardHeader>
-
-        {/* Period summary bar */}
-        <CardContent className="pb-0">
-          <div className="grid grid-cols-3 gap-4 p-3 bg-zinc-50 rounded-lg mb-4 text-xs">
-            <div>
-              <p className="text-muted-foreground mb-0.5">{t('orders')}</p>
-              <p className="font-semibold text-base">{filteredOrders.length}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-0.5">{t('yourEarnings')}</p>
-              <p className="font-semibold text-base text-emerald-700">{fmt(filteredEarnings)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-0.5">{t('avgOrderValue')}</p>
-              <p className="font-semibold text-base">{fmt(avgOrderValue)}</p>
-            </div>
-          </div>
-        </CardContent>
-
-        <CardContent>
-          {filteredOrders.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">{t('noOrdersInPeriod')}</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvOrder')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvDate')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvOrderTotal')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvPlatformFee')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvCreatorShare')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase text-emerald-700">{t('csvYourEarnings')}</TableHead>
-                  <TableHead className="text-[10px] font-semibold uppercase">{t('csvStatus')}</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => {
-                  const providerAmt  = order.commission ? Number(order.commission.provider_amount) : null;
-                  const platformAmt  = order.commission ? Number(order.commission.platform_amount) : null;
-                  const creatorAmt   = order.commission ? Number(order.commission.creator_amount)  : null;
-                  const total        = Number(order.total);
-                  const providerPct  = providerAmt != null && total > 0
-                    ? ((providerAmt / total) * 100).toFixed(0)
-                    : null;
-
-                  return (
-                    <TableRow key={order.id} {...linkRow(`/provider/orders/${order.id}`)}>
-                      <TableCell className="text-xs font-mono">
-                        <Link href={`/provider/orders/${order.id}`} className="hover:underline">
-                          {order.order_number}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-xs font-medium">{fmt(total)}</TableCell>
-                      <TableCell className="text-xs text-zinc-500">
-                        {platformAmt != null ? `−${fmt(platformAmt)}` : '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-zinc-500">
-                        {creatorAmt != null && creatorAmt > 0 ? `−${fmt(creatorAmt)}` : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {providerAmt != null ? (
-                          <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                            {fmt(providerAmt)}
-                            {providerPct && (
-                              <span className="text-[9px] text-emerald-500 font-normal">({providerPct}%)</span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`text-[9px] ${STATUS_COLORS[order.status] || ''}`}>
-                          {order.status.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 text-[10px]"
-                          onClick={() => router.push(`/provider/orders/${order.id}`)}
-                        >
-                          {t('view')}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
         </CardContent>
       </Card>
+
+      {/* Summary per currency: amounts in different currencies are never added up. */}
+      {summaryError ? (
+        <ErrorState message={te('loadError')} retryLabel={tc('retry')} onRetry={() => retry('summary')} />
+      ) : summary === null ? (
+        <p className="text-sm text-muted-foreground">{te('loading')}</p>
+      ) : summary.length === 0 ? (
+        <Card className="shadow-none">
+          <CardContent className="p-6 text-sm text-muted-foreground text-center">{t('noOrdersInPeriod')}</CardContent>
+        </Card>
+      ) : (
+        summary.map((s) => (
+          <div key={s.currency} className="space-y-2">
+            {summary.length > 1 && (
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{s.currency}</p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard
+                title={te('earned')}
+                value={fmtIn(s.currency, s.earned)}
+                subtitle={te('ordersAndGross', { count: s.orders, gross: fmtIn(s.currency, s.gross) })}
+                icon={<Wallet className="w-4 h-4" />}
+              />
+              <StatCard
+                title={t('pendingPayout')}
+                value={fmtIn(s.currency, s.pending)}
+                subtitle={
+                  s.failed > 0
+                    ? te('failedIncluded', { amount: fmtIn(s.currency, s.failed) })
+                    : s.unpaid > 0
+                      ? te('unpaidHint', { amount: fmtIn(s.currency, s.unpaid) })
+                      : t('awaitingSettlement')
+                }
+                icon={<Clock className="w-4 h-4" />}
+              />
+              <StatCard
+                title={te('transferred')}
+                value={fmtIn(s.currency, s.transferred)}
+                subtitle={te('transferredHint')}
+                icon={<ArrowLeftRight className="w-4 h-4" />}
+              />
+              <StatCard
+                title={te('refunded')}
+                value={fmtIn(s.currency, s.refunded)}
+                subtitle={
+                  s.refunded_after_transfer > 0
+                    ? te('refundedAfterTransferAmount', { amount: fmtIn(s.currency, s.refunded_after_transfer) })
+                    : te('refundedOrders', { count: s.refunded_orders })
+                }
+                icon={<Undo2 className="w-4 h-4" />}
+              />
+            </div>
+            {s.offline > 0 && (
+              <p className="text-xs text-sky-700">{te('offlineHint', { amount: fmtIn(s.currency, s.offline) })}</p>
+            )}
+          </div>
+        ))
+      )}
+
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'lines' | 'payouts')}>
+        <TabsList variant="line" className="border-b w-full justify-start rounded-none px-0">
+          <TabsTrigger value="lines" className="flex-none px-3">
+            {te('tabLines')}
+          </TabsTrigger>
+          <TabsTrigger value="payouts" className="flex-none px-3">
+            {te('tabPayouts')}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="lines" className="pt-2 space-y-2">
+          {linesError && (
+            <ErrorState message={te('linesLoadError')} retryLabel={tc('retry')} onRetry={() => retry('lines')} />
+          )}
+          <DataTable<EarningsLine>
+            columns={lineColumns}
+            data={lines?.data ?? []}
+            getRowId={(l) => l.order_id}
+            rowHref={(l) => `/provider/orders/${l.order_id}`}
+            emptyMessage={lines ? t('noOrdersInPeriod') : linesError ? '—' : te('loading')}
+            pagination={lines?.meta}
+            onPageChange={setLinesPage}
+            actions={
+              <div className="w-48">
+                <SearchableSelect
+                  options={statusOptions}
+                  value={status}
+                  onChange={(v) => {
+                    setStatus(v as LineStatus | '');
+                    setLinesPage(1);
+                  }}
+                  placeholder={te('allStatuses')}
+                />
+              </div>
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="payouts" className="pt-2 space-y-2">
+          {payoutsError && (
+            <ErrorState message={te('payoutsLoadError')} retryLabel={tc('retry')} onRetry={() => retry('payouts')} />
+          )}
+          <DataTable<PayoutRow>
+            columns={payoutColumns}
+            data={payouts?.data ?? []}
+            emptyMessage={payouts ? te('noPayouts') : payoutsError ? '—' : te('loading')}
+            pagination={payouts?.meta}
+            onPageChange={setPayoutsPage}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Commission structure explanation */}
       <Card className="shadow-none bg-zinc-50/60">
@@ -303,28 +564,59 @@ export default function ProviderEarnings() {
         <CardContent className="space-y-2 text-xs text-muted-foreground">
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">{t('csvOrderTotal')}</span> — {t('explainOrderTotal')}</p>
+            <p>
+              <span className="font-medium text-foreground">{te('grossBase')}</span> — {te('explainGross')}
+            </p>
           </div>
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">{t('csvPlatformFee')}</span> — {t('explainPlatformFee')}</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-foreground">{t('csvCreatorShare')}</span> — {t('explainCreatorShare')}</p>
+            <p>
+              <span className="font-medium text-foreground">{t('csvPlatformFee')}</span> — {t('explainPlatformFee')}
+            </p>
           </div>
           <div className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-            <p><span className="font-medium text-emerald-700">{t('csvYourEarnings')}</span> — {t('explainYourEarnings')}</p>
+            <p>
+              <span className="font-medium text-emerald-700">{t('csvYourEarnings')}</span> — {t('explainYourEarnings')}
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+            <p>
+              <span className="font-medium text-foreground">{statusLabel('offline')}</span> — {te('explainOffline')}
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+            <p>
+              <span className="font-medium text-foreground">{te('refunded')}</span> — {te('explainRefunds')}
+            </p>
           </div>
           <Separator className="my-1" />
-          <p>{t('payoutsIntro')}{' '}
-            <button onClick={() => router.push('/provider/settings')} className="text-primary hover:underline font-medium">
+          <p>
+            {t('payoutsIntro')}{' '}
+            <Link href="/provider/settings" className="text-primary hover:underline font-medium">
               {t('stripeConnect')}
-            </button>. {t('payoutsOutro')}
+            </Link>
+            . {t('payoutsOutro')}
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/** Inline error of one data source, with a retry. */
+function ErrorState({ message, retryLabel, onRetry }: { message: string; retryLabel: string; onRetry: () => void }) {
+  return (
+    <div
+      className="flex items-center justify-between gap-3 rounded-md border border-red-200 bg-red-50 px-3 py-2"
+      role="alert"
+    >
+      <p className="text-sm text-red-700">{message}</p>
+      <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 shrink-0" onClick={onRetry}>
+        <RotateCw className="w-3.5 h-3.5" /> {retryLabel}
+      </Button>
     </div>
   );
 }

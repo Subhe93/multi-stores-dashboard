@@ -289,7 +289,8 @@
       "hint": "Skapas från titeln tills du ändrar den. Mellanslag och symboler rensas när du lämnar fältet.",
       "regenerate": "Skapa från titeln",
       "previewLabel": "URL"
-    }
+    },
+    "retry": "Försök igen"
   },
   "nav": {
     "platform": "Plattform",
@@ -923,7 +924,11 @@
     "stripeWebhookEndpointPlatform": "Plattformens endpunkt",
     "stripeWebhookEndpointConnect": "Connect-endpunkt",
     "copyUrl": "Kopiera",
-    "copiedUrl": "Kopierat"
+    "copiedUrl": "Kopierat",
+    "providerLegalDetails": "Juridiska uppgifter",
+    "providerLegalDetailsIncomplete": "Ofullständiga",
+    "providerLegalDetailsMissing": "Leverantören har inte lagt till juridiska uppgifter ännu.",
+    "providerVatNotVerified": "Momsregistreringsnumret kunde inte verifieras i VIES (tjänsten är inte tillgänglig)."
   },
   "guide": {
     "title": "Driftguide",
@@ -1332,6 +1337,74 @@
       "errorNoTracking": "Ange ett spårningsnummer för minst en artikel.",
       "errorNoOwnedItems": "Du har inga artiklar att hantera i den här ordern.",
       "errorPartial": "Vissa artiklar kunde inte sparas. Se meddelandena nedan."
+    },
+    "invoices": {
+      "title": "Fakturor",
+      "subtitle": "Fakturor och kreditnotor som butiker har utfärdat för beställningar med dina produkter.",
+      "notice": "Dessa dokument utfärdas av butiken (säljaren) till dess kund. Du kan visa och ladda ner dem, men bara butiken kan utfärda eller kreditera dem.",
+      "searchPlaceholder": "Nummer eller beställning",
+      "columns": {
+        "store": "Butik"
+      },
+      "loading": "Laddar fakturor…",
+      "loadFailed": "Fakturorna kunde inte laddas.",
+      "retry": "Försök igen",
+      "emptyTitle": "Inga fakturor ännu",
+      "emptyHint": "Fakturor visas här när en butik utfärdar en för en beställning som innehåller dina produkter.",
+      "emptyFiltered": "Inga fakturor matchar filtren."
+    },
+    "legalDetails": {
+      "title": "Juridiska uppgifter",
+      "subtitle": "Ditt företags juridiska identitet, används på fakturor och för utbetalningar.",
+      "saved": "Juridiska uppgifter sparade.",
+      "supportEmailHint": "Används för fakturor och faktureringsfrågor.",
+      "missingHint": "Lägg till ditt företags juridiska uppgifter — krävs för fakturor och utbetalningar",
+      "missingCta": "Lägg till juridiska uppgifter",
+      "loadError": "Det gick inte att läsa in dina juridiska uppgifter. Formuläret är låst tills de har lästs in."
+    },
+    "earningsPage": {
+      "loadError": "Det gick inte att läsa in dina intäkter. Försök igen.",
+      "exportError": "Det gick inte att exportera CSV-filen. Försök igen.",
+      "loading": "Läser in…",
+      "status": {
+        "pending": "Väntar på överföring",
+        "unpaid": "Väntar på betalning",
+        "transferred": "Överförd",
+        "failed": "Överföringen misslyckades",
+        "refunded": "Återbetald",
+        "cancelled": "Avbruten",
+        "offline": "Regleras utanför plattformens utbetalningar"
+      },
+      "store": "Butik",
+      "items": "Artiklar",
+      "grossBase": "Brutto (baspris)",
+      "payoutStatus": "Utbetalningsstatus",
+      "amount": "Belopp",
+      "refundedAfterTransfer": "Ordern återbetalades efter denna överföring",
+      "transferId": "Överförings-ID",
+      "failureReason": "Orsak till fel",
+      "allStatuses": "Alla statusar",
+      "from": "Från",
+      "to": "Till",
+      "earned": "Intjänat",
+      "ordersAndGross": "{count, plural, one {# order} other {# ordrar}} · brutto {gross}",
+      "failedIncluded": "inkl. {amount} med misslyckad överföring",
+      "unpaidHint": "ytterligare {amount} väntar på kundens betalning",
+      "transferred": "Överfört",
+      "transferredHint": "skickat till ditt Stripe-konto",
+      "refunded": "Återbetalt",
+      "refundedAfterTransferAmount": "{amount} hade redan överförts",
+      "refundedOrders": "{count, plural, one {# återbetald order} other {# återbetalda ordrar}}",
+      "tabLines": "Ordrar",
+      "tabPayouts": "Utbetalningar",
+      "noPayouts": "Inga utbetalningar ännu",
+      "explainGross": "baspriset för dina artiklar i ordern, före plattformens provision",
+      "explainRefunds": "återbetalda eller returnerade ordrar räknas inte längre som intäkter",
+      "offlineHint": "{amount} av dina intäkter regleras utanför plattformens utbetalningar (t.ex. betalning vid leverans) och överförs inte till ditt Stripe-konto.",
+      "explainOffline": "ordrar som betalats utan kortdebitering via plattformen (t.ex. betalning vid leverans) räknas som intäkter men överförs inte till ditt Stripe-konto",
+      "linesLoadError": "Det gick inte att läsa in orderraderna. Försök igen.",
+      "payoutsLoadError": "Det gick inte att läsa in utbetalningarna. Försök igen.",
+      "csvTruncated": "Exporten avbröts vid {count} rader. Begränsa datumintervallet för att exportera allt."
     }
   },
   "creator": {

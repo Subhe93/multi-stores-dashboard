@@ -289,7 +289,8 @@
       "hint": "Généré à partir du titre tant que vous ne le modifiez pas. Les espaces et symboles sont nettoyés quand vous quittez le champ.",
       "regenerate": "Générer depuis le titre",
       "previewLabel": "URL"
-    }
+    },
+    "retry": "Réessayer"
   },
   "nav": {
     "platform": "Plateforme",
@@ -923,7 +924,11 @@
     "stripeWebhookEndpointPlatform": "Point de terminaison plateforme",
     "stripeWebhookEndpointConnect": "Point de terminaison Connect",
     "copyUrl": "Copier",
-    "copiedUrl": "Copié"
+    "copiedUrl": "Copié",
+    "providerLegalDetails": "Informations légales",
+    "providerLegalDetailsIncomplete": "Incomplètes",
+    "providerLegalDetailsMissing": "Le fournisseur n'a pas encore ajouté ses informations légales.",
+    "providerVatNotVerified": "Le numéro de TVA n'a pas pu être vérifié dans VIES (service indisponible)."
   },
   "guide": {
     "title": "Guide des opérations",
@@ -1332,6 +1337,74 @@
       "errorNoTracking": "Saisissez un numéro de suivi pour au moins un article.",
       "errorNoOwnedItems": "Vous n'avez aucun article à traiter dans cette commande.",
       "errorPartial": "Certains articles n'ont pas pu être enregistrés. Consultez les messages ci-dessous."
+    },
+    "invoices": {
+      "title": "Factures",
+      "subtitle": "Factures et avoirs émis par les boutiques pour des commandes contenant vos produits.",
+      "notice": "Ces documents sont émis par la boutique (le vendeur) à son client. Vous pouvez les consulter et les télécharger, mais seule la boutique peut les émettre ou établir un avoir.",
+      "searchPlaceholder": "Numéro ou commande",
+      "columns": {
+        "store": "Boutique"
+      },
+      "loading": "Chargement des factures…",
+      "loadFailed": "Impossible de charger les factures.",
+      "retry": "Réessayer",
+      "emptyTitle": "Aucune facture pour le moment",
+      "emptyHint": "Les factures apparaissent ici dès qu’une boutique en émet une pour une commande contenant vos produits.",
+      "emptyFiltered": "Aucune facture ne correspond à ces filtres."
+    },
+    "legalDetails": {
+      "title": "Informations légales",
+      "subtitle": "L'identité légale de votre entreprise, utilisée pour les factures et les versements.",
+      "saved": "Informations légales enregistrées.",
+      "supportEmailHint": "Utilisé pour les factures et les questions de facturation.",
+      "missingHint": "Ajoutez les informations légales de votre entreprise — nécessaires pour les factures et les versements",
+      "missingCta": "Ajouter les informations légales",
+      "loadError": "Impossible de charger vos informations légales. Le formulaire reste verrouillé tant qu'elles ne sont pas chargées."
+    },
+    "earningsPage": {
+      "loadError": "Impossible de charger vos revenus. Veuillez réessayer.",
+      "exportError": "Impossible d'exporter le CSV. Veuillez réessayer.",
+      "loading": "Chargement…",
+      "status": {
+        "pending": "Virement en attente",
+        "unpaid": "Paiement en attente",
+        "transferred": "Viré",
+        "failed": "Échec du virement",
+        "refunded": "Remboursé",
+        "cancelled": "Annulé",
+        "offline": "Réglé hors des virements de la plateforme"
+      },
+      "store": "Boutique",
+      "items": "Articles",
+      "grossBase": "Brut (base)",
+      "payoutStatus": "Statut du versement",
+      "amount": "Montant",
+      "refundedAfterTransfer": "Commande remboursée après ce virement",
+      "transferId": "ID du virement",
+      "failureReason": "Motif de l'échec",
+      "allStatuses": "Tous les statuts",
+      "from": "Du",
+      "to": "Au",
+      "earned": "Gagné",
+      "ordersAndGross": "{count, plural, one {# commande} other {# commandes}} · brut {gross}",
+      "failedIncluded": "dont {amount} dont le virement a échoué",
+      "unpaidHint": "{amount} de plus en attente du paiement client",
+      "transferred": "Viré",
+      "transferredHint": "envoyé sur votre compte Stripe",
+      "refunded": "Remboursé",
+      "refundedAfterTransferAmount": "{amount} avaient déjà été virés",
+      "refundedOrders": "{count, plural, one {# commande remboursée} other {# commandes remboursées}}",
+      "tabLines": "Commandes",
+      "tabPayouts": "Versements",
+      "noPayouts": "Aucun versement pour le moment",
+      "explainGross": "le prix de base de vos articles dans la commande, avant la commission de la plateforme",
+      "explainRefunds": "les commandes remboursées ou retournées ne comptent plus dans les revenus",
+      "offlineHint": "{amount} de vos revenus sont réglés hors des virements de la plateforme (p. ex. paiement à la livraison) et ne sont pas virés sur votre compte Stripe.",
+      "explainOffline": "les commandes payées sans débit de carte via la plateforme (p. ex. paiement à la livraison) comptent dans les revenus mais ne sont pas virées sur votre compte Stripe",
+      "linesLoadError": "Impossible de charger les lignes de commande. Veuillez réessayer.",
+      "payoutsLoadError": "Impossible de charger les virements. Veuillez réessayer.",
+      "csvTruncated": "L'export a été coupé à {count} lignes. Réduisez la période pour tout exporter."
     }
   },
   "creator": {

@@ -235,6 +235,38 @@ export function downloadInvoicesCsv(token: string, query: InvoiceListQuery, file
   return downloadAuthed(`/invoices/my${listQueryString(filters, { format: 'csv' })}`, token, filename);
 }
 
+// ─── Provider endpoint (/invoices/provider, read-only) ───────────────────────
+
+// Narrower than InvoiceSummary: no buyer data, plus the issuing store.
+export interface ProviderInvoiceSummary {
+  id: string;
+  kind: InvoiceKind;
+  number: string;
+  issue_date: string; // YYYY-MM-DD
+  order_id: string;
+  order_number: string;
+  store_id: string;
+  store_name: string | null;
+  currency: string;
+  net_total: number;
+  vat_total: number;
+  gross_total: number;
+  paid: boolean;
+  credited_invoice: { id: string; number: string } | null;
+  pdf_available: boolean;
+}
+
+export interface ProviderInvoiceListResponse {
+  items: ProviderInvoiceSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export function listProviderInvoices(token: string, query: InvoiceListQuery): Promise<ProviderInvoiceListResponse> {
+  return api<ProviderInvoiceListResponse>(`/invoices/provider${listQueryString(query)}`, { token });
+}
+
 // ─── Documents endpoints (any role, ownership checked server-side) ──────────
 
 export function listOrderInvoices(token: string, orderId: string): Promise<InvoiceSummary[]> {

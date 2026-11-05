@@ -54,7 +54,11 @@ export async function downloadAuthed(
   endpoint: string,
   token: string,
   fallbackName: string,
-  options: { statusCodes?: Record<number, string> } = {},
+  options: {
+    statusCodes?: Record<number, string>;
+    /** Read response flags such as X-Truncated (must be CORS-exposed). */
+    onHeaders?: (headers: Headers) => void;
+  } = {},
 ): Promise<void> {
   const res = await fetch(`${API_URL}${endpoint}`, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw await toApiError(res, 'Download failed', options.statusCodes);
@@ -69,4 +73,5 @@ export async function downloadAuthed(
   a.remove();
   // Revoke on the next tick: some browsers start the download asynchronously.
   setTimeout(() => URL.revokeObjectURL(url), 0);
+  options.onHeaders?.(res.headers);
 }

@@ -289,7 +289,8 @@
       "hint": "Generated from the title until you edit it. Spaces and symbols are tidied up when you leave the field.",
       "regenerate": "Generate from title",
       "previewLabel": "URL"
-    }
+    },
+    "retry": "Retry"
   },
   "nav": {
     "platform": "Platform",
@@ -923,7 +924,11 @@
     "stripeWebhookEndpointPlatform": "Platform endpoint",
     "stripeWebhookEndpointConnect": "Connect endpoint",
     "copyUrl": "Copy",
-    "copiedUrl": "Copied"
+    "copiedUrl": "Copied",
+    "providerLegalDetails": "Legal details",
+    "providerLegalDetailsIncomplete": "Incomplete",
+    "providerLegalDetailsMissing": "The provider has not added legal details yet.",
+    "providerVatNotVerified": "The VAT number could not be verified in VIES (service unavailable)."
   },
   "guide": {
     "title": "Operations guide",
@@ -1332,6 +1337,74 @@
       "errorNoTracking": "Enter a tracking number for at least one item.",
       "errorNoOwnedItems": "You have no items to fulfil in this order.",
       "errorPartial": "Some items could not be saved. See the messages below."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "subtitle": "Invoices and credit notes that stores issued for orders containing your products.",
+      "notice": "These documents are issued by the store (the seller) to its customer. You can view and download them, but only the store can issue or credit them.",
+      "searchPlaceholder": "Number or order",
+      "columns": {
+        "store": "Store"
+      },
+      "loading": "Loading invoices…",
+      "loadFailed": "The invoices could not be loaded.",
+      "retry": "Try again",
+      "emptyTitle": "No invoices yet",
+      "emptyHint": "Invoices appear here once a store issues one for an order that contains your products.",
+      "emptyFiltered": "No invoices match these filters."
+    },
+    "legalDetails": {
+      "title": "Legal details",
+      "subtitle": "Your company's legal identity, used on invoices and for payouts.",
+      "saved": "Legal details saved.",
+      "supportEmailHint": "Used for invoices and billing questions.",
+      "missingHint": "Add your company's legal details — needed for invoices and payouts",
+      "missingCta": "Add legal details",
+      "loadError": "Could not load your legal details. The form stays locked until they load."
+    },
+    "earningsPage": {
+      "loadError": "Could not load your earnings. Please try again.",
+      "exportError": "Could not export the CSV. Please try again.",
+      "loading": "Loading…",
+      "status": {
+        "pending": "Pending transfer",
+        "unpaid": "Awaiting payment",
+        "transferred": "Transferred",
+        "failed": "Transfer failed",
+        "refunded": "Refunded",
+        "cancelled": "Cancelled",
+        "offline": "Settled outside platform payouts"
+      },
+      "store": "Store",
+      "items": "Items",
+      "grossBase": "Gross (base)",
+      "payoutStatus": "Payout status",
+      "amount": "Amount",
+      "refundedAfterTransfer": "Order refunded after this transfer",
+      "transferId": "Transfer ID",
+      "failureReason": "Failure reason",
+      "allStatuses": "All statuses",
+      "from": "From",
+      "to": "To",
+      "earned": "Earned",
+      "ordersAndGross": "{count, plural, one {# order} other {# orders}} · gross {gross}",
+      "failedIncluded": "incl. {amount} with a failed transfer",
+      "unpaidHint": "{amount} more awaiting customer payment",
+      "transferred": "Transferred",
+      "transferredHint": "sent to your Stripe account",
+      "refunded": "Refunded",
+      "refundedAfterTransferAmount": "{amount} had already been transferred",
+      "refundedOrders": "{count, plural, one {# refunded order} other {# refunded orders}}",
+      "tabLines": "Orders",
+      "tabPayouts": "Payouts",
+      "noPayouts": "No payouts yet",
+      "explainGross": "the base price of your items in the order, before the platform commission",
+      "explainRefunds": "refunded or returned orders no longer count as earnings",
+      "offlineHint": "{amount} of your earnings is settled outside platform payouts (e.g. cash on delivery) and is not transferred to your Stripe account.",
+      "explainOffline": "orders paid without a platform card charge (e.g. cash on delivery) count as earnings but are not transferred to your Stripe account",
+      "linesLoadError": "Could not load the order lines. Please try again.",
+      "payoutsLoadError": "Could not load the payouts. Please try again.",
+      "csvTruncated": "The export was cut off at {count} rows. Narrow the date range to export everything."
     }
   },
   "creator": {

@@ -36,7 +36,12 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
           { label: t('reviews'), href: '/provider/reviews', icon: <CheckSquare className="w-4 h-4" /> },
           { label: t('stores'), href: '/provider/stores', icon: <StoreIcon className="w-4 h-4" /> },
           { label: t('shipping'), href: '/provider/shipping', icon: <Truck className="w-4 h-4" /> },
-          { label: t('finances'), href: '/provider/earnings', icon: <Landmark className="w-4 h-4" /> },
+          {
+            label: t('finances'),
+            href: '/provider/earnings',
+            icon: <Landmark className="w-4 h-4" />,
+            children: [{ label: t('invoices'), href: '/provider/invoices' }],
+          },
         ],
       },
     ],

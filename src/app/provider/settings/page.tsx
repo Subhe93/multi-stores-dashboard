@@ -18,6 +18,7 @@ import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 import { ChangePasswordCard } from '@/components/security/ChangePasswordCard';
 import { useReauth } from '@/components/security/ReauthDialog';
 import { useApiError } from '@/lib/useApiError';
+import { ProviderLegalDetailsCard } from '@/components/provider/ProviderLegalDetailsCard';
 
 /** GET /providers/me — auth profile plus the editable logo. */
 interface ProviderMe extends ProviderProfile {
@@ -274,6 +275,9 @@ export default function ProviderSettings() {
           </Button>
         </div>
       </div>
+
+      {/* Legal company identity: needed for invoices and payouts. */}
+      <ProviderLegalDetailsCard />
 
       <Card className="shadow-none">
         <CardHeader className="pb-3">

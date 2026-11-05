@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Package, ClipboardList, DollarSign, Clock,
   ImageIcon, Truck, ArrowRight, CheckCircle2,
   AlertCircle, CreditCard, Settings,
-  Store as StoreIcon, BadgeCheck,
+  Store as StoreIcon, BadgeCheck, Scale,
 } from 'lucide-react';
 import { useAuth, type ProviderProfile } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -66,6 +67,8 @@ interface ShippingProfileSummary {
 /** GET /providers/me — auth profile plus the payout account id. */
 interface ProviderMe extends ProviderProfile {
   stripe_account_id?: string | null;
+  /** Legal company details saved and valid (GET /providers/me). */
+  legal_details_complete?: boolean;
 }
 
 interface OverviewStore {
@@ -211,6 +214,24 @@ export default function ProviderOverview() {
                 )}
               </div>
             ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legal details hint — until the company's legal identity is saved */}
+      {!loading && profile && profile.legal_details_complete === false && (
+        <Card className="shadow-none border-amber-200 bg-amber-50/50">
+          <CardContent className="flex flex-wrap items-center justify-between gap-2 py-3">
+            <div className="flex items-center gap-2">
+              <Scale className="w-4 h-4 shrink-0 text-amber-600" />
+              <span className="text-sm font-medium text-amber-800">{t('legalDetails.missingHint')}</span>
+            </div>
+            <Link
+              href="/provider/settings#legal-details"
+              className={buttonVariants({ variant: 'outline', size: 'sm', className: 'h-7 text-xs border-amber-300 text-amber-700' })}
+            >
+              {t('legalDetails.missingCta')} <ArrowRight className="w-3 h-3 ms-1 rtl:-scale-x-100" />
+            </Link>
           </CardContent>
         </Card>
       )}

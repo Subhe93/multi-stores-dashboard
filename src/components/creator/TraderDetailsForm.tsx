@@ -40,12 +40,54 @@ type FieldKey = keyof Form;
  * the API's `fields` on TRADER_DETAILS_INVALID.
  */
 export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
+  const { store, loading, refetch } = useMyStore();
+  return (
+    <LegalDetailsFormCard
+      details={store?.trader_details}
+      loading={loading}
+      complete={!!store?.golive_checklist?.trader_details_complete || !!store?.trader_details?.completed_at}
+      saveEndpoint="/stores/my/trader-details"
+      onSaved={() => {
+        refetch();
+        onSaved?.();
+      }}
+    />
+  );
+}
+
+/** Texts that differ per owner (store vs provider); defaults are the store's. */
+export interface LegalDetailsTexts {
+  title?: string;
+  subtitle?: string;
+  saved?: string;
+  supportEmailHint?: string;
+}
+
+export interface LegalDetailsFormCardProps {
+  /** Stored record (same shape for stores and providers). */
+  details: TraderDetails | null | undefined;
+  loading: boolean;
+  complete: boolean;
+  /** PUT endpoint validated with the trader-details rules (+ VIES). */
+  saveEndpoint: string;
+  /** Called after a successful save (reload the stored record here). */
+  onSaved?: () => void;
+  texts?: LegalDetailsTexts;
+  /** DOM id of the card (anchor target). */
+  id?: string;
+}
+
+/**
+ * The legal identity form shared by the store trader details and the
+ * provider legal details: same fields, same API rules and error codes
+ * (TRADER_DETAILS_INVALID `fields`, TRADER_VAT_INVALID).
+ */
+export function LegalDetailsFormCard({ details, loading, complete, saveEndpoint, onSaved, texts, id }: LegalDetailsFormCardProps) {
   const { token } = useAuth();
   const t = useTranslations('creator.traderDetails');
   const tc = useTranslations('common');
   const locale = useLocale();
   const describe = useApiError();
-  const { store, loading, refetch } = useMyStore();
   const [form, setForm] = useState<Form>(EMPTY);
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,7 +97,7 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
 
   useEffect(() => {
     if (loading || hydrated) return;
-    const td = store?.trader_details;
+    const td = details;
     if (td) {
       setForm({
         legal_name: td.legal_name ?? '',
@@ -72,7 +114,7 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
       });
     }
     setHydrated(true);
-  }, [loading, hydrated, store?.trader_details]);
+  }, [loading, hydrated, details]);
 
   const countryOptions = useMemo(() => taxCountryOptions(locale), [locale]);
   const set = (key: FieldKey, value: string) => {
@@ -87,7 +129,7 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
     setSaving(true);
     setMessage(null);
     try {
-      await api('/stores/my/trader-details', {
+      await api(saveEndpoint, {
         method: 'PUT',
         token,
         body: JSON.stringify({
@@ -102,8 +144,7 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
       });
       setFieldErrors([]);
       setVatRejected(false);
-      setMessage({ type: 'success', text: t('saved') });
-      refetch();
+      setMessage({ type: 'success', text: texts?.saved ?? t('saved') });
       onSaved?.();
     } catch (err) {
       const fields = err instanceof ApiError && Array.isArray(err.payload?.fields) ? (err.payload.fields as string[]) : [];
@@ -121,8 +162,8 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
   const invalid = (key: FieldKey) => fieldErrors.includes(key);
   // VIES answer of the stored VAT number (wave 3): verified (name/address),
   // or "could not be verified now" (null, non-blocking).
-  const vatCheck = store?.trader_details?.vat_check ?? null;
-  const storedVat = store?.trader_details?.vat_number ?? '';
+  const vatCheck = details?.vat_check ?? null;
+  const storedVat = details?.vat_number ?? '';
   const showVatCheck = !!vatCheck && !!storedVat && (form.vat_number ?? '').replace(/\s/g, '').toUpperCase() === storedVat;
   const field = (key: FieldKey, props: { required?: boolean; dir?: 'ltr'; type?: string; placeholder?: string; hint?: string } = {}) => (
     <div className="space-y-1.5">
@@ -166,20 +207,18 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
     </div>
   );
 
-  const complete = !!store?.golive_checklist?.trader_details_complete || !!store?.trader_details?.completed_at;
-
   return (
-    <Card className="shadow-none">
+    <Card id={id} className={cn('shadow-none', id && 'scroll-mt-20')}>
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-sm font-semibold">{t('title')}</CardTitle>
+          <CardTitle className="text-sm font-semibold">{texts?.title ?? t('title')}</CardTitle>
           {complete && (
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
               <CheckCircle2 className="size-3.5" /> {t('complete')}
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{t('subtitle')}</p>
+        <p className="text-xs text-muted-foreground">{texts?.subtitle ?? t('subtitle')}</p>
       </CardHeader>
       <CardContent>
         <form onSubmit={submit} className="space-y-4">
@@ -216,7 +255,7 @@ export function TraderDetailsForm({ onSaved }: { onSaved?: () => void }) {
               {invalid('country') && <p className="text-[11px] text-red-600">{t('errors.country')}</p>}
             </div>
             {field('phone', { required: true, dir: 'ltr', type: 'tel', placeholder: '+46 70 123 45 67' })}
-            {field('support_email', { required: true, dir: 'ltr', type: 'email', hint: t('supportEmailHint') })}
+            {field('support_email', { required: true, dir: 'ltr', type: 'email', hint: texts?.supportEmailHint ?? t('supportEmailHint') })}
           </div>
 
           {message && (

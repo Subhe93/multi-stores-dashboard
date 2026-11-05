@@ -289,7 +289,8 @@
       "hint": "Wird aus dem Titel erzeugt, bis du es bearbeitest. Leerzeichen und Symbole werden beim Verlassen des Felds bereinigt.",
       "regenerate": "Aus Titel erzeugen",
       "previewLabel": "URL"
-    }
+    },
+    "retry": "Erneut versuchen"
   },
   "nav": {
     "platform": "Plattform",
@@ -923,7 +924,11 @@
     "stripeWebhookEndpointPlatform": "Plattform-Endpunkt",
     "stripeWebhookEndpointConnect": "Connect-Endpunkt",
     "copyUrl": "Kopieren",
-    "copiedUrl": "Kopiert"
+    "copiedUrl": "Kopiert",
+    "providerLegalDetails": "Rechtliche Angaben",
+    "providerLegalDetailsIncomplete": "Unvollständig",
+    "providerLegalDetailsMissing": "Der Anbieter hat noch keine rechtlichen Angaben hinterlegt.",
+    "providerVatNotVerified": "Die USt-IdNr. konnte in VIES nicht geprüft werden (Dienst nicht verfügbar)."
   },
   "guide": {
     "title": "Betriebsleitfaden",
@@ -1332,6 +1337,74 @@
       "errorNoTracking": "Geben Sie für mindestens einen Artikel eine Sendungsnummer ein.",
       "errorNoOwnedItems": "Sie haben in dieser Bestellung keine Artikel auszuführen.",
       "errorPartial": "Einige Artikel konnten nicht gespeichert werden. Siehe die Hinweise unten."
+    },
+    "invoices": {
+      "title": "Rechnungen",
+      "subtitle": "Rechnungen und Gutschriften, die Shops für Bestellungen mit deinen Produkten ausgestellt haben.",
+      "notice": "Diese Belege stellt der Shop (der Verkäufer) seinem Kunden aus. Du kannst sie ansehen und herunterladen, ausstellen oder gutschreiben kann sie aber nur der Shop.",
+      "searchPlaceholder": "Nummer oder Bestellung",
+      "columns": {
+        "store": "Shop"
+      },
+      "loading": "Rechnungen werden geladen…",
+      "loadFailed": "Die Rechnungen konnten nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "emptyTitle": "Noch keine Rechnungen",
+      "emptyHint": "Rechnungen erscheinen hier, sobald ein Shop eine für eine Bestellung mit deinen Produkten ausstellt.",
+      "emptyFiltered": "Keine Rechnungen entsprechen diesen Filtern."
+    },
+    "legalDetails": {
+      "title": "Rechtliche Angaben",
+      "subtitle": "Die rechtliche Identität Ihres Unternehmens, verwendet für Rechnungen und Auszahlungen.",
+      "saved": "Rechtliche Angaben gespeichert.",
+      "supportEmailHint": "Wird für Rechnungen und Abrechnungsfragen verwendet.",
+      "missingHint": "Hinterlegen Sie die rechtlichen Angaben Ihres Unternehmens — erforderlich für Rechnungen und Auszahlungen",
+      "missingCta": "Rechtliche Angaben hinzufügen",
+      "loadError": "Deine rechtlichen Angaben konnten nicht geladen werden. Das Formular bleibt gesperrt, bis sie geladen sind."
+    },
+    "earningsPage": {
+      "loadError": "Deine Einnahmen konnten nicht geladen werden. Bitte versuche es erneut.",
+      "exportError": "Die CSV konnte nicht exportiert werden. Bitte versuche es erneut.",
+      "loading": "Wird geladen…",
+      "status": {
+        "pending": "Überweisung ausstehend",
+        "unpaid": "Zahlung ausstehend",
+        "transferred": "Überwiesen",
+        "failed": "Überweisung fehlgeschlagen",
+        "refunded": "Erstattet",
+        "cancelled": "Storniert",
+        "offline": "Außerhalb der Plattform-Auszahlungen abgerechnet"
+      },
+      "store": "Shop",
+      "items": "Artikel",
+      "grossBase": "Brutto (Basis)",
+      "payoutStatus": "Auszahlungsstatus",
+      "amount": "Betrag",
+      "refundedAfterTransfer": "Bestellung nach dieser Überweisung erstattet",
+      "transferId": "Überweisungs-ID",
+      "failureReason": "Fehlergrund",
+      "allStatuses": "Alle Status",
+      "from": "Von",
+      "to": "Bis",
+      "earned": "Verdient",
+      "ordersAndGross": "{count, plural, one {# Bestellung} other {# Bestellungen}} · brutto {gross}",
+      "failedIncluded": "inkl. {amount} mit fehlgeschlagener Überweisung",
+      "unpaidHint": "weitere {amount} warten auf die Zahlung des Kunden",
+      "transferred": "Überwiesen",
+      "transferredHint": "an dein Stripe-Konto gesendet",
+      "refunded": "Erstattet",
+      "refundedAfterTransferAmount": "{amount} waren bereits überwiesen",
+      "refundedOrders": "{count, plural, one {# erstattete Bestellung} other {# erstattete Bestellungen}}",
+      "tabLines": "Bestellungen",
+      "tabPayouts": "Auszahlungen",
+      "noPayouts": "Noch keine Auszahlungen",
+      "explainGross": "der Basispreis deiner Artikel in der Bestellung vor der Plattformprovision",
+      "explainRefunds": "erstattete oder zurückgesendete Bestellungen zählen nicht mehr zu den Einnahmen",
+      "offlineHint": "{amount} deiner Einnahmen werden außerhalb der Plattform-Auszahlungen abgerechnet (z. B. Nachnahme) und nicht an dein Stripe-Konto überwiesen.",
+      "explainOffline": "Bestellungen, die ohne Kartenzahlung über die Plattform bezahlt wurden (z. B. Nachnahme), zählen zu den Einnahmen, werden aber nicht an dein Stripe-Konto überwiesen",
+      "linesLoadError": "Die Bestellpositionen konnten nicht geladen werden. Bitte versuche es erneut.",
+      "payoutsLoadError": "Die Auszahlungen konnten nicht geladen werden. Bitte versuche es erneut.",
+      "csvTruncated": "Der Export wurde nach {count} Zeilen abgeschnitten. Grenze den Zeitraum ein, um alles zu exportieren."
     }
   },
   "creator": {

@@ -6,9 +6,10 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, MapPin, Phone, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, Mail, MapPin, Phone, CheckCircle2, Clock, Info, XCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import type { TraderDetails } from '@/lib/storeStatus';
 import Link from 'next/link';
 
 // Provider profile as returned by GET /providers/:id (only the fields this page reads).
@@ -21,6 +22,87 @@ interface ProviderDetail {
   verified: boolean;
   created_at: string;
   user?: { email: string } | null;
+  /** Legal company identity (read-only here; the provider edits it). */
+  legal_details?: TraderDetails | null;
+  legal_details_complete?: boolean;
+}
+
+/** Read-only view of the provider's legal details (same shape as store trader details). */
+function LegalDetailsCard({ details, complete }: { details?: TraderDetails | null; complete: boolean }) {
+  const t = useTranslations('admin');
+  const tf = useTranslations('creator.traderDetails');
+  const rows: [string, string | undefined][] = details
+    ? [
+        [tf('fields.legal_name'), details.legal_name],
+        [tf('fields.business_type'), details.business_type ? tf(`businessType.${details.business_type}`) : undefined],
+        [tf('fields.org_number'), details.org_number],
+        [tf('fields.vat_number'), details.vat_number],
+        [
+          tf('fields.address_line1'),
+          [details.address_line1, details.address_line2, [details.postal_code, details.city].filter(Boolean).join(' '), details.country]
+            .filter(Boolean)
+            .join(', '),
+        ],
+        [tf('fields.phone'), details.phone],
+        [tf('fields.support_email'), details.support_email],
+      ]
+    : [];
+  const vat = details?.vat_number ? details.vat_check : null;
+  return (
+    <Card className="shadow-none">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm font-semibold">{t('providerLegalDetails')}</CardTitle>
+          {complete ? (
+            <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
+              <CheckCircle2 className="w-3 h-3 me-1" />
+              {tf('complete')}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">
+              <Clock className="w-3 h-3 me-1" />
+              {t('providerLegalDetailsIncomplete')}
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="text-sm">
+        {!details ? (
+          <p className="text-muted-foreground">{t('providerLegalDetailsMissing')}</p>
+        ) : (
+          <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-[auto_1fr]">
+            {rows
+              .filter(([, v]) => !!v)
+              .map(([label, value]) => (
+                <div key={label} className="contents">
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                  <dd className="break-words">{value}</dd>
+                </div>
+              ))}
+          </dl>
+        )}
+        {vat && (
+          <p
+            className={`mt-3 inline-flex items-start gap-1 text-[11px] ${
+              vat.valid === true ? 'text-emerald-700' : vat.valid === false ? 'text-red-600' : 'text-amber-700'
+            }`}
+          >
+            {vat.valid === true ? (
+              <CheckCircle2 className="mt-px size-3 shrink-0" />
+            ) : vat.valid === false ? (
+              <XCircle className="mt-px size-3 shrink-0" />
+            ) : (
+              <Info className="mt-px size-3 shrink-0" />
+            )}
+            <span>
+              {vat.valid === true ? tf('vies.verified') : vat.valid === false ? tf('vies.invalidShort') : t('providerVatNotVerified')}
+              {vat.valid === true && vat.name ? ` — ${vat.name}` : ''}
+            </span>
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function ProviderDetailPage() {
@@ -88,6 +170,8 @@ export default function ProviderDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <LegalDetailsCard details={provider.legal_details} complete={!!provider.legal_details_complete} />
     </div>
   );
 }

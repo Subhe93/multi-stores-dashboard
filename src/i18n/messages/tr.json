@@ -289,7 +289,8 @@
       "hint": "Siz düzenleyene kadar başlıktan oluşturulur. Alandan çıktığınızda boşluklar ve semboller düzenlenir.",
       "regenerate": "Başlıktan oluştur",
       "previewLabel": "URL"
-    }
+    },
+    "retry": "Tekrar dene"
   },
   "nav": {
     "platform": "Platform",
@@ -923,7 +924,11 @@
     "stripeWebhookEndpointPlatform": "Platform uç noktası",
     "stripeWebhookEndpointConnect": "Connect uç noktası",
     "copyUrl": "Kopyala",
-    "copiedUrl": "Kopyalandı"
+    "copiedUrl": "Kopyalandı",
+    "providerLegalDetails": "Yasal bilgiler",
+    "providerLegalDetailsIncomplete": "Eksik",
+    "providerLegalDetailsMissing": "Tedarikçi henüz yasal bilgilerini eklemedi.",
+    "providerVatNotVerified": "KDV numarası VIES'te doğrulanamadı (hizmet kullanılamıyor)."
   },
   "guide": {
     "title": "Operasyon rehberi",
@@ -1332,6 +1337,74 @@
       "errorNoTracking": "En az bir ürün için takip numarası girin.",
       "errorNoOwnedItems": "Bu siparişte hazırlamanız gereken ürün yok.",
       "errorPartial": "Bazı ürünler kaydedilemedi. Aşağıdaki mesajlara bakın."
+    },
+    "invoices": {
+      "title": "Faturalar",
+      "subtitle": "Mağazaların, ürünlerinizi içeren siparişler için düzenlediği faturalar ve iade faturaları.",
+      "notice": "Bu belgeler mağaza (satıcı) tarafından müşterisine düzenlenir. Bunları görüntüleyip indirebilirsiniz; ancak yalnızca mağaza düzenleyebilir veya iade faturası kesebilir.",
+      "searchPlaceholder": "Numara veya sipariş",
+      "columns": {
+        "store": "Mağaza"
+      },
+      "loading": "Faturalar yükleniyor…",
+      "loadFailed": "Faturalar yüklenemedi.",
+      "retry": "Tekrar dene",
+      "emptyTitle": "Henüz fatura yok",
+      "emptyHint": "Bir mağaza ürünlerinizi içeren bir sipariş için fatura düzenlediğinde faturalar burada görünür.",
+      "emptyFiltered": "Bu filtrelere uyan fatura yok."
+    },
+    "legalDetails": {
+      "title": "Yasal bilgiler",
+      "subtitle": "Şirketinizin yasal kimliği; faturalarda ve ödemelerde kullanılır.",
+      "saved": "Yasal bilgiler kaydedildi.",
+      "supportEmailHint": "Faturalar ve faturalandırma soruları için kullanılır.",
+      "missingHint": "Şirketinizin yasal bilgilerini ekleyin — faturalar ve ödemeler için gereklidir",
+      "missingCta": "Yasal bilgileri ekle",
+      "loadError": "Yasal bilgilerin yüklenemedi. Bilgiler yüklenene kadar form kilitli kalır."
+    },
+    "earningsPage": {
+      "loadError": "Kazançlarınız yüklenemedi. Lütfen tekrar deneyin.",
+      "exportError": "CSV dışa aktarılamadı. Lütfen tekrar deneyin.",
+      "loading": "Yükleniyor…",
+      "status": {
+        "pending": "Transfer bekliyor",
+        "unpaid": "Ödeme bekleniyor",
+        "transferred": "Transfer edildi",
+        "failed": "Transfer başarısız",
+        "refunded": "İade edildi",
+        "cancelled": "İptal edildi",
+        "offline": "Platform ödemeleri dışında kapatılır"
+      },
+      "store": "Mağaza",
+      "items": "Ürünler",
+      "grossBase": "Brüt (taban)",
+      "payoutStatus": "Ödeme durumu",
+      "amount": "Tutar",
+      "refundedAfterTransfer": "Sipariş bu transferden sonra iade edildi",
+      "transferId": "Transfer kimliği",
+      "failureReason": "Hata nedeni",
+      "allStatuses": "Tüm durumlar",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "earned": "Kazanılan",
+      "ordersAndGross": "{count, plural, one {# sipariş} other {# sipariş}} · brüt {gross}",
+      "failedIncluded": "transferi başarısız olan {amount} dahil",
+      "unpaidHint": "{amount} daha müşteri ödemesi bekliyor",
+      "transferred": "Transfer edilen",
+      "transferredHint": "Stripe hesabınıza gönderildi",
+      "refunded": "İade edilen",
+      "refundedAfterTransferAmount": "{amount} zaten transfer edilmişti",
+      "refundedOrders": "{count, plural, one {# iade edilen sipariş} other {# iade edilen sipariş}}",
+      "tabLines": "Siparişler",
+      "tabPayouts": "Ödemeler",
+      "noPayouts": "Henüz ödeme yok",
+      "explainGross": "platform komisyonundan önce siparişteki ürünlerinizin taban fiyatı",
+      "explainRefunds": "iade edilen veya geri gönderilen siparişler artık kazanç sayılmaz",
+      "offlineHint": "Kazancının {amount} tutarındaki kısmı platform ödemeleri dışında kapatılır (ör. kapıda ödeme) ve Stripe hesabına aktarılmaz.",
+      "explainOffline": "platform üzerinden kart tahsilatı olmadan ödenen siparişler (ör. kapıda ödeme) kazanç sayılır ancak Stripe hesabına aktarılmaz",
+      "linesLoadError": "Sipariş satırları yüklenemedi. Lütfen tekrar dene.",
+      "payoutsLoadError": "Ödemeler yüklenemedi. Lütfen tekrar dene.",
+      "csvTruncated": "Dışa aktarma {count} satırda kesildi. Tümünü dışa aktarmak için tarih aralığını daralt."
     }
   },
   "creator": {
