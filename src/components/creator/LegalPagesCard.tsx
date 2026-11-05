@@ -117,8 +117,8 @@ export function LegalReviewHint({
  * "Legal pages" card on /creator/pages. INDEPENDENT stores own their legal
  * pages: until a page is published the storefront shows the standard text
  * filled with the trader details, so every row is either Published, Draft or
- * "Standard text shown". MARKETPLACE stores use the platform's texts and
- * only get an informational line.
+ * "Standard text shown". MARKETPLACE stores always show the standard texts
+ * with Namez AB as the seller (not editable) and only get an informational line.
  */
 export function LegalPagesCard({ reloadKey = 0 }: { reloadKey?: number }) {
   const { token } = useAuth();
@@ -200,7 +200,7 @@ export function LegalPagesCard({ reloadKey = 0 }: { reloadKey?: number }) {
 
   const name = (slug: string, fallback: string) => (KNOWN_SLUGS.includes(slug) ? t(`names.${slug}`) : fallback);
 
-  // Marketplace: the platform is the seller of record, so its texts apply.
+  // Marketplace: Namez AB is the seller of record; the standard texts are fixed.
   if (data?.store_type === 'MARKETPLACE') {
     return (
       <section

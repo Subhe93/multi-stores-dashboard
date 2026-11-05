@@ -1307,6 +1307,31 @@
     "unverified": {
       "title": "Deine Produkte bleiben für Shops verborgen, bis ein Admin dein Konto verifiziert",
       "body": "Shop-Betreiber können deinen Katalog noch nicht sehen oder importieren. Du erhältst eine E-Mail, sobald dein Konto verifiziert ist."
+    },
+    "settingsSaveFailed": "Ihre Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "companyNameInvalid": "Der Firmenname muss zwischen 2 und 100 Zeichen lang sein.",
+    "countryInvalid": "Bitte wählen Sie ein gültiges Land aus.",
+    "logoInvalid": "Das Logo konnte nicht gespeichert werden. Bitte laden Sie es erneut hoch.",
+    "fulfillmentTracking": {
+      "applyToAll": "Gleiche Sendungsverfolgung für alle meine Artikel",
+      "applyToAllHint": "Verwenden Sie dies, wenn alle Ihre Artikel zusammen in einem Paket versendet werden.",
+      "perItemHint": "Geben Sie die Sendungsverfolgung für jeden Artikel ein. Artikel ohne Sendungsnummer werden nicht als versendet markiert.",
+      "carrier": "Versanddienstleister (optional)",
+      "carrierPlaceholder": "z. B. PostNord, DHL, UPS",
+      "editTracking": "Sendungsverfolgung bearbeiten",
+      "saveTracking": "Sendungsverfolgung speichern",
+      "saving": "Wird gespeichert…",
+      "itemSaved": "Gespeichert",
+      "fulfilledByOther": "Wird von einem anderen Partner ausgeführt",
+      "shippedSuccess": "{count, plural, one {# Artikel als versendet markiert} other {# Artikel als versendet markiert}}",
+      "trackingSaved": "Sendungsverfolgung gespeichert",
+      "statusUpdated": "Status auf {status} aktualisiert",
+      "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "errorInvalid": "Einige Angaben sind ungültig. Bitte prüfen Sie sie und versuchen Sie es erneut.",
+      "errorUrl": "Geben Sie einen vollständigen Tracking-Link ein, der mit https:// beginnt",
+      "errorNoTracking": "Geben Sie für mindestens einen Artikel eine Sendungsnummer ein.",
+      "errorNoOwnedItems": "Sie haben in dieser Bestellung keine Artikel auszuführen.",
+      "errorPartial": "Einige Artikel konnten nicht gespeichert werden. Siehe die Hinweise unten."
     }
   },
   "creator": {
@@ -2038,7 +2063,7 @@
         "title": "Rechtliche Seiten",
         "explainer": "Dein Shop zeigt einen Standardtext mit deinen Unternehmensangaben, bis du deine eigene Version veröffentlichst. Datenschutzerklärung und Verkaufsbedingungen sind nötig, bevor dein Shop live gehen kann.",
         "disclaimer": "Vorlagen sind ein Ausgangspunkt und keine Rechtsberatung. Prüfe sie und passe sie an dein Unternehmen an.",
-        "marketplace": "Dein Shop verwendet die rechtlichen Seiten der Plattform, da bei Marktplatz-Shops die Plattform der Verkäufer ist. Hier ist nichts zu tun.",
+        "marketplace": "Dein Shop zeigt die Standard-Kaufbedingungen von ShopsDoor mit Namez AB als Verkäufer. Sie können nicht bearbeitet werden.",
         "traderHint": "Deine Unternehmensangaben sind unvollständig, daher haben die Vorlagen Lücken.",
         "traderHintLink": "Unternehmensangaben vervollständigen",
         "names": {
@@ -5953,7 +5978,9 @@
     "STORE_STATUS_REASON_REQUIRED": "Für diesen Status ist eine Begründung erforderlich.",
     "TRADER_VAT_INVALID": "Die USt-IdNr. ist nicht in VIES registriert. Prüfen Sie sie oder lassen Sie das Feld leer.",
     "AUTH_CAPTCHA_FAILED": "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "Die Sicherheitsprüfung ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal."
+    "AUTH_CAPTCHA_UNAVAILABLE": "Die Sicherheitsprüfung ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.",
+    "ORDER_FULFILLMENT_BACKWARDS": "Ein versandter oder zugestellter Artikel kann nicht auf eine frühere Stufe zurückgesetzt werden.",
+    "TRANSLATION_UNAVAILABLE": "Der Übersetzungsdienst ist derzeit nicht verfügbar. Bitte versuche es später erneut."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -6348,7 +6375,10 @@
     "unsavedLeaveConfirm": "Du hast ungespeicherte Änderungen. Seite verlassen und Änderungen verwerfen?",
     "internalCategories": "Tags",
     "internalCategoriesHelp": "Für Ihre eigene Ordnung, Filter und smarte Kollektionen. Wird nie im Shop angezeigt.",
-    "categoryHelp": "Dient der Einordnung des Produkts im Plattformkatalog"
+    "categoryHelp": "Dient der Einordnung des Produkts im Plattformkatalog",
+    "priceHelpProvider": "Ihr Grundpreis pro Stück – das, was Sie pro Verkauf erhalten. Shops legen ihren eigenen Verkaufspreis darauf fest.",
+    "seoNeedsTitle": "Fügen Sie auch einen Titel in dieser Sprache hinzu – SEO-Felder werden nur für Sprachen mit Titel gespeichert.",
+    "errSeoNeedsTitle": "Füge einen Titel auf {locale} hinzu — die SEO-Felder werden nur mit einem Titel gespeichert."
   },
   "customField": {
     "typeText": "Text",

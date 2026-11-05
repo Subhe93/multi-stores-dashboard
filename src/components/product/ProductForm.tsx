@@ -31,6 +31,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
+import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from './ViewInStoreButton';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
@@ -177,7 +178,15 @@ interface ProductFormProps {
 // locales can have a custom URL slug, otherwise we derive one (see save logic).
 // `short_description` stays undefined until it was loaded or edited: the API
 // keeps the stored value of a locale whose payload omits it (M4.4 X19).
-type LocaleTranslation = { title: string; description: string; slug: string; short_description?: string };
+type LocaleTranslation = {
+  title: string;
+  description: string;
+  slug: string;
+  short_description?: string;
+  // Per-locale SEO (product translation row).
+  meta_title?: string;
+  meta_desc?: string;
+};
 
 /** Tiptap leaves `<p></p>` behind when cleared; treat markup without text as empty. */
 const isBlankHtml = (html: string) => !html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() && !/<img\b/i.test(html);
@@ -189,6 +198,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const { currency } = useCurrency();
   const { token, user } = useAuth();
   const isCreator = user?.role === 'CREATOR';
+  const hasUser = !!user;
   const router = useRouter();
   // Personalization app (M4.1): only for the creator's own products (D2).
   const { apps: storeApps } = useStoreApps();
@@ -234,8 +244,6 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
   const [status, setStatus] = useState('DRAFT');
-  const [metaTitle, setMetaTitle] = useState('');
-  const [metaDesc, setMetaDesc] = useState('');
   const [attrValues, setAttrValues] = useState<Record<string, AttrValue>>({});
   const [images, setImages] = useState<ProductImage[]>([]);
   const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
@@ -289,12 +297,19 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
   // ── Fetch store language config ────────────────────────────
   useEffect(() => {
-    if (!token) return;
-    // Shared with the store link / storefront URL hook (one request per page).
-    (fetchMyStore(token) as Promise<StoreResponse>)
-      .then(store => {
-        const primary: string = store.language_config?.primary_locale || 'en';
-        const secondary: string[] = store.language_config?.secondary_locales || [];
+    if (!token || !hasUser) return;
+    // Providers (and admins) have no store: their base products are sold by
+    // stores in any content language, so they edit every platform content
+    // locale with the platform fallback ('en') as primary.
+    const localeConfig: Promise<{ primary: string; secondary: string[] }> = isCreator
+      // Shared with the store link / storefront URL hook (one request per page).
+      ? (fetchMyStore(token) as Promise<StoreResponse>).then(store => ({
+          primary: store.language_config?.primary_locale || 'en',
+          secondary: store.language_config?.secondary_locales || [],
+        }))
+      : Promise.resolve({ primary: PLATFORM_PRIMARY_LOCALE, secondary: CONTENT_LOCALE_CODES });
+    localeConfig
+      .then(({ primary, secondary }) => {
         const all = [primary, ...secondary.filter((l: string) => l !== primary)];
         setPrimaryLocale(primary);
         setAllLocales(all);
@@ -311,7 +326,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setLocaleConfigLoaded(true);
       })
       .catch(() => {}); // no store yet — keep defaults
-  }, [token]);
+  }, [token, hasUser, isCreator]);
 
   // ── Fetch shipping profiles ────────────────────────────────
   useEffect(() => {
@@ -349,11 +364,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   useEffect(() => {
     if (mode !== 'edit' || !token || !productId) return;
     api<ProductResponse>(`/products/${productId}`, { token }).then(p => {
-      const primaryT = p.translations?.find((t) => t.locale === primaryLocale) || p.translations?.[0];
 
       setCategoryId(p.category_id || '');
-      setMetaTitle(primaryT?.meta_title || '');
-      setMetaDesc(primaryT?.meta_desc || '');
       setProductType(p.product_type || 'TRADITIONAL');
       setCustomizationType(p.customization_type || '');
       setBasePrice(String(p.base_price || ''));
@@ -403,6 +415,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             description: t.description || '',
             slug: t.slug || '',
             ...('short_description' in t ? { short_description: t.short_description || '' } : {}),
+            meta_title: t.meta_title || '',
+            meta_desc: t.meta_desc || '',
           };
         });
         return next;
@@ -521,14 +535,15 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         description: richText(tr?.description),
         short_description: richText(tr?.short_description),
         slug: tr?.slug || '',
+        meta_title: tr?.meta_title || '',
+        meta_desc: tr?.meta_desc || '',
       };
-      if (row.title || row.description || row.short_description || row.slug) trans[locale] = row;
+      if (row.title || row.description || row.short_description || row.slug || row.meta_title || row.meta_desc) trans[locale] = row;
     }
     return stableJson({
       trans,
       categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
       trackInventory, stockQty, weight, weightUnit, status: statusOverride ?? status,
-      metaTitle, metaDesc,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
       variantOptions,
@@ -561,7 +576,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       });
       if (res.translated) setTransField(targetLocale, 'title', res.translated);
     } catch (err) {
-      console.error('Translation failed:', err);
+      setError(apiError(err));
     } finally {
       setTranslatingLocale('');
     }
@@ -591,6 +606,20 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       if (val === '' || val == null || val === false)
         errs[`attr_${a.id}`] = t('product.errFieldRequired', { field: pickTranslation(a.translations, primaryLocale)?.label || a.name });
     });
+    // SEO fields of a secondary locale are saved only with that locale's
+    // title, so block the save instead of dropping them silently.
+    const seoWithoutTitle = allLocales.filter((locale) => {
+      if (locale === primaryLocale) return false;
+      const tr = translations[locale];
+      return !!(tr && !tr.title?.trim() && (tr.meta_title?.trim() || tr.meta_desc?.trim()));
+    });
+    seoWithoutTitle.forEach((locale) => {
+      errs[`title_${locale}`] = t('product.errSeoNeedsTitle', {
+        locale: LOCALE_LABELS[locale] || locale.toUpperCase(),
+      });
+    });
+    // Jump to the first such locale's tab when the primary tab has no error.
+    if (seoWithoutTitle.length > 0 && !errs.title && !errs.slug) setActiveLocale(seoWithoutTitle[0]);
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) {
       setError(t('product.fixErrorsBeforeSaving'));
@@ -664,9 +693,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               ? { short_description: isBlankHtml(t.short_description) ? '' : t.short_description }
               : {}),
             slug: locale === primaryLocale ? primarySlug : resolved,
-            ...(locale === primaryLocale
-              ? { meta_title: metaTitle || undefined, meta_desc: metaDesc || undefined }
-              : {}),
+            meta_title: t.meta_title || undefined,
+            meta_desc: t.meta_desc || undefined,
           };
         });
 
@@ -1092,10 +1120,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     setTransField(activeLocale, 'title', e.target.value);
                     if (activeLocale === primaryLocale && fieldErrors.title)
                       setFieldErrors(p => ({ ...p, title: '' }));
+                    if (activeLocale !== primaryLocale && fieldErrors[`title_${activeLocale}`])
+                      setFieldErrors(p => ({ ...p, [`title_${activeLocale}`]: '' }));
                   }}
-                  className={activeLocale === primaryLocale && fieldErrors.title ? 'border-red-400 focus-visible:ring-red-400' : ''}
+                  className={(activeLocale === primaryLocale ? fieldErrors.title : fieldErrors[`title_${activeLocale}`]) ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 />
-                {activeLocale === primaryLocale && <FieldError msg={fieldErrors.title} />}
+                <FieldError msg={activeLocale === primaryLocale ? fieldErrors.title : fieldErrors[`title_${activeLocale}`]} />
               </div>
 
               {/* Description field */}
@@ -1265,14 +1295,43 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </CardContent>
           </Card>
 
-          {/* SEO (primary locale only) */}
+          {/* SEO — per content locale (shares the active language tab) */}
           <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.seo')}</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1.5"><Label className="text-xs">{t('product.pageTitle')}</Label><Input className="h-8 text-sm" value={metaTitle} onChange={e => setMetaTitle(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label className="text-xs">{t('product.metaDescription')}</Label>
-                <textarea rows={2} className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs" value={metaDesc} onChange={e => setMetaDesc(e.target.value)} />
+            {hasMultipleLocales && (
+              <LocaleTabs
+                className="px-6"
+                value={activeLocale}
+                onChange={setActiveLocale}
+                locales={allLocales}
+                primaryLocale={primaryLocale}
+                filled={filledLocales(allLocales, translations, (tr) => !!(tr?.meta_title?.trim() || tr?.meta_desc?.trim()))}
+              />
+            )}
+            <CardContent className="space-y-3 pt-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">{t('product.pageTitle')}</Label>
+                <Input
+                  className="h-8 text-sm"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  value={translations[activeLocale]?.meta_title || ''}
+                  maxLength={255}
+                  onChange={e => setTransField(activeLocale, 'meta_title', e.target.value)}
+                />
               </div>
+              <div className="space-y-1.5"><Label className="text-xs">{t('product.metaDescription')}</Label>
+                <textarea
+                  rows={2}
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs"
+                  value={translations[activeLocale]?.meta_desc || ''}
+                  maxLength={1000}
+                  onChange={e => setTransField(activeLocale, 'meta_desc', e.target.value)}
+                />
+              </div>
+              {activeLocale !== primaryLocale && !translations[activeLocale]?.title?.trim() && (
+                <p className="text-[10px] text-muted-foreground">{t('product.seoNeedsTitle')}</p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -1353,7 +1412,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   />
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-snug">
-                  {t('product.priceHelp')}
+                  {/* A provider's price is the base stores pay; stores set the customer price. */}
+                  {isCreator ? t('product.priceHelp') : t('product.priceHelpProvider')}
                 </p>
                 <FieldError msg={fieldErrors.basePrice} />
               </div>
@@ -1432,7 +1492,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 />
                 <p className="text-[10px] text-muted-foreground">
                   {t('product.manageProfilesIn')}{' '}
-                  <Link href="/provider/shipping" className="text-primary hover:underline">
+                  <Link href={isCreator ? '/creator/shipping' : '/provider/shipping'} className="text-primary hover:underline">
                     {t('product.shippingSettings')}
                   </Link>
                 </p>

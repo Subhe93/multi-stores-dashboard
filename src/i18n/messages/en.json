@@ -1307,6 +1307,31 @@
     "unverified": {
       "title": "Your products stay hidden from stores until an admin verifies your account",
       "body": "Store owners can’t see or import your catalog yet. You’ll get an email as soon as your account is verified."
+    },
+    "settingsSaveFailed": "Could not save your settings. Please try again.",
+    "companyNameInvalid": "Company name must be between 2 and 100 characters.",
+    "countryInvalid": "Please select a valid country.",
+    "logoInvalid": "The logo could not be saved. Please upload it again.",
+    "fulfillmentTracking": {
+      "applyToAll": "Same tracking for all my items",
+      "applyToAllHint": "Use this when all your items ship together in one parcel.",
+      "perItemHint": "Enter tracking for each item. Items left without a tracking number are not marked as shipped.",
+      "carrier": "Carrier (optional)",
+      "carrierPlaceholder": "e.g. PostNord, DHL, UPS",
+      "editTracking": "Edit tracking",
+      "saveTracking": "Save tracking",
+      "saving": "Saving…",
+      "itemSaved": "Saved",
+      "fulfilledByOther": "Fulfilled by another partner",
+      "shippedSuccess": "{count, plural, one {# item marked as shipped} other {# items marked as shipped}}",
+      "trackingSaved": "Tracking saved",
+      "statusUpdated": "Status updated to {status}",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "errorInvalid": "Some values are not valid. Please check them and try again.",
+      "errorUrl": "Enter a full tracking link starting with https://",
+      "errorNoTracking": "Enter a tracking number for at least one item.",
+      "errorNoOwnedItems": "You have no items to fulfil in this order.",
+      "errorPartial": "Some items could not be saved. See the messages below."
     }
   },
   "creator": {
@@ -2038,7 +2063,7 @@
         "title": "Legal pages",
         "explainer": "Your store shows a standard text with your business details until you publish your own version. Privacy policy and terms of sale are needed before your store can go live.",
         "disclaimer": "Templates are a starting point, not legal advice. Review them and adapt them to your business.",
-        "marketplace": "Your store uses the platform’s legal pages, because the platform is the seller on marketplace stores. Nothing to do here.",
+        "marketplace": "Your store shows ShopsDoor's standard purchase terms with Namez AB as the seller. They can't be edited.",
         "traderHint": "Your business details are incomplete, so the templates have gaps.",
         "traderHintLink": "Complete business details",
         "names": {
@@ -5953,7 +5978,9 @@
     "STORE_STATUS_REASON_REQUIRED": "A reason is required for this status.",
     "TRADER_VAT_INVALID": "The VAT number is not registered in VIES. Check it or leave the field empty.",
     "AUTH_CAPTCHA_FAILED": "The security check failed. Please try again.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "The security check is temporarily unavailable. Please try again in a moment."
+    "AUTH_CAPTCHA_UNAVAILABLE": "The security check is temporarily unavailable. Please try again in a moment.",
+    "ORDER_FULFILLMENT_BACKWARDS": "A shipped or delivered item can't be moved back to an earlier stage.",
+    "TRANSLATION_UNAVAILABLE": "The translation service is unavailable right now. Please try again later."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -6348,7 +6375,10 @@
     "unsavedLeaveConfirm": "You have unsaved changes. Leave this page and discard them?",
     "internalCategories": "Tags",
     "internalCategoriesHelp": "For your own organisation, filters and smart collections. Never shown in the store.",
-    "categoryHelp": "Used to classify the product in the platform catalog"
+    "categoryHelp": "Used to classify the product in the platform catalog",
+    "priceHelpProvider": "Your base price per unit — what you earn on each sale. Stores set their own selling price on top of it.",
+    "seoNeedsTitle": "Add a title in this language too — SEO fields are saved only for languages that have a title.",
+    "errSeoNeedsTitle": "Add a title in {locale} — its SEO fields are saved only with a title."
   },
   "customField": {
     "typeText": "Text",

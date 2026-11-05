@@ -18,6 +18,7 @@ import { clearCurrencyCache, useCurrency } from '@/lib/useCurrency';
 import { useTransientFlag } from '@/lib/useTransientFlag';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
+import { CONTENT_LOCALES } from '@/lib/contentLocales';
 import { createMarket, updateMarket, type MarketIndexing, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
 
 // Mirror of the API key rule (CreateMarketDto): 1–16 lowercase letters, digits
@@ -26,14 +27,7 @@ const KEY_RE = /^[a-z0-9](?:[a-z0-9-]{0,14}[a-z0-9])?$/;
 
 // Storefront locales the proxy can serve (web `locales` list); the API rejects
 // anything else with MARKET_LOCALE_UNSUPPORTED.
-export const MARKET_LOCALES = [
-  { value: 'en', label: 'English' },
-  { value: 'ar', label: 'العربية' },
-  { value: 'tr', label: 'Türkçe' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' },
-  { value: 'sv', label: 'Svenska' },
-];
+export const MARKET_LOCALES: { value: string; label: string }[] = CONTENT_LOCALES.map((l) => ({ ...l }));
 
 export const localeLabel = (code: string) => MARKET_LOCALES.find((l) => l.value === code)?.label ?? code.toUpperCase();
 

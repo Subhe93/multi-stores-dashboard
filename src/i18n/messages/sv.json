@@ -1307,6 +1307,31 @@
     "unverified": {
       "title": "Dina produkter är dolda för butiker tills en administratör verifierar ditt konto",
       "body": "Butiksägare kan inte se eller importera din katalog ännu. Du får ett mejl så snart ditt konto är verifierat."
+    },
+    "settingsSaveFailed": "Det gick inte att spara inställningarna. Försök igen.",
+    "companyNameInvalid": "Företagsnamnet måste vara mellan 2 och 100 tecken.",
+    "countryInvalid": "Välj ett giltigt land.",
+    "logoInvalid": "Logotypen kunde inte sparas. Ladda upp den igen.",
+    "fulfillmentTracking": {
+      "applyToAll": "Samma spårning för alla mina artiklar",
+      "applyToAllHint": "Använd detta när alla dina artiklar skickas tillsammans i ett paket.",
+      "perItemHint": "Ange spårning för varje artikel. Artiklar utan spårningsnummer markeras inte som skickade.",
+      "carrier": "Transportör (valfritt)",
+      "carrierPlaceholder": "t.ex. PostNord, DHL, UPS",
+      "editTracking": "Redigera spårning",
+      "saveTracking": "Spara spårning",
+      "saving": "Sparar…",
+      "itemSaved": "Sparad",
+      "fulfilledByOther": "Hanteras av en annan partner",
+      "shippedSuccess": "{count, plural, one {# artikel markerad som skickad} other {# artiklar markerade som skickade}}",
+      "trackingSaved": "Spårning sparad",
+      "statusUpdated": "Status uppdaterad till {status}",
+      "errorGeneric": "Något gick fel. Försök igen.",
+      "errorInvalid": "Vissa värden är ogiltiga. Kontrollera dem och försök igen.",
+      "errorUrl": "Ange en fullständig spårningslänk som börjar med https://",
+      "errorNoTracking": "Ange ett spårningsnummer för minst en artikel.",
+      "errorNoOwnedItems": "Du har inga artiklar att hantera i den här ordern.",
+      "errorPartial": "Vissa artiklar kunde inte sparas. Se meddelandena nedan."
     }
   },
   "creator": {
@@ -2038,7 +2063,7 @@
         "title": "Juridiska sidor",
         "explainer": "Butiken visar en standardtext med dina företagsuppgifter tills du publicerar din egen version. Integritetspolicy och köpvillkor behövs innan butiken kan gå live.",
         "disclaimer": "Mallarna är en utgångspunkt, inte juridisk rådgivning. Granska dem och anpassa dem efter ditt företag.",
-        "marketplace": "Din butik använder plattformens juridiska sidor, eftersom plattformen är säljare i marknadsplatsbutiker. Inget att göra här.",
+        "marketplace": "Din butik visar ShopsDoors standardvillkor för köp med Namez AB som säljare. De kan inte redigeras.",
         "traderHint": "Dina företagsuppgifter är ofullständiga, så mallarna har luckor.",
         "traderHintLink": "Fyll i företagsuppgifter",
         "names": {
@@ -5953,7 +5978,9 @@
     "STORE_STATUS_REASON_REQUIRED": "En motivering krävs för den här statusen.",
     "TRADER_VAT_INVALID": "Momsregistreringsnumret finns inte i VIES. Kontrollera det eller lämna fältet tomt.",
     "AUTH_CAPTCHA_FAILED": "Säkerhetskontrollen misslyckades. Försök igen.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "Säkerhetskontrollen är tillfälligt otillgänglig. Försök igen om en stund."
+    "AUTH_CAPTCHA_UNAVAILABLE": "Säkerhetskontrollen är tillfälligt otillgänglig. Försök igen om en stund.",
+    "ORDER_FULFILLMENT_BACKWARDS": "En skickad eller levererad artikel kan inte flyttas tillbaka till ett tidigare steg.",
+    "TRANSLATION_UNAVAILABLE": "Översättningstjänsten är inte tillgänglig just nu. Försök igen senare."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -6348,7 +6375,10 @@
     "unsavedLeaveConfirm": "Du har osparade ändringar. Vill du lämna sidan och kasta dem?",
     "internalCategories": "Taggar",
     "internalCategoriesHelp": "För din egen ordning, filter och smarta kollektioner. Visas aldrig i butiken.",
-    "categoryHelp": "Används för att klassificera produkten i plattformens katalog"
+    "categoryHelp": "Används för att klassificera produkten i plattformens katalog",
+    "priceHelpProvider": "Ditt grundpris per enhet – det du får för varje försäljning. Butikerna sätter sitt eget försäljningspris ovanpå det.",
+    "seoNeedsTitle": "Lägg till en titel på det här språket också – SEO-fälten sparas bara för språk som har en titel.",
+    "errSeoNeedsTitle": "Lägg till en titel på {locale} — SEO-fälten sparas bara tillsammans med en titel."
   },
   "customField": {
     "typeText": "Text",

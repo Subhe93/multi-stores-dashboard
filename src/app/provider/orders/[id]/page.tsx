@@ -11,10 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   ArrowLeft, Truck, CheckCircle2,
-  XCircle, ExternalLink, Package, Info,
+  XCircle, ExternalLink, Package, Info, AlertCircle, Pencil,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api, API_ORIGIN } from '@/lib/api';
+import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { countryFlag } from '@/components/common/CountryMultiSelect';
@@ -181,6 +181,54 @@ function effectiveItemStatus(orderStatus: string, itemStatus?: string | null): s
   return orderIdx > itemIdx ? orderStatus : itemStatus;
 }
 
+// Order status chosen on this page -> the item FulfillmentStatus it means
+// (mirrors deriveFulfillmentStatus in the API).
+const FLOW_TO_FULFILLMENT: Record<string, string> = {
+  PENDING:       'PENDING',
+  CONFIRMED:     'PROCESSING',
+  PROCESSING:    'PROCESSING',
+  MANUFACTURING: 'MANUFACTURING',
+  QUALITY_CHECK: 'QUALITY_CHECK',
+  SHIPPED:       'SHIPPED',
+  DELIVERED:     'DELIVERED',
+};
+
+function itemTitle(item: OrderItem): string {
+  return (
+    item.custom_product?.translations?.find((t) => t.locale === 'en')?.title ??
+    item.custom_product?.translations?.[0]?.title ??
+    item.custom_product?.product?.translations?.find((t) => t.locale === 'en')?.title ??
+    item.custom_product?.product?.translations?.[0]?.title ??
+    item.product?.translations?.find((t) => t.locale === 'en')?.title ??
+    item.product?.translations?.[0]?.title ??
+    item.variant?.product?.translations?.find((t) => t.locale === 'en')?.title ??
+    item.variant?.product?.translations?.[0]?.title ?? '—'
+  );
+}
+
+/** Tracking inputs of one shipment (shared or per item). */
+interface TrackingDraft {
+  carrier: string;
+  number: string;
+  url: string;
+}
+
+const EMPTY_DRAFT: TrackingDraft = { carrier: '', number: '', url: '' };
+
+// A tracking link must be a full http(s) URL; empty is fine (optional).
+function isValidTrackingUrl(url: string): boolean {
+  const v = url.trim();
+  if (!v) return true;
+  try {
+    const u = new URL(v);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+type Notice = { kind: 'success' | 'error'; text: string } | null;
+
 export default function ProviderOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { token, user } = useAuth();
@@ -188,53 +236,213 @@ export default function ProviderOrderDetail() {
   const t = useTranslations('provider');
   const tc = useTranslations('common');
   const tp = useTranslations('payments');
+  const tt = useTranslations('provider.fulfillmentTracking');
+  const te = useTranslations('errors');
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
-  const [showTracking, setShowTracking] = useState(false);
-  const [trackingNumber, setTrackingNumber] = useState('');
-  const [trackingUrl, setTrackingUrl] = useState('');
+  // Page-level feedback of the status buttons and of a finished shipment.
+  const [notice, setNotice] = useState<Notice>(null);
+  // Tracking dialog: 'ship' = my unshipped items, 'edit' = my shipped items.
+  const [trackingMode, setTrackingMode] = useState<'ship' | 'edit' | null>(null);
+  const [sameForAll, setSameForAll] = useState(true);
+  const [shared, setShared] = useState<TrackingDraft>(EMPTY_DRAFT);
+  const [drafts, setDrafts] = useState<Record<string, TrackingDraft>>({});
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+  const [rowSaved, setRowSaved] = useState<Record<string, boolean>>({});
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const uiLocale = useLocale();
 
-  const fetchOrder = () => {
+  // Friendly text of a failed request: known API codes first, then a generic
+  // message (raw class-validator output is never shown as is).
+  const errorText = (err: unknown): string => {
+    if (err instanceof ApiError) {
+      if (err.code === 'ORDER_NO_OWNED_ITEMS') return tt('errorNoOwnedItems');
+      if (err.code && te.has(err.code)) return te(err.code);
+      if (err.status === 400) return tt('errorInvalid');
+    }
+    return tt('errorGeneric');
+  };
+
+  const fetchOrder = async () => {
     if (!token || !id) return;
-    api<OrderDetail>(`/orders/${id}`, { token })
-      .then(setOrder)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    try {
+      const data = await api<OrderDetail>(`/orders/${id}`, { token });
+      setOrder(data);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(errorText(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchOrder(); }, [token, id]);
 
+  // Items this provider fulfils: the only ones the API lets them update.
+  const providerId = user?.provider?.id as string | undefined;
+  const myItems = (order?.items ?? []).filter(
+    (it) => !!providerId && it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId,
+  );
+  const flowIdxOf = (it: OrderItem) =>
+    STATUS_FLOW.indexOf(effectiveItemStatus(order?.status ?? '', it.fulfillment_status));
+  const unshippedItems = myItems.filter(
+    (it) => !['SHIPPED', 'DELIVERED'].includes(it.fulfillment_status ?? ''),
+  );
+  const shippedItems = myItems.filter((it) => it.fulfillment_status === 'SHIPPED');
+  const dialogItems = trackingMode === 'edit' ? shippedItems : unshippedItems;
+
   const handleStatusUpdate = async (status: string, note?: string) => {
-    if (!token) return;
+    if (!token || !order) return;
     setUpdating(true);
+    setNotice(null);
     try {
-      await api(`/orders/${id}/status`, {
-        method: 'PUT', token,
-        body: JSON.stringify({ status, note: note || t('noteStatusUpdated', { status }) }),
-      });
-      fetchOrder();
-    } catch (err) { console.error(err); }
-    finally { setUpdating(false); }
+      const targetIdx = STATUS_FLOW.indexOf(status);
+      const behind = myItems.filter((it) => flowIdxOf(it) < targetIdx);
+      const isReject = order.status === 'QUALITY_CHECK' && status === 'MANUFACTURING';
+      if (isReject || behind.length === 0 || behind.length === myItems.length) {
+        // All my items move together (or the explicit QC reject): one
+        // order-level update and one timeline entry.
+        await api(`/orders/${id}/status`, {
+          method: 'PUT', token,
+          body: JSON.stringify({ status, note: note || t('noteStatusUpdated', { status }) }),
+        });
+      } else {
+        // Mixed stages: advance only the items that are behind, so items
+        // already further along are never pulled back.
+        for (const it of behind) {
+          await api(`/orders/${id}/items/${it.id}/fulfillment`, {
+            method: 'PUT', token,
+            body: JSON.stringify({ fulfillment_status: FLOW_TO_FULFILLMENT[status] ?? status }),
+          });
+        }
+      }
+      setNotice({ kind: 'success', text: tt('statusUpdated', { status: statusLabel(t, status) }) });
+    } catch (err) {
+      setNotice({ kind: 'error', text: errorText(err) });
+    } finally {
+      await fetchOrder();
+      setUpdating(false);
+    }
   };
 
-  const handleAddTracking = async () => {
-    if (!token || !order?.items?.[0]) return;
+  const openTrackingDialog = (mode: 'ship' | 'edit') => {
+    const list = mode === 'edit' ? shippedItems : unshippedItems;
+    const next: Record<string, TrackingDraft> = {};
+    for (const it of list) {
+      next[it.id] = { carrier: '', number: it.tracking_number ?? '', url: it.tracking_url ?? '' };
+    }
+    // Start with one shared parcel unless the saved tracking already differs.
+    const savedNumbers = new Set(list.map((it) => it.tracking_number ?? ''));
+    const first = list[0];
+    setDrafts(next);
+    setShared({ carrier: '', number: first?.tracking_number ?? '', url: first?.tracking_url ?? '' });
+    setSameForAll(list.length > 1 && savedNumbers.size <= 1);
+    setRowErrors({});
+    setRowSaved({});
+    setDialogError(null);
+    setNotice(null);
+    setTrackingMode(mode);
+  };
+
+  const closeTrackingDialog = () => {
+    if (updating) return;
+    setTrackingMode(null);
+  };
+
+  const handleSaveTracking = async () => {
+    if (!token || !order || !trackingMode) return;
+    setDialogError(null);
+    const useShared = sameForAll && dialogItems.length > 1;
+    const single = dialogItems.length === 1;
+
+    // Client-side checks first, shown next to the field they concern.
+    let targets: { item: OrderItem; draft: TrackingDraft }[];
+    if (useShared || single) {
+      if (!shared.number.trim()) { setDialogError(tt('errorNoTracking')); return; }
+      if (!isValidTrackingUrl(shared.url)) { setDialogError(tt('errorUrl')); return; }
+      targets = dialogItems.map((item) => ({ item, draft: shared }));
+    } else {
+      targets = dialogItems
+        .filter((item) => !rowSaved[item.id])
+        .map((item) => ({ item, draft: drafts[item.id] ?? EMPTY_DRAFT }))
+        .filter(({ draft }) => draft.number.trim() !== '');
+      if (targets.length === 0) { setDialogError(tt('errorNoTracking')); return; }
+      const invalid: Record<string, string> = {};
+      for (const { item, draft } of targets) {
+        if (!isValidTrackingUrl(draft.url)) invalid[item.id] = tt('errorUrl');
+      }
+      if (Object.keys(invalid).length > 0) { setRowErrors(invalid); return; }
+    }
+
     setUpdating(true);
+    setRowErrors({});
+    const failed: Record<string, string> = {};
+    const saved: Record<string, boolean> = { ...rowSaved };
+    let sharedError: string | null = null;
     try {
-      await api(`/orders/${id}/items/${order.items[0].id}/fulfillment`, {
-        method: 'PUT', token,
-        body: JSON.stringify({
-          fulfillment_status: 'SHIPPED',
-          tracking_number: trackingNumber,
-          tracking_url: trackingUrl || undefined,
-        }),
-      });
-      setShowTracking(false);
-      await handleStatusUpdate('SHIPPED', t('noteShippedWithTracking', { tracking: trackingNumber }));
-    } catch (err) { console.error(err); }
-    finally { setUpdating(false); }
+      // One parcel for all my items while none is delivered yet: a single
+      // order-level SHIPPED update (one timeline entry, one header recompute).
+      const allMineTogether =
+        (useShared || single) && trackingMode === 'ship' &&
+        dialogItems.length === myItems.length;
+      if (allMineTogether) {
+        try {
+          await api(`/orders/${id}/status`, {
+            method: 'PUT', token,
+            body: JSON.stringify({
+              status: 'SHIPPED',
+              tracking_number: shared.number.trim(),
+              tracking_url: shared.url.trim() || undefined,
+              carrier: shared.carrier.trim() || undefined,
+            }),
+          });
+          targets.forEach(({ item }) => { saved[item.id] = true; });
+        } catch (err) {
+          sharedError = errorText(err);
+        }
+      } else {
+        for (const { item, draft } of targets) {
+          try {
+            await api(`/orders/${id}/items/${item.id}/fulfillment`, {
+              method: 'PUT', token,
+              body: JSON.stringify({
+                fulfillment_status: 'SHIPPED',
+                tracking_number: draft.number.trim(),
+                tracking_url: draft.url.trim() || undefined,
+                carrier: draft.carrier.trim() || undefined,
+              }),
+            });
+            saved[item.id] = true;
+          } catch (err) {
+            failed[item.id] = errorText(err);
+          }
+        }
+      }
+      setRowSaved(saved);
+      const failedIds = Object.keys(failed);
+      if (sharedError) {
+        setDialogError(sharedError);
+      } else if (failedIds.length > 0) {
+        if (useShared || single) {
+          setDialogError(failed[failedIds[0]]);
+        } else {
+          setRowErrors(failed);
+          setDialogError(tt('errorPartial'));
+        }
+      } else {
+        const okCount = targets.length;
+        setTrackingMode(null);
+        setNotice({
+          kind: 'success',
+          text: trackingMode === 'edit' ? tt('trackingSaved') : tt('shippedSuccess', { count: okCount }),
+        });
+      }
+    } finally {
+      await fetchOrder();
+      setUpdating(false);
+    }
   };
 
   if (loading) return (
@@ -242,21 +450,23 @@ export default function ProviderOrderDetail() {
       <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
     </div>
   );
-  if (!order) return <p className="text-center py-12 text-muted-foreground">{t('orderNotFound')}</p>;
+  if (!order) return (
+    <p className="text-center py-12 text-muted-foreground">{loadError ?? t('orderNotFound')}</p>
+  );
 
-  const currentIdx = STATUS_FLOW.indexOf(order.status);
-  const isTerminal = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'].includes(order.status);
-  const isQualityCheck = order.status === 'QUALITY_CHECK';
-
-  // A provider can advance the order when they fulfill ANY of its items — the
-  // status update applies only to their own items, and the overall order status
-  // is re-derived (slowest item wins). Creator items are advanced by the creator.
-  const providerId = user?.provider?.id as string | undefined;
-  const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
-  const canUpdateStatus =
-    !!providerId &&
-    items.some((it) => it.fulfiller_type === 'PROVIDER' && it.fulfiller_id === providerId);
-  const hasCreatorItems = items.some((it) => it.fulfiller_type === 'CREATOR');
+  // A provider advances only their own items; the overall order status is
+  // re-derived by the API (slowest item wins). Buttons therefore follow the
+  // slowest of MY items, not the order header (other fulfillers may lag).
+  const orderTerminal = ['CANCELLED', 'REFUNDED', 'RETURNED'].includes(order.status);
+  const canUpdateStatus = myItems.length > 0;
+  const hasCreatorItems = (order.items ?? []).some((it) => it.fulfiller_type === 'CREATOR');
+  const myIdxs = myItems.map(flowIdxOf).filter((i) => i >= 0);
+  const currentIdx = myIdxs.length > 0 ? Math.min(...myIdxs) : STATUS_FLOW.indexOf(order.status);
+  const myStage = STATUS_FLOW[currentIdx] ?? order.status;
+  const isTerminal = orderTerminal || myStage === 'DELIVERED';
+  const isQualityCheck = myStage === 'QUALITY_CHECK';
+  const canEditTracking = !orderTerminal && shippedItems.length > 0;
+  const trackedItems = myItems.filter((it) => it.tracking_number);
 
   // Customer files (previews, original downloads, purged notes) are shown per
   // line by GroupedOrderFieldValues; the separate gallery card was a duplicate.
@@ -278,6 +488,30 @@ export default function ProviderOrderDetail() {
           {statusLabel(t, order.status)}
         </Badge>
       </div>
+
+      {notice && (
+        <div
+          role={notice.kind === 'error' ? 'alert' : 'status'}
+          className={`flex items-start gap-2 rounded-md border px-3 py-2 text-sm ${
+            notice.kind === 'error'
+              ? 'border-red-200 bg-red-50 text-red-700'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+          }`}
+        >
+          {notice.kind === 'error'
+            ? <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            : <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />}
+          <span className="flex-1">{notice.text}</span>
+          <button
+            type="button"
+            className="opacity-70 hover:opacity-100"
+            onClick={() => setNotice(null)}
+            aria-label={tc('close')}
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Notice for orders that include creator-fulfilled items — provider
           cannot advance the overall status of those. */}
@@ -312,8 +546,8 @@ export default function ProviderOrderDetail() {
               <Button
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
-                disabled={updating}
-                onClick={() => setShowTracking(true)}
+                disabled={updating || unshippedItems.length === 0}
+                onClick={() => openTrackingDialog('ship')}
               >
                 <CheckCircle2 className="w-3.5 h-3.5 me-1.5" /> {t('approveShipOrder')}
               </Button>
@@ -332,27 +566,38 @@ export default function ProviderOrderDetail() {
       )}
 
       {/* Standard fulfillment actions */}
-      {canUpdateStatus && !isTerminal && !isQualityCheck && (
+      {canUpdateStatus && !orderTerminal && ((!isTerminal && !isQualityCheck) || canEditTracking) && (
         <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold">{t('updateFulfillment')}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
-            {STATUS_FLOW.slice(currentIdx + 1).map(s => (
+            {!isTerminal && !isQualityCheck && STATUS_FLOW.slice(currentIdx + 1).map(s => (
               <Button
                 key={s}
                 variant="outline"
                 size="sm"
                 className="text-xs"
-                disabled={updating}
+                disabled={updating || (s === 'SHIPPED' && unshippedItems.length === 0)}
                 onClick={() => {
-                  if (s === 'SHIPPED') setShowTracking(true);
+                  if (s === 'SHIPPED') openTrackingDialog('ship');
                   else handleStatusUpdate(s);
                 }}
               >
                 {s === 'SHIPPED' ? t('shipPlusTracking') : statusLabel(t, s)}
               </Button>
             ))}
+            {canEditTracking && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                disabled={updating}
+                onClick={() => openTrackingDialog('edit')}
+              >
+                <Pencil className="w-3.5 h-3.5 me-1.5" /> {tt('editTracking')}
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -366,15 +611,8 @@ export default function ProviderOrderDetail() {
           <CardContent>
             <div className="divide-y">
               {order.items?.map((item) => {
-                const title =
-                  item.custom_product?.translations?.find((t) => t.locale === 'en')?.title ??
-                  item.custom_product?.translations?.[0]?.title ??
-                  item.custom_product?.product?.translations?.find((t) => t.locale === 'en')?.title ??
-                  item.custom_product?.product?.translations?.[0]?.title ??
-                  item.product?.translations?.find((t) => t.locale === 'en')?.title ??
-                  item.product?.translations?.[0]?.title ??
-                  item.variant?.product?.translations?.find((t) => t.locale === 'en')?.title ??
-                  item.variant?.product?.translations?.[0]?.title ?? '—';
+                const title = itemTitle(item);
+                const isMine = myItems.some((m) => m.id === item.id);
                 const imgUrl =
                   item.image_url ??
                   item.custom_product?.mockup_images?.[0]?.url ??
@@ -411,6 +649,9 @@ export default function ProviderOrderDetail() {
                           })()}
                         </div>
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
+                        {!isMine && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">{tt('fulfilledByOther')}</p>
+                        )}
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           <span>{t('qtyLabel', { quantity: item.quantity })}</span>
                           <span>·</span>
@@ -429,6 +670,20 @@ export default function ProviderOrderDetail() {
                       primaryLocale={order.locale || 'en'}
                       token={token}
                     />
+
+                    {/* Saved tracking of this line */}
+                    {item.tracking_number && (
+                      <div className="ms-17 flex flex-wrap items-center gap-2 text-xs">
+                        <Truck className="w-3.5 h-3.5 text-sky-600" />
+                        <span className="font-mono font-medium">{item.tracking_number}</span>
+                        {item.tracking_url && (
+                          <a href={item.tracking_url} target="_blank" rel="noreferrer"
+                            className="text-sky-600 hover:underline inline-flex items-center gap-1">
+                            {t('trackShipment')} <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
 
                     {item.design_notes && (
                       <p className="ms-17 text-xs text-muted-foreground italic">{t('noteLabel', { note: item.design_notes })}</p>
@@ -541,22 +796,27 @@ export default function ProviderOrderDetail() {
             </CardContent>
           </Card>
 
-          {/* Tracking info (if shipped) */}
-          {order.items?.[0]?.tracking_number && (
+          {/* Tracking of my shipped items, one row per line */}
+          {trackedItems.length > 0 && (
             <Card className="shadow-none border-sky-100 bg-sky-50/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Truck className="w-3.5 h-3.5 text-sky-600" /> {t('tracking')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-xs space-y-1">
-                <p className="font-mono font-medium">{order.items[0].tracking_number}</p>
-                {order.items[0].tracking_url && (
-                  <a href={order.items[0].tracking_url} target="_blank" rel="noreferrer"
-                    className="text-sky-600 hover:underline flex items-center gap-1">
-                    {t('trackShipment')} <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                )}
+              <CardContent className="text-xs space-y-2.5">
+                {trackedItems.map((it) => (
+                  <div key={it.id} className="space-y-0.5">
+                    <p className="text-muted-foreground truncate">{itemTitle(it)}</p>
+                    <p className="font-mono font-medium break-all">{it.tracking_number}</p>
+                    {it.tracking_url && (
+                      <a href={it.tracking_url} target="_blank" rel="noreferrer"
+                        className="text-sky-600 hover:underline flex items-center gap-1">
+                        {t('trackShipment')} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}
@@ -588,41 +848,146 @@ export default function ProviderOrderDetail() {
         </div>
       </div>
 
-      {/* Add Tracking Dialog */}
-      <Dialog open={showTracking} onOpenChange={v => { if (!v) setShowTracking(false); }}>
-        <DialogContent className="max-w-md">
+      {/* Tracking dialog: one parcel for all my items, or tracking per item */}
+      <Dialog open={trackingMode !== null} onOpenChange={v => { if (!v) closeTrackingDialog(); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t('addTrackingAndShip')}</DialogTitle>
+            <DialogTitle>
+              {trackingMode === 'edit' ? tt('editTracking') : t('addTrackingAndShip')}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('trackingNumber')}</Label>
-              <Input
-                className="h-9 text-sm font-mono"
-                placeholder={t('trackingNumberPlaceholder')}
-                value={trackingNumber}
-                onChange={e => setTrackingNumber(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t('trackingUrlOptional')}</Label>
-              <Input
-                className="h-9 text-sm"
-                placeholder="https://track.carrier.com/..."
-                value={trackingUrl}
-                onChange={e => setTrackingUrl(e.target.value)}
-              />
-            </div>
+            {dialogItems.length > 1 && (
+              <label className="flex items-start gap-2.5 rounded-md border p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                  checked={sameForAll}
+                  disabled={updating}
+                  onChange={e => { setSameForAll(e.target.checked); setDialogError(null); setRowErrors({}); }}
+                />
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-medium">{tt('applyToAll')}</span>
+                  <span className="block text-xs text-muted-foreground">{tt('applyToAllHint')}</span>
+                </span>
+              </label>
+            )}
+
+            {sameForAll || dialogItems.length <= 1 ? (
+              <div className="space-y-3">
+                <ul className="text-xs text-muted-foreground list-disc ps-5 space-y-0.5">
+                  {dialogItems.map((it) => (
+                    <li key={it.id}>{itemTitle(it)} · {t('qtyLabel', { quantity: it.quantity })}</li>
+                  ))}
+                </ul>
+                <TrackingFields
+                  draft={shared}
+                  disabled={updating}
+                  onChange={setShared}
+                  t={t}
+                  tt={tt}
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">{tt('perItemHint')}</p>
+                {dialogItems.map((it) => (
+                  <div key={it.id} className="rounded-md border p-3 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium truncate">
+                        {itemTitle(it)}{' '}
+                        <span className="text-xs text-muted-foreground font-normal">· {t('qtyLabel', { quantity: it.quantity })}</span>
+                      </p>
+                      {rowSaved[it.id] && (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-700 shrink-0">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {tt('itemSaved')}
+                        </span>
+                      )}
+                    </div>
+                    <TrackingFields
+                      draft={drafts[it.id] ?? EMPTY_DRAFT}
+                      disabled={updating || !!rowSaved[it.id]}
+                      onChange={d => setDrafts(prev => ({ ...prev, [it.id]: d }))}
+                      t={t}
+                      tt={tt}
+                    />
+                    {rowErrors[it.id] && (
+                      <p role="alert" className="flex items-center gap-1.5 text-xs text-red-600">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {rowErrors[it.id]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {dialogError && (
+              <p role="alert" className="flex items-start gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" /> {dialogError}
+              </p>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setShowTracking(false)}>{tc('cancel')}</Button>
-            <Button size="sm" onClick={handleAddTracking} disabled={!trackingNumber || updating}>
+            <Button variant="outline" size="sm" disabled={updating} onClick={closeTrackingDialog}>{tc('cancel')}</Button>
+            <Button size="sm" onClick={handleSaveTracking} disabled={updating || dialogItems.length === 0}>
               <Truck className="w-3.5 h-3.5 me-1.5" />
-              {updating ? t('shippingInProgress') : t('markAsShipped')}
+              {updating
+                ? tt('saving')
+                : trackingMode === 'edit' ? tt('saveTracking') : t('markAsShipped')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/** Carrier + tracking number + tracking link inputs of one shipment. */
+function TrackingFields({
+  draft, disabled, onChange, t, tt,
+}: {
+  draft: TrackingDraft;
+  disabled: boolean;
+  onChange: (d: TrackingDraft) => void;
+  t: Translator;
+  tt: Translator;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="space-y-1.5">
+        <Label className="text-xs">{tt('carrier')}</Label>
+        <Input
+          className="h-9 text-sm"
+          placeholder={tt('carrierPlaceholder')}
+          maxLength={80}
+          value={draft.carrier}
+          disabled={disabled}
+          onChange={e => onChange({ ...draft, carrier: e.target.value })}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">{t('trackingNumber')}</Label>
+        <Input
+          className="h-9 text-sm font-mono"
+          placeholder={t('trackingNumberPlaceholder')}
+          maxLength={120}
+          value={draft.number}
+          disabled={disabled}
+          onChange={e => onChange({ ...draft, number: e.target.value })}
+        />
+      </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label className="text-xs">{t('trackingUrlOptional')}</Label>
+        <Input
+          className="h-9 text-sm"
+          dir="ltr"
+          placeholder="https://track.carrier.com/..."
+          maxLength={2048}
+          value={draft.url}
+          disabled={disabled}
+          onChange={e => onChange({ ...draft, url: e.target.value })}
+        />
+      </div>
     </div>
   );
 }

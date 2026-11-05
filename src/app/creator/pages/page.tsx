@@ -127,7 +127,8 @@ export default function CreatorPagesPage() {
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const [allLocales, setAllLocales] = useState<string[]>(['en']);
   // INDEPENDENT stores serve legal-kind pages at /legal/<slug> (MARKETPLACE
-  // stores use the platform texts, so their legal-kind pages are ordinary).
+  // stores always show the fixed standard texts there, so their legal-kind
+  // pages are ordinary).
   const [ownsLegalPages, setOwnsLegalPages] = useState(false);
   // Bumped after deleting a legal page so the "Legal pages" card reloads.
   const [loading, setLoading] = useState(true);

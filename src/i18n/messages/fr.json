@@ -1307,6 +1307,31 @@
     "unverified": {
       "title": "Vos produits restent masqués pour les boutiques jusqu’à la vérification de votre compte par un administrateur",
       "body": "Les propriétaires de boutiques ne peuvent pas encore voir ni importer votre catalogue. Vous recevrez un e-mail dès que votre compte sera vérifié."
+    },
+    "settingsSaveFailed": "Impossible d'enregistrer vos paramètres. Veuillez réessayer.",
+    "companyNameInvalid": "Le nom de l'entreprise doit comporter entre 2 et 100 caractères.",
+    "countryInvalid": "Veuillez sélectionner un pays valide.",
+    "logoInvalid": "Le logo n'a pas pu être enregistré. Veuillez le téléverser à nouveau.",
+    "fulfillmentTracking": {
+      "applyToAll": "Même suivi pour tous mes articles",
+      "applyToAllHint": "Utilisez cette option lorsque tous vos articles sont expédiés ensemble dans un seul colis.",
+      "perItemHint": "Saisissez le suivi de chaque article. Les articles sans numéro de suivi ne sont pas marqués comme expédiés.",
+      "carrier": "Transporteur (facultatif)",
+      "carrierPlaceholder": "ex. PostNord, DHL, UPS",
+      "editTracking": "Modifier le suivi",
+      "saveTracking": "Enregistrer le suivi",
+      "saving": "Enregistrement…",
+      "itemSaved": "Enregistré",
+      "fulfilledByOther": "Traité par un autre partenaire",
+      "shippedSuccess": "{count, plural, one {# article marqué comme expédié} other {# articles marqués comme expédiés}}",
+      "trackingSaved": "Suivi enregistré",
+      "statusUpdated": "Statut mis à jour : {status}",
+      "errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
+      "errorInvalid": "Certaines valeurs ne sont pas valides. Vérifiez-les et réessayez.",
+      "errorUrl": "Saisissez un lien de suivi complet commençant par https://",
+      "errorNoTracking": "Saisissez un numéro de suivi pour au moins un article.",
+      "errorNoOwnedItems": "Vous n'avez aucun article à traiter dans cette commande.",
+      "errorPartial": "Certains articles n'ont pas pu être enregistrés. Consultez les messages ci-dessous."
     }
   },
   "creator": {
@@ -2038,7 +2063,7 @@
         "title": "Pages légales",
         "explainer": "Votre boutique affiche un texte standard avec les informations de votre entreprise jusqu’à ce que vous publiiez votre propre version. La politique de confidentialité et les conditions de vente sont nécessaires avant la mise en ligne de votre boutique.",
         "disclaimer": "Les modèles sont un point de départ, pas un conseil juridique. Relisez-les et adaptez-les à votre activité.",
-        "marketplace": "Votre boutique utilise les pages légales de la plateforme, car la plateforme est le vendeur sur les boutiques marketplace. Rien à faire ici.",
+        "marketplace": "Votre boutique affiche les conditions d’achat standard de ShopsDoor, avec Namez AB comme vendeur. Elles ne sont pas modifiables.",
         "traderHint": "Les informations de votre entreprise sont incomplètes, les modèles comportent donc des manques.",
         "traderHintLink": "Compléter les informations de l’entreprise",
         "names": {
@@ -5953,7 +5978,9 @@
     "STORE_STATUS_REASON_REQUIRED": "Un motif est requis pour cet état.",
     "TRADER_VAT_INVALID": "Le numéro de TVA n’est pas enregistré dans VIES. Vérifiez-le ou laissez le champ vide.",
     "AUTH_CAPTCHA_FAILED": "La vérification de sécurité a échoué. Veuillez réessayer.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "La vérification de sécurité est temporairement indisponible. Veuillez réessayer dans un instant."
+    "AUTH_CAPTCHA_UNAVAILABLE": "La vérification de sécurité est temporairement indisponible. Veuillez réessayer dans un instant.",
+    "ORDER_FULFILLMENT_BACKWARDS": "Un article expédié ou livré ne peut pas revenir à une étape antérieure.",
+    "TRANSLATION_UNAVAILABLE": "Le service de traduction est indisponible pour le moment. Veuillez réessayer plus tard."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -6348,7 +6375,10 @@
     "unsavedLeaveConfirm": "Vous avez des modifications non enregistrées. Quitter cette page et les abandonner ?",
     "internalCategories": "Tags",
     "internalCategoriesHelp": "Pour votre organisation, vos filtres et vos collections intelligentes. Jamais affiché dans la boutique.",
-    "categoryHelp": "Sert à classer le produit dans le catalogue de la plateforme"
+    "categoryHelp": "Sert à classer le produit dans le catalogue de la plateforme",
+    "priceHelpProvider": "Votre prix de base par unité — ce que vous percevez à chaque vente. Les boutiques fixent leur propre prix de vente au-dessus.",
+    "seoNeedsTitle": "Ajoutez aussi un titre dans cette langue — les champs SEO ne sont enregistrés que pour les langues qui ont un titre.",
+    "errSeoNeedsTitle": "Ajoutez un titre en {locale} — ses champs SEO ne sont enregistrés qu'avec un titre."
   },
   "customField": {
     "typeText": "Texte",

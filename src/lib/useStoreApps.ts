@@ -79,7 +79,10 @@ export function isAppEnabled(apps: MyStoreAppView[] | null | undefined, key: Sto
  * nothing cached.
  */
 export function useStoreApps(): { apps: MyStoreAppView[] | null; loading: boolean } {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  // Only creators own a store (and its apps); the route is CREATOR-only, so
+  // other roles (provider, admin) skip the request and see no apps.
+  const isCreator = user?.role === 'CREATOR';
   const [apps, setApps] = useState<MyStoreAppView[] | null>(readCache);
   const [loading, setLoading] = useState(true);
 
@@ -95,7 +98,7 @@ export function useStoreApps(): { apps: MyStoreAppView[] | null; loading: boolea
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !isCreator) return;
     let cancelled = false;
     // `loading` starts as true, so no synchronous setState is needed here.
     api<MyStoreAppView[]>('/stores/my/apps', { token })
@@ -117,7 +120,9 @@ export function useStoreApps(): { apps: MyStoreAppView[] | null; loading: boolea
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, isCreator]);
 
+  // A signed-in non-creator has no apps; never surface a cached list for them.
+  if (user && !isCreator) return { apps: null, loading: false };
   return { apps, loading };
 }

@@ -70,6 +70,8 @@ interface CustomProductDetail {
     variant: { options: Record<string, string> };
   }[];
   bundles?: AttachedBundle[];
+  // Content languages of the selling store (absent on older API builds).
+  store_language?: { primary_locale: string; secondary_locales: string[] };
 }
 
 export default function ReviewDetailPage() {
@@ -87,14 +89,6 @@ export default function ReviewDetailPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [primaryLocale, setPrimaryLocale] = useState('en');
-
-  useEffect(() => {
-    if (!token) return;
-    api<{ primary_locale: string }>('/translations/overview', { token })
-      .then((res) => setPrimaryLocale(res?.primary_locale || 'en'))
-      .catch(() => {});
-  }, [token]);
 
   useEffect(() => {
     if (!token || !id) return;
@@ -140,6 +134,12 @@ export default function ReviewDetailPage() {
     }
   };
 
+  // Texts are shown in the selling store's primary content language.
+  const primaryLocale = item?.store_language?.primary_locale || 'en';
+  // Primary locale first, then English, then whatever exists.
+  const pick = <T extends { locale: string }>(rows: T[] | undefined): T | undefined =>
+    rows?.find((tr) => tr.locale === primaryLocale) || rows?.find((tr) => tr.locale === 'en') || rows?.[0];
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>;
   if (!item) return <p className="text-center py-12 text-muted-foreground text-sm">{error || t('customProductNotFound')}</p>;
 
@@ -172,12 +172,9 @@ export default function ReviewDetailPage() {
     return { original, final };
   };
 
-  const title = item.translations?.find((tr) => tr.locale === 'en')?.title
-    || item.translations?.[0]?.title || t('untitled');
-  const description = item.translations?.find((t) => t.locale === 'en')?.description
-    || item.translations?.[0]?.description;
-  const baseTitle = item.product.translations?.find((t) => t.locale === 'en')?.title
-    || item.product.translations?.[0]?.title;
+  const title = pick(item.translations)?.title || t('untitled');
+  const description = pick(item.translations)?.description;
+  const baseTitle = pick(item.product.translations)?.title;
 
   const isPending = item.status === 'PENDING_REVIEW';
 

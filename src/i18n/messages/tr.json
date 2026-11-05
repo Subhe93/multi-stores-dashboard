@@ -1307,6 +1307,31 @@
     "unverified": {
       "title": "Bir yönetici hesabınızı doğrulayana kadar ürünleriniz mağazalardan gizli kalır",
       "body": "Mağaza sahipleri kataloğunuzu henüz göremez veya içe aktaramaz. Hesabınız doğrulanır doğrulanmaz bir e-posta alacaksınız."
+    },
+    "settingsSaveFailed": "Ayarlarınız kaydedilemedi. Lütfen tekrar deneyin.",
+    "companyNameInvalid": "Şirket adı 2 ile 100 karakter arasında olmalıdır.",
+    "countryInvalid": "Lütfen geçerli bir ülke seçin.",
+    "logoInvalid": "Logo kaydedilemedi. Lütfen tekrar yükleyin.",
+    "fulfillmentTracking": {
+      "applyToAll": "Tüm ürünlerim için aynı takip bilgisi",
+      "applyToAllHint": "Tüm ürünleriniz tek bir pakette birlikte gönderildiğinde bunu kullanın.",
+      "perItemHint": "Her ürün için takip bilgisini girin. Takip numarası girilmeyen ürünler gönderildi olarak işaretlenmez.",
+      "carrier": "Kargo firması (isteğe bağlı)",
+      "carrierPlaceholder": "ör. PostNord, DHL, UPS",
+      "editTracking": "Takibi düzenle",
+      "saveTracking": "Takibi kaydet",
+      "saving": "Kaydediliyor…",
+      "itemSaved": "Kaydedildi",
+      "fulfilledByOther": "Başka bir iş ortağı tarafından hazırlanıyor",
+      "shippedSuccess": "{count, plural, one {# ürün gönderildi olarak işaretlendi} other {# ürün gönderildi olarak işaretlendi}}",
+      "trackingSaved": "Takip bilgisi kaydedildi",
+      "statusUpdated": "Durum {status} olarak güncellendi",
+      "errorGeneric": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "errorInvalid": "Bazı değerler geçersiz. Lütfen kontrol edip tekrar deneyin.",
+      "errorUrl": "https:// ile başlayan tam bir takip bağlantısı girin",
+      "errorNoTracking": "En az bir ürün için takip numarası girin.",
+      "errorNoOwnedItems": "Bu siparişte hazırlamanız gereken ürün yok.",
+      "errorPartial": "Bazı ürünler kaydedilemedi. Aşağıdaki mesajlara bakın."
     }
   },
   "creator": {
@@ -2038,7 +2063,7 @@
         "title": "Yasal sayfalar",
         "explainer": "Mağazan, kendi sürümünü yayınlayana kadar işletme bilgilerini içeren standart bir metin gösterir. Mağazanın yayına alınabilmesi için gizlilik politikası ve satış koşulları gereklidir.",
         "disclaimer": "Şablonlar bir başlangıç noktasıdır, hukuki tavsiye değildir. Gözden geçirip işletmenize göre uyarlayın.",
-        "marketplace": "Pazaryeri mağazalarında satıcı platform olduğu için mağazanız platformun yasal sayfalarını kullanır. Burada yapmanız gereken bir şey yok.",
+        "marketplace": "Mağazanız, satıcı olarak Namez AB ile ShopsDoor'un standart satın alma koşullarını gösterir. Bu koşullar düzenlenemez.",
         "traderHint": "İşletme bilgileriniz eksik, bu yüzden şablonlarda boşluklar var.",
         "traderHintLink": "İşletme bilgilerini tamamla",
         "names": {
@@ -5953,7 +5978,9 @@
     "STORE_STATUS_REASON_REQUIRED": "Bu durum için bir gerekçe gerekli.",
     "TRADER_VAT_INVALID": "KDV numarası VIES sisteminde kayıtlı değil. Numarayı kontrol edin veya alanı boş bırakın.",
     "AUTH_CAPTCHA_FAILED": "Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "Güvenlik doğrulaması geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin."
+    "AUTH_CAPTCHA_UNAVAILABLE": "Güvenlik doğrulaması geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin.",
+    "ORDER_FULFILLMENT_BACKWARDS": "Kargoya verilmiş veya teslim edilmiş bir ürün önceki bir aşamaya geri alınamaz.",
+    "TRANSLATION_UNAVAILABLE": "Çeviri hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -6348,7 +6375,10 @@
     "unsavedLeaveConfirm": "Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılıp bunları silmek istiyor musunuz?",
     "internalCategories": "Etiketler",
     "internalCategoriesHelp": "Kendi düzeniniz, filtreler ve akıllı koleksiyonlar için. Mağazada asla gösterilmez.",
-    "categoryHelp": "Ürünü platform kataloğunda sınıflandırmak için kullanılır"
+    "categoryHelp": "Ürünü platform kataloğunda sınıflandırmak için kullanılır",
+    "priceHelpProvider": "Birim başına taban fiyatınız — her satıştan kazandığınız tutar. Mağazalar kendi satış fiyatlarını bunun üzerine belirler.",
+    "seoNeedsTitle": "Bu dilde de bir başlık ekleyin — SEO alanları yalnızca başlığı olan diller için kaydedilir.",
+    "errSeoNeedsTitle": "{locale} için bir başlık ekleyin — SEO alanları yalnızca başlıkla birlikte kaydedilir."
   },
   "customField": {
     "typeText": "Metin",
