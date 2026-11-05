@@ -1340,18 +1340,21 @@
     },
     "invoices": {
       "title": "Faturalar",
-      "subtitle": "Mağazaların, ürünlerinizi içeren siparişler için düzenlediği faturalar ve iade faturaları.",
-      "notice": "Bu belgeler mağaza (satıcı) tarafından müşterisine düzenlenir. Bunları görüntüleyip indirebilirsiniz; ancak yalnızca mağaza düzenleyebilir veya iade faturası kesebilir.",
+      "subtitle": "Mağazaların ürünlerinizi içeren siparişler için düzenlediği fatura ve iade faturalarının tedarikçi kopyaları.",
+      "notice": "Bunlar, mağazanın faturalarının yalnızca sizin ürünlerinizi gösteren tedarikçi kopyalarıdır.",
       "searchPlaceholder": "Numara veya sipariş",
       "columns": {
-        "store": "Mağaza"
+        "store": "Mağaza",
+        "yourItems": "Ürünleriniz (KDV hariç)"
       },
       "loading": "Faturalar yükleniyor…",
       "loadFailed": "Faturalar yüklenemedi.",
       "retry": "Tekrar dene",
       "emptyTitle": "Henüz fatura yok",
       "emptyHint": "Bir mağaza ürünlerinizi içeren bir sipariş için fatura düzenlediğinde faturalar burada görünür.",
-      "emptyFiltered": "Bu filtrelere uyan fatura yok."
+      "emptyFiltered": "Bu filtrelere uyan fatura yok.",
+      "download": "Tedarikçi kopyasını indir",
+      "truncated": "Son {count} belge gösteriliyor"
     },
     "legalDetails": {
       "title": "Yasal bilgiler",

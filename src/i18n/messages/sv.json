@@ -1340,18 +1340,21 @@
     },
     "invoices": {
       "title": "Fakturor",
-      "subtitle": "Fakturor och kreditnotor som butiker har utfärdat för beställningar med dina produkter.",
-      "notice": "Dessa dokument utfärdas av butiken (säljaren) till dess kund. Du kan visa och ladda ner dem, men bara butiken kan utfärda eller kreditera dem.",
+      "subtitle": "Leverantörskopior av fakturor och kreditfakturor som butiker utfärdat för ordrar med dina produkter.",
+      "notice": "Detta är leverantörskopior av butikens fakturor som endast visar dina artiklar.",
       "searchPlaceholder": "Nummer eller beställning",
       "columns": {
-        "store": "Butik"
+        "store": "Butik",
+        "yourItems": "Dina artiklar (exkl. moms)"
       },
       "loading": "Laddar fakturor…",
       "loadFailed": "Fakturorna kunde inte laddas.",
       "retry": "Försök igen",
       "emptyTitle": "Inga fakturor ännu",
       "emptyHint": "Fakturor visas här när en butik utfärdar en för en beställning som innehåller dina produkter.",
-      "emptyFiltered": "Inga fakturor matchar filtren."
+      "emptyFiltered": "Inga fakturor matchar filtren.",
+      "download": "Ladda ner leverantörskopia",
+      "truncated": "Visar de senaste {count} dokumenten"
     },
     "legalDetails": {
       "title": "Juridiska uppgifter",

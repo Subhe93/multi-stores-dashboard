@@ -1340,18 +1340,21 @@
     },
     "invoices": {
       "title": "Invoices",
-      "subtitle": "Invoices and credit notes that stores issued for orders containing your products.",
-      "notice": "These documents are issued by the store (the seller) to its customer. You can view and download them, but only the store can issue or credit them.",
+      "subtitle": "Supplier copies of the invoices and credit notes stores issued for orders containing your products.",
+      "notice": "These are supplier copies of the store's invoices showing only your items.",
       "searchPlaceholder": "Number or order",
       "columns": {
-        "store": "Store"
+        "store": "Store",
+        "yourItems": "Your items (excl. VAT)"
       },
       "loading": "Loading invoices…",
       "loadFailed": "The invoices could not be loaded.",
       "retry": "Try again",
       "emptyTitle": "No invoices yet",
       "emptyHint": "Invoices appear here once a store issues one for an order that contains your products.",
-      "emptyFiltered": "No invoices match these filters."
+      "emptyFiltered": "No invoices match these filters.",
+      "download": "Download supplier copy",
+      "truncated": "Showing the latest {count} documents"
     },
     "legalDetails": {
       "title": "Legal details",

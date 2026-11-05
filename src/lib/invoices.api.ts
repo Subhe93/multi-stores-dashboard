@@ -237,7 +237,8 @@ export function downloadInvoicesCsv(token: string, query: InvoiceListQuery, file
 
 // ─── Provider endpoint (/invoices/provider, read-only) ───────────────────────
 
-// Narrower than InvoiceSummary: no buyer data, plus the issuing store.
+// Supplier copy row: narrower than InvoiceSummary (no buyer data, no order
+// totals), plus the issuing store and the subtotal of the provider's lines.
 export interface ProviderInvoiceSummary {
   id: string;
   kind: InvoiceKind;
@@ -248,9 +249,9 @@ export interface ProviderInvoiceSummary {
   store_id: string;
   store_name: string | null;
   currency: string;
-  net_total: number;
-  vat_total: number;
-  gross_total: number;
+  // Sum of the provider's own lines excl. VAT; negative on credit notes.
+  provider_subtotal: number;
+  provider_line_count: number;
   paid: boolean;
   credited_invoice: { id: string; number: string } | null;
   pdf_available: boolean;
@@ -261,6 +262,8 @@ export interface ProviderInvoiceListResponse {
   total: number;
   page: number;
   limit: number;
+  /** The server scan cap was hit: only the latest documents are listed. */
+  truncated?: boolean;
 }
 
 export function listProviderInvoices(token: string, query: InvoiceListQuery): Promise<ProviderInvoiceListResponse> {
@@ -308,4 +311,10 @@ async function downloadAuthed(endpoint: string, token: string, fallbackName: str
 
 export function downloadInvoicePdf(token: string, invoice: Pick<InvoiceSummary, 'id' | 'number'>): Promise<void> {
   return downloadAuthed(`/invoices/documents/${encodeURIComponent(invoice.id)}/pdf`, token, `${invoice.number}.pdf`);
+}
+
+// Providers never get the tax invoice: this is the supplier copy (only the
+// provider's own lines, no buyer contact data or order totals).
+export function downloadSupplierCopyPdf(token: string, invoice: Pick<InvoiceSummary, 'id' | 'number'>): Promise<void> {
+  return downloadAuthed(`/invoices/provider/${encodeURIComponent(invoice.id)}/pdf`, token, `${invoice.number}.pdf`);
 }

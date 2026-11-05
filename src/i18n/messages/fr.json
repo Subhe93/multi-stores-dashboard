@@ -1340,18 +1340,21 @@
     },
     "invoices": {
       "title": "Factures",
-      "subtitle": "Factures et avoirs émis par les boutiques pour des commandes contenant vos produits.",
-      "notice": "Ces documents sont émis par la boutique (le vendeur) à son client. Vous pouvez les consulter et les télécharger, mais seule la boutique peut les émettre ou établir un avoir.",
+      "subtitle": "Copies fournisseur des factures et avoirs émis par les boutiques pour les commandes contenant vos produits.",
+      "notice": "Ce sont des copies fournisseur des factures de la boutique, qui ne montrent que vos articles.",
       "searchPlaceholder": "Numéro ou commande",
       "columns": {
-        "store": "Boutique"
+        "store": "Boutique",
+        "yourItems": "Vos articles (HT)"
       },
       "loading": "Chargement des factures…",
       "loadFailed": "Impossible de charger les factures.",
       "retry": "Réessayer",
       "emptyTitle": "Aucune facture pour le moment",
       "emptyHint": "Les factures apparaissent ici dès qu’une boutique en émet une pour une commande contenant vos produits.",
-      "emptyFiltered": "Aucune facture ne correspond à ces filtres."
+      "emptyFiltered": "Aucune facture ne correspond à ces filtres.",
+      "download": "Télécharger la copie fournisseur",
+      "truncated": "Affichage des {count} documents les plus récents"
     },
     "legalDetails": {
       "title": "Informations légales",

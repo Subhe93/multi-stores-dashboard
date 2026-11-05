@@ -1340,18 +1340,21 @@
     },
     "invoices": {
       "title": "Rechnungen",
-      "subtitle": "Rechnungen und Gutschriften, die Shops für Bestellungen mit deinen Produkten ausgestellt haben.",
-      "notice": "Diese Belege stellt der Shop (der Verkäufer) seinem Kunden aus. Du kannst sie ansehen und herunterladen, ausstellen oder gutschreiben kann sie aber nur der Shop.",
+      "subtitle": "Lieferantenkopien der Rechnungen und Gutschriften, die Shops für Bestellungen mit deinen Produkten ausgestellt haben.",
+      "notice": "Dies sind Lieferantenkopien der Rechnungen des Shops, die nur deine Artikel zeigen.",
       "searchPlaceholder": "Nummer oder Bestellung",
       "columns": {
-        "store": "Shop"
+        "store": "Shop",
+        "yourItems": "Deine Artikel (netto)"
       },
       "loading": "Rechnungen werden geladen…",
       "loadFailed": "Die Rechnungen konnten nicht geladen werden.",
       "retry": "Erneut versuchen",
       "emptyTitle": "Noch keine Rechnungen",
       "emptyHint": "Rechnungen erscheinen hier, sobald ein Shop eine für eine Bestellung mit deinen Produkten ausstellt.",
-      "emptyFiltered": "Keine Rechnungen entsprechen diesen Filtern."
+      "emptyFiltered": "Keine Rechnungen entsprechen diesen Filtern.",
+      "download": "Lieferantenkopie herunterladen",
+      "truncated": "Es werden die neuesten {count} Dokumente angezeigt"
     },
     "legalDetails": {
       "title": "Rechtliche Angaben",

@@ -30,9 +30,10 @@ type KindFilter = 'all' | InvoiceKind;
 type PaidFilter = 'all' | 'yes' | 'no';
 
 /**
- * Read-only list of the invoices and credit notes stores issued for orders
- * containing items this provider fulfils. The store is the seller; the
- * provider can only view and download the PDFs.
+ * Read-only list of SUPPLIER COPIES of the invoices and credit notes stores
+ * issued for orders containing items this provider fulfils. The store is the
+ * seller; the provider sees only its own lines (subtotal per document) and
+ * downloads the supplier-copy PDF, never the tax invoice itself.
  */
 export default function ProviderInvoicesPage() {
   const t = useTranslations('provider.invoices');
@@ -40,7 +41,7 @@ export default function ProviderInvoicesPage() {
   const locale = useLocale();
   const { token } = useAuth();
   const describeError = useApiError();
-  const { download, downloadingId, downloadError } = useInvoicePdfDownload(token);
+  const { download, downloadingId, downloadError } = useInvoicePdfDownload(token, { supplierCopy: true });
 
   const [kind, setKind] = useState<KindFilter>('all');
   const [paid, setPaid] = useState<PaidFilter>('all');
@@ -112,7 +113,7 @@ export default function ProviderInvoicesPage() {
 
   const downloadButton = (inv: ProviderInvoiceSummary) => (
     // Span carries the tooltip: disabled buttons get no pointer events.
-    <span className="inline-flex" title={inv.pdf_available === false ? ti('detail.pdfUnavailable') : ti('download')}>
+    <span className="inline-flex" title={inv.pdf_available === false ? ti('detail.pdfUnavailable') : t('download')}>
       <Button
         variant="ghost"
         size="icon"
@@ -122,7 +123,7 @@ export default function ProviderInvoicesPage() {
           e.stopPropagation();
           void download(inv);
         }}
-        aria-label={ti('download')}
+        aria-label={t('download')}
       >
         {downloadingId === inv.id ? <Loader2 className="animate-spin" /> : <Download />}
       </Button>
@@ -184,12 +185,12 @@ export default function ProviderInvoicesPage() {
       ),
     },
     {
-      key: 'gross_total',
-      label: ti('columns.total'),
+      key: 'provider_subtotal',
+      label: t('columns.yourItems'),
       className: 'text-end',
       render: (inv: ProviderInvoiceSummary) => (
-        <bdi dir="ltr" className={`whitespace-nowrap ${inv.gross_total < 0 ? 'text-rose-700' : ''}`}>
-          {formatInvoiceAmount(inv.gross_total, inv.currency, locale)}
+        <bdi dir="ltr" className={`whitespace-nowrap ${inv.provider_subtotal < 0 ? 'text-rose-700' : ''}`}>
+          {formatInvoiceAmount(inv.provider_subtotal, inv.currency, locale)}
         </bdi>
       ),
     },
@@ -291,7 +292,10 @@ export default function ProviderInvoicesPage() {
             />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2 lg:col-span-5">
-            <p className="text-xs text-muted-foreground">{data ? ti('resultCount', { count: data.total }) : ' '}</p>
+            <p className="text-xs text-muted-foreground">
+              {data ? ti('resultCount', { count: data.total }) : ' '}
+              {data?.truncated && <span className="ms-2">· {t('truncated', { count: 2000 })}</span>}
+            </p>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}>
                 <X /> {ti('filters.clear')}
