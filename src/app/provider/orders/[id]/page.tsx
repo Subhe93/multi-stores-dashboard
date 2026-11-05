@@ -98,7 +98,13 @@ interface OrderDetail {
     platform_amount: number | string;
     creator_amount: number | string;
     provider_amount: number | string;
+    /** Marketplace VAT kept by the platform as seller (null on older orders). */
+    vat_amount?: number | string | null;
   } | null;
+  /** This provider's own part of provider_amount (null without a commission row). */
+  my_share?: number | null;
+  /** Shipping excl. VAT, kept by the platform (not part of any share). */
+  net_shipping?: number | null;
   payouts?: { status: string }[] | null;
   customer?: {
     first_name?: string | null;
@@ -726,6 +732,18 @@ export default function ProviderOrderDetail() {
               </div>
               {order.commission && (
                 <div className="mt-2 pt-2 border-t border-dashed space-y-1">
+                  {Number(order.commission.vat_amount ?? 0) > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{tp('vatToSeller')}</span>
+                      <span className="text-zinc-500">−{fmt(Number(order.commission.vat_amount))}</span>
+                    </div>
+                  )}
+                  {Number(order.net_shipping ?? 0) > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{tp('netShippingToPlatform')}</span>
+                      <span className="text-zinc-500">−{fmt(Number(order.net_shipping))}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">{t('platformFeeLower')}</span>
                     <span className="text-zinc-500">−{fmt(Number(order.commission.platform_amount))}</span>
@@ -736,10 +754,27 @@ export default function ProviderOrderDetail() {
                       <span className="text-zinc-500">−{fmt(Number(order.commission.creator_amount))}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-xs font-semibold text-emerald-700">
-                    <span>{t('yourEarningsLower')}</span>
-                    <span>{fmt(Number(order.commission.provider_amount))}</span>
-                  </div>
+                  {(() => {
+                    // Multi-provider orders: the aggregate provider_amount is split between
+                    // the providers (same split as the transfers); show only this provider's part.
+                    const total = Number(order.commission.provider_amount);
+                    const mine = order.my_share != null ? Number(order.my_share) : total;
+                    const others = Math.round((total - mine) * 100) / 100;
+                    return (
+                      <>
+                        {others > 0 && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">{tp('otherProvidersShare')}</span>
+                            <span className="text-zinc-500">−{fmt(others)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-xs font-semibold text-emerald-700">
+                          <span>{t('yourEarningsLower')}</span>
+                          <span>{fmt(mine)}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                   {(() => {
                     const myPayout = Array.isArray(order.payouts) ? order.payouts[0] : null;
                     return (

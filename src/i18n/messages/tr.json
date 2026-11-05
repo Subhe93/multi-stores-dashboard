@@ -46,7 +46,10 @@
     "kustomLiveExpires": "Yetkilendirme sona erme",
     "kustomLivePaymentMethod": "Ödeme yöntemi",
     "kustomStatusFailed": "Sipariş Kustom'dan okunamadı.",
-    "kustomAuthReleased": "Yetkilendirme, tahsilattan önce Kustom'da iptal edildi veya süresi doldu: müşteriden hiç ücret alınmadı. Sipariş iptal edildi ve stoğu iade edildi."
+    "kustomAuthReleased": "Yetkilendirme, tahsilattan önce Kustom'da iptal edildi veya süresi doldu: müşteriden hiç ücret alınmadı. Sipariş iptal edildi ve stoğu iade edildi.",
+    "vatToSeller": "KDV (satıcıya)",
+    "netShippingToPlatform": "KDV hariç kargo (platforma)",
+    "otherProvidersShare": "Diğer tedarikçilerin payı"
   },
   "backups": {
     "title": "Yedekler",
@@ -1141,9 +1144,9 @@
     "csvYourEarnings": "Kazançlarınız",
     "csvStatus": "Durum",
     "explainOrderTotal": "müşterinin ödediği toplam tutar (kargo dahil)",
-    "explainPlatformFee": "ara toplamdan düşülen platform komisyonu",
+    "explainPlatformFee": "taban fiyatınızdan (KDV hariç) düşülen platform komisyonu",
     "explainCreatorShare": "içerik üreticisinin marjı (yalnızca bir içerik üreticisi ürününüzü yeniden sattığında)",
-    "explainYourEarnings": "tüm kesintilerden sonra aldığınız tutar, Stripe Connect ile ödenir",
+    "explainYourEarnings": "taban fiyatınızdan platform komisyonu düşüldükten sonra kalan tutar: size Stripe Connect ile ödenir",
     "payoutsIntro": "Ödemeler otomatik olarak şu yolla işlenir:",
     "stripeConnect": "Stripe Connect",
     "payoutsOutro": "Ödeme almak için Ayarlar'dan hesabınızı bağlayın.",
@@ -1402,7 +1405,7 @@
       "tabLines": "Siparişler",
       "tabPayouts": "Ödemeler",
       "noPayouts": "Henüz ödeme yok",
-      "explainGross": "platform komisyonundan önce siparişteki ürünlerinizin taban fiyatı",
+      "explainGross": "platform komisyonundan önce siparişteki ürünlerinizin taban fiyatı (KDV hariç)",
       "explainRefunds": "iade edilen veya geri gönderilen siparişler artık kazanç sayılmaz",
       "offlineHint": "Kazancının {amount} tutarındaki kısmı platform ödemeleri dışında kapatılır (ör. kapıda ödeme) ve Stripe hesabına aktarılmaz.",
       "explainOffline": "platform üzerinden kart tahsilatı olmadan ödenen siparişler (ör. kapıda ödeme) kazanç sayılır ancak Stripe hesabına aktarılmaz",
@@ -1769,7 +1772,9 @@
       "viewInStoreNotPublished": "Yayında değil — mağazada yalnızca yayınlanmış ürünler görünür",
       "viewInStoreNoSlug": "Bu ürünün henüz bir URL kısaltması (slug) yok",
       "filterTag": "Etiket",
-      "allTags": "Tüm etiketler"
+      "allTags": "Tüm etiketler",
+      "belowMinimumBadge": "Fiyat asgari fiyatın altında",
+      "belowMinimumHint": "Fiyat artık tedarikçinin taban fiyatını artı KDV’yi karşılamıyor. Ürünü açıp fiyatı asgari fiyata yükseltin."
     },
     "customProductForm": {
       "newTitle": "Yeni Özel Ürün",
@@ -1820,7 +1825,9 @@
       "errFaqQuestion": "Her SSS'nin bir sorusu olmalıdır.",
       "errImportMode": "Lütfen bir içe aktarma modu seçin.",
       "failedCreate": "Özel ürün oluşturulamadı",
-      "preselectedLoadFailed": "Seçilen ürün yüklenemedi. Kaldırılmış veya artık mevcut olmayabilir."
+      "preselectedLoadFailed": "Seçilen ürün yüklenemedi. Kaldırılmış veya artık mevcut olmayabilir.",
+      "errBelowMinimum": "Fiyat, KDV dahil {price} olan asgari fiyatın altında. Tedarikçinin taban fiyatını artı KDV’yi karşılayacak şekilde yükseltin.",
+      "errBelowMinimumExclVat": "Fiyat, KDV hariç {price} olan asgari fiyatın altında. Tedarikçinin taban fiyatını karşılayacak şekilde yükseltin."
     },
     "editCustomProduct": {
       "title": "Özel Ürünü Düzenle",
@@ -1883,7 +1890,8 @@
       "deleteTitle": "Özel Ürünü Sil",
       "deleteConfirm": "Bu, bu özel ürünü mağazanızdan kalıcı olarak kaldırır.",
       "deleting": "Siliniyor...",
-      "failedDelete": "Ürün silinemedi."
+      "failedDelete": "Ürün silinemedi.",
+      "belowMinimumWarning": "Bu fiyat asgari fiyatın altında: artık tedarikçinin taban fiyatını artı KDV’yi karşılamıyor. Aşağıda gösterilen asgari fiyata yükseltin."
     },
     "collections": {
       "title": "Koleksiyonlar",
@@ -5667,7 +5675,7 @@
     "pricingPerVariantDesc": "Varyant başına farklı fiyat",
     "pricingMarginTitle": "Sabit Marj",
     "pricingMarginDesc": "Temel fiyat üzerine ek kâr",
-    "providerBasePrice": "Tedarikçi temel fiyatı (maliyetiniz)",
+    "providerBasePrice": "Tedarikçi taban fiyatı (KDV hariç)",
     "chooseHowToPrice": "Müşterileriniz için fiyatlandırmayı seçin",
     "pricingMethod": "Fiyatlandırma yöntemi",
     "usingStrategy": "{strategy} kullanılıyor",
@@ -5728,7 +5736,12 @@
     "tagCreated": "\"{name}\" etiketi oluşturuldu ve seçildi.",
     "tagExists": "\"{name}\" zaten var ve seçildi.",
     "tagCreateFailed": "Etiket oluşturulamadı. Tekrar deneyin.",
-    "tagCreateHint": "Henüz olmayan bir etiket oluşturmak için Enter’a basın."
+    "tagCreateHint": "Henüz olmayan bir etiket oluşturmak için Enter’a basın.",
+    "minimumPriceInclVat": "KDV dahil asgari fiyat: {price}",
+    "minimumPriceExclVat": "Asgari fiyat: {price}",
+    "minimumMarginInclVat": "Asgari kâr marjı (KDV’yi karşılar): {amount}",
+    "priceBelowMinimumError": "Fiyat en az {price} olmalıdır: tedarikçinin taban fiyatı artı KDV.",
+    "marginBelowMinimumError": "Fiyatın tedarikçinin taban fiyatını artı KDV’yi karşılaması için kâr marjı en az {amount} olmalıdır."
   },
   "errors": {
     "generic": "Bir hata oluştu. Lütfen tekrar deneyin.",
@@ -6116,7 +6129,8 @@
     "TRANSLATION_UNAVAILABLE": "Çeviri hizmeti şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
     "REDIRECT_SHADOWS_LIVE": "Bu adres hâlâ yayındaki bir sayfayı veya ürünü gösteriyor. Önce silin, yayından kaldırın veya adını değiştirin, ardından yönlendirmeyi ekleyin.",
     "REDIRECT_CHAIN_TOO_LONG": "Bu yönlendirme çok fazla başka yönlendirmeden geçer.",
-    "REDIRECT_BULK_TOO_MANY": "Tek seferde en fazla 5000 yönlendirme yükleyin."
+    "REDIRECT_BULK_TOO_MANY": "Tek seferde en fazla 5000 yönlendirme yükleyin.",
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Fiyat asgari fiyatın altında: tedarikçinin taban fiyatını artı KDV’yi karşılamalıdır."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -6512,9 +6526,10 @@
     "internalCategories": "Etiketler",
     "internalCategoriesHelp": "Kendi düzeniniz, filtreler ve akıllı koleksiyonlar için. Mağazada asla gösterilmez.",
     "categoryHelp": "Ürünü platform kataloğunda sınıflandırmak için kullanılır",
-    "priceHelpProvider": "Birim başına taban fiyatınız — her satıştan kazandığınız tutar. Mağazalar kendi satış fiyatlarını bunun üzerine belirler.",
+    "priceHelpProvider": "Birim başına taban fiyatınız (KDV hariç). Her satışta bu tutardan platform komisyonu (%{percent}) düşülerek size ödenir.",
     "seoNeedsTitle": "Bu dilde de bir başlık ekleyin — SEO alanları yalnızca başlığı olan diller için kaydedilir.",
-    "errSeoNeedsTitle": "{locale} için bir başlık ekleyin — SEO alanları yalnızca başlıkla birlikte kaydedilir."
+    "errSeoNeedsTitle": "{locale} için bir başlık ekleyin — SEO alanları yalnızca başlıkla birlikte kaydedilir.",
+    "priceHelpProviderNoPercent": "Birim başına taban fiyatınız (KDV hariç). Her satışta bu tutardan platform komisyonu düşülerek size ödenir."
   },
   "customField": {
     "typeText": "Metin",

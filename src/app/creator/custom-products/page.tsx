@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Layers, Plus, ImageIcon, Copy } from 'lucide-react';
+import { Layers, Plus, ImageIcon, Copy, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
@@ -57,6 +57,8 @@ interface CustomProduct {
   translations: Translation[];
   mockup_images?: { url: string }[];
   selected_variants?: { id: string; variant_id: string }[];
+  /** Stored price is below the minimum (provider base + VAT). */
+  below_minimum?: boolean;
   product: {
     translations: Translation[];
     base_price: number;
@@ -482,18 +484,32 @@ export default function CustomProductsPage() {
         if (item.kind === 'own') {
           return <span className="text-sm font-medium">{fmt(item.base_price)}</span>;
         }
-        if (item.pricing_type === 'SINGLE') {
-          return <span className="text-sm font-medium">{fmt(item.final_price)}</span>;
-        }
-        if (item.pricing_type === 'MARGIN') {
-          return (
+        const price =
+          item.pricing_type === 'SINGLE' ? (
+            <span className="text-sm font-medium">{fmt(item.final_price)}</span>
+          ) : item.pricing_type === 'MARGIN' ? (
             <span className="text-sm font-medium">
               +{fmt(item.margin_amount ?? 0)}
               <span className="text-[10px] text-muted-foreground ms-1">{tt('myProducts.margin')}</span>
             </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">{tt('myProducts.perVariant')}</span>
           );
-        }
-        return <span className="text-xs text-muted-foreground">{tt('myProducts.perVariant')}</span>;
+        if (!item.below_minimum) return price;
+        // Priced under provider base + VAT (e.g. before the minimum existed).
+        return (
+          <div className="flex flex-col items-start gap-1">
+            {price}
+            <Badge
+              variant="outline"
+              className="text-[10px] font-semibold bg-red-50 text-red-700 border-red-200 gap-1 whitespace-normal text-start"
+              title={tt('myProducts.belowMinimumHint')}
+            >
+              <AlertTriangle className="size-3 shrink-0" />
+              {tt('myProducts.belowMinimumBadge')}
+            </Badge>
+          </div>
+        );
       },
     },
     {

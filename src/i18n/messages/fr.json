@@ -46,7 +46,10 @@
     "kustomLiveExpires": "Expiration de l'autorisation",
     "kustomLivePaymentMethod": "Moyen de paiement",
     "kustomStatusFailed": "Impossible de lire la commande chez Kustom.",
-    "kustomAuthReleased": "L'autorisation a été annulée ou a expiré chez Kustom avant la capture : le client n'a jamais été débité. La commande a été annulée et le stock restitué."
+    "kustomAuthReleased": "L'autorisation a été annulée ou a expiré chez Kustom avant la capture : le client n'a jamais été débité. La commande a été annulée et le stock restitué.",
+    "vatToSeller": "TVA (au vendeur)",
+    "netShippingToPlatform": "Expédition HT (à la plateforme)",
+    "otherProvidersShare": "Part des autres fournisseurs"
   },
   "backups": {
     "title": "Sauvegardes",
@@ -1141,9 +1144,9 @@
     "csvYourEarnings": "Vos gains",
     "csvStatus": "Statut",
     "explainOrderTotal": "le montant total payé par le client (frais de port inclus)",
-    "explainPlatformFee": "la commission de la plateforme déduite du sous-total",
+    "explainPlatformFee": "la commission de la plateforme, déduite de votre prix de base (HT)",
     "explainCreatorShare": "la marge du créateur (uniquement lorsqu'un créateur revend votre produit)",
-    "explainYourEarnings": "ce que vous recevez après toutes les déductions, versé via Stripe Connect",
+    "explainYourEarnings": "votre prix de base moins la commission de la plateforme : ce que vous recevez, versé via Stripe Connect",
     "payoutsIntro": "Les paiements sont traités automatiquement via",
     "stripeConnect": "Stripe Connect",
     "payoutsOutro": "Connectez votre compte dans les Paramètres pour recevoir des paiements.",
@@ -1402,7 +1405,7 @@
       "tabLines": "Commandes",
       "tabPayouts": "Versements",
       "noPayouts": "Aucun versement pour le moment",
-      "explainGross": "le prix de base de vos articles dans la commande, avant la commission de la plateforme",
+      "explainGross": "le prix de base (HT) de vos articles dans la commande, avant la commission de la plateforme",
       "explainRefunds": "les commandes remboursées ou retournées ne comptent plus dans les revenus",
       "offlineHint": "{amount} de vos revenus sont réglés hors des virements de la plateforme (p. ex. paiement à la livraison) et ne sont pas virés sur votre compte Stripe.",
       "explainOffline": "les commandes payées sans débit de carte via la plateforme (p. ex. paiement à la livraison) comptent dans les revenus mais ne sont pas virées sur votre compte Stripe",
@@ -1769,7 +1772,9 @@
       "viewInStoreNotPublished": "Non publié — seuls les produits publiés sont visibles dans la boutique",
       "viewInStoreNoSlug": "Ce produit n'a pas encore de slug d'URL",
       "filterTag": "Tag",
-      "allTags": "Tous les tags"
+      "allTags": "Tous les tags",
+      "belowMinimumBadge": "Prix inférieur au minimum",
+      "belowMinimumHint": "Le prix ne couvre plus le prix de base du fournisseur plus la TVA. Ouvrez le produit et augmentez-le au minimum."
     },
     "customProductForm": {
       "newTitle": "Nouveau produit personnalisé",
@@ -1820,7 +1825,9 @@
       "errFaqQuestion": "Chaque FAQ doit comporter une question.",
       "errImportMode": "Veuillez choisir un mode d'import.",
       "failedCreate": "Échec de la création du produit personnalisé",
-      "preselectedLoadFailed": "Le produit sélectionné n'a pas pu être chargé. Il a peut-être été supprimé ou n'est plus disponible."
+      "preselectedLoadFailed": "Le produit sélectionné n'a pas pu être chargé. Il a peut-être été supprimé ou n'est plus disponible.",
+      "errBelowMinimum": "Le prix est inférieur au minimum de {price} TTC. Augmentez-le pour couvrir le prix de base du fournisseur plus la TVA.",
+      "errBelowMinimumExclVat": "Le prix est inférieur au minimum de {price} HT. Augmentez-le pour couvrir le prix de base du fournisseur."
     },
     "editCustomProduct": {
       "title": "Modifier le produit personnalisé",
@@ -1883,7 +1890,8 @@
       "deleteTitle": "Supprimer le produit personnalisé",
       "deleteConfirm": "Cela supprimera définitivement ce produit personnalisé de votre boutique.",
       "deleting": "Suppression...",
-      "failedDelete": "Échec de la suppression du produit."
+      "failedDelete": "Échec de la suppression du produit.",
+      "belowMinimumWarning": "Ce prix est inférieur au minimum : il ne couvre plus le prix de base du fournisseur plus la TVA. Augmentez-le au minimum indiqué ci-dessous."
     },
     "collections": {
       "title": "Collections",
@@ -5667,7 +5675,7 @@
     "pricingPerVariantDesc": "Prix différent par variante",
     "pricingMarginTitle": "Marge fixe",
     "pricingMarginDesc": "Majoration sur le prix de base",
-    "providerBasePrice": "Prix de base du fournisseur (votre coût)",
+    "providerBasePrice": "Prix de base du fournisseur (HT)",
     "chooseHowToPrice": "Choisissez comment fixer le prix pour vos clients",
     "pricingMethod": "Méthode de tarification",
     "usingStrategy": "Utilisation de {strategy}",
@@ -5728,7 +5736,12 @@
     "tagCreated": "Tag « {name} » créé et sélectionné.",
     "tagExists": "« {name} » existe déjà et a été sélectionné.",
     "tagCreateFailed": "Impossible de créer le tag. Réessayez.",
-    "tagCreateHint": "Appuyez sur Entrée pour créer un tag qui n’existe pas encore."
+    "tagCreateHint": "Appuyez sur Entrée pour créer un tag qui n’existe pas encore.",
+    "minimumPriceInclVat": "Prix minimum TTC : {price}",
+    "minimumPriceExclVat": "Prix minimum : {price}",
+    "minimumMarginInclVat": "Marge minimale (couvre la TVA) : {amount}",
+    "priceBelowMinimumError": "Le prix doit être d’au moins {price} : le prix de base du fournisseur plus la TVA.",
+    "marginBelowMinimumError": "La marge doit être d’au moins {amount} pour que le prix couvre le prix de base du fournisseur plus la TVA."
   },
   "errors": {
     "generic": "Une erreur s'est produite. Veuillez réessayer.",
@@ -6116,7 +6129,8 @@
     "TRANSLATION_UNAVAILABLE": "Le service de traduction est indisponible pour le moment. Veuillez réessayer plus tard.",
     "REDIRECT_SHADOWS_LIVE": "Cette adresse affiche encore une page ou un produit publié. Supprimez-le, dépubliez-le ou renommez-le d’abord, puis ajoutez la redirection.",
     "REDIRECT_CHAIN_TOO_LONG": "Cette redirection passerait par trop d’autres redirections.",
-    "REDIRECT_BULK_TOO_MANY": "Importez au maximum 5000 redirections à la fois."
+    "REDIRECT_BULK_TOO_MANY": "Importez au maximum 5000 redirections à la fois.",
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Le prix est inférieur au minimum : il doit couvrir le prix de base du fournisseur plus la TVA."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -6512,9 +6526,10 @@
     "internalCategories": "Tags",
     "internalCategoriesHelp": "Pour votre organisation, vos filtres et vos collections intelligentes. Jamais affiché dans la boutique.",
     "categoryHelp": "Sert à classer le produit dans le catalogue de la plateforme",
-    "priceHelpProvider": "Votre prix de base par unité — ce que vous percevez à chaque vente. Les boutiques fixent leur propre prix de vente au-dessus.",
+    "priceHelpProvider": "Votre prix de base par unité (HT). Vous le recevez moins la commission de la plateforme ({percent} %) sur chaque vente.",
     "seoNeedsTitle": "Ajoutez aussi un titre dans cette langue — les champs SEO ne sont enregistrés que pour les langues qui ont un titre.",
-    "errSeoNeedsTitle": "Ajoutez un titre en {locale} — ses champs SEO ne sont enregistrés qu'avec un titre."
+    "errSeoNeedsTitle": "Ajoutez un titre en {locale} — ses champs SEO ne sont enregistrés qu'avec un titre.",
+    "priceHelpProviderNoPercent": "Votre prix de base par unité (HT). Vous le recevez moins la commission de la plateforme sur chaque vente."
   },
   "customField": {
     "typeText": "Texte",

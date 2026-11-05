@@ -46,7 +46,10 @@
     "kustomLiveExpires": "Autorisierung läuft ab",
     "kustomLivePaymentMethod": "Zahlungsmethode",
     "kustomStatusFailed": "Die Bestellung konnte nicht von Kustom gelesen werden.",
-    "kustomAuthReleased": "Die Autorisierung wurde bei Kustom vor dem Einzug storniert oder ist abgelaufen: dem Kunden wurde nichts belastet. Die Bestellung wurde storniert und der Bestand zurückgebucht."
+    "kustomAuthReleased": "Die Autorisierung wurde bei Kustom vor dem Einzug storniert oder ist abgelaufen: dem Kunden wurde nichts belastet. Die Bestellung wurde storniert und der Bestand zurückgebucht.",
+    "vatToSeller": "MwSt. (an den Verkäufer)",
+    "netShippingToPlatform": "Versand exkl. MwSt. (an die Plattform)",
+    "otherProvidersShare": "Anteil anderer Anbieter"
   },
   "backups": {
     "title": "Backups",
@@ -1141,9 +1144,9 @@
     "csvYourEarnings": "Ihre Einnahmen",
     "csvStatus": "Status",
     "explainOrderTotal": "der vom Kunden gezahlte Gesamtbetrag (inkl. Versand)",
-    "explainPlatformFee": "die vom Zwischenbetrag abgezogene Plattformprovision",
+    "explainPlatformFee": "die Plattformprovision, abgezogen von deinem Basispreis (ohne MwSt.)",
     "explainCreatorShare": "die Marge des Creators (nur wenn ein Creator Ihr Produkt weiterverkauft)",
-    "explainYourEarnings": "was Sie nach allen Abzügen erhalten, ausgezahlt über Stripe Connect",
+    "explainYourEarnings": "dein Basispreis abzüglich der Plattformprovision: was du erhältst, ausgezahlt über Stripe Connect",
     "payoutsIntro": "Auszahlungen werden automatisch verarbeitet über",
     "stripeConnect": "Stripe Connect",
     "payoutsOutro": "Verbinden Sie Ihr Konto in den Einstellungen, um Auszahlungen zu erhalten.",
@@ -1402,7 +1405,7 @@
       "tabLines": "Bestellungen",
       "tabPayouts": "Auszahlungen",
       "noPayouts": "Noch keine Auszahlungen",
-      "explainGross": "der Basispreis deiner Artikel in der Bestellung vor der Plattformprovision",
+      "explainGross": "der Basispreis (ohne MwSt.) deiner Artikel in der Bestellung vor der Plattformprovision",
       "explainRefunds": "erstattete oder zurückgesendete Bestellungen zählen nicht mehr zu den Einnahmen",
       "offlineHint": "{amount} deiner Einnahmen werden außerhalb der Plattform-Auszahlungen abgerechnet (z. B. Nachnahme) und nicht an dein Stripe-Konto überwiesen.",
       "explainOffline": "Bestellungen, die ohne Kartenzahlung über die Plattform bezahlt wurden (z. B. Nachnahme), zählen zu den Einnahmen, werden aber nicht an dein Stripe-Konto überwiesen",
@@ -1769,7 +1772,9 @@
       "viewInStoreNotPublished": "Nicht veröffentlicht – nur veröffentlichte Produkte sind im Shop sichtbar",
       "viewInStoreNoSlug": "Dieses Produkt hat noch keinen URL-Slug",
       "filterTag": "Tag",
-      "allTags": "Alle Tags"
+      "allTags": "Alle Tags",
+      "belowMinimumBadge": "Preis unter dem Mindestpreis",
+      "belowMinimumHint": "Der Preis deckt den Basispreis des Anbieters plus MwSt. nicht mehr. Öffne das Produkt und erhöhe ihn auf den Mindestpreis."
     },
     "customProductForm": {
       "newTitle": "Neues eigenes Produkt",
@@ -1820,7 +1825,9 @@
       "errFaqQuestion": "Jede FAQ braucht eine Frage.",
       "errImportMode": "Bitte wählen Sie einen Importmodus.",
       "failedCreate": "Eigenes Produkt konnte nicht erstellt werden",
-      "preselectedLoadFailed": "Das ausgewählte Produkt konnte nicht geladen werden. Es wurde möglicherweise entfernt oder ist nicht mehr verfügbar."
+      "preselectedLoadFailed": "Das ausgewählte Produkt konnte nicht geladen werden. Es wurde möglicherweise entfernt oder ist nicht mehr verfügbar.",
+      "errBelowMinimum": "Der Preis liegt unter dem Mindestpreis von {price} inkl. MwSt. Erhöhe ihn, damit er den Basispreis des Anbieters plus MwSt. deckt.",
+      "errBelowMinimumExclVat": "Der Preis liegt unter dem Mindestpreis von {price} exkl. MwSt. Erhöhe ihn, damit er den Basispreis des Anbieters deckt."
     },
     "editCustomProduct": {
       "title": "Eigenes Produkt bearbeiten",
@@ -1883,7 +1890,8 @@
       "deleteTitle": "Eigenes Produkt löschen",
       "deleteConfirm": "Dadurch wird dieses eigene Produkt dauerhaft aus Ihrem Shop entfernt.",
       "deleting": "Wird gelöscht...",
-      "failedDelete": "Das Produkt konnte nicht gelöscht werden."
+      "failedDelete": "Das Produkt konnte nicht gelöscht werden.",
+      "belowMinimumWarning": "Dieser Preis liegt unter dem Mindestpreis: Er deckt den Basispreis des Anbieters plus MwSt. nicht mehr. Erhöhe ihn auf den unten angezeigten Mindestpreis."
     },
     "collections": {
       "title": "Kollektionen",
@@ -5667,7 +5675,7 @@
     "pricingPerVariantDesc": "Unterschiedlicher Preis pro Variante",
     "pricingMarginTitle": "Feste Marge",
     "pricingMarginDesc": "Aufschlag auf den Basispreis",
-    "providerBasePrice": "Basispreis des Anbieters (Ihre Kosten)",
+    "providerBasePrice": "Basispreis des Anbieters (ohne MwSt.)",
     "chooseHowToPrice": "Wählen Sie die Preisgestaltung für Ihre Kunden",
     "pricingMethod": "Preismethode",
     "usingStrategy": "Verwendung von {strategy}",
@@ -5728,7 +5736,12 @@
     "tagCreated": "Tag „{name}“ wurde erstellt und ausgewählt.",
     "tagExists": "„{name}“ gibt es bereits und wurde ausgewählt.",
     "tagCreateFailed": "Der Tag konnte nicht erstellt werden. Bitte erneut versuchen.",
-    "tagCreateHint": "Eingabetaste drücken, um einen noch nicht vorhandenen Tag zu erstellen."
+    "tagCreateHint": "Eingabetaste drücken, um einen noch nicht vorhandenen Tag zu erstellen.",
+    "minimumPriceInclVat": "Mindestpreis inkl. MwSt.: {price}",
+    "minimumPriceExclVat": "Mindestpreis: {price}",
+    "minimumMarginInclVat": "Mindestmarge (deckt die MwSt.): {amount}",
+    "priceBelowMinimumError": "Der Preis muss mindestens {price} betragen: Basispreis des Anbieters plus MwSt.",
+    "marginBelowMinimumError": "Die Marge muss mindestens {amount} betragen, damit der Preis den Basispreis des Anbieters plus MwSt. deckt."
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
@@ -6116,7 +6129,8 @@
     "TRANSLATION_UNAVAILABLE": "Der Übersetzungsdienst ist derzeit nicht verfügbar. Bitte versuche es später erneut.",
     "REDIRECT_SHADOWS_LIVE": "Diese Adresse zeigt noch eine veröffentlichte Seite oder ein Produkt. Lösche, depubliziere oder benenne es zuerst um und füge dann die Weiterleitung hinzu.",
     "REDIRECT_CHAIN_TOO_LONG": "Diese Weiterleitung würde über zu viele andere Weiterleitungen laufen.",
-    "REDIRECT_BULK_TOO_MANY": "Lade höchstens 5000 Weiterleitungen auf einmal hoch."
+    "REDIRECT_BULK_TOO_MANY": "Lade höchstens 5000 Weiterleitungen auf einmal hoch.",
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Der Preis liegt unter dem Mindestpreis: Er muss den Basispreis des Anbieters plus MwSt. decken."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -6512,9 +6526,10 @@
     "internalCategories": "Tags",
     "internalCategoriesHelp": "Für Ihre eigene Ordnung, Filter und smarte Kollektionen. Wird nie im Shop angezeigt.",
     "categoryHelp": "Dient der Einordnung des Produkts im Plattformkatalog",
-    "priceHelpProvider": "Ihr Grundpreis pro Stück – das, was Sie pro Verkauf erhalten. Shops legen ihren eigenen Verkaufspreis darauf fest.",
+    "priceHelpProvider": "Dein Basispreis pro Einheit (ohne MwSt.). Du erhältst ihn abzüglich der Plattformprovision ({percent} %) pro Verkauf.",
     "seoNeedsTitle": "Fügen Sie auch einen Titel in dieser Sprache hinzu – SEO-Felder werden nur für Sprachen mit Titel gespeichert.",
-    "errSeoNeedsTitle": "Füge einen Titel auf {locale} hinzu — die SEO-Felder werden nur mit einem Titel gespeichert."
+    "errSeoNeedsTitle": "Füge einen Titel auf {locale} hinzu — die SEO-Felder werden nur mit einem Titel gespeichert.",
+    "priceHelpProviderNoPercent": "Dein Basispreis pro Einheit (ohne MwSt.). Du erhältst ihn abzüglich der Plattformprovision pro Verkauf."
   },
   "customField": {
     "typeText": "Text",

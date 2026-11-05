@@ -295,6 +295,21 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     }));
   };
 
+  // Provider price help: the platform commission taken from the base price
+  // (null = unknown, the help text then omits the number).
+  const [platformCommission, setPlatformCommission] = useState<number | null>(null);
+  useEffect(() => {
+    if (!token || !hasUser || isCreator) return;
+    api<{ commission_type?: string; commission_value?: number | string }>('/admin/platform-config', { token })
+      .then((cfg) => {
+        const value = Number(cfg?.commission_value);
+        if ((cfg?.commission_type ?? 'percentage') === 'percentage' && Number.isFinite(value)) {
+          setPlatformCommission(value);
+        }
+      })
+      .catch(() => {});
+  }, [token, hasUser, isCreator]);
+
   // ── Fetch store language config ────────────────────────────
   useEffect(() => {
     if (!token || !hasUser) return;
@@ -1413,7 +1428,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-snug">
                   {/* A provider's price is the base stores pay; stores set the customer price. */}
-                  {isCreator ? t('product.priceHelp') : t('product.priceHelpProvider')}
+                  {isCreator
+                    ? t('product.priceHelp')
+                    : platformCommission !== null
+                      ? t('product.priceHelpProvider', { percent: platformCommission })
+                      : t('product.priceHelpProviderNoPercent')}
                 </p>
                 <FieldError msg={fieldErrors.basePrice} />
               </div>

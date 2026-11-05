@@ -32,6 +32,7 @@ import { useImageUpload } from '@/lib/useImageUpload';
 import ImportModeSelector from '@/components/creator/ImportModeSelector';
 import VariantSelector from '@/components/creator/VariantSelector';
 import PricingStrategySelector from '@/components/creator/PricingStrategySelector';
+import { findFloorViolation, type PriceFloorInfo } from '@/lib/customProductPriceFloor';
 import CustomFieldRenderer from '@/components/creator/CustomFieldRenderer';
 import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
@@ -199,6 +200,8 @@ export default function NewCustomProductPage() {
   const [productSearch, setProductSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  // Marketplace minimum price inputs of the chosen base product (VAT rate).
+  const [priceFloor, setPriceFloor] = useState<PriceFloorInfo | null>(null);
 
   // FAQs (local draft — saved after custom product is created)
   const [faqDrafts, setFaqDrafts] = useState<Faq[]>([]);
@@ -285,6 +288,18 @@ export default function NewCustomProductPage() {
       cancelled = true;
     };
   }, [token, preselectedProductId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Minimum price (provider base + VAT) inputs for the chosen base product.
+  const productDetailsId = productDetails?.id;
+  useEffect(() => {
+    setPriceFloor(null);
+    if (!token || !productDetailsId) return;
+    let cancelled = false;
+    api<PriceFloorInfo | null>(`/custom-products/price-floor?product_id=${encodeURIComponent(productDetailsId)}`, { token })
+      .then((floor) => { if (!cancelled) setPriceFloor(floor ?? null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [token, productDetailsId]);
 
   const fetchProductDetails = async (productId: string): Promise<Product | null> => {
     if (!token) return null;
@@ -442,6 +457,17 @@ export default function NewCustomProductPage() {
     ? (productDetails?.variants || [])
     : (productDetails?.variants || []).filter((v) => selectedVariantIds.includes(v.id));
 
+  // Price below the minimum (provider base + VAT): blocks the pricing step.
+  const floorViolation = findFloorViolation({
+    floor: priceFloor,
+    pricingType,
+    basePrice,
+    variants: selectedVariantsForPricing.map((v) => ({ id: v.id, price_adjustment: Number(v.price_adjustment || 0) })),
+    finalPrice,
+    marginAmount,
+    variantPrices,
+  });
+
   // ── Navigation ─────────────────────────────────────────
 
   const canGoNext = () => {
@@ -452,6 +478,7 @@ export default function NewCustomProductPage() {
       case 'variants': return selectedVariantIds.length > 0;
       case 'fields':   return true;
       case 'pricing':
+        if (floorViolation) return false;
         if (pricingType === 'SINGLE') return !!finalPrice && !isNaN(parseFloat(finalPrice));
         if (pricingType === 'MARGIN') return !!marginAmount && !isNaN(parseFloat(marginAmount));
         if (pricingType === 'PER_VARIANT') {
@@ -575,9 +602,21 @@ export default function NewCustomProductPage() {
       // Coded API errors (e.g. PRIMARY_COLLECTION_NOT_LINKED) are translated;
       // class-validator lists go through the pattern mapper (formatSubmitError).
       const coded = err instanceof ApiError && !!err.code && !Array.isArray(err.errors);
-      setSubmitError(coded ? apiError(err) : formatSubmitError(err, t));
-      const targetKey =
-        coded && (err.code === 'PRIMARY_COLLECTION_NOT_LINKED' || err.code === 'PRIMARY_COLLECTION_INTERNAL')
+      const belowMinimum = coded && err.code === 'CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM';
+      const minimum = belowMinimum ? Number(err.payload?.minimum) : NaN;
+      setSubmitError(
+        belowMinimum && Number.isFinite(minimum)
+          ? t(
+              priceFloor?.prices_include_vat === false
+                ? 'customProductForm.errBelowMinimumExclVat'
+                : 'customProductForm.errBelowMinimum',
+              { price: fmt(minimum) },
+            )
+          : coded ? apiError(err) : formatSubmitError(err, t),
+      );
+      const targetKey = belowMinimum
+        ? 'pricing'
+        : coded && (err.code === 'PRIMARY_COLLECTION_NOT_LINKED' || err.code === 'PRIMARY_COLLECTION_INTERNAL')
           ? 'details'
           : stepKeyFromError(err, t);
       if (targetKey) {
@@ -814,6 +853,7 @@ export default function NewCustomProductPage() {
               selectedVariants={selectedVariantsForPricing}
               basePrice={basePrice}
               variantOptionConfig={productDetails?.variant_option_config}
+              priceFloor={priceFloor}
             />
           )}
 

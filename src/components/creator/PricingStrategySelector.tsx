@@ -6,6 +6,12 @@ import { Label } from '@/components/ui/label';
 import { DollarSign, Layers, TrendingUp, Check, Package } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCurrency } from '@/lib/useCurrency';
+import {
+  highestMinimum,
+  minimumMargin,
+  minimumPrice,
+  type PriceFloorInfo,
+} from '@/lib/customProductPriceFloor';
 
 type PricingType = 'SINGLE' | 'PER_VARIANT' | 'MARGIN';
 
@@ -88,6 +94,8 @@ interface PricingStrategySelectorProps {
   selectedVariants: VariantForPricing[];
   basePrice: number;
   variantOptionConfig?: VariantOptionConfig[];
+  /** Marketplace minimum price inputs (VAT rate); null = no minimum shown. */
+  priceFloor?: PriceFloorInfo | null;
 }
 
 export default function PricingStrategySelector({
@@ -102,6 +110,7 @@ export default function PricingStrategySelector({
   selectedVariants,
   basePrice,
   variantOptionConfig,
+  priceFloor,
 }: PricingStrategySelectorProps) {
   const { fmt, currency } = useCurrency();
   const t = useTranslations('components');
@@ -145,6 +154,19 @@ export default function PricingStrategySelector({
     .filter((p) => p > 0);
   const variantMin = variantPriceValues.length ? Math.min(...variantPriceValues) : 0;
   const variantMax = variantPriceValues.length ? Math.max(...variantPriceValues) : 0;
+
+  // Minimum customer price: provider base (net) + VAT, per variant sold.
+  const floorVariants = selectedVariants.map((v) => ({ id: v.id, price_adjustment: Number(v.price_adjustment || 0) }));
+  const singleMinimum = priceFloor ? highestMinimum(basePrice, floorVariants, priceFloor) : null;
+  const marginMinimum = priceFloor ? minimumMargin(basePrice, floorVariants, priceFloor) : null;
+  const inclVat = !!priceFloor?.prices_include_vat && priceFloor.vat_rate_bp > 0;
+  const minimumLabel = (price: number) =>
+    inclVat ? t('minimumPriceInclVat', { price: fmt(price) }) : t('minimumPriceExclVat', { price: fmt(price) });
+  const cents = (n: number) => Math.round(n * 100);
+  const singleBelow =
+    singleMinimum !== null && finalPrice !== '' && cents(finalSinglePrice) < cents(singleMinimum);
+  const marginBelow =
+    marginMinimum !== null && marginAmount !== '' && cents(parseFloat(marginAmount || '0')) < cents(marginMinimum);
 
   return (
     <div className="space-y-4">
@@ -223,8 +245,16 @@ export default function PricingStrategySelector({
                   placeholder="0.00"
                   value={finalPrice}
                   onChange={(e) => onFinalPriceChange(e.target.value)}
-                  className="h-9 text-sm"
+                  className={`h-9 text-sm ${singleBelow ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
+                  aria-invalid={singleBelow || undefined}
                 />
+                {singleMinimum !== null && (
+                  <p className={`text-[11px] ${singleBelow ? 'text-red-700 font-medium' : 'text-muted-foreground'}`}>
+                    {singleBelow
+                      ? t('priceBelowMinimumError', { price: fmt(singleMinimum) })
+                      : minimumLabel(singleMinimum)}
+                  </p>
+                )}
                 {basePrice > 0 && finalPrice && (
                   <ProfitIndicator basePrice={basePrice} sellPrice={finalSinglePrice} />
                 )}
@@ -242,8 +272,16 @@ export default function PricingStrategySelector({
                   placeholder="0.00"
                   value={marginAmount}
                   onChange={(e) => onMarginAmountChange(e.target.value)}
-                  className="h-9 text-sm"
+                  className={`h-9 text-sm ${marginBelow ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
+                  aria-invalid={marginBelow || undefined}
                 />
+                {marginMinimum !== null && marginMinimum > 0 && (
+                  <p className={`text-[11px] ${marginBelow ? 'text-red-700 font-medium' : 'text-muted-foreground'}`}>
+                    {marginBelow
+                      ? t('marginBelowMinimumError', { amount: fmt(marginMinimum) })
+                      : t('minimumMarginInclVat', { amount: fmt(marginMinimum) })}
+                  </p>
+                )}
                 {marginAmount && (
                   <p className="text-xs text-muted-foreground">
                     {t('basePlusMargin', { base: fmt(basePrice), margin: fmt(parseFloat(marginAmount || '0')) })}{' '}
@@ -265,6 +303,12 @@ export default function PricingStrategySelector({
                   <div className="rounded-md border divide-y max-h-72 overflow-y-auto">
                     {selectedVariants.map((variant) => {
                       const variantBase = basePrice + Number(variant.price_adjustment || 0);
+                      const variantMinimum = priceFloor ? minimumPrice(variantBase, priceFloor) : null;
+                      const rawVariantPrice = variantPrices[variant.id] || '';
+                      const variantBelow =
+                        variantMinimum !== null &&
+                        rawVariantPrice !== '' &&
+                        cents(parseFloat(rawVariantPrice)) < cents(variantMinimum);
                       const imgUrl = findVariantImage(variant.images);
 
                       // For every option on the variant, decide whether it's a
@@ -342,6 +386,12 @@ export default function PricingStrategySelector({
                             )}
                             <p className="text-[10px] text-muted-foreground">
                               {t('costLabel', { price: fmt(variantBase) })}
+                              {variantMinimum !== null && (
+                                <span className={variantBelow ? 'text-red-700 font-medium' : ''}>
+                                  {' · '}
+                                  {minimumLabel(variantMinimum)}
+                                </span>
+                              )}
                             </p>
                           </div>
 
@@ -349,10 +399,11 @@ export default function PricingStrategySelector({
                             type="number"
                             min="0"
                             step="0.01"
-                            placeholder={variantBase.toFixed(2)}
+                            placeholder={(variantMinimum ?? variantBase).toFixed(2)}
                             value={variantPrices[variant.id] || ''}
                             onChange={(e) => onVariantPriceChange(variant.id, e.target.value)}
-                            className="h-8 text-xs w-24"
+                            className={`h-8 text-xs w-24 ${variantBelow ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
+                            aria-invalid={variantBelow || undefined}
                           />
                         </div>
                       );

@@ -105,7 +105,11 @@ interface OrderTimelineEntry {
   notes?: string | null;
 }
 
-interface OrderCommission { creator_amount?: number | string | null }
+interface OrderCommission {
+  creator_amount?: number | string | null;
+  /** Marketplace VAT kept by the platform as seller (null on older orders). */
+  vat_amount?: number | string | null;
+}
 
 interface OrderAddress {
   street?: string | null;
@@ -362,6 +366,13 @@ export default function CreatorOrderDetailPage() {
         0,
       )
     : Number(order.commission?.creator_amount ?? 0);
+  // Marketplace orders: the VAT the platform (the seller) keeps and remits.
+  const vatToSeller = Array.isArray(order.commission)
+    ? order.commission.reduce(
+        (acc: number, c) => acc + Number(c.vat_amount ?? 0),
+        0,
+      )
+    : Number(order.commission?.vat_amount ?? 0);
 
   // A creator can advance the order when they fulfill ANY of its items — the
   // status update applies only to their own items, and the overall order status
@@ -820,6 +831,12 @@ export default function CreatorOrderDetailPage() {
                   : t('orderDetail.creatorCommission')}
               </p>
               <div className="mt-3 space-y-1.5 border-t pt-2">
+                {storeType !== 'INDEPENDENT' && vatToSeller > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">{tp('vatToSeller')}</span>
+                    <span>{fmtOrder(vatToSeller)}</span>
+                  </div>
+                )}
                 {/* Payment status — surfaces refunds and failed payments */}
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{tp('payment')}</span>

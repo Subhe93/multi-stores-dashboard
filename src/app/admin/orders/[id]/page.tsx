@@ -112,6 +112,8 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
     provider_amount: number | string;
     platform_amount: number | string;
     creator_amount: number | string;
+    /** Marketplace VAT kept by the platform as seller (null on older orders). */
+    vat_amount?: number | string | null;
   } | null;
   items?: OrderItem[];
   payouts?: Payout[];
@@ -415,6 +417,9 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between"><span className="text-muted-foreground">{t('provider')}</span><span>{fmt(Number(order.commission.provider_amount))}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">{t('platform')}</span><span className="font-medium">{fmt(Number(order.commission.platform_amount))}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">{t('creator')}</span><span>{fmt(Number(order.commission.creator_amount))}</span></div>
+                {Number(order.commission.vat_amount ?? 0) > 0 && (
+                  <div className="flex justify-between"><span className="text-muted-foreground">{tp('vatToSeller')}</span><span>{fmt(Number(order.commission.vat_amount))}</span></div>
+                )}
               </CardContent>
             </Card>
           )}

@@ -46,7 +46,10 @@
     "kustomLiveExpires": "Authorization expires",
     "kustomLivePaymentMethod": "Payment method",
     "kustomStatusFailed": "Could not read the order from Kustom.",
-    "kustomAuthReleased": "The authorization was cancelled or expired at Kustom before capture: the customer was never charged. The order has been cancelled and its stock returned."
+    "kustomAuthReleased": "The authorization was cancelled or expired at Kustom before capture: the customer was never charged. The order has been cancelled and its stock returned.",
+    "vatToSeller": "VAT (to the seller)",
+    "netShippingToPlatform": "Shipping excl. VAT (to the platform)",
+    "otherProvidersShare": "Other providers’ share"
   },
   "backups": {
     "title": "Backups",
@@ -1141,9 +1144,9 @@
     "csvYourEarnings": "Your Earnings",
     "csvStatus": "Status",
     "explainOrderTotal": "the full amount paid by the customer (including shipping)",
-    "explainPlatformFee": "the platform's commission deducted from the subtotal",
+    "explainPlatformFee": "the platform commission, deducted from your base price (excl. VAT)",
     "explainCreatorShare": "the creator's margin (only when a creator resells your product)",
-    "explainYourEarnings": "what you receive after all deductions, paid via Stripe Connect",
+    "explainYourEarnings": "your base price minus the platform commission: what you receive, paid via Stripe Connect",
     "payoutsIntro": "Payouts are processed automatically via",
     "stripeConnect": "Stripe Connect",
     "payoutsOutro": "Connect your account in Settings to receive payouts.",
@@ -1402,7 +1405,7 @@
       "tabLines": "Orders",
       "tabPayouts": "Payouts",
       "noPayouts": "No payouts yet",
-      "explainGross": "the base price of your items in the order, before the platform commission",
+      "explainGross": "the base price (excl. VAT) of your items in the order, before the platform commission",
       "explainRefunds": "refunded or returned orders no longer count as earnings",
       "offlineHint": "{amount} of your earnings is settled outside platform payouts (e.g. cash on delivery) and is not transferred to your Stripe account.",
       "explainOffline": "orders paid without a platform card charge (e.g. cash on delivery) count as earnings but are not transferred to your Stripe account",
@@ -1769,7 +1772,9 @@
       "viewInStoreNotPublished": "Not published — only published products are visible in the store",
       "viewInStoreNoSlug": "This product has no URL slug yet",
       "filterTag": "Tag",
-      "allTags": "All tags"
+      "allTags": "All tags",
+      "belowMinimumBadge": "Price below the minimum",
+      "belowMinimumHint": "The price no longer covers the provider’s base price plus VAT. Open the product and raise it to the minimum."
     },
     "customProductForm": {
       "newTitle": "New Custom Product",
@@ -1820,7 +1825,9 @@
       "errFaqQuestion": "Each FAQ needs a question.",
       "errImportMode": "Please choose an import mode.",
       "failedCreate": "Failed to create custom product",
-      "preselectedLoadFailed": "The selected product could not be loaded. It may have been removed or is no longer available."
+      "preselectedLoadFailed": "The selected product could not be loaded. It may have been removed or is no longer available.",
+      "errBelowMinimum": "The price is below the minimum of {price} incl. VAT. Raise it so it covers the provider’s base price plus VAT.",
+      "errBelowMinimumExclVat": "The price is below the minimum of {price} excl. VAT. Raise it so it covers the provider’s base price."
     },
     "editCustomProduct": {
       "title": "Edit Custom Product",
@@ -1883,7 +1890,8 @@
       "deleteTitle": "Delete Custom Product",
       "deleteConfirm": "This will permanently remove this custom product from your store.",
       "deleting": "Deleting...",
-      "failedDelete": "Failed to delete product."
+      "failedDelete": "Failed to delete product.",
+      "belowMinimumWarning": "This price is below the minimum: it no longer covers the provider’s base price plus VAT. Raise it to the minimum shown below."
     },
     "collections": {
       "title": "Collections",
@@ -5667,7 +5675,7 @@
     "pricingPerVariantDesc": "Different price per variant",
     "pricingMarginTitle": "Fixed Margin",
     "pricingMarginDesc": "Markup on base price",
-    "providerBasePrice": "Provider base price (your cost)",
+    "providerBasePrice": "Provider base price (excl. VAT)",
     "chooseHowToPrice": "Choose how to price for your customers",
     "pricingMethod": "Pricing method",
     "usingStrategy": "Using {strategy}",
@@ -5728,7 +5736,12 @@
     "tagCreated": "Tag \"{name}\" created and selected.",
     "tagExists": "\"{name}\" already exists and was selected.",
     "tagCreateFailed": "Could not create the tag. Try again.",
-    "tagCreateHint": "Press Enter to create a tag that does not exist yet."
+    "tagCreateHint": "Press Enter to create a tag that does not exist yet.",
+    "minimumPriceInclVat": "Minimum price incl. VAT: {price}",
+    "minimumPriceExclVat": "Minimum price: {price}",
+    "minimumMarginInclVat": "Minimum margin (covers VAT): {amount}",
+    "priceBelowMinimumError": "The price must be at least {price}: the provider’s base price plus VAT.",
+    "marginBelowMinimumError": "The margin must be at least {amount} so the price covers the provider’s base price plus VAT."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -6116,7 +6129,8 @@
     "TRANSLATION_UNAVAILABLE": "The translation service is unavailable right now. Please try again later.",
     "REDIRECT_SHADOWS_LIVE": "This address still shows a published page or product. Delete, unpublish or rename it first, then add the redirect.",
     "REDIRECT_CHAIN_TOO_LONG": "This redirect would pass through too many other redirects.",
-    "REDIRECT_BULK_TOO_MANY": "Upload at most 5000 redirects at a time."
+    "REDIRECT_BULK_TOO_MANY": "Upload at most 5000 redirects at a time.",
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "The price is below the minimum: it must cover the provider’s base price plus VAT."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -6512,9 +6526,10 @@
     "internalCategories": "Tags",
     "internalCategoriesHelp": "For your own organisation, filters and smart collections. Never shown in the store.",
     "categoryHelp": "Used to classify the product in the platform catalog",
-    "priceHelpProvider": "Your base price per unit — what you earn on each sale. Stores set their own selling price on top of it.",
+    "priceHelpProvider": "Your base price per unit (excl. VAT). You receive it minus the platform commission ({percent}%) on each sale.",
     "seoNeedsTitle": "Add a title in this language too — SEO fields are saved only for languages that have a title.",
-    "errSeoNeedsTitle": "Add a title in {locale} — its SEO fields are saved only with a title."
+    "errSeoNeedsTitle": "Add a title in {locale} — its SEO fields are saved only with a title.",
+    "priceHelpProviderNoPercent": "Your base price per unit (excl. VAT). You receive it minus the platform commission on each sale."
   },
   "customField": {
     "typeText": "Text",

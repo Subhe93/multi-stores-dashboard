@@ -20,6 +20,7 @@ import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNot
 import { useImageUpload } from '@/lib/useImageUpload';
 import VariantSelector from '@/components/creator/VariantSelector';
 import PricingStrategySelector from '@/components/creator/PricingStrategySelector';
+import { findFloorViolation, type PriceFloorInfo } from '@/lib/customProductPriceFloor';
 import CustomFieldRenderer from '@/components/creator/CustomFieldRenderer';
 import FaqManager, { type Faq } from '@/components/product/FaqManager';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
@@ -83,6 +84,10 @@ interface CustomProduct {
   primary_creator_category_id?: string | null;
   mockup_images?: { url: string }[];
   faqs?: Faq[];
+  /** Marketplace minimum price inputs (VAT rate); null = no minimum. */
+  price_floor?: PriceFloorInfo | null;
+  /** The stored price is below the minimum (provider base + VAT). */
+  below_minimum?: boolean;
   product: {
     id: string;
     base_price: number;
@@ -157,6 +162,11 @@ export default function EditCustomProduct() {
 
   const { pickAndUpload, uploading: imageUploading } = useImageUpload(token);
   const [product, setProduct] = useState<CustomProduct | null>(null);
+  // Stores whose prices exclude VAT get the minimum without the "incl. VAT" wording.
+  const belowMinimumKey =
+    product?.price_floor?.prices_include_vat === false
+      ? 'customProductForm.errBelowMinimumExclVat'
+      : 'customProductForm.errBelowMinimum';
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -485,8 +495,14 @@ export default function EditCustomProduct() {
       fetchAll();
       return true;
     } catch (err) {
+      const minimum =
+        err instanceof ApiError && err.code === 'CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM'
+          ? Number(err.payload?.minimum)
+          : NaN;
       setSaveError(
-        err instanceof ApiError && err.code
+        Number.isFinite(minimum)
+          ? t(belowMinimumKey, { price: fmt(minimum) })
+          : err instanceof ApiError && err.code
           ? apiError(err)
           : (err instanceof Error && err.message) || t('editCustomProduct.failedSave'),
       );
@@ -568,6 +584,33 @@ export default function EditCustomProduct() {
   const allVariants = product.product.variants || [];
   const hasCustomFields = (product.product.custom_fields?.length ?? 0) > 0;
   const selectedVariantsForPricing = allVariants.filter((v) => selectedVariantIds.includes(v.id));
+  // Minimum price (provider base + VAT). Saving is blocked only when the
+  // pricing was changed: texts of an existing below-minimum product can still
+  // be saved (the API applies the same rule).
+  const floorViolation = findFloorViolation({
+    floor: product.price_floor,
+    pricingType,
+    basePrice,
+    variants: selectedVariantsForPricing.map((v) => ({ id: v.id, price_adjustment: Number(v.price_adjustment || 0) })),
+    finalPrice,
+    marginAmount,
+    variantPrices,
+  });
+  const cents = (v: string | number | null | undefined) => Math.round((parseFloat(String(v ?? '')) || 0) * 100);
+  const storedVariantPrices = new Map(
+    (product.selected_variants || []).map((sv) => [sv.variant_id, cents(sv.custom_price)]),
+  );
+  const pricingChanged =
+    pricingType !== product.pricing_type ||
+    (pricingType === 'SINGLE' && cents(finalPrice) !== cents(product.final_price)) ||
+    (pricingType === 'MARGIN' && cents(marginAmount) !== cents(product.margin_amount)) ||
+    selectedVariantIds.length !== storedVariantPrices.size ||
+    selectedVariantIds.some(
+      (vid) =>
+        !storedVariantPrices.has(vid) ||
+        (pricingType === 'PER_VARIANT' && cents(variantPrices[vid]) !== storedVariantPrices.get(vid)),
+    );
+  const saveBlockedByMinimum = !!floorViolation && pricingChanged;
   // Storefront link: what is live (persisted status and slug), not unsaved edits.
   const liveSlug = pickProductSlug(product.translations, primaryLocale);
   const isLive = product.status === 'PUBLISHED';
@@ -806,7 +849,13 @@ export default function EditCustomProduct() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">{t('editCustomProduct.pricing')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          {product.below_minimum && !pricingChanged && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800" role="alert">
+              <AlertCircle className="size-3.5 shrink-0 mt-0.5" />
+              <p>{t('editCustomProduct.belowMinimumWarning')}</p>
+            </div>
+          )}
           <PricingStrategySelector
             pricingType={pricingType}
             onPricingTypeChange={setPricingType}
@@ -820,6 +869,7 @@ export default function EditCustomProduct() {
             }
             selectedVariants={selectedVariantsForPricing}
             basePrice={basePrice}
+            priceFloor={product.price_floor}
           />
         </CardContent>
       </Card>
@@ -1037,6 +1087,7 @@ export default function EditCustomProduct() {
                 onClick={handleSave}
                 disabled={
                   saving ||
+                  saveBlockedByMinimum ||
                   !primarySlugFinal ||
                   (!translations[primaryLocale]?.title?.trim() &&
                     !product.translations.find((tr) => tr.locale === primaryLocale)?.title?.trim())
@@ -1044,6 +1095,11 @@ export default function EditCustomProduct() {
               >
                 {saving ? tc('saving') : t('editCustomProduct.saveChanges')}
               </Button>
+            )}
+            {saveBlockedByMinimum && floorViolation && (
+              <p className="text-xs text-red-700 text-center" role="alert">
+                {t(belowMinimumKey, { price: fmt(floorViolation.minimum) })}
+              </p>
             )}
             {saved && (
               <p className="text-xs text-emerald-600 font-medium text-center">{t('editCustomProduct.savedExclaim')}</p>

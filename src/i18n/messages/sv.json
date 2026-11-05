@@ -46,7 +46,10 @@
     "kustomLiveExpires": "Auktorisationen löper ut",
     "kustomLivePaymentMethod": "Betalsätt",
     "kustomStatusFailed": "Det gick inte att läsa ordern från Kustom.",
-    "kustomAuthReleased": "Auktorisationen avbröts eller löpte ut hos Kustom före debitering: kunden har aldrig debiterats. Ordern har avbrutits och lagret återförts."
+    "kustomAuthReleased": "Auktorisationen avbröts eller löpte ut hos Kustom före debitering: kunden har aldrig debiterats. Ordern har avbrutits och lagret återförts.",
+    "vatToSeller": "Moms (till säljaren)",
+    "netShippingToPlatform": "Frakt exkl. moms (till plattformen)",
+    "otherProvidersShare": "Andra leverantörers andel"
   },
   "backups": {
     "title": "Säkerhetskopior",
@@ -1141,9 +1144,9 @@
     "csvYourEarnings": "Dina intäkter",
     "csvStatus": "Status",
     "explainOrderTotal": "det totala beloppet som kunden betalar (inklusive frakt)",
-    "explainPlatformFee": "plattformens provision som dras från delsumman",
+    "explainPlatformFee": "plattformens provision, som dras från ditt grundpris (exkl. moms)",
     "explainCreatorShare": "skaparens marginal (endast när en skapare säljer din produkt vidare)",
-    "explainYourEarnings": "det du får efter alla avdrag, utbetalt via Stripe Connect",
+    "explainYourEarnings": "ditt grundpris minus plattformens provision: det du får, utbetalt via Stripe Connect",
     "payoutsIntro": "Utbetalningar behandlas automatiskt via",
     "stripeConnect": "Stripe Connect",
     "payoutsOutro": "Anslut ditt konto i Inställningar för att ta emot utbetalningar.",
@@ -1402,7 +1405,7 @@
       "tabLines": "Ordrar",
       "tabPayouts": "Utbetalningar",
       "noPayouts": "Inga utbetalningar ännu",
-      "explainGross": "baspriset för dina artiklar i ordern, före plattformens provision",
+      "explainGross": "grundpriset (exkl. moms) för dina artiklar i ordern, före plattformens provision",
       "explainRefunds": "återbetalda eller returnerade ordrar räknas inte längre som intäkter",
       "offlineHint": "{amount} av dina intäkter regleras utanför plattformens utbetalningar (t.ex. betalning vid leverans) och överförs inte till ditt Stripe-konto.",
       "explainOffline": "ordrar som betalats utan kortdebitering via plattformen (t.ex. betalning vid leverans) räknas som intäkter men överförs inte till ditt Stripe-konto",
@@ -1769,7 +1772,9 @@
       "viewInStoreNotPublished": "Inte publicerad – endast publicerade produkter syns i butiken",
       "viewInStoreNoSlug": "Den här produkten har ingen URL-slug än",
       "filterTag": "Tagg",
-      "allTags": "Alla taggar"
+      "allTags": "Alla taggar",
+      "belowMinimumBadge": "Priset under lägsta pris",
+      "belowMinimumHint": "Priset täcker inte längre leverantörens grundpris plus moms. Öppna produkten och höj det till lägsta priset."
     },
     "customProductForm": {
       "newTitle": "Ny anpassad produkt",
@@ -1820,7 +1825,9 @@
       "errFaqQuestion": "Varje vanlig fråga behöver en fråga.",
       "errImportMode": "Välj ett importläge.",
       "failedCreate": "Det gick inte att skapa den anpassade produkten",
-      "preselectedLoadFailed": "Den valda produkten kunde inte läsas in. Den kan ha tagits bort eller är inte längre tillgänglig."
+      "preselectedLoadFailed": "Den valda produkten kunde inte läsas in. Den kan ha tagits bort eller är inte längre tillgänglig.",
+      "errBelowMinimum": "Priset är lägre än lägsta priset {price} inkl. moms. Höj det så att det täcker leverantörens grundpris plus moms.",
+      "errBelowMinimumExclVat": "Priset är lägre än lägsta priset {price} exkl. moms. Höj det så att det täcker leverantörens grundpris."
     },
     "editCustomProduct": {
       "title": "Redigera anpassad produkt",
@@ -1883,7 +1890,8 @@
       "deleteTitle": "Ta bort anpassad produkt",
       "deleteConfirm": "Detta tar permanent bort den här anpassade produkten från din butik.",
       "deleting": "Tar bort...",
-      "failedDelete": "Det gick inte att ta bort produkten."
+      "failedDelete": "Det gick inte att ta bort produkten.",
+      "belowMinimumWarning": "Priset är lägre än lägsta priset: det täcker inte längre leverantörens grundpris plus moms. Höj det till lägsta priset nedan."
     },
     "collections": {
       "title": "Kollektioner",
@@ -5667,7 +5675,7 @@
     "pricingPerVariantDesc": "Olika pris per variant",
     "pricingMarginTitle": "Fast marginal",
     "pricingMarginDesc": "Påslag på baspriset",
-    "providerBasePrice": "Leverantörens baspris (din kostnad)",
+    "providerBasePrice": "Leverantörens grundpris (exkl. moms)",
     "chooseHowToPrice": "Välj hur du vill prissätta för dina kunder",
     "pricingMethod": "Prissättningsmetod",
     "usingStrategy": "Använder {strategy}",
@@ -5728,7 +5736,12 @@
     "tagCreated": "Taggen \"{name}\" skapades och valdes.",
     "tagExists": "\"{name}\" finns redan och valdes.",
     "tagCreateFailed": "Taggen kunde inte skapas. Försök igen.",
-    "tagCreateHint": "Tryck på Enter för att skapa en tagg som inte finns ännu."
+    "tagCreateHint": "Tryck på Enter för att skapa en tagg som inte finns ännu.",
+    "minimumPriceInclVat": "Lägsta pris inkl. moms: {price}",
+    "minimumPriceExclVat": "Lägsta pris: {price}",
+    "minimumMarginInclVat": "Lägsta marginal (täcker momsen): {amount}",
+    "priceBelowMinimumError": "Priset måste vara minst {price}: leverantörens grundpris plus moms.",
+    "marginBelowMinimumError": "Marginalen måste vara minst {amount} så att priset täcker leverantörens grundpris plus moms."
   },
   "errors": {
     "generic": "Något gick fel. Försök igen.",
@@ -6116,7 +6129,8 @@
     "TRANSLATION_UNAVAILABLE": "Översättningstjänsten är inte tillgänglig just nu. Försök igen senare.",
     "REDIRECT_SHADOWS_LIVE": "Den här adressen visar fortfarande en publicerad sida eller produkt. Ta bort, avpublicera eller byt namn på den först och lägg sedan till omdirigeringen.",
     "REDIRECT_CHAIN_TOO_LONG": "Den här omdirigeringen skulle gå via för många andra omdirigeringar.",
-    "REDIRECT_BULK_TOO_MANY": "Ladda upp högst 5000 omdirigeringar åt gången."
+    "REDIRECT_BULK_TOO_MANY": "Ladda upp högst 5000 omdirigeringar åt gången.",
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Priset är lägre än lägsta priset: det måste täcka leverantörens grundpris plus moms."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -6512,9 +6526,10 @@
     "internalCategories": "Taggar",
     "internalCategoriesHelp": "För din egen ordning, filter och smarta kollektioner. Visas aldrig i butiken.",
     "categoryHelp": "Används för att klassificera produkten i plattformens katalog",
-    "priceHelpProvider": "Ditt grundpris per enhet – det du får för varje försäljning. Butikerna sätter sitt eget försäljningspris ovanpå det.",
+    "priceHelpProvider": "Ditt grundpris per enhet (exkl. moms). Du får det minus plattformens provision ({percent} %) per försäljning.",
     "seoNeedsTitle": "Lägg till en titel på det här språket också – SEO-fälten sparas bara för språk som har en titel.",
-    "errSeoNeedsTitle": "Lägg till en titel på {locale} — SEO-fälten sparas bara tillsammans med en titel."
+    "errSeoNeedsTitle": "Lägg till en titel på {locale} — SEO-fälten sparas bara tillsammans med en titel.",
+    "priceHelpProviderNoPercent": "Ditt grundpris per enhet (exkl. moms). Du får det minus plattformens provision per försäljning."
   },
   "customField": {
     "typeText": "Text",
