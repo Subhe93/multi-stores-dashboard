@@ -28,6 +28,8 @@ const POLL_INTERVAL_MS = 60_000;
 
 /** Map a notification type → relative dashboard path. Returns null if no navigation. */
 function notificationHref(role: string, n: Notification): string | null {
+  // Price warnings point to the product list (no single product id).
+  if (n.type === 'PRICE_BELOW_MINIMUM') return role === 'CREATOR' ? '/creator/custom-products' : null;
   const id = n.data?.custom_product_id;
   if (!id) return null;
 
