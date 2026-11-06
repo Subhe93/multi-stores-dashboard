@@ -1,0 +1,38 @@
+/* Metric-adjusted Arial fallback faces, byte-for-byte the values next/font/google
+   generated (its precomputed Google metrics). They are kept here instead of
+   adjustFontFallback because next/font/local derives slightly different
+   metrics from the subset files, and these faces also render glyphs the web
+   font lacks (e.g. Arabic text in a Manrope-first stack falls through to
+   'Manrope Fallback'), so the numbers are visible. */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local("Arial");
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0.00%;
+  size-adjust: 107.12%;
+}
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local("Arial");
+  ascent-override: 95.94%;
+  descent-override: 28.16%;
+  line-gap-override: 0.00%;
+  size-adjust: 104.76%;
+}
+@font-face {
+  font-family: 'Cairo Fallback';
+  src: local("Arial");
+  ascent-override: 137.65%;
+  descent-override: 60.32%;
+  line-gap-override: 0.00%;
+  size-adjust: 94.66%;
+}
+@font-face {
+  font-family: 'Manrope Fallback';
+  src: local("Arial");
+  ascent-override: 103.31%;
+  descent-override: 29.07%;
+  line-gap-override: 0.00%;
+  size-adjust: 103.19%;
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Geist, Cairo, Manrope } from "next/font/google";
+import { inter, geist, cairo, manrope } from "./fonts";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
@@ -7,14 +7,10 @@ import { cn } from "@/lib/utils";
 import { isRtl } from "@/i18n/config";
 import { AuthProvider } from "@/lib/auth";
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
-const inter = Inter({ subsets: ["latin"] });
-// Arabic UI font — applied only when the dashboard language is Arabic.
-const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-arabic' });
-// ShopsDoor brand font — used only for the brand lockup and the login headline.
-// Exposed as --font-manrope; globals.css maps it onto the `font-brand` token
-// (a theme token cannot reference a variable with its own name).
-const manrope = Manrope({ subsets: ['latin'], weight: ['500', '700', '800'], variable: '--font-manrope' });
+// Fonts are self-hosted in ./fonts (see the notes there): Inter is the base UI
+// font, Geist backs --font-sans, Cairo is the Arabic UI font (--font-arabic) and
+// Manrope is the ShopsDoor brand font (--font-manrope, mapped onto the
+// `font-brand` token in globals.css).
 
 // Browser-tab title inherits the admin-configured platform name.
 export async function generateMetadata(): Promise<Metadata> {
