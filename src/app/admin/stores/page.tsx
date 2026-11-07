@@ -55,6 +55,38 @@ function CheckMark({ ok, label }: { ok: boolean; label: string }) {
   );
 }
 
+/** Own Stripe key summary for INDEPENDENT stores (from the list row): mode, state, last check. */
+function OwnKeyCell({ store, fmtDate }: { store: AdminStoreRow; fmtDate: (iso: string | null | undefined) => string }) {
+  const t = useTranslations('admin.storesQueue.ownKey');
+  if (store.store_type !== 'INDEPENDENT') return <span className="text-[11px] text-muted-foreground">{t('marketplace')}</span>;
+  const k = store.stripe_own_key;
+  if (!k) return <span className="text-[11px] text-zinc-400">{t('none')}</span>;
+  const tone =
+    k.status === 'ACTIVE'
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      : k.status === 'NEEDS_RECONNECT'
+        ? 'border-red-200 bg-red-50 text-red-700'
+        : 'border-zinc-200 bg-zinc-100 text-zinc-600';
+  return (
+    <div className="space-y-0.5">
+      <div className="flex flex-wrap items-center gap-1">
+        <span
+          className={cn(
+            'inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-bold',
+            k.livemode ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-800',
+          )}
+        >
+          {k.livemode ? t('live') : t('test')}
+        </span>
+        <span className={cn('inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium', tone)}>
+          {t(`state.${k.status}`)}
+        </span>
+      </div>
+      <span className="block text-[11px] text-muted-foreground">{t('lastCheck', { date: fmtDate(k.last_check_at) })}</span>
+    </div>
+  );
+}
+
 function AdminStoresInner() {
   const t = useTranslations('admin.storesQueue');
   const tc = useTranslations('common');
@@ -208,6 +240,11 @@ function AdminStoresInner() {
           <CheckMark ok={s.checklist?.has_published_product} label={t('check.product')} />
         </div>
       ),
+    },
+    {
+      key: 'payments',
+      label: t('cols.payments'),
+      render: (s: AdminStoreRow) => <OwnKeyCell store={s} fmtDate={fmtDate} />,
     },
     {
       key: 'created_at',

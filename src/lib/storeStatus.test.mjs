@@ -156,7 +156,8 @@ test('status helpers', () => {
   assert.equal(blockingToStep('unknown'), null);
   assert.equal(blockingHref('legal_pages_published', true), '/creator/legal');
   assert.equal(blockingHref('legal_pages_published', false), null);
-  assert.equal(blockingHref('payments_ready', true), '/creator/settings?tab=payments');
+  assert.equal(blockingHref('payments_ready', true), '/creator/settings?tab=payments#own-stripe-key');
+  assert.equal(blockingHref('payments_ready', false), '/creator/settings?tab=payments');
   assert.equal(isUnverifiedCode('ACCOUNT_EMAIL_UNVERIFIED_EXPIRED'), true);
   assert.equal(isUnverifiedCode('STORE_NOT_LIVE'), false);
   assert.equal(isReservedStoreSlug('Admin'), true);

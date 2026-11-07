@@ -880,7 +880,8 @@
         "owner": "Ägare",
         "checklist": "Checklista",
         "created": "Skapad",
-        "requested": "Publicering begärd"
+        "requested": "Publicering begärd",
+        "payments": "Kortbetalningar"
       },
       "check": {
         "verified": "E-post verifierad",
@@ -921,7 +922,19 @@
       "searchPlaceholder": "Sök på butik, slug eller ägarens e-post",
       "emptyPending": "Inga butiker väntar på granskning.",
       "empty": "Inga butiker matchar filtren.",
-      "retry": "Försök igen"
+      "retry": "Försök igen",
+      "ownKey": {
+        "marketplace": "Plattform",
+        "none": "Ingen egen nyckel",
+        "live": "LIVE",
+        "test": "TEST",
+        "lastCheck": "Kontrollerad {date}",
+        "state": {
+          "ACTIVE": "Egen nyckel aktiv",
+          "NEEDS_RECONNECT": "Nyckeln slutade fungera",
+          "DISABLED": "Inaktiverad"
+        }
+      }
     },
     "stripeWebhookEndpointsTitle": "Webhook-endpunkter att registrera i Stripe",
     "stripeWebhookEndpointsHint": "Lägg till dessa URL:er i Stripe → Developers → Webhooks (plattform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, med \"Listen to events on Connected accounts\") och klistra in respektive signeringshemlighet nedan.",
@@ -2750,7 +2763,11 @@
         "saved": "Spårningsinställningarna sparades.",
         "unsaved": "Osparade ändringar",
         "save": "Spara"
-      }
+      },
+      "ownKeySwitchTitle": "Byt till ditt eget Stripe-konto",
+      "ownKeySwitchBody": "Du har redan ett eget Stripe-konto. Logga in på dashboard.stripe.com med samma e-post och skapa en nyckel med guiden ovan. Kortbetalningar fungerar tills du byter.",
+      "ownKeySwitchedBody": "Kortbetalningar använder nu din egen Stripe-nyckel. Du kan koppla från den här gamla anslutningen.",
+      "ownKeySwitchCta": "Ställ in min egen nyckel"
     },
     "orderDetail": {
       "notFound": "Beställningen hittades inte",
@@ -4750,7 +4767,9 @@
           "no_standard_account": "Anslut först ett Stripe-konto under Inställningar.",
           "account_not_ready": "Ditt Stripe-konto är inte redo för kortbetalningar ännu. Slutför Stripe-registreringen.",
           "currency_not_supported_by_stripe": "Stripe stöder inte den här valutan.",
-          "settlement_conversion_note": "Betalningar i {currency} räknas om till din utbetalningsvaluta hos Stripe."
+          "settlement_conversion_note": "Betalningar i {currency} räknas om till din utbetalningsvaluta hos Stripe.",
+          "own_key_test_mode": "Din Stripe-nyckel är en testnyckel. Koppla en live-nyckel så att kunder kan betala.",
+          "own_key_test_mode_cta": "Koppla en live-nyckel"
         },
         "kustom": {
           "label": "Kustom",
@@ -6130,7 +6149,19 @@
     "REDIRECT_SHADOWS_LIVE": "Den här adressen visar fortfarande en publicerad sida eller produkt. Ta bort, avpublicera eller byt namn på den först och lägg sedan till omdirigeringen.",
     "REDIRECT_CHAIN_TOO_LONG": "Den här omdirigeringen skulle gå via för många andra omdirigeringar.",
     "REDIRECT_BULK_TOO_MANY": "Ladda upp högst 5000 omdirigeringar åt gången.",
-    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Priset är lägre än lägsta priset: det måste täcka leverantörens grundpris plus moms."
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Priset är lägre än lägsta priset: det måste täcka leverantörens grundpris plus moms.",
+    "OWN_KEY_NOT_ACTIVE": "Kortbetalningar med din egen Stripe-nyckel är inte aktiva.",
+    "OWN_KEY_INVALID_PREFIX": "Nycklarna har fel format. Den begränsade nyckeln börjar med rk_ och den publicerbara med pk_.",
+    "OWN_KEY_SECRET_KEY_REJECTED": "Använd en begränsad nyckel, aldrig din hemliga nyckel (sk_…).",
+    "OWN_KEY_MODE_MISMATCH": "Båda nycklarna måste komma från samma läge: båda live eller båda test.",
+    "OWN_KEY_INVALID_OR_REVOKED": "Stripe avvisade nyckeln: den är ogiltig, har gått ut eller har återkallats. Skapa en ny begränsad nyckel och klistra in den här.",
+    "OWN_KEY_MISSING_PERMISSIONS": "Nyckeln saknar nödvändiga behörigheter.",
+    "OWN_KEY_WEBHOOK_FAILED": "Det gick inte att ställa in betalningsuppdateringar (webhook) i ditt Stripe-konto. Kontrollera att Webhook Endpoints är satt till Write och försök igen.",
+    "OWN_KEY_INDEPENDENT_ONLY": "Bara fristående butiker kan använda en egen Stripe-nyckel.",
+    "USE_OWN_STRIPE_KEY": "Fristående butiker ansluter nu sitt eget Stripe-konto med en begränsad nyckel. Använd kortet ”Ditt Stripe-konto”.",
+    "OWN_KEY_NOT_FOUND": "Ingen Stripe-nyckel är ansluten till den här butiken.",
+    "OWN_KEY_WEBHOOK_LIMIT": "Ditt Stripe-konto har redan 16 webhook-slutpunkter, vilket är max. Ta bort en som du inte använder längre i Stripe (Developers → Webhooks) och försök igen.",
+    "OWN_KEY_STRIPE_UNAVAILABLE": "Stripe går inte att nå just nu. Försök igen om en stund."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -7547,7 +7578,10 @@
         "backup_created": "Säkerhetskopia skapad",
         "backup_downloaded": "Säkerhetskopia nedladdad",
         "backup_restored": "Säkerhetskopia återställd",
-        "backup_deleted": "Säkerhetskopia raderad"
+        "backup_deleted": "Säkerhetskopia raderad",
+        "payment_keys_stripe_own_key_updated": "Egen Stripe-nyckel ansluten",
+        "payment_keys_stripe_own_key_removed": "Egen Stripe-nyckel borttagen",
+        "payment_keys_stripe_own_key_revoked": "Egen Stripe-nyckel slutade fungera"
       },
       "roles": {
         "ADMIN": "Administratör",
@@ -7556,5 +7590,198 @@
         "CUSTOMER": "Kund"
       }
     }
+  },
+  "ownStripeKey": {
+    "title": "Ditt Stripe-konto",
+    "intro": "Kortbetalningar går direkt till ditt eget Stripe-konto. ShopsDoor håller aldrig dina pengar, och du kan när som helst återkalla nyckeln i Stripe.",
+    "introPoints": {
+      "restricted": "Vi använder en begränsad nyckel med bara behörigheterna i guiden, aldrig din hemliga nyckel.",
+      "direct": "Utbetalningar, återbetalningar och tvister finns kvar i din egen Stripe-dashboard.",
+      "revoke": "Återkalla nyckeln i Stripe när som helst, så kan vi inte längre debitera med den."
+    },
+    "badge": {
+      "live": "LIVE",
+      "test": "TEST",
+      "active": "Ansluten",
+      "needsReconnect": "Nyckeln slutade fungera",
+      "disabled": "Inaktiverad"
+    },
+    "testBanner": "Sandbox (test) — inga riktiga pengar dras. Klistra in live-nycklar (rk_live_ och pk_live_) när du är redo att sälja.",
+    "reconnectAlert": {
+      "title": "Kortbetalningar är pausade",
+      "body": "Din Stripe-nyckel slutade fungera (återkallad eller utgången), så kortbetalningar är pausade. Skapa en ny nyckel med guiden nedan och klistra in den här.",
+      "missingBody": "Din Stripe-nyckel saknar behörigheter, så kortbetalningar är pausade. Rätta behörigheterna som är markerade nedan och klicka på Kontrollera igen."
+    },
+    "connected": "Ditt Stripe-konto är anslutet. Kortbetalningar går nu direkt till ditt konto.",
+    "loadError": "Det gick inte att läsa in dina Stripe-inställningar. Ladda om sidan.",
+    "guide": {
+      "title": "Så skapar du nyckeln i Stripe (9 steg)",
+      "toggleShow": "Visa guiden",
+      "toggleHide": "Dölj guiden",
+      "imagePlaceholder": "Skärmbild kommer snart",
+      "openLive": "Öppna API-nycklar",
+      "openTest": "Öppna API-nycklar (sandbox)",
+      "copy": "Kopiera",
+      "copied": "Kopierad",
+      "ipLabel": "Serverns IP:",
+      "steps": {
+        "s1": {
+          "title": "Öppna API-nycklar i Stripe",
+          "body": "Logga in i din Stripe-dashboard och gå till Developers → API keys. Använd sandbox-länken om du vill prova allt först utan riktiga pengar."
+        },
+        "s2": {
+          "title": "Klicka på ”Create restricted key”",
+          "body": "Klicka på ”+ Create restricted key”. Om Stripe frågar hur nyckeln ska användas, välj alternativet som börjar utan behörigheter så att du själv kan ange dem."
+        },
+        "s3": {
+          "title": "Döp den till ”ShopsDoor”",
+          "body": "Ange ShopsDoor som nyckelns namn, så känner du igen den senare och kan återkalla den med ett klick om det behövs."
+        },
+        "s4": {
+          "title": "Ange behörigheterna",
+          "body": "Ange exakt dessa behörigheter. Lämna allt annat på None: vi behöver aldrig mer."
+        },
+        "s5": {
+          "title": "Begränsa nyckeln till vår server",
+          "body": "För extra säkerhet kan du lägga till en Access policy (IP-tillåtelselista) med vår servers IP. Då avvisar Stripe nyckeln om den används någon annanstans."
+        },
+        "s6": {
+          "title": "Skapa nyckeln och kopiera den",
+          "body": "Klicka på ”Create key” och ange koden som Stripe skickar. Kopiera nyckeln direkt (Stripe visar den aldrig igen) och klicka sedan på Done."
+        },
+        "s7": {
+          "title": "Kopiera den publicerbara nyckeln",
+          "body": "Kopiera Publishable key under Standard keys på samma sida API keys. Den börjar med pk_live_ (eller pk_test_). Kopiera aldrig Secret key (sk_…)."
+        },
+        "s8": {
+          "title": "Klistra in båda nycklarna här",
+          "body": "Klistra in den begränsade och den publicerbara nyckeln nedan och klicka på ”Verifiera och anslut”. Vi kontrollerar behörigheterna, ställer in betalningsuppdateringar och registrerar dina domäner för Apple Pay och Google Pay."
+        },
+        "s9": {
+          "title": "Välj betalsätt",
+          "body": "Välj vilka betalsätt kunderna ser i Stripe → Settings → Payment methods. Swish måste du först ansöka om där."
+        }
+      },
+      "advanced": "Avancerat (valfritt)",
+      "ipNotice": "Vi mejlar dig innan vår serveradress ändras.",
+      "openPaymentMethods": "Öppna betalsätt"
+    },
+    "permissions": {
+      "resource": "Resurs i Stripe",
+      "level": "Behörighet",
+      "write": "Skriva",
+      "read": "Läsa",
+      "none": "Ingen",
+      "optional": "valfri",
+      "everythingElse": "Allt annat",
+      "checklistTitle": "Behörighetskontroll",
+      "names": {
+        "payment_intent_write": "Skapa och bekräfta kortbetalningar",
+        "charge_read": "Se betalningar och återbetalningar",
+        "webhook_write": "Ta emot betalningsuppdateringar (webhook)",
+        "payment_method_domain_write": "Registrera dina domäner för Apple Pay och Google Pay",
+        "balance_read": "Kontrollera kontot och dess läge",
+        "dispute_read": "Se status för tvister"
+      },
+      "check": {
+        "ok": "Beviljad",
+        "missing": "Saknas",
+        "unknown": "Inte kontrollerad"
+      }
+    },
+    "form": {
+      "restrictedLabel": "Begränsad nyckel",
+      "restrictedHint": "Börjar med rk_live_ eller rk_test_. Lagras krypterad och visas aldrig igen.",
+      "publishableLabel": "Publicerbar nyckel",
+      "publishableHint": "Börjar med pk_live_ eller pk_test_. Den är publik och används av din kassa.",
+      "show": "Visa nyckel",
+      "hide": "Dölj nyckel",
+      "submit": "Verifiera och anslut",
+      "cancel": "Avbryt",
+      "reauthDescription": "Bekräfta att det är du innan du ansluter en Stripe-nyckel till din butik."
+    },
+    "issues": {
+      "restricted_empty": "Klistra in din begränsade nyckel.",
+      "restricted_secret_key": "Använd en begränsad nyckel, aldrig din hemliga nyckel. En hemlig nyckel (sk_…) ger full åtkomst till ditt Stripe-konto.",
+      "restricted_publishable_swapped": "Det här är en publicerbar nyckel (pk_…). Klistra in den i fältet nedanför och den begränsade nyckeln (rk_…) här.",
+      "restricted_prefix": "En begränsad nyckel börjar med rk_live_ eller rk_test_. Kopiera hela nyckeln från Stripe.",
+      "publishable_empty": "Klistra in din publicerbara nyckel.",
+      "publishable_secret_key": "Klistra aldrig in din hemliga nyckel (sk_…). Den publicerbara nyckeln börjar med pk_live_ eller pk_test_.",
+      "publishable_restricted_swapped": "Det här är den begränsade nyckeln (rk_…). Klistra in den i fältet ovanför.",
+      "publishable_prefix": "En publicerbar nyckel börjar med pk_live_ eller pk_test_. Kopiera hela nyckeln från Stripe.",
+      "mode_mismatch": "Båda nycklarna måste komma från samma läge: båda live eller båda test."
+    },
+    "progress": {
+      "key": "Kontrollerar nyckeln hos Stripe…",
+      "permissions": "Kontrollerar behörigheterna…",
+      "webhook": "Ställer in betalningsuppdateringar…",
+      "domains": "Registrerar dina domäner för Apple Pay och Google Pay…",
+      "saving": "Nästan klart, sparar…"
+    },
+    "missing": {
+      "title": "Några behörigheter saknas",
+      "body": "Stripe godkände nyckeln, men den saknar behörigheterna som är rödmarkerade nedan.",
+      "fix": "Så åtgärdar du det: öppna Developers → API keys i Stripe, öppna menyn (⋯) bredvid nyckeln ShopsDoor och välj Edit key. Ställ in de markerade behörigheterna enligt tabellen, spara och klicka sedan på ”Verifiera och anslut” igen med samma nyckel. Om du inte längre har nyckeln skapar du en ny."
+    },
+    "result": {
+      "key": "Nyckel",
+      "account": "Stripe-konto",
+      "webhook": "Betalningsuppdateringar",
+      "webhookOk": "Aktiv",
+      "webhookMissing": "Inte inställd, klicka på Kontrollera igen",
+      "verifiedAt": "Verifierad",
+      "lastCheckAt": "Senaste kontroll",
+      "never": "Aldrig",
+      "liveHint": "Gör en liten riktig beställning för att säkerställa att kortbetalningar fungerar.",
+      "domains": "Domäner för plånböcker",
+      "domainsHint": "Apple Pay, Google Pay, Link och Klarna visas bara på domäner som är registrerade i ditt Stripe-konto.",
+      "domainsEmpty": "Inga domäner registrerade än. Klicka på Kontrollera igen när du har lagt till en domän.",
+      "host": "Domän",
+      "methods": {
+        "apple_pay": "Apple Pay",
+        "google_pay": "Google Pay",
+        "link": "Link",
+        "klarna": "Klarna"
+      },
+      "domainStatus": {
+        "ok": "Aktiv",
+        "pending": "Väntar",
+        "error": "Inte aktiv",
+        "unknown": "Okänd"
+      },
+      "refundsHint": "Återbetalningar och tvister hanteras i din Stripe-dashboard; vi synkar dem automatiskt med dina ordrar.",
+      "recheck": "Kontrollera igen",
+      "rechecked": "Kontrollen är klar. Statusen nedan är uppdaterad.",
+      "replace": "Byt nyckel",
+      "openStripe": "Öppna Stripe-dashboarden",
+      "remove": "Ta bort",
+      "domainErrorPermission": "Inte registrerad: nyckeln saknar behörigheten Payment Method Domains.",
+      "domainErrorGeneric": "Inte registrerad hos Stripe. Klicka på Kontrollera igen för att försöka på nytt.",
+      "testKeyNotice": "Testnyckel: bara du kan testa kassan i förhandsvisningen. Kunder kan betala med kort när du kopplar en live-nyckel.",
+      "accountHelp": "Ditt Stripe-konto-ID. Du behöver det bara om du kontaktar Stripes support.",
+      "domainHelp": "Ett kryss betyder att Stripe ännu inte har aktiverat betalsättet för domänen. Aktivera det i Stripe → Settings → Payment methods och kontrollera sedan igen.",
+      "paymentMethodsHint": "Välj vilka betalsätt kunderna ser i Stripe → Settings → Payment methods. Swish måste du först ansöka om där."
+    },
+    "removeDialog": {
+      "title": "Ta bort din Stripe-nyckel?",
+      "body": "Kortbetalningar i din butik stoppas tills du ansluter en nyckel igen. Vi stänger också av betalningsuppdateringarna från ditt Stripe-konto. Ditt Stripe-konto och dina pengar påverkas inte.",
+      "confirm": "Ta bort nyckeln",
+      "reauthDescription": "Bekräfta att det är du innan du tar bort din Stripe-nyckel."
+    },
+    "twoFactor": {
+      "title": "Tvåstegsverifiering krävs",
+      "body": "För att skydda dina intäkter krävs tvåstegsverifiering på ditt konto för att ansluta en Stripe-nyckel. Aktivera den först och kom sedan tillbaka hit.",
+      "cta": "Ställ in tvåstegsverifiering"
+    },
+    "testModeHint": "Din Stripe-nyckel är en testnyckel. Koppla en live-nyckel så att kunder kan betala.",
+    "testModeHintCta": "Koppla en live-nyckel"
+  },
+  "orderTimeline": {
+    "STOCK_SHORTFALL": "Betald order saknar lager",
+    "PAYMENT_STALE_INTENT": "Betalning på ett gammalt försök",
+    "REFUND_FAILED": "Återbetalningen misslyckades",
+    "REFUND_REVERTED": "Återbetalningen återställd",
+    "PAYMENT_PROCESSING": "Betalningen behandlas",
+    "PAYMENT_DISPUTE": "Betalningen bestrids"
   }
 }

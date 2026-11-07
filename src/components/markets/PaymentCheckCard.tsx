@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { MarketStatus, PaymentCheck, ProviderCheckState } from '@/lib/markets.api';
+import { OWN_KEY_SETTINGS_HREF } from '@/components/payments/own-key/OwnKeyTestModeHint';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -119,6 +121,11 @@ export function PaymentCheckCard({ check, status, isDefault, currency, busy, onR
                   <span className="text-[11px] font-normal text-muted-foreground">({t(`check.state.${p.state}`)})</span>
                 </p>
                 <p className="text-[11px] text-muted-foreground">{p.message}</p>
+                {p.key === 'stripe' && check?.stripe === 'missing' && check.details?.stripe?.reason_code === 'own_key_test_mode' && (
+                  <Link href={OWN_KEY_SETTINGS_HREF} className="text-[11px] font-medium underline underline-offset-2">
+                    {t('check.stripe.own_key_test_mode_cta')}
+                  </Link>
+                )}
               </div>
             </div>
           ))}

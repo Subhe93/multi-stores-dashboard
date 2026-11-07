@@ -27,6 +27,7 @@ import { GroupedOrderFieldValues } from '@/components/apps/personalization/Group
 import dynamic from 'next/dynamic';
 import { useApiError } from '@/lib/useApiError';
 import type { OrderFieldValueRow } from '@/lib/customFields';
+import { paymentTimelineLabel } from '@/lib/orderTimeline';
 
 // E14: the production checklist and the designer card (renderer mirror,
 // canvas preview) load on demand, only when their app is available.
@@ -247,6 +248,7 @@ export default function CreatorOrderDetailPage() {
     normalizeB2bSettings(apps?.find((a) => a.key === 'b2b')?.settings).reverse_charge_enabled;
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
+  const tTimeline = useTranslations('orderTimeline');
   const uiLocale = useLocale();
   const STATUS_LABELS = statusLabels(t);
   // Designer app (M4.2): the design card stays readable while the app is
@@ -664,7 +666,7 @@ export default function CreatorOrderDetailPage() {
                     <div key={entry.id ?? idx} className="flex items-start gap-3">
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-sm font-medium">{STATUS_LABELS[entry.status] || entry.status}</p>
+                        <p className="text-sm font-medium">{paymentTimelineLabel(tTimeline, entry.status) ?? (STATUS_LABELS[entry.status] || entry.status)}</p>
                         <p className="text-[11px] text-muted-foreground">
                           {entry.created_at
                             ? new Date(entry.created_at).toLocaleString()

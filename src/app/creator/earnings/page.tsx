@@ -14,6 +14,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
+import { OWN_KEY_ENDPOINT, type OwnKeyStatus } from '@/lib/ownStripeKey';
 
 interface CommissionSummary {
   total_earnings: number;
@@ -93,6 +94,8 @@ export default function CreatorEarnings() {
   const loading = loadedKey !== `${token ?? ''}:${page}`;
   const [connectStatus, setConnectStatus] = useState<ConnectStatus | null>(null);
   const [connectStatusLoading, setConnectStatusLoading] = useState(true);
+  // Independent stores: own Stripe account via a restricted key (preferred route).
+  const [ownKeyStatus, setOwnKeyStatus] = useState<OwnKeyStatus | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -109,14 +112,24 @@ export default function CreatorEarnings() {
       .finally(() => setConnectStatusLoading(false));
   }, [token]);
 
+  useEffect(() => {
+    if (!token || !isIndependent) return;
+    api<OwnKeyStatus | null>(OWN_KEY_ENDPOINT, { token })
+      .then((s) => setOwnKeyStatus(s && typeof s === 'object' && 'status' in s ? s : null))
+      .catch(() => setOwnKeyStatus(null));
+  }, [token, isIndependent]);
+
   // Independent stores charge customers directly, so what matters is being
   // able to take payments; marketplace creators are paid out by the platform,
   // so what matters is payouts being enabled.
-  const stripeReady = connectStatus
-    ? isIndependent
-      ? connectStatus.charges_enabled && !connectStatus.requires_relink
-      : connectStatus.payouts_enabled
-    : false;
+  const ownKeyActive = isIndependent && ownKeyStatus?.status === 'ACTIVE';
+  const stripeReady =
+    ownKeyActive ||
+    (connectStatus
+      ? isIndependent
+        ? connectStatus.charges_enabled && !connectStatus.requires_relink
+        : connectStatus.payouts_enabled
+      : false);
 
   useEffect(() => {
     if (!token) return;
@@ -349,7 +362,12 @@ export default function CreatorEarnings() {
           <p className="text-[11px] text-muted-foreground">
             {isIndependent ? t('settings.stripeAccountDesc') : t('settings.stripeConnectDesc')}
           </p>
-          <Button size="sm" onClick={() => router.push('/creator/settings')}>
+          <Button
+            size="sm"
+            onClick={() =>
+              router.push(isIndependent ? '/creator/settings?tab=payments#own-stripe-key' : '/creator/settings?tab=payments')
+            }
+          >
             {stripeReady ? t('earnings.manageInSettings') : t('earnings.connectStripe')}
           </Button>
         </CardContent>

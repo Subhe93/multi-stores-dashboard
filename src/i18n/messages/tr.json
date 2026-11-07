@@ -880,7 +880,8 @@
         "owner": "Sahip",
         "checklist": "Kontrol listesi",
         "created": "Oluşturulma",
-        "requested": "Yayına alma talebi"
+        "requested": "Yayına alma talebi",
+        "payments": "Kart ödemeleri"
       },
       "check": {
         "verified": "E-posta doğrulandı",
@@ -921,7 +922,19 @@
       "searchPlaceholder": "Mağaza, adres veya sahip e-postasına göre ara",
       "emptyPending": "İnceleme bekleyen mağaza yok.",
       "empty": "Bu filtrelerle eşleşen mağaza yok.",
-      "retry": "Tekrar dene"
+      "retry": "Tekrar dene",
+      "ownKey": {
+        "marketplace": "Platform",
+        "none": "Kendi anahtarı yok",
+        "live": "CANLI",
+        "test": "TEST",
+        "lastCheck": "Kontrol: {date}",
+        "state": {
+          "ACTIVE": "Kendi anahtarı etkin",
+          "NEEDS_RECONNECT": "Anahtar çalışmıyor",
+          "DISABLED": "Devre dışı"
+        }
+      }
     },
     "stripeWebhookEndpointsTitle": "Stripe'a kaydedilecek webhook uç noktaları",
     "stripeWebhookEndpointsHint": "Stripe → Developers → Webhooks bölümüne bu URL'leri ekleyin (platform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, \"Listen to events on Connected accounts\" ile), ardından her imza anahtarını aşağıya yapıştırın.",
@@ -2750,7 +2763,11 @@
         "saved": "İzleme ayarları kaydedildi.",
         "unsaved": "Kaydedilmemiş değişiklikler",
         "save": "Kaydet"
-      }
+      },
+      "ownKeySwitchTitle": "Kendi Stripe hesabınıza geçin",
+      "ownKeySwitchBody": "Zaten kendi Stripe hesabınız var. Aynı e-posta ile dashboard.stripe.com'da oturum açın ve yukarıdaki rehberle bir anahtar oluşturun. Siz geçene kadar kart ödemeleri çalışmaya devam eder.",
+      "ownKeySwitchedBody": "Kart ödemeleri artık kendi Stripe anahtarınızı kullanıyor. Bu eski bağlantıyı kesebilirsiniz.",
+      "ownKeySwitchCta": "Kendi anahtarımı kur"
     },
     "orderDetail": {
       "notFound": "Sipariş bulunamadı",
@@ -4750,7 +4767,9 @@
           "no_standard_account": "Önce Ayarlar bölümünden bir Stripe hesabı bağlayın.",
           "account_not_ready": "Stripe hesabınız henüz kart ödemelerine hazır değil. Stripe kaydını tamamlayın.",
           "currency_not_supported_by_stripe": "Stripe bu para birimini desteklemiyor.",
-          "settlement_conversion_note": "{currency} cinsinden ödemeler Stripe ödeme para biriminize dönüştürülür."
+          "settlement_conversion_note": "{currency} cinsinden ödemeler Stripe ödeme para biriminize dönüştürülür.",
+          "own_key_test_mode": "Stripe anahtarınız bir test anahtarı. Müşterilerin ödeme yapabilmesi için canlı bir anahtar bağlayın.",
+          "own_key_test_mode_cta": "Canlı anahtar bağla"
         },
         "kustom": {
           "label": "Kustom",
@@ -6130,7 +6149,19 @@
     "REDIRECT_SHADOWS_LIVE": "Bu adres hâlâ yayındaki bir sayfayı veya ürünü gösteriyor. Önce silin, yayından kaldırın veya adını değiştirin, ardından yönlendirmeyi ekleyin.",
     "REDIRECT_CHAIN_TOO_LONG": "Bu yönlendirme çok fazla başka yönlendirmeden geçer.",
     "REDIRECT_BULK_TOO_MANY": "Tek seferde en fazla 5000 yönlendirme yükleyin.",
-    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Fiyat asgari fiyatın altında: tedarikçinin taban fiyatını artı KDV’yi karşılamalıdır."
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Fiyat asgari fiyatın altında: tedarikçinin taban fiyatını artı KDV’yi karşılamalıdır.",
+    "OWN_KEY_NOT_ACTIVE": "Kendi Stripe anahtarınızla kart ödemeleri etkin değil.",
+    "OWN_KEY_INVALID_PREFIX": "Anahtarların biçimi yanlış. Kısıtlı anahtar rk_ ile, yayınlanabilir anahtar pk_ ile başlar.",
+    "OWN_KEY_SECRET_KEY_REJECTED": "Kısıtlı bir anahtar kullanın, gizli anahtarınızı (sk_…) asla kullanmayın.",
+    "OWN_KEY_MODE_MISMATCH": "İki anahtar da aynı moddan olmalıdır: ikisi de canlı ya da ikisi de test.",
+    "OWN_KEY_INVALID_OR_REVOKED": "Stripe anahtarı reddetti: geçersiz, süresi dolmuş veya iptal edilmiş. Yeni bir kısıtlı anahtar oluşturup buraya yapıştırın.",
+    "OWN_KEY_MISSING_PERMISSIONS": "Anahtarda gerekli izinler eksik.",
+    "OWN_KEY_WEBHOOK_FAILED": "Stripe hesabınızda ödeme güncellemeleri (webhook) kurulamadı. Webhook Endpoints izninin Write olduğundan emin olun ve tekrar deneyin.",
+    "OWN_KEY_INDEPENDENT_ONLY": "Yalnızca bağımsız mağazalar kendi Stripe anahtarını kullanabilir.",
+    "USE_OWN_STRIPE_KEY": "Bağımsız mağazalar artık kendi Stripe hesaplarını kısıtlı bir anahtarla bağlıyor. “Stripe hesabınız” kartını kullanın.",
+    "OWN_KEY_NOT_FOUND": "Bu mağazaya bağlı bir Stripe anahtarı yok.",
+    "OWN_KEY_WEBHOOK_LIMIT": "Stripe hesabınızda zaten azami sayı olan 16 webhook uç noktası var. Kullanmadığınız birini Stripe'ta (Developers → Webhooks) silin ve tekrar deneyin.",
+    "OWN_KEY_STRIPE_UNAVAILABLE": "Şu anda Stripe'a ulaşılamıyor. Lütfen birazdan tekrar deneyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -7547,7 +7578,10 @@
         "backup_created": "Yedek oluşturuldu",
         "backup_downloaded": "Yedek indirildi",
         "backup_restored": "Yedek geri yüklendi",
-        "backup_deleted": "Yedek silindi"
+        "backup_deleted": "Yedek silindi",
+        "payment_keys_stripe_own_key_updated": "Kendi Stripe anahtarı bağlandı",
+        "payment_keys_stripe_own_key_removed": "Kendi Stripe anahtarı kaldırıldı",
+        "payment_keys_stripe_own_key_revoked": "Kendi Stripe anahtarı çalışmayı durdurdu"
       },
       "roles": {
         "ADMIN": "Yönetici",
@@ -7556,5 +7590,198 @@
         "CUSTOMER": "Müşteri"
       }
     }
+  },
+  "ownStripeKey": {
+    "title": "Stripe hesabınız",
+    "intro": "Kart ödemeleri doğrudan kendi Stripe hesabınıza gider. ShopsDoor paranızı asla tutmaz ve anahtarı Stripe'ta istediğiniz zaman iptal edebilirsiniz.",
+    "introPoints": {
+      "restricted": "Yalnızca rehberde listelenen izinlere sahip kısıtlı bir anahtar kullanırız, gizli anahtarınızı asla kullanmayız.",
+      "direct": "Ödemeler, iadeler ve itirazlar kendi Stripe panelinizde kalır.",
+      "revoke": "Anahtarı Stripe'ta istediğiniz zaman iptal edin; artık onunla tahsilat yapamayız."
+    },
+    "badge": {
+      "live": "CANLI",
+      "test": "TEST",
+      "active": "Bağlı",
+      "needsReconnect": "Anahtar çalışmıyor",
+      "disabled": "Devre dışı"
+    },
+    "testBanner": "Sandbox (test) — gerçek para tahsil edilmez. Satışa hazır olduğunuzda canlı anahtarları (rk_live_ ve pk_live_) yapıştırın.",
+    "reconnectAlert": {
+      "title": "Kart ödemeleri duraklatıldı",
+      "body": "Stripe anahtarınız çalışmayı durdurdu (iptal edildi veya süresi doldu), bu yüzden kart ödemeleri duraklatıldı. Aşağıdaki rehberle yeni bir anahtar oluşturun ve buraya yapıştırın.",
+      "missingBody": "Stripe anahtarınızda izinler eksik, bu yüzden kart ödemeleri duraklatıldı. Aşağıda işaretli izinleri düzeltin ve Yeniden kontrol et'e basın."
+    },
+    "connected": "Stripe hesabınız bağlandı. Kart ödemeleri artık doğrudan hesabınıza gidiyor.",
+    "loadError": "Stripe ayarlarınız yüklenemedi. Lütfen sayfayı yenileyin.",
+    "guide": {
+      "title": "Stripe'ta anahtar nasıl oluşturulur (9 adım)",
+      "toggleShow": "Rehberi göster",
+      "toggleHide": "Rehberi gizle",
+      "imagePlaceholder": "Ekran görüntüsü yakında",
+      "openLive": "API anahtarlarını aç",
+      "openTest": "API anahtarlarını aç (sandbox)",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "ipLabel": "Sunucu IP'si:",
+      "steps": {
+        "s1": {
+          "title": "Stripe'ta API anahtarlarını açın",
+          "body": "Stripe panelinize giriş yapın ve Developers → API keys bölümüne gidin. Her şeyi önce gerçek para olmadan denemek isterseniz sandbox bağlantısını kullanın."
+        },
+        "s2": {
+          "title": "“Create restricted key”e tıklayın",
+          "body": "“+ Create restricted key” düğmesine tıklayın. Stripe anahtarı nasıl kullanacağınızı sorarsa, izinleri kendiniz belirleyebilmek için hiçbir izin olmadan başlayan seçeneği seçin."
+        },
+        "s3": {
+          "title": "Adını “ShopsDoor” koyun",
+          "body": "Anahtar adı olarak ShopsDoor girin; böylece onu daha sonra tanır ve gerekirse tek tıkla iptal edebilirsiniz."
+        },
+        "s4": {
+          "title": "İzinleri ayarlayın",
+          "body": "Tam olarak bu izinleri ayarlayın. Diğer her şeyi None olarak bırakın: daha fazlasına asla ihtiyacımız yok."
+        },
+        "s5": {
+          "title": "Anahtarı sunucumuzla sınırlayın",
+          "body": "Ek güvenlik için anahtara sunucu IP'mizi içeren bir Access policy (IP izin listesi) ekleyin. Stripe, anahtar başka bir yerden kullanıldığında onu reddeder."
+        },
+        "s6": {
+          "title": "Anahtarı oluşturun ve kopyalayın",
+          "body": "“Create key” düğmesine tıklayın ve Stripe'ın gönderdiği kodu girin. Anahtarı hemen kopyalayın (Stripe onu bir daha göstermez), ardından Done'a tıklayın."
+        },
+        "s7": {
+          "title": "Yayınlanabilir anahtarı kopyalayın",
+          "body": "Aynı API keys sayfasında, Standard keys altındaki Publishable key'i kopyalayın. pk_live_ (veya pk_test_) ile başlar. Secret key'i (sk_…) asla kopyalamayın."
+        },
+        "s8": {
+          "title": "İki anahtarı da buraya yapıştırın",
+          "body": "Kısıtlı anahtarı ve yayınlanabilir anahtarı aşağıya yapıştırın ve “Doğrula ve bağla”ya basın. İzinleri kontrol eder, ödeme güncellemelerini kurar ve alan adlarınızı Apple Pay ile Google Pay için kaydederiz."
+        },
+        "s9": {
+          "title": "Ödeme yöntemlerini seçin",
+          "body": "Müşterilerinizin hangi ödeme yöntemlerini göreceğini Stripe → Settings → Payment methods bölümünden seçin. Swish için önce orada başvuru yapılmalıdır."
+        }
+      },
+      "advanced": "Gelişmiş (isteğe bağlı)",
+      "ipNotice": "Sunucu adresimiz değişmeden önce size e-posta göndereceğiz.",
+      "openPaymentMethods": "Ödeme yöntemlerini aç"
+    },
+    "permissions": {
+      "resource": "Stripe'taki kaynak",
+      "level": "İzin",
+      "write": "Yazma",
+      "read": "Okuma",
+      "none": "Yok",
+      "optional": "isteğe bağlı",
+      "everythingElse": "Diğer her şey",
+      "checklistTitle": "İzin kontrolü",
+      "names": {
+        "payment_intent_write": "Kart ödemelerini oluşturma ve onaylama",
+        "charge_read": "Ödemeleri ve iadeleri görme",
+        "webhook_write": "Ödeme güncellemelerini alma (webhook)",
+        "payment_method_domain_write": "Alan adlarınızı Apple Pay ve Google Pay için kaydetme",
+        "balance_read": "Hesabı ve modunu kontrol etme",
+        "dispute_read": "İtirazların durumunu görme"
+      },
+      "check": {
+        "ok": "Verildi",
+        "missing": "Eksik",
+        "unknown": "Kontrol edilmedi"
+      }
+    },
+    "form": {
+      "restrictedLabel": "Kısıtlı anahtar",
+      "restrictedHint": "rk_live_ veya rk_test_ ile başlar. Şifreli saklanır ve bir daha gösterilmez.",
+      "publishableLabel": "Yayınlanabilir anahtar",
+      "publishableHint": "pk_live_ veya pk_test_ ile başlar. Herkese açıktır ve ödeme sayfanız tarafından kullanılır.",
+      "show": "Anahtarı göster",
+      "hide": "Anahtarı gizle",
+      "submit": "Doğrula ve bağla",
+      "cancel": "İptal",
+      "reauthDescription": "Mağazanıza bir Stripe anahtarı bağlamadan önce kimliğinizi doğrulayın."
+    },
+    "issues": {
+      "restricted_empty": "Kısıtlı anahtarınızı yapıştırın.",
+      "restricted_secret_key": "Kısıtlı bir anahtar kullanın, gizli anahtarınızı asla kullanmayın. Gizli anahtar (sk_…) Stripe hesabınıza tam erişim verir.",
+      "restricted_publishable_swapped": "Bu bir yayınlanabilir anahtar (pk_…). Onu aşağıdaki alana, kısıtlı anahtarı (rk_…) buraya yapıştırın.",
+      "restricted_prefix": "Kısıtlı anahtar rk_live_ veya rk_test_ ile başlar. Anahtarın tamamını Stripe'tan kopyalayın.",
+      "publishable_empty": "Yayınlanabilir anahtarınızı yapıştırın.",
+      "publishable_secret_key": "Gizli anahtarınızı (sk_…) asla yapıştırmayın. Yayınlanabilir anahtar pk_live_ veya pk_test_ ile başlar.",
+      "publishable_restricted_swapped": "Bu kısıtlı anahtar (rk_…). Onu yukarıdaki alana yapıştırın.",
+      "publishable_prefix": "Yayınlanabilir anahtar pk_live_ veya pk_test_ ile başlar. Anahtarın tamamını Stripe'tan kopyalayın.",
+      "mode_mismatch": "İki anahtar da aynı moddan olmalıdır: ikisi de canlı ya da ikisi de test."
+    },
+    "progress": {
+      "key": "Anahtar Stripe ile kontrol ediliyor…",
+      "permissions": "İzinler kontrol ediliyor…",
+      "webhook": "Ödeme güncellemeleri kuruluyor…",
+      "domains": "Alan adlarınız Apple Pay ve Google Pay için kaydediliyor…",
+      "saving": "Neredeyse bitti, kaydediliyor…"
+    },
+    "missing": {
+      "title": "Bazı izinler eksik",
+      "body": "Stripe anahtarı kabul etti, ancak aşağıda kırmızıyla işaretlenen izinler eksik.",
+      "fix": "Nasıl düzeltilir: Stripe'ta Developers → API keys bölümünü açın, ShopsDoor anahtarının yanındaki menüyü (⋯) açın ve Edit key'i seçin. İşaretli izinleri gösterildiği gibi ayarlayın, kaydedin ve aynı anahtarla tekrar “Doğrula ve bağla”ya basın. Anahtar artık elinizde değilse yeni bir tane oluşturun."
+    },
+    "result": {
+      "key": "Anahtar",
+      "account": "Stripe hesabı",
+      "webhook": "Ödeme güncellemeleri",
+      "webhookOk": "Etkin",
+      "webhookMissing": "Kurulmadı, Yeniden kontrol et'e basın",
+      "verifiedAt": "Doğrulandı",
+      "lastCheckAt": "Son kontrol",
+      "never": "Hiç",
+      "liveHint": "Kart ödemelerinin çalıştığından emin olmak için küçük bir gerçek sipariş verin.",
+      "domains": "Cüzdan alan adları",
+      "domainsHint": "Apple Pay, Google Pay, Link ve Klarna yalnızca Stripe hesabınıza kayıtlı alan adlarında görünür.",
+      "domainsEmpty": "Henüz kayıtlı alan adı yok. Bir alan adı ekledikten sonra Yeniden kontrol et'e basın.",
+      "host": "Alan adı",
+      "methods": {
+        "apple_pay": "Apple Pay",
+        "google_pay": "Google Pay",
+        "link": "Link",
+        "klarna": "Klarna"
+      },
+      "domainStatus": {
+        "ok": "Etkin",
+        "pending": "Beklemede",
+        "error": "Etkin değil",
+        "unknown": "Bilinmiyor"
+      },
+      "refundsHint": "İadeler ve itirazlar Stripe panelinizden yönetilir; bunları siparişlerinizle otomatik olarak eşitleriz.",
+      "recheck": "Yeniden kontrol et",
+      "rechecked": "Kontrol tamamlandı. Aşağıdaki durum güncel.",
+      "replace": "Anahtarı değiştir",
+      "openStripe": "Stripe panelini aç",
+      "remove": "Kaldır",
+      "domainErrorPermission": "Kaydedilmedi: anahtarda Payment Method Domains izni yok.",
+      "domainErrorGeneric": "Stripe'a kaydedilmedi. Tekrar denemek için Yeniden kontrol et'e basın.",
+      "testKeyNotice": "Test anahtarı: ödemeyi önizlemede yalnızca siz test edebilirsiniz. Canlı bir anahtar bağladıktan sonra müşteriler kartla ödeyebilir.",
+      "accountHelp": "Stripe hesap kimliğiniz. Yalnızca Stripe desteğine başvurduğunuzda gerekir.",
+      "domainHelp": "Çarpı işareti, Stripe'ın bu ödeme yöntemini alan adı için henüz etkinleştirmediği anlamına gelir. Stripe → Settings → Payment methods bölümünden etkinleştirin, ardından yeniden kontrol edin.",
+      "paymentMethodsHint": "Müşterilerinizin hangi ödeme yöntemlerini göreceğini Stripe → Settings → Payment methods bölümünden seçin. Swish için önce orada başvuru yapılmalıdır."
+    },
+    "removeDialog": {
+      "title": "Stripe anahtarınız kaldırılsın mı?",
+      "body": "Yeniden bir anahtar bağlayana kadar mağazanızda kart ödemeleri durur. Stripe hesabınızdan gelen ödeme güncellemelerini de durdururuz. Stripe hesabınız ve paranız etkilenmez.",
+      "confirm": "Anahtarı kaldır",
+      "reauthDescription": "Stripe anahtarınızı kaldırmadan önce kimliğinizi doğrulayın."
+    },
+    "twoFactor": {
+      "title": "İki adımlı doğrulama gerekli",
+      "body": "Ödemelerinizi korumak için Stripe anahtarı bağlamak, hesabınızda iki adımlı doğrulama gerektirir. Önce açın, sonra buraya dönün.",
+      "cta": "İki adımlı doğrulamayı kur"
+    },
+    "testModeHint": "Stripe anahtarınız bir test anahtarı. Müşterilerin ödeme yapabilmesi için canlı bir anahtar bağlayın.",
+    "testModeHintCta": "Canlı anahtar bağla"
+  },
+  "orderTimeline": {
+    "STOCK_SHORTFALL": "Ödenen siparişte stok yetersiz",
+    "PAYMENT_STALE_INTENT": "Eski bir denemede ödeme",
+    "REFUND_FAILED": "İade başarısız",
+    "REFUND_REVERTED": "İade geri alındı",
+    "PAYMENT_PROCESSING": "Ödeme işleniyor",
+    "PAYMENT_DISPUTE": "Ödemeye itiraz edildi"
   }
 }

@@ -880,7 +880,8 @@
         "owner": "Betreiber",
         "checklist": "Checkliste",
         "created": "Erstellt",
-        "requested": "Freischaltung angefordert"
+        "requested": "Freischaltung angefordert",
+        "payments": "Kartenzahlungen"
       },
       "check": {
         "verified": "E-Mail bestätigt",
@@ -921,7 +922,19 @@
       "searchPlaceholder": "Nach Shop, Slug oder Betreiber-E-Mail suchen",
       "emptyPending": "Keine Shops warten auf Prüfung.",
       "empty": "Keine Shops entsprechen diesen Filtern.",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "ownKey": {
+        "marketplace": "Plattform",
+        "none": "Kein eigener Schlüssel",
+        "live": "LIVE",
+        "test": "TEST",
+        "lastCheck": "Geprüft {date}",
+        "state": {
+          "ACTIVE": "Eigener Schlüssel aktiv",
+          "NEEDS_RECONNECT": "Schlüssel funktioniert nicht mehr",
+          "DISABLED": "Deaktiviert"
+        }
+      }
     },
     "stripeWebhookEndpointsTitle": "Webhook-Endpunkte für Stripe",
     "stripeWebhookEndpointsHint": "Fügen Sie diese URLs unter Stripe → Developers → Webhooks hinzu (Plattform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, mit \"Listen to events on Connected accounts\") und fügen Sie das jeweilige Signatur-Secret unten ein.",
@@ -2750,7 +2763,11 @@
         "saved": "Tracking-Einstellungen gespeichert.",
         "unsaved": "Ungespeicherte Änderungen",
         "save": "Speichern"
-      }
+      },
+      "ownKeySwitchTitle": "Zu Ihrem eigenen Stripe-Konto wechseln",
+      "ownKeySwitchBody": "Sie haben bereits ein eigenes Stripe-Konto. Melden Sie sich mit derselben E-Mail-Adresse bei dashboard.stripe.com an und erstellen Sie mit der Anleitung oben einen Schlüssel. Kartenzahlungen funktionieren weiter, bis Sie wechseln.",
+      "ownKeySwitchedBody": "Kartenzahlungen nutzen jetzt Ihren eigenen Stripe-Schlüssel. Sie können diese alte Verbindung trennen.",
+      "ownKeySwitchCta": "Eigenen Schlüssel einrichten"
     },
     "orderDetail": {
       "notFound": "Bestellung nicht gefunden",
@@ -4750,7 +4767,9 @@
           "no_standard_account": "Verbinden Sie zuerst ein Stripe-Konto in den Einstellungen.",
           "account_not_ready": "Ihr Stripe-Konto ist noch nicht für Kartenzahlungen bereit. Schließen Sie das Stripe-Onboarding ab.",
           "currency_not_supported_by_stripe": "Stripe unterstützt diese Währung nicht.",
-          "settlement_conversion_note": "Zahlungen in {currency} werden in Ihre Stripe-Auszahlungswährung umgerechnet."
+          "settlement_conversion_note": "Zahlungen in {currency} werden in Ihre Stripe-Auszahlungswährung umgerechnet.",
+          "own_key_test_mode": "Dein Stripe-Schlüssel ist ein Testschlüssel. Verbinde einen Live-Schlüssel, damit Kunden bezahlen können.",
+          "own_key_test_mode_cta": "Live-Schlüssel verbinden"
         },
         "kustom": {
           "label": "Kustom",
@@ -6130,7 +6149,19 @@
     "REDIRECT_SHADOWS_LIVE": "Diese Adresse zeigt noch eine veröffentlichte Seite oder ein Produkt. Lösche, depubliziere oder benenne es zuerst um und füge dann die Weiterleitung hinzu.",
     "REDIRECT_CHAIN_TOO_LONG": "Diese Weiterleitung würde über zu viele andere Weiterleitungen laufen.",
     "REDIRECT_BULK_TOO_MANY": "Lade höchstens 5000 Weiterleitungen auf einmal hoch.",
-    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Der Preis liegt unter dem Mindestpreis: Er muss den Basispreis des Anbieters plus MwSt. decken."
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "Der Preis liegt unter dem Mindestpreis: Er muss den Basispreis des Anbieters plus MwSt. decken.",
+    "OWN_KEY_NOT_ACTIVE": "Kartenzahlungen mit Ihrem eigenen Stripe-Schlüssel sind nicht aktiv.",
+    "OWN_KEY_INVALID_PREFIX": "Die Schlüssel haben das falsche Format. Der eingeschränkte Schlüssel beginnt mit rk_, der veröffentlichbare mit pk_.",
+    "OWN_KEY_SECRET_KEY_REJECTED": "Verwenden Sie einen eingeschränkten Schlüssel, niemals Ihren geheimen Schlüssel (sk_…).",
+    "OWN_KEY_MODE_MISMATCH": "Beide Schlüssel müssen aus demselben Modus stammen: beide live oder beide test.",
+    "OWN_KEY_INVALID_OR_REVOKED": "Stripe hat den Schlüssel abgelehnt: Er ist ungültig, abgelaufen oder widerrufen. Erstellen Sie einen neuen eingeschränkten Schlüssel und fügen Sie ihn hier ein.",
+    "OWN_KEY_MISSING_PERMISSIONS": "Dem Schlüssel fehlen erforderliche Berechtigungen.",
+    "OWN_KEY_WEBHOOK_FAILED": "Wir konnten die Zahlungsupdates (Webhook) in Ihrem Stripe-Konto nicht einrichten. Prüfen Sie, ob Webhook Endpoints auf Write steht, und versuchen Sie es erneut.",
+    "OWN_KEY_INDEPENDENT_ONLY": "Nur unabhängige Shops können einen eigenen Stripe-Schlüssel verwenden.",
+    "USE_OWN_STRIPE_KEY": "Unabhängige Shops verbinden ihr eigenes Stripe-Konto jetzt mit einem eingeschränkten Schlüssel. Nutzen Sie die Karte „Ihr Stripe-Konto“.",
+    "OWN_KEY_NOT_FOUND": "Mit diesem Shop ist kein Stripe-Schlüssel verbunden.",
+    "OWN_KEY_WEBHOOK_LIMIT": "Ihr Stripe-Konto hat bereits 16 Webhook-Endpunkte, das Maximum. Löschen Sie in Stripe einen, den Sie nicht mehr nutzen (Developers → Webhooks), und versuchen Sie es erneut.",
+    "OWN_KEY_STRIPE_UNAVAILABLE": "Stripe ist gerade nicht erreichbar. Bitte versuchen Sie es gleich noch einmal."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -7547,7 +7578,10 @@
         "backup_created": "Backup erstellt",
         "backup_downloaded": "Backup heruntergeladen",
         "backup_restored": "Backup wiederhergestellt",
-        "backup_deleted": "Backup gelöscht"
+        "backup_deleted": "Backup gelöscht",
+        "payment_keys_stripe_own_key_updated": "Eigener Stripe-Schlüssel verbunden",
+        "payment_keys_stripe_own_key_removed": "Eigener Stripe-Schlüssel entfernt",
+        "payment_keys_stripe_own_key_revoked": "Eigener Stripe-Schlüssel funktioniert nicht mehr"
       },
       "roles": {
         "ADMIN": "Admin",
@@ -7556,5 +7590,198 @@
         "CUSTOMER": "Kunde"
       }
     }
+  },
+  "ownStripeKey": {
+    "title": "Ihr Stripe-Konto",
+    "intro": "Kartenzahlungen gehen direkt auf Ihr eigenes Stripe-Konto. ShopsDoor verwahrt nie Ihr Geld, und Sie können den Schlüssel jederzeit in Stripe widerrufen.",
+    "introPoints": {
+      "restricted": "Wir nutzen einen eingeschränkten Schlüssel mit genau den Berechtigungen aus der Anleitung – niemals Ihren geheimen Schlüssel.",
+      "direct": "Auszahlungen, Erstattungen und Streitfälle bleiben in Ihrem eigenen Stripe-Dashboard.",
+      "revoke": "Widerrufen Sie den Schlüssel jederzeit in Stripe – danach können wir damit nichts mehr abbuchen."
+    },
+    "badge": {
+      "live": "LIVE",
+      "test": "TEST",
+      "active": "Verbunden",
+      "needsReconnect": "Schlüssel funktioniert nicht mehr",
+      "disabled": "Deaktiviert"
+    },
+    "testBanner": "Sandbox (Test) – es wird kein echtes Geld abgebucht. Fügen Sie Live-Schlüssel (rk_live_ und pk_live_) ein, sobald Sie verkaufen möchten.",
+    "reconnectAlert": {
+      "title": "Kartenzahlungen sind pausiert",
+      "body": "Ihr Stripe-Schlüssel funktioniert nicht mehr (widerrufen oder abgelaufen), daher sind Kartenzahlungen pausiert. Erstellen Sie mit der Anleitung unten einen neuen Schlüssel und fügen Sie ihn hier ein.",
+      "missingBody": "Ihrem Stripe-Schlüssel fehlen Berechtigungen, daher sind Kartenzahlungen pausiert. Korrigieren Sie die unten markierten Berechtigungen und klicken Sie auf Erneut prüfen."
+    },
+    "connected": "Ihr Stripe-Konto ist verbunden. Kartenzahlungen gehen jetzt direkt auf Ihr Konto.",
+    "loadError": "Ihre Stripe-Einstellungen konnten nicht geladen werden. Bitte laden Sie die Seite neu.",
+    "guide": {
+      "title": "So erstellen Sie den Schlüssel in Stripe (9 Schritte)",
+      "toggleShow": "Anleitung anzeigen",
+      "toggleHide": "Anleitung ausblenden",
+      "imagePlaceholder": "Screenshot folgt in Kürze",
+      "openLive": "API-Schlüssel öffnen",
+      "openTest": "API-Schlüssel öffnen (Sandbox)",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "ipLabel": "Server-IP:",
+      "steps": {
+        "s1": {
+          "title": "API-Schlüssel in Stripe öffnen",
+          "body": "Melden Sie sich im Stripe-Dashboard an und gehen Sie zu Developers → API keys. Nutzen Sie den Sandbox-Link, wenn Sie zuerst alles ohne echtes Geld ausprobieren möchten."
+        },
+        "s2": {
+          "title": "Auf „Create restricted key“ klicken",
+          "body": "Klicken Sie auf „+ Create restricted key“. Wenn Stripe fragt, wie Sie den Schlüssel verwenden, wählen Sie die Option, die ohne Berechtigungen beginnt, damit Sie sie selbst festlegen können."
+        },
+        "s3": {
+          "title": "Als Namen „ShopsDoor“ eingeben",
+          "body": "Geben Sie ShopsDoor als Schlüsselnamen ein. So erkennen Sie ihn später wieder und können ihn bei Bedarf mit einem Klick widerrufen."
+        },
+        "s4": {
+          "title": "Berechtigungen festlegen",
+          "body": "Setzen Sie genau diese Berechtigungen. Lassen Sie alles andere auf None – mehr brauchen wir nie."
+        },
+        "s5": {
+          "title": "Schlüssel auf unseren Server beschränken",
+          "body": "Für zusätzliche Sicherheit fügen Sie dem Schlüssel eine Access policy (IP-Zulassungsliste) mit unserer Server-IP hinzu. Stripe lehnt den Schlüssel dann von überall sonst ab."
+        },
+        "s6": {
+          "title": "Schlüssel erstellen und kopieren",
+          "body": "Klicken Sie auf „Create key“ und geben Sie den Code ein, den Stripe Ihnen sendet. Kopieren Sie den Schlüssel sofort (Stripe zeigt ihn nie wieder an) und klicken Sie dann auf Done."
+        },
+        "s7": {
+          "title": "Veröffentlichbaren Schlüssel kopieren",
+          "body": "Kopieren Sie auf derselben Seite API keys den Publishable key unter Standard keys. Er beginnt mit pk_live_ (oder pk_test_). Kopieren Sie niemals den Secret key (sk_…)."
+        },
+        "s8": {
+          "title": "Beide Schlüssel hier einfügen",
+          "body": "Fügen Sie unten den eingeschränkten und den veröffentlichbaren Schlüssel ein und klicken Sie auf „Prüfen und verbinden“. Wir prüfen die Berechtigungen, richten Zahlungsupdates ein und registrieren Ihre Domains für Apple Pay und Google Pay."
+        },
+        "s9": {
+          "title": "Zahlungsmethoden wählen",
+          "body": "Wählen Sie unter Stripe → Settings → Payment methods, welche Zahlungsmethoden Ihre Kunden sehen. Swish muss dort zuerst beantragt werden."
+        }
+      },
+      "advanced": "Erweitert (optional)",
+      "ipNotice": "Wir informieren Sie per E-Mail, bevor sich unsere Serveradresse ändert.",
+      "openPaymentMethods": "Zahlungsmethoden öffnen"
+    },
+    "permissions": {
+      "resource": "Ressource in Stripe",
+      "level": "Berechtigung",
+      "write": "Schreiben",
+      "read": "Lesen",
+      "none": "Keine",
+      "optional": "optional",
+      "everythingElse": "Alles andere",
+      "checklistTitle": "Berechtigungsprüfung",
+      "names": {
+        "payment_intent_write": "Kartenzahlungen erstellen und bestätigen",
+        "charge_read": "Zahlungen und Erstattungen sehen",
+        "webhook_write": "Zahlungsupdates empfangen (Webhook)",
+        "payment_method_domain_write": "Ihre Domains für Apple Pay und Google Pay registrieren",
+        "balance_read": "Konto und Modus prüfen",
+        "dispute_read": "Status von Streitfällen sehen"
+      },
+      "check": {
+        "ok": "Erteilt",
+        "missing": "Fehlt",
+        "unknown": "Nicht geprüft"
+      }
+    },
+    "form": {
+      "restrictedLabel": "Eingeschränkter Schlüssel",
+      "restrictedHint": "Beginnt mit rk_live_ oder rk_test_. Wird verschlüsselt gespeichert und nie wieder angezeigt.",
+      "publishableLabel": "Veröffentlichbarer Schlüssel",
+      "publishableHint": "Beginnt mit pk_live_ oder pk_test_. Er ist öffentlich und wird von Ihrem Checkout verwendet.",
+      "show": "Schlüssel anzeigen",
+      "hide": "Schlüssel verbergen",
+      "submit": "Prüfen und verbinden",
+      "cancel": "Abbrechen",
+      "reauthDescription": "Bestätigen Sie Ihre Identität, bevor Sie einen Stripe-Schlüssel mit Ihrem Shop verbinden."
+    },
+    "issues": {
+      "restricted_empty": "Fügen Sie Ihren eingeschränkten Schlüssel ein.",
+      "restricted_secret_key": "Verwenden Sie einen eingeschränkten Schlüssel, niemals Ihren geheimen Schlüssel. Ein geheimer Schlüssel (sk_…) gewährt vollen Zugriff auf Ihr Stripe-Konto.",
+      "restricted_publishable_swapped": "Das ist ein veröffentlichbarer Schlüssel (pk_…). Fügen Sie ihn im Feld darunter ein und den eingeschränkten Schlüssel (rk_…) hier.",
+      "restricted_prefix": "Ein eingeschränkter Schlüssel beginnt mit rk_live_ oder rk_test_. Kopieren Sie den ganzen Schlüssel aus Stripe.",
+      "publishable_empty": "Fügen Sie Ihren veröffentlichbaren Schlüssel ein.",
+      "publishable_secret_key": "Fügen Sie niemals Ihren geheimen Schlüssel (sk_…) ein. Der veröffentlichbare Schlüssel beginnt mit pk_live_ oder pk_test_.",
+      "publishable_restricted_swapped": "Das ist der eingeschränkte Schlüssel (rk_…). Fügen Sie ihn im Feld darüber ein.",
+      "publishable_prefix": "Ein veröffentlichbarer Schlüssel beginnt mit pk_live_ oder pk_test_. Kopieren Sie den ganzen Schlüssel aus Stripe.",
+      "mode_mismatch": "Beide Schlüssel müssen aus demselben Modus stammen: beide live oder beide test."
+    },
+    "progress": {
+      "key": "Schlüssel wird bei Stripe geprüft…",
+      "permissions": "Berechtigungen werden geprüft…",
+      "webhook": "Zahlungsupdates werden eingerichtet…",
+      "domains": "Ihre Domains werden für Apple Pay und Google Pay registriert…",
+      "saving": "Fast fertig, wird gespeichert…"
+    },
+    "missing": {
+      "title": "Einige Berechtigungen fehlen",
+      "body": "Stripe hat den Schlüssel akzeptiert, aber ihm fehlen die unten rot markierten Berechtigungen.",
+      "fix": "So beheben Sie es: Öffnen Sie in Stripe Developers → API keys, öffnen Sie das Menü (⋯) neben dem Schlüssel ShopsDoor und wählen Sie Edit key. Setzen Sie die markierten Berechtigungen wie gezeigt, speichern Sie und klicken Sie mit demselben Schlüssel erneut auf „Prüfen und verbinden“. Wenn Sie den Schlüssel nicht mehr haben, erstellen Sie einen neuen."
+    },
+    "result": {
+      "key": "Schlüssel",
+      "account": "Stripe-Konto",
+      "webhook": "Zahlungsupdates",
+      "webhookOk": "Aktiv",
+      "webhookMissing": "Nicht eingerichtet – klicken Sie auf Erneut prüfen",
+      "verifiedAt": "Geprüft",
+      "lastCheckAt": "Letzte Prüfung",
+      "never": "Nie",
+      "liveHint": "Geben Sie eine kleine echte Bestellung auf, um sicherzugehen, dass Kartenzahlungen funktionieren.",
+      "domains": "Wallet-Domains",
+      "domainsHint": "Apple Pay, Google Pay, Link und Klarna erscheinen nur auf Domains, die in Ihrem Stripe-Konto registriert sind.",
+      "domainsEmpty": "Noch keine Domains registriert. Klicken Sie nach dem Hinzufügen einer Domain auf Erneut prüfen.",
+      "host": "Domain",
+      "methods": {
+        "apple_pay": "Apple Pay",
+        "google_pay": "Google Pay",
+        "link": "Link",
+        "klarna": "Klarna"
+      },
+      "domainStatus": {
+        "ok": "Aktiv",
+        "pending": "Ausstehend",
+        "error": "Nicht aktiv",
+        "unknown": "Unbekannt"
+      },
+      "refundsHint": "Erstattungen und Streitfälle verwalten Sie in Ihrem Stripe-Dashboard; wir synchronisieren sie automatisch mit Ihren Bestellungen.",
+      "recheck": "Erneut prüfen",
+      "rechecked": "Prüfung abgeschlossen. Der Status unten ist aktuell.",
+      "replace": "Schlüssel ersetzen",
+      "openStripe": "Stripe-Dashboard öffnen",
+      "remove": "Entfernen",
+      "domainErrorPermission": "Nicht registriert: Dem Schlüssel fehlt die Berechtigung Payment Method Domains.",
+      "domainErrorGeneric": "Nicht bei Stripe registriert. Klicken Sie auf Erneut prüfen, um es noch einmal zu versuchen.",
+      "testKeyNotice": "Testschlüssel: Nur Sie können den Checkout in der Vorschau testen. Kunden können mit Karte bezahlen, sobald Sie einen Live-Schlüssel verbinden.",
+      "accountHelp": "Ihre Stripe-Konto-ID. Sie benötigen sie nur, wenn Sie den Stripe-Support kontaktieren.",
+      "domainHelp": "Ein Kreuz bedeutet, dass Stripe diese Zahlungsmethode für die Domain noch nicht aktiviert hat. Aktivieren Sie sie unter Stripe → Settings → Payment methods und prüfen Sie dann erneut.",
+      "paymentMethodsHint": "Wählen Sie unter Stripe → Settings → Payment methods, welche Zahlungsmethoden Ihre Kunden sehen. Swish muss dort zuerst beantragt werden."
+    },
+    "removeDialog": {
+      "title": "Stripe-Schlüssel entfernen?",
+      "body": "Kartenzahlungen in Ihrem Shop stoppen, bis Sie wieder einen Schlüssel verbinden. Wir beenden außerdem die Zahlungsupdates aus Ihrem Stripe-Konto. Ihr Stripe-Konto und Ihr Geld sind nicht betroffen.",
+      "confirm": "Schlüssel entfernen",
+      "reauthDescription": "Bestätigen Sie Ihre Identität, bevor Sie Ihren Stripe-Schlüssel entfernen."
+    },
+    "twoFactor": {
+      "title": "Zwei-Faktor-Authentifizierung erforderlich",
+      "body": "Zum Schutz Ihrer Einnahmen erfordert das Verbinden eines Stripe-Schlüssels die Zwei-Faktor-Authentifizierung in Ihrem Konto. Aktivieren Sie sie zuerst und kehren Sie dann hierher zurück.",
+      "cta": "Zwei-Faktor-Authentifizierung einrichten"
+    },
+    "testModeHint": "Dein Stripe-Schlüssel ist ein Testschlüssel. Verbinde einen Live-Schlüssel, damit Kunden bezahlen können.",
+    "testModeHintCta": "Live-Schlüssel verbinden"
+  },
+  "orderTimeline": {
+    "STOCK_SHORTFALL": "Bezahlte Bestellung ohne ausreichenden Bestand",
+    "PAYMENT_STALE_INTENT": "Zahlung auf einen alten Versuch",
+    "REFUND_FAILED": "Erstattung fehlgeschlagen",
+    "REFUND_REVERTED": "Erstattung rückgängig gemacht",
+    "PAYMENT_PROCESSING": "Zahlung wird verarbeitet",
+    "PAYMENT_DISPUTE": "Zahlung angefochten"
   }
 }

@@ -880,7 +880,8 @@
         "owner": "Owner",
         "checklist": "Checklist",
         "created": "Created",
-        "requested": "Go-live requested"
+        "requested": "Go-live requested",
+        "payments": "Card payments"
       },
       "check": {
         "verified": "Email verified",
@@ -921,7 +922,19 @@
       "searchPlaceholder": "Search by store, slug or owner email",
       "emptyPending": "No stores are waiting for review.",
       "empty": "No stores match these filters.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "ownKey": {
+        "marketplace": "Platform",
+        "none": "No own key",
+        "live": "LIVE",
+        "test": "TEST",
+        "lastCheck": "Checked {date}",
+        "state": {
+          "ACTIVE": "Own key active",
+          "NEEDS_RECONNECT": "Key stopped working",
+          "DISABLED": "Disabled"
+        }
+      }
     },
     "stripeWebhookEndpointsTitle": "Webhook endpoints to register in Stripe",
     "stripeWebhookEndpointsHint": "In Stripe → Developers → Webhooks, add these URLs (platform: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded; Connect: account.updated, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, with \"Listen to events on Connected accounts\"), then paste each signing secret below.",
@@ -2750,7 +2763,11 @@
         "saved": "Tracking settings saved.",
         "unsaved": "Unsaved changes",
         "save": "Save"
-      }
+      },
+      "ownKeySwitchTitle": "Switch to your own Stripe account",
+      "ownKeySwitchBody": "You already have your own Stripe account. Sign in at dashboard.stripe.com with the same email and create a key with the guide above. Card payments keep working until you switch.",
+      "ownKeySwitchedBody": "Card payments now use your own Stripe key. You can disconnect this old connection.",
+      "ownKeySwitchCta": "Set up my own key"
     },
     "orderDetail": {
       "notFound": "Order not found",
@@ -4750,7 +4767,9 @@
           "no_standard_account": "Connect a Stripe account in Settings first.",
           "account_not_ready": "Your Stripe account is not ready for card payments yet. Complete the Stripe onboarding.",
           "currency_not_supported_by_stripe": "Stripe does not support this currency.",
-          "settlement_conversion_note": "Payments in {currency} are converted to your Stripe payout currency."
+          "settlement_conversion_note": "Payments in {currency} are converted to your Stripe payout currency.",
+          "own_key_test_mode": "Your Stripe key is a test key. Connect a live key so customers can pay.",
+          "own_key_test_mode_cta": "Connect a live key"
         },
         "kustom": {
           "label": "Kustom",
@@ -6130,7 +6149,19 @@
     "REDIRECT_SHADOWS_LIVE": "This address still shows a published page or product. Delete, unpublish or rename it first, then add the redirect.",
     "REDIRECT_CHAIN_TOO_LONG": "This redirect would pass through too many other redirects.",
     "REDIRECT_BULK_TOO_MANY": "Upload at most 5000 redirects at a time.",
-    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "The price is below the minimum: it must cover the provider’s base price plus VAT."
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "The price is below the minimum: it must cover the provider’s base price plus VAT.",
+    "OWN_KEY_NOT_ACTIVE": "Card payments with your own Stripe key are not active.",
+    "OWN_KEY_INVALID_PREFIX": "The keys have the wrong format. The restricted key starts with rk_ and the publishable key with pk_.",
+    "OWN_KEY_SECRET_KEY_REJECTED": "Use a restricted key, never your secret key (sk_…).",
+    "OWN_KEY_MODE_MISMATCH": "Both keys must come from the same mode: both live or both test.",
+    "OWN_KEY_INVALID_OR_REVOKED": "Stripe rejected the key: it is invalid, expired or revoked. Create a new restricted key and paste it here.",
+    "OWN_KEY_MISSING_PERMISSIONS": "The key is missing required permissions.",
+    "OWN_KEY_WEBHOOK_FAILED": "We could not set up payment updates (webhook) on your Stripe account. Check that Webhook Endpoints is set to Write and try again.",
+    "OWN_KEY_INDEPENDENT_ONLY": "Only independent stores can use their own Stripe key.",
+    "USE_OWN_STRIPE_KEY": "Independent stores now connect their own Stripe account with a restricted key. Use the “Your Stripe account” card.",
+    "OWN_KEY_NOT_FOUND": "No Stripe key is connected to this store.",
+    "OWN_KEY_WEBHOOK_LIMIT": "Your Stripe account already has 16 webhook endpoints, the maximum. Delete one you no longer use in Stripe (Developers → Webhooks) and try again.",
+    "OWN_KEY_STRIPE_UNAVAILABLE": "Stripe could not be reached right now. Please try again in a moment."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -7547,7 +7578,10 @@
         "backup_created": "Backup created",
         "backup_downloaded": "Backup downloaded",
         "backup_restored": "Backup restored",
-        "backup_deleted": "Backup deleted"
+        "backup_deleted": "Backup deleted",
+        "payment_keys_stripe_own_key_updated": "Own Stripe key connected",
+        "payment_keys_stripe_own_key_removed": "Own Stripe key removed",
+        "payment_keys_stripe_own_key_revoked": "Own Stripe key stopped working"
       },
       "roles": {
         "ADMIN": "Admin",
@@ -7556,5 +7590,198 @@
         "CUSTOMER": "Customer"
       }
     }
+  },
+  "ownStripeKey": {
+    "title": "Your Stripe account",
+    "intro": "Card payments go straight to your own Stripe account. ShopsDoor never holds your money, and you can revoke the key at any time in Stripe.",
+    "introPoints": {
+      "restricted": "We use a restricted key with only the permissions listed in the guide, never your secret key.",
+      "direct": "Payouts, refunds and disputes stay in your own Stripe Dashboard.",
+      "revoke": "Revoke the key in Stripe at any time and we can no longer charge with it."
+    },
+    "badge": {
+      "live": "LIVE",
+      "test": "TEST",
+      "active": "Connected",
+      "needsReconnect": "Key stopped working",
+      "disabled": "Disabled"
+    },
+    "testBanner": "Sandbox (test) — no real money is charged. Paste live keys (rk_live_ and pk_live_) when you are ready to sell.",
+    "reconnectAlert": {
+      "title": "Card payments are paused",
+      "body": "Your Stripe key stopped working (revoked or expired), so card payments are paused. Create a new key with the guide below and paste it here.",
+      "missingBody": "Your Stripe key is missing permissions, so card payments are paused. Fix the permissions marked below and press Re-check."
+    },
+    "connected": "Your Stripe account is connected. Card payments now go straight to your account.",
+    "loadError": "Could not load your Stripe settings. Please reload the page.",
+    "guide": {
+      "title": "How to create the key in Stripe (9 steps)",
+      "toggleShow": "Show guide",
+      "toggleHide": "Hide guide",
+      "imagePlaceholder": "Screenshot coming soon",
+      "openLive": "Open API keys",
+      "openTest": "Open API keys (sandbox)",
+      "copy": "Copy",
+      "copied": "Copied",
+      "ipLabel": "Server IP:",
+      "steps": {
+        "s1": {
+          "title": "Open API keys in Stripe",
+          "body": "Sign in to your Stripe Dashboard and go to Developers → API keys. Use the sandbox link if you want to try everything first without real money."
+        },
+        "s2": {
+          "title": "Click “Create restricted key”",
+          "body": "Click “+ Create restricted key”. If Stripe asks how you will use the key, pick the option that starts with no permissions so you can set them yourself."
+        },
+        "s3": {
+          "title": "Name it “ShopsDoor”",
+          "body": "Enter ShopsDoor as the key name so you can recognise it later, and revoke it in one click if you ever need to."
+        },
+        "s4": {
+          "title": "Set the permissions",
+          "body": "Set exactly these permissions. Leave everything else on None: we never need more."
+        },
+        "s5": {
+          "title": "Limit the key to our server",
+          "body": "For extra safety, add an Access policy (IP allowlist) to the key with our server IP. Stripe then rejects the key when it is used from anywhere else."
+        },
+        "s6": {
+          "title": "Create the key and copy it",
+          "body": "Click “Create key” and enter the code Stripe sends you. Copy the key right away (Stripe never shows it again), then click Done."
+        },
+        "s7": {
+          "title": "Copy the publishable key",
+          "body": "On the same API keys page, copy the Publishable key under Standard keys. It starts with pk_live_ (or pk_test_). Never copy the Secret key (sk_…)."
+        },
+        "s8": {
+          "title": "Paste both keys here",
+          "body": "Paste the restricted key and the publishable key below and press “Verify and connect”. We check the permissions, set up payment updates and register your domains for Apple Pay and Google Pay."
+        },
+        "s9": {
+          "title": "Choose your payment methods",
+          "body": "Choose which payment methods your customers see in Stripe → Settings → Payment methods. Swish must be requested there first."
+        }
+      },
+      "advanced": "Advanced (optional)",
+      "ipNotice": "We will email you before our server address changes.",
+      "openPaymentMethods": "Open payment methods"
+    },
+    "permissions": {
+      "resource": "Resource in Stripe",
+      "level": "Permission",
+      "write": "Write",
+      "read": "Read",
+      "none": "None",
+      "optional": "optional",
+      "everythingElse": "Everything else",
+      "checklistTitle": "Permission check",
+      "names": {
+        "payment_intent_write": "Create and confirm card payments",
+        "charge_read": "See payments and refunds",
+        "webhook_write": "Receive payment updates (webhook)",
+        "payment_method_domain_write": "Register your domains for Apple Pay and Google Pay",
+        "balance_read": "Check the account and its mode",
+        "dispute_read": "See the status of disputes"
+      },
+      "check": {
+        "ok": "Granted",
+        "missing": "Missing",
+        "unknown": "Not checked"
+      }
+    },
+    "form": {
+      "restrictedLabel": "Restricted key",
+      "restrictedHint": "Starts with rk_live_ or rk_test_. Stored encrypted and never shown again.",
+      "publishableLabel": "Publishable key",
+      "publishableHint": "Starts with pk_live_ or pk_test_. It is public and used by your checkout.",
+      "show": "Show key",
+      "hide": "Hide key",
+      "submit": "Verify and connect",
+      "cancel": "Cancel",
+      "reauthDescription": "Confirm it is you before connecting a Stripe key to your store."
+    },
+    "issues": {
+      "restricted_empty": "Paste your restricted key.",
+      "restricted_secret_key": "Use a restricted key, never your secret key. A secret key (sk_…) gives full access to your Stripe account.",
+      "restricted_publishable_swapped": "This is a publishable key (pk_…). Paste it in the field below and the restricted key (rk_…) here.",
+      "restricted_prefix": "A restricted key starts with rk_live_ or rk_test_. Copy the whole key from Stripe.",
+      "publishable_empty": "Paste your publishable key.",
+      "publishable_secret_key": "Never paste your secret key (sk_…). The publishable key starts with pk_live_ or pk_test_.",
+      "publishable_restricted_swapped": "This is the restricted key (rk_…). Paste it in the field above.",
+      "publishable_prefix": "A publishable key starts with pk_live_ or pk_test_. Copy the whole key from Stripe.",
+      "mode_mismatch": "Both keys must come from the same mode: both live or both test."
+    },
+    "progress": {
+      "key": "Checking the key with Stripe…",
+      "permissions": "Checking the permissions…",
+      "webhook": "Setting up payment updates…",
+      "domains": "Registering your domains for Apple Pay and Google Pay…",
+      "saving": "Almost done, saving…"
+    },
+    "missing": {
+      "title": "Some permissions are missing",
+      "body": "Stripe accepted the key, but it lacks the permissions marked in red below.",
+      "fix": "How to fix it: in Stripe, open Developers → API keys, open the menu (⋯) next to the ShopsDoor key and choose Edit key. Set the marked permissions as shown, save, then press “Verify and connect” again with the same key. If you no longer have the key, create a new one."
+    },
+    "result": {
+      "key": "Key",
+      "account": "Stripe account",
+      "webhook": "Payment updates",
+      "webhookOk": "Active",
+      "webhookMissing": "Not set up, press Re-check",
+      "verifiedAt": "Verified",
+      "lastCheckAt": "Last check",
+      "never": "Never",
+      "liveHint": "Place one small real order to make sure card payments work.",
+      "domains": "Wallet domains",
+      "domainsHint": "Apple Pay, Google Pay, Link and Klarna only appear on domains registered with your Stripe account.",
+      "domainsEmpty": "No domains registered yet. Press Re-check after adding a domain.",
+      "host": "Domain",
+      "methods": {
+        "apple_pay": "Apple Pay",
+        "google_pay": "Google Pay",
+        "link": "Link",
+        "klarna": "Klarna"
+      },
+      "domainStatus": {
+        "ok": "Active",
+        "pending": "Pending",
+        "error": "Not active",
+        "unknown": "Unknown"
+      },
+      "refundsHint": "Refunds and disputes are handled in your Stripe Dashboard; we sync them to your orders automatically.",
+      "recheck": "Re-check",
+      "rechecked": "Check complete. The status below is up to date.",
+      "replace": "Replace key",
+      "openStripe": "Open Stripe Dashboard",
+      "remove": "Remove",
+      "domainErrorPermission": "Not registered: the key lacks the Payment Method Domains permission.",
+      "domainErrorGeneric": "Not registered with Stripe. Press Re-check to try again.",
+      "testKeyNotice": "Test key: only you can test checkout in preview. Customers can pay by card after you connect a live key.",
+      "accountHelp": "Your Stripe account ID. You only need it when you contact Stripe support.",
+      "domainHelp": "A cross means Stripe has not turned this payment method on for the domain yet. Turn it on in Stripe → Settings → Payment methods, then check again.",
+      "paymentMethodsHint": "Choose which payment methods your customers see in Stripe → Settings → Payment methods. Swish must be requested there first."
+    },
+    "removeDialog": {
+      "title": "Remove your Stripe key?",
+      "body": "Card payments stop in your store until you connect a key again. We also stop the payment updates from your Stripe account. Your Stripe account and your money are not affected.",
+      "confirm": "Remove key",
+      "reauthDescription": "Confirm it is you before removing your Stripe key."
+    },
+    "twoFactor": {
+      "title": "Two-step verification is required",
+      "body": "To protect your payouts, connecting a Stripe key needs two-step verification on your account. Turn it on first, then come back here.",
+      "cta": "Set up two-step verification"
+    },
+    "testModeHint": "Your Stripe key is a test key. Connect a live key so customers can pay.",
+    "testModeHintCta": "Connect a live key"
+  },
+  "orderTimeline": {
+    "STOCK_SHORTFALL": "Paid order short on stock",
+    "PAYMENT_STALE_INTENT": "Payment on an old attempt",
+    "REFUND_FAILED": "Refund failed",
+    "REFUND_REVERTED": "Refund reverted",
+    "PAYMENT_PROCESSING": "Payment processing",
+    "PAYMENT_DISPUTE": "Payment disputed"
   }
 }

@@ -21,6 +21,7 @@ import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
 import type { OrderFieldValueRow } from '@/lib/customFields';
+import { paymentTimelineLabel } from '@/lib/orderTimeline';
 import Link from 'next/link';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
@@ -200,6 +201,7 @@ function paymentStatusInfo(
 export default function OrderDetailPage() {
   const t = useTranslations('admin');
   const tp = useTranslations('payments');
+  const tTimeline = useTranslations('orderTimeline');
   // Company wording is shared with the creator order page (b2b app).
   const tb = useTranslations('creator.orderDetail');
   const uiLocale = useLocale();
@@ -511,7 +513,7 @@ export default function OrderDetailPage() {
                 <div key={entry.id} className="flex items-start gap-3">
                   <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium">{statusLabel(entry.status)}</p>
+                    <p className="text-sm font-medium">{paymentTimelineLabel(tTimeline, entry.status) ?? statusLabel(entry.status)}</p>
                     <p className="text-[11px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
                   </div>
                 </div>

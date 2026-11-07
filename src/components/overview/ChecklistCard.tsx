@@ -11,6 +11,7 @@ import { computeSetupChecklist, setupStepHref, type OnboardingSurvey } from '@/l
 import { hasSurveyAnswers, PREVIEWED_KEY, resolveOnboardingSurvey, SETUP_DISMISS_KEY } from '@/lib/onboardingSurvey';
 import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { OwnKeyTestModeHint } from '@/components/payments/own-key/OwnKeyTestModeHint';
 
 const subscribeNoop = () => () => {};
 
@@ -163,6 +164,9 @@ export function ChecklistCard({ store, setup, independent, storeUrl }: Checklist
             );
           })}
         </ul>
+      )}
+      {!collapsed && store.golive_checklist?.payments_hint === 'OWN_KEY_TEST_MODE' && (
+        <OwnKeyTestModeHint className="mx-4 mb-4" />
       )}
     </section>
   );

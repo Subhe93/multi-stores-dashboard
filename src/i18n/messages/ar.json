@@ -880,7 +880,8 @@
         "owner": "المالك",
         "checklist": "قائمة التحقق",
         "created": "تاريخ الإنشاء",
-        "requested": "طلب النشر"
+        "requested": "طلب النشر",
+        "payments": "مدفوعات البطاقات"
       },
       "check": {
         "verified": "البريد موثّق",
@@ -921,7 +922,19 @@
       "searchPlaceholder": "ابحث بالمتجر أو العنوان أو بريد المالك",
       "emptyPending": "لا توجد متاجر بانتظار المراجعة.",
       "empty": "لا توجد متاجر تطابق هذه المرشحات.",
-      "retry": "حاول مجدداً"
+      "retry": "حاول مجدداً",
+      "ownKey": {
+        "marketplace": "المنصّة",
+        "none": "لا يوجد مفتاح خاص",
+        "live": "مباشر",
+        "test": "تجريبي",
+        "lastCheck": "فُحص {date}",
+        "state": {
+          "ACTIVE": "المفتاح الخاص مفعَّل",
+          "NEEDS_RECONNECT": "المفتاح توقف عن العمل",
+          "DISABLED": "معطَّل"
+        }
+      }
     },
     "stripeWebhookEndpointsTitle": "عناوين Webhook التي تُسجَّل في Stripe",
     "stripeWebhookEndpointsHint": "في Stripe ← Developers ← Webhooks أضف هذين العنوانين (المنصة: payment_intent.succeeded وpayment_intent.payment_failed وcharge.refunded؛ Connect: account.updated وpayment_intent.succeeded وpayment_intent.payment_failed وcharge.refunded مع خيار \"Listen to events on Connected accounts\")، ثم الصق سرّ التوقيع لكل منهما في الأسفل.",
@@ -2750,7 +2763,11 @@
         "saved": "تم حفظ إعدادات التتبع.",
         "unsaved": "تغييرات غير محفوظة",
         "save": "حفظ"
-      }
+      },
+      "ownKeySwitchTitle": "انتقل إلى حسابك الخاص في Stripe",
+      "ownKeySwitchBody": "لديك حساب Stripe خاص بك بالفعل. سجّل الدخول إلى dashboard.stripe.com بالبريد نفسه وأنشئ مفتاحاً باتباع الدليل أعلاه. تستمر مدفوعات البطاقات حتى تنتقل.",
+      "ownKeySwitchedBody": "تستخدم مدفوعات البطاقات الآن مفتاح Stripe الخاص بك. يمكنك فصل هذا الربط القديم.",
+      "ownKeySwitchCta": "إعداد مفتاحي الخاص"
     },
     "orderDetail": {
       "notFound": "الطلب غير موجود",
@@ -4750,7 +4767,9 @@
           "no_standard_account": "اربط حساب سترايب من الإعدادات أولاً.",
           "account_not_ready": "حساب سترايب الخاص بك غير جاهز لمدفوعات البطاقات بعد. أكمل إعداد سترايب.",
           "currency_not_supported_by_stripe": "سترايب لا يدعم هذه العملة.",
-          "settlement_conversion_note": "تُحوَّل المدفوعات بعملة {currency} إلى عملة التحويلات في حساب سترايب الخاص بك."
+          "settlement_conversion_note": "تُحوَّل المدفوعات بعملة {currency} إلى عملة التحويلات في حساب سترايب الخاص بك.",
+          "own_key_test_mode": "مفتاح Stripe لديك مفتاح تجريبي. اربط مفتاحاً حقيقياً ليتمكن العملاء من الدفع.",
+          "own_key_test_mode_cta": "ربط مفتاح حقيقي"
         },
         "kustom": {
           "label": "Kustom",
@@ -6130,7 +6149,19 @@
     "REDIRECT_SHADOWS_LIVE": "ما زال هذا العنوان يعرض صفحة أو منتجاً منشوراً. احذفه أو ألغِ نشره أو غيّر عنوانه أولاً، ثم أضف إعادة التوجيه.",
     "REDIRECT_CHAIN_TOO_LONG": "ستمر إعادة التوجيه هذه عبر عدد كبير جداً من عمليات إعادة التوجيه الأخرى.",
     "REDIRECT_BULK_TOO_MANY": "ارفع 5000 عملية إعادة توجيه كحد أقصى في المرة الواحدة.",
-    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "السعر أقل من الحد الأدنى: يجب أن يغطي السعر الأساسي للمورّد مضافاً إليه الضريبة."
+    "CUSTOM_PRODUCT_PRICE_BELOW_MINIMUM": "السعر أقل من الحد الأدنى: يجب أن يغطي السعر الأساسي للمورّد مضافاً إليه الضريبة.",
+    "OWN_KEY_NOT_ACTIVE": "مدفوعات البطاقات بمفتاح Stripe الخاص بك غير مفعَّلة.",
+    "OWN_KEY_INVALID_PREFIX": "صيغة المفاتيح غير صحيحة. المفتاح المقيَّد يبدأ بـ rk_ والمفتاح القابل للنشر يبدأ بـ pk_.",
+    "OWN_KEY_SECRET_KEY_REJECTED": "استخدم مفتاحاً مقيَّداً، ولا تستخدم مفتاحك السري (sk_…) أبداً.",
+    "OWN_KEY_MODE_MISMATCH": "يجب أن يكون المفتاحان من الوضع نفسه: كلاهما مباشر أو كلاهما تجريبي.",
+    "OWN_KEY_INVALID_OR_REVOKED": "رفض Stripe المفتاح: إنه غير صالح أو منتهي الصلاحية أو مُلغى. أنشئ مفتاحاً مقيَّداً جديداً والصقه هنا.",
+    "OWN_KEY_MISSING_PERMISSIONS": "المفتاح يفتقد صلاحيات مطلوبة.",
+    "OWN_KEY_WEBHOOK_FAILED": "تعذّر تجهيز تحديثات المدفوعات (webhook) في حسابك في Stripe. تأكد أن صلاحية Webhook Endpoints مضبوطة على Write (كتابة) ثم حاول مجدداً.",
+    "OWN_KEY_INDEPENDENT_ONLY": "المتاجر المستقلة فقط يمكنها استخدام مفتاح Stripe خاص بها.",
+    "USE_OWN_STRIPE_KEY": "تربط المتاجر المستقلة الآن حسابها الخاص في Stripe بمفتاح مقيَّد. استخدم بطاقة «حسابك في Stripe».",
+    "OWN_KEY_NOT_FOUND": "لا يوجد مفتاح Stripe مربوط بهذا المتجر.",
+    "OWN_KEY_WEBHOOK_LIMIT": "يحتوي حسابك في Stripe على 16 نقطة webhook، وهو الحد الأقصى. احذف واحدة لم تعد تستخدمها في Stripe (Developers ← Webhooks) ثم حاول مجدداً.",
+    "OWN_KEY_STRIPE_UNAVAILABLE": "تعذّر الوصول إلى Stripe حالياً. يُرجى المحاولة بعد قليل."
   },
   "builder": {
     "failedToLoadPage": "تعذّر تحميل الصفحة",
@@ -7547,7 +7578,10 @@
         "backup_created": "أُنشئت نسخة احتياطية",
         "backup_downloaded": "نُزّلت نسخة احتياطية",
         "backup_restored": "استُعيدت نسخة احتياطية",
-        "backup_deleted": "حُذفت نسخة احتياطية"
+        "backup_deleted": "حُذفت نسخة احتياطية",
+        "payment_keys_stripe_own_key_updated": "رُبط مفتاح Stripe خاص",
+        "payment_keys_stripe_own_key_removed": "أُزيل مفتاح Stripe الخاص",
+        "payment_keys_stripe_own_key_revoked": "توقف مفتاح Stripe الخاص عن العمل"
       },
       "roles": {
         "ADMIN": "مدير",
@@ -7556,5 +7590,198 @@
         "CUSTOMER": "عميل"
       }
     }
+  },
+  "ownStripeKey": {
+    "title": "حسابك في Stripe",
+    "intro": "تذهب مدفوعات البطاقات مباشرةً إلى حسابك الخاص في Stripe. لا تحتفظ ShopsDoor بأموالك أبداً، ويمكنك إلغاء المفتاح في أي وقت من Stripe.",
+    "introPoints": {
+      "restricted": "نستخدم مفتاحاً مقيَّداً بالصلاحيات المذكورة في الدليل فقط، ولا نستخدم مفتاحك السري أبداً.",
+      "direct": "تبقى التحويلات والمبالغ المستردة والنزاعات في لوحة تحكم Stripe الخاصة بك.",
+      "revoke": "ألغِ المفتاح من Stripe في أي وقت، وعندها لن نتمكن من تحصيل أي دفعة به."
+    },
+    "badge": {
+      "live": "مباشر",
+      "test": "تجريبي",
+      "active": "متصل",
+      "needsReconnect": "المفتاح توقف عن العمل",
+      "disabled": "معطَّل"
+    },
+    "testBanner": "بيئة الاختبار (Sandbox) — لا تُحصَّل أي أموال حقيقية. الصق المفاتيح المباشرة (rk_live_ و pk_live_) عندما تكون جاهزاً للبيع.",
+    "reconnectAlert": {
+      "title": "مدفوعات البطاقات متوقفة مؤقتاً",
+      "body": "توقف مفتاح Stripe الخاص بك عن العمل (أُلغي أو انتهت صلاحيته)، لذا توقفت مدفوعات البطاقات مؤقتاً. أنشئ مفتاحاً جديداً باتباع الدليل أدناه والصقه هنا.",
+      "missingBody": "مفتاح Stripe الخاص بك يفتقد صلاحيات، لذا توقفت مدفوعات البطاقات مؤقتاً. أصلح الصلاحيات المعلَّمة أدناه ثم اضغط «إعادة الفحص»."
+    },
+    "connected": "تم ربط حسابك في Stripe. تذهب مدفوعات البطاقات الآن مباشرةً إلى حسابك.",
+    "loadError": "تعذّر تحميل إعدادات Stripe. يُرجى إعادة تحميل الصفحة.",
+    "guide": {
+      "title": "كيف تنشئ المفتاح في Stripe (9 خطوات)",
+      "toggleShow": "عرض الدليل",
+      "toggleHide": "إخفاء الدليل",
+      "imagePlaceholder": "ستُضاف لقطة الشاشة قريباً",
+      "openLive": "فتح صفحة مفاتيح API",
+      "openTest": "فتح مفاتيح API (بيئة الاختبار Sandbox)",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "ipLabel": "عنوان IP للخادم:",
+      "steps": {
+        "s1": {
+          "title": "افتح مفاتيح API في Stripe",
+          "body": "سجّل الدخول إلى لوحة تحكم Stripe وانتقل إلى Developers ← API keys (المطوّرون ← مفاتيح API). استخدم رابط بيئة الاختبار (Sandbox) إن أردت تجربة كل شيء أولاً دون أموال حقيقية."
+        },
+        "s2": {
+          "title": "اضغط «Create restricted key»",
+          "body": "اضغط «+ Create restricted key». إذا سألك Stripe عن طريقة استخدام المفتاح، فاختر الخيار الذي يبدأ بلا أي صلاحيات لتحددها بنفسك."
+        },
+        "s3": {
+          "title": "سمِّه «ShopsDoor»",
+          "body": "اكتب ShopsDoor اسماً للمفتاح حتى تتعرّف عليه لاحقاً، وتتمكن من إلغائه بنقرة واحدة إن احتجت إلى ذلك."
+        },
+        "s4": {
+          "title": "حدّد الصلاحيات",
+          "body": "اضبط هذه الصلاحيات تماماً كما هي، واترك كل ما سواها على None (بلا صلاحية): لا نحتاج إلى أكثر من ذلك أبداً."
+        },
+        "s5": {
+          "title": "اقصر المفتاح على خادمنا",
+          "body": "لمزيد من الأمان، أضف إلى المفتاح سياسة وصول (Access policy — قائمة عناوين IP المسموح بها) تتضمن عنوان خادمنا. عندها يرفض Stripe المفتاح إذا استُخدم من أي مكان آخر."
+        },
+        "s6": {
+          "title": "أنشئ المفتاح وانسخه",
+          "body": "اضغط «Create key» وأدخل الرمز الذي يرسله لك Stripe. انسخ المفتاح فوراً (لن يعرضه Stripe مرة أخرى)، ثم اضغط Done."
+        },
+        "s7": {
+          "title": "انسخ المفتاح القابل للنشر",
+          "body": "من صفحة مفاتيح API نفسها، انسخ Publishable key (المفتاح القابل للنشر) تحت Standard keys. يبدأ بـ pk_live_ (أو pk_test_). لا تنسخ Secret key (المفتاح السري sk_…) أبداً."
+        },
+        "s8": {
+          "title": "الصق المفتاحين هنا",
+          "body": "الصق المفتاح المقيَّد والمفتاح القابل للنشر في الأسفل واضغط «تحقّق واربط». سنفحص الصلاحيات، ونجهّز تحديثات المدفوعات، ونسجّل نطاقاتك لـ Apple Pay و Google Pay."
+        },
+        "s9": {
+          "title": "اختر طرق الدفع",
+          "body": "اختر طرق الدفع التي تظهر لعملائك من Stripe ← Settings ← Payment methods. يجب طلب تفعيل Swish من هناك أولاً."
+        }
+      },
+      "advanced": "متقدّم (اختياري)",
+      "ipNotice": "سنراسلك بالبريد الإلكتروني قبل تغيير عنوان خادمنا.",
+      "openPaymentMethods": "فتح طرق الدفع"
+    },
+    "permissions": {
+      "resource": "المورد في Stripe",
+      "level": "الصلاحية",
+      "write": "كتابة",
+      "read": "قراءة",
+      "none": "بلا",
+      "optional": "اختياري",
+      "everythingElse": "كل ما سوى ذلك",
+      "checklistTitle": "فحص الصلاحيات",
+      "names": {
+        "payment_intent_write": "إنشاء مدفوعات البطاقات وتأكيدها",
+        "charge_read": "عرض المدفوعات والمبالغ المستردة",
+        "webhook_write": "استقبال تحديثات المدفوعات (webhook)",
+        "payment_method_domain_write": "تسجيل نطاقاتك لـ Apple Pay و Google Pay",
+        "balance_read": "التحقق من الحساب ووضعه",
+        "dispute_read": "عرض حالة النزاعات"
+      },
+      "check": {
+        "ok": "ممنوحة",
+        "missing": "ناقصة",
+        "unknown": "لم تُفحص"
+      }
+    },
+    "form": {
+      "restrictedLabel": "المفتاح المقيَّد",
+      "restrictedHint": "يبدأ بـ rk_live_ أو rk_test_. يُحفظ مشفّراً ولن يُعرض مرة أخرى.",
+      "publishableLabel": "المفتاح القابل للنشر",
+      "publishableHint": "يبدأ بـ pk_live_ أو pk_test_. هذا المفتاح علني وتستخدمه صفحة الدفع في متجرك.",
+      "show": "إظهار المفتاح",
+      "hide": "إخفاء المفتاح",
+      "submit": "تحقّق واربط",
+      "cancel": "إلغاء",
+      "reauthDescription": "أكّد هويتك قبل ربط مفتاح Stripe بمتجرك."
+    },
+    "issues": {
+      "restricted_empty": "الصق المفتاح المقيَّد.",
+      "restricted_secret_key": "استخدم مفتاحاً مقيَّداً، ولا تستخدم مفتاحك السري أبداً. المفتاح السري (sk_…) يمنح وصولاً كاملاً إلى حسابك في Stripe.",
+      "restricted_publishable_swapped": "هذا مفتاح قابل للنشر (pk_…). الصقه في الحقل التالي، والصق المفتاح المقيَّد (rk_…) هنا.",
+      "restricted_prefix": "المفتاح المقيَّد يبدأ بـ rk_live_ أو rk_test_. انسخ المفتاح كاملاً من Stripe.",
+      "publishable_empty": "الصق المفتاح القابل للنشر.",
+      "publishable_secret_key": "لا تلصق مفتاحك السري (sk_…) أبداً. المفتاح القابل للنشر يبدأ بـ pk_live_ أو pk_test_.",
+      "publishable_restricted_swapped": "هذا هو المفتاح المقيَّد (rk_…). الصقه في الحقل السابق.",
+      "publishable_prefix": "المفتاح القابل للنشر يبدأ بـ pk_live_ أو pk_test_. انسخ المفتاح كاملاً من Stripe.",
+      "mode_mismatch": "يجب أن يكون المفتاحان من الوضع نفسه: كلاهما مباشر أو كلاهما تجريبي."
+    },
+    "progress": {
+      "key": "جارٍ التحقق من المفتاح لدى Stripe…",
+      "permissions": "جارٍ فحص الصلاحيات…",
+      "webhook": "جارٍ تجهيز تحديثات المدفوعات…",
+      "domains": "جارٍ تسجيل نطاقاتك لـ Apple Pay و Google Pay…",
+      "saving": "اقتربنا، جارٍ الحفظ…"
+    },
+    "missing": {
+      "title": "بعض الصلاحيات ناقصة",
+      "body": "قبِل Stripe المفتاح، لكنه يفتقد الصلاحيات المعلَّمة بالأحمر أدناه.",
+      "fix": "طريقة الإصلاح: في Stripe افتح Developers ← API keys، ثم افتح القائمة (⋯) بجانب مفتاح ShopsDoor واختر Edit key (تعديل المفتاح). اضبط الصلاحيات المعلَّمة كما هو موضَّح، واحفظ، ثم اضغط «تحقّق واربط» مرة أخرى بالمفتاح نفسه. إذا لم يعد المفتاح لديك، فأنشئ مفتاحاً جديداً."
+    },
+    "result": {
+      "key": "المفتاح",
+      "account": "حساب Stripe",
+      "webhook": "تحديثات المدفوعات",
+      "webhookOk": "مفعَّلة",
+      "webhookMissing": "غير مجهَّزة، اضغط «إعادة الفحص»",
+      "verifiedAt": "تاريخ التحقق",
+      "lastCheckAt": "آخر فحص",
+      "never": "أبداً",
+      "liveHint": "نفّذ طلباً حقيقياً صغيراً للتأكد من أن الدفع بالبطاقة يعمل.",
+      "domains": "نطاقات المحافظ الرقمية",
+      "domainsHint": "لا تظهر Apple Pay و Google Pay و Link و Klarna إلا على النطاقات المسجَّلة في حسابك في Stripe.",
+      "domainsEmpty": "لا توجد نطاقات مسجَّلة بعد. اضغط «إعادة الفحص» بعد إضافة نطاق.",
+      "host": "النطاق",
+      "methods": {
+        "apple_pay": "Apple Pay",
+        "google_pay": "Google Pay",
+        "link": "Link",
+        "klarna": "Klarna"
+      },
+      "domainStatus": {
+        "ok": "مفعَّل",
+        "pending": "قيد الانتظار",
+        "error": "غير مفعَّل",
+        "unknown": "غير معروف"
+      },
+      "refundsHint": "تُدار المبالغ المستردة والنزاعات من لوحة تحكم Stripe، ونزامنها مع طلباتك تلقائياً.",
+      "recheck": "إعادة الفحص",
+      "rechecked": "اكتمل الفحص. الحالة أدناه محدَّثة.",
+      "replace": "استبدال المفتاح",
+      "openStripe": "فتح لوحة تحكم Stripe",
+      "remove": "إزالة",
+      "domainErrorPermission": "غير مسجَّل: المفتاح يفتقد صلاحية Payment Method Domains.",
+      "domainErrorGeneric": "غير مسجَّل لدى Stripe. اضغط «إعادة الفحص» للمحاولة مجدداً.",
+      "testKeyNotice": "مفتاح تجريبي: وحدك تستطيع تجربة الدفع في المعاينة. يستطيع العملاء الدفع بالبطاقة بعد ربط مفتاح حقيقي.",
+      "accountHelp": "معرّف حسابك في Stripe. تحتاجه فقط عند التواصل مع دعم Stripe.",
+      "domainHelp": "علامة ✕ تعني أن Stripe لم يفعّل طريقة الدفع هذه للنطاق بعد. فعّلها من Stripe ← Settings ← Payment methods ثم أعد الفحص.",
+      "paymentMethodsHint": "اختر طرق الدفع التي تظهر لعملائك من Stripe ← Settings ← Payment methods. يجب طلب تفعيل Swish من هناك أولاً."
+    },
+    "removeDialog": {
+      "title": "إزالة مفتاح Stripe؟",
+      "body": "ستتوقف مدفوعات البطاقات في متجرك حتى تربط مفتاحاً من جديد. وسنوقف أيضاً تحديثات المدفوعات من حسابك في Stripe. لن يتأثر حسابك في Stripe ولا أموالك.",
+      "confirm": "إزالة المفتاح",
+      "reauthDescription": "أكّد هويتك قبل إزالة مفتاح Stripe."
+    },
+    "twoFactor": {
+      "title": "التحقق بخطوتين مطلوب",
+      "body": "لحماية مدفوعاتك، يتطلب ربط مفتاح Stripe تفعيل التحقق بخطوتين في حسابك. فعّله أولاً ثم عُد إلى هنا.",
+      "cta": "إعداد التحقق بخطوتين"
+    },
+    "testModeHint": "مفتاح Stripe لديك مفتاح تجريبي. اربط مفتاحاً حقيقياً ليتمكن العملاء من الدفع.",
+    "testModeHintCta": "ربط مفتاح حقيقي"
+  },
+  "orderTimeline": {
+    "STOCK_SHORTFALL": "طلب مدفوع بمخزون غير كافٍ",
+    "PAYMENT_STALE_INTENT": "دفعة على محاولة قديمة",
+    "REFUND_FAILED": "فشل الاسترداد",
+    "REFUND_REVERTED": "أُلغي الاسترداد",
+    "PAYMENT_PROCESSING": "الدفع قيد المعالجة",
+    "PAYMENT_DISPUTE": "نزاع على الدفع"
   }
 }

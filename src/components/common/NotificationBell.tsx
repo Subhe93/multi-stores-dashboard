@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Bell, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { isDashboardPath } from '@/lib/dashboardPath';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -26,10 +27,38 @@ interface NotificationsResponse {
 
 const POLL_INTERVAL_MS = 60_000;
 
+// Order notifications (data.order_id) opened on the role's order page.
+const ORDER_NOTIFICATION_TYPES = new Set([
+  'order_stock_shortfall',
+  'order_payment_stale_intent',
+  'order_refund_failed',
+  'order_refund_reverted',
+  'order_disputed',
+]);
+const ORDER_PAGE_BASE: Record<string, string> = {
+  CREATOR: '/creator/orders',
+  ADMIN: '/admin/orders',
+  PROVIDER: '/provider/orders',
+};
+
 /** Map a notification type → relative dashboard path. Returns null if no navigation. */
 function notificationHref(role: string, n: Notification): string | null {
   // Price warnings point to the product list (no single product id).
   if (n.type === 'PRICE_BELOW_MINIMUM') return role === 'CREATOR' ? '/creator/custom-products' : null;
+  // Own Stripe key revoked/expired: the API's settings link, else the
+  // "Your Stripe account" card of the payments tab.
+  if (n.type === 'stripe_key_needs_reconnect') {
+    if (role !== 'CREATOR') return null;
+    const url = n.data?.url;
+    return isDashboardPath(url) ? url : '/creator/settings?tab=payments#own-stripe-key';
+  }
+  // Payment / stock problems of one order: that order's page for the role.
+  if (ORDER_NOTIFICATION_TYPES.has(n.type)) {
+    const orderId = n.data?.order_id;
+    if (typeof orderId !== 'string' || !orderId) return null;
+    const base = ORDER_PAGE_BASE[role];
+    return base ? `${base}/${encodeURIComponent(orderId)}` : null;
+  }
   const id = n.data?.custom_product_id;
   if (!id) return null;
 

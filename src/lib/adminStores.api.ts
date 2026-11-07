@@ -4,6 +4,7 @@
 import { api } from '@/lib/api';
 import { qs, type Paged } from '@/lib/http';
 import type { GoLiveChecklist, StoreStatus } from '@/lib/storeStatus';
+import type { OwnKeyState } from '@/lib/ownStripeKey';
 
 export interface AdminStoreRow {
   id: string;
@@ -23,6 +24,14 @@ export interface AdminStoreRow {
     email_verified: boolean;
   };
   checklist: GoLiveChecklist;
+  /** Own Stripe key summary (INDEPENDENT stores); null when no key is stored. Never secrets. */
+  stripe_own_key?: AdminStoreOwnKey | null;
+}
+
+export interface AdminStoreOwnKey {
+  status: OwnKeyState;
+  livemode: boolean;
+  last_check_at: string | null;
 }
 
 export type AdminSettableStatus = 'LIVE' | 'CHANGES_REQUESTED' | 'SUSPENDED' | 'PAUSED';

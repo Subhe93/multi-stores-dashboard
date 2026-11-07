@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
 import type { OrderFieldValueRow } from '@/lib/customFields';
+import { paymentTimelineLabel } from '@/lib/orderTimeline';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -241,6 +242,7 @@ export default function ProviderOrderDetail() {
   const { fmt, currency } = useCurrency();
   const t = useTranslations('provider');
   const tc = useTranslations('common');
+  const tTimeline = useTranslations('orderTimeline');
   const tp = useTranslations('payments');
   const tt = useTranslations('provider.fulfillmentTracking');
   const te = useTranslations('errors');
@@ -868,7 +870,7 @@ export default function ProviderOrderDetail() {
                     <div key={e.id || i} className="flex items-start gap-2">
                       <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
                       <div>
-                        <p className="text-[11px] font-medium">{statusLabel(t, e.status)}</p>
+                        <p className="text-[11px] font-medium">{paymentTimelineLabel(tTimeline, e.status) ?? statusLabel(t, e.status)}</p>
                         {e.note && <p className="text-[11px] text-muted-foreground">{e.note}</p>}
                         <p className="text-[11px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
                       </div>

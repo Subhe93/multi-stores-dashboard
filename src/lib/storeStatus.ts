@@ -27,6 +27,8 @@ export interface GoLiveChecklist {
   has_published_product: boolean;
   has_published_theme: boolean;
   payments_ready: boolean;
+  /** 'OWN_KEY_TEST_MODE': the own Stripe key is a TEST key (not payments_ready). */
+  payments_hint?: 'OWN_KEY_TEST_MODE' | null;
   legal_pages_published: boolean;
   ready: boolean;
   blocking: string[];
@@ -260,7 +262,8 @@ export function setupStepHref(key: SetupStepKey, independent: boolean, storeUrl?
     case 'shipping':
       return '/creator/shipping';
     case 'payments':
-      return '/creator/settings?tab=payments';
+      // INDEPENDENT stores connect their own Stripe key (OwnStripeKeyCard anchor).
+      return independent ? '/creator/settings?tab=payments#own-stripe-key' : '/creator/settings?tab=payments';
     case 'trader_details':
       return '/creator/settings?tab=business';
     case 'legal_pages':

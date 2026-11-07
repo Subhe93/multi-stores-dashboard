@@ -26,7 +26,10 @@ import { TrackingSettingsCard, type TrackingSettings } from '@/components/settin
 import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 import { ChangePasswordCard } from '@/components/security/ChangePasswordCard';
 import { useReauth } from '@/components/security/ReauthDialog';
-import type { ReauthCredentials } from '@/lib/twoFactor';
+import { OwnStripeKeyCard } from '@/components/payments/own-key/OwnStripeKeyCard';
+import { errorCode, type ReauthCredentials } from '@/lib/twoFactor';
+import { useApiError } from '@/lib/useApiError';
+import { OWN_KEY_ANCHOR, type OwnKeyStatus } from '@/lib/ownStripeKey';
 
 const API_BASE = API_ORIGIN;
 function resolveAvatarUrl(url?: string | null): string {
@@ -209,6 +212,11 @@ export default function CreatorSettingsPage() {
   const [stripeLoading, setStripeLoading] = useState(true);
   const [stripeConnecting, setStripeConnecting] = useState(false);
   const [stripeError, setStripeError] = useState('');
+  // Own Stripe key (restricted key) status, reported by OwnStripeKeyCard.
+  const [ownKeyStatus, setOwnKeyStatus] = useState<OwnKeyStatus | null>(null);
+  const describeApiError = useApiError();
+  const scrollToOwnKey = () =>
+    document.getElementById(OWN_KEY_ANCHOR)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Kustom Checkout (independent stores only)
   const [kustom, setKustom] = useState<KustomSettings | null>(null);
@@ -495,7 +503,14 @@ export default function CreatorSettingsPage() {
       const { url } = await api<{ url: string }>('/payments/connect/onboarding-link', { token });
       window.location.href = url;
     } catch (err) {
-      setStripeError((err instanceof Error && err.message) || t('settings.stripeConnectError'));
+      // Independent stores no longer get new Connect accounts: point them to
+      // the own-key card instead.
+      if (errorCode(err) === 'USE_OWN_STRIPE_KEY') {
+        setStripeError(describeApiError(err));
+        scrollToOwnKey();
+      } else {
+        setStripeError((err instanceof Error && err.message) || t('settings.stripeConnectError'));
+      }
       setStripeConnecting(false);
     }
   };
@@ -1244,10 +1259,28 @@ export default function CreatorSettingsPage() {
       </TabsContent>
 
       <TabsContent value="payments" className="max-w-2xl space-y-4 pt-4">
-        {/* Stripe card — Express payouts for marketplace stores, the creator's
-            own Standard account (direct charges) for independent stores. */}
+        {/* Independent stores take card payments on their own Stripe account
+            with a restricted key (plans/stripe-restricted-keys/SPEC.md). */}
+        {store?.store_type === 'INDEPENDENT' && token && (
+          <OwnStripeKeyCard
+            token={token}
+            requestReauth={reauth.request}
+            onStatusChange={setOwnKeyStatus}
+            onSetupTwoFactor={() => {
+              changeSettingsTab('security');
+              // Next frame: the security tab mounts the 2FA card first.
+              requestAnimationFrame(() =>
+                document.getElementById('two-factor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+              );
+            }}
+          />
+        )}
+
+        {/* Stripe card — Express payouts for marketplace stores. Independent
+            stores only see it while a legacy Connect account is still linked. */}
         {(() => {
           const isIndependent = store?.store_type === 'INDEPENDENT';
+          if (isIndependent && (stripeLoading || !stripeStatus?.connected)) return null;
           const requiresRelink = !!stripeStatus?.requires_relink;
           // Independent stores are ready when they can take charges directly on
           // a Standard account; marketplace stores when payouts are enabled.
@@ -1269,6 +1302,24 @@ export default function CreatorSettingsPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    {/* Legacy Connect for independent stores is phased out. */}
+                    {isIndependent && (
+                      <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-900">
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <p className="font-semibold">{t('settings.ownKeySwitchTitle')}</p>
+                          <p className="text-[11px]">
+                            {ownKeyStatus?.status === 'ACTIVE'
+                              ? t('settings.ownKeySwitchedBody')
+                              : t('settings.ownKeySwitchBody')}
+                          </p>
+                        </div>
+                        {ownKeyStatus?.status !== 'ACTIVE' && (
+                          <Button size="sm" variant="outline" className="shrink-0 bg-white" onClick={scrollToOwnKey}>
+                            {t('settings.ownKeySwitchCta')}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-3">
                       <div className="space-y-0.5">
                         {stripeReady ? (

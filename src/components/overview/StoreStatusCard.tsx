@@ -14,6 +14,7 @@ import { PREVIEWED_KEY } from '@/lib/onboardingSurvey';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { StoreStatusBadge } from '@/components/creator/StoreStatusBadge';
 import { cn } from '@/lib/utils';
+import { OwnKeyTestModeHint } from '@/components/payments/own-key/OwnKeyTestModeHint';
 
 export interface StoreStatusCardProps {
   store: MyStoreSummary;
@@ -181,6 +182,8 @@ export function StoreStatusCard({ store, storeUrl, independent, onChanged }: Sto
               </ul>
             </div>
           )}
+
+          {checklist?.payments_hint === 'OWN_KEY_TEST_MODE' && <OwnKeyTestModeHint className="mt-3" />}
 
           {status === 'LIVE' && storeUrl && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
