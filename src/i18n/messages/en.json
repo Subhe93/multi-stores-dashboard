@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "Refund failed",
     "REFUND_REVERTED": "Refund reverted",
     "PAYMENT_PROCESSING": "Payment processing",
-    "PAYMENT_DISPUTE": "Payment disputed"
+    "PAYMENT_DISPUTE": "Payment disputed",
+    "PAID": "Payment received",
+    "PAYMENT_FAILED": "Payment failed",
+    "PAYMENT_CANCELLED": "Payment cancelled",
+    "PARTIALLY_REFUNDED": "Partially refunded",
+    "PAYMENT_MISMATCH": "Payment amount mismatch",
+    "CAPTURED": "Payment captured",
+    "ORDER_PLACED": "Order placed",
+    "noteChangedByAdmin": "Changed by an admin",
+    "PRODUCTION_COMPLETED": "Production completed",
+    "INVOICE_ISSUED": "Invoice issued",
+    "CREDIT_NOTE_ISSUED": "Credit note issued"
+  },
+  "testOrder": {
+    "badge": "Test",
+    "badgeTitle": "Test order: paid with a Stripe test key. No real money moved.",
+    "earningsNote": "This is a test order paid with a Stripe test key. No real money moved, and it is not counted in your earnings or analytics.",
+    "earningsAmountLabel": "Test amount (not income)"
   }
 }

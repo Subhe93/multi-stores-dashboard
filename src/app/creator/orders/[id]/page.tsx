@@ -27,7 +27,9 @@ import { GroupedOrderFieldValues } from '@/components/apps/personalization/Group
 import dynamic from 'next/dynamic';
 import { useApiError } from '@/lib/useApiError';
 import type { OrderFieldValueRow } from '@/lib/customFields';
-import { paymentTimelineLabel } from '@/lib/orderTimeline';
+import { timelineEntryText } from '@/lib/orderTimeline';
+import { countryName } from '@/lib/taxCountries';
+import { TestOrderBadge, isTestOrder } from '@/components/orders/TestOrderBadge';
 
 // E14: the production checklist and the designer card (renderer mirror,
 // canvas preview) load on demand, only when their app is available.
@@ -133,6 +135,8 @@ interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFi
   customer_id?: string | null;
   order_number: string;
   status: string;
+  // Paid with a Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
   created_at?: string | null;
   subtotal?: number | string | null;
   total: number | string;
@@ -249,6 +253,7 @@ export default function CreatorOrderDetailPage() {
   const t = useTranslations('creator');
   const tp = useTranslations('payments');
   const tTimeline = useTranslations('orderTimeline');
+  const tTest = useTranslations('testOrder');
   const uiLocale = useLocale();
   const STATUS_LABELS = statusLabels(t);
   // Designer app (M4.2): the design card stays readable while the app is
@@ -421,6 +426,7 @@ export default function CreatorOrderDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <TestOrderBadge isTest={order.is_test} className="text-xs" />
           {/* Reverse charge / tax exempt (b2b app M2.5), from the order snapshot. */}
           <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
           <Badge
@@ -662,21 +668,28 @@ export default function CreatorOrderDetailPage() {
             <CardContent>
               {order.timeline && order.timeline.length > 0 ? (
                 <div className="space-y-3">
-                  {order.timeline.map((entry, idx) => (
-                    <div key={entry.id ?? idx} className="flex items-start gap-3">
-                      <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">{paymentTimelineLabel(tTimeline, entry.status) ?? (STATUS_LABELS[entry.status] || entry.status)}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {entry.created_at
-                            ? new Date(entry.created_at).toLocaleString()
-                            : '—'}
-                          {entry.note ? ` — ${entry.note}` : ''}
-                          {entry.notes ? ` — ${entry.notes}` : ''}
-                        </p>
+                  {order.timeline.map((entry, idx) => {
+                    const text = timelineEntryText(
+                      tTimeline,
+                      entry.status,
+                      entry.note ?? entry.notes,
+                      (s) => STATUS_LABELS[s],
+                    );
+                    return (
+                      <div key={entry.id ?? idx} className="flex items-start gap-3">
+                        <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium">{text.label}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {entry.created_at
+                              ? new Date(entry.created_at).toLocaleString()
+                              : '—'}
+                            {text.note ? ` — ${text.note}` : ''}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 // Fallback: show created_at as the first event
@@ -804,7 +817,13 @@ export default function CreatorOrderDetailPage() {
                       ? `, ${order.address.zip ?? order.address.postal_code}`
                       : ''}
                   </p>
-                  <p>{order.address.country ?? order.address.country_code ?? '—'}</p>
+                  {/* Country name in the dashboard UI locale, not the bare code. */}
+                  <p>
+                    {(() => {
+                      const code = order.address.country_code ?? order.address.country;
+                      return code ? countryName(code, uiLocale) : '—';
+                    })()}
+                  </p>
                 </>
               ) : (
                 <p className="text-muted-foreground">{t('orderDetail.noAddress')}</p>
@@ -818,20 +837,40 @@ export default function CreatorOrderDetailPage() {
               <CardTitle className="text-sm font-semibold">{t('orderDetail.yourEarnings')}</CardTitle>
             </CardHeader>
             <CardContent className="text-xs">
-              <p className="text-2xl font-semibold text-emerald-700">
-                {fmtOrder(totalEarnings)}
-              </p>
-              <p className="text-muted-foreground mt-1">
-                {/* Independent stores keep the whole amount; the note names
-                    where the money went for the order's payment method. */}
-                {storeType === 'INDEPENDENT'
-                  ? order.payment_method === 'KUSTOM'
-                    ? t('orderDetail.independentEarningsNoteKustom')
-                    : order.payment_method === 'STRIPE'
-                      ? t('orderDetail.independentEarningsNote')
-                      : t('orderDetail.independentEarningsNoteCollected')
-                  : t('orderDetail.creatorCommission')}
-              </p>
+              {isTestOrder(order) ? (
+                // Test orders move no real money: the amount is shown muted
+                // and labelled, never as income.
+                <div className="space-y-2">
+                  <TestOrderBadge isTest />
+                  <div>
+                    <p className="text-muted-foreground">{tTest('earningsAmountLabel')}</p>
+                    <p className="text-lg font-semibold text-muted-foreground line-through decoration-1">
+                      {fmtOrder(totalEarnings)}
+                    </p>
+                  </div>
+                  <p className="flex items-start gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 leading-relaxed text-amber-800">
+                    <Info className="mt-0.5 size-3.5 shrink-0" />
+                    {tTest('earningsNote')}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-2xl font-semibold text-emerald-700">
+                    {fmtOrder(totalEarnings)}
+                  </p>
+                  <p className="text-muted-foreground mt-1">
+                    {/* Independent stores keep the whole amount; the note names
+                        where the money went for the order's payment method. */}
+                    {storeType === 'INDEPENDENT'
+                      ? order.payment_method === 'KUSTOM'
+                        ? t('orderDetail.independentEarningsNoteKustom')
+                        : order.payment_method === 'STRIPE'
+                          ? t('orderDetail.independentEarningsNote')
+                          : t('orderDetail.independentEarningsNoteCollected')
+                      : t('orderDetail.creatorCommission')}
+                  </p>
+                </>
+              )}
               <div className="mt-3 space-y-1.5 border-t pt-2">
                 {storeType !== 'INDEPENDENT' && vatToSeller > 0 && (
                   <div className="flex items-center justify-between">

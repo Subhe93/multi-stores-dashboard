@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "İade başarısız",
     "REFUND_REVERTED": "İade geri alındı",
     "PAYMENT_PROCESSING": "Ödeme işleniyor",
-    "PAYMENT_DISPUTE": "Ödemeye itiraz edildi"
+    "PAYMENT_DISPUTE": "Ödemeye itiraz edildi",
+    "PAID": "Ödeme alındı",
+    "PAYMENT_FAILED": "Ödeme başarısız",
+    "PAYMENT_CANCELLED": "Ödeme iptal edildi",
+    "PARTIALLY_REFUNDED": "Kısmen iade edildi",
+    "PAYMENT_MISMATCH": "Ödeme tutarı uyuşmuyor",
+    "CAPTURED": "Ödeme tahsil edildi",
+    "ORDER_PLACED": "Sipariş verildi",
+    "noteChangedByAdmin": "Bir yönetici tarafından değiştirildi",
+    "PRODUCTION_COMPLETED": "Üretim tamamlandı",
+    "INVOICE_ISSUED": "Fatura kesildi",
+    "CREDIT_NOTE_ISSUED": "İade faturası kesildi"
+  },
+  "testOrder": {
+    "badge": "Test",
+    "badgeTitle": "Test siparişi: Stripe test anahtarıyla ödendi. Gerçek para aktarılmadı.",
+    "earningsNote": "Bu, Stripe test anahtarıyla ödenmiş bir test siparişidir. Gerçek para aktarılmadı ve kazançlarınıza veya analizlerinize dahil edilmez.",
+    "earningsAmountLabel": "Test tutarı (gelir değil)"
   }
 }

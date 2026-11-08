@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { isRowClickIgnored } from '@/components/common/rowClick';
+import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import type { RecentOrder } from './overview.api';
 import type { OverviewFormat } from './format';
 import { DEFAULT_STATUS_BADGE, ORDER_STATUS_BADGE } from './statusColors';
@@ -36,9 +37,12 @@ export function RecentOrdersTable({ orders, fmt }: { orders: RecentOrder[]; fmt:
               }}
             >
               <td className="max-w-0 py-2.5 pe-3">
-                <Link href={href} className="font-medium hover:underline">
-                  #{o.order_number}
-                </Link>
+                <span className="inline-flex flex-wrap items-center gap-1.5">
+                  <Link href={href} className="font-medium hover:underline">
+                    #{o.order_number}
+                  </Link>
+                  <TestOrderBadge isTest={o.is_test} />
+                </span>
                 <p dir="auto" className="truncate text-start text-xs text-muted-foreground">
                   {o.customer_name || t('overview.guest')}
                 </p>

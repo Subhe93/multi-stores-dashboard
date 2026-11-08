@@ -52,6 +52,8 @@ export interface RecentOrder {
   status: string;
   payment_status?: string | null;
   created_at: string;
+  // Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
 }
 
 export interface OverviewTodo {
@@ -120,6 +122,7 @@ interface LegacyOrder {
   status: string;
   payment_status?: string | null;
   created_at: string;
+  is_test?: boolean | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
 }
 
@@ -191,6 +194,7 @@ async function fetchFallback(
       status: o.status,
       payment_status: o.payment_status ?? null,
       created_at: o.created_at,
+      is_test: o.is_test ?? false,
     })),
   };
 }

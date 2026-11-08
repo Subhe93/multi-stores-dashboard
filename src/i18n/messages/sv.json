@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "Återbetalningen misslyckades",
     "REFUND_REVERTED": "Återbetalningen återställd",
     "PAYMENT_PROCESSING": "Betalningen behandlas",
-    "PAYMENT_DISPUTE": "Betalningen bestrids"
+    "PAYMENT_DISPUTE": "Betalningen bestrids",
+    "PAID": "Betalning mottagen",
+    "PAYMENT_FAILED": "Betalningen misslyckades",
+    "PAYMENT_CANCELLED": "Betalningen avbröts",
+    "PARTIALLY_REFUNDED": "Delvis återbetald",
+    "PAYMENT_MISMATCH": "Betalt belopp stämmer inte",
+    "CAPTURED": "Betalningen dragen",
+    "ORDER_PLACED": "Order lagd",
+    "noteChangedByAdmin": "Ändrad av en administratör",
+    "PRODUCTION_COMPLETED": "Produktion klar",
+    "INVOICE_ISSUED": "Faktura utfärdad",
+    "CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad"
+  },
+  "testOrder": {
+    "badge": "Test",
+    "badgeTitle": "Testorder: betald med en Stripe-testnyckel. Inga riktiga pengar har flyttats.",
+    "earningsNote": "Det här är en testorder betald med en Stripe-testnyckel. Inga riktiga pengar har flyttats, och den räknas inte in i dina intäkter eller din statistik.",
+    "earningsAmountLabel": "Testbelopp (ingen intäkt)"
   }
 }

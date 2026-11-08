@@ -21,7 +21,9 @@ import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
 import type { OrderFieldValueRow } from '@/lib/customFields';
-import { paymentTimelineLabel } from '@/lib/orderTimeline';
+import { timelineEntryText } from '@/lib/orderTimeline';
+import { countryName } from '@/lib/taxCountries';
+import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import Link from 'next/link';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
@@ -69,6 +71,8 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   id: string;
   order_number: string;
   status: string;
+  // Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
   created_at: string;
   currency?: string | null;
   // Customer's storefront locale; second choice for personalization labels.
@@ -108,6 +112,7 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
     city?: string | null;
     postal_code?: string | null;
     country_code?: string | null;
+    country?: string | null;
   } | null;
   commission?: {
     provider_amount: number | string;
@@ -265,6 +270,7 @@ export default function OrderDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <TestOrderBadge isTest={order.is_test} className="text-xs" />
           <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
           <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{statusLabel(order.status)}</Badge>
         </div>
@@ -407,8 +413,11 @@ export default function OrderDetailPage() {
               <p className="font-medium">{order.address?.full_name}</p>
               <p>{order.address?.line1}</p>
               {order.address?.line2 && <p>{order.address.line2}</p>}
-              <p>{order.address?.city}, {order.address?.postal_code}</p>
-              <p>{order.address?.country_code}</p>
+              <p>{[order.address?.city, order.address?.postal_code].filter(Boolean).join(', ')}</p>
+              {/* Country name in the dashboard UI locale, not the bare code. */}
+              {(order.address?.country_code ?? order.address?.country) && (
+                <p>{countryName((order.address?.country_code ?? order.address?.country) as string, uiLocale)}</p>
+              )}
             </CardContent>
           </Card>
 
@@ -509,15 +518,18 @@ export default function OrderDetailPage() {
         <CardContent>
           {(order.timeline?.length ?? 0) > 0 ? (
             <div className="space-y-3">
-              {order.timeline?.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">{paymentTimelineLabel(tTimeline, entry.status) ?? statusLabel(entry.status)}</p>
-                    <p className="text-[11px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{entry.note && ` — ${entry.note}`}</p>
+              {order.timeline?.map((entry) => {
+                const text = timelineEntryText(tTimeline, entry.status, entry.note, statusLabel);
+                return (
+                  <div key={entry.id} className="flex items-start gap-3">
+                    <Clock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{text.label}</p>
+                      <p className="text-[11px] text-muted-foreground">{new Date(entry.created_at).toLocaleString()}{text.note && ` — ${text.note}`}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground py-4 text-center">{t('noTimelineEntries')}</p>

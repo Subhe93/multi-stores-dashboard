@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "فشل الاسترداد",
     "REFUND_REVERTED": "أُلغي الاسترداد",
     "PAYMENT_PROCESSING": "الدفع قيد المعالجة",
-    "PAYMENT_DISPUTE": "نزاع على الدفع"
+    "PAYMENT_DISPUTE": "نزاع على الدفع",
+    "PAID": "تم استلام الدفعة",
+    "PAYMENT_FAILED": "فشل الدفع",
+    "PAYMENT_CANCELLED": "أُلغي الدفع",
+    "PARTIALLY_REFUNDED": "استرداد جزئي",
+    "PAYMENT_MISMATCH": "مبلغ الدفع غير مطابق",
+    "CAPTURED": "تم تحصيل الدفعة",
+    "ORDER_PLACED": "تم إنشاء الطلب",
+    "noteChangedByAdmin": "غيّره أحد المشرفين",
+    "PRODUCTION_COMPLETED": "اكتمل الإنتاج",
+    "INVOICE_ISSUED": "صدرت الفاتورة",
+    "CREDIT_NOTE_ISSUED": "صدر إشعار دائن"
+  },
+  "testOrder": {
+    "badge": "تجريبي",
+    "badgeTitle": "طلب تجريبي: دُفع بمفتاح Stripe تجريبي. لم تنتقل أي أموال حقيقية.",
+    "earningsNote": "هذا طلب تجريبي دُفع بمفتاح Stripe تجريبي. لم تنتقل أي أموال حقيقية، ولا يُحتسب في أرباحك أو تحليلاتك.",
+    "earningsAmountLabel": "مبلغ تجريبي (ليس دخلاً)"
   }
 }

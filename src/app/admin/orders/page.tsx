@@ -12,6 +12,7 @@ import {
   type OrderStatusTarget,
 } from '@/components/orders/OrderBulkActions';
 import { Badge } from '@/components/ui/badge';
+import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -22,6 +23,8 @@ interface AdminOrderRow {
   id: string;
   order_number: string;
   status: string;
+  // Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
   total: number | string;
   created_at: string;
   currency?: string | null;
@@ -123,9 +126,12 @@ export default function AdminOrders() {
       <DataTable
         columns={[
           { key: 'order_number', label: t('order'), sortable: true, render: (item: AdminOrderRow) => (
-            <Link href={`/admin/orders/${item.id}`} className="text-sm font-mono font-medium hover:underline">
-              {item.order_number}
-            </Link>
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              <Link href={`/admin/orders/${item.id}`} className="text-sm font-mono font-medium hover:underline">
+                {item.order_number}
+              </Link>
+              <TestOrderBadge isTest={item.is_test} />
+            </span>
           )},
           { key: 'customer', label: t('customer'), render: (item: AdminOrderRow) => (
             <span className="text-sm">{item.customer ? `${item.customer.first_name} ${item.customer.last_name}` : '—'}</span>

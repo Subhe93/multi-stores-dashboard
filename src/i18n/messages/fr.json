@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "Échec du remboursement",
     "REFUND_REVERTED": "Remboursement annulé",
     "PAYMENT_PROCESSING": "Paiement en cours de traitement",
-    "PAYMENT_DISPUTE": "Paiement contesté"
+    "PAYMENT_DISPUTE": "Paiement contesté",
+    "PAID": "Paiement reçu",
+    "PAYMENT_FAILED": "Échec du paiement",
+    "PAYMENT_CANCELLED": "Paiement annulé",
+    "PARTIALLY_REFUNDED": "Partiellement remboursé",
+    "PAYMENT_MISMATCH": "Montant du paiement non concordant",
+    "CAPTURED": "Paiement encaissé",
+    "ORDER_PLACED": "Commande passée",
+    "noteChangedByAdmin": "Modifié par un administrateur",
+    "PRODUCTION_COMPLETED": "Production terminée",
+    "INVOICE_ISSUED": "Facture émise",
+    "CREDIT_NOTE_ISSUED": "Avoir émis"
+  },
+  "testOrder": {
+    "badge": "Test",
+    "badgeTitle": "Commande de test : payée avec une clé de test Stripe. Aucun argent réel n’a circulé.",
+    "earningsNote": "Ceci est une commande de test payée avec une clé de test Stripe. Aucun argent réel n’a circulé et elle n’est pas comptée dans vos revenus ni vos statistiques.",
+    "earningsAmountLabel": "Montant de test (pas un revenu)"
   }
 }

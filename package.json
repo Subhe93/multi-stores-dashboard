@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npm run check:personalization-codes && npm run check:config-issue-paths && npm run test:unit",
-    "test:unit": "node --experimental-strip-types --test src/components/common/searchableSelectKeys.test.mjs src/components/common/pageWindow.test.mjs src/lib/checkoutSettings.test.mjs src/lib/storefrontEditHintUrl.test.mjs src/lib/designer/editorGeometry.test.mjs src/components/designer/template-editor/history.test.mjs src/lib/slug.test.mjs src/lib/magicLogin.test.mjs src/lib/customDomain.test.mjs src/lib/platformHosts.test.mjs src/lib/customers.test.mjs src/lib/tags.test.mjs src/lib/storeStatus.test.mjs src/lib/uploadError.test.mjs src/lib/csp.test.mjs src/lib/ownStripeKey.test.mjs src/lib/dashboardPath.test.mjs",
+    "test:unit": "node --experimental-strip-types --test src/components/common/searchableSelectKeys.test.mjs src/components/common/pageWindow.test.mjs src/lib/checkoutSettings.test.mjs src/lib/storefrontEditHintUrl.test.mjs src/lib/designer/editorGeometry.test.mjs src/components/designer/template-editor/history.test.mjs src/lib/slug.test.mjs src/lib/magicLogin.test.mjs src/lib/customDomain.test.mjs src/lib/platformHosts.test.mjs src/lib/customers.test.mjs src/lib/tags.test.mjs src/lib/storeStatus.test.mjs src/lib/uploadError.test.mjs src/lib/csp.test.mjs src/lib/ownStripeKey.test.mjs src/lib/dashboardPath.test.mjs src/lib/orderTimeline.test.mjs",
     "prebuild": "npm test",
     "check:personalization-codes": "node scripts/check-personalization-codes.mjs",
     "check:config-issue-paths": "node scripts/check-config-issue-paths.mjs"

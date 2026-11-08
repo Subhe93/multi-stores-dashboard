@@ -43,6 +43,8 @@ interface OverviewOrder {
   status: string;
   total: number | string;
   created_at: string;
+  // Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
   commission?: { provider_amount?: number | string | null } | null;
 }
 
@@ -168,7 +170,8 @@ export default function ProviderOverview() {
   const activeOrders = orders.filter(o => !['DELIVERED', 'CANCELLED', 'REFUNDED'].includes(o.status));
   const needsAction = orders.filter(o => ['PENDING', 'CONFIRMED', 'QUALITY_CHECK'].includes(o.status));
   const recentOrders = orders.slice(0, 5);
-  const trend = calcTrend(orders);
+  // Test orders moved no money: kept out of the earnings trend.
+  const trend = calcTrend(orders.filter((o) => !o.is_test));
 
   // Setup checklist
   const hasProducts = products.length > 0;

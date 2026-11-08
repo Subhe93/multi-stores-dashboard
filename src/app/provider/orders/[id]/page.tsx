@@ -23,7 +23,8 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
 import type { OrderFieldValueRow } from '@/lib/customFields';
-import { paymentTimelineLabel } from '@/lib/orderTimeline';
+import { timelineEntryText } from '@/lib/orderTimeline';
+import { countryName } from '@/lib/taxCountries';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -827,7 +828,7 @@ export default function ProviderOrderDetail() {
               {order.address?.country_code && (
                 <p className="flex items-center gap-1">
                   <span>{countryFlag(order.address.country_code)}</span>
-                  <span>{order.address.country_code}</span>
+                  <span>{countryName(order.address.country_code, uiLocale)}</span>
                 </p>
               )}
             </CardContent>
@@ -866,16 +867,19 @@ export default function ProviderOrderDetail() {
             <CardContent>
               {order.timeline?.length > 0 ? (
                 <div className="space-y-2.5">
-                  {[...order.timeline].reverse().map((e, i) => (
-                    <div key={e.id || i} className="flex items-start gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
-                      <div>
-                        <p className="text-[11px] font-medium">{paymentTimelineLabel(tTimeline, e.status) ?? statusLabel(t, e.status)}</p>
-                        {e.note && <p className="text-[11px] text-muted-foreground">{e.note}</p>}
-                        <p className="text-[11px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
+                  {[...order.timeline].reverse().map((e, i) => {
+                    const text = timelineEntryText(tTimeline, e.status, e.note, (s) => statusLabel(t, s));
+                    return (
+                      <div key={e.id || i} className="flex items-start gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />
+                        <div>
+                          <p className="text-[11px] font-medium">{text.label}</p>
+                          {text.note && <p className="text-[11px] text-muted-foreground">{text.note}</p>}
+                          <p className="text-[11px] text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">{t('noEntries')}</p>

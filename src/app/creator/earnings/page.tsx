@@ -8,6 +8,7 @@ import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import { Button } from '@/components/ui/button';
 import { DollarSign, TrendingUp, Clock, CreditCard, Info, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -41,6 +42,8 @@ interface Order {
   total: number | string;
   status: string;
   created_at: string;
+  // Stripe test key / pre-live owner checkout (absent = false); no money moved.
+  is_test?: boolean | null;
   commission?: OrderCommission | null;
 }
 
@@ -157,12 +160,15 @@ export default function CreatorEarnings() {
       key: 'order_number',
       label: t('earnings.colOrder'),
       render: (item: Order) => (
-        <Link
-          href={`/creator/orders/${item.id}`}
-          className="font-mono font-medium text-primary hover:underline"
-        >
-          #{item.order_number}
-        </Link>
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <Link
+            href={`/creator/orders/${item.id}`}
+            className="font-mono font-medium text-primary hover:underline"
+          >
+            #{item.order_number}
+          </Link>
+          <TestOrderBadge isTest={item.is_test} />
+        </span>
       ),
     },
     {
@@ -182,6 +188,14 @@ export default function CreatorEarnings() {
         const amount = item.commission?.creator_amount;
         if (amount == null) {
           return <span className="text-muted-foreground">—</span>;
+        }
+        // Test orders are not income: muted and struck through.
+        if (item.is_test) {
+          return (
+            <span className="text-muted-foreground line-through tabular-nums">
+              {fmt(Number(amount))}
+            </span>
+          );
         }
         return (
           <span className="font-semibold text-emerald-700 tabular-nums">

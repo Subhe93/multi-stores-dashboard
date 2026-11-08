@@ -17,6 +17,7 @@ import {
 } from '@/components/orders/OrderBulkActions';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
+import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -57,6 +58,8 @@ interface OrderRow {
   id: string;
   order_number: string;
   status: string;
+  // Stripe test key / pre-live owner checkout (absent = false).
+  is_test?: boolean | null;
   total: number | string;
   created_at?: string | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
@@ -243,12 +246,15 @@ export default function CreatorOrdersPage() {
       label: t('orders.colOrder'),
       sortable: true,
       render: (item: OrderRow) => (
-        <Link
-          href={`/creator/orders/${item.id}`}
-          className="text-sm font-mono font-medium hover:underline"
-        >
-          {item.order_number}
-        </Link>
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <Link
+            href={`/creator/orders/${item.id}`}
+            className="text-sm font-mono font-medium hover:underline"
+          >
+            {item.order_number}
+          </Link>
+          <TestOrderBadge isTest={item.is_test} />
+        </span>
       ),
     },
     {

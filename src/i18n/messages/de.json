@@ -7782,6 +7782,23 @@
     "REFUND_FAILED": "Erstattung fehlgeschlagen",
     "REFUND_REVERTED": "Erstattung rückgängig gemacht",
     "PAYMENT_PROCESSING": "Zahlung wird verarbeitet",
-    "PAYMENT_DISPUTE": "Zahlung angefochten"
+    "PAYMENT_DISPUTE": "Zahlung angefochten",
+    "PAID": "Zahlung erhalten",
+    "PAYMENT_FAILED": "Zahlung fehlgeschlagen",
+    "PAYMENT_CANCELLED": "Zahlung abgebrochen",
+    "PARTIALLY_REFUNDED": "Teilweise erstattet",
+    "PAYMENT_MISMATCH": "Zahlungsbetrag stimmt nicht überein",
+    "CAPTURED": "Zahlung eingezogen",
+    "ORDER_PLACED": "Bestellung aufgegeben",
+    "noteChangedByAdmin": "Von einem Admin geändert",
+    "PRODUCTION_COMPLETED": "Produktion abgeschlossen",
+    "INVOICE_ISSUED": "Rechnung ausgestellt",
+    "CREDIT_NOTE_ISSUED": "Gutschrift ausgestellt"
+  },
+  "testOrder": {
+    "badge": "Test",
+    "badgeTitle": "Testbestellung: mit einem Stripe-Testschlüssel bezahlt. Es wurde kein echtes Geld bewegt.",
+    "earningsNote": "Dies ist eine Testbestellung, bezahlt mit einem Stripe-Testschlüssel. Es wurde kein echtes Geld bewegt, und sie zählt nicht zu deinen Einnahmen oder Analysen.",
+    "earningsAmountLabel": "Testbetrag (keine Einnahme)"
   }
 }

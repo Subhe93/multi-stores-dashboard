@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { countryName } from '@/lib/taxCountries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ interface AdminUserDetail {
 
 export default function UserDetailPage() {
   const t = useTranslations('admin');
+  const uiLocale = useLocale();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { token, user: currentUser } = useAuth();
@@ -456,7 +458,8 @@ export default function UserDetailPage() {
                     <p className="font-medium">{addr.full_name}</p>
                     <p>{addr.line1}</p>
                     {addr.line2 && <p>{addr.line2}</p>}
-                    <p>{addr.city}, {addr.postal_code} {addr.country_code}</p>
+                    <p>{[addr.city, addr.postal_code].filter(Boolean).join(', ')}</p>
+                    {addr.country_code && <p>{countryName(addr.country_code, uiLocale)}</p>}
                   </div>
                 ))}
               </CardContent>
