@@ -219,7 +219,7 @@ export function permissionsFromError(payload: unknown): Partial<Record<OwnKeyPer
   return out;
 }
 
-/** Guide screenshot path for step n (1-based); Alaa supplies the files. */
-export function guideImagePath(step: number): string {
+/** Guide screenshot path for step n (1-based), or a sub-shot such as "6-2". */
+export function guideImagePath(step: number | string): string {
   return `/guides/stripe-own-key/step-${step}.png`;
 }

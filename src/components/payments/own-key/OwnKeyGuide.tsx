@@ -16,6 +16,8 @@ import { PermissionTable } from './PermissionTable';
 const STEP_COUNT = 9;
 /** The IP allowlist step is optional, so it sits in a collapsed "Advanced" disclosure. */
 const ADVANCED_STEP = 5;
+/** Extra screenshots shown under a step's main image (file step-<id>.png). */
+const EXTRA_IMAGES: Record<number, string[]> = { 6: ['6-2'] };
 
 /**
  * Screenshot slot: renders the image when the file exists, otherwise a neat
@@ -23,7 +25,7 @@ const ADVANCED_STEP = 5;
  * the status fetch / a click), so onError always fires. Alaa supplies the
  * files later; see plans/stripe-restricted-keys/SCREENSHOTS.md.
  */
-function GuideImage({ step, title }: { step: number; title: string }) {
+function GuideImage({ step, title }: { step: number | string; title: string }) {
   const t = useTranslations('ownStripeKey.guide');
   const [failed, setFailed] = useState(false);
   if (failed) {
@@ -42,10 +44,9 @@ function GuideImage({ step, title }: { step: number; title: string }) {
       src={guideImagePath(step)}
       alt={title}
       width={1200}
-      height={750}
       loading="lazy"
       onError={() => setFailed(true)}
-      className="aspect-[8/5] w-full rounded-lg border bg-muted/30 object-cover object-top"
+      className="h-auto w-full rounded-lg border bg-muted/30"
     />
   );
 }
@@ -179,6 +180,7 @@ export function OwnKeyGuide({ defaultOpen = false }: { defaultOpen?: boolean }) 
                 <p className="text-[11px] leading-relaxed text-muted-foreground">{t(`steps.s${step}.body`)}</p>
                 {extra(step)}
                 <GuideImage step={step} title={title} />
+                {EXTRA_IMAGES[step]?.map((id) => <GuideImage key={id} step={id} title={title} />)}
               </div>
             );
             const advanced = step === ADVANCED_STEP;

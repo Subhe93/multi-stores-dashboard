@@ -7630,12 +7630,12 @@
           "body": "Melden Sie sich im Stripe-Dashboard an und gehen Sie zu Developers → API keys. Nutzen Sie den Sandbox-Link, wenn Sie zuerst alles ohne echtes Geld ausprobieren möchten."
         },
         "s2": {
-          "title": "Auf „Create restricted key“ klicken",
-          "body": "Klicken Sie auf „+ Create restricted key“. Wenn Stripe fragt, wie Sie den Schlüssel verwenden, wählen Sie die Option, die ohne Berechtigungen beginnt, damit Sie sie selbst festlegen können."
+          "title": "„Sharing with a third-party service“ wählen",
+          "body": "Klicke auf „+ Create secret key“. Wenn Stripe fragt, wie du den Schlüssel nutzt, wähle „Sharing with a third-party service“ und klicke auf Continue."
         },
         "s3": {
-          "title": "Als Namen „ShopsDoor“ eingeben",
-          "body": "Geben Sie ShopsDoor als Schlüsselnamen ein. So erkennen Sie ihn später wieder und können ihn bei Bedarf mit einem Klick widerrufen."
+          "title": "„Custom permissions“ wählen",
+          "body": "Wähle unter „Assign permissions to your key“ die Option „Custom permissions“ (nicht Standard) und klicke auf Continue."
         },
         "s4": {
           "title": "Berechtigungen festlegen",
@@ -7646,12 +7646,12 @@
           "body": "Für zusätzliche Sicherheit fügen Sie dem Schlüssel eine Access policy (IP-Zulassungsliste) mit unserer Server-IP hinzu. Stripe lehnt den Schlüssel dann von überall sonst ab."
         },
         "s6": {
-          "title": "Schlüssel erstellen und kopieren",
-          "body": "Klicken Sie auf „Create key“ und geben Sie den Code ein, den Stripe Ihnen sendet. Kopieren Sie den Schlüssel sofort (Stripe zeigt ihn nie wieder an) und klicken Sie dann auf Done."
+          "title": "Schlüssel benennen, erstellen und kopieren",
+          "body": "Nenne den Schlüssel ShopsDoor (zum Beispiel „API key for ShopsDoor“) und prüfe die Übersicht: genau 6 Berechtigungen, 3 Lesen und 3 Schreiben. Klicke auf „Create key“; fragt Stripe nach einem Code, gib den zugesandten Code ein. Klicke dann auf „Copy and close“: Stripe zeigt den Schlüssel nie wieder an."
         },
         "s7": {
           "title": "Veröffentlichbaren Schlüssel kopieren",
-          "body": "Kopieren Sie auf derselben Seite API keys den Publishable key unter Standard keys. Er beginnt mit pk_live_ (oder pk_test_). Kopieren Sie niemals den Secret key (sk_…)."
+          "body": "Kopiere auf derselben API-keys-Seite den Publishable key (oben auf der Seite). Er beginnt mit pk_live_ (oder pk_test_). Kopiere niemals den Secret key (sk_…)."
         },
         "s8": {
           "title": "Beide Schlüssel hier einfügen",

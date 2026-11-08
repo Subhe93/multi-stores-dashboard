@@ -7630,12 +7630,12 @@
           "body": "Logga in i din Stripe-dashboard och gå till Developers → API keys. Använd sandbox-länken om du vill prova allt först utan riktiga pengar."
         },
         "s2": {
-          "title": "Klicka på ”Create restricted key”",
-          "body": "Klicka på ”+ Create restricted key”. Om Stripe frågar hur nyckeln ska användas, välj alternativet som börjar utan behörigheter så att du själv kan ange dem."
+          "title": "Välj ”Sharing with a third-party service”",
+          "body": "Klicka på ”+ Create secret key”. När Stripe frågar hur nyckeln ska användas, välj ”Sharing with a third-party service” och klicka på Continue."
         },
         "s3": {
-          "title": "Döp den till ”ShopsDoor”",
-          "body": "Ange ShopsDoor som nyckelns namn, så känner du igen den senare och kan återkalla den med ett klick om det behövs."
+          "title": "Välj ”Custom permissions”",
+          "body": "På ”Assign permissions to your key”, välj ”Custom permissions” (inte Standard) och klicka på Continue."
         },
         "s4": {
           "title": "Ange behörigheterna",
@@ -7646,12 +7646,12 @@
           "body": "För extra säkerhet kan du lägga till en Access policy (IP-tillåtelselista) med vår servers IP. Då avvisar Stripe nyckeln om den används någon annanstans."
         },
         "s6": {
-          "title": "Skapa nyckeln och kopiera den",
-          "body": "Klicka på ”Create key” och ange koden som Stripe skickar. Kopiera nyckeln direkt (Stripe visar den aldrig igen) och klicka sedan på Done."
+          "title": "Namnge, skapa och kopiera nyckeln",
+          "body": "Döp nyckeln till ShopsDoor (till exempel ”API key for ShopsDoor”) och kontrollera sammanfattningen: exakt 6 behörigheter, 3 läs och 3 skriv. Klicka på ”Create key”; om Stripe ber om en kod, ange koden du får. Klicka sedan på ”Copy and close”: Stripe visar aldrig nyckeln igen."
         },
         "s7": {
           "title": "Kopiera den publicerbara nyckeln",
-          "body": "Kopiera Publishable key under Standard keys på samma sida API keys. Den börjar med pk_live_ (eller pk_test_). Kopiera aldrig Secret key (sk_…)."
+          "body": "På samma API keys-sida kopierar du Publishable key (högst upp på sidan). Den börjar med pk_live_ (eller pk_test_). Kopiera aldrig Secret key (sk_…)."
         },
         "s8": {
           "title": "Klistra in båda nycklarna här",

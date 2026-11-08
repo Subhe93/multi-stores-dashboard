@@ -7630,12 +7630,12 @@
           "body": "سجّل الدخول إلى لوحة تحكم Stripe وانتقل إلى Developers ← API keys (المطوّرون ← مفاتيح API). استخدم رابط بيئة الاختبار (Sandbox) إن أردت تجربة كل شيء أولاً دون أموال حقيقية."
         },
         "s2": {
-          "title": "اضغط «Create restricted key»",
-          "body": "اضغط «+ Create restricted key». إذا سألك Stripe عن طريقة استخدام المفتاح، فاختر الخيار الذي يبدأ بلا أي صلاحيات لتحددها بنفسك."
+          "title": "اختر «Sharing with a third-party service»",
+          "body": "اضغط «+ Create secret key». عندما يسألك Stripe كيف ستستخدم المفتاح، اختر «Sharing with a third-party service» (مشاركة مع خدمة خارجية) ثم اضغط Continue."
         },
         "s3": {
-          "title": "سمِّه «ShopsDoor»",
-          "body": "اكتب ShopsDoor اسماً للمفتاح حتى تتعرّف عليه لاحقاً، وتتمكن من إلغائه بنقرة واحدة إن احتجت إلى ذلك."
+          "title": "اختر «Custom permissions»",
+          "body": "في صفحة «Assign permissions to your key» اختر «Custom permissions» (صلاحيات مخصّصة) وليس Standard، ثم اضغط Continue."
         },
         "s4": {
           "title": "حدّد الصلاحيات",
@@ -7646,12 +7646,12 @@
           "body": "لمزيد من الأمان، أضف إلى المفتاح سياسة وصول (Access policy — قائمة عناوين IP المسموح بها) تتضمن عنوان خادمنا. عندها يرفض Stripe المفتاح إذا استُخدم من أي مكان آخر."
         },
         "s6": {
-          "title": "أنشئ المفتاح وانسخه",
-          "body": "اضغط «Create key» وأدخل الرمز الذي يرسله لك Stripe. انسخ المفتاح فوراً (لن يعرضه Stripe مرة أخرى)، ثم اضغط Done."
+          "title": "سمِّ المفتاح وأنشئه وانسخه",
+          "body": "سمِّ المفتاح ShopsDoor (مثلاً «API key for ShopsDoor») وتأكد من الملخص: 6 صلاحيات بالضبط، 3 قراءة و3 كتابة. اضغط «Create key»، وإذا طلب Stripe رمزاً فأدخل الرمز الذي يرسله لك. ثم اضغط «Copy and close»: لن يعرض Stripe المفتاح مرة أخرى."
         },
         "s7": {
           "title": "انسخ المفتاح القابل للنشر",
-          "body": "من صفحة مفاتيح API نفسها، انسخ Publishable key (المفتاح القابل للنشر) تحت Standard keys. يبدأ بـ pk_live_ (أو pk_test_). لا تنسخ Secret key (المفتاح السري sk_…) أبداً."
+          "body": "من صفحة مفاتيح API نفسها، انسخ Publishable key (المفتاح العام، أعلى الصفحة). يبدأ بـ pk_live_ (أو pk_test_). لا تنسخ أبداً Secret key (sk_…)."
         },
         "s8": {
           "title": "الصق المفتاحين هنا",

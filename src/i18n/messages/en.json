@@ -7630,12 +7630,12 @@
           "body": "Sign in to your Stripe Dashboard and go to Developers → API keys. Use the sandbox link if you want to try everything first without real money."
         },
         "s2": {
-          "title": "Click “Create restricted key”",
-          "body": "Click “+ Create restricted key”. If Stripe asks how you will use the key, pick the option that starts with no permissions so you can set them yourself."
+          "title": "Choose “Sharing with a third-party service”",
+          "body": "Click “+ Create secret key”. When Stripe asks how you will use the key, pick “Sharing with a third-party service” and click Continue."
         },
         "s3": {
-          "title": "Name it “ShopsDoor”",
-          "body": "Enter ShopsDoor as the key name so you can recognise it later, and revoke it in one click if you ever need to."
+          "title": "Pick “Custom permissions”",
+          "body": "On “Assign permissions to your key”, pick “Custom permissions” (not Standard) and click Continue."
         },
         "s4": {
           "title": "Set the permissions",
@@ -7646,12 +7646,12 @@
           "body": "For extra safety, add an Access policy (IP allowlist) to the key with our server IP. Stripe then rejects the key when it is used from anywhere else."
         },
         "s6": {
-          "title": "Create the key and copy it",
-          "body": "Click “Create key” and enter the code Stripe sends you. Copy the key right away (Stripe never shows it again), then click Done."
+          "title": "Name the key, create it and copy it",
+          "body": "Name the key ShopsDoor (for example “API key for ShopsDoor”) and check the summary: exactly 6 permissions, 3 read and 3 write. Click “Create key”; if Stripe asks for a code, enter the one it sends you. Then click “Copy and close”: Stripe never shows the key again."
         },
         "s7": {
           "title": "Copy the publishable key",
-          "body": "On the same API keys page, copy the Publishable key under Standard keys. It starts with pk_live_ (or pk_test_). Never copy the Secret key (sk_…)."
+          "body": "On the same API keys page, copy the Publishable key (at the top of the page). It starts with pk_live_ (or pk_test_). Never copy the Secret key (sk_…)."
         },
         "s8": {
           "title": "Paste both keys here",

@@ -7630,12 +7630,12 @@
           "body": "Stripe panelinize giriş yapın ve Developers → API keys bölümüne gidin. Her şeyi önce gerçek para olmadan denemek isterseniz sandbox bağlantısını kullanın."
         },
         "s2": {
-          "title": "“Create restricted key”e tıklayın",
-          "body": "“+ Create restricted key” düğmesine tıklayın. Stripe anahtarı nasıl kullanacağınızı sorarsa, izinleri kendiniz belirleyebilmek için hiçbir izin olmadan başlayan seçeneği seçin."
+          "title": "“Sharing with a third-party service” seçin",
+          "body": "“+ Create secret key” düğmesine tıklayın. Stripe anahtarı nasıl kullanacağınızı sorduğunda “Sharing with a third-party service” seçeneğini seçip Continue’ya tıklayın."
         },
         "s3": {
-          "title": "Adını “ShopsDoor” koyun",
-          "body": "Anahtar adı olarak ShopsDoor girin; böylece onu daha sonra tanır ve gerekirse tek tıkla iptal edebilirsiniz."
+          "title": "“Custom permissions” seçin",
+          "body": "“Assign permissions to your key” ekranında “Custom permissions” seçeneğini (Standard değil) seçip Continue’ya tıklayın."
         },
         "s4": {
           "title": "İzinleri ayarlayın",
@@ -7646,12 +7646,12 @@
           "body": "Ek güvenlik için anahtara sunucu IP'mizi içeren bir Access policy (IP izin listesi) ekleyin. Stripe, anahtar başka bir yerden kullanıldığında onu reddeder."
         },
         "s6": {
-          "title": "Anahtarı oluşturun ve kopyalayın",
-          "body": "“Create key” düğmesine tıklayın ve Stripe'ın gönderdiği kodu girin. Anahtarı hemen kopyalayın (Stripe onu bir daha göstermez), ardından Done'a tıklayın."
+          "title": "Anahtarı adlandırın, oluşturun ve kopyalayın",
+          "body": "Anahtara ShopsDoor adını verin (örneğin “API key for ShopsDoor”) ve özeti kontrol edin: tam 6 izin, 3 okuma ve 3 yazma. “Create key” düğmesine tıklayın; Stripe bir kod isterse size gönderilen kodu girin. Ardından “Copy and close” düğmesine tıklayın: Stripe anahtarı bir daha göstermez."
         },
         "s7": {
           "title": "Yayınlanabilir anahtarı kopyalayın",
-          "body": "Aynı API keys sayfasında, Standard keys altındaki Publishable key'i kopyalayın. pk_live_ (veya pk_test_) ile başlar. Secret key'i (sk_…) asla kopyalamayın."
+          "body": "Aynı API keys sayfasında Publishable key’i (sayfanın üstünde) kopyalayın. pk_live_ (veya pk_test_) ile başlar. Secret key’i (sk_…) asla kopyalamayın."
         },
         "s8": {
           "title": "İki anahtarı da buraya yapıştırın",
