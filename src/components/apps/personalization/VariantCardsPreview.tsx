@@ -80,7 +80,7 @@ export function VariantCardsPreview({
   showUnitPrice = true,
   unitLabel,
   currency,
-  max = 3,
+  max,
 }: VariantCardsPreviewProps) {
   const t = useTranslations('variant.cards');
   const locale = useLocale();
@@ -91,7 +91,8 @@ export function VariantCardsPreview({
       return `${currency} ${n.toFixed(2)}`;
     }
   };
-  const shown = items.slice(0, max);
+  // Every value is shown unless a caller caps the list; the grid wraps, the list scrolls.
+  const shown = max === undefined ? items : items.slice(0, max);
   if (shown.length === 0) return <p className="text-xs text-muted-foreground">{t('previewEmpty')}</p>;
 
   const list = layout === 'list';

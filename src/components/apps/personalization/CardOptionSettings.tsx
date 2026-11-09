@@ -207,7 +207,7 @@ export function CardOptionSettings({ option, variants, currency, locales, primar
         )}
       </div>
 
-      <div>
+      <div className="max-h-80 overflow-y-auto">
         <p className="text-xs font-medium text-muted-foreground">{t('preview')}</p>
         <VariantCardsPreview
           items={previewItemsOf(option, variants)}

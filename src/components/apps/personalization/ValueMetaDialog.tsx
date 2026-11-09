@@ -496,7 +496,7 @@ export function ValueMetaDialog({
         </div>
 
         {isCard && preview && (
-          <div className="rounded-md border bg-zinc-50/60 p-3">
+          <div className="max-h-[40vh] overflow-y-auto rounded-md border bg-zinc-50/60 p-3">
             <p className="text-[10px] font-medium text-muted-foreground">{t('preview')}</p>
             <VariantCardsPreview
               items={previewItems}
