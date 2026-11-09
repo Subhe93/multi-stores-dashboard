@@ -20,6 +20,7 @@ export interface PreviewCardItem {
   badgeColor?: string;
   ribbon?: string;
   ribbonColor?: string;
+  /** Pieces in the value (explicit units or the count fallback, see cardUnitsOf). */
   units?: number;
   price?: number | null;
   compareAt?: number | null;
@@ -31,6 +32,10 @@ interface VariantCardsPreviewProps {
   items: readonly PreviewCardItem[];
   layout: CardLayout;
   showSavings: boolean;
+  /** Per-unit line on/off (card_show_unit_price, default on). */
+  showUnitPrice?: boolean;
+  /** Custom per-unit wording for the previewed locale; empty = automatic "{price} each". */
+  unitLabel?: string;
   currency: string;
   /** Number of cards shown (the first values). */
   max?: number;
@@ -68,7 +73,15 @@ const MUTED_ROW_BG = `color-mix(in srgb, ${TEXT} 5%, #fff)`;
  * shows where label, ribbon, badge, savings and per-unit price end up, in
  * dashboard colours. The first card is drawn as the selected one.
  */
-export function VariantCardsPreview({ items, layout, showSavings, currency, max = 3 }: VariantCardsPreviewProps) {
+export function VariantCardsPreview({
+  items,
+  layout,
+  showSavings,
+  showUnitPrice = true,
+  unitLabel,
+  currency,
+  max = 3,
+}: VariantCardsPreviewProps) {
   const t = useTranslations('variant.cards');
   const locale = useLocale();
   const money = (n: number) => {
@@ -108,7 +121,9 @@ export function VariantCardsPreview({ items, layout, showSavings, currency, max 
             ? t('save', { percent: savings.percent, amount: money(savings.amount) })
             : t('saveAmount', { amount: money(savings.amount) })
           : null;
-        const each = perUnitPrice(item.price, item.units);
+        const each = showUnitPrice ? perUnitPrice(item.price, item.units) : null;
+        // Same as the storefront: a stored wording is plain text after the price.
+        const eachText = each === null ? null : unitLabel ? `${money(each)} ${unitLabel}` : t('each', { price: money(each) });
         const badgeBg = item.badgeColor && isHexColor(item.badgeColor) ? item.badgeColor : DEFAULT_BADGE_COLOR;
         const ribbonBg = item.ribbonColor && isHexColor(item.ribbonColor) ? item.ribbonColor : DEFAULT_RIBBON_COLOR;
         const title = item.label || item.value;
@@ -132,7 +147,7 @@ export function VariantCardsPreview({ items, layout, showSavings, currency, max 
             {savings && typeof item.compareAt === 'number' && (
               <s className="text-xs tabular-nums text-gray-400">{money(item.compareAt)}</s>
             )}
-            {each !== null && <span className="text-xs tabular-nums text-gray-500">{t('each', { price: money(each) })}</span>}
+            {eachText !== null && <span className="text-xs tabular-nums text-gray-500" dir="auto">{eachText}</span>}
           </span>
         ) : null;
         const texts = (

@@ -6948,15 +6948,18 @@
       "ribbonPlaceholder": "Bestseller",
       "ribbonColor": "Banderolenfarbe",
       "ribbonHint": "Banderole = Lasche am oberen Rand der Karte (max. {max} Zeichen). Leer = keine Banderole.",
-      "units": "Stückzahl (für Stückpreis)",
-      "unitsHint": "Stückzahl = wie viele Teile dieser Wert enthält ({min}–{max}); die Karte zeigt dann auch „X pro Stück“. Leer = kein Stückpreis.",
+      "units": "Stückzahl",
+      "unitsHint": "Stückzahl = wie viele Teile dieser Wert enthält ({min}–{max}); die Karte zeigt dann auch den Preis pro Stück. Leer = die Anzahl wird verwendet, wenn sie 2 oder mehr ist, sonst kein Stückpreis.",
       "savingsHint": "Die Ersparnis (wenn „Ersparnis anzeigen“ für diese Option an ist) kommt aus dem „Vergleichspreis“ jeder Variante in der Variantenliste unten.",
       "preview": "Vorschau",
       "textsLocale": "Texte für",
       "textsLocaleHint": "Leer = der Standardtext wird verwendet.",
       "primaryLocale": "Standard",
       "cancel": "Abbrechen",
-      "apply": "Übernehmen"
+      "apply": "Übernehmen",
+      "unitsCaption": "Teile in diesem Wert",
+      "unitsTooltip": "Wie viele Teile dieser Wert enthält (2–99), z. B. 3 für ein 3er-Pack. Die Karte zeigt dann den Preis pro Stück. Das ist kein Preis.",
+      "unitsInvalid": "Gib ein, wie viele Teile dieser Wert enthält (2–99), keinen Preis."
     },
     "cards": {
       "layout": "Kartenlayout",
@@ -6969,8 +6972,16 @@
       "save": "Spare {percent} % · {amount}",
       "each": "{price} pro Stück",
       "saveAmount": "Spare {amount}",
-      "freeShipping": "Kostenloser Versand"
-    }
+      "freeShipping": "Kostenloser Versand",
+      "showUnitPrice": "Stückpreis anzeigen",
+      "unitPriceHint": "Standardmäßig an: eine Karte, deren Wert eine bekannte Stückzahl hat, zeigt den Preis pro Stück.",
+      "unitLabel": "Stückpreis-Wortlaut",
+      "unitLabelHint": "Steht hinter dem Stückpreis, z. B. „pro Stück“ oder „pro Rolle“ (max. {max} Zeichen). Leer = der automatische Wortlaut."
+    },
+    "currentValue": "Aktuell: {value}",
+    "currentRange": "Aktuell: {min}–{max}",
+    "currentNone": "Aktuell: —",
+    "currentTooltip": "{count, plural, one {# Variante} other {# Varianten}}"
   },
   "faq": {
     "untitled": "Unbenannte Frage",

@@ -6948,15 +6948,18 @@
       "ribbonPlaceholder": "Best seller",
       "ribbonColor": "Ribbon colour",
       "ribbonHint": "Ribbon = a tab on the top edge of the card (max {max} characters). Empty = no ribbon.",
-      "units": "Pieces (for per-unit price)",
-      "unitsHint": "Pieces = how many items this value contains ({min}–{max}); the card then also shows “€X each”. Empty = no per-unit price.",
+      "units": "Pieces",
+      "unitsHint": "Pieces = how many items this value contains ({min}–{max}); the card then also shows the price per piece. Empty = the Count is used when it is 2 or more, otherwise no per-unit price.",
       "savingsHint": "Savings (when “Show savings” is on for this option) come from each variant’s “Compare at price” in the variant list below.",
       "preview": "Preview",
       "textsLocale": "Texts for",
       "textsLocaleHint": "Empty = the default text is used.",
       "primaryLocale": "default",
       "cancel": "Cancel",
-      "apply": "Apply"
+      "apply": "Apply",
+      "unitsCaption": "items in this value",
+      "unitsTooltip": "How many items this value contains (2–99), e.g. 3 for a 3-pack. The card then shows the price per piece. This is not a price.",
+      "unitsInvalid": "Enter how many items this value contains (2–99), not a price."
     },
     "cards": {
       "layout": "Card layout",
@@ -6969,8 +6972,16 @@
       "save": "Save {percent}% · {amount}",
       "each": "{price} each",
       "saveAmount": "Save {amount}",
-      "freeShipping": "Free shipping"
-    }
+      "freeShipping": "Free shipping",
+      "showUnitPrice": "Show per-unit price",
+      "unitPriceHint": "On by default: a card whose value has a known number of pieces shows the price per piece.",
+      "unitLabel": "Per-unit wording",
+      "unitLabelHint": "Shown after the per-piece price, e.g. “each” or “per roll” (max {max} characters). Empty = the automatic wording."
+    },
+    "currentValue": "Current: {value}",
+    "currentRange": "Current: {min}–{max}",
+    "currentNone": "Current: —",
+    "currentTooltip": "{count, plural, one {# variant} other {# variants}}"
   },
   "faq": {
     "untitled": "Untitled question",

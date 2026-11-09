@@ -10,6 +10,27 @@ export const DEFAULT_RIBBON_COLOR = '#111827';
 export const RIBBON_MAX_LENGTH = 40;
 export const MIN_UNITS = 2;
 export const MAX_UNITS = 99;
+/** Max length of the per-unit wording (card_unit_label and each i18n entry). */
+export const UNIT_LABEL_MAX_LENGTH = 30;
+
+/**
+ * Automatic per-unit wording per store locale: the word the storefront puts
+ * next to the per-piece price when no custom wording is stored (mirrors the
+ * web's personalization.each messages). Only used as the input placeholder.
+ */
+export const AUTO_UNIT_WORDING: Record<string, string> = {
+  en: 'each',
+  ar: 'للقطعة',
+  tr: 'tanesi',
+  de: 'pro Stück',
+  fr: 'l’unité',
+  sv: '/st',
+};
+
+export function autoUnitWording(locale: string | undefined): string {
+  const code = (locale ?? '').toLowerCase().split('-')[0] ?? '';
+  return AUTO_UNIT_WORDING[code] ?? AUTO_UNIT_WORDING.en!;
+}
 
 /** Savings below this share of the compare-at price are not shown. */
 const MIN_SAVINGS_SHARE = 0.005;
@@ -28,6 +49,48 @@ export function cardLayoutOf(option: { card_layout?: unknown } | null | undefine
 /** Savings are opt-in: only an explicit `card_show_savings: true` turns them on. */
 export function cardShowSavingsOf(option: { card_show_savings?: unknown } | null | undefined): boolean {
   return option?.card_show_savings === true;
+}
+
+/** The per-unit line is on by default; only an explicit `false` hides it. */
+export function cardShowUnitPriceOf(option: { card_show_unit_price?: unknown } | null | undefined): boolean {
+  return option?.card_show_unit_price !== false;
+}
+
+/**
+ * Pieces of a value: explicit `units` (2..99) always wins; without it the
+ * repeat `count` is used when it is an integer >= 2. Undefined otherwise.
+ */
+export function cardUnitsOf(meta: { units?: unknown; count?: unknown } | null | undefined): number | undefined {
+  const u = meta?.units;
+  if (typeof u === 'number' && Number.isInteger(u) && u >= MIN_UNITS && u <= MAX_UNITS) return u;
+  const c = meta?.count;
+  if (typeof c === 'number' && Number.isInteger(c) && c >= MIN_UNITS && c <= MAX_UNITS) return c;
+  return undefined;
+}
+
+export interface UnitLabelSource {
+  card_unit_label?: unknown;
+  card_unit_label_i18n?: unknown;
+}
+
+/**
+ * Custom per-unit wording for a locale: i18n[locale] → i18n[primary] → base
+ * label → undefined (the caller then uses the automatic wording).
+ */
+export function unitLabelOf(
+  option: UnitLabelSource | null | undefined,
+  locale?: string,
+  primaryLocale?: string,
+): string | undefined {
+  if (!option) return undefined;
+  const i18n = option.card_unit_label_i18n;
+  const map = i18n && typeof i18n === 'object' && !Array.isArray(i18n) ? (i18n as Record<string, unknown>) : {};
+  const pick = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+  return (
+    (locale ? pick(map[locale]) : undefined) ??
+    (primaryLocale ? pick(map[primaryLocale]) : undefined) ??
+    pick(option.card_unit_label)
+  );
 }
 
 /**

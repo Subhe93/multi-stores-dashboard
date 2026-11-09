@@ -19,8 +19,33 @@ import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
 import type { ValueMeta } from '@/lib/personalization';
 import { ValueMetaDialog } from '@/components/apps/personalization/ValueMetaDialog';
-import { CardOptionSettings } from '@/components/apps/personalization/CardOptionSettings';
-import { cardLayoutOf, cardShowSavingsOf, cheapestVariantFor, type CardLayout } from '@/lib/variantCards';
+import { CardOptionSettings, type CardOptionPatch } from '@/components/apps/personalization/CardOptionSettings';
+import { cardLayoutOf, cardShowSavingsOf, cardShowUnitPriceOf, cheapestVariantFor, type CardLayout } from '@/lib/variantCards';
+
+const CARD_OPTION_KEYS = [
+  'card_layout',
+  'card_show_savings',
+  'card_show_unit_price',
+  'card_unit_label',
+  'card_unit_label_i18n',
+] as const satisfies readonly (keyof CardOptionPatch)[];
+
+/** Min–max of the positive amounts, or null when there are none. */
+function amountRange(
+  values: readonly (number | null | undefined)[],
+  opts: { skipZero?: boolean } = {},
+): { min: number; max: number } | null {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const raw of values) {
+    const n = Number(raw);
+    // A free variant is a real price (0); an unset compare-at is stored as 0 / null.
+    if (!Number.isFinite(n) || n < 0 || (opts.skipZero && n === 0)) continue;
+    if (n < min) min = n;
+    if (n > max) max = n;
+  }
+  return min === Infinity ? null : { min, max };
+}
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -46,6 +71,11 @@ export interface VariantOption {
   // (opt-in, default off). Absent = default.
   card_layout?: CardLayout;
   card_show_savings?: boolean;
+  // Per-unit price line (default on; saved only as false) and its custom
+  // wording, base + per store locale (cards v2, batch 2).
+  card_show_unit_price?: boolean;
+  card_unit_label?: string;
+  card_unit_label_i18n?: Record<string, string>;
 }
 
 export interface GeneratedVariant {
@@ -325,7 +355,7 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
   const t = useTranslations();
   // Option whose value details dialog is open (personalization app).
   const [metaOption, setMetaOption] = useState<number | null>(null);
-  const { currency } = useCurrency();
+  const { currency, fmt } = useCurrency();
   const [newValue, setNewValue] = useState<Record<number, string>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Which row (or 'bulk') has an image pick/upload in flight — drives spinners.
@@ -500,6 +530,28 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     return opt?.values || [];
   }, [options, pricePerOption]);
 
+  // Current price / compare-at of the variants matching each value of the
+  // chosen option, shown under the (empty) inputs of the per-option dialog.
+  // Recomputed when the option or the variants change.
+  const currentPerValue = useMemo(() => {
+    const out: Record<string, { count: number; price: { min: number; max: number } | null; compare: { min: number; max: number } | null }> = {};
+    for (const val of selectedOptionValues) {
+      const matching = variants.filter(v => v.options[pricePerOption] === val);
+      out[val] = {
+        count: matching.length,
+        price: amountRange(matching.map(v => v.price)),
+        compare: amountRange(matching.map(v => v.compare_at_price), { skipZero: true }),
+      };
+    }
+    return out;
+  }, [variants, pricePerOption, selectedOptionValues]);
+
+  const currentText = (range: { min: number; max: number } | null) => {
+    if (!range) return t('variant.currentNone');
+    if (range.min === range.max) return t('variant.currentValue', { value: fmt(range.min) });
+    return t('variant.currentRange', { min: fmt(range.min), max: fmt(range.max) });
+  };
+
   // Add a value. For color options, the new chip starts with a default solid color
   // (#000000); the user clicks the chip's swatch to refine via the popover.
   const addValue = (oi: number) => {
@@ -645,6 +697,8 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
     ? {
         layout: cardLayoutOf(metaOptionRow),
         showSavings: cardShowSavingsOf(metaOptionRow),
+        showUnitPrice: cardShowUnitPriceOf(metaOptionRow),
+        unitLabels: metaOptionRow,
         currency,
         prices: Object.fromEntries(metaOptionRow.values.map((val) => {
           const v = cheapestVariantFor(variants, metaOptionRow.name, val);
@@ -852,13 +906,13 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   option={option}
                   variants={variants}
                   currency={currency}
+                  locales={locales}
+                  primaryLocale={primaryLocale}
                   onChange={(patch) => {
                     const u = [...options];
-                    const next: VariantOption = { ...u[oi]! };
-                    if (patch.card_layout) next.card_layout = patch.card_layout;
-                    else delete next.card_layout;
-                    if (patch.card_show_savings === true) next.card_show_savings = true;
-                    else delete next.card_show_savings;
+                    // The settings send every key; undefined = default = key removed.
+                    const next: VariantOption = { ...u[oi]!, ...patch };
+                    for (const key of CARD_OPTION_KEYS) if (next[key] === undefined) delete next[key];
                     u[oi] = next;
                     onOptionsChange(u);
                   }}
@@ -1204,27 +1258,43 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   <span className="w-24 text-end">{t('variant.price')}</span>
                   <span className="w-24 text-end">{t('variant.compare')}</span>
                 </div>
-                {selectedOptionValues.map(val => (
-                  <div key={val} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
-                    <span className="text-xs font-medium truncate">{val}</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      className="h-8 text-xs w-24"
-                      placeholder="0.00"
-                      value={pricePerValueMap[val] || ''}
-                      onChange={e => setPricePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
-                    />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      className="h-8 text-xs w-24"
-                      placeholder="—"
-                      value={comparePerValueMap[val] || ''}
-                      onChange={e => setComparePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
-                    />
-                  </div>
-                ))}
+                {selectedOptionValues.map(val => {
+                  const current = currentPerValue[val];
+                  const countTitle = current ? t('variant.currentTooltip', { count: current.count }) : undefined;
+                  // The inputs stay empty (empty = leave unchanged); the current
+                  // values are only shown as a muted line under each one.
+                  return (
+                    <div key={val} className="grid grid-cols-[1fr_auto_auto] gap-2 items-start">
+                      <span className="text-xs font-medium truncate pt-2">{val}</span>
+                      <div className="w-24 space-y-0.5">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="h-8 text-xs w-24"
+                          placeholder="0.00"
+                          value={pricePerValueMap[val] || ''}
+                          onChange={e => setPricePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
+                        />
+                        <span className="block truncate text-[10px] tabular-nums text-muted-foreground text-end" title={countTitle}>
+                          {currentText(current?.price ?? null)}
+                        </span>
+                      </div>
+                      <div className="w-24 space-y-0.5">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="h-8 text-xs w-24"
+                          placeholder="—"
+                          value={comparePerValueMap[val] || ''}
+                          onChange={e => setComparePerValueMap(prev => ({ ...prev, [val]: e.target.value }))}
+                        />
+                        <span className="block truncate text-[10px] tabular-nums text-muted-foreground text-end" title={countTitle}>
+                          {currentText(current?.compare ?? null)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

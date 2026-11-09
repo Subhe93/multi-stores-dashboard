@@ -6948,15 +6948,18 @@
       "ribbonPlaceholder": "En çok satan",
       "ribbonColor": "Şerit rengi",
       "ribbonHint": "Şerit = kartın üst kenarındaki etiket (en fazla {max} karakter). Boş = şerit yok.",
-      "units": "Parça (birim fiyat için)",
-      "unitsHint": "Parça = bu değerin içerdiği ürün sayısı ({min}–{max}); kart ayrıca “Adet başı X” gösterir. Boş = birim fiyat yok.",
+      "units": "Parça",
+      "unitsHint": "Parça = bu değerin içerdiği ürün sayısı ({min}–{max}); kart o zaman parça başına fiyatı da gösterir. Boş = Sayı 2 veya daha fazlaysa o kullanılır, aksi halde birim fiyat yok.",
       "savingsHint": "Tasarruf (bu seçenek için “Tasarrufu göster” açıkken) aşağıdaki varyant listesindeki her varyantın “Karşılaştırma fiyatı”ndan gelir.",
       "preview": "Önizleme",
       "textsLocale": "Metin dili",
       "textsLocaleHint": "Boş = varsayılan metin kullanılır.",
       "primaryLocale": "varsayılan",
       "cancel": "İptal",
-      "apply": "Uygula"
+      "apply": "Uygula",
+      "unitsCaption": "bu değerdeki ürün sayısı",
+      "unitsTooltip": "Bu değerin kaç ürün içerdiği (2–99), örn. 3’lü paket için 3. Kart o zaman parça başına fiyatı gösterir. Bu bir fiyat değildir.",
+      "unitsInvalid": "Bu değerin kaç ürün içerdiğini girin (2–99), fiyat değil."
     },
     "cards": {
       "layout": "Kart düzeni",
@@ -6969,8 +6972,16 @@
       "save": "%{percent} tasarruf · {amount}",
       "each": "Adet başı {price}",
       "saveAmount": "{amount} tasarruf",
-      "freeShipping": "Ücretsiz kargo"
-    }
+      "freeShipping": "Ücretsiz kargo",
+      "showUnitPrice": "Birim fiyatı göster",
+      "unitPriceHint": "Varsayılan olarak açık: parça sayısı bilinen bir değerin kartı parça başına fiyatı gösterir.",
+      "unitLabel": "Birim fiyat ifadesi",
+      "unitLabelHint": "Parça fiyatından sonra gösterilir, örn. “adet” veya “rulo başına” (en fazla {max} karakter). Boş = otomatik ifade."
+    },
+    "currentValue": "Mevcut: {value}",
+    "currentRange": "Mevcut: {min}–{max}",
+    "currentNone": "Mevcut: —",
+    "currentTooltip": "{count, plural, one {# varyant} other {# varyant}}"
   },
   "faq": {
     "untitled": "Başlıksız soru",

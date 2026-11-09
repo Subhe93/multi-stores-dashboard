@@ -6948,15 +6948,18 @@
       "ribbonPlaceholder": "Meilleure vente",
       "ribbonColor": "Couleur du bandeau",
       "ribbonHint": "Bandeau = onglet sur le bord supérieur de la carte ({max} caractères max.). Vide = pas de bandeau.",
-      "units": "Pièces (pour le prix unitaire)",
-      "unitsHint": "Pièces = nombre d’articles dans cette valeur ({min}–{max}) ; la carte affiche alors aussi « X l’unité ». Vide = pas de prix unitaire.",
+      "units": "Pièces",
+      "unitsHint": "Pièces = nombre d’articles dans cette valeur ({min}–{max}) ; la carte affiche alors aussi le prix à la pièce. Vide = le Nombre est utilisé s’il vaut 2 ou plus, sinon pas de prix unitaire.",
       "savingsHint": "Les économies (quand « Afficher les économies » est activé pour cette option) viennent du « Prix barré » de chaque variante dans la liste des variantes ci-dessous.",
       "preview": "Aperçu",
       "textsLocale": "Textes en",
       "textsLocaleHint": "Vide = le texte par défaut est utilisé.",
       "primaryLocale": "par défaut",
       "cancel": "Annuler",
-      "apply": "Appliquer"
+      "apply": "Appliquer",
+      "unitsCaption": "articles dans cette valeur",
+      "unitsTooltip": "Nombre d’articles que contient cette valeur (2–99), p. ex. 3 pour un lot de 3. La carte affiche alors le prix à la pièce. Ce n’est pas un prix.",
+      "unitsInvalid": "Indiquez le nombre d’articles que contient cette valeur (2–99), pas un prix."
     },
     "cards": {
       "layout": "Disposition des cartes",
@@ -6969,8 +6972,16 @@
       "save": "Économisez {percent} % · {amount}",
       "each": "{price} l’unité",
       "saveAmount": "Économisez {amount}",
-      "freeShipping": "Livraison gratuite"
-    }
+      "freeShipping": "Livraison gratuite",
+      "showUnitPrice": "Afficher le prix unitaire",
+      "unitPriceHint": "Activé par défaut : une carte dont la valeur a un nombre de pièces connu affiche le prix à la pièce.",
+      "unitLabel": "Libellé du prix unitaire",
+      "unitLabelHint": "Affiché après le prix à la pièce, p. ex. « l’unité » ou « le rouleau » ({max} caractères max.). Vide = le libellé automatique."
+    },
+    "currentValue": "Actuel : {value}",
+    "currentRange": "Actuel : {min}–{max}",
+    "currentNone": "Actuel : —",
+    "currentTooltip": "{count, plural, one {# variante} other {# variantes}}"
   },
   "faq": {
     "untitled": "Question sans titre",

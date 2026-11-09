@@ -3,14 +3,54 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  autoUnitWording,
   cardLayoutOf,
   cardSavings,
   cardShowSavingsOf,
+  cardShowUnitPriceOf,
+  cardUnitsOf,
   cheapestVariantFor,
   parseUnits,
   perUnitPrice,
   readableTextOn,
+  unitLabelOf,
 } from './variantCards.ts';
+
+test('cardShowUnitPriceOf: on unless explicitly false', () => {
+  assert.equal(cardShowUnitPriceOf({}), true);
+  assert.equal(cardShowUnitPriceOf(null), true);
+  assert.equal(cardShowUnitPriceOf({ card_show_unit_price: true }), true);
+  assert.equal(cardShowUnitPriceOf({ card_show_unit_price: false }), false);
+  assert.equal(cardShowUnitPriceOf({ card_show_unit_price: 'no' }), true);
+});
+
+test('cardUnitsOf: explicit units win, else count >= 2', () => {
+  assert.equal(cardUnitsOf({ units: 3, count: 5 }), 3);
+  assert.equal(cardUnitsOf({ count: 5 }), 5);
+  assert.equal(cardUnitsOf({ count: 1 }), undefined);
+  assert.equal(cardUnitsOf({ count: 0 }), undefined);
+  assert.equal(cardUnitsOf({ count: 2.5 }), undefined);
+  assert.equal(cardUnitsOf({ units: 150, count: 4 }), 4);
+  assert.equal(cardUnitsOf({}), undefined);
+  assert.equal(cardUnitsOf(undefined), undefined);
+});
+
+test('unitLabelOf: viewer locale → primary → base → undefined', () => {
+  const opt = { card_unit_label: 'each', card_unit_label_i18n: { sv: '/st', ar: 'للقطعة' } };
+  assert.equal(unitLabelOf(opt, 'sv', 'en'), '/st');
+  assert.equal(unitLabelOf(opt, 'de', 'ar'), 'للقطعة');
+  assert.equal(unitLabelOf(opt, 'de', 'fr'), 'each');
+  assert.equal(unitLabelOf({ card_unit_label_i18n: { sv: '  ' } }, 'sv'), undefined);
+  assert.equal(unitLabelOf({ card_unit_label_i18n: 'bad' }, 'sv'), undefined);
+  assert.equal(unitLabelOf(null, 'sv'), undefined);
+});
+
+test('autoUnitWording falls back to English', () => {
+  assert.equal(autoUnitWording('sv'), '/st');
+  assert.equal(autoUnitWording('de-AT'), 'pro Stück');
+  assert.equal(autoUnitWording('xx'), 'each');
+  assert.equal(autoUnitWording(undefined), 'each');
+});
 
 test('layout and savings defaults', () => {
   assert.equal(cardLayoutOf({}), 'grid');

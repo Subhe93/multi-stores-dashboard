@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { ImageIcon, Loader2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,13 @@ import {
   MAX_UNITS,
   MIN_UNITS,
   RIBBON_MAX_LENGTH,
+  cardUnitsOf,
   parseUnits,
+  unitLabelOf,
   type CardLayout,
+  type UnitLabelSource,
 } from '@/lib/variantCards';
+import { LocaleTabs } from './LocaleTabs';
 import { VariantCardsPreview, type PreviewCardItem } from './VariantCardsPreview';
 
 /** The option shape this dialog edits (subset of VariantManager's VariantOption). */
@@ -40,6 +44,10 @@ export interface ValueMetaOption {
 export interface ValueMetaPreview {
   layout: CardLayout;
   showSavings: boolean;
+  /** Per-unit line on/off (card_show_unit_price, default on). */
+  showUnitPrice: boolean;
+  /** Option-level per-unit wording (card_unit_label / card_unit_label_i18n), resolved per active locale. */
+  unitLabels?: UnitLabelSource;
   currency: string;
   /** Card price and compare-at price per value (cheapest variant with it). */
   prices: Record<string, { price: number | null; compareAt: number | null }>;
@@ -162,7 +170,6 @@ export function ValueMetaDialog({
   preview,
 }: ValueMetaDialogProps) {
   const t = useTranslations('variant.valueMeta');
-  const uiLocale = useLocale();
   const [rows, setRows] = useState<Record<string, Row>>({});
   // Rows as seeded on open: only fields that differ from it are written back.
   const [seed, setSeed] = useState<Record<string, Row>>({});
@@ -182,22 +189,6 @@ export function ValueMetaDialog({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open
   }, [open]);
-
-  const localeName = useMemo(() => {
-    let names: Intl.DisplayNames | null = null;
-    try {
-      names = new Intl.DisplayNames([uiLocale], { type: 'language' });
-    } catch {
-      names = null;
-    }
-    return (code: string) => {
-      try {
-        return names?.of(code) ?? code.toUpperCase();
-      } catch {
-        return code.toUpperCase();
-      }
-    };
-  }, [uiLocale]);
 
   if (!option) return null;
 
@@ -230,6 +221,12 @@ export function ValueMetaDialog({
     };
   };
   const invalid = Object.values(rows).some((r) => Object.values(rowIssues(r)).some(Boolean));
+  const anyBadUnits = Object.values(rows).some((r) => rowIssues(r).badUnits);
+  /** Pieces placeholder: the Count when it is 2 or more (the automatic fallback), else none. */
+  const unitsPlaceholder = (r: Row) => {
+    const c = countOf(r);
+    return c !== undefined && Number.isInteger(c) && c >= MIN_UNITS ? String(c) : '—';
+  };
 
   const handleSave = () => {
     const valueMeta: Record<string, ValueMeta> = {};
@@ -306,7 +303,8 @@ export function ValueMetaDialog({
         ribbon: pick('ribbon'),
         badgeColor: r.badge_color,
         ribbonColor: r.ribbon_color,
-        units: typeof units === 'number' ? units : undefined,
+        // Explicit pieces, else the repeat count (same fallback as the storefront).
+        units: cardUnitsOf({ units: typeof units === 'number' ? units : undefined, count: countOf(r) }),
         price: preview?.prices[v]?.price ?? null,
         compareAt: preview?.prices[v]?.compareAt ?? null,
       };
@@ -320,29 +318,13 @@ export function ValueMetaDialog({
           <p className="text-xs text-muted-foreground">{isCard ? t('hintCard') : t('hint')}</p>
         </DialogHeader>
 
-        {secondary.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-medium text-muted-foreground">{t('textsLocale')}</span>
-            <div role="tablist" aria-label={t('textsLocale')} className="inline-flex flex-wrap rounded-md border bg-background p-0.5">
-              {[primary, ...secondary].map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeLocale === l}
-                  onClick={() => setActiveLocale(l)}
-                  className={`rounded px-2.5 py-1 text-xs transition ${
-                    activeLocale === l ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100'
-                  }`}
-                >
-                  {localeName(l)}
-                  {l === primary && <span className="ms-1 opacity-70">({t('primaryLocale')})</span>}
-                </button>
-              ))}
-            </div>
-            {!isPrimary && <span className="text-[10px] text-muted-foreground">{t('textsLocaleHint')}</span>}
-          </div>
-        )}
+        <LocaleTabs
+          primary={primary}
+          secondary={secondary}
+          active={activeLocale}
+          onChange={setActiveLocale}
+          hint={t('textsLocaleHint')}
+        />
 
         <div className="max-h-[55vh] overflow-auto rounded-md border">
           <table className="w-full text-xs">
@@ -356,7 +338,12 @@ export function ValueMetaDialog({
                 {isCard && <th className="px-2 py-2 text-start font-medium">{t('ribbon')}</th>}
                 {isCard && <th className="px-2 py-2 text-start font-medium">{t('ribbonColor')}</th>}
                 <th className="px-2 py-2 text-start font-medium">{t('count')}</th>
-                {isCard && <th className="px-2 py-2 text-start font-medium">{t('units')}</th>}
+                {isCard && (
+                  <th className="min-w-32 whitespace-nowrap px-2 py-2 text-start font-medium" title={t('unitsTooltip')}>
+                    <span className="block">{t('units')}</span>
+                    <span className="block font-normal normal-case tracking-normal text-muted-foreground/80">{t('unitsCaption')}</span>
+                  </th>
+                )}
                 <th className="px-2 py-2 text-start font-medium">{t('swatch')}</th>
               </tr>
             </thead>
@@ -446,9 +433,10 @@ export function ValueMetaDialog({
                         min={MIN_UNITS}
                         max={MAX_UNITS}
                         step={1}
-                        className="h-7 w-20 text-xs"
+                        className={`h-7 w-24 text-xs ${badUnits ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                         aria-label={t('units')}
-                        placeholder="—"
+                        title={t('unitsTooltip')}
+                        placeholder={unitsPlaceholder(r)}
                         value={r.units}
                         aria-invalid={badUnits || undefined}
                         onChange={(e) => set(v, { units: e.target.value })}
@@ -498,6 +486,9 @@ export function ValueMetaDialog({
           </table>
         </div>
         <div className="space-y-0.5 text-[10px] text-muted-foreground">
+          {isCard && anyBadUnits && (
+            <p role="alert" className="text-xs font-medium text-red-600">{t('unitsInvalid')}</p>
+          )}
           <p>{t('countHint', { max: MAX_VALUE_COUNT })}</p>
           {isCard && <p>{t('unitsHint', { min: MIN_UNITS, max: MAX_UNITS })}</p>}
           {isCard && <p>{t('ribbonHint', { max: RIBBON_MAX_LENGTH })}</p>}
@@ -511,6 +502,8 @@ export function ValueMetaDialog({
               items={previewItems}
               layout={preview.layout}
               showSavings={preview.showSavings}
+              showUnitPrice={preview.showUnitPrice}
+              unitLabel={unitLabelOf(preview.unitLabels, activeLocale || undefined, primary || undefined)}
               currency={preview.currency}
             />
           </div>
