@@ -19,6 +19,8 @@ import type { UploadedImage } from '@/lib/useImageUpload';
 import { useCurrency } from '@/lib/useCurrency';
 import type { ValueMeta } from '@/lib/personalization';
 import { ValueMetaDialog } from '@/components/apps/personalization/ValueMetaDialog';
+import { CardOptionSettings } from '@/components/apps/personalization/CardOptionSettings';
+import { cardLayoutOf, cardShowSavingsOf, cheapestVariantFor, type CardLayout } from '@/lib/variantCards';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -39,6 +41,11 @@ export interface VariantOption {
   // Per-value card data and repeat count (M4.1 D9). Edited only while the
   // personalization app is on; always kept as-is otherwise.
   valueMeta?: Record<string, ValueMeta>;
+  // Cards v2 (style 'card' only): 'grid' (default) or full-width 'list' rows,
+  // and whether the savings from the variants' compare-at price are shown
+  // (opt-in, default off). Absent = default.
+  card_layout?: CardLayout;
+  card_show_savings?: boolean;
 }
 
 export interface GeneratedVariant {
@@ -63,6 +70,9 @@ interface VariantManagerProps {
   uploading?: boolean;
   /** Personalization app on for this product: card style and value details. */
   personalization?: boolean;
+  /** Store content locales (primary first) for the per-locale value texts. */
+  locales?: string[];
+  primaryLocale?: string;
 }
 
 /**
@@ -311,7 +321,7 @@ function ColorEditorPopover({
   );
 }
 
-export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage, uploading = false, personalization = false }: VariantManagerProps) {
+export function VariantManager({ options, onOptionsChange, variants, onVariantsChange, basePrice = 0, onPickImage, uploading = false, personalization = false, locales, primaryLocale }: VariantManagerProps) {
   const t = useTranslations();
   // Option whose value details dialog is open (personalization app).
   const [metaOption, setMetaOption] = useState<number | null>(null);
@@ -629,6 +639,20 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
 
   const variantLabel = (v: GeneratedVariant) => Object.values(v.options).join(' / ');
 
+  // Card preview of the value details dialog (cards v2): cheapest variant per value.
+  const metaOptionRow = metaOption !== null ? options[metaOption] : undefined;
+  const metaPreview = metaOptionRow && metaOptionRow.style === 'card'
+    ? {
+        layout: cardLayoutOf(metaOptionRow),
+        showSavings: cardShowSavingsOf(metaOptionRow),
+        currency,
+        prices: Object.fromEntries(metaOptionRow.values.map((val) => {
+          const v = cheapestVariantFor(variants, metaOptionRow.name, val);
+          return [val, { price: v?.price ?? null, compareAt: v?.compare_at_price ?? null }];
+        })),
+      }
+    : undefined;
+
   return (
     <Card className="shadow-none">
       <CardHeader className="pb-3">
@@ -821,6 +845,25 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addValue(oi); } }}
                 />
               </div>
+
+              {/* Card layout / savings of the personalization cards (cards v2) */}
+              {personalization && option.style === 'card' && (
+                <CardOptionSettings
+                  option={option}
+                  variants={variants}
+                  currency={currency}
+                  onChange={(patch) => {
+                    const u = [...options];
+                    const next: VariantOption = { ...u[oi]! };
+                    if (patch.card_layout) next.card_layout = patch.card_layout;
+                    else delete next.card_layout;
+                    if (patch.card_show_savings === true) next.card_show_savings = true;
+                    else delete next.card_show_savings;
+                    u[oi] = next;
+                    onOptionsChange(u);
+                  }}
+                />
+              )}
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 mt-5 shrink-0"
               onClick={() => onOptionsChange(options.filter((_, i) => i !== oi))}>
@@ -1205,6 +1248,9 @@ export function VariantManager({ options, onOptionsChange, variants, onVariantsC
           onOpenChange={(open) => !open && setMetaOption(null)}
           option={metaOption !== null ? options[metaOption] ?? null : null}
           uploading={uploading}
+          locales={locales}
+          primaryLocale={primaryLocale}
+          preview={metaPreview}
           onPickImage={onPickImage ? async () => (await onPickImage())[0]?.url ?? null : undefined}
           onSave={({ valueMeta, swatchMap }) => {
             if (metaOption === null || !options[metaOption]) return;

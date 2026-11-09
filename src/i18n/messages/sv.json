@@ -3126,7 +3126,8 @@
         "prefillParamInvalid": "Använd bokstäver, siffror, - och _ (max 40).",
         "privacyTitle": "Kunduppladdningar",
         "retentionDays": "Spara uppladdade original (dagar)",
-        "retentionHint": "Kundens foton och filer raderas så många dagar efter ordern ({min}–{max})."
+        "retentionHint": "Kundens foton och filer raderas så många dagar efter ordern ({min}–{max}).",
+        "cardLayoutHint": "Kortlayout (rutnät eller lista) och besparingsraden ställs in per alternativ i produktformuläret, under Alternativ (stil ”Kort”)."
       },
       "presets": {
         "noParams": "Den här förinställningen har inga inställningar.",
@@ -6943,8 +6944,32 @@
       "swatch": "Färgruta",
       "removeSwatch": "Ta bort färgruta",
       "countHint": "Antal = antal artiklar för upprepade fält och talregler (0–{max}). Tomt = talet i början av värdet.",
+      "ribbon": "Band",
+      "ribbonPlaceholder": "Bästsäljare",
+      "ribbonColor": "Bandets färg",
+      "ribbonHint": "Band = en flik på kortets överkant (max {max} tecken). Tomt = inget band.",
+      "units": "Antal delar (för styckpris)",
+      "unitsHint": "Antal delar = hur många artiklar värdet innehåller ({min}–{max}); kortet visar då även ”X styck”. Tomt = inget styckpris.",
+      "savingsHint": "Besparingen (när ”Visa besparing” är på för detta alternativ) kommer från varje variants ”Jämförpris” i variantlistan nedan.",
+      "preview": "Förhandsvisning",
+      "textsLocale": "Texter för",
+      "textsLocaleHint": "Tomt = standardtexten används.",
+      "primaryLocale": "standard",
       "cancel": "Avbryt",
       "apply": "Använd"
+    },
+    "cards": {
+      "layout": "Kortlayout",
+      "layoutGrid": "Rutnät",
+      "layoutList": "Lista",
+      "showSavings": "Visa besparing",
+      "savingsSource": "Av som standard. När det är på visar butikens kort varje variants överstrukna ”Jämförpris” och ”Spara X % · belopp”. Kort utan högre jämförpris visar inget extra.",
+      "preview": "Förhandsvisning (första värdena, det första valt)",
+      "previewEmpty": "Lägg till värden för att se en förhandsvisning.",
+      "save": "Spara {percent} % · {amount}",
+      "each": "{price} styck",
+      "saveAmount": "Spara {amount}",
+      "freeShipping": "Fri frakt"
     }
   },
   "faq": {

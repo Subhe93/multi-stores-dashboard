@@ -3126,7 +3126,8 @@
         "prefillParamInvalid": "Utilisez des lettres, chiffres, - et _ (40 max.).",
         "privacyTitle": "Fichiers des clients",
         "retentionDays": "Conserver les originaux envoyés (jours)",
-        "retentionHint": "Les photos et fichiers des clients sont supprimés ce nombre de jours après la commande ({min}–{max})."
+        "retentionHint": "Les photos et fichiers des clients sont supprimés ce nombre de jours après la commande ({min}–{max}).",
+        "cardLayoutHint": "La disposition des cartes (grille ou liste) et la ligne d’économies se règlent par option dans le formulaire produit, sous Options (style « Carte »)."
       },
       "presets": {
         "noParams": "Ce préréglage n’a pas de paramètres.",
@@ -6943,8 +6944,32 @@
       "swatch": "Pastille",
       "removeSwatch": "Supprimer la pastille",
       "countHint": "Nombre = nombre d’articles pour les champs répétés et les règles numériques (0–{max}). Vide = le nombre au début de la valeur.",
+      "ribbon": "Bandeau",
+      "ribbonPlaceholder": "Meilleure vente",
+      "ribbonColor": "Couleur du bandeau",
+      "ribbonHint": "Bandeau = onglet sur le bord supérieur de la carte ({max} caractères max.). Vide = pas de bandeau.",
+      "units": "Pièces (pour le prix unitaire)",
+      "unitsHint": "Pièces = nombre d’articles dans cette valeur ({min}–{max}) ; la carte affiche alors aussi « X l’unité ». Vide = pas de prix unitaire.",
+      "savingsHint": "Les économies (quand « Afficher les économies » est activé pour cette option) viennent du « Prix barré » de chaque variante dans la liste des variantes ci-dessous.",
+      "preview": "Aperçu",
+      "textsLocale": "Textes en",
+      "textsLocaleHint": "Vide = le texte par défaut est utilisé.",
+      "primaryLocale": "par défaut",
       "cancel": "Annuler",
       "apply": "Appliquer"
+    },
+    "cards": {
+      "layout": "Disposition des cartes",
+      "layoutGrid": "Grille",
+      "layoutList": "Liste",
+      "showSavings": "Afficher les économies",
+      "savingsSource": "Désactivé par défaut. Activé, les cartes de la boutique affichent le « Prix barré » de chaque variante et « Économisez X % · montant ». Les cartes sans prix barré plus élevé n’affichent rien de plus.",
+      "preview": "Aperçu (premières valeurs, la première sélectionnée)",
+      "previewEmpty": "Ajoutez des valeurs pour voir un aperçu.",
+      "save": "Économisez {percent} % · {amount}",
+      "each": "{price} l’unité",
+      "saveAmount": "Économisez {amount}",
+      "freeShipping": "Livraison gratuite"
     }
   },
   "faq": {

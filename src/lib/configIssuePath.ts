@@ -47,7 +47,7 @@ const ISSUE_AREA_BY_KEY: Record<string, ConfigIssueArea> = {
 const BASICS_TRANSLATION_KEYS = new Set(['locale', 'label', 'placeholder', 'option_labels']);
 
 /** Keys of one `valueMeta` entry; a trailing one is not part of the value name. */
-const VALUE_META_KEYS = new Set(['label', 'sublabel', 'badge', 'badge_color', 'count', 'i18n']);
+const VALUE_META_KEYS = new Set(['label', 'sublabel', 'badge', 'badge_color', 'count', 'i18n', 'ribbon', 'ribbon_color', 'units']);
 
 const keyOf = (seg: string | undefined): string => (seg ?? '').replace(/\[\d+\]$/, '');
 
@@ -64,7 +64,10 @@ function locateOptionIssue(segs: string[]): ConfigIssueLocation {
   if (segs[1] === 'valueMeta' && segs.length > 2) {
     const rest = segs.slice(2);
     // Values may contain dots, so only a known trailing meta key is dropped.
-    if (rest.length > 1 && VALUE_META_KEYS.has(rest[rest.length - 1]!)) rest.pop();
+    // `<value>.i18n.<locale>(.<textKey>)?` points at the value too.
+    const i18nAt = rest.lastIndexOf('i18n');
+    if (i18nAt > 0 && rest.length - i18nAt <= 3) rest.splice(i18nAt);
+    else if (rest.length > 1 && VALUE_META_KEYS.has(rest[rest.length - 1]!)) rest.pop();
     const value = rest.join('.');
     if (value) out.value = value;
   }

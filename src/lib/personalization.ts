@@ -135,8 +135,26 @@ export interface ValueMeta {
   badge?: string;
   badge_color?: string;
   count?: number;
-  i18n?: Record<string, { label?: string; sublabel?: string; badge?: string }>;
+  /** Tab on the top edge of the card, e.g. "Best seller" (cards v2). */
+  ribbon?: string;
+  /** Ribbon background (#hex); default DEFAULT_RIBBON_COLOR with contrast-aware text. */
+  ribbon_color?: string;
+  /** Pieces in this value (2..99): the card shows the per-unit price. */
+  units?: number;
+  i18n?: Record<string, ValueMetaTexts>;
 }
+
+/** Per-locale texts of one option value (`valueMeta[value].i18n[locale]`). */
+export interface ValueMetaTexts {
+  label?: string;
+  sublabel?: string;
+  badge?: string;
+  ribbon?: string;
+}
+
+/** Text keys of `ValueMeta` that also exist per locale in `i18n`. */
+export const VALUE_META_TEXT_KEYS = ['label', 'sublabel', 'badge', 'ribbon'] as const;
+export type ValueMetaTextKey = (typeof VALUE_META_TEXT_KEYS)[number];
 
 export const DEFAULT_BADGE_COLOR = '#fbde31';
 export const MAX_REPEAT = 20;

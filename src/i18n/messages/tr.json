@@ -3126,7 +3126,8 @@
         "prefillParamInvalid": "Harf, rakam, - ve _ kullanın (en fazla 40).",
         "privacyTitle": "Müşteri yüklemeleri",
         "retentionDays": "Yüklenen orijinalleri sakla (gün)",
-        "retentionHint": "Müşteri fotoğrafları ve dosyaları siparişten bu kadar gün sonra silinir ({min}–{max})."
+        "retentionHint": "Müşteri fotoğrafları ve dosyaları siparişten bu kadar gün sonra silinir ({min}–{max}).",
+        "cardLayoutHint": "Kart düzeni (ızgara veya liste) ve tasarruf satırı, ürün formunda Seçenekler altında her seçenek için ayarlanır (stil “Kart”)."
       },
       "presets": {
         "noParams": "Bu hazır ayarın ayarı yok.",
@@ -6943,8 +6944,32 @@
       "swatch": "Renk kutusu",
       "removeSwatch": "Renk kutusunu kaldır",
       "countHint": "Sayı = tekrarlanan alanlar ve sayı kuralları için ürün sayısı (0–{max}). Boş = değerin başındaki sayı.",
+      "ribbon": "Şerit",
+      "ribbonPlaceholder": "En çok satan",
+      "ribbonColor": "Şerit rengi",
+      "ribbonHint": "Şerit = kartın üst kenarındaki etiket (en fazla {max} karakter). Boş = şerit yok.",
+      "units": "Parça (birim fiyat için)",
+      "unitsHint": "Parça = bu değerin içerdiği ürün sayısı ({min}–{max}); kart ayrıca “Adet başı X” gösterir. Boş = birim fiyat yok.",
+      "savingsHint": "Tasarruf (bu seçenek için “Tasarrufu göster” açıkken) aşağıdaki varyant listesindeki her varyantın “Karşılaştırma fiyatı”ndan gelir.",
+      "preview": "Önizleme",
+      "textsLocale": "Metin dili",
+      "textsLocaleHint": "Boş = varsayılan metin kullanılır.",
+      "primaryLocale": "varsayılan",
       "cancel": "İptal",
       "apply": "Uygula"
+    },
+    "cards": {
+      "layout": "Kart düzeni",
+      "layoutGrid": "Izgara",
+      "layoutList": "Liste",
+      "showSavings": "Tasarrufu göster",
+      "savingsSource": "Varsayılan olarak kapalı. Açıldığında mağaza kartlarında her varyantın üstü çizili “Karşılaştırma fiyatı” ve “%X tasarruf · tutar” gösterilir. Daha yüksek karşılaştırma fiyatı olmayan kartlarda ek bir şey görünmez.",
+      "preview": "Önizleme (ilk değerler, ilki seçili)",
+      "previewEmpty": "Önizleme için değer ekleyin.",
+      "save": "%{percent} tasarruf · {amount}",
+      "each": "Adet başı {price}",
+      "saveAmount": "{amount} tasarruf",
+      "freeShipping": "Ücretsiz kargo"
     }
   },
   "faq": {

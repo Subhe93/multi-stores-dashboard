@@ -3126,7 +3126,8 @@
         "prefillParamInvalid": "Use letters, digits, - and _ (max 40).",
         "privacyTitle": "Customer uploads",
         "retentionDays": "Keep uploaded originals (days)",
-        "retentionHint": "Customer photos and files are deleted this many days after the order ({min}–{max})."
+        "retentionHint": "Customer photos and files are deleted this many days after the order ({min}–{max}).",
+        "cardLayoutHint": "Card layout (grid or list) and the savings line are set per option in the product form, under Options (style “Card”)."
       },
       "presets": {
         "noParams": "This preset has no settings.",
@@ -6943,8 +6944,32 @@
       "swatch": "Swatch",
       "removeSwatch": "Remove swatch",
       "countHint": "Count = number of items for repeated fields and number rules (0–{max}). Empty = the number at the start of the value.",
+      "ribbon": "Ribbon",
+      "ribbonPlaceholder": "Best seller",
+      "ribbonColor": "Ribbon colour",
+      "ribbonHint": "Ribbon = a tab on the top edge of the card (max {max} characters). Empty = no ribbon.",
+      "units": "Pieces (for per-unit price)",
+      "unitsHint": "Pieces = how many items this value contains ({min}–{max}); the card then also shows “€X each”. Empty = no per-unit price.",
+      "savingsHint": "Savings (when “Show savings” is on for this option) come from each variant’s “Compare at price” in the variant list below.",
+      "preview": "Preview",
+      "textsLocale": "Texts for",
+      "textsLocaleHint": "Empty = the default text is used.",
+      "primaryLocale": "default",
       "cancel": "Cancel",
       "apply": "Apply"
+    },
+    "cards": {
+      "layout": "Card layout",
+      "layoutGrid": "Grid",
+      "layoutList": "List",
+      "showSavings": "Show savings",
+      "savingsSource": "Off by default. Turning it on shows each variant’s struck “Compare at price” and “Save X% · amount” on the storefront cards. Cards without a higher compare-at price show nothing extra.",
+      "preview": "Preview (first values, the first one selected)",
+      "previewEmpty": "Add values to see a preview.",
+      "save": "Save {percent}% · {amount}",
+      "each": "{price} each",
+      "saveAmount": "Save {amount}",
+      "freeShipping": "Free shipping"
     }
   },
   "faq": {

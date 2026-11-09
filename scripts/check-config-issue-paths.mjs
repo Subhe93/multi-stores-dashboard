@@ -54,6 +54,12 @@ const cases = [
   ['variant_option_config[1].valueMeta.2 st.count', { area: 'productOptions', option: 1, value: '2 st' }],
   ['variant_option_config[1].valueMeta.1.5 m.badge_color', { area: 'productOptions', option: 1, value: '1.5 m' }],
   ['variant_option_config[0].valueMeta.Blå.i18n', { area: 'productOptions', option: 0, value: 'Blå' }],
+  ['variant_option_config[0].valueMeta.3 st.ribbon', { area: 'productOptions', option: 0, value: '3 st' }],
+  ['variant_option_config[0].valueMeta.3 st.ribbon_color', { area: 'productOptions', option: 0, value: '3 st' }],
+  ['variant_option_config[1].valueMeta.2.5 kg.units', { area: 'productOptions', option: 1, value: '2.5 kg' }],
+  ['variant_option_config[0].valueMeta.3 st.i18n.de.ribbon', { area: 'productOptions', option: 0, value: '3 st' }],
+  ['variant_option_config[0].valueMeta.3 st.i18n.de', { area: 'productOptions', option: 0, value: '3 st' }],
+  ['variant_option_config[1].card_layout', { area: 'productOptions', option: 1 }],
 ];
 
 let failed = 0;

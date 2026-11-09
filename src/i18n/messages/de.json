@@ -3126,7 +3126,8 @@
         "prefillParamInvalid": "Buchstaben, Ziffern, - und _ verwenden (max. 40).",
         "privacyTitle": "Kunden-Uploads",
         "retentionDays": "Hochgeladene Originale aufbewahren (Tage)",
-        "retentionHint": "Fotos und Dateien der Kunden werden so viele Tage nach der Bestellung gelöscht ({min}–{max})."
+        "retentionHint": "Fotos und Dateien der Kunden werden so viele Tage nach der Bestellung gelöscht ({min}–{max}).",
+        "cardLayoutHint": "Kartenlayout (Raster oder Liste) und die Ersparniszeile werden pro Option im Produktformular unter Optionen festgelegt (Stil „Karte“)."
       },
       "presets": {
         "noParams": "Diese Vorlage hat keine Einstellungen.",
@@ -6943,8 +6944,32 @@
       "swatch": "Farbfeld",
       "removeSwatch": "Farbfeld entfernen",
       "countHint": "Anzahl = Zahl der Artikel für wiederholte Felder und Zahlenregeln (0–{max}). Leer = die Zahl am Anfang des Wertes.",
+      "ribbon": "Banderole",
+      "ribbonPlaceholder": "Bestseller",
+      "ribbonColor": "Banderolenfarbe",
+      "ribbonHint": "Banderole = Lasche am oberen Rand der Karte (max. {max} Zeichen). Leer = keine Banderole.",
+      "units": "Stückzahl (für Stückpreis)",
+      "unitsHint": "Stückzahl = wie viele Teile dieser Wert enthält ({min}–{max}); die Karte zeigt dann auch „X pro Stück“. Leer = kein Stückpreis.",
+      "savingsHint": "Die Ersparnis (wenn „Ersparnis anzeigen“ für diese Option an ist) kommt aus dem „Vergleichspreis“ jeder Variante in der Variantenliste unten.",
+      "preview": "Vorschau",
+      "textsLocale": "Texte für",
+      "textsLocaleHint": "Leer = der Standardtext wird verwendet.",
+      "primaryLocale": "Standard",
       "cancel": "Abbrechen",
       "apply": "Übernehmen"
+    },
+    "cards": {
+      "layout": "Kartenlayout",
+      "layoutGrid": "Raster",
+      "layoutList": "Liste",
+      "showSavings": "Ersparnis anzeigen",
+      "savingsSource": "Standardmäßig aus. Eingeschaltet zeigen die Shop-Karten den durchgestrichenen „Vergleichspreis“ jeder Variante und „Spare X % · Betrag“. Karten ohne höheren Vergleichspreis zeigen nichts zusätzlich.",
+      "preview": "Vorschau (erste Werte, der erste ausgewählt)",
+      "previewEmpty": "Füge Werte hinzu, um eine Vorschau zu sehen.",
+      "save": "Spare {percent} % · {amount}",
+      "each": "{price} pro Stück",
+      "saveAmount": "Spare {amount}",
+      "freeShipping": "Kostenloser Versand"
     }
   },
   "faq": {

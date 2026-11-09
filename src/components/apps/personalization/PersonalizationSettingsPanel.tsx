@@ -135,6 +135,7 @@ export function PersonalizationSettingsPanel({ app, token }: PersonalizationSett
                 { value: 'from', label: t('cardPriceFrom'), description: t('cardPriceFromHint') },
               ]}
             />
+            <p className="text-xs text-muted-foreground">{t('cardLayoutHint')}</p>
           </div>
 
           <div className="flex items-start justify-between gap-3">

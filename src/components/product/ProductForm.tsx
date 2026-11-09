@@ -1230,6 +1230,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               onPickImage={() => pickAndUpload('products', false)}
               uploading={uploading}
               personalization={personalizationOn}
+              locales={allLocales}
+              primaryLocale={primaryLocale}
             />
           </div>
 
