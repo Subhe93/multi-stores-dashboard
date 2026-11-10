@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -47,9 +47,12 @@ const statusColors: Record<string, string> = {
   REFUNDED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
 
-const TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+// "Confirmed" = paid by the customer and waiting for the merchant, so the
+// list opens on it (DEFAULT_TAB); "Pending" = placed but not paid yet.
+const TABS = ['All', 'Confirmed', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 // Production app: extra status tabs after "Processing".
-const PRODUCTION_TABS = ['All', 'Pending', 'Processing', 'Manufacturing', 'QualityCheck', 'Shipped', 'Delivered', 'Cancelled'];
+const PRODUCTION_TABS = ['All', 'Confirmed', 'Pending', 'Processing', 'Manufacturing', 'QualityCheck', 'Shipped', 'Delivered', 'Cancelled'];
+const DEFAULT_TAB = 'Confirmed';
 // Tab → `?status=` value (tabs are PascalCase i18n suffixes).
 const TAB_STATUS: Record<string, string> = { QualityCheck: 'QUALITY_CHECK' };
 // Order trash (M69): the last tab lists soft-deleted orders (`?deleted=1`),
@@ -120,10 +123,19 @@ export default function CreatorOrdersPage() {
   const [meta, setMeta] = useState<OrdersMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [activeTab, setActiveTab] = useState('All');
+  const searchParams = useSearchParams();
+  // `?tab=Pending` opens a specific tab (overview deep links); otherwise the
+  // list opens on DEFAULT_TAB.
+  const linkedTab = searchParams.get('tab') ?? '';
+  const [activeTab, setActiveTab] = useState(
+    [...PRODUCTION_TABS, DELETED_TAB].includes(linkedTab) ? linkedTab : DEFAULT_TAB,
+  );
+  // First load only, and only without a linked tab: a store with no confirmed
+  // orders (new store, or only unpaid ones) falls back to "All" so the list
+  // is not an empty table.
+  const firstLoad = useRef(!linkedTab);
   // Market filter (Markets app only): `?market=<key>` is mirrored in the URL
   // so a filtered list can be linked.
-  const searchParams = useSearchParams();
   const marketKey = searchParams.get('market') ?? '';
   const { apps } = useStoreApps();
   const marketsEnabled = isAppEnabled(apps, 'markets');
@@ -213,6 +225,9 @@ export default function CreatorOrdersPage() {
     if (tab === ARCHIVE_TAB) return;
     setLoading(true);
     setLoadError(false);
+    // Stays true on the first-load fallback so the empty state does not
+    // flash before the "All" fetch starts.
+    let keepLoading = false;
     try {
       // The Deleted tab is a visibility filter, not a status: `?deleted=1`
       // lists only soft-deleted orders (any status); the default excludes them.
@@ -221,13 +236,22 @@ export default function CreatorOrdersPage() {
       const deletedParam = tab === DELETED_TAB ? '&deleted=1' : '';
       const marketParam = marketKey ? `&market=${encodeURIComponent(marketKey)}` : '';
       const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${deletedParam}${marketParam}${buyerParam}${productionParam}`, { token });
-      setOrders(res?.data ?? []);
+      const rows = res?.data ?? [];
+      if (firstLoad.current) {
+        firstLoad.current = false;
+        if (tab === DEFAULT_TAB && rows.length === 0) {
+          keepLoading = true;
+          setActiveTab('All');
+          return;
+        }
+      }
+      setOrders(rows);
       setMeta(res?.meta ?? null);
     } catch (err) {
       console.error(err);
       setLoadError(true);
     } finally {
-      setLoading(false);
+      if (!keepLoading) setLoading(false);
     }
   };
 

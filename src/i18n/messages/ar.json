@@ -1610,6 +1610,7 @@
       "searchPlaceholder": "البحث في الطلبات...",
       "noOrdersYet": "لا توجد طلبات بعد",
       "tabAll": "الكل",
+      "tabConfirmed": "مؤكد",
       "tabPending": "قيد الانتظار",
       "tabProcessing": "قيد المعالجة",
       "tabShipped": "تم الشحن",

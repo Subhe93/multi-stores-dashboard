@@ -41,7 +41,7 @@ export function TodoStrip({ todo, independent }: { todo: OverviewTodo; independe
         key: 'pendingPayment',
         count: todo.pending_payment_orders ?? 0,
         label: t('pendingPayment', { count: todo.pending_payment_orders ?? 0 }),
-        href: '/creator/orders',
+        href: '/creator/orders?tab=Pending',
         icon: CreditCard,
         tone: 'attention',
       },

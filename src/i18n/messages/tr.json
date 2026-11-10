@@ -1610,6 +1610,7 @@
       "searchPlaceholder": "Sipariş ara...",
       "noOrdersYet": "Henüz sipariş yok",
       "tabAll": "Tümü",
+      "tabConfirmed": "Onaylanan",
       "tabPending": "Beklemede",
       "tabProcessing": "İşleniyor",
       "tabShipped": "Kargolandı",

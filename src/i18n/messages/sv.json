@@ -1610,6 +1610,7 @@
       "searchPlaceholder": "Sök beställningar...",
       "noOrdersYet": "Inga beställningar än",
       "tabAll": "Alla",
+      "tabConfirmed": "Bekräftade",
       "tabPending": "Väntar",
       "tabProcessing": "Behandlas",
       "tabShipped": "Skickad",
