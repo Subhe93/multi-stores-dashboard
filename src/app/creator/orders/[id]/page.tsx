@@ -30,6 +30,8 @@ import type { OrderFieldValueRow } from '@/lib/customFields';
 import { timelineEntryText } from '@/lib/orderTimeline';
 import { countryName } from '@/lib/taxCountries';
 import { TestOrderBadge, isTestOrder } from '@/components/orders/TestOrderBadge';
+import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
+import { DeleteOrderButton, DeletedOrderBanner } from '@/components/orders/OrderTrashControls';
 
 // E14: the production checklist and the designer card (renderer mirror,
 // canvas preview) load on demand, only when their app is available.
@@ -137,6 +139,11 @@ interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFi
   status: string;
   // Paid with a Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
+  // Order trash (M69): set while the order is soft-deleted.
+  deleted_at?: string | null;
+  // Money movement read by the deletable pre-check (API is the authority).
+  paid_at?: string | null;
+  stripe_charge_id?: string | null;
   created_at?: string | null;
   subtotal?: number | string | null;
   total: number | string;
@@ -390,6 +397,8 @@ export default function CreatorOrderDetailPage() {
     !!creatorId &&
     items.some((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId);
   const hasProviderItems = items.some((it) => it.fulfiller_type === 'PROVIDER');
+  // Soft-deleted order: banner with Restore; status / fulfillment controls hidden.
+  const isDeleted = !!order.deleted_at;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -427,6 +436,7 @@ export default function CreatorOrderDetailPage() {
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <TestOrderBadge isTest={order.is_test} className="text-xs" />
+          <DeletedOrderBadge deletedAt={order.deleted_at} className="text-xs" />
           {/* Reverse charge / tax exempt (b2b app M2.5), from the order snapshot. */}
           <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
           <Badge
@@ -435,8 +445,14 @@ export default function CreatorOrderDetailPage() {
           >
             {STATUS_LABELS[order.status] || order.status}
           </Badge>
+          {/* Order trash (M69): soft delete; disabled with a hint on paid orders. */}
+          {!isDeleted && (
+            <DeleteOrderButton order={order} token={token} onDeleted={fetchOrder} className="ms-1" />
+          )}
         </div>
       </div>
+
+      <DeletedOrderBanner order={order} token={token} onRestored={fetchOrder} />
 
       {/* 2-column grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -445,7 +461,7 @@ export default function CreatorOrderDetailPage() {
           {/* Production checklist (production app, creator-fulfilled lines only).
               `orderStatus` lets the card refresh itself when the status card
               moves the order (E3), without remounting it. */}
-          {productionEnabled && canUpdateStatus && token && (
+          {productionEnabled && canUpdateStatus && !isDeleted && token && (
             <ProductionChecklist orderId={id} token={token} orderStatus={order.status} onOrderStatusChanged={() => fetchOrder()} />
           )}
 
@@ -709,8 +725,9 @@ export default function CreatorOrderDetailPage() {
 
         {/* Right column (sidebar) */}
         <div className="space-y-4">
-          {/* Status — editable only when the order is entirely creator-fulfilled */}
-          {canUpdateStatus ? (
+          {/* Status — editable only when the order is entirely creator-fulfilled
+              and the order is not soft-deleted (API answers 409 ORDER_DELETED). */}
+          {isDeleted ? null : canUpdateStatus ? (
             <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">{t('orderDetail.updateStatus')}</CardTitle>

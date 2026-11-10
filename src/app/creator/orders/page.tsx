@@ -18,6 +18,8 @@ import {
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Badge } from '@/components/ui/badge';
 import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
+import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
+import { ArchivedOrdersTab, type ArchivedOrdersSummary } from '@/components/orders/ArchivedOrdersTab';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -50,6 +52,12 @@ const TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled
 const PRODUCTION_TABS = ['All', 'Pending', 'Processing', 'Manufacturing', 'QualityCheck', 'Shipped', 'Delivered', 'Cancelled'];
 // Tab → `?status=` value (tabs are PascalCase i18n suffixes).
 const TAB_STATUS: Record<string, string> = { QualityCheck: 'QUALITY_CHECK' };
+// Order trash (M69): the last tab lists soft-deleted orders (`?deleted=1`),
+// labelled from the shared `orders.trash` namespace; restore only, no status.
+const DELETED_TAB = 'Deleted';
+// WooCommerce archive (M70): read-only tab after Deleted, shown only when the
+// store has archived orders (GET /archived-orders/summary count > 0).
+const ARCHIVE_TAB = 'Archive';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -60,6 +68,8 @@ interface OrderRow {
   status: string;
   // Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
+  // Soft delete time; only rows of the Deleted tab carry it.
+  deleted_at?: string | null;
   total: number | string;
   created_at?: string | null;
   customer?: { first_name?: string | null; last_name?: string | null } | null;
@@ -102,6 +112,8 @@ export default function CreatorOrdersPage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tc = useTranslations('common');
+  const tt = useTranslations('orders.trash');
+  const ta = useTranslations('orders.archive');
   const bulk = useBulkAction();
   const STATUS_LABELS = statusLabels(t);
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -130,7 +142,15 @@ export default function CreatorOrdersPage() {
     productionEnabled && (PRODUCTION_FILTERS as readonly string[]).includes(production)
       ? `&production=${encodeURIComponent(production)}`
       : '';
-  const tabs = productionEnabled ? PRODUCTION_TABS : TABS;
+  const [archiveSummary, setArchiveSummary] = useState<ArchivedOrdersSummary | null>(null);
+  const hasArchive = (archiveSummary?.count ?? 0) > 0;
+  const tabs = [
+    ...(productionEnabled ? PRODUCTION_TABS : TABS),
+    DELETED_TAB,
+    ...(hasArchive ? [ARCHIVE_TAB] : []),
+  ];
+  const deletedTab = activeTab === DELETED_TAB;
+  const archiveTab = activeTab === ARCHIVE_TAB;
   // Zero orders with no filter active: the real empty state instead of a bare table.
   const { storeType } = useStoreType();
   const unfiltered = activeTab === 'All' && !marketKey && !buyer && !production;
@@ -189,12 +209,18 @@ export default function CreatorOrdersPage() {
   // not just the currently fetched page.
   const fetchOrders = async (page = 1, tab = activeTab) => {
     if (!token) return;
+    // The archive tab fetches its own list.
+    if (tab === ARCHIVE_TAB) return;
     setLoading(true);
     setLoadError(false);
     try {
-      const statusParam = tab === 'All' ? '' : `&status=${TAB_STATUS[tab] ?? tab.toUpperCase()}`;
+      // The Deleted tab is a visibility filter, not a status: `?deleted=1`
+      // lists only soft-deleted orders (any status); the default excludes them.
+      const statusParam =
+        tab === 'All' || tab === DELETED_TAB ? '' : `&status=${TAB_STATUS[tab] ?? tab.toUpperCase()}`;
+      const deletedParam = tab === DELETED_TAB ? '&deleted=1' : '';
       const marketParam = marketKey ? `&market=${encodeURIComponent(marketKey)}` : '';
-      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${marketParam}${buyerParam}${productionParam}`, { token });
+      const res = await api<{ data?: OrderRow[]; meta?: OrdersMeta | null }>(`/orders?page=${page}&limit=20${statusParam}${deletedParam}${marketParam}${buyerParam}${productionParam}`, { token });
       setOrders(res?.data ?? []);
       setMeta(res?.meta ?? null);
     } catch (err) {
@@ -210,6 +236,22 @@ export default function CreatorOrdersPage() {
     fetchOrders(1, activeTab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, activeTab, marketKey, buyerParam, productionParam]);
+
+  // Archived WooCommerce orders: the tab exists only when the store has some.
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    api<ArchivedOrdersSummary>('/archived-orders/summary', { token })
+      .then((res) => {
+        if (!cancelled) setArchiveSummary(res ?? null);
+      })
+      .catch(() => {
+        // No archive (or no store yet): the tab stays hidden.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   // Production progress of the visible page (production app only).
   useEffect(() => {
@@ -227,6 +269,16 @@ export default function CreatorOrdersPage() {
       cancelled = true;
     };
   }, [token, productionEnabled, orders]);
+
+  // Per-row restore on the Deleted tab; runs through the bulk plumbing so the
+  // result notice and the refresh match the bulk Restore.
+  const restoreOne = (row: OrderRow) =>
+    bulk.run({
+      rows: [row],
+      fn: (r) => api(`/orders/${r.id}/restore`, { method: 'POST', token: token ?? undefined }),
+      done: (count) => tt('restoredCount', { count }),
+      after: () => fetchOrders(meta?.page || 1),
+    });
 
   // Market orders are charged in the market currency, which can differ from
   // the store currency `fmt` formats in.
@@ -254,6 +306,7 @@ export default function CreatorOrdersPage() {
             {item.order_number}
           </Link>
           <TestOrderBadge isTest={item.is_test} />
+          <DeletedOrderBadge deletedAt={item.deleted_at} />
         </span>
       ),
     },
@@ -353,14 +406,30 @@ export default function CreatorOrdersPage() {
       key: 'actions',
       label: '',
       render: (item: OrderRow) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 text-[11px]"
-          onClick={() => router.push(`/creator/orders/${item.id}`)}
-        >
-          {t('orders.view')}
-        </Button>
+        <span className="inline-flex items-center gap-1">
+          {item.deleted_at && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[11px]"
+              disabled={bulk.busy}
+              onClick={(e) => {
+                e.stopPropagation();
+                void restoreOne(item);
+              }}
+            >
+              {tt('restore')}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-[11px]"
+            onClick={() => router.push(`/creator/orders/${item.id}`)}
+          >
+            {t('orders.view')}
+          </Button>
+        </span>
       ),
     },
   ];
@@ -383,7 +452,7 @@ export default function CreatorOrdersPage() {
               className="h-8 text-xs"
               onClick={() => setActiveTab(tab)}
             >
-              {t(`orders.tab${tab}`)}
+              {tab === DELETED_TAB ? tt('tabDeleted') : tab === ARCHIVE_TAB ? ta('tab') : t(`orders.tab${tab}`)}
             </Button>
           ))}
         </div>
@@ -435,7 +504,9 @@ export default function CreatorOrdersPage() {
         )}
       </div>
 
-      {loadError ? (
+      {archiveTab ? (
+        <ArchivedOrdersTab token={token} summary={archiveSummary} />
+      ) : loadError ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-lg border py-16 text-center">
           <p className="text-sm text-destructive">{t('orders.loadFailed')}</p>
           <Button variant="outline" size="sm" onClick={() => fetchOrders(meta?.page || 1)}>
@@ -471,9 +542,10 @@ export default function CreatorOrdersPage() {
                 canApply={canApplyStatus}
                 statusLabel={(s) => STATUS_LABELS[s] || s}
                 after={() => fetchOrders(meta?.page || 1)}
+                trash={deletedTab ? 'restore' : 'delete'}
               />
             )}
-            emptyMessage={loading ? tc('loading') : t('orders.noOrdersYet')}
+            emptyMessage={loading ? tc('loading') : deletedTab ? tt('emptyDeleted') : t('orders.noOrdersYet')}
             pagination={meta ?? undefined}
             onPageChange={(p) => fetchOrders(p)}
           />

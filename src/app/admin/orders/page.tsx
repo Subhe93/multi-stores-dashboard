@@ -13,6 +13,7 @@ import {
 } from '@/components/orders/OrderBulkActions';
 import { Badge } from '@/components/ui/badge';
 import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
+import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -25,6 +26,8 @@ interface AdminOrderRow {
   status: string;
   // Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
+  // Soft delete time; only rows of the Deleted tab carry it.
+  deleted_at?: string | null;
   total: number | string;
   created_at: string;
   currency?: string | null;
@@ -58,6 +61,11 @@ const statusColors: Record<string, string> = {
 // (the detail page has no flow position for it).
 const ADMIN_LOCKED_STATUSES = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'];
 
+// Status tabs filter the fetched page client-side; the Deleted tab (order
+// trash, M69) is a server filter (`?deleted=1`) appended at the end.
+const STATUS_TABS = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const DELETED_TAB = 'Deleted';
+
 function adminCanApply(row: AdminOrderRow, target: string): boolean {
   if (ADMIN_LOCKED_STATUSES.includes(row.status)) return false;
   if (target === 'CANCELLED') return true;
@@ -67,6 +75,7 @@ function adminCanApply(row: AdminOrderRow, target: string): boolean {
 export default function AdminOrders() {
   const t = useTranslations('admin');
   const tb = useTranslations('bulk');
+  const tt = useTranslations('orders.trash');
   const bulk = useBulkAction();
   // admin.orderStatus_* exists for every lifecycle status.
   const statusLabel = (s: string) =>
@@ -85,25 +94,39 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [activeTab, setActiveTab] = useState('All');
+  const deletedTab = activeTab === DELETED_TAB;
 
-  const fetchOrders = async (page = 1) => {
+  const fetchOrders = async (page = 1, deleted = deletedTab) => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api<{ data: AdminOrderRow[]; meta?: PaginationMeta }>(`/orders?page=${page}&limit=20`, { token });
+      const deletedParam = deleted ? '&deleted=1' : '';
+      const res = await api<{ data: AdminOrderRow[]; meta?: PaginationMeta }>(`/orders?page=${page}&limit=20${deletedParam}`, { token });
       setOrders(res?.data || []);
       setMeta(res?.meta || null);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchOrders(); }, [token]);
+  // Refetch from page 1 when the list switches between live and deleted orders.
+  useEffect(() => { fetchOrders(1, deletedTab); }, [token, deletedTab]);
 
-  const filtered = activeTab === 'All' ? orders : orders.filter((o) => o.status === activeTab.toUpperCase());
+  const filtered =
+    activeTab === 'All' || deletedTab ? orders : orders.filter((o) => o.status === activeTab.toUpperCase());
+
+  // Per-row restore on the Deleted tab, through the bulk plumbing (notice + refresh).
+  const restoreOne = (row: AdminOrderRow) =>
+    bulk.run({
+      rows: [row],
+      fn: (r) => api(`/orders/${r.id}/restore`, { method: 'POST', token: token ?? undefined }),
+      done: (count) => tt('restoredCount', { count }),
+      after: () => fetchOrders(meta?.page || 1),
+    });
 
   const tabLabels: Record<string, string> = {
     All: t('tabAll'), Pending: t('statusPending'), Processing: t('statusProcessing'),
     Shipped: t('statusShipped'), Delivered: t('statusDelivered'), Cancelled: t('statusCancelled'),
+    Deleted: tt('tabDeleted'),
   };
 
   return (
@@ -113,8 +136,8 @@ export default function AdminOrders() {
         <p className="text-sm text-muted-foreground">{t('allOrdersSubtitle')}</p>
       </div>
 
-      <div className="flex gap-1.5">
-        {['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((tab) => (
+      <div className="flex flex-wrap gap-1.5">
+        {[...STATUS_TABS, DELETED_TAB].map((tab) => (
           <Button key={tab} variant={activeTab === tab ? 'default' : 'ghost'} size="sm" className="h-8 text-xs"
             onClick={() => setActiveTab(tab)}>{tabLabels[tab] ?? tab}</Button>
         ))}
@@ -131,6 +154,7 @@ export default function AdminOrders() {
                 {item.order_number}
               </Link>
               <TestOrderBadge isTest={item.is_test} />
+              <DeletedOrderBadge deletedAt={item.deleted_at} />
             </span>
           )},
           { key: 'customer', label: t('customer'), render: (item: AdminOrderRow) => (
@@ -149,7 +173,20 @@ export default function AdminOrders() {
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>
           )},
           { key: 'actions', label: '', render: (item: AdminOrderRow) => (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/orders/${item.id}`)}>{t('view')}</Button>
+            <span className="inline-flex items-center gap-1">
+              {item.deleted_at && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px]"
+                  disabled={bulk.busy}
+                  onClick={(e) => { e.stopPropagation(); void restoreOne(item); }}
+                >
+                  {tt('restore')}
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => router.push(`/admin/orders/${item.id}`)}>{t('view')}</Button>
+            </span>
           )},
         ]}
         data={filtered}
@@ -167,11 +204,12 @@ export default function AdminOrders() {
             note={(s) => `Status changed to ${s} by admin`}
             statusLabel={statusLabel}
             after={() => fetchOrders(meta?.page || 1)}
+            trash={deletedTab ? 'restore' : 'delete'}
           />
         )}
         pagination={meta ?? undefined}
         onPageChange={(p) => fetchOrders(p)}
-        emptyMessage={loading ? t('loading') : t('noOrdersYet')}
+        emptyMessage={loading ? t('loading') : deletedTab ? tt('emptyDeleted') : t('noOrdersYet')}
       />
     </div>
   );

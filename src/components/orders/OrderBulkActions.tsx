@@ -1,9 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronDown, Download } from 'lucide-react';
+import { ChevronDown, Download, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,21 @@ import type { useBulkAction } from '@/components/common/useBulkAction';
 import { api } from '@/lib/api';
 import { datedCsvFilename, downloadCsv } from '@/lib/csv';
 import { useCurrency } from '@/lib/useCurrency';
+import {
+  chunkIds,
+  skippedReasons,
+  type BulkDeleteResult,
+  type BulkRestoreResult,
+  type BulkTrashSkipped,
+} from '@/lib/orderTrash';
 
 /** Fields of a GET /orders row the bulk actions and the CSV export read. */
 export interface BulkOrderRow {
   id: string;
   order_number: string;
   status: string;
+  /** Soft-deleted orders (the Deleted tab) carry their deletion time. */
+  deleted_at?: string | null;
   total: number | string;
   created_at?: string | null;
   currency?: string | null;
@@ -109,12 +119,19 @@ interface OrderBulkActionsProps<T extends BulkOrderRow> {
   after: () => void;
   /** Extra hint rendered at the bottom of the status menu. */
   menuHint?: ReactNode;
+  /**
+   * Order trash (M69): `delete` adds "Delete orders" to the destructive group
+   * of the status menu; `restore` (the Deleted tab) replaces the status menu
+   * with a Restore button. Omitted = neither.
+   */
+  trash?: 'delete' | 'restore';
 }
 
 /**
  * Bulk bar for the order lists: "Change status" menu (one PUT
  * /orders/:id/status per order, sequential because each update may send an
- * email) and a CSV export of the selected rows.
+ * email), soft delete / restore (POST /orders/bulk/delete|restore in batches
+ * of 100) and a CSV export of the selected rows.
  */
 export function OrderBulkActions<T extends BulkOrderRow>({
   rows,
@@ -127,10 +144,72 @@ export function OrderBulkActions<T extends BulkOrderRow>({
   statusLabel,
   after,
   menuHint,
+  trash,
 }: OrderBulkActionsProps<T>) {
   const tb = useTranslations('bulk');
   const tp = useTranslations('payments');
+  const tt = useTranslations('orders.trash');
   const { currency: storeCurrency } = useCurrency();
+  // Optional reason of a bulk delete; uncontrolled because the dialog content
+  // is captured once when the confirmation is requested.
+  const reasonRef = useRef<HTMLTextAreaElement>(null);
+
+  // One request per batch of ids; the API reports the skipped orders (paid,
+  // invoiced, ...) per id, so the notice reads "N deleted · M skipped (paid)".
+  const runTrash = (mode: 'delete' | 'restore') => {
+    if (rows.length === 0) return;
+    const result = { done: [] as string[], skipped: [] as BulkTrashSkipped[] };
+    const fn = async (ids: string[]) => {
+      const reason = mode === 'delete' ? reasonRef.current?.value.trim() : '';
+      const body = JSON.stringify({ ids, ...(reason ? { reason: reason.slice(0, 500) } : {}) });
+      if (mode === 'delete') {
+        const res = await api<BulkDeleteResult>('/orders/bulk/delete', { method: 'POST', token: token ?? undefined, body });
+        result.done.push(...(res?.deleted ?? []));
+        result.skipped.push(...(res?.skipped ?? []));
+      } else {
+        const res = await api<BulkRestoreResult>('/orders/bulk/restore', { method: 'POST', token: token ?? undefined, body });
+        result.done.push(...(res?.restored ?? []));
+        result.skipped.push(...(res?.skipped ?? []));
+      }
+    };
+    const summary = () => {
+      const head = mode === 'delete'
+        ? tt('deletedCount', { count: result.done.length })
+        : tt('restoredCount', { count: result.done.length });
+      if (result.skipped.length === 0) return head;
+      const reasons = skippedReasons(result.skipped)
+        .map((r) => (tt.has(`reason_${r}`) ? tt(`reason_${r}`) : r))
+        .join(' / ');
+      return `${head} · ${tt('skippedCount', { count: result.skipped.length, reasons })}`;
+    };
+    bulk.ask({
+      rows: chunkIds(rows.map((r) => r.id)),
+      fn,
+      done: summary,
+      clear,
+      after,
+      concurrency: 1,
+      title: mode === 'delete'
+        ? tt('bulkDeleteTitle', { count: rows.length })
+        : tt('bulkRestoreTitle', { count: rows.length }),
+      description: mode === 'delete' ? tt('bulkDeleteDescription') : tt('bulkRestoreDescription'),
+      confirmLabel: mode === 'delete' ? tt('deleteOrders') : tt('restore'),
+      destructive: mode === 'delete',
+      content: mode === 'delete' ? (
+        <div className="space-y-1.5">
+          <label htmlFor="bulk-delete-reason" className="text-xs font-medium">{tt('reasonLabel')}</label>
+          <Textarea
+            id="bulk-delete-reason"
+            ref={reasonRef}
+            maxLength={500}
+            rows={2}
+            placeholder={tt('reasonPlaceholder')}
+            className="text-sm"
+          />
+        </div>
+      ) : undefined,
+    });
+  };
 
   const changeStatus = (target: OrderStatusTarget) => {
     const eligible = rows.filter((r) => canApply(r, target.value));
@@ -236,7 +315,13 @@ export function OrderBulkActions<T extends BulkOrderRow>({
 
   return (
     <>
-      {targets.length > 0 && (
+      {trash === 'restore' && (
+        <Button variant="outline" size="sm" className="h-7 text-xs" disabled={bulk.busy} onClick={() => runTrash('restore')}>
+          <RotateCcw className="size-3.5" />
+          {bulk.busy ? tb('working') : tt('restoreCount', { count: rows.length })}
+        </Button>
+      )}
+      {trash !== 'restore' && (targets.length > 0 || trash === 'delete') && (
         <DropdownMenu>
           <DropdownMenuTrigger
             disabled={bulk.busy}
@@ -255,7 +340,7 @@ export function OrderBulkActions<T extends BulkOrderRow>({
                 </DropdownMenuItem>
               );
             })}
-            {destructive.length > 0 && <DropdownMenuSeparator />}
+            {(destructive.length > 0 || trash === 'delete') && <DropdownMenuSeparator />}
             {destructive.map((tg) => {
               const count = countFor(tg.value);
               return (
@@ -270,6 +355,14 @@ export function OrderBulkActions<T extends BulkOrderRow>({
                 </DropdownMenuItem>
               );
             })}
+            {trash === 'delete' && (
+              // Every selected row is offered; the API skips paid / invoiced
+              // orders and the result notice names them.
+              <DropdownMenuItem variant="destructive" onClick={() => runTrash('delete')}>
+                <span className="flex-1">{tt('deleteOrders')}</span>
+                <span className="ms-4 text-xs tabular-nums">{rows.length}</span>
+              </DropdownMenuItem>
+            )}
             {menuHint && (
               <>
                 <DropdownMenuSeparator />

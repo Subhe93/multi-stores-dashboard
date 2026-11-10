@@ -19,6 +19,10 @@ export const PAYMENT_TIMELINE_STATUSES = [
   'PRODUCTION_COMPLETED',
   'INVOICE_ISSUED',
   'CREDIT_NOTE_ISSUED',
+  // Order trash (M69): soft delete, restore and the admin test flag.
+  'DELETED',
+  'RESTORED',
+  'TEST_FLAG',
 ] as const;
 
 export type PaymentTimelineStatus = (typeof PAYMENT_TIMELINE_STATUSES)[number];

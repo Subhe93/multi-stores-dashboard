@@ -24,6 +24,8 @@ import type { OrderFieldValueRow } from '@/lib/customFields';
 import { timelineEntryText } from '@/lib/orderTimeline';
 import { countryName } from '@/lib/taxCountries';
 import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
+import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
+import { DeleteOrderButton, DeletedOrderBanner, TestFlagButton } from '@/components/orders/OrderTrashControls';
 import Link from 'next/link';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
@@ -73,6 +75,10 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   status: string;
   // Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
+  // Order trash (M69): set while the order is soft-deleted.
+  deleted_at?: string | null;
+  // Money movement read by the deletable pre-check (API is the authority).
+  stripe_charge_id?: string | null;
   created_at: string;
   currency?: string | null;
   // Customer's storefront locale; second choice for personalization labels.
@@ -256,6 +262,8 @@ export default function OrderDetailPage() {
   if (!order) return <p className="text-center py-12 text-muted-foreground">{t('orderNotFound')}</p>;
 
   const currentIdx = statusFlow.indexOf(order.status);
+  // Soft-deleted order: banner with Restore; status actions hidden.
+  const isDeleted = !!order.deleted_at;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -271,13 +279,22 @@ export default function OrderDetailPage() {
         </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <TestOrderBadge isTest={order.is_test} className="text-xs" />
+          {/* Admin only (M69): flag manual test purchases / undo it. */}
+          <TestFlagButton order={order} token={token} onChanged={fetchOrder} />
+          <DeletedOrderBadge deletedAt={order.deleted_at} className="text-xs" />
           <OrderTaxExemptBadge reason={order.tax_exempt_reason} className="text-xs" />
           <Badge variant="outline" className={`text-xs font-semibold ${statusColors[order.status] || ''}`}>{statusLabel(order.status)}</Badge>
+          {/* Order trash (M69): soft delete; disabled with a hint on paid orders. */}
+          {!isDeleted && (
+            <DeleteOrderButton order={order} token={token} onDeleted={fetchOrder} className="ms-1" />
+          )}
         </div>
       </div>
 
-      {/* Status actions */}
-      {!['DELIVERED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
+      <DeletedOrderBanner order={order} token={token} onRestored={fetchOrder} />
+
+      {/* Status actions (hidden on a soft-deleted order: API answers 409 ORDER_DELETED) */}
+      {!isDeleted && !['DELIVERED', 'CANCELLED', 'REFUNDED'].includes(order.status) && (
         <Card className="shadow-none">
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('updateStatus')}</CardTitle></CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
