@@ -6467,6 +6467,8 @@
     "addProduct": "Add product",
     "editProduct": "Edit product",
     "discard": "Discard",
+    "duplicate": "Duplicate",
+    "duplicateFailed": "Failed to duplicate product. Please try again.",
     "saveDraft": "Save draft",
     "publish": "Publish",
     "autoTranslateFrom": "Auto-translate from",

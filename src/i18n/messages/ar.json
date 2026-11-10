@@ -6467,6 +6467,8 @@
     "addProduct": "إضافة منتج",
     "editProduct": "تعديل المنتج",
     "discard": "تجاهل",
+    "duplicate": "تكرار",
+    "duplicateFailed": "تعذّر تكرار المنتج. حاول مجدداً.",
     "saveDraft": "حفظ كمسودة",
     "publish": "نشر",
     "autoTranslateFrom": "ترجمة تلقائية من",

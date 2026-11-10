@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
-import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle, Info } from 'lucide-react';
+import { ArrowLeft, Package, Trash2, Languages, Loader2, Check, Upload, Star, AlertCircle, Info, Copy } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -173,6 +173,7 @@ export default function EditCustomProduct() {
   const [saveError, setSaveError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(null);
   const { storeType } = useStoreType();
@@ -536,6 +537,22 @@ export default function EditCustomProduct() {
     return slug ? `/products/${slug}` : null;
   };
 
+  // Server-side clone of the saved custom product; a dirty form asks first.
+  const handleDuplicate = async () => {
+    if (!token || duplicating) return;
+    if (dirty && !window.confirm(tp('unsavedLeaveConfirm'))) return;
+    setDuplicating(true);
+    try {
+      const created = await api<{ id: string }>(`/custom-products/${id}/duplicate`, { method: 'POST', token });
+      if (created?.id) router.push(`/creator/custom-products/${created.id}`);
+    } catch (err) {
+      console.error('Duplicate failed:', err);
+      alert(t('myProducts.duplicateFailed'));
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!token) return;
     const plan = redirect.prepare();
@@ -657,6 +674,10 @@ export default function EditCustomProduct() {
             disabledHint={!isLive ? tp('viewInStoreNotPublished') : tp('viewInStoreNoSlug')}
           />
         )}
+        <Button variant="outline" size="sm" className="gap-1" onClick={handleDuplicate} disabled={duplicating}>
+          {duplicating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
+          {t('myProducts.duplicate')}
+        </Button>
       </div>
 
       {/* ── Two-column grid ─────────────────────────────── */}

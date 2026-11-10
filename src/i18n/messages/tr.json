@@ -6467,6 +6467,8 @@
     "addProduct": "Ürün ekle",
     "editProduct": "Ürünü düzenle",
     "discard": "Vazgeç",
+    "duplicate": "Çoğalt",
+    "duplicateFailed": "Ürün çoğaltılamadı. Lütfen tekrar deneyin.",
     "saveDraft": "Taslağı kaydet",
     "publish": "Yayınla",
     "autoTranslateFrom": "Şu dilden otomatik çevir",

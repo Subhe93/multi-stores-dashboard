@@ -6467,6 +6467,8 @@
     "addProduct": "Lägg till produkt",
     "editProduct": "Redigera produkt",
     "discard": "Ångra",
+    "duplicate": "Duplicera",
+    "duplicateFailed": "Produkten kunde inte dupliceras. Försök igen.",
     "saveDraft": "Spara utkast",
     "publish": "Publicera",
     "autoTranslateFrom": "Översätt automatiskt från",

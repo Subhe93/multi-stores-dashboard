@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Package, Plus, ImageIcon, Search, X } from 'lucide-react';
+import { Package, Plus, ImageIcon, Search, X, Copy, Loader2 } from 'lucide-react';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import {
   collectionFilterSelection,
@@ -181,6 +181,7 @@ export default function CreatorOwnProductsPage() {
   const [tags, setTags] = useState<FilterOption[]>([]);
   const { collection: collectionValue, tag: tagValue } = collectionFilterSelection(collection, tags);
   const [deleteTarget, setDeleteTarget] = useState<OwnProduct | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const { productUrl, primaryLocale } = useStorefrontUrl();
@@ -320,6 +321,21 @@ export default function CreatorOwnProductsPage() {
     pushedQuery.current = '';
     setSearchInput('');
     updateParams({ q: '', status: '', collection: '', stock: '' });
+  };
+
+  // Server-side clone (draft, "(Copy)" title, unique slug); opens the clone.
+  const handleDuplicate = async (item: OwnProduct) => {
+    if (!token || duplicatingId) return;
+    setDuplicatingId(item.id);
+    try {
+      const created = await api<{ id: string }>(`/products/${item.id}/duplicate`, { method: 'POST', token });
+      if (created?.id) router.push(editHref(created));
+    } catch (err) {
+      console.error('Duplicate failed:', err);
+      alert(tt('myProducts.duplicateFailed'));
+    } finally {
+      setDuplicatingId(null);
+    }
   };
 
   const handleDelete = async () => {
@@ -536,6 +552,16 @@ export default function CreatorOwnProductsPage() {
               onClick={() => router.push(editHref(item))}
             >
               {tc('edit')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              title={tt('myProducts.duplicate')}
+              disabled={duplicatingId === item.id}
+              onClick={() => handleDuplicate(item)}
+            >
+              {duplicatingId === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
             </Button>
             <Button
               variant="ghost"

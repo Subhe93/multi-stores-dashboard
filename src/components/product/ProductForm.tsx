@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Loader2, Languages, Info, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, Languages, Info, Check, Copy } from 'lucide-react';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
@@ -201,6 +201,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const isCreator = user?.role === 'CREATOR';
   const hasUser = !!user;
   const router = useRouter();
+  const pathname = usePathname();
   // Personalization app (M4.1): only for the creator's own products (D2).
   const { apps: storeApps } = useStoreApps();
   const personalizationOn = isCreator && isAppEnabled(storeApps, 'personalization');
@@ -208,6 +209,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // ── UI state ──────────────────────────────────────────────
   const [loading, setLoading] = useState(mode === 'edit');
   const [saving, setSaving] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
   const [saved, setSaved] = useState('');
   const [error, setError] = useState('');
   // Product option issues of a save (config errors, option still used by fields),
@@ -982,6 +984,24 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const liveAndKept = isEdit && savedStatus === 'PUBLISHED' && status === 'PUBLISHED';
   const upToDate = isEdit && !dirty;
   const spinner = saving ? <Loader2 className="size-3.5 animate-spin" /> : null;
+  // Server-side clone of the saved product (draft, "(Copy)" title, unique
+  // slug); unsaved edits are not part of it, so a dirty form asks first. The
+  // clone opens at this page's own route with the new id.
+  const handleDuplicate = async () => {
+    if (!productId || !token || duplicating) return;
+    if (dirty && !window.confirm(t('product.unsavedLeaveConfirm'))) return;
+    setDuplicating(true);
+    try {
+      const created = await api<{ id: string }>(`/products/${productId}/duplicate`, { method: 'POST', token });
+      if (created?.id) router.push(pathname.replace(productId, created.id));
+    } catch (err) {
+      console.error('Duplicate failed:', err);
+      alert(t('product.duplicateFailed'));
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
   const confirmLeave = (e: React.MouseEvent) => {
     if (dirty && !window.confirm(t('product.unsavedLeaveConfirm'))) e.preventDefault();
   };
@@ -1024,6 +1044,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               }
             />
           ) : null}
+          {isEdit && (
+            <Button variant="outline" size="sm" className="gap-1" onClick={handleDuplicate} disabled={duplicating || saving}>
+              {duplicating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
+              {t('product.duplicate')}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

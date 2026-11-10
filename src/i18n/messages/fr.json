@@ -6467,6 +6467,8 @@
     "addProduct": "Ajouter un produit",
     "editProduct": "Modifier le produit",
     "discard": "Annuler",
+    "duplicate": "Dupliquer",
+    "duplicateFailed": "Impossible de dupliquer le produit. Veuillez réessayer.",
     "saveDraft": "Enregistrer le brouillon",
     "publish": "Publier",
     "autoTranslateFrom": "Traduire automatiquement depuis",
