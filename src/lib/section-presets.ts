@@ -67,10 +67,12 @@ export const SECTION_PRESETS: SectionPreset[] = [
         // Keys and defaults are mirrored server-side in
         // multi-stores-api/src/modules/occasion-conversion/occasion-preset.ts.
         settings: { category: '', aspect: 'square', limit: 12, columns: 4, columns_tablet: 3, columns_mobile: 2 },
+        // A small plain line instead of a heading (Namez 2026-11-10): the
+        // hero carries the page's only heading.
         content: {
-          en: { heading: 'Our picks', link_label: 'View all' },
-          ar: { heading: 'مختاراتنا', link_label: 'عرض الكل' },
-          sv: { heading: 'Våra favoriter', link_label: 'Visa alla' },
+          en: { subheading: 'Find your favourite', link_label: 'View all' },
+          ar: { subheading: 'اعثر على المفضّلة لديك', link_label: 'عرض الكل' },
+          sv: { subheading: 'Hitta din favorit', link_label: 'Visa alla' },
         },
       },
       {
@@ -78,15 +80,12 @@ export const SECTION_PRESETS: SectionPreset[] = [
         settings: { width: 'normal', alignment: 'left', padding: 'medium', surface: false },
         content: {
           en: {
-            heading: 'About these gifts',
             html: '<p>Write the SEO text for this occasion here — who the gifts are for, what makes them special, and how to choose.</p>',
           },
           ar: {
-            heading: 'عن هذه الهدايا',
             html: '<p>اكتب هنا نص تحسين الظهور في محركات البحث لهذه المناسبة — لمن هذه الهدايا، وما الذي يميّزها، وكيف تختار منها.</p>',
           },
           sv: {
-            heading: 'Om dessa presenter',
             html: '<p>Skriv SEO-texten för tillfället här – vem presenterna är till, vad som gör dem speciella och hur man väljer.</p>',
           },
         },

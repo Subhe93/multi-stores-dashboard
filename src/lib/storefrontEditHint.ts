@@ -64,7 +64,26 @@ export function prefetchEditHintToken(userId: string, authToken: string): void {
   const hit = readCached(userId);
   if (hit && hit.exp - Date.now() > RENEW_BEFORE_MS) return;
   if (inflight || Date.now() - lastFailureAt < RETRY_AFTER_MS) return;
-  inflight = api<{ token: string; expires_in: number }>('/stores/my/edit-hint-token', {
+  inflight = requestEditHintToken(userId, authToken);
+}
+
+/**
+ * A valid token, fetched when none is cached (DRAFT product preview: the
+ * storefront serves the draft only with the hand-off, so the caller waits
+ * for it). Shares the in-flight request with the prefetch; null when the
+ * API refused or is unreachable (after a failure the prefetch backs off,
+ * this call retries right away).
+ */
+export async function ensureEditHintToken(userId: string, authToken: string): Promise<string | null> {
+  const cached = cachedEditHintToken(userId);
+  if (cached) return cached;
+  if (!inflight) inflight = requestEditHintToken(userId, authToken);
+  await inflight;
+  return cachedEditHintToken(userId);
+}
+
+function requestEditHintToken(userId: string, authToken: string): Promise<void> {
+  return api<{ token: string; expires_in: number }>('/stores/my/edit-hint-token', {
     method: 'POST',
     token: authToken,
   })

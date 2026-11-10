@@ -34,6 +34,7 @@ import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStoref
 import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from './ViewInStoreButton';
+import { PreviewOnStoreButton } from './PreviewOnStoreButton';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 
@@ -1006,7 +1007,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               {t('product.unsavedChanges')}
             </span>
           ) : null}
-          {isEdit && isCreator && baseUrl && (
+          {isEdit && isCreator && baseUrl && savedStatus === 'DRAFT' ? (
+            // Saved draft: the storefront serves it to the owner only (edit-hint
+            // hand-off); unsaved edits are not part of the preview.
+            <PreviewOnStoreButton
+              href={productUrl(savedSlug)}
+              disabledHint={t('product.viewInStoreNoSlug')}
+            />
+          ) : isEdit && isCreator && baseUrl ? (
             <ViewInStoreButton
               href={savedStatus === 'PUBLISHED' ? productUrl(savedSlug) : null}
               disabledHint={
@@ -1015,7 +1023,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   : t('product.viewInStoreNoSlug')
               }
             />
-          )}
+          ) : null}
           <Button
             variant="outline"
             size="sm"
