@@ -6445,7 +6445,12 @@
       },
       "overlay": "Görseli karart",
       "previewHint": "Değişiklikler otomatik kaydedilir. Görmek için mağazanızda /auth/login sayfasını açın."
-    }
+    },
+    "productPage": "Ürün sayfası",
+    "swatchShape": "Renk örneği şekli",
+    "swatchCircle": "Daire",
+    "swatchSquare": "Kare",
+    "swatchShapeHint": "Varyant renk seçenekleri ve kişiselleştirme renk paletlerine uygulanır. Tema varsayılanı dairedir."
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",

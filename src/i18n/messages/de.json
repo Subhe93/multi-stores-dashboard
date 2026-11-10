@@ -6445,7 +6445,12 @@
       },
       "overlay": "Bild abdunkeln",
       "previewHint": "Änderungen werden automatisch gespeichert. Öffne /auth/login in deinem Shop, um sie zu sehen."
-    }
+    },
+    "productPage": "Produktseite",
+    "swatchShape": "Form der Farbfelder",
+    "swatchCircle": "Kreis",
+    "swatchSquare": "Quadrat",
+    "swatchShapeHint": "Gilt für Varianten-Farboptionen und Farbpaletten der Personalisierung. Standard des Themes: Kreis."
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

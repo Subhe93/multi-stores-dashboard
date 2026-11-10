@@ -28,6 +28,8 @@ import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 export interface ThemeTokenCustomizations {
   colors?: Partial<Record<ColorKey | TextColorKey, string>>;
   typography?: { fontFamily?: { heading?: string; body?: string } };
+  /** Product page: colour swatch shape (storefront `--theme-swatch-radius`). */
+  product?: { swatchShape?: SwatchShape };
   [key: string]: unknown; // preserve unrelated keys (muted/border…)
 }
 
@@ -45,6 +47,7 @@ interface ThemeCustomizerProps {
 const FONT_OPTIONS = GOOGLE_FONT_OPTIONS;
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
+type SwatchShape = 'circle' | 'square';
 // Text-on-colour tokens; empty = automatic on the storefront (readable
 // contrast for the *Contrast keys, the primary colour for price).
 type TextColorKey = 'primaryContrast' | 'accentContrast' | 'price' | 'priceBg' | 'priceShadow' | 'sale' | 'link';
@@ -97,6 +100,18 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
     if (v) fontFamily[key] = v;
     else delete fontFamily[key];
     apply({ ...draft, typography: { ...draft.typography, fontFamily } });
+  };
+
+  const setSwatchShape = (v: string) => {
+    const product = { ...(draft.product || {}) };
+    if (v === 'circle' || v === 'square') product.swatchShape = v;
+    else delete product.swatchShape;
+    if (Object.keys(product).length) apply({ ...draft, product });
+    else {
+      const next = { ...draft };
+      delete next.product;
+      apply(next);
+    }
   };
 
   const handleReset = () => apply({});
@@ -200,6 +215,27 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
                   placeholder={t('themeDefault')}
                 />
               </div>
+            </div>
+          </section>
+
+          {/* Product page controls */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('productPage')}
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11.5px] text-zinc-700">{t('swatchShape')}</Label>
+              <SearchableSelect
+                value={draft.product?.swatchShape || ''}
+                onChange={setSwatchShape}
+                options={[
+                  { value: '', label: t('themeDefault') },
+                  { value: 'circle', label: t('swatchCircle') },
+                  { value: 'square', label: t('swatchSquare') },
+                ]}
+                placeholder={t('themeDefault')}
+              />
+              <p className="text-[11px] text-zinc-500">{t('swatchShapeHint')}</p>
             </div>
           </section>
         </div>

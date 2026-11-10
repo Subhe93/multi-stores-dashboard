@@ -6445,7 +6445,12 @@
       },
       "overlay": "Assombrir l’image",
       "previewHint": "Les modifications sont enregistrées automatiquement. Ouvrez /auth/login sur votre boutique pour les voir."
-    }
+    },
+    "productPage": "Page produit",
+    "swatchShape": "Forme des pastilles de couleur",
+    "swatchCircle": "Cercle",
+    "swatchSquare": "Carré",
+    "swatchShapeHint": "S’applique aux options de couleur des variantes et aux palettes de personnalisation. Par défaut du thème : cercle."
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",

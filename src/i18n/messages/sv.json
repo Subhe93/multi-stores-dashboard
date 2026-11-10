@@ -6445,7 +6445,12 @@
       },
       "overlay": "Mörka bilden",
       "previewHint": "Ändringar sparas automatiskt. Öppna /auth/login i din butik för att se dem."
-    }
+    },
+    "productPage": "Produktsida",
+    "swatchShape": "Form på färgprov",
+    "swatchCircle": "Cirkel",
+    "swatchSquare": "Kvadrat",
+    "swatchShapeHint": "Gäller variantfärger och färgpaletter i personalisering. Temats standard är cirkel."
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

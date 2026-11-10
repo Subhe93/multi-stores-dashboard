@@ -6445,7 +6445,12 @@
       },
       "overlay": "Darken image",
       "previewHint": "Changes save automatically. Open /auth/login on your store to see them."
-    }
+    },
+    "productPage": "Product page",
+    "swatchShape": "Colour swatch shape",
+    "swatchCircle": "Circle",
+    "swatchSquare": "Square",
+    "swatchShapeHint": "Applies to variant colour options and personalization colour palettes. Theme default is circle."
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",
