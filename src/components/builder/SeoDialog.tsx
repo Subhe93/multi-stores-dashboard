@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Camera, Loader2, Search } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, authFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { pageSlugRedirect, pageTypeHasSlug, slugChanged } from '@/lib/slug';
 import { useSlugField } from '@/lib/useSlugField';
@@ -141,9 +141,8 @@ export function SeoDialog({
     if (!token) return;
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_BASE}/uploads?folder=page-seo`, {
+    const res = await authFetch(`${API_BASE}/uploads?folder=page-seo`, token, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
     if (!res.ok) throw new Error(t('builder.uploadFailed'));

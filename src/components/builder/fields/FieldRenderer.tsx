@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
-import { api } from '@/lib/api';
+import { api, authFetch } from '@/lib/api';
 import { labelOf, type FieldDefinition } from '@/lib/section-schemas';
 import { cn } from '@/lib/utils';
 
@@ -718,9 +718,8 @@ export function ImageField({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${apiBase}/uploads?folder=page-blocks`, {
+      const res = await authFetch(`${apiBase}/uploads?folder=page-blocks`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!res.ok) throw new Error('Upload failed');

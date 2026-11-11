@@ -15,7 +15,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api, ApiError, API_ORIGIN } from '@/lib/api';
+import { api, ApiError, API_ORIGIN, authFetch } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { useStoreType } from '@/lib/useStoreType';
 import { collectionPathFromTree } from '@/lib/collection-url';
@@ -452,9 +452,8 @@ export function CategoryForm({ mode, initialId, initialParentId = null }: Catego
       formData.append('file', file);
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const res = await fetch(`${API_URL}/uploads?folder=creator-categories`, {
+      const res = await authFetch(`${API_URL}/uploads?folder=creator-categories`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       const json = await res.json();

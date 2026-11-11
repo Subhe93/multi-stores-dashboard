@@ -3,7 +3,7 @@
 // plans/namez-store-apps/M3-DESIGN.md §3.6 and §9. Keep in sync with
 // multi-stores-shared/src/types/invoice.ts.
 
-import { api, API_URL, ApiError } from '@/lib/api';
+import { api, API_URL, ApiError, authFetch } from '@/lib/api';
 import { parseContentDispositionFilename } from '@/lib/backups';
 
 export type InvoiceKind = 'INVOICE' | 'CREDIT_NOTE';
@@ -280,9 +280,7 @@ export function listOrderInvoices(token: string, orderId: string): Promise<Invoi
 // ApiError (with `code`, e.g. INVOICE_PDF_UNAVAILABLE on 503) so callers
 // translate it like any JSON error.
 async function downloadAuthed(endpoint: string, token: string, fallbackName: string): Promise<void> {
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await authFetch(`${API_URL}${endpoint}`, token);
   if (!res.ok) {
     const err = new ApiError('Download failed');
     err.status = res.status;

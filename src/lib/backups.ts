@@ -1,7 +1,7 @@
 // Types and helpers for the admin backups section
 // (see plans/backups/API-CONTRACT.md). The API is built concurrently, so
 // everything here codes against the contract, not a running server.
-import { API_URL, ApiError } from '@/lib/api';
+import { API_URL, ApiError, authFetch } from '@/lib/api';
 
 export type BackupKind = 'MANUAL' | 'SCHEDULED' | 'PRE_RESTORE';
 export type BackupStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
@@ -151,8 +151,8 @@ export async function downloadBackupFile(
   token: string,
   reauthToken: string,
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/admin/backups/${backup.id}/download?file=${file}`, {
-    headers: { Authorization: `Bearer ${token}`, ...reauthHeaders(reauthToken) },
+  const res = await authFetch(`${API_URL}/admin/backups/${backup.id}/download?file=${file}`, token, {
+    headers: { ...reauthHeaders(reauthToken) },
   });
   if (!res.ok) {
     const err = new ApiError('Download failed');

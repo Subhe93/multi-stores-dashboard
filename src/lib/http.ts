@@ -2,7 +2,7 @@
 // building, the paged list shape and an authenticated file download. The
 // importer, designer and customer-upload clients used to carry a copy each.
 
-import { API_URL, ApiError } from '@/lib/api';
+import { API_URL, ApiError, authFetch } from '@/lib/api';
 import { parseContentDispositionFilename } from '@/lib/backups';
 
 /** Paged list response of the creator APIs (`{items, total, page, limit}`). */
@@ -60,7 +60,7 @@ export async function downloadAuthed(
     onHeaders?: (headers: Headers) => void;
   } = {},
 ): Promise<void> {
-  const res = await fetch(`${API_URL}${endpoint}`, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await authFetch(`${API_URL}${endpoint}`, token);
   if (!res.ok) throw await toApiError(res, 'Download failed', options.statusCodes);
   const filename = parseContentDispositionFilename(res.headers.get('content-disposition')) || fallbackName;
   const blob = await res.blob();

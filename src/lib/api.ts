@@ -87,6 +87,25 @@ export function refreshAccessToken(): Promise<string | null> {
   return refreshing;
 }
 
+/**
+ * Bearer-authenticated `fetch` for non-JSON traffic (multipart uploads, file
+ * downloads). Like `api()`, an expired access token is refreshed once through
+ * the cookie and the request is retried with the new token; the caller keeps
+ * handling the Response. The body must be re-sendable (FormData, Blob,
+ * string), which every caller here uses.
+ */
+export async function authFetch(url: string, token: string, init: RequestInit = {}): Promise<Response> {
+  const run = (t: string) => {
+    const headers = new Headers(init.headers);
+    headers.set('Authorization', `Bearer ${t}`);
+    return fetch(url, { ...init, headers });
+  };
+  const res = await run(token);
+  if (res.status !== 401) return res;
+  const fresh = await refreshAccessToken();
+  return fresh ? run(fresh) : res;
+}
+
 export async function api<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   return request<T>(endpoint, options, true);
 }

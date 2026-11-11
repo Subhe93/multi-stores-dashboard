@@ -5,7 +5,7 @@
 // to "not shown" instead of crashing. Keep in sync with
 // multi-stores-api/src/modules/importer/importer-creator.controller.ts.
 
-import { api, API_URL, ApiError } from '@/lib/api';
+import { api, API_URL, ApiError, refreshAccessToken } from '@/lib/api';
 import { downloadAuthed, qs, type Paged } from '@/lib/http';
 
 export type { Paged } from '@/lib/http';
@@ -630,10 +630,12 @@ export function createRun(
   form.append('options', JSON.stringify(input.options));
   for (const file of input.files ?? []) form.append('files', file, file.name);
 
-  return new Promise((resolve, reject) => {
+  // Like authFetch: an expired access token (401) is refreshed once and the
+  // upload is sent again with the new token (FormData can be re-sent).
+  const send = (bearer: string, mayRefresh: boolean): Promise<ImportRunView> => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_URL}/importer/my/runs`);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('Authorization', `Bearer ${bearer}`);
     if (onProgress) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && e.total > 0) onProgress(e.loaded / e.total);
@@ -651,6 +653,13 @@ export function createRun(
         resolve(json.data);
         return;
       }
+      if (xhr.status === 401 && mayRefresh) {
+        void refreshAccessToken().then((fresh) => {
+          if (fresh) send(fresh, false).then(resolve, reject);
+          else reject(Object.assign(new ApiError('Upload failed'), { status: 401 }));
+        });
+        return;
+      }
       const msg = json?.message;
       const err = new ApiError(Array.isArray(msg) ? msg.join(' · ') : msg || 'Upload failed');
       err.status = xhr.status;
@@ -662,6 +671,7 @@ export function createRun(
     };
     xhr.send(form);
   });
+  return send(token, true);
 }
 
 export function listRuns(token: string, query: { page?: number; limit?: number; source_id?: string } = {}): Promise<Paged<ImportRunView>> {

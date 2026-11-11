@@ -1,6 +1,6 @@
 'use client';
 
-import { API_ORIGIN } from '@/lib/api';
+import { API_ORIGIN, authFetch } from '@/lib/api';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
@@ -250,9 +250,8 @@ function FileUploadField({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${API_URL}/uploads?folder=custom-fields`, {
+      const res = await authFetch(`${API_URL}/uploads?folder=custom-fields`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       const json = await res.json();

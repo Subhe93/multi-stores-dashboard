@@ -9,6 +9,7 @@
 // and through `onSave` (debounced by the parent) to persist to the API.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { authFetch } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { Camera, ChevronDown, Loader2, Palette, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -600,9 +601,8 @@ function ImageUpload({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${apiBase}/uploads?folder=${folder}`, {
+      const res = await authFetch(`${apiBase}/uploads?folder=${folder}`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (!res.ok) throw new Error('Upload failed');

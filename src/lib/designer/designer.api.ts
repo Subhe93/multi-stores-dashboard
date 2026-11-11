@@ -2,7 +2,7 @@
 // follow plans/namez-store-apps/M4.2-CONTRACTS.md ("Creator routes").
 // Every route lives under `/designer/my/*` (creator JWT, app enabled).
 
-import { api, API_URL, ApiError } from '@/lib/api';
+import { api, API_URL, ApiError, authFetch } from '@/lib/api';
 import { downloadAuthed, qs, type Paged } from '@/lib/http';
 import type { TemplateSpecV1 } from '@multi-stores/core/designer';
 
@@ -392,9 +392,8 @@ const BASE = '/designer/my';
  * content type). Errors become ApiError with the API `code` and payload.
  */
 async function postForm<T>(endpoint: string, token: string, form: FormData): Promise<T> {
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  const res = await authFetch(`${API_URL}${endpoint}`, token, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
   let json: Record<string, unknown> | null = null;

@@ -5,7 +5,7 @@
 // snapshot the resolved lines in `Order.tax_lines` and keep `tax_rate_bp` as
 // the headline (highest) rate with `tax_amount` as the tax total.
 
-import { API_URL, ApiError } from '@/lib/api';
+import { API_URL, ApiError, authFetch } from '@/lib/api';
 
 export type TaxPricingMode = 'INCLUSIVE' | 'EXCLUSIVE';
 export type TaxBasis = 'SHIPPING' | 'BILLING' | 'STORE';
@@ -186,9 +186,7 @@ export function toDateInputValue(date: Date): string {
 // Failures throw an ApiError carrying the API `code`, so callers can translate
 // `errors.<code>` (useApiError) instead of showing the raw English message.
 export async function downloadCsv(endpoint: string, token: string, filename: string): Promise<void> {
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await authFetch(`${API_URL}${endpoint}`, token);
   if (!res.ok) {
     const err = new ApiError('Download failed');
     err.status = res.status;

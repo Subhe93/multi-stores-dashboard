@@ -1,6 +1,6 @@
 'use client';
 
-import { API_ORIGIN } from '@/lib/api';
+import { API_ORIGIN, authFetch } from '@/lib/api';
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { ApiError, API_ERROR_EVENT } from './api';
@@ -44,9 +44,8 @@ export function useImageUpload(token: string | null) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${API_URL}/uploads?folder=${folder}`, {
+      const res = await authFetch(`${API_URL}/uploads?folder=${folder}`, token, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       // A 413 from nginx (above client_max_body_size) is an HTML page, not JSON.
