@@ -2747,6 +2747,22 @@
           "label": "Meta Pixel-id",
           "hint": "Endast siffror, från Meta Events Manager."
         },
+        "meta_capi_token": {
+          "label": "Åtkomsttoken för Conversions API",
+          "savedPlaceholder": "••••••••  (sparad)",
+          "savedHint": "En åtkomsttoken är sparad. Skriv in en ny för att ersätta den.",
+          "remove": "Ta bort",
+          "undoRemove": "Behåll token",
+          "willRemove": "Den sparade token tas bort när du sparar.",
+          "willReplace": "Den sparade token ersätts när du sparar.",
+          "help": "Med en token rapporteras köp även från servern till Meta, så att de räknas även när kunden inte kommer tillbaka till tacksidan (vanligt med Klarna). Token lagras krypterad och visas aldrig igen. Så länge cookiebannern är på rapporteras bara köp från besökare som har accepterat cookies.",
+          "where": "Så skapar du den: Meta Events Manager → din datauppsättning (pixel) → Settings → Conversions API → Set up direct integration → Set up without Dataset Quality API → Generate access token.",
+          "needsPixel": "Ange även Meta Pixel-id ovan: serverhändelser skickas till den pixeln."
+        },
+        "meta_test_event_code": {
+          "label": "Testhändelsekod",
+          "hint": "Valfritt. Endast för test i Meta Events Manager → Test events (t.ex. TEST12345). Ta bort den när du har testat klart."
+        },
         "tiktok_pixel_id": {
           "label": "TikTok Pixel-id",
           "hint": "Från TikTok Events Manager, t.ex. CXXXXXXXXXXXXXXXXX."
@@ -2754,6 +2770,8 @@
         "invalid": {
           "ga4_measurement_id": "GA4 mät-id måste se ut som G-XXXXXXXXXX.",
           "meta_pixel_id": "Meta Pixel-id får bara innehålla siffror (minst 5).",
+          "meta_capi_token": "Åtkomsttoken får bara innehålla bokstäver, siffror, ”_”, ”-” och ”|” (högst 600 tecken). Klistra in den exakt som Meta visar den.",
+          "meta_test_event_code": "Testhändelsekoden får bara innehålla bokstäver, siffror, ”_” och ”-” (högst 40 tecken).",
           "tiktok_pixel_id": "TikTok Pixel-id får bara innehålla bokstäver och siffror (8–64 tecken).",
           "consent_required": "Inställningen för cookiebannern måste vara på eller av."
         },

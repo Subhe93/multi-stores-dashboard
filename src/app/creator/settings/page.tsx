@@ -72,6 +72,10 @@ interface StoreInfo {
   meta_pixel_id?: string | null;
   tiktok_pixel_id?: string | null;
   consent_required?: boolean;
+  // Meta Conversions API: the token is write-only (never returned); the API
+  // only says whether one is stored.
+  meta_capi_token_set?: boolean;
+  meta_test_event_code?: string | null;
 }
 
 // Editable subset of GET /taxes/my/settings (the PUT body).
@@ -1041,6 +1045,8 @@ export default function CreatorSettingsPage() {
               meta_pixel_id: store.meta_pixel_id ?? null,
               tiktok_pixel_id: store.tiktok_pixel_id ?? null,
               consent_required: store.consent_required !== false,
+              meta_capi_token_set: store.meta_capi_token_set === true,
+              meta_test_event_code: store.meta_test_event_code ?? null,
             }}
             onSaved={(settings: TrackingSettings) => setStore((s) => (s ? { ...s, ...settings } : s))}
           />

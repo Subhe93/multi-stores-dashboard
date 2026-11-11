@@ -2747,6 +2747,22 @@
           "label": "Meta Pixel kimliği",
           "hint": "Yalnızca rakam, Meta Events Manager’dan."
         },
+        "meta_capi_token": {
+          "label": "Conversions API erişim belirteci",
+          "savedPlaceholder": "••••••••  (kayıtlı)",
+          "savedHint": "Kayıtlı bir erişim belirteci var. Değiştirmek için yenisini yazın.",
+          "remove": "Kaldır",
+          "undoRemove": "Belirteci koru",
+          "willRemove": "Kayıtlı belirteç, kaydettiğinizde kaldırılacak.",
+          "willReplace": "Kayıtlı belirteç, kaydettiğinizde değiştirilecek.",
+          "help": "Belirteç girildiğinde satın almalar Meta’ya sunucudan da bildirilir; böylece müşteri teşekkür sayfasına dönmese bile sayılır (Klarna’da sık görülür). Belirteç şifrelenerek saklanır ve bir daha gösterilmez. Çerez bildirimi açıkken yalnızca çerezleri kabul eden ziyaretçilerin satın almaları bildirilir.",
+          "where": "Nereden oluşturulur: Meta Events Manager → veri kümeniz (piksel) → Settings → Conversions API → Set up direct integration → Set up without Dataset Quality API → Generate access token.",
+          "needsPixel": "Yukarıya Meta Pixel kimliğini de girin: sunucu olayları o piksele gönderilir."
+        },
+        "meta_test_event_code": {
+          "label": "Test olayı kodu",
+          "hint": "İsteğe bağlı. Yalnızca Meta Events Manager → Test events içinde test için (ör. TEST12345). Test bitince silin."
+        },
         "tiktok_pixel_id": {
           "label": "TikTok Pixel kimliği",
           "hint": "TikTok Events Manager’dan, örn. CXXXXXXXXXXXXXXXXX."
@@ -2754,6 +2770,8 @@
         "invalid": {
           "ga4_measurement_id": "GA4 ölçüm kimliği G-XXXXXXXXXX biçiminde olmalıdır.",
           "meta_pixel_id": "Meta Pixel kimliği yalnızca rakamlardan oluşmalıdır (en az 5).",
+          "meta_capi_token": "Erişim belirteci yalnızca harf, rakam, \"_\", \"-\" ve \"|\" içerebilir (en fazla 600 karakter). Meta’nın gösterdiği şekilde aynen yapıştırın.",
+          "meta_test_event_code": "Test olayı kodu yalnızca harf, rakam, \"_\" ve \"-\" içerebilir (en fazla 40 karakter).",
           "tiktok_pixel_id": "TikTok Pixel kimliği yalnızca harf ve rakamlardan oluşmalıdır (8–64 karakter).",
           "consent_required": "Çerez bildirimi ayarı açık veya kapalı olmalıdır."
         },

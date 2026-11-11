@@ -2747,6 +2747,22 @@
           "label": "Meta Pixel ID",
           "hint": "Digits only, from Meta Events Manager."
         },
+        "meta_capi_token": {
+          "label": "Conversions API access token",
+          "savedPlaceholder": "••••••••  (saved)",
+          "savedHint": "An access token is saved. Type a new one to replace it.",
+          "remove": "Remove",
+          "undoRemove": "Keep token",
+          "willRemove": "The saved token will be removed when you save.",
+          "willReplace": "The saved token will be replaced when you save.",
+          "help": "With a token set, purchases are also reported to Meta from the server, so they are counted even when the customer does not return to the thank-you page (common with Klarna). The token is stored encrypted and is never shown again. While the cookie banner is on, only purchases by visitors who accepted cookies are reported.",
+          "where": "Where to generate it: Meta Events Manager → your dataset (pixel) → Settings → Conversions API → Set up direct integration → Set up without Dataset Quality API → Generate access token.",
+          "needsPixel": "Also enter the Meta Pixel ID above: server events are sent to that pixel."
+        },
+        "meta_test_event_code": {
+          "label": "Test event code",
+          "hint": "Optional. Only for testing in Meta Events Manager → Test events (e.g. TEST12345). Clear it when you are done testing."
+        },
         "tiktok_pixel_id": {
           "label": "TikTok Pixel ID",
           "hint": "From TikTok Events Manager, e.g. CXXXXXXXXXXXXXXXXX."
@@ -2754,6 +2770,8 @@
         "invalid": {
           "ga4_measurement_id": "The GA4 measurement ID must look like G-XXXXXXXXXX.",
           "meta_pixel_id": "The Meta Pixel ID must contain digits only (at least 5).",
+          "meta_capi_token": "The access token may only contain letters, digits, \"_\", \"-\" and \"|\" (max 600 characters). Paste it exactly as Meta shows it.",
+          "meta_test_event_code": "The test event code may only contain letters, digits, \"_\" and \"-\" (max 40 characters).",
           "tiktok_pixel_id": "The TikTok Pixel ID must contain letters and digits only (8–64 characters).",
           "consent_required": "The cookie banner setting must be on or off."
         },

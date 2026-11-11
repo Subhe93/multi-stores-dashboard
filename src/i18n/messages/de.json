@@ -2747,6 +2747,22 @@
           "label": "Meta Pixel-ID",
           "hint": "Nur Ziffern, aus dem Meta Events Manager."
         },
+        "meta_capi_token": {
+          "label": "Conversions API-Zugriffstoken",
+          "savedPlaceholder": "••••••••  (gespeichert)",
+          "savedHint": "Ein Zugriffstoken ist gespeichert. Geben Sie ein neues ein, um es zu ersetzen.",
+          "remove": "Entfernen",
+          "undoRemove": "Token behalten",
+          "willRemove": "Das gespeicherte Token wird beim Speichern entfernt.",
+          "willReplace": "Das gespeicherte Token wird beim Speichern ersetzt.",
+          "help": "Mit einem Token werden Käufe zusätzlich vom Server an Meta gemeldet und daher auch dann gezählt, wenn der Kunde nicht auf die Dankeseite zurückkehrt (häufig bei Klarna). Das Token wird verschlüsselt gespeichert und nie wieder angezeigt. Solange der Cookie-Banner aktiv ist, werden nur Käufe von Besuchern gemeldet, die Cookies akzeptiert haben.",
+          "where": "So erstellen Sie es: Meta Events Manager → Ihr Datensatz (Pixel) → Settings → Conversions API → Set up direct integration → Set up without Dataset Quality API → Generate access token.",
+          "needsPixel": "Tragen Sie oben auch die Meta Pixel-ID ein: Server-Events werden an dieses Pixel gesendet."
+        },
+        "meta_test_event_code": {
+          "label": "Test-Event-Code",
+          "hint": "Optional. Nur zum Testen im Meta Events Manager → Test events (z. B. TEST12345). Nach dem Testen wieder löschen."
+        },
         "tiktok_pixel_id": {
           "label": "TikTok Pixel-ID",
           "hint": "Aus dem TikTok Events Manager, z. B. CXXXXXXXXXXXXXXXXX."
@@ -2754,6 +2770,8 @@
         "invalid": {
           "ga4_measurement_id": "Die GA4 Mess-ID muss wie G-XXXXXXXXXX aussehen.",
           "meta_pixel_id": "Die Meta Pixel-ID darf nur Ziffern enthalten (mindestens 5).",
+          "meta_capi_token": "Das Zugriffstoken darf nur Buchstaben, Ziffern, „_“, „-“ und „|“ enthalten (max. 600 Zeichen). Fügen Sie es genau so ein, wie Meta es anzeigt.",
+          "meta_test_event_code": "Der Test-Event-Code darf nur Buchstaben, Ziffern, „_“ und „-“ enthalten (max. 40 Zeichen).",
           "tiktok_pixel_id": "Die TikTok Pixel-ID darf nur Buchstaben und Ziffern enthalten (8–64 Zeichen).",
           "consent_required": "Die Cookie-Banner-Einstellung muss an oder aus sein."
         },

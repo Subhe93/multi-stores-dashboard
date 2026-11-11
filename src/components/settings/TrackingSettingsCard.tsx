@@ -17,12 +17,19 @@ import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 // (PUT /stores/my/store). The storefront shows the cookie banner only when at
 // least one id is set and loads a tracker only after consent (or right away
 // when consent is not required).
+//
+// Meta Conversions API: the access token is write-only. The API never returns
+// it, only `meta_capi_token_set`; the field is sent only when the owner typed
+// a new token (replace) or pressed Remove (null). Left untouched, the request
+// does not mention it and the stored token is kept.
 
 export interface TrackingSettings {
   ga4_measurement_id: string | null;
   meta_pixel_id: string | null;
   tiktok_pixel_id: string | null;
   consent_required: boolean;
+  meta_capi_token_set: boolean;
+  meta_test_event_code: string | null;
 }
 
 interface TrackingForm {
@@ -30,18 +37,27 @@ interface TrackingForm {
   meta_pixel_id: string;
   tiktok_pixel_id: string;
   consent_required: boolean;
+  meta_test_event_code: string;
+  // A newly typed token (never the stored one) and the pending "remove".
+  meta_capi_token: string;
+  remove_capi_token: boolean;
 }
 
 type IdField = 'ga4_measurement_id' | 'meta_pixel_id' | 'tiktok_pixel_id';
+type CapiField = 'meta_capi_token' | 'meta_test_event_code';
+type Field = IdField | CapiField;
 
 // Mirror of the API DTO rules (modules/stores/dto/store.dto.ts): GA4 and
 // TikTok ids are case-insensitive and stored upper-cased.
-const RULES: Record<IdField, RegExp> = {
+const RULES: Record<Field, RegExp> = {
   ga4_measurement_id: /^$|^G-[A-Z0-9]{4,}$/i,
   meta_pixel_id: /^$|^[0-9]{5,32}$/,
   tiktok_pixel_id: /^$|^[A-Z0-9]{8,64}$/i,
+  meta_capi_token: /^$|^[A-Za-z0-9_\-|]{1,600}$/,
+  meta_test_event_code: /^$|^[A-Za-z0-9_-]{1,40}$/,
 };
 const ID_FIELDS: IdField[] = ['ga4_measurement_id', 'meta_pixel_id', 'tiktok_pixel_id'];
+const CAPI_FIELDS: CapiField[] = ['meta_capi_token', 'meta_test_event_code'];
 
 function toForm(value: Partial<TrackingSettings> | null | undefined): TrackingForm {
   return {
@@ -49,6 +65,9 @@ function toForm(value: Partial<TrackingSettings> | null | undefined): TrackingFo
     meta_pixel_id: value?.meta_pixel_id ?? '',
     tiktok_pixel_id: value?.tiktok_pixel_id ?? '',
     consent_required: value?.consent_required !== false,
+    meta_test_event_code: value?.meta_test_event_code ?? '',
+    meta_capi_token: '',
+    remove_capi_token: false,
   };
 }
 
@@ -58,10 +77,13 @@ function normalizeId(field: IdField, raw: string): string {
 }
 
 /** Client-side validation: field → true when the value is invalid. */
-function formErrors(form: TrackingForm): Partial<Record<IdField, true>> {
-  const out: Partial<Record<IdField, true>> = {};
+function formErrors(form: TrackingForm): Partial<Record<Field, true>> {
+  const out: Partial<Record<Field, true>> = {};
   for (const field of ID_FIELDS) {
     if (!RULES[field].test(normalizeId(field, form[field]))) out[field] = true;
+  }
+  for (const field of CAPI_FIELDS) {
+    if (!RULES[field].test(form[field].trim())) out[field] = true;
   }
   return out;
 }
@@ -81,6 +103,8 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const dirty = JSON.stringify(form) !== JSON.stringify(saved);
+  // Whether a token is stored on the server (the token itself is never sent back).
+  const tokenSet = value?.meta_capi_token_set === true;
 
   // Re-seed from a fresh store payload, never over unsaved edits (same rule
   // as CheckoutSettingsCard).
@@ -107,7 +131,7 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
   // per-field hint instead of surfacing the raw "must match" text.
   const friendlyError = (err: unknown): string => {
     if (err instanceof ApiError && Array.isArray(err.errors)) {
-      const field = ID_FIELDS.find((f) => err.errors!.some((m) => m.includes(f)));
+      const field = [...CAPI_FIELDS, ...ID_FIELDS].find((f) => err.errors!.some((m) => m.includes(f)));
       if (field) return t(`invalid.${field}`);
       if (err.errors.some((m) => m.includes('consent_required'))) return t('invalid.consent_required');
     }
@@ -118,29 +142,54 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
     if (saving || hasErrors) return;
     setSaving(true);
     setMsg(null);
-    const body: TrackingSettings = {
+    const newToken = form.meta_capi_token.trim();
+    const testCode = form.meta_test_event_code.trim();
+    const ids = {
       ga4_measurement_id: normalizeId('ga4_measurement_id', form.ga4_measurement_id) || null,
       meta_pixel_id: normalizeId('meta_pixel_id', form.meta_pixel_id) || null,
       tiktok_pixel_id: normalizeId('tiktok_pixel_id', form.tiktok_pixel_id) || null,
       consent_required: form.consent_required,
     };
+    // Write-only token: sent only when replaced (new value) or removed (null).
+    // Absent from the body = the stored token is kept.
+    const tokenPatch: { meta_capi_token?: string | null } = newToken
+      ? { meta_capi_token: newToken }
+      : form.remove_capi_token
+        ? { meta_capi_token: null }
+        : {};
     try {
-      await api('/stores/my/store', {
+      const res = await api<{ meta_capi_token_set?: boolean } | undefined>('/stores/my/store', {
         method: 'PUT',
         token,
         // Empty strings clear the id on the API side.
         body: JSON.stringify({
-          ga4_measurement_id: body.ga4_measurement_id ?? '',
-          meta_pixel_id: body.meta_pixel_id ?? '',
-          tiktok_pixel_id: body.tiktok_pixel_id ?? '',
-          consent_required: body.consent_required,
+          ga4_measurement_id: ids.ga4_measurement_id ?? '',
+          meta_pixel_id: ids.meta_pixel_id ?? '',
+          tiktok_pixel_id: ids.tiktok_pixel_id ?? '',
+          consent_required: ids.consent_required,
+          meta_test_event_code: testCode,
+          ...tokenPatch,
         }),
       });
-      const next = toForm(body);
+      const nextTokenSet =
+        typeof res?.meta_capi_token_set === 'boolean'
+          ? res.meta_capi_token_set
+          : newToken
+            ? true
+            : form.remove_capi_token
+              ? false
+              : tokenSet;
+      const settings: TrackingSettings = {
+        ...ids,
+        meta_capi_token_set: nextTokenSet,
+        meta_test_event_code: testCode || null,
+      };
+      // The typed token is dropped from the form as soon as it is saved.
+      const next = toForm(settings);
       setForm(next);
       setSaved(next);
       setMsg({ type: 'success', text: t('saved') });
-      onSaved(body);
+      onSaved(settings);
     } catch (err) {
       setMsg({ type: 'error', text: friendlyError(err) });
     } finally {
@@ -149,6 +198,10 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
   };
 
   const anyId = ID_FIELDS.some((f) => form[f].trim() !== '');
+  const typingToken = form.meta_capi_token.trim() !== '';
+  // A stored token that this save keeps (nothing typed, not being removed).
+  const keepsStoredToken = tokenSet && !form.remove_capi_token && !typingToken;
+  const willHaveToken = typingToken || keepsStoredToken;
 
   const idField = (field: IdField, placeholder: string) => (
     <div className="space-y-1">
@@ -180,6 +233,73 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
         <div className="space-y-4">
           {idField('ga4_measurement_id', 'G-XXXXXXXXXX')}
           {idField('meta_pixel_id', '123456789012345')}
+
+          {/* Meta Conversions API: server-side Purchase events. */}
+          <div className="space-y-4 border-s-2 border-muted ps-3">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="tr_meta_capi_token">{t('meta_capi_token.label')}</Label>
+                {tokenSet && !typingToken && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => update({ remove_capi_token: !form.remove_capi_token })}
+                  >
+                    {form.remove_capi_token ? t('meta_capi_token.undoRemove') : t('meta_capi_token.remove')}
+                  </Button>
+                )}
+              </div>
+              <Input
+                id="tr_meta_capi_token"
+                type="password"
+                value={form.meta_capi_token}
+                placeholder={keepsStoredToken ? t('meta_capi_token.savedPlaceholder') : 'EAA…'}
+                autoComplete="new-password"
+                spellCheck={false}
+                dir="ltr"
+                className="font-mono"
+                // Typing a new token replaces the stored one (and cancels a pending remove).
+                onChange={(e) => update({ meta_capi_token: e.target.value, remove_capi_token: false })}
+                aria-invalid={errors.meta_capi_token || undefined}
+              />
+              {errors.meta_capi_token ? (
+                <p className="text-[11px] text-red-600">{t('invalid.meta_capi_token')}</p>
+              ) : form.remove_capi_token ? (
+                <p className="text-[11px] text-amber-600">{t('meta_capi_token.willRemove')}</p>
+              ) : keepsStoredToken ? (
+                <p className="text-[11px] text-emerald-600">{t('meta_capi_token.savedHint')}</p>
+              ) : typingToken && tokenSet ? (
+                <p className="text-[11px] text-muted-foreground">{t('meta_capi_token.willReplace')}</p>
+              ) : null}
+              <p className="text-[11px] text-muted-foreground">{t('meta_capi_token.help')}</p>
+              <p className="text-[11px] text-muted-foreground">{t('meta_capi_token.where')}</p>
+              {willHaveToken && form.meta_pixel_id.trim() === '' && (
+                <p className="text-[11px] text-amber-600">{t('meta_capi_token.needsPixel')}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="tr_meta_test_event_code">{t('meta_test_event_code.label')}</Label>
+              <Input
+                id="tr_meta_test_event_code"
+                value={form.meta_test_event_code}
+                placeholder="TEST12345"
+                autoComplete="off"
+                spellCheck={false}
+                dir="ltr"
+                className="font-mono"
+                onChange={(e) => update({ meta_test_event_code: e.target.value })}
+                aria-invalid={errors.meta_test_event_code || undefined}
+              />
+              <p
+                className={`text-[11px] ${errors.meta_test_event_code ? 'text-red-600' : 'text-muted-foreground'}`}
+              >
+                {errors.meta_test_event_code ? t('invalid.meta_test_event_code') : t('meta_test_event_code.hint')}
+              </p>
+            </div>
+          </div>
+
           {idField('tiktok_pixel_id', 'CXXXXXXXXXXXXXXXXX')}
         </div>
 

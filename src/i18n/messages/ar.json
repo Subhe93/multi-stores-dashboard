@@ -2747,6 +2747,22 @@
           "label": "معرّف Meta Pixel",
           "hint": "أرقام فقط، من Meta Events Manager."
         },
+        "meta_capi_token": {
+          "label": "رمز الوصول لـ Conversions API",
+          "savedPlaceholder": "••••••••  (محفوظ)",
+          "savedHint": "يوجد رمز وصول محفوظ. اكتب رمزاً جديداً لاستبداله.",
+          "remove": "إزالة",
+          "undoRemove": "إبقاء الرمز",
+          "willRemove": "سيُحذف الرمز المحفوظ عند الحفظ.",
+          "willReplace": "سيُستبدل الرمز المحفوظ عند الحفظ.",
+          "help": "عند إدخال الرمز تُرسَل عمليات الشراء إلى Meta من الخادم أيضاً، فتُحتسب حتى لو لم يعد العميل إلى صفحة الشكر (شائع مع Klarna). يُخزَّن الرمز مشفّراً ولا يُعرض مرة أخرى. ما دام شريط ملفات تعريف الارتباط مفعّلاً، لا تُرسَل إلا مشتريات الزوار الذين وافقوا على ملفات تعريف الارتباط.",
+          "where": "مكان إنشائه: Meta Events Manager → مجموعة البيانات (البكسل) → Settings → Conversions API → Set up direct integration → Set up without Dataset Quality API → Generate access token.",
+          "needsPixel": "أدخل معرّف Meta Pixel أعلاه أيضاً: أحداث الخادم تُرسَل إلى ذلك البكسل."
+        },
+        "meta_test_event_code": {
+          "label": "رمز حدث الاختبار",
+          "hint": "اختياري. للاختبار فقط في Meta Events Manager → Test events (مثل TEST12345). احذفه بعد انتهاء الاختبار."
+        },
         "tiktok_pixel_id": {
           "label": "معرّف TikTok Pixel",
           "hint": "من TikTok Events Manager، مثل CXXXXXXXXXXXXXXXXX."
@@ -2754,6 +2770,8 @@
         "invalid": {
           "ga4_measurement_id": "يجب أن يكون معرّف GA4 بالشكل G-XXXXXXXXXX.",
           "meta_pixel_id": "يجب أن يحتوي معرّف Meta Pixel على أرقام فقط (5 على الأقل).",
+          "meta_capi_token": "رمز الوصول يجب أن يحتوي على حروف وأرقام و\"_\" و\"-\" و\"|\" فقط (600 حرف كحد أقصى). الصقه كما يعرضه Meta تماماً.",
+          "meta_test_event_code": "رمز حدث الاختبار يجب أن يحتوي على حروف وأرقام و\"_\" و\"-\" فقط (40 حرفاً كحد أقصى).",
           "tiktok_pixel_id": "يجب أن يحتوي معرّف TikTok Pixel على حروف وأرقام فقط (8–64 حرفاً).",
           "consent_required": "إعداد شريط ملفات تعريف الارتباط يجب أن يكون مفعّلاً أو معطّلاً."
         },
