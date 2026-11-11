@@ -2868,6 +2868,16 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           { key: 'text', type: 'text', label: { en: 'Text', ar: 'النص' }, maxLength: 160 },
           { key: 'link_label', type: 'text', label: { en: 'Inline link label (optional)', ar: 'نص الرابط داخل النص (اختياري)' }, maxLength: 40 },
           { key: 'link_url', type: 'url', label: { en: 'Link URL', ar: 'رابط الرابط' } },
+          {
+            key: 'badge',
+            type: 'select',
+            label: { en: 'Payment badge after the text', ar: 'شارة الدفع بعد النص' },
+            defaultValue: 'none',
+            options: [
+              { value: 'none', label: { en: 'None', ar: 'بدون' } },
+              { value: 'klarna', label: { en: 'Klarna', ar: 'Klarna' } },
+            ],
+          },
         ],
       },
       { key: 'rotate_ms', type: 'number', label: { en: 'Rotate interval (ms, rotating layout)', ar: 'فاصل التدوير (ms)' }, min: 2000, max: 30000, defaultValue: 5000 },
