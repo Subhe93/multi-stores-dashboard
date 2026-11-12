@@ -48,6 +48,33 @@ const Btn = ({ onClick, active, disabled, title, children }: {
   </Button>
 );
 
+/**
+ * Links as the storefront should get them: no forced colour class (the
+ * store's theme styles links), external http(s) links open in a new tab with
+ * a safe rel, store-internal links / mailto / tel stay in the same tab. Any
+ * class / target / rel saved by the earlier editor is dropped on the next
+ * save, so old content cleans itself up when it is edited.
+ */
+const StoreLink = TiptapLink.extend({
+  addAttributes() {
+    return {
+      href: { default: null, parseHTML: (el: HTMLElement) => el.getAttribute('href') },
+      title: { default: null },
+    };
+  },
+  renderHTML(props) {
+    const href = String(props.HTMLAttributes.href ?? '');
+    const external = /^https?:\/\//i.test(href);
+    return this.parent!({
+      ...props,
+      HTMLAttributes: {
+        ...props.HTMLAttributes,
+        ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+      },
+    });
+  },
+}).configure({ openOnClick: false, HTMLAttributes: { target: null, rel: null, class: null } });
+
 /** Vertical toolbar divider */
 const Sep = () => <Separator orientation="vertical" className="h-5 mx-0.5" />;
 
@@ -65,9 +92,10 @@ export function RichTextEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      // StarterKit v3 bundles Link; it is replaced by StoreLink below.
+      StarterKit.configure({ heading: { levels: [1, 2, 3] }, link: false }),
       Placeholder.configure({ placeholder: resolvedPlaceholder }),
-      TiptapLink.configure({ openOnClick: false, HTMLAttributes: { class: 'text-blue-600 underline' } }),
+      StoreLink,
     ],
     content,
     onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
@@ -95,7 +123,9 @@ export function RichTextEditor({
 
   useEffect(() => {
     if (!editor || editor.getHTML() === content) return;
-    editor.commands.setContent(content || '');
+    // No update event: loading saved content must not count as an edit
+    // (the editor's normalised HTML can differ from what was stored).
+    editor.commands.setContent(content || '', { emitUpdate: false });
   }, [content, editor]);
 
   if (!editor) return null;
