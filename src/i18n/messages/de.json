@@ -6469,7 +6469,11 @@
     "swatchShape": "Form der Farbfelder",
     "swatchCircle": "Kreis",
     "swatchSquare": "Quadrat",
-    "swatchShapeHint": "Gilt für Varianten-Farboptionen und Farbpaletten der Personalisierung. Standard des Themes: Kreis."
+    "swatchShapeHint": "Gilt für Varianten-Farboptionen und Farbpaletten der Personalisierung. Standard des Themes: Kreis.",
+    "customCss": "Eigenes CSS",
+    "customCssHint": "Für fortgeschrittene Nutzer. Dieses CSS wird auf jeder Seite Ihres Shops nach den Theme-Stilen eingefügt und kann sie überschreiben.",
+    "customCssEmptyHint": "Lassen Sie das Feld leer, um das eigene CSS zu entfernen.",
+    "customCssTooLong": "Eigenes CSS ist auf {max} Zeichen begrenzt. Entfernen Sie {over} Zeichen, um zu speichern."
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

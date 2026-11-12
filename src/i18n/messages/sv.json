@@ -6469,7 +6469,11 @@
     "swatchShape": "Form på färgprov",
     "swatchCircle": "Cirkel",
     "swatchSquare": "Kvadrat",
-    "swatchShapeHint": "Gäller variantfärger och färgpaletter i personalisering. Temats standard är cirkel."
+    "swatchShapeHint": "Gäller variantfärger och färgpaletter i personalisering. Temats standard är cirkel.",
+    "customCss": "Egen CSS",
+    "customCssHint": "För avancerade användare. Den här CSS-koden läggs till på alla sidor i din butik, efter temats stilar, och kan därför skriva över dem.",
+    "customCssEmptyHint": "Lämna fältet tomt för att ta bort din egen CSS.",
+    "customCssTooLong": "Egen CSS är begränsad till {max} tecken. Ta bort {over} tecken för att spara."
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

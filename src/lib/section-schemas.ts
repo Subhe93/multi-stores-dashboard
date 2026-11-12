@@ -55,6 +55,10 @@ export interface SectionSchema {
   pageTypes?: Array<
     'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER'
   >;
+  // Also allowed in the HEADER and FOOTER builders, on top of the page types
+  // above (or of the default when `pageTypes` is omitted). Mirrors the web
+  // SectionSchema; see lib/sectionAvailability.ts for the palette rule.
+  chrome?: boolean;
 }
 
 // Shared select options
@@ -1796,6 +1800,9 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       ar: 'الصق HTML و CSS و JavaScript مخصّص. اعرضه معزولاً في إطار آمن (يضبط ارتفاعه تلقائياً) أو مضمّناً في الصفحة.',
     },
     translatable: [],
+    // Content pages (default) plus the HEADER / FOOTER builders, so a snippet
+    // can run on every page of the store.
+    chrome: true,
     schema: [
       { key: 'html', type: 'textarea', label: { en: 'HTML', ar: 'HTML' }, description: { en: 'Markup to render.', ar: 'الكود البنائي.' } },
       { key: 'css', type: 'textarea', label: { en: 'CSS', ar: 'CSS' }, description: { en: 'Styles for the markup above.', ar: 'تنسيقات الكود أعلاه.' } },

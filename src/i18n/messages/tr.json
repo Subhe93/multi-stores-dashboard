@@ -6469,7 +6469,11 @@
     "swatchShape": "Renk örneği şekli",
     "swatchCircle": "Daire",
     "swatchSquare": "Kare",
-    "swatchShapeHint": "Varyant renk seçenekleri ve kişiselleştirme renk paletlerine uygulanır. Tema varsayılanı dairedir."
+    "swatchShapeHint": "Varyant renk seçenekleri ve kişiselleştirme renk paletlerine uygulanır. Tema varsayılanı dairedir.",
+    "customCss": "Özel CSS",
+    "customCssHint": "İleri düzey kullanıcılar içindir. Bu CSS, mağazanızın tüm sayfalarına tema stillerinden sonra eklenir ve onları geçersiz kılabilir.",
+    "customCssEmptyHint": "Özel CSS’i kaldırmak için alanı boş bırakın.",
+    "customCssTooLong": "Özel CSS en fazla {max} karakter olabilir. Kaydetmek için {over} karakter silin."
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",

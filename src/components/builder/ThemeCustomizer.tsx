@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Loader2, Palette, RotateCcw, X } from 'lucide-react';
+import { ChevronDown, Loader2, Palette, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/dialog';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
+import { CUSTOM_CSS_MAX_LENGTH, customCssOf, isCustomCssTooLong, withCustomCss } from '@/lib/customCss';
+import { cn } from '@/lib/utils';
 
 // ── Token shape (subset of the storefront's ThemeTokens we expose) ──
 export interface ThemeTokenCustomizations {
@@ -30,6 +32,11 @@ export interface ThemeTokenCustomizations {
   typography?: { fontFamily?: { heading?: string; body?: string } };
   /** Product page: colour swatch shape (storefront `--theme-swatch-radius`). */
   product?: { swatchShape?: SwatchShape };
+  /**
+   * Store-wide custom CSS (owner content, not a token). The storefront
+   * sanitizes it and renders it on every page of the store.
+   */
+  customCss?: string;
   [key: string]: unknown; // preserve unrelated keys (muted/border…)
 }
 
@@ -82,6 +89,8 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ThemeTokenCustomizations>(value);
   const [saving, setSaving] = useState(false);
+  // Custom CSS section: collapsed until opened, or open when CSS already exists.
+  const [cssOpen, setCssOpen] = useState(false);
 
   const apply = (next: ThemeTokenCustomizations) => {
     setDraft(next);
@@ -114,9 +123,21 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
     }
   };
 
-  const handleReset = () => apply({});
+  // Blank text deletes the key (same idea as setSwatchShape).
+  const setCustomCss = (v: string) => apply(withCustomCss(draft, v));
+
+  const customCss = customCssOf(draft);
+  const cssTooLong = isCustomCssTooLong(customCss);
+
+  // Resets the look tokens only: the custom CSS is owner content and stays.
+  const handleReset = () => apply(withCustomCss({}, customCss));
 
   const handleSave = async () => {
+    // Over the cap: the message under the field explains what to do.
+    if (cssTooLong) {
+      setCssOpen(true);
+      return;
+    }
     setSaving(true);
     try {
       await onSave(draft);
@@ -137,7 +158,10 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (o) setDraft(value);
+        if (o) {
+          setDraft(value);
+          setCssOpen(customCssOf(value) !== '');
+        }
         else onChange(value); // closing via overlay/esc reverts unsaved preview
       }}
     >
@@ -238,6 +262,60 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
               <p className="text-[11px] text-zinc-500">{t('swatchShapeHint')}</p>
             </div>
           </section>
+
+          {/* Store-wide custom CSS (collapsible, advanced) */}
+          <section className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setCssOpen((o) => !o)}
+              aria-expanded={cssOpen}
+              aria-controls="theme-custom-css"
+              className="flex w-full items-center justify-between gap-2 text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500 hover:text-zinc-800"
+            >
+              <span>{t('customCss')}</span>
+              <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', cssOpen && 'rotate-180')} />
+            </button>
+            {cssOpen && (
+              <div id="theme-custom-css" className="space-y-1">
+                <p className="text-[11px] text-zinc-500">{t('customCssHint')}</p>
+                {/* Code is always left-to-right, also in an RTL dashboard. */}
+                <textarea
+                  dir="ltr"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  rows={8}
+                  value={customCss}
+                  onChange={(e) => setCustomCss(e.target.value)}
+                  placeholder={'.store-root h1 {\n  letter-spacing: 0.02em;\n}'}
+                  aria-label={t('customCss')}
+                  aria-invalid={cssTooLong}
+                  aria-describedby="theme-custom-css-count"
+                  className={cn(
+                    'block w-full resize-y rounded-md border bg-white px-2.5 py-2 font-mono text-[11.5px] leading-relaxed text-left text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:ring-2',
+                    cssTooLong
+                      ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20',
+                  )}
+                />
+                <div className="flex items-start justify-between gap-3">
+                  <p className={cn('text-[11px]', cssTooLong ? 'text-red-600' : 'text-zinc-500')} role={cssTooLong ? 'alert' : undefined}>
+                    {cssTooLong
+                      ? t('customCssTooLong', { max: CUSTOM_CSS_MAX_LENGTH, over: customCss.length - CUSTOM_CSS_MAX_LENGTH })
+                      : t('customCssEmptyHint')}
+                  </p>
+                  <span
+                    id="theme-custom-css-count"
+                    dir="ltr"
+                    className={cn('shrink-0 font-mono text-[11px] tabular-nums', cssTooLong ? 'text-red-600 font-semibold' : 'text-zinc-400')}
+                  >
+                    {customCss.length} / {CUSTOM_CSS_MAX_LENGTH}
+                  </span>
+                </div>
+              </div>
+            )}
+          </section>
         </div>
 
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
@@ -249,7 +327,7 @@ export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigge
             <Button type="button" variant="outline" onClick={handleCancel} disabled={saving}>
               {tc('cancel')}
             </Button>
-            <Button type="button" onClick={handleSave} disabled={saving}>
+            <Button type="button" onClick={handleSave} disabled={saving || cssTooLong}>
               {saving ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />

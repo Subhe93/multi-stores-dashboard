@@ -6469,7 +6469,11 @@
     "swatchShape": "Forme des pastilles de couleur",
     "swatchCircle": "Cercle",
     "swatchSquare": "Carré",
-    "swatchShapeHint": "S’applique aux options de couleur des variantes et aux palettes de personnalisation. Par défaut du thème : cercle."
+    "swatchShapeHint": "S’applique aux options de couleur des variantes et aux palettes de personnalisation. Par défaut du thème : cercle.",
+    "customCss": "CSS personnalisé",
+    "customCssHint": "Pour les utilisateurs avancés. Ce CSS est ajouté à toutes les pages de votre boutique, après les styles du thème, et peut donc les remplacer.",
+    "customCssEmptyHint": "Laissez le champ vide pour supprimer le CSS personnalisé.",
+    "customCssTooLong": "Le CSS personnalisé est limité à {max} caractères. Supprimez {over} caractères pour enregistrer."
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",

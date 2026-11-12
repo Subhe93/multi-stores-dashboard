@@ -6469,7 +6469,11 @@
     "swatchShape": "Colour swatch shape",
     "swatchCircle": "Circle",
     "swatchSquare": "Square",
-    "swatchShapeHint": "Applies to variant colour options and personalization colour palettes. Theme default is circle."
+    "swatchShapeHint": "Applies to variant colour options and personalization colour palettes. Theme default is circle.",
+    "customCss": "Custom CSS",
+    "customCssHint": "For advanced users. This CSS is added to every page of your storefront, after the theme styles, so it can override them.",
+    "customCssEmptyHint": "Leave the field empty to remove the custom CSS.",
+    "customCssTooLong": "Custom CSS is limited to {max} characters. Remove {over} characters to save."
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",

@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { SECTION_SCHEMAS, labelOf, type SectionSchema } from '@/lib/section-schemas';
 import { presetsForPageType, type SectionPreset } from '@/lib/section-presets';
+// Palette rule: `pageTypes` whitelist, default "not HEADER/FOOTER", and the
+// `chrome` flag that adds HEADER/FOOTER (embed-code).
+import { isAvailableForPageType } from '@/lib/sectionAvailability';
 import { cn } from '@/lib/utils';
 import { SectionPreview } from './SectionPreviews';
 
@@ -44,22 +47,6 @@ const MAGIC_SECTION_KEYS = new Set([
   'add-to-cart',
 ]);
 
-// When a section schema declares `pageTypes`, the palette only shows it for
-// those page types. When omitted, the section is available on every page type
-// EXCEPT HEADER/FOOTER (so page-content sections don't pollute the chrome
-// builder). Chrome-only sections set pageTypes: ['HEADER'] or ['FOOTER'].
-function isAvailableForPageType(
-  schema: SectionSchema,
-  pageType: AddSectionDialogProps['pageType'],
-): boolean {
-  if (schema.pageTypes && schema.pageTypes.length > 0) {
-    return schema.pageTypes.includes(pageType);
-  }
-  // Default: hide from HEADER/FOOTER (they're chrome — only chrome-tagged
-  // sections belong there).
-  return pageType !== 'HEADER' && pageType !== 'FOOTER';
-}
-
 export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSectionDialogProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
@@ -76,7 +63,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
   // Visibility rules (in order):
   // - First filter by `pageTypes` whitelist on the schema. Chrome sections
   //   (header-bar, footer-columns, …) only show on HEADER/FOOTER; chrome
-  //   palettes hide all other sections by default.
+  //   palettes hide all other sections unless they are flagged `chrome`.
   // - PRODUCT_TEMPLATE additionally allows magic sections.
   // - Other regular page types drop magic sections (they need product context).
   //   CATALOG_TEMPLATE / COLLECTION_TEMPLATE behave like HOME/LANDING here; the
