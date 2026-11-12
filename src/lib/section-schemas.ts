@@ -641,6 +641,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'narrow', label: { en: 'Narrow', ar: 'ضيّق' } },
           { value: 'normal', label: { en: 'Normal', ar: 'عادي' } },
           { value: 'wide', label: { en: 'Wide', ar: 'واسع' } },
+          { value: 'full', label: { en: 'Full width', ar: 'كامل العرض' } },
         ],
       },
       { key: 'alignment', type: 'select', label: { en: 'Alignment', ar: 'المحاذاة' }, defaultValue: 'left', options: [
@@ -2794,11 +2795,32 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       },
     ],
     defaultSettings: {},
+    // Links valid on every store; keep identical to the storefront copy
+    // (multi-stores-web FooterColumns.tsx).
     defaultContent: {
       columns: [
-        { heading: 'Shop', links: [{ label: 'All products', url: '/products' }] },
-        { heading: 'Help', links: [{ label: 'Contact', url: '/pages/contact' }] },
-        { heading: 'Company', links: [{ label: 'About', url: '/pages/about' }] },
+        {
+          heading: 'Shop',
+          links: [
+            { label: 'All products', url: '/products' },
+            { label: 'Collections', url: '/collections' },
+          ],
+        },
+        {
+          heading: 'Help',
+          links: [
+            { label: 'Shipping', url: '/legal/shipping' },
+            { label: 'Returns', url: '/legal/refund' },
+            { label: 'Track my order', url: '/account/orders' },
+          ],
+        },
+        {
+          heading: 'Store',
+          links: [
+            { label: 'Terms', url: '/legal/terms' },
+            { label: 'Privacy', url: '/legal/privacy' },
+          ],
+        },
       ],
     },
   },
@@ -2984,6 +3006,8 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'border_color', type: 'color', label: { en: 'Border color', ar: 'لون الحدود' } },
     ],
     defaultSettings: { alignment: 'center' },
+    // Links valid on every store; keep identical to the storefront copy
+    // (multi-stores-web MegaMenu.tsx).
     defaultContent: {
       triggers: [
         {
@@ -2991,17 +3015,24 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           url: '/products',
           columns: [
             {
-              heading: 'Categories',
+              heading: 'Browse',
               links: [
+                { label: 'All products', url: '/products' },
                 { label: 'New arrivals', url: '/products?sort=newest' },
-                { label: 'Best sellers', url: '/products?sort=popular' },
-                { label: 'On sale', url: '/products?sale=true' },
+                { label: 'Collections', url: '/collections' },
+              ],
+            },
+            {
+              heading: 'Help',
+              links: [
+                { label: 'Shipping', url: '/legal/shipping' },
+                { label: 'Returns', url: '/legal/refund' },
+                { label: 'Track my order', url: '/account/orders' },
               ],
             },
           ],
         },
-        { label: 'About', url: '/pages/about' },
-        { label: 'Contact', url: '/pages/contact' },
+        { label: 'Collections', url: '/collections' },
       ],
     },
   },
@@ -3011,8 +3042,8 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     icon: 'smartphone',
     category: 'header',
     description: {
-      en: 'Fixed icon bar at the bottom of the viewport on mobile only. Six built-in destinations + a custom-link slot. Hidden ≥ md.',
-      ar: 'شريط أيقونات ثابت أسفل الشاشة على الجوال فقط. ست وجهات جاهزة + خانة رابط مخصّص. مخفي على الشاشات الأكبر.',
+      en: 'Fixed icon bar at the bottom of the viewport on mobile only. Built-in destinations (Home, Search, Categories, Cart, Account, Menu) + a custom-link slot. Hidden ≥ md.',
+      ar: 'شريط أيقونات ثابت أسفل الشاشة على الجوال فقط. وجهات جاهزة (الرئيسية، البحث، الفئات، السلة، الحساب، القائمة) + خانة رابط مخصّص. مخفي على الشاشات الأكبر.',
     },
     pageTypes: ['HEADER', 'FOOTER'],
     translatable: ['items'],
@@ -3033,8 +3064,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
               { value: 'categories', label: { en: 'Categories', ar: 'الفئات' } },
               { value: 'cart', label: { en: 'Cart', ar: 'السلة' } },
               { value: 'account', label: { en: 'Account', ar: 'الحساب' } },
-              { value: 'wishlist', label: { en: 'Wishlist', ar: 'المفضّلة' } },
-              { value: 'menu', label: { en: 'Menu', ar: 'القائمة' } },
+              { value: 'menu', label: { en: 'Menu (opens the header menu)', ar: 'القائمة (تفتح قائمة الهيدر)' } },
               { value: 'custom', label: { en: 'Custom link', ar: 'رابط مخصّص' } },
             ],
           },
