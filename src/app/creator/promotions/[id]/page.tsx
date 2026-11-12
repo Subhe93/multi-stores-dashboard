@@ -27,6 +27,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
+import { DiscountKindToggle, type DiscountKind } from '@/components/creator/DiscountKindToggle';
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
@@ -58,7 +59,7 @@ interface Promotion {
   starts_at?: string;
   expires_at?: string;
   status: PromotionStatus;
-  conditions?: { product_ids?: string[]; min_amount?: number; min_quantity?: number };
+  conditions?: { product_ids?: string[]; min_amount?: number; min_quantity?: number; discount_kind?: DiscountKind };
   translations: { locale: string; title: string; description?: string }[];
 }
 
@@ -105,10 +106,15 @@ function statusOptions(t: Translator) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function valueLabel(type: PromotionType, cur: string, t: Translator): string {
-  if (type === 'PERCENTAGE') return t('promotionForm.discountPercent');
-  if (type === 'FIXED_AMOUNT') return t('promotionForm.discountCurrency', { currency: cur });
+function valueLabel(type: PromotionType, cur: string, t: Translator, kind: DiscountKind): string {
+  if (type === 'PERCENTAGE' || (type === 'COUPON' && kind === 'percentage')) return t('promotionForm.discountPercent');
+  if (type === 'FIXED_AMOUNT' || (type === 'COUPON' && kind === 'fixed')) return t('promotionForm.discountCurrency', { currency: cur });
   return t('promotionForm.discountValue');
+}
+
+/** The value is read as a percentage (capped at 100 in the form and the API). */
+function isPercent(type: PromotionType | null, kind: DiscountKind): boolean {
+  return type === 'PERCENTAGE' || (type === 'COUPON' && kind === 'percentage');
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -132,6 +138,10 @@ export default function EditPromotionPage() {
   // Form state
   const [type, setType] = useState<PromotionType | null>(null);
   const [value, setValue] = useState('');
+  const [discountKind, setDiscountKind] = useState<DiscountKind>('percentage');
+  // Conditions as loaded, so a save keeps keys this form does not edit
+  // (min_amount, min_quantity) instead of wiping them.
+  const [loadedConditions, setLoadedConditions] = useState<Record<string, unknown>>({});
   const [couponCode, setCouponCode] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [usageCount, setUsageCount] = useState(0);
@@ -196,8 +206,11 @@ export default function EditPromotionPage() {
       setTitleEn(trans?.title || '');
       setDescEn(trans?.description || '');
 
-      // Pre-fill product targeting
+      // Pre-fill product targeting and the coupon discount kind (absent =
+      // percentage, how every coupon worked before the switch existed).
       const conds = promo.conditions;
+      setLoadedConditions((conds as Record<string, unknown>) || {});
+      setDiscountKind(conds?.discount_kind === 'fixed' ? 'fixed' : 'percentage');
       if (conds?.product_ids?.length) setSelectedProductIds(conds.product_ids);
     } catch {
       setError(tt('promotionForm.failedLoad'));
@@ -216,6 +229,10 @@ export default function EditPromotionPage() {
     e.preventDefault();
     if (!titleEn.trim()) {
       setError(tt('promotionForm.titleRequired'));
+      return;
+    }
+    if (isPercent(type, discountKind) && (parseFloat(value) || 0) > 100) {
+      setError(tt('promotionForm.percentMax'));
       return;
     }
     if (!token) return;
@@ -240,9 +257,12 @@ export default function EditPromotionPage() {
     // silently keep the previous value on the server.
     payload.usage_limit = usageLimit ? parseInt(usageLimit, 10) : null;
     payload.expires_at = expiresAt || null;
-    payload.conditions = selectedProductIds.length > 0
-      ? { product_ids: selectedProductIds }
-      : {};
+    const { product_ids: _ids, discount_kind: _kind, ...keptConditions } = loadedConditions;
+    payload.conditions = {
+      ...keptConditions,
+      ...(selectedProductIds.length > 0 ? { product_ids: selectedProductIds } : {}),
+      ...(type === 'COUPON' ? { discount_kind: discountKind } : {}),
+    };
 
     try {
       await api(`/promotions/${id}`, {
@@ -371,11 +391,15 @@ export default function EditPromotionPage() {
               {/* Value */}
               {showValueField && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">{valueLabel(type, currency, tt)}</Label>
+                  {type === 'COUPON' && (
+                    <DiscountKindToggle value={discountKind} currency={currency} onChange={setDiscountKind} />
+                  )}
+                  <Label className="text-xs">{valueLabel(type, currency, tt, discountKind)}</Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="0"
+                    max={isPercent(type, discountKind) ? 100 : undefined}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="0.00"

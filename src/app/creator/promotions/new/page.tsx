@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
+import { DiscountKindToggle, type DiscountKind } from '@/components/creator/DiscountKindToggle';
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
@@ -82,10 +83,15 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function valueLabel(type: PromotionType, cur: string, t: Translator): string {
-  if (type === 'PERCENTAGE') return t('promotionForm.discountPercent');
-  if (type === 'FIXED_AMOUNT') return t('promotionForm.discountCurrency', { currency: cur });
+function valueLabel(type: PromotionType, cur: string, t: Translator, kind: DiscountKind): string {
+  if (type === 'PERCENTAGE' || (type === 'COUPON' && kind === 'percentage')) return t('promotionForm.discountPercent');
+  if (type === 'FIXED_AMOUNT' || (type === 'COUPON' && kind === 'fixed')) return t('promotionForm.discountCurrency', { currency: cur });
   return t('promotionForm.discountValue');
+}
+
+/** The value is read as a percentage (capped at 100 in the form and the API). */
+function isPercent(type: PromotionType | null, kind: DiscountKind): boolean {
+  return type === 'PERCENTAGE' || (type === 'COUPON' && kind === 'percentage');
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -101,6 +107,7 @@ export default function NewPromotionPage() {
 
   const [type, setType] = useState<PromotionType | null>(null);
   const [value, setValue] = useState('');
+  const [discountKind, setDiscountKind] = useState<DiscountKind>('percentage');
   const [couponCode, setCouponCode] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [startsAt, setStartsAt] = useState(todayISO());
@@ -147,6 +154,7 @@ export default function NewPromotionPage() {
     if (!type) return tt('promotionForm.selectTypeError');
     if (!titleEn.trim()) return tt('promotionForm.titleRequired');
     if (type === 'COUPON' && !couponCode.trim()) return tt('promotionForm.couponRequired');
+    if (isPercent(type, discountKind) && (parseFloat(value) || 0) > 100) return tt('promotionForm.percentMax');
     return '';
   };
 
@@ -185,9 +193,10 @@ export default function NewPromotionPage() {
     if (expiresAt) {
       payload.expires_at = expiresAt;
     }
-    if (selectedProductIds.length > 0) {
-      payload.conditions = { product_ids: selectedProductIds };
-    }
+    const conditions: Record<string, unknown> = {};
+    if (selectedProductIds.length > 0) conditions.product_ids = selectedProductIds;
+    if (type === 'COUPON') conditions.discount_kind = discountKind;
+    if (Object.keys(conditions).length > 0) payload.conditions = conditions;
 
     try {
       await api('/promotions', {
@@ -275,11 +284,15 @@ export default function NewPromotionPage() {
               {/* Value field */}
               {showValueField && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">{valueLabel(type, currency, tt)}</Label>
+                  {type === 'COUPON' && (
+                    <DiscountKindToggle value={discountKind} currency={currency} onChange={setDiscountKind} />
+                  )}
+                  <Label className="text-xs">{valueLabel(type, currency, tt, discountKind)}</Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="0"
+                    max={isPercent(type, discountKind) ? 100 : undefined}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="0.00"

@@ -48,6 +48,7 @@ interface Promotion {
   status: PromotionStatus;
   translations: { locale: string; title: string }[];
   _count: { usages: number };
+  conditions?: { discount_kind?: 'percentage' | 'fixed' } | null;
 }
 
 interface Meta {
@@ -115,6 +116,9 @@ function formatValue(promo: Promotion, fmt: (v: number | string | null | undefin
       return `${promo.value}%`;
     case 'FIXED_AMOUNT':
       return fmt(promo.value);
+    case 'COUPON':
+      // Coupons without a kind predate the switch and were always percentages.
+      return promo.conditions?.discount_kind === 'fixed' ? fmt(promo.value) : `${promo.value}%`;
     case 'FREE_SHIPPING':
       return t('promotions.valueFree');
     case 'BUY_X_GET_Y':
