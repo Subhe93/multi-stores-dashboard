@@ -19,6 +19,7 @@ import {
   type MoveTarget,
 } from '@/lib/sectionTree';
 import {
+  convertedRowId,
   missingInCreateOrder,
   newSubtreeRootId,
   parentIdOf,
@@ -563,7 +564,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       }
       if (!Array.isArray(list)) return;
       setSections(list);
-      const rowId = newSubtreeRootId(before, list);
+      // The breadcrumb is the first new root now; select the row it points at.
+      const rowId = convertedRowId(before, list, sectionId) ?? newSubtreeRootId(before, list);
       if (rowId) setSelectedId(rowId);
       setNotice(tBuilder('convertBlocks.done'));
     },

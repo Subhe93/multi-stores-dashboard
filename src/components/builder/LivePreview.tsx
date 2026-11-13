@@ -8,7 +8,9 @@ import { api } from '@/lib/api';
 import {
   buildPreviewUpdateMessage,
   loadPreviewSampleProduct,
+  loadPreviewStoreInfo,
   type PreviewProduct,
+  type PreviewStoreInfo,
 } from '@/lib/previewSampleProduct';
 import { DEVICE_WIDTHS, type DevicePreset, type SectionInstance } from './types';
 
@@ -126,6 +128,28 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     };
   }, [sampleKey]);
 
+  // The store's real currency, enabled apps and tax settings, read once with
+  // the owner's token (see loadPreviewStoreInfo): a DRAFT store's anonymous
+  // read carries none of them, so the preview priced in EUR and kept the
+  // personalization app off. Keyed by store like the sample product.
+  const [loadedStore, setLoadedStore] = useState<{ key: string; info: PreviewStoreInfo | null } | null>(null);
+  const storeInfoKey = token ? storeSlug : '';
+  const storeInfo: PreviewStoreInfo | null =
+    storeInfoKey && loadedStore?.key === storeInfoKey ? loadedStore.info : null;
+  useEffect(() => {
+    if (!storeInfoKey) return;
+    let cancelled = false;
+    loadPreviewStoreInfo(
+      (endpoint) => api<unknown>(endpoint, { token: tokenRef.current ?? undefined }),
+      storeInfoKey,
+    ).then((info) => {
+      if (!cancelled) setLoadedStore({ key: storeInfoKey, info });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [storeInfoKey]);
+
   const updateMessage = useMemo(
     () =>
       buildPreviewUpdateMessage({
@@ -136,8 +160,9 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         primaryLocale,
         menus,
         product: sampleProduct,
+        store: storeInfo,
       }),
-    [themeKey, themeCustomizations, previewSections, storeLocale, primaryLocale, menus, sampleProduct],
+    [themeKey, themeCustomizations, previewSections, storeLocale, primaryLocale, menus, sampleProduct, storeInfo],
   );
   const updateMessageRef = useRef(updateMessage);
   useEffect(() => {

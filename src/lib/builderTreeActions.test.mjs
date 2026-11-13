@@ -12,6 +12,7 @@ import {
   survivorsInsideDropped,
   topMostDropped,
   newSubtreeRootId,
+  convertedRowId,
 } from './builderTreeActions.ts';
 
 const s = (id, sort_order, parent_id = null, section_key = 'rich-text') => ({ id, section_key, sort_order, parent_id });
@@ -101,4 +102,21 @@ test('newSubtreeRootId finds the duplicated root', () => {
   const after = [...tree(), s('colA2', 1, 'row', 'layout-column'), s('g2', 0, 'colA2'), s('t2', 1, 'colA2')];
   assert.equal(newSubtreeRootId(before, after), 'colA2');
   assert.equal(newSubtreeRootId(before, before), null);
+});
+
+test('convertedRowId selects the converted row, not the breadcrumb root above it', () => {
+  const before = [s('mono', 0, null, 'product-page')];
+  const marker = { _converted_from: 'mono' };
+  const after = [
+    ...before,
+    { ...s('crumb', 1, null, 'product-breadcrumb'), settings: marker },
+    { ...s('row2', 2, null, 'layout-row'), settings: marker },
+    s('col', 0, 'row2', 'layout-column'),
+    { ...s('tabs2', 3, null, 'product-tabs'), settings: marker },
+  ];
+  assert.equal(newSubtreeRootId(before, after), 'crumb');
+  assert.equal(convertedRowId(before, after, 'mono'), 'row2');
+  // Another monolith's row, or a row that existed before, is not picked.
+  assert.equal(convertedRowId(before, after, 'other'), null);
+  assert.equal(convertedRowId(after, after, 'mono'), null);
 });

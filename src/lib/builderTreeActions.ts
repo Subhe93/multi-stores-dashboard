@@ -161,6 +161,30 @@ export function newSubtreeRootId(before: readonly TreeRowLike[], after: readonly
   return root?.id ?? null;
 }
 
+/**
+ * The layout row a "Convert to blocks" built for `monolithId`: the new
+ * `layout-row` whose settings point back at the monolith (`_converted_from`).
+ * The breadcrumb is the first new root in tree order, so the generic
+ * newSubtreeRootId would select it instead. Null when there is none.
+ */
+export function convertedRowId(
+  before: readonly TreeRowLike[],
+  after: readonly (TreeRowLike & { settings?: unknown })[],
+  monolithId: string,
+): string | null {
+  const known = new Set(before.map((s) => s.id));
+  const row = after.find((s) => {
+    if (known.has(s.id) || s.section_key !== 'layout-row') return false;
+    const settings = s.settings;
+    return (
+      !!settings &&
+      typeof settings === 'object' &&
+      (settings as Record<string, unknown>)._converted_from === monolithId
+    );
+  });
+  return row?.id ?? null;
+}
+
 /** Error codes of the section-tree API (pages-v2 section-tree.ts and friends). */
 export const SECTION_TREE_ERROR_CODES = [
   'PAGE_SECTION_NOT_FOUND',

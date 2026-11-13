@@ -45,37 +45,83 @@ const leaf = (section_key: string, settings: Record<string, unknown> = {}): Pres
 });
 
 /**
- * Row [ Column(gallery, sticky) | Column(breadcrumb … shipping) ] + tabs,
- * matching today's product page (gallery and info columns of equal width,
- * the gallery column sticky on desktop). Personalization always sits next to
- * variants and buy: it holds the piece-one option and the designer form.
+ * The monolith's vertical spacing as section padding (desktop >= 1024px,
+ * tablet = below 1024px = below Tailwind's lg, mobile inherits tablet).
+ * Same values as the API's convert (CLASSIC_*_PADDING there).
+ */
+// Page top (py-8 lg:py-10) + breadcrumb bottom margin (mb-6 lg:mb-8).
+export const CLASSIC_BREADCRUMB_PADDING = {
+  desktop: { top: 40, bottom: 32 },
+  tablet: { top: 32, bottom: 24 },
+};
+// Page bottom (py-8 lg:py-10), always on the row: the storefront hides a root
+// product block that renders nothing (tabs of a product without description,
+// specifications or FAQs), and the page must then still end like the
+// monolith's.
+export const CLASSIC_ROW_PADDING = {
+  desktop: { bottom: 40 },
+  tablet: { bottom: 32 },
+};
+// Tabs top margin (mt-12 lg:mt-16) minus the row's page bottom above it, then
+// the page bottom again: 40 + 24 = 64 and 32 + 16 = 48 between the columns
+// and the tabs, like the monolith.
+export const CLASSIC_TABS_PADDING = {
+  desktop: { top: 24, bottom: 40 },
+  tablet: { top: 16, bottom: 32 },
+};
+
+/**
+ * Breadcrumb + Row [ Column(gallery, sticky) | Column(title … shipping) ] +
+ * tabs, with the geometry of today's product page (ProductPageMagic +
+ * ProductDetailClient): breadcrumb full width above both columns; equal
+ * columns side by side from 768px (md:grid-cols-2), gap 32px below 1024px
+ * and 56px above (gap-8 lg:gap-14); gallery sticky 96px from the top
+ * wherever the columns sit side by side (md:sticky md:top-24); 20px between
+ * the info blocks (gap-5). Personalization always sits next to variants and
+ * buy: it holds the piece-one option and the designer form.
  */
 export const CLASSIC_PRODUCT_PRESET_SECTIONS: PresetNode[] = [
+  leaf('product-breadcrumb', { show_current: true, _style: { padding: CLASSIC_BREADCRUMB_PADDING } }),
   {
     section_key: 'layout-row',
     settings: {
       gap_px: 56,
+      gap_tablet_px: 32,
       align: 'stretch',
       child_width: 'fill',
       justify: 'start',
       wrap: false,
-      stack_on: 'tablet',
+      stack_on: 'mobile',
       reverse_on_mobile: false,
+      _style: { padding: CLASSIC_ROW_PADDING },
     },
     content: {},
     children: [
       {
         section_key: 'layout-column',
-        settings: { gap_px: 16, align: 'stretch', sticky_desktop: true, sticky_top_px: 96, _layout: { span: { desktop: 1 } } },
+        settings: {
+          gap_px: 16,
+          align: 'stretch',
+          sticky_desktop: true,
+          sticky_top_px: 96,
+          sticky_from: 'tablet',
+          _layout: { span: { desktop: 1 } },
+        },
         content: {},
         children: [leaf('product-gallery', { layout: 'classic', aspect: 'square', enable_zoom: true })],
       },
       {
         section_key: 'layout-column',
-        settings: { gap_px: 20, align: 'stretch', sticky_desktop: false, sticky_top_px: 24, _layout: { span: { desktop: 1 } } },
+        settings: {
+          gap_px: 20,
+          align: 'stretch',
+          sticky_desktop: false,
+          sticky_top_px: 24,
+          sticky_from: 'desktop',
+          _layout: { span: { desktop: 1 } },
+        },
         content: {},
         children: [
-          leaf('product-breadcrumb', { show_current: true }),
           leaf('product-title', { show_collection: true, show_vendor: true }),
           leaf('product-price', { show_compare_at: true, show_savings: true, show_unit_price: true, show_sku: true }),
           leaf('product-short-description'),
@@ -98,6 +144,7 @@ export const CLASSIC_PRODUCT_PRESET_SECTIONS: PresetNode[] = [
     show_faqs: true,
     show_shipping: false,
     show_returns: false,
+    _style: { padding: CLASSIC_TABS_PADDING },
   }),
 ];
 

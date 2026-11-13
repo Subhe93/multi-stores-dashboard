@@ -392,10 +392,12 @@ test('child layout values live in settings._layout', () => {
 
 test('container schemas: keys, product template only, settings', () => {
   const expected = {
-    'layout-row': ['gap_px', 'align', 'child_width', 'justify', 'wrap', 'stack_on', 'reverse_on_mobile'],
-    'layout-column': ['gap_px', 'align', 'sticky_desktop', 'sticky_top_px'],
+    'layout-row': ['gap_px', 'gap_tablet_px', 'gap_mobile_px', 'align', 'child_width', 'justify', 'wrap', 'stack_on', 'reverse_on_mobile'],
+    'layout-column': ['gap_px', 'align', 'sticky_desktop', 'sticky_top_px', 'sticky_from'],
     'layout-grid': ['columns_desktop', 'columns_tablet', 'columns_mobile', 'gap_px', 'row_gap_px', 'align'],
   };
+  // Per-breakpoint overrides: empty = inherit the wider screen, so no default.
+  const optionalKeys = new Set(['gap_tablet_px', 'gap_mobile_px']);
   for (const [id, keys] of Object.entries(expected)) {
     const schema = findSectionSchema(id);
     assert.ok(schema, id);
@@ -406,7 +408,10 @@ test('container schemas: keys, product template only, settings', () => {
     assert.ok(schema.description.en && schema.description.ar, `${id} description`);
     for (const f of schema.schema) assert.ok(f.label.en && f.label.ar, `${id}.${f.key} label`);
     // Every setting has a default.
-    for (const k of keys) assert.ok(k in schema.defaultSettings, `${id}.${k} default`);
+    for (const k of keys) {
+      if (optionalKeys.has(k)) assert.ok(!(k in schema.defaultSettings), `${id}.${k} inherits`);
+      else assert.ok(k in schema.defaultSettings, `${id}.${k} default`);
+    }
     // Gated: hidden from the palette until the builder enables layout containers.
     assert.equal(schema.gate, 'layout-containers');
     assert.equal(isAvailableForPageType(schema, 'PRODUCT_TEMPLATE'), false, `${id} hidden by default`);
@@ -454,13 +459,17 @@ test('container schemas mirror the web renderer defaults, ranges and options', (
   assert.deepEqual(optionValues('layout-row', 'child_width'), ['fill', 'auto']);
   assert.deepEqual(optionValues('layout-row', 'justify'), ['start', 'center', 'end', 'between']);
   assert.deepEqual(optionValues('layout-row', 'stack_on'), ['tablet', 'mobile', 'never']);
+  assert.deepEqual(range('layout-row', 'gap_tablet_px'), [0, 200, undefined]);
+  assert.deepEqual(range('layout-row', 'gap_mobile_px'), [0, 200, undefined]);
 
   assert.deepEqual(findSectionSchema('layout-column').defaultSettings, {
     gap_px: 16,
     align: 'stretch',
     sticky_desktop: false,
     sticky_top_px: 24,
+    sticky_from: 'desktop',
   });
+  assert.deepEqual(optionValues('layout-column', 'sticky_from'), ['desktop', 'tablet']);
   assert.deepEqual(range('layout-column', 'gap_px'), [0, 200, 16]);
   assert.deepEqual(range('layout-column', 'sticky_top_px'), [0, 400, 24]);
   assert.deepEqual(optionValues('layout-column', 'align'), ALIGN);

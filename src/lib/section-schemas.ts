@@ -2371,6 +2371,23 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     gate: 'layout-containers',
     schema: [
       { key: 'gap_px', type: 'number', label: { en: 'Gap (px)', ar: 'المسافة بين الأعمدة (px)' }, min: 0, max: 200, defaultValue: 32 },
+      // Optional: empty = same gap as the wider screen (no default on purpose).
+      {
+        key: 'gap_tablet_px',
+        type: 'number',
+        label: { en: 'Gap on tablet (px)', ar: 'المسافة على الجهاز اللوحي (px)' },
+        description: { en: 'Empty = same as desktop.', ar: 'فارغ = مثل الكمبيوتر.' },
+        min: 0,
+        max: 200,
+      },
+      {
+        key: 'gap_mobile_px',
+        type: 'number',
+        label: { en: 'Gap on mobile (px)', ar: 'المسافة على الجوال (px)' },
+        description: { en: 'Empty = same as tablet.', ar: 'فارغ = مثل الجهاز اللوحي.' },
+        min: 0,
+        max: 200,
+      },
       {
         key: 'align',
         type: 'select',
@@ -2461,8 +2478,22 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         defaultValue: false,
       },
       { key: 'sticky_top_px', type: 'number', label: { en: 'Sticky top offset (px)', ar: 'المسافة من الأعلى عند التثبيت (px)' }, min: 0, max: 400, defaultValue: 24 },
+      {
+        key: 'sticky_from',
+        type: 'select',
+        label: { en: 'Sticky from', ar: 'التثبيت ابتداءً من' },
+        description: {
+          en: 'Use "Tablet and desktop" when the row stacks on mobile only.',
+          ar: 'اختر "الجهاز اللوحي والكمبيوتر" عندما يتكدّس الصف على الجوال فقط.',
+        },
+        defaultValue: 'desktop',
+        options: [
+          { value: 'desktop', label: { en: 'Desktop', ar: 'الكمبيوتر' } },
+          { value: 'tablet', label: { en: 'Tablet and desktop', ar: 'الجهاز اللوحي والكمبيوتر' } },
+        ],
+      },
     ],
-    defaultSettings: { gap_px: 16, align: 'stretch', sticky_desktop: false, sticky_top_px: 24 },
+    defaultSettings: { gap_px: 16, align: 'stretch', sticky_desktop: false, sticky_top_px: 24, sticky_from: 'desktop' },
     defaultContent: {},
   },
   {
