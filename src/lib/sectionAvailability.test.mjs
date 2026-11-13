@@ -59,6 +59,8 @@ test('the other sections keep their previous availability', () => {
       : type !== 'HEADER' && type !== 'FOOTER';
   for (const schema of SECTION_SCHEMAS) {
     if (schema.id === 'embed-code') continue;
+    // Gated sections (layout containers) are new; covered in sectionTree.test.mjs.
+    if (schema.gate) continue;
     assert.notEqual(schema.chrome, true, `${schema.id} is not chrome-flagged`);
     for (const type of [...CONTENT_PAGES, ...CHROME_PAGES]) {
       assert.equal(isAvailableForPageType(schema, type), before(schema, type), `${schema.id} on ${type}`);

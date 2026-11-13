@@ -59,6 +59,9 @@ export interface SectionSchema {
   // above (or of the default when `pageTypes` is omitted). Mirrors the web
   // SectionSchema; see lib/sectionAvailability.ts for the palette rule.
   chrome?: boolean;
+  // Feature gate: the palette hides the section unless the builder enables
+  // it (lib/sectionAvailability.ts AvailabilityOptions).
+  gate?: 'layout-containers';
 }
 
 // Shared select options
@@ -143,6 +146,64 @@ function buttonStyleFields(prefix: string, en: { suffix?: string } = {}, ar: { s
     n(`${prefix}_border_radius`, `Button corner radius (px)${enS}`, `انحناء زوايا الزر (px)${arS}`, { min: 0, max: 100 }),
   ];
 }
+
+// Cross-axis alignment of the children of a layout container.
+// Mirrors ALIGN_OPTIONS in multi-stores-web/src/themes/minimal/sections/layout/options.ts.
+const CONTAINER_ALIGN_OPTIONS = [
+  { value: 'stretch', label: { en: 'Stretch', ar: 'تمدد' } },
+  { value: 'start', label: { en: 'Start', ar: 'البداية' } },
+  { value: 'center', label: { en: 'Center', ar: 'الوسط' } },
+  { value: 'end', label: { en: 'End', ar: 'النهاية' } },
+];
+
+/**
+ * Fields of the "Layout in parent" inspector panel for a section that sits
+ * inside a layout container. Keys are paths inside the CHILD's
+ * settings._layout ('span.desktop' -> settings._layout.span.desktop); read and
+ * write them with getChildLayoutValue / setChildLayoutValue from
+ * lib/sectionTree.ts. Empty means "container default".
+ */
+export const CHILD_LAYOUT_FIELDS: FieldDefinition[] = [
+  {
+    key: 'span.desktop',
+    type: 'number',
+    label: { en: 'Width share — desktop', ar: 'حصة العرض — سطح المكتب' },
+    description: {
+      en: 'In a grid: how many columns it spans. In a row: its width ratio against the other columns.',
+      ar: 'في الشبكة: عدد الأعمدة التي يمتد عليها. في الصف: نسبة عرضه مقارنة ببقية الأعمدة.',
+    },
+    min: 1,
+    max: 12,
+  },
+  { key: 'span.tablet', type: 'number', label: { en: 'Width share — tablet', ar: 'حصة العرض — تابلت' }, min: 1, max: 12 },
+  { key: 'span.mobile', type: 'number', label: { en: 'Width share — mobile', ar: 'حصة العرض — جوال' }, min: 1, max: 12 },
+  {
+    key: 'order.desktop',
+    type: 'number',
+    label: { en: 'Display order — desktop', ar: 'ترتيب العرض — سطح المكتب' },
+    description: {
+      en: 'Lower numbers show first. Leave empty to keep the order of the section list.',
+      ar: 'الأرقام الأصغر تظهر أولاً. اتركه فارغاً للإبقاء على ترتيب قائمة الأقسام.',
+    },
+    min: -20,
+    max: 20,
+  },
+  { key: 'order.tablet', type: 'number', label: { en: 'Display order — tablet', ar: 'ترتيب العرض — تابلت' }, min: -20, max: 20 },
+  { key: 'order.mobile', type: 'number', label: { en: 'Display order — mobile', ar: 'ترتيب العرض — جوال' }, min: -20, max: 20 },
+  {
+    key: 'align_self',
+    type: 'select',
+    label: { en: 'Own alignment', ar: 'محاذاته الخاصة' },
+    defaultValue: '',
+    options: [{ value: '', label: { en: 'Container default', ar: 'افتراضي الحاوية' } }, ...CONTAINER_ALIGN_OPTIONS],
+  },
+  {
+    key: 'sticky',
+    type: 'boolean',
+    label: { en: 'Stay in view while scrolling (desktop)', ar: 'تثبيت أثناء التمرير (سطح المكتب)' },
+    defaultValue: false,
+  },
+];
 
 // ── Section catalog (mirrors multi-stores-web/src/themes/minimal/sections/*) ─
 
@@ -2156,6 +2217,147 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         },
       ],
     },
+  },
+  // ── Layout containers ──────────────────────────────────────────────
+  // Sections that hold other sections (children carry parent_id). Only these
+  // three keys may be parents; see lib/sectionTree.ts for the nesting rules.
+  // Each child's placement lives in its own settings._layout (CHILD_LAYOUT_FIELDS).
+  {
+    id: 'layout-row',
+    label: { en: 'Row', ar: 'صف' },
+    icon: 'columns',
+    category: 'layout',
+    description: {
+      en: 'Places sections side by side in columns. Stacks on smaller screens.',
+      ar: 'يضع الأقسام جنباً إلى جنب في أعمدة، وتتكدّس على الشاشات الأصغر.',
+    },
+    translatable: [],
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    schema: [
+      { key: 'gap_px', type: 'number', label: { en: 'Gap (px)', ar: 'المسافة بين الأعمدة (px)' }, min: 0, max: 200, defaultValue: 32 },
+      {
+        key: 'align',
+        type: 'select',
+        label: { en: 'Vertical alignment', ar: 'المحاذاة العمودية' },
+        defaultValue: 'stretch',
+        options: CONTAINER_ALIGN_OPTIONS,
+      },
+      {
+        key: 'child_width',
+        type: 'select',
+        label: { en: 'Column width', ar: 'عرض الأعمدة' },
+        defaultValue: 'fill',
+        options: [
+          { value: 'fill', label: { en: 'Fill the row (by ratio)', ar: 'ملء الصف (حسب النسبة)' } },
+          { value: 'auto', label: { en: 'Fit the content', ar: 'بحسب المحتوى' } },
+        ],
+      },
+      {
+        key: 'justify',
+        type: 'select',
+        label: { en: 'Horizontal alignment', ar: 'المحاذاة الأفقية' },
+        description: {
+          en: 'Applies when columns fit their content.',
+          ar: 'تُطبَّق عندما يكون عرض الأعمدة بحسب المحتوى.',
+        },
+        defaultValue: 'start',
+        options: [
+          { value: 'start', label: { en: 'Start', ar: 'البداية' } },
+          { value: 'center', label: { en: 'Center', ar: 'الوسط' } },
+          { value: 'end', label: { en: 'End', ar: 'النهاية' } },
+          { value: 'between', label: { en: 'Space between', ar: 'توزيع بالتساوي' } },
+        ],
+      },
+      { key: 'wrap', type: 'boolean', label: { en: 'Wrap to new lines', ar: 'الالتفاف إلى سطر جديد' }, defaultValue: false },
+      {
+        key: 'stack_on',
+        type: 'select',
+        label: { en: 'Stack columns on', ar: 'تكديس الأعمدة على' },
+        defaultValue: 'tablet',
+        options: [
+          { value: 'tablet', label: { en: 'Tablet and mobile', ar: 'الجهاز اللوحي والجوال' } },
+          { value: 'mobile', label: { en: 'Mobile only', ar: 'الجوال فقط' } },
+          { value: 'never', label: { en: 'Never', ar: 'أبداً' } },
+        ],
+      },
+      { key: 'reverse_on_mobile', type: 'boolean', label: { en: 'Reverse order on mobile', ar: 'عكس الترتيب على الجوال' }, defaultValue: false },
+    ],
+    defaultSettings: {
+      gap_px: 32,
+      align: 'stretch',
+      child_width: 'fill',
+      justify: 'start',
+      wrap: false,
+      stack_on: 'tablet',
+      reverse_on_mobile: false,
+    },
+    defaultContent: {},
+  },
+  {
+    id: 'layout-column',
+    label: { en: 'Column', ar: 'عمود' },
+    icon: 'rows',
+    category: 'layout',
+    description: {
+      en: 'Stacks sections vertically. Can stay in view while scrolling on desktop, e.g. a gallery column.',
+      ar: 'يضع الأقسام فوق بعضها، ويمكن تثبيته أثناء التمرير على الكمبيوتر، مثل عمود الصور.',
+    },
+    translatable: [],
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    schema: [
+      { key: 'gap_px', type: 'number', label: { en: 'Gap (px)', ar: 'المسافة بين الأقسام (px)' }, min: 0, max: 200, defaultValue: 16 },
+      {
+        key: 'align',
+        type: 'select',
+        label: { en: 'Horizontal alignment', ar: 'المحاذاة الأفقية' },
+        defaultValue: 'stretch',
+        options: CONTAINER_ALIGN_OPTIONS,
+      },
+      {
+        key: 'sticky_desktop',
+        type: 'boolean',
+        label: { en: 'Sticky on desktop', ar: 'تثبيت أثناء التمرير على الكمبيوتر' },
+        description: {
+          en: 'Keeps the column in view while the next column scrolls.',
+          ar: 'يبقى العمود ظاهراً بينما يتحرك العمود المجاور مع التمرير.',
+        },
+        defaultValue: false,
+      },
+      { key: 'sticky_top_px', type: 'number', label: { en: 'Sticky top offset (px)', ar: 'المسافة من الأعلى عند التثبيت (px)' }, min: 0, max: 400, defaultValue: 24 },
+    ],
+    defaultSettings: { gap_px: 16, align: 'stretch', sticky_desktop: false, sticky_top_px: 24 },
+    defaultContent: {},
+  },
+  {
+    id: 'layout-grid',
+    label: { en: 'Grid', ar: 'شبكة' },
+    icon: 'grid',
+    category: 'layout',
+    description: {
+      en: 'Arranges sections in a responsive grid with its own column count per device.',
+      ar: 'يرتّب الأقسام في شبكة متجاوبة بعدد أعمدة خاص لكل جهاز.',
+    },
+    translatable: [],
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    schema: [
+      { key: 'columns_desktop', type: 'number', label: { en: 'Columns on desktop', ar: 'الأعمدة على الكمبيوتر' }, min: 1, max: 12, defaultValue: 2 },
+      { key: 'columns_tablet', type: 'number', label: { en: 'Columns on tablet', ar: 'الأعمدة على الجهاز اللوحي' }, min: 1, max: 12, defaultValue: 2 },
+      { key: 'columns_mobile', type: 'number', label: { en: 'Columns on mobile', ar: 'الأعمدة على الجوال' }, min: 1, max: 12, defaultValue: 1 },
+      { key: 'gap_px', type: 'number', label: { en: 'Column gap (px)', ar: 'المسافة بين الأعمدة (px)' }, min: 0, max: 200, defaultValue: 24 },
+      { key: 'row_gap_px', type: 'number', label: { en: 'Row gap (px)', ar: 'المسافة بين الصفوف (px)' }, min: 0, max: 200, defaultValue: 24 },
+      {
+        key: 'align',
+        type: 'select',
+        label: { en: 'Vertical alignment', ar: 'المحاذاة العمودية' },
+        defaultValue: 'stretch',
+        options: CONTAINER_ALIGN_OPTIONS,
+      },
+    ],
+    defaultSettings: { columns_desktop: 2, columns_tablet: 2, columns_mobile: 1, gap_px: 24, row_gap_px: 24, align: 'stretch' },
+    defaultContent: {},
   },
   {
     id: 'featured-products',

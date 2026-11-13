@@ -5,7 +5,11 @@ export interface SectionInstance {
   id: string;
   section_key: string;
   settings: Record<string, unknown>;
+  // Scoped to siblings (same parent_id).
   sort_order: number;
+  // Parent layout container (layout-row / layout-column / layout-grid).
+  // Absent or null = root of the page. See lib/sectionTree.ts.
+  parent_id?: string | null;
   is_hidden?: boolean;
   // Server returns rows; we collapse into a map on load for easier editing.
   translations: { locale: string; content: Record<string, unknown> }[];

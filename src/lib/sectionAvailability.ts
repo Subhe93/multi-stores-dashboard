@@ -15,6 +15,17 @@ export type BuilderPageType =
 export interface SectionAvailability {
   pageTypes?: readonly BuilderPageType[];
   chrome?: boolean;
+  /** Feature gate: hidden unless the caller enables it (see AvailabilityOptions). */
+  gate?: 'layout-containers';
+}
+
+export interface AvailabilityOptions {
+  /**
+   * Offer the nested layout containers (layout-row / -column / -grid). Off by
+   * default so the palette stays as before until the tree builder and the
+   * per-store flag are wired in.
+   */
+  layoutContainers?: boolean;
 }
 
 function isChromePageType(pageType: BuilderPageType): boolean {
@@ -28,11 +39,14 @@ function isChromePageType(pageType: BuilderPageType): boolean {
  *   pageTypes: ['HEADER'] or ['FOOTER'].
  * - `chrome: true`: additionally allowed in HEADER and FOOTER, whatever the
  *   rule above says (embed-code: content pages plus the store chrome).
+ * - `gate` set: hidden unless the matching option is enabled.
  */
 export function isAvailableForPageType(
   schema: SectionAvailability,
   pageType: BuilderPageType,
+  options: AvailabilityOptions = {},
 ): boolean {
+  if (schema.gate === 'layout-containers' && !options.layoutContainers) return false;
   if (schema.chrome && isChromePageType(pageType)) return true;
   if (schema.pageTypes && schema.pageTypes.length > 0) {
     return schema.pageTypes.includes(pageType);
