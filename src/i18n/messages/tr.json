@@ -2742,7 +2742,7 @@
       },
       "tracking": {
         "title": "İzleme ve çerezler",
-        "subtitle": "Mağazanız için Google Analytics, Meta Pixel ve TikTok Pixel. En az bir kimlik girildiğinde ziyaretçiler bir çerez bildirimi görür ve izleyiciler yalnızca onaydan sonra yüklenir.",
+        "subtitle": "Mağazanız için Google Analytics, Meta Pixel, TikTok Pixel ve Microsoft Clarity. En az bir kimlik girildiğinde ziyaretçiler bir çerez bildirimi görür ve izleyiciler yalnızca onay verdikten sonra yüklenir.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 ölçüm kimliği",
           "hint": "GA4’te Yönetici → Veri akışları altında bulunur, örn. G-XXXXXXXXXX."
@@ -2771,17 +2771,25 @@
           "label": "TikTok Pixel kimliği",
           "hint": "TikTok Events Manager’dan, örn. CXXXXXXXXXXXXXXXXX."
         },
+        "clarity_project_id": {
+          "label": "Microsoft Clarity proje kimliği",
+          "hint": "Isı haritaları ve oturum kayıtları. clarity.microsoft.com → Settings → Setup altında bulunur, ör. abcdefghij.",
+          "help": "Clarity her zaman yalnızca ziyaretçi çerezleri kabul ettikten sonra yüklenir. Clarity’de maskelemeyi Strict olarak ayarlayın (Settings → Masking), böylece isim gibi müşteri metinleri kayıtlarda asla görünmez; kendi IP adresinizi de hariç tutun.",
+          "noCustomCode": "Clarity izleme kodunu özel kod veya HTML bölümüne yapıştırmayın: özel kod onay beklemez ve ziyaretçileri çerezleri kabul etmeden önce kaydeder."
+        },
         "invalid": {
           "ga4_measurement_id": "GA4 ölçüm kimliği G-XXXXXXXXXX biçiminde olmalıdır.",
           "meta_pixel_id": "Meta Pixel kimliği yalnızca rakamlardan oluşmalıdır (en az 5).",
           "meta_capi_token": "Erişim belirteci yalnızca harf, rakam, \"_\", \"-\" ve \"|\" içerebilir (en fazla 600 karakter). Meta’nın gösterdiği şekilde aynen yapıştırın.",
           "meta_test_event_code": "Test olayı kodu yalnızca harf, rakam, \"_\" ve \"-\" içerebilir (en fazla 40 karakter).",
           "tiktok_pixel_id": "TikTok Pixel kimliği yalnızca harf ve rakamlardan oluşmalıdır (8–64 karakter).",
+          "clarity_project_id": "Clarity proje kimliği 8–12 harf ve rakamdan oluşmalıdır, ör. abcdefghij (izleme kodu değil, yalnızca kimlik).",
           "consent_required": "Çerez bildirimi ayarı açık veya kapalı olmalıdır."
         },
         "consentRequired": "Çerez onayı iste",
         "consentRequiredOn": "Ziyaretçiler bir çerez bildirimi görür; izleyiciler yalnızca onaydan sonra yüklenir (AB’de önerilir).",
         "consentRequiredOff": "İzleyiciler sormadan her ziyaretçi için yüklenir. Yasal dayanaktan siz sorumlusunuz.",
+        "clarityConsentOffWarning": "Bu ayar kapalı olsa bile Microsoft Clarity yalnızca ziyaretçi çerezleri kabul ettikten sonra yüklenir. AB’de analiz ve pazarlama izleyicileri onay gerektirir; bu ayarı açık tutun.",
         "noIdsHint": "Hiçbir izleyici ayarlanmadı: mağaza çerez bildirimi göstermez ve hiçbir betik yüklemez.",
         "saved": "İzleme ayarları kaydedildi.",
         "unsaved": "Kaydedilmemiş değişiklikler",

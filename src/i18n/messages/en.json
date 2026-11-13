@@ -2742,7 +2742,7 @@
       },
       "tracking": {
         "title": "Tracking & cookies",
-        "subtitle": "Google Analytics, Meta Pixel and TikTok Pixel for your storefront. When at least one id is set, visitors see a cookie banner and the trackers load only after they accept.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel and Microsoft Clarity for your storefront. When at least one id is set, visitors see a cookie banner and the trackers load only after they accept.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 measurement ID",
           "hint": "Found in GA4 under Admin → Data streams, e.g. G-XXXXXXXXXX."
@@ -2771,17 +2771,25 @@
           "label": "TikTok Pixel ID",
           "hint": "From TikTok Events Manager, e.g. CXXXXXXXXXXXXXXXXX."
         },
+        "clarity_project_id": {
+          "label": "Microsoft Clarity project ID",
+          "hint": "Heatmaps and session recordings. Found in clarity.microsoft.com → Settings → Setup, e.g. abcdefghij.",
+          "help": "Clarity always loads only after the visitor accepts cookies. In Clarity, set masking to Strict (Settings → Masking) so customer text such as names never appears in recordings, and exclude your own IP address.",
+          "noCustomCode": "Do not paste the Clarity tracking code into a custom code or HTML section: custom code does not wait for consent and would record visitors before they accept cookies."
+        },
         "invalid": {
           "ga4_measurement_id": "The GA4 measurement ID must look like G-XXXXXXXXXX.",
           "meta_pixel_id": "The Meta Pixel ID must contain digits only (at least 5).",
           "meta_capi_token": "The access token may only contain letters, digits, \"_\", \"-\" and \"|\" (max 600 characters). Paste it exactly as Meta shows it.",
           "meta_test_event_code": "The test event code may only contain letters, digits, \"_\" and \"-\" (max 40 characters).",
           "tiktok_pixel_id": "The TikTok Pixel ID must contain letters and digits only (8–64 characters).",
+          "clarity_project_id": "The Clarity project ID must be 8–12 letters and digits, e.g. abcdefghij (only the ID, not the tracking code).",
           "consent_required": "The cookie banner setting must be on or off."
         },
         "consentRequired": "Ask for cookie consent",
         "consentRequiredOn": "Visitors see a cookie banner; trackers load only after they accept (recommended in the EU).",
         "consentRequiredOff": "Trackers load for every visitor without asking. You are responsible for the legal basis.",
+        "clarityConsentOffWarning": "Microsoft Clarity still loads only after the visitor accepts cookies, even with this setting off. In the EU, analytics and marketing trackers need consent, so keep this setting on.",
         "noIdsHint": "No tracker is configured: the storefront shows no cookie banner and loads no scripts.",
         "saved": "Tracking settings saved.",
         "unsaved": "Unsaved changes",

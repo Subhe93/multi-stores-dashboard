@@ -10,13 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
+import {
+  TRACKING_ID_FIELDS,
+  TRACKING_ID_RULES,
+  clarityPatch,
+  normalizeTrackingId as normalizeId,
+  showClarityConsentWarning,
+  type TrackingIdField,
+} from '@/lib/trackingIds';
 
 // ── Tracking & cookies card (Namez go-live 3.9) ──────────────────────────────
 // Store settings → Store tab. Edits the public tracking ids (GA4, Meta Pixel,
-// TikTok Pixel) and the cookie-consent toggle as one explicitly saved form
-// (PUT /stores/my/store). The storefront shows the cookie banner only when at
+// TikTok Pixel, Microsoft Clarity) and the cookie-consent toggle as one
+// explicitly saved form (PUT /stores/my/store). The storefront shows the cookie banner only when at
 // least one id is set and loads a tracker only after consent (or right away
-// when consent is not required).
+// when consent is not required). Microsoft Clarity is the exception: it is
+// always consent-gated, even when consent is not required.
+//
+// The Clarity id is sent only when the owner changed it, so a parent that does
+// not pass `clarity_project_id` can never clear a stored id by saving.
 //
 // Meta Conversions API: the access token is write-only. The API never returns
 // it, only `meta_capi_token_set`; the field is sent only when the owner typed
@@ -27,6 +39,7 @@ export interface TrackingSettings {
   ga4_measurement_id: string | null;
   meta_pixel_id: string | null;
   tiktok_pixel_id: string | null;
+  clarity_project_id: string | null;
   consent_required: boolean;
   meta_capi_token_set: boolean;
   meta_test_event_code: string | null;
@@ -36,6 +49,7 @@ interface TrackingForm {
   ga4_measurement_id: string;
   meta_pixel_id: string;
   tiktok_pixel_id: string;
+  clarity_project_id: string;
   consent_required: boolean;
   meta_test_event_code: string;
   // A newly typed token (never the stored one) and the pending "remove".
@@ -43,20 +57,18 @@ interface TrackingForm {
   remove_capi_token: boolean;
 }
 
-type IdField = 'ga4_measurement_id' | 'meta_pixel_id' | 'tiktok_pixel_id';
+type IdField = TrackingIdField;
 type CapiField = 'meta_capi_token' | 'meta_test_event_code';
 type Field = IdField | CapiField;
 
-// Mirror of the API DTO rules (modules/stores/dto/store.dto.ts): GA4 and
-// TikTok ids are case-insensitive and stored upper-cased.
+// Mirror of the API DTO rules (modules/stores/dto/store.dto.ts); the id rules
+// and their normalization live in lib/trackingIds.
 const RULES: Record<Field, RegExp> = {
-  ga4_measurement_id: /^$|^G-[A-Z0-9]{4,}$/i,
-  meta_pixel_id: /^$|^[0-9]{5,32}$/,
-  tiktok_pixel_id: /^$|^[A-Z0-9]{8,64}$/i,
+  ...TRACKING_ID_RULES,
   meta_capi_token: /^$|^[A-Za-z0-9_\-|]{1,600}$/,
   meta_test_event_code: /^$|^[A-Za-z0-9_-]{1,40}$/,
 };
-const ID_FIELDS: IdField[] = ['ga4_measurement_id', 'meta_pixel_id', 'tiktok_pixel_id'];
+const ID_FIELDS: IdField[] = TRACKING_ID_FIELDS;
 const CAPI_FIELDS: CapiField[] = ['meta_capi_token', 'meta_test_event_code'];
 
 function toForm(value: Partial<TrackingSettings> | null | undefined): TrackingForm {
@@ -64,16 +76,12 @@ function toForm(value: Partial<TrackingSettings> | null | undefined): TrackingFo
     ga4_measurement_id: value?.ga4_measurement_id ?? '',
     meta_pixel_id: value?.meta_pixel_id ?? '',
     tiktok_pixel_id: value?.tiktok_pixel_id ?? '',
+    clarity_project_id: value?.clarity_project_id ?? '',
     consent_required: value?.consent_required !== false,
     meta_test_event_code: value?.meta_test_event_code ?? '',
     meta_capi_token: '',
     remove_capi_token: false,
   };
-}
-
-function normalizeId(field: IdField, raw: string): string {
-  const trimmed = raw.trim();
-  return field === 'meta_pixel_id' ? trimmed : trimmed.toUpperCase();
 }
 
 /** Client-side validation: field → true when the value is invalid. */
@@ -148,8 +156,11 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
       ga4_measurement_id: normalizeId('ga4_measurement_id', form.ga4_measurement_id) || null,
       meta_pixel_id: normalizeId('meta_pixel_id', form.meta_pixel_id) || null,
       tiktok_pixel_id: normalizeId('tiktok_pixel_id', form.tiktok_pixel_id) || null,
+      clarity_project_id: normalizeId('clarity_project_id', form.clarity_project_id) || null,
       consent_required: form.consent_required,
     };
+    // Clarity: sent only when changed (see the header comment).
+    const clarityBody = clarityPatch(form.clarity_project_id, saved.clarity_project_id);
     // Write-only token: sent only when replaced (new value) or removed (null).
     // Absent from the body = the stored token is kept.
     const tokenPatch: { meta_capi_token?: string | null } = newToken
@@ -166,6 +177,7 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
           ga4_measurement_id: ids.ga4_measurement_id ?? '',
           meta_pixel_id: ids.meta_pixel_id ?? '',
           tiktok_pixel_id: ids.tiktok_pixel_id ?? '',
+          ...clarityBody,
           consent_required: ids.consent_required,
           meta_test_event_code: testCode,
           ...tokenPatch,
@@ -198,6 +210,7 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
   };
 
   const anyId = ID_FIELDS.some((f) => form[f].trim() !== '');
+  const clarityConsentWarning = showClarityConsentWarning(form.clarity_project_id, form.consent_required);
   const typingToken = form.meta_capi_token.trim() !== '';
   // A stored token that this save keeps (nothing typed, not being removed).
   const keepsStoredToken = tokenSet && !form.remove_capi_token && !typingToken;
@@ -301,6 +314,13 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
           </div>
 
           {idField('tiktok_pixel_id', 'CXXXXXXXXXXXXXXXXX')}
+
+          {/* Microsoft Clarity: heatmaps + session recordings, always consent-gated. */}
+          <div className="space-y-1">
+            {idField('clarity_project_id', 'abcdefghij')}
+            <p className="text-[11px] text-muted-foreground">{t('clarity_project_id.help')}</p>
+            <p className="text-[11px] text-amber-600">{t('clarity_project_id.noCustomCode')}</p>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t pt-4">
@@ -309,6 +329,11 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
             <p className="text-[11px] text-muted-foreground">
               {form.consent_required ? t('consentRequiredOn') : t('consentRequiredOff')}
             </p>
+            {clarityConsentWarning && (
+              <p className="text-[11px] text-amber-600" role="status">
+                {t('clarityConsentOffWarning')}
+              </p>
+            )}
           </div>
           <ToggleSwitch
             checked={form.consent_required}

@@ -2742,7 +2742,7 @@
       },
       "tracking": {
         "title": "Suivi & cookies",
-        "subtitle": "Google Analytics, Meta Pixel et TikTok Pixel pour votre boutique. Dès qu'un identifiant est renseigné, les visiteurs voient un bandeau cookies et les traceurs ne se chargent qu'après leur accord.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel et Microsoft Clarity pour votre boutique. Dès qu’un identifiant est renseigné, les visiteurs voient un bandeau cookies et les traceurs ne se chargent qu’après leur accord.",
         "ga4_measurement_id": {
           "label": "ID de mesure Google Analytics 4",
           "hint": "Dans GA4 sous Administration → Flux de données, ex. G-XXXXXXXXXX."
@@ -2771,17 +2771,25 @@
           "label": "ID du TikTok Pixel",
           "hint": "Depuis TikTok Events Manager, ex. CXXXXXXXXXXXXXXXXX."
         },
+        "clarity_project_id": {
+          "label": "ID de projet Microsoft Clarity",
+          "hint": "Cartes de chaleur et enregistrements de sessions. Disponible sur clarity.microsoft.com → Settings → Setup, par ex. abcdefghij.",
+          "help": "Clarity ne se charge toujours qu’après que le visiteur a accepté les cookies. Dans Clarity, réglez le masquage sur Strict (Settings → Masking) pour que les textes des clients, comme les noms, n’apparaissent jamais dans les enregistrements, et excluez votre propre adresse IP.",
+          "noCustomCode": "Ne collez pas le code de suivi Clarity dans une section de code personnalisé ou HTML : le code personnalisé n’attend pas le consentement et enregistrerait les visiteurs avant qu’ils acceptent les cookies."
+        },
         "invalid": {
           "ga4_measurement_id": "L'ID de mesure GA4 doit ressembler à G-XXXXXXXXXX.",
           "meta_pixel_id": "L'ID du Meta Pixel ne doit contenir que des chiffres (au moins 5).",
           "meta_capi_token": "Le jeton d’accès ne peut contenir que des lettres, des chiffres, « _ », « - » et « | » (600 caractères max.). Collez-le exactement tel que Meta l’affiche.",
           "meta_test_event_code": "Le code d’événement de test ne peut contenir que des lettres, des chiffres, « _ » et « - » (40 caractères max.).",
           "tiktok_pixel_id": "L'ID du TikTok Pixel ne doit contenir que des lettres et des chiffres (8 à 64 caractères).",
+          "clarity_project_id": "L’ID de projet Clarity doit comporter 8 à 12 lettres et chiffres, par ex. abcdefghij (uniquement l’ID, pas le code de suivi).",
           "consent_required": "Le réglage du bandeau cookies doit être activé ou désactivé."
         },
         "consentRequired": "Demander le consentement aux cookies",
         "consentRequiredOn": "Les visiteurs voient un bandeau cookies ; les traceurs ne se chargent qu'après leur accord (recommandé dans l'UE).",
         "consentRequiredOff": "Les traceurs se chargent pour chaque visiteur sans demander. La base légale est de votre responsabilité.",
+        "clarityConsentOffWarning": "Microsoft Clarity ne se charge qu’après que le visiteur a accepté les cookies, même lorsque ce réglage est désactivé. Dans l’UE, les traceurs d’analyse et de marketing nécessitent un consentement : laissez ce réglage activé.",
         "noIdsHint": "Aucun traceur configuré : la boutique n'affiche pas de bandeau cookies et ne charge aucun script.",
         "saved": "Paramètres de suivi enregistrés.",
         "unsaved": "Modifications non enregistrées",

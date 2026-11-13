@@ -2742,7 +2742,7 @@
       },
       "tracking": {
         "title": "Spårning & cookies",
-        "subtitle": "Google Analytics, Meta Pixel och TikTok Pixel för din butik. När minst ett id är angivet ser besökarna en cookiebanner och spårarna laddas först efter att de accepterat.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel och Microsoft Clarity för din butik. När minst ett id är angivet ser besökarna en cookiebanner, och spårningen laddas först när de har accepterat.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 mät-id",
           "hint": "Finns i GA4 under Administratör → Dataströmmar, t.ex. G-XXXXXXXXXX."
@@ -2771,17 +2771,25 @@
           "label": "TikTok Pixel-id",
           "hint": "Från TikTok Events Manager, t.ex. CXXXXXXXXXXXXXXXXX."
         },
+        "clarity_project_id": {
+          "label": "Microsoft Clarity projekt-id",
+          "hint": "Värmekartor och sessionsinspelningar. Finns på clarity.microsoft.com → Settings → Setup, t.ex. abcdefghij.",
+          "help": "Clarity laddas alltid först när besökaren har accepterat cookies. Välj maskeringsläget Strict i Clarity (Settings → Masking) så att kundtexter som namn aldrig syns i inspelningarna, och undanta din egen IP-adress.",
+          "noCustomCode": "Klistra inte in Claritys spårningskod i en sektion för egen kod eller HTML: egen kod väntar inte på samtycke och skulle spela in besökare innan de har accepterat cookies."
+        },
         "invalid": {
           "ga4_measurement_id": "GA4 mät-id måste se ut som G-XXXXXXXXXX.",
           "meta_pixel_id": "Meta Pixel-id får bara innehålla siffror (minst 5).",
           "meta_capi_token": "Åtkomsttoken får bara innehålla bokstäver, siffror, ”_”, ”-” och ”|” (högst 600 tecken). Klistra in den exakt som Meta visar den.",
           "meta_test_event_code": "Testhändelsekoden får bara innehålla bokstäver, siffror, ”_” och ”-” (högst 40 tecken).",
           "tiktok_pixel_id": "TikTok Pixel-id får bara innehålla bokstäver och siffror (8–64 tecken).",
+          "clarity_project_id": "Clarity projekt-id måste vara 8–12 bokstäver och siffror, t.ex. abcdefghij (bara id:t, inte spårningskoden).",
           "consent_required": "Inställningen för cookiebannern måste vara på eller av."
         },
         "consentRequired": "Be om samtycke till cookies",
         "consentRequiredOn": "Besökare ser en cookiebanner; spårarna laddas först efter att de accepterat (rekommenderas i EU).",
         "consentRequiredOff": "Spårarna laddas för alla besökare utan att fråga. Du ansvarar för den rättsliga grunden.",
+        "clarityConsentOffWarning": "Microsoft Clarity laddas ändå först när besökaren har accepterat cookies, även när den här inställningen är avstängd. Inom EU kräver analys- och marknadsföringsspårning samtycke, så låt inställningen vara på.",
         "noIdsHint": "Ingen spårare är inställd: butiken visar ingen cookiebanner och laddar inga skript.",
         "saved": "Spårningsinställningarna sparades.",
         "unsaved": "Osparade ändringar",

@@ -2742,7 +2742,7 @@
       },
       "tracking": {
         "title": "Tracking & Cookies",
-        "subtitle": "Google Analytics, Meta Pixel und TikTok Pixel für Ihren Shop. Sobald mindestens eine ID gesetzt ist, sehen Besucher einen Cookie-Banner und die Tracker laden erst nach der Zustimmung.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel und Microsoft Clarity für Ihren Shop. Sobald mindestens eine ID eingetragen ist, sehen Besucher ein Cookie-Banner, und die Tracker werden erst nach ihrer Zustimmung geladen.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 Mess-ID",
           "hint": "In GA4 unter Verwaltung → Datenstreams, z. B. G-XXXXXXXXXX."
@@ -2771,17 +2771,25 @@
           "label": "TikTok Pixel-ID",
           "hint": "Aus dem TikTok Events Manager, z. B. CXXXXXXXXXXXXXXXXX."
         },
+        "clarity_project_id": {
+          "label": "Microsoft Clarity-Projekt-ID",
+          "hint": "Heatmaps und Sitzungsaufzeichnungen. Zu finden unter clarity.microsoft.com → Settings → Setup, z. B. abcdefghij.",
+          "help": "Clarity wird immer erst geladen, nachdem der Besucher Cookies akzeptiert hat. Stellen Sie in Clarity die Maskierung auf Strict (Settings → Masking), damit Kundentexte wie Namen nie in Aufzeichnungen erscheinen, und schließen Sie Ihre eigene IP-Adresse aus.",
+          "noCustomCode": "Fügen Sie den Clarity-Tracking-Code nicht in einen Abschnitt für eigenen Code oder HTML ein: Eigener Code wartet nicht auf die Einwilligung und würde Besucher aufzeichnen, bevor sie Cookies akzeptieren."
+        },
         "invalid": {
           "ga4_measurement_id": "Die GA4 Mess-ID muss wie G-XXXXXXXXXX aussehen.",
           "meta_pixel_id": "Die Meta Pixel-ID darf nur Ziffern enthalten (mindestens 5).",
           "meta_capi_token": "Das Zugriffstoken darf nur Buchstaben, Ziffern, „_“, „-“ und „|“ enthalten (max. 600 Zeichen). Fügen Sie es genau so ein, wie Meta es anzeigt.",
           "meta_test_event_code": "Der Test-Event-Code darf nur Buchstaben, Ziffern, „_“ und „-“ enthalten (max. 40 Zeichen).",
           "tiktok_pixel_id": "Die TikTok Pixel-ID darf nur Buchstaben und Ziffern enthalten (8–64 Zeichen).",
+          "clarity_project_id": "Die Clarity-Projekt-ID muss aus 8–12 Buchstaben und Ziffern bestehen, z. B. abcdefghij (nur die ID, nicht der Tracking-Code).",
           "consent_required": "Die Cookie-Banner-Einstellung muss an oder aus sein."
         },
         "consentRequired": "Cookie-Zustimmung einholen",
         "consentRequiredOn": "Besucher sehen einen Cookie-Banner; Tracker laden erst nach der Zustimmung (in der EU empfohlen).",
         "consentRequiredOff": "Tracker laden für jeden Besucher ohne Nachfrage. Sie sind für die Rechtsgrundlage verantwortlich.",
+        "clarityConsentOffWarning": "Microsoft Clarity wird auch bei ausgeschalteter Einstellung erst geladen, nachdem der Besucher Cookies akzeptiert hat. In der EU benötigen Analyse- und Marketing-Tracker eine Einwilligung, lassen Sie diese Einstellung daher eingeschaltet.",
         "noIdsHint": "Kein Tracker eingerichtet: der Shop zeigt keinen Cookie-Banner und lädt keine Skripte.",
         "saved": "Tracking-Einstellungen gespeichert.",
         "unsaved": "Ungespeicherte Änderungen",

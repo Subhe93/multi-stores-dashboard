@@ -71,6 +71,8 @@ interface StoreInfo {
   ga4_measurement_id?: string | null;
   meta_pixel_id?: string | null;
   tiktok_pixel_id?: string | null;
+  // Microsoft Clarity project id (always consent-gated on the storefront).
+  clarity_project_id?: string | null;
   consent_required?: boolean;
   // Meta Conversions API: the token is write-only (never returned); the API
   // only says whether one is stored.
@@ -1044,6 +1046,7 @@ export default function CreatorSettingsPage() {
               ga4_measurement_id: store.ga4_measurement_id ?? null,
               meta_pixel_id: store.meta_pixel_id ?? null,
               tiktok_pixel_id: store.tiktok_pixel_id ?? null,
+              clarity_project_id: store.clarity_project_id ?? null,
               consent_required: store.consent_required !== false,
               meta_capi_token_set: store.meta_capi_token_set === true,
               meta_test_event_code: store.meta_test_event_code ?? null,
