@@ -12,6 +12,7 @@ import {
   Download,
   FileText,
   Globe,
+  LayoutTemplate,
   ListChecks,
   PenLine,
   PenTool,
@@ -38,6 +39,7 @@ const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
   designer: PenTool,
   feeds: Rss,
   zoho_mail: AtSign,
+  product_layout: LayoutTemplate,
 };
 
 /**

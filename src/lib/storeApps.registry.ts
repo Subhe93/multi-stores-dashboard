@@ -5,7 +5,7 @@
 // describes each app so the dashboard can render names, badges and
 // dependency hints without an extra request.
 
-export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer', 'feeds', 'zoho_mail'] as const;
+export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer', 'feeds', 'zoho_mail', 'product_layout'] as const;
 
 export type StoreAppKey = (typeof STORE_APP_KEYS)[number];
 
@@ -85,6 +85,15 @@ export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
     requiresIndependent: true,
     dependsOn: [],
   },
+  // Beta: product template built from separate blocks inside Row / Column /
+  // Grid containers. Gates the builder only (BuilderLayout layoutContainers).
+  product_layout: {
+    key: 'product_layout',
+    nameKey: 'creator.apps.items.product_layout.name',
+    descriptionKey: 'creator.apps.items.product_layout.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
 };
 
 // Apps not built yet: kept in the registry (the API still returns them) but
@@ -110,6 +119,8 @@ export const STORE_APP_HREFS: Record<StoreAppKey, string | null> = {
   designer: '/creator/designer?tab=settings',
   feeds: '/creator/feeds',
   zoho_mail: '/creator/zoho-mail',
+  // No settings page; the containers and blocks appear in the theme builder.
+  product_layout: null,
 };
 
 export function isStoreAppKey(value: unknown): value is StoreAppKey {

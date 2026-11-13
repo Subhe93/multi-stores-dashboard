@@ -3031,6 +3031,10 @@
         "zoho_mail": {
           "name": "Zoho Mail",
           "description": "Envoyez les e-mails de votre boutique (confirmations de commande, factures, réinitialisations de mot de passe…) depuis votre propre boîte Zoho Mail."
+        },
+        "product_layout": {
+          "name": "Blocs de page produit (bêta)",
+          "description": "Construisez la page produit à partir de blocs séparés (galerie, titre, prix, variantes, ajout au panier…) dans des rangées, colonnes et grilles du constructeur de thème. Bêta : les pages déjà enregistrées continuent de fonctionner si vous la désactivez."
         }
       },
       "b2b": {
@@ -5845,6 +5849,13 @@
     "PAGE_SECTION_PARENT_NOT_CONTAINER": "Les sections ne peuvent être placées que dans une Rangée, une Colonne ou une Grille.",
     "PAGE_SECTION_TREE_CYCLE": "Un conteneur ne peut pas être placé dans lui-même.",
     "PAGE_SECTION_TREE_TOO_DEEP": "Trop de niveaux : les sections peuvent être imbriquées sur 3 niveaux au maximum (par ex. Rangée → Colonne → bloc).",
+    "PRODUCT_BLOCKS_ALREADY_CONVERTED": "Cette page produit a déjà été convertie en blocs. Supprimez d’abord la rangée convertie pour la convertir à nouveau.",
+    "PRODUCT_PAGE_SECTION_NOT_FOUND": "Aucun bloc Page produit visible à convertir.",
+    "PRODUCT_PAGE_SECTION_NESTED": "Placez le bloc Page produit au premier niveau de la page avant de le convertir.",
+    "PRODUCT_BLOCKS_CONFLICT": "La page contient déjà son propre bloc d’ajout au panier, d’options ou de personnalisation. Masquez-le ou supprimez-le avant de convertir, pour ne pas afficher deux formulaires d’achat.",
+    "PRODUCT_LAYOUT_DISABLED": "Les blocs de page produit ne sont pas activés pour cette boutique.",
+    "PRODUCT_BLOCKS_NOT_PRODUCT_TEMPLATE": "Seul le modèle de produit peut être converti en blocs.",
+    "PAGE_SECTION_LAYOUT_BLOCKS_DISABLED": "Les conteneurs de mise en page et les blocs produit séparés ne sont pas activés pour cette boutique. Activez « Blocs de page produit (bêta) » dans Apps (un administrateur doit d’abord la rendre disponible).",
     "PAGE_SECTION_CONTAINER_NOT_ALLOWED": "Les rangées, colonnes et grilles ne sont disponibles que sur le modèle de produit.",
     "PAGE_VERSION_NOT_FOUND": "Version introuvable",
     "PRODUCT_BUNDLES_NOT_FOUND": "Un ou plusieurs lots n'existent pas",
@@ -6466,10 +6477,25 @@
     "presets": {
       "tab": "Modèles",
       "addedToast": "{count} sections ajoutées",
-      "includes": "Comprend :"
+      "includes": "Comprend :",
+      "blockedBy": "Indisponible tant que la page affiche : {names}. Masquez-le ou supprimez-le d’abord."
     },
     "presetOccasionName": "Page d’occasion",
     "presetOccasionDesc": "Bannière hero, les produits d’une collection ou d’un tag, un bloc de texte SEO, puis questions et réponses — la mise en page d’une page d’occasion cadeau.",
+    "presetClassicProductName": "Page produit classique",
+    "presetClassicProductDesc": "Galerie à côté du titre, du prix, des options, de la personnalisation et de l’ajout au panier, avec les onglets produit en dessous — la page produit actuelle en blocs séparés.",
+    "convertBlocks": {
+      "title": "Blocs produit séparés",
+      "hint": "Reconstruisez cette page produit en blocs séparés dans des rangées et des colonnes, pour déplacer et styliser chaque partie et y mêler d’autres sections.",
+      "button": "Convertir en blocs",
+      "confirmTitle": "Convertir en blocs ?",
+      "confirmBody": "La page produit est reconstruite en blocs séparés (galerie, titre, prix, options, personnalisation, ajout au panier, badges de confiance, livraison et onglets) juste sous ce bloc, en reprenant vos réglages et vos badges de confiance. Ce bloc est seulement masqué, pas supprimé : vous pouvez le réafficher à tout moment.",
+      "confirmDraft": "C’est une modification du brouillon : votre boutique en ligne ne change pas tant que vous n’avez pas prévisualisé et publié la page.",
+      "confirm": "Convertir",
+      "converting": "Conversion…",
+      "failed": "La page n’a pas pu être convertie. Réessayez.",
+      "done": "Convertie en blocs. Prévisualisez la page, puis publiez."
+    },
     "internalLabelsGroup": "Tags",
     "missingCollection": "(collection introuvable)",
     "textColors": "Texte sur les couleurs",

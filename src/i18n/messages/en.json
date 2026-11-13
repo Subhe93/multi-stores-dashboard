@@ -3031,6 +3031,10 @@
         "zoho_mail": {
           "name": "Zoho Mail",
           "description": "Send your store's emails (order confirmations, invoices, password resets…) from your own Zoho Mail mailbox."
+        },
+        "product_layout": {
+          "name": "Product page blocks (beta)",
+          "description": "Build the product page from separate blocks (gallery, title, price, variants, add to cart…) inside rows, columns and grids in the theme builder. Beta: pages already saved keep working if you switch it off."
         }
       },
       "b2b": {
@@ -5845,6 +5849,13 @@
     "PAGE_SECTION_PARENT_NOT_CONTAINER": "Sections can only be placed inside a Row, Column or Grid.",
     "PAGE_SECTION_TREE_CYCLE": "A container cannot be placed inside itself.",
     "PAGE_SECTION_TREE_TOO_DEEP": "Too many levels: sections can be nested at most 3 levels deep (for example Row → Column → block).",
+    "PRODUCT_BLOCKS_ALREADY_CONVERTED": "This product page has already been converted to blocks. Delete the converted row first to convert again.",
+    "PRODUCT_PAGE_SECTION_NOT_FOUND": "There is no visible Product page block to convert.",
+    "PRODUCT_PAGE_SECTION_NESTED": "Move the Product page block to the top level of the page before converting it.",
+    "PRODUCT_BLOCKS_CONFLICT": "The page already has its own add-to-cart, options or personalization block. Hide or delete it before converting, so the page does not show two buy forms.",
+    "PRODUCT_LAYOUT_DISABLED": "Product page blocks are not switched on for this store.",
+    "PRODUCT_BLOCKS_NOT_PRODUCT_TEMPLATE": "Only the product template can be converted to blocks.",
+    "PAGE_SECTION_LAYOUT_BLOCKS_DISABLED": "Layout containers and the separate product blocks are not switched on for this store. Turn on “Product page blocks (beta)” under Apps (an admin has to make it available first).",
     "PAGE_SECTION_CONTAINER_NOT_ALLOWED": "Rows, columns and grids are only available on the product template.",
     "PAGE_VERSION_NOT_FOUND": "Version not found",
     "PRODUCT_BUNDLES_NOT_FOUND": "One or more bundles do not exist",
@@ -6466,10 +6477,25 @@
     "presets": {
       "tab": "Presets",
       "addedToast": "{count} sections added",
-      "includes": "Includes:"
+      "includes": "Includes:",
+      "blockedBy": "Not available while the page shows: {names}. Hide or delete it first."
     },
     "presetOccasionName": "Occasion page",
     "presetOccasionDesc": "Hero banner, the products of one collection or tag, an SEO text block, then questions and answers — the layout of a gift-occasion page.",
+    "presetClassicProductName": "Classic product page",
+    "presetClassicProductDesc": "Gallery beside title, price, options, personalization and add to cart, with the product tabs below — today's product page as separate blocks.",
+    "convertBlocks": {
+      "title": "Separate product blocks",
+      "hint": "Rebuild this product page as separate blocks in rows and columns, so you can move and restyle each part and mix in other sections.",
+      "button": "Convert to blocks",
+      "confirmTitle": "Convert to blocks?",
+      "confirmBody": "The product page is rebuilt from separate blocks (gallery, title, price, options, personalization, add to cart, trust badges, shipping and tabs) right below this block, with your settings and trust badges carried over. This block is only hidden, not deleted, so you can show it again at any time.",
+      "confirmDraft": "This is a draft change: your live store stays the same until you preview the page and publish.",
+      "confirm": "Convert",
+      "converting": "Converting…",
+      "failed": "The page could not be converted. Try again.",
+      "done": "Converted to blocks. Preview the page, then publish."
+    },
     "internalLabelsGroup": "Tags",
     "missingCollection": "(missing collection)",
     "textColors": "Text on colours",

@@ -3031,6 +3031,10 @@
         "zoho_mail": {
           "name": "Zoho Mail",
           "description": "Mağazanızın e-postalarını (sipariş onayları, faturalar, şifre sıfırlama…) kendi Zoho Mail posta kutunuzdan gönderin."
+        },
+        "product_layout": {
+          "name": "Ürün sayfası blokları (beta)",
+          "description": "Ürün sayfasını tema oluşturucuda satır, sütun ve ızgaralar içinde ayrı bloklardan (galeri, başlık, fiyat, varyantlar, sepete ekle…) oluşturun. Beta: kapatırsanız kaydedilmiş sayfalar çalışmaya devam eder."
         }
       },
       "b2b": {
@@ -5845,6 +5849,13 @@
     "PAGE_SECTION_PARENT_NOT_CONTAINER": "Bölümler yalnızca bir Satır, Sütun veya Izgara içine yerleştirilebilir.",
     "PAGE_SECTION_TREE_CYCLE": "Bir kapsayıcı kendi içine yerleştirilemez.",
     "PAGE_SECTION_TREE_TOO_DEEP": "Çok fazla seviye: bölümler en fazla 3 seviye iç içe olabilir (ör. Satır → Sütun → blok).",
+    "PRODUCT_BLOCKS_ALREADY_CONVERTED": "Bu ürün sayfası zaten bloklara dönüştürüldü. Yeniden dönüştürmek için önce dönüştürülen satırı silin.",
+    "PRODUCT_PAGE_SECTION_NOT_FOUND": "Dönüştürülecek görünür bir Ürün sayfası bloğu yok.",
+    "PRODUCT_PAGE_SECTION_NESTED": "Dönüştürmeden önce Ürün sayfası bloğunu sayfanın en üst seviyesine taşıyın.",
+    "PRODUCT_BLOCKS_CONFLICT": "Sayfada zaten kendi sepete ekle, seçenek veya kişiselleştirme bloğu var. Sayfa iki satın alma formu göstermesin diye dönüştürmeden önce gizleyin veya silin.",
+    "PRODUCT_LAYOUT_DISABLED": "Ürün sayfası blokları bu mağaza için açık değil.",
+    "PRODUCT_BLOCKS_NOT_PRODUCT_TEMPLATE": "Yalnızca ürün şablonu bloklara dönüştürülebilir.",
+    "PAGE_SECTION_LAYOUT_BLOCKS_DISABLED": "Düzen kapsayıcıları ve ayrı ürün blokları bu mağaza için açık değil. Uygulamalar bölümünden “Ürün sayfası blokları (beta)” uygulamasını açın (önce bir yöneticinin kullanılabilir yapması gerekir).",
     "PAGE_SECTION_CONTAINER_NOT_ALLOWED": "Satırlar, sütunlar ve ızgaralar yalnızca ürün şablonunda kullanılabilir.",
     "PAGE_VERSION_NOT_FOUND": "Sürüm bulunamadı",
     "PRODUCT_BUNDLES_NOT_FOUND": "Bir veya daha fazla paket mevcut değil",
@@ -6466,10 +6477,25 @@
     "presets": {
       "tab": "Hazır şablonlar",
       "addedToast": "{count} bölüm eklendi",
-      "includes": "İçerir:"
+      "includes": "İçerir:",
+      "blockedBy": "Sayfa şunu gösterdiği sürece kullanılamaz: {names}. Önce gizleyin veya silin."
     },
     "presetOccasionName": "Özel gün sayfası",
     "presetOccasionDesc": "Hero banner, bir koleksiyonun veya etiketin ürünleri, bir SEO metin bloğu, ardından sorular ve cevaplar — hediye günü sayfasının düzeni.",
+    "presetClassicProductName": "Klasik ürün sayfası",
+    "presetClassicProductDesc": "Başlık, fiyat, seçenekler, kişiselleştirme ve sepete ekle yanında galeri, altında ürün sekmeleri — bugünkü ürün sayfası ayrı bloklar olarak.",
+    "convertBlocks": {
+      "title": "Ayrı ürün blokları",
+      "hint": "Bu ürün sayfasını satır ve sütunlardaki ayrı bloklar olarak yeniden oluşturun; her parçayı taşıyıp biçimlendirebilir ve diğer bölümlerle birleştirebilirsiniz.",
+      "button": "Bloklara dönüştür",
+      "confirmTitle": "Bloklara dönüştürülsün mü?",
+      "confirmBody": "Ürün sayfası, bu bloğun hemen altında ayrı bloklardan (galeri, başlık, fiyat, seçenekler, kişiselleştirme, sepete ekle, güven rozetleri, kargo ve sekmeler) yeniden oluşturulur; ayarlarınız ve güven rozetleriniz aktarılır. Bu blok yalnızca gizlenir, silinmez; istediğiniz zaman yeniden gösterebilirsiniz.",
+      "confirmDraft": "Bu bir taslak değişikliğidir: sayfayı önizleyip yayımlayana kadar canlı mağazanız değişmez.",
+      "confirm": "Dönüştür",
+      "converting": "Dönüştürülüyor…",
+      "failed": "Sayfa dönüştürülemedi. Tekrar deneyin.",
+      "done": "Bloklara dönüştürüldü. Sayfayı önizleyin, ardından yayımlayın."
+    },
     "internalLabelsGroup": "Etiketler",
     "missingCollection": "(koleksiyon bulunamadı)",
     "textColors": "Renkler üzerindeki metin",

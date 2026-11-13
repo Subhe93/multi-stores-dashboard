@@ -3031,6 +3031,10 @@
         "zoho_mail": {
           "name": "Zoho Mail",
           "description": "Skicka butikens e-post (orderbekräftelser, fakturor, lösenordsåterställningar…) från din egen Zoho Mail-brevlåda."
+        },
+        "product_layout": {
+          "name": "Produktsidesblock (beta)",
+          "description": "Bygg produktsidan av separata block (galleri, titel, pris, varianter, lägg i varukorg …) i rader, kolumner och rutnät i temabyggaren. Beta: redan sparade sidor fortsätter att fungera om du stänger av den."
         }
       },
       "b2b": {
@@ -5845,6 +5849,13 @@
     "PAGE_SECTION_PARENT_NOT_CONTAINER": "Sektioner kan bara placeras i en Rad, Kolumn eller ett Rutnät.",
     "PAGE_SECTION_TREE_CYCLE": "En behållare kan inte placeras i sig själv.",
     "PAGE_SECTION_TREE_TOO_DEEP": "För många nivåer: sektioner kan nästlas högst 3 nivåer djupt (t.ex. Rad → Kolumn → block).",
+    "PRODUCT_BLOCKS_ALREADY_CONVERTED": "Den här produktsidan har redan konverterats till block. Ta bort den konverterade raden först för att konvertera igen.",
+    "PRODUCT_PAGE_SECTION_NOT_FOUND": "Det finns inget synligt produktsideblock att konvertera.",
+    "PRODUCT_PAGE_SECTION_NESTED": "Flytta produktsideblocket till sidans översta nivå innan du konverterar det.",
+    "PRODUCT_BLOCKS_CONFLICT": "Sidan har redan ett eget block för varukorg, alternativ eller personalisering. Dölj eller ta bort det innan du konverterar, så att sidan inte visar två köpformulär.",
+    "PRODUCT_LAYOUT_DISABLED": "Produktsideblock är inte aktiverade för den här butiken.",
+    "PRODUCT_BLOCKS_NOT_PRODUCT_TEMPLATE": "Bara produktmallen kan konverteras till block.",
+    "PAGE_SECTION_LAYOUT_BLOCKS_DISABLED": "Layoutbehållare och de separata produktblocken är inte aktiverade för den här butiken. Aktivera ”Produktsidesblock (beta)” under Appar (en administratör måste först göra den tillgänglig).",
     "PAGE_SECTION_CONTAINER_NOT_ALLOWED": "Rader, kolumner och rutnät finns bara i produktmallen.",
     "PAGE_VERSION_NOT_FOUND": "Versionen hittades inte",
     "PRODUCT_BUNDLES_NOT_FOUND": "Ett eller flera paket finns inte",
@@ -6466,10 +6477,25 @@
     "presets": {
       "tab": "Mallar",
       "addedToast": "{count} sektioner tillagda",
-      "includes": "Innehåller:"
+      "includes": "Innehåller:",
+      "blockedBy": "Inte tillgängligt så länge sidan visar: {names}. Dölj eller ta bort det först."
     },
     "presetOccasionName": "Högtidssida",
     "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller tagg, ett SEO-textblock, sedan frågor och svar — layouten för en presentsida.",
+    "presetClassicProductName": "Klassisk produktsida",
+    "presetClassicProductDesc": "Galleri bredvid titel, pris, alternativ, personalisering och lägg i varukorg, med produktflikarna under – dagens produktsida som separata block.",
+    "convertBlocks": {
+      "title": "Separata produktblock",
+      "hint": "Bygg om den här produktsidan som separata block i rader och kolumner, så att du kan flytta och styla varje del och blanda in andra sektioner.",
+      "button": "Konvertera till block",
+      "confirmTitle": "Konvertera till block?",
+      "confirmBody": "Produktsidan byggs om av separata block (galleri, titel, pris, alternativ, personalisering, lägg i varukorg, förtroendemärken, frakt och flikar) direkt under det här blocket, med dina inställningar och förtroendemärken överförda. Det här blocket döljs bara, det tas inte bort, och du kan visa det igen när som helst.",
+      "confirmDraft": "Det här är en utkastsändring: din publicerade butik ändras inte förrän du förhandsgranskar sidan och publicerar.",
+      "confirm": "Konvertera",
+      "converting": "Konverterar…",
+      "failed": "Sidan kunde inte konverteras. Försök igen.",
+      "done": "Konverterad till block. Förhandsgranska sidan och publicera sedan."
+    },
     "internalLabelsGroup": "Taggar",
     "missingCollection": "(kollektion saknas)",
     "textColors": "Text på färger",

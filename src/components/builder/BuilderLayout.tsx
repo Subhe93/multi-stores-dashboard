@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Layers, Loader2, Palette } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
+import { layoutBlocksEnabled } from '@/lib/layoutBlocksFlag';
 import { findSectionSchema } from '@/lib/section-schemas';
 import {
   canDropInto,
@@ -27,7 +29,8 @@ import {
   topMostDropped,
   usesSectionTree,
 } from '@/lib/builderTreeActions';
-import { presetSections } from '@/lib/section-presets';
+import { presetTreeBodies } from '@/lib/section-presets';
+import { createPresetTree, presetIsNested } from '@/lib/productBlocksPreset';
 import { cn } from '@/lib/utils';
 import { SlugAdjustedNotice } from '@/components/common/SlugAdjustedNotice';
 import { LivePreview, type LivePreviewHandle } from './LivePreview';
@@ -106,6 +109,10 @@ interface BuilderMenu {
 
 export function BuilderLayout({ page, initialSections, allPages, store }: BuilderLayoutProps) {
   const { token } = useAuth();
+  // Per-store beta flag (`product_layout` app): layout containers and the
+  // new product blocks. Off (or still loading) keeps the builder as before.
+  const { apps: storeApps } = useStoreApps();
+  const layoutContainers = layoutBlocksEnabled(page.type, isAppEnabled(storeApps, 'product_layout'));
   const tBuilder = useTranslations('builder');
   const tRoot = useTranslations();
   const previewRef = useRef<LivePreviewHandle>(null);
@@ -470,31 +477,38 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
    */
   const addInto = useCallback(() => {}, []);
 
-  // Insert every section of a preset (M6.5) at the end, in order. One history
-  // checkpoint covers the whole batch so undo removes all of them at once.
+  // Insert every section of a preset (M6.5) at the end, in order. Nested
+  // presets (layout containers) create each parent before its children,
+  // then persist the whole tree. One history checkpoint covers the whole
+  // batch so undo removes all of them at once.
   const addPreset = useCallback(
     async (presetId: string) => {
       if (!token) return;
-      const bodies = presetSections(presetId, store.language_config.primary_locale);
+      const bodies = presetTreeBodies(presetId, store.language_config.primary_locale);
       if (bodies.length === 0) return;
       recordHistory({ force: true });
       const created: SectionInstance[] = [];
       try {
         // Sequential so the server assigns consecutive positions.
-        for (const body of bodies) {
-          const row = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
-            method: 'POST',
-            token,
-            body: JSON.stringify({
-              section_key: body.section_key,
-              settings: body.settings,
-              translations: [
-                { locale: store.language_config.primary_locale, content: body.content },
-              ],
-            }),
-          });
-          created.push(row);
-        }
+        await createPresetTree(
+          bodies,
+          async (body, parentId) => {
+            const row = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+              method: 'POST',
+              token,
+              body: JSON.stringify({
+                section_key: body.section_key,
+                settings: body.settings,
+                translations: [
+                  { locale: store.language_config.primary_locale, content: body.content },
+                ],
+                ...(parentId ? { parent_id: parentId } : {}),
+              }),
+            });
+            return { ...row, parent_id: row.parent_id ?? parentId };
+          },
+          created,
+        );
       } finally {
         // A later POST may fail after earlier ones succeeded: those sections
         // exist on the server, so keep the local state in sync with them
@@ -504,9 +518,56 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
           setSelectedId(created[0].id);
         }
       }
+      if (presetIsNested(bodies)) {
+        // Confirm the whole tree (parents + sibling order) in one PUT.
+        const createdIds = new Set(created.map((c) => c.id));
+        const next = [...sectionsRef.current.filter((s) => !createdIds.has(s.id)), ...created];
+        try {
+          await persistOrder(next, { forceTree: true });
+        } catch (err) {
+          setNotice(actionErrorMessage(err));
+          return;
+        }
+      }
       setNotice(tBuilder('presets.addedToast', { count: created.length }));
     },
-    [token, page.id, store.language_config.primary_locale, recordHistory, tBuilder],
+    [token, page.id, store.language_config.primary_locale, recordHistory, tBuilder, persistOrder, actionErrorMessage],
+  );
+
+  /**
+   * "Convert to blocks" on a product-page section: the API hides it and
+   * builds the Classic product block tree after it (draft only). The
+   * returned list replaces the local one and the new row is selected.
+   */
+  const convertToBlocks = useCallback(
+    async (sectionId: string) => {
+      if (!token) return;
+      recordHistory({ force: true });
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+      await flushAutosave();
+      const before = sectionsRef.current;
+      let list: SectionInstance[];
+      try {
+        list = await api<SectionInstance[]>(`/v2/pages/${page.id}/convert-product-blocks`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify({ section_id: sectionId }),
+        });
+      } catch (err) {
+        historyRef.current.past.pop();
+        syncHistoryFlags();
+        throw err;
+      }
+      if (!Array.isArray(list)) return;
+      setSections(list);
+      const rowId = newSubtreeRootId(before, list);
+      if (rowId) setSelectedId(rowId);
+      setNotice(tBuilder('convertBlocks.done'));
+    },
+    [token, page.id, recordHistory, flushAutosave, syncHistoryFlags, tBuilder],
   );
 
   /** Deletes a section with its whole subtree (the API cascades to children). */
@@ -1225,6 +1286,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
                 onDuplicate={handleDuplicate}
                 onMove={handleMove}
                 onAddInto={addInto}
+                layoutContainers={layoutContainers}
               />
             ) : (
               <ThemePanel
@@ -1295,6 +1357,8 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
             onToggleHidden={handleToggleHidden}
             onDuplicate={handleDuplicate}
             onSelectParent={selectParent}
+            layoutContainers={layoutContainers}
+            onConvertToBlocks={convertToBlocks}
           />
         </aside>
       </div>

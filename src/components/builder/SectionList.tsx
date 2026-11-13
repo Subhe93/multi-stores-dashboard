@@ -39,7 +39,7 @@ import {
   subtreeHeight,
   type MoveTarget,
 } from '@/lib/sectionTree';
-import { ancestorIds, buildListRows, normalizeFlatOrder, resolveDropTarget } from '@/lib/sectionListRows';
+import { ancestorIds, buildListRows, isDropAllowed, normalizeFlatOrder, resolveDropTarget } from '@/lib/sectionListRows';
 import { AddSectionDialog, type SectionInsertTarget } from './AddSectionDialog';
 import { AddHereRow, SectionRowView, SortableSectionRow, TREE_INDENT_PX } from './SectionTreeRows';
 import type { SectionInstance } from './types';
@@ -68,7 +68,10 @@ interface SectionListProps {
   onAddPreset?: (presetId: string) => Promise<void> | void;
   onToggleHidden: (id: string, hidden: boolean) => void;
   onDuplicate: (id: string) => Promise<void> | void;
-  // Offer layout containers in the add dialog. Defaults to the product template.
+  // Layout containers + product blocks (the store's `product_layout` app).
+  // Off: the add dialog hides them, containers get no "+ add here" slot and
+  // drags cannot move a section into a container; already-saved containers
+  // still show. Defaults to the product template.
   layoutContainers?: boolean;
 }
 
@@ -123,6 +126,7 @@ export function SectionList({
   const fullFlat = useMemo(() => flattenTree(ordered), [ordered]);
   const treeMode = fullFlat.some((f) => f.isContainer || f.depth > 1);
   const rootCount = fullFlat.filter((f) => f.depth === 1).length;
+  const containersOn = layoutContainers ?? pageType === 'PRODUCT_TEMPLATE';
 
   // A section selected elsewhere (e.g. in the preview) inside a collapsed
   // container expands its ancestors (adjusting state during render).
@@ -150,7 +154,10 @@ export function SectionList({
     activeId && overId
       ? getProjection(items, activeId, overId, rtl ? -offsetX : offsetX, TREE_INDENT_PX, activeHeight)
       : null;
-  const rows = useMemo(() => buildListRows(items, { collapsed, activeId }), [items, collapsed, activeId]);
+  const rows = useMemo(
+    () => buildListRows(items, { collapsed, activeId, addSlots: containersOn }),
+    [items, collapsed, activeId, containersOn],
+  );
 
   function resetDrag() {
     setActiveId(null);
@@ -176,7 +183,7 @@ export function SectionList({
 
   function handleDragEnd(e: DragEndEvent) {
     const id = String(e.active.id);
-    const target = e.over ? resolveDropTarget(activeItem, projection) : null;
+    const target = e.over ? resolveDropTarget(activeItem, projection, { allowNewParent: containersOn }) : null;
     resetDrag();
     if (!target) return;
     // moveSection validates parent, cycle and depth; an invalid move returns
@@ -284,7 +291,9 @@ export function SectionList({
                     childCount={item.childCount}
                     treeMode={treeMode}
                     collapsed={collapsed.has(item.id)}
-                    invalid={isActive && !!projection && !projection.allowed}
+                    invalid={
+                      isActive && !!projection && !isDropAllowed(activeItem, projection, { allowNewParent: containersOn })
+                    }
                     onSelect={() => onSelect(item.id)}
                     onToggleCollapse={item.isContainer ? () => toggleCollapsed(item.id) : undefined}
                     onToggleHidden={() => onToggleHidden(item.id, !item.section.is_hidden)}
@@ -325,7 +334,7 @@ export function SectionList({
           onAddPreset={onAddPreset}
           target={insertTarget}
           sections={sections}
-          layoutContainers={layoutContainers}
+          layoutContainers={containersOn}
           open={dialogOpen}
           onOpenChange={handleDialogOpenChange}
         />

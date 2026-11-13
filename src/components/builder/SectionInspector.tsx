@@ -5,10 +5,12 @@ import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy, LayoutGrid, CornerLeftUp } from 'lucide-react';
 import { CHILD_LAYOUT_FIELDS, findSectionSchema, labelOf } from '@/lib/section-schemas';
 import { getChildLayoutValue, setChildLayoutValue } from '@/lib/sectionTree';
+import { canConvertToBlocks } from '@/lib/productBlocksPreset';
 import { cn } from '@/lib/utils';
 import { FieldRenderer } from './fields/FieldRenderer';
 import { SectionPreview } from './SectionPreviews';
 import { StylePanel, type SectionStyle } from './StylePanel';
+import { ConvertToBlocksCard } from './ConvertToBlocksCard';
 import type { SectionInstance } from './types';
 
 interface SectionInspectorProps {
@@ -26,6 +28,13 @@ interface SectionInspectorProps {
   onDuplicate: (sectionId: string) => void;
   /** Selects the section's container (shown when the section has a parent). */
   onSelectParent?: (sectionId: string) => void;
+  /**
+   * Block-based product page enabled (layout containers + product blocks).
+   * Defaults to on, like the Add section dialog on the product template.
+   */
+  layoutContainers?: boolean;
+  /** "Convert to blocks" on a product-page section; hidden when omitted. */
+  onConvertToBlocks?: (sectionId: string) => Promise<void>;
 }
 
 type Tab = 'content' | 'settings' | 'style' | 'layout';
@@ -49,6 +58,8 @@ export function SectionInspector({
   onToggleHidden,
   onDuplicate,
   onSelectParent,
+  layoutContainers = true,
+  onConvertToBlocks,
 }: SectionInspectorProps) {
   const t = useTranslations('builder');
   const tc = useTranslations('common');
@@ -243,6 +254,9 @@ export function SectionInspector({
 
       {/* ─── Tab body ────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto inspector-scroll">
+        {onConvertToBlocks && canConvertToBlocks(section, layoutContainers) && (
+          <ConvertToBlocksCard key={section.id} sectionId={section.id} onConvert={onConvertToBlocks} />
+        )}
         {activeTab === 'content' && contentFields.length > 0 && (
           <div className="p-4 space-y-4">
             {locale !== primaryLocale && (

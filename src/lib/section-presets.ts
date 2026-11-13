@@ -4,6 +4,12 @@
 // translation `content`, everything else into `settings`.
 
 import { findSectionSchema, type LocalizedString } from './section-schemas';
+import {
+  CLASSIC_PRODUCT_PRESET_SECTIONS,
+  PRODUCT_BLOCK_CONFLICT_KEYS,
+  presetNodeBodies,
+  type PresetNodeBody,
+} from './productBlocksPreset';
 
 export interface PresetSection {
   section_key: string;
@@ -11,6 +17,9 @@ export interface PresetSection {
   // Content variants per locale. The inserted translation uses the store's
   // primary locale's variant when it exists, else `en`.
   content: Record<string, Record<string, unknown>>;
+  // Sections created inside this one (layout containers only). Inserted
+  // parent-first with parent_id (see productBlocksPreset.createPresetTree).
+  children?: PresetSection[];
 }
 
 export interface SectionPreset {
@@ -24,8 +33,13 @@ export interface SectionPreset {
   i18n?: { name: string; description: string };
   // Lucide icon name hint for the picker card.
   icon?: string;
-  // Page types the preset is offered on (not templates / chrome).
-  pageTypes: Array<'HOME' | 'STATIC' | 'LANDING'>;
+  // Page types the preset is offered on (no chrome).
+  pageTypes: Array<'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE'>;
+  // Feature gate, as on section schemas: offered only when enabled.
+  gate?: 'layout-containers';
+  // The preset is offered but disabled while the page has a visible section
+  // with one of these keys (e.g. a second buy form on a product page).
+  blockedBy?: readonly string[];
   sections: PresetSection[];
 }
 
@@ -123,12 +137,47 @@ export const SECTION_PRESETS: SectionPreset[] = [
   },
 ];
 
+// Product template (layout containers): today's product page built from
+// separate product blocks. Keys/settings live in productBlocksPreset.ts and
+// mirror the API's "Convert to blocks" tree.
+SECTION_PRESETS.push({
+  id: 'classic-product-page',
+  name: { en: 'Classic product page', ar: 'صفحة منتج كلاسيكية' },
+  description: {
+    en: 'Gallery beside title, price, options, personalization and add to cart, with the product tabs below — today’s product page as separate blocks.',
+    ar: 'المعرض بجانب العنوان والسعر والخيارات والتخصيص والإضافة للسلة، مع تبويبات المنتج في الأسفل — صفحة المنتج الحالية كأقسام منفصلة.',
+  },
+  i18n: { name: 'presetClassicProductName', description: 'presetClassicProductDesc' },
+  icon: 'layout',
+  pageTypes: ['PRODUCT_TEMPLATE'],
+  gate: 'layout-containers',
+  blockedBy: PRODUCT_BLOCK_CONFLICT_KEYS,
+  sections: CLASSIC_PRODUCT_PRESET_SECTIONS,
+});
+
 export function findSectionPreset(id: string): SectionPreset | undefined {
   return SECTION_PRESETS.find((p) => p.id === id);
 }
 
-export function presetsForPageType(pageType: string): SectionPreset[] {
-  return SECTION_PRESETS.filter((p) => (p.pageTypes as string[]).includes(pageType));
+export function presetsForPageType(
+  pageType: string,
+  options: { layoutContainers?: boolean } = {},
+): SectionPreset[] {
+  return SECTION_PRESETS.filter(
+    (p) =>
+      (p.pageTypes as string[]).includes(pageType) &&
+      (p.gate !== 'layout-containers' || !!options.layoutContainers),
+  );
+}
+
+/**
+ * Nested create bodies of a preset (parents with their children), for
+ * presets with layout containers. Same content rule as presetSections.
+ */
+export function presetTreeBodies(presetId: string, primaryLocale: string): PresetNodeBody[] {
+  const preset = findSectionPreset(presetId);
+  if (!preset) return [];
+  return presetNodeBodies(preset.sections, primaryLocale, (key) => !!findSectionSchema(key));
 }
 
 /**

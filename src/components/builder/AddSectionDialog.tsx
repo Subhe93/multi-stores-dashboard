@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Gift, LayoutTemplate, Plus, Search, SearchX } from 'lucide-react';
+import { Gift, LayoutTemplate, PanelsTopLeft, Plus, Search, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { SECTION_SCHEMAS, findSectionSchema, labelOf, type SectionSchema } from '@/lib/section-schemas';
 import { presetsForPageType, type SectionPreset } from '@/lib/section-presets';
+import { presetLeafKeys, visibleSectionsWithKeys } from '@/lib/productBlocksPreset';
 // Palette rule: `pageTypes` whitelist, default "not HEADER/FOOTER", and the
 // `chrome` flag that adds HEADER/FOOTER (embed-code).
 import { isAvailableForPageType } from '@/lib/sectionAvailability';
@@ -56,6 +57,7 @@ type FilterId = SectionSchema['category'] | 'product' | 'all' | 'presets';
 // Icon for a preset card; `icon` is a hint from the preset definition.
 function PresetIcon({ icon, className }: { icon?: string; className?: string }) {
   if (icon === 'gift') return <Gift className={className} />;
+  if (icon === 'layout') return <PanelsTopLeft className={className} />;
   return <LayoutTemplate className={className} />;
 }
 
@@ -109,7 +111,12 @@ export function AddSectionDialog({
     : null;
   const containersOn = layoutContainers ?? isProductTemplate;
 
-  const presets = onAddPreset && !intoContainer ? presetsForPageType(pageType) : [];
+  const presets =
+    onAddPreset && !intoContainer ? presetsForPageType(pageType, { layoutContainers: containersOn }) : [];
+  // A preset with `blockedBy` stays visible but disabled while the page has a
+  // visible section it must not be combined with (e.g. a second buy form).
+  const presetBlockers = (p: SectionPreset) =>
+    p.blockedBy && sections ? visibleSectionsWithKeys(sections, p.blockedBy) : [];
 
   // Visibility rules (in order):
   // - First filter by `pageTypes` whitelist on the schema. Chrome sections
@@ -184,9 +191,10 @@ export function AddSectionDialog({
   const showSections = query || activeFilter !== 'presets';
   const nothingFound = filteredPresets.length === 0 && (!showSections || filtered.length === 0);
 
+  // Nested presets list their blocks, not the layout containers around them.
   const presetSectionNames = (p: SectionPreset) =>
-    p.sections
-      .map((s) => SECTION_SCHEMAS.find((schema) => schema.id === s.section_key))
+    presetLeafKeys(p.sections)
+      .map((key) => SECTION_SCHEMAS.find((schema) => schema.id === key))
       .filter((schema): schema is SectionSchema => !!schema)
       .map((schema) => labelOf(schema.label, locale));
 
@@ -268,13 +276,21 @@ export function AddSectionDialog({
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 py-3 max-h-[60vh] overflow-y-auto -mx-6 px-6">
-          {filteredPresets.map((p) => (
+          {filteredPresets.map((p) => {
+            const blockers = presetBlockers(p);
+            const blockerNames = blockers
+              .map((b) => {
+                const schema = findSectionSchema(b.section_key);
+                return schema ? labelOf(schema.label, locale) : b.section_key;
+              })
+              .filter((name, i, all) => all.indexOf(name) === i);
+            return (
             <button
               key={`preset:${p.id}`}
               type="button"
-              disabled={adding}
+              disabled={adding || blockers.length > 0}
               onClick={async () => {
-                if (!onAddPreset) return;
+                if (!onAddPreset || blockers.length > 0) return;
                 setAdding(true);
                 try {
                   await onAddPreset(p.id);
@@ -306,9 +322,15 @@ export function AddSectionDialog({
                   <span className="font-medium">{t('builder.presets.includes')}</span>{' '}
                   {presetSectionNames(p).join(' · ')}
                 </p>
+                {blockers.length > 0 && (
+                  <p className="text-[11px] text-amber-700 leading-snug">
+                    {t('builder.presets.blockedBy', { names: blockerNames.join(', ') })}
+                  </p>
+                )}
               </div>
             </button>
-          ))}
+            );
+          })}
           {showSections && filtered.map((s) => (
             <button
               key={s.id}

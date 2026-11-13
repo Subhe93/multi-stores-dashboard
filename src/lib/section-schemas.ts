@@ -3068,6 +3068,21 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     gate: 'layout-containers',
     translatable: [],
     schema: [
+      {
+        key: 'placement',
+        type: 'select',
+        label: { en: 'Show', ar: 'العرض' },
+        description: {
+          en: 'Split the form around the variants block: add one block set to "Before variants" above it and one set to "After variants" below it.',
+          ar: 'قسّم النموذج حول قسم الخيارات: أضف قسماً بـ"قبل الخيارات" فوقه وقسماً بـ"بعد الخيارات" تحته.',
+        },
+        defaultValue: 'all',
+        options: [
+          { value: 'all', label: { en: 'Everything', ar: 'الكل' } },
+          { value: 'before_variants', label: { en: 'Before variants (fields only)', ar: 'قبل الخيارات (الحقول فقط)' } },
+          { value: 'after_variants', label: { en: 'After variants', ar: 'بعد الخيارات' } },
+        ],
+      },
       { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
       {
         key: 'button_style',
@@ -3080,7 +3095,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         ],
       },
     ],
-    defaultSettings: { show_heading: true, button_style: 'solid' },
+    defaultSettings: { placement: 'all', show_heading: true, button_style: 'solid' },
   },
   {
     id: 'product-buy',

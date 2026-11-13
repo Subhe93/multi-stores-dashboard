@@ -1,0 +1,205 @@
+// Block-based product page helpers (product layout wave 4, D2):
+// - the nested "Classic product page" preset (same tree as the API's
+//   "Convert to blocks": multi-stores-api/src/modules/pages-v2/product-blocks-convert.ts);
+// - inserting a nested preset parent-first through a create callback;
+// - when the inspector offers "Convert to blocks".
+// Pure (no runtime imports) so the node test runner can load it.
+
+/** A preset section; `children` only on layout containers. */
+export interface PresetNode {
+  section_key: string;
+  settings: Record<string, unknown>;
+  // Content variants per locale; the inserted translation uses the store's
+  // primary locale's variant when it exists, else `en`.
+  content: Record<string, Record<string, unknown>>;
+  children?: PresetNode[];
+}
+
+/** Body of one POST /v2/pages/:id/sections, with the children to create under it. */
+export interface PresetNodeBody {
+  section_key: string;
+  settings: Record<string, unknown>;
+  content: Record<string, unknown>;
+  children: PresetNodeBody[];
+}
+
+export const PRODUCT_PAGE_SECTION_KEY = 'product-page';
+
+/**
+ * Sections that must not share a page with a new set of product blocks: the
+ * monolith and the add-to-cart composite each keep their own buy form, and a
+ * second variants / personalization / buy set would show two.
+ */
+export const PRODUCT_BLOCK_CONFLICT_KEYS: readonly string[] = [
+  PRODUCT_PAGE_SECTION_KEY,
+  'add-to-cart',
+  'product-variants',
+  'product-personalization',
+  'product-buy',
+];
+
+const leaf = (section_key: string, settings: Record<string, unknown> = {}): PresetNode => ({
+  section_key,
+  settings,
+  content: {},
+});
+
+/**
+ * Row [ Column(gallery, sticky) | Column(breadcrumb … shipping) ] + tabs,
+ * matching today's product page (gallery and info columns of equal width,
+ * the gallery column sticky on desktop). Personalization always sits next to
+ * variants and buy: it holds the piece-one option and the designer form.
+ */
+export const CLASSIC_PRODUCT_PRESET_SECTIONS: PresetNode[] = [
+  {
+    section_key: 'layout-row',
+    settings: {
+      gap_px: 56,
+      align: 'stretch',
+      child_width: 'fill',
+      justify: 'start',
+      wrap: false,
+      stack_on: 'tablet',
+      reverse_on_mobile: false,
+    },
+    content: {},
+    children: [
+      {
+        section_key: 'layout-column',
+        settings: { gap_px: 16, align: 'stretch', sticky_desktop: true, sticky_top_px: 96, _layout: { span: { desktop: 1 } } },
+        content: {},
+        children: [leaf('product-gallery', { layout: 'classic', aspect: 'square', enable_zoom: true })],
+      },
+      {
+        section_key: 'layout-column',
+        settings: { gap_px: 20, align: 'stretch', sticky_desktop: false, sticky_top_px: 24, _layout: { span: { desktop: 1 } } },
+        content: {},
+        children: [
+          leaf('product-breadcrumb', { show_current: true }),
+          leaf('product-title', { show_collection: true, show_vendor: true }),
+          leaf('product-price', { show_compare_at: true, show_savings: true, show_unit_price: true, show_sku: true }),
+          leaf('product-short-description'),
+          leaf('product-promotions', { show_end_date: true }),
+          leaf('product-bundles'),
+          // The app's before-variants fields sit above the picker, as today.
+          leaf('product-personalization', { placement: 'before_variants', show_heading: true, button_style: 'solid' }),
+          leaf('product-variants'),
+          leaf('product-personalization', { placement: 'after_variants', show_heading: true, button_style: 'solid' }),
+          leaf('product-buy', { button_style: 'solid', show_quantity: true, sticky_on_mobile: false }),
+          leaf('product-trust', { columns: '2' }),
+          leaf('product-shipping', { show_heading: true }),
+        ],
+      },
+    ],
+  },
+  leaf('product-tabs', {
+    show_description: true,
+    show_specifications: true,
+    show_faqs: true,
+    show_shipping: false,
+    show_returns: false,
+  }),
+];
+
+/**
+ * Resolve preset nodes into create bodies. Content picks the primary-locale
+ * variant, else `en`. Nodes rejected by `keep` (e.g. an unknown schema) are
+ * dropped with their children.
+ */
+export function presetNodeBodies(
+  nodes: readonly PresetNode[],
+  primaryLocale: string,
+  keep: (sectionKey: string) => boolean = () => true,
+): PresetNodeBody[] {
+  return nodes
+    .filter((n) => keep(n.section_key))
+    .map((n) => ({
+      section_key: n.section_key,
+      settings: JSON.parse(JSON.stringify(n.settings)) as Record<string, unknown>,
+      content: { ...(n.content[primaryLocale] ?? n.content.en ?? {}) },
+      children: presetNodeBodies(n.children ?? [], primaryLocale, keep),
+    }));
+}
+
+/** Leaf section keys of a preset in display order (the "Includes" line). */
+export function presetLeafKeys(nodes: readonly { section_key: string; children?: readonly unknown[] }[]): string[] {
+  const out: string[] = [];
+  for (const n of nodes) {
+    const kids = (n.children ?? []) as { section_key: string; children?: readonly unknown[] }[];
+    if (kids.length > 0) out.push(...presetLeafKeys(kids));
+    else out.push(n.section_key);
+  }
+  return out;
+}
+
+/** True when any node of the preset has children (needs the tree endpoint). */
+export function presetIsNested(nodes: readonly { children?: readonly unknown[] }[]): boolean {
+  return nodes.some((n) => (n.children?.length ?? 0) > 0);
+}
+
+/**
+ * Create a preset's sections parent-first: each root via `create(body, null)`,
+ * then its children under the returned id, depth-first, in order. Every
+ * created row is pushed onto `created` as soon as it exists, so a caller can
+ * keep its state in sync with the server when a later create fails (the
+ * error still propagates).
+ */
+export async function createPresetTree<T extends { id: string }>(
+  bodies: readonly PresetNodeBody[],
+  create: (body: PresetNodeBody, parentId: string | null) => Promise<T>,
+  created: T[] = [],
+  parentId: string | null = null,
+): Promise<T[]> {
+  for (const body of bodies) {
+    const row = await create(body, parentId);
+    created.push(row);
+    if (body.children.length > 0) {
+      await createPresetTree(body.children, create, created, row.id);
+    }
+  }
+  return created;
+}
+
+interface SectionLike {
+  id: string;
+  section_key: string;
+  parent_id?: string | null;
+  is_hidden?: boolean;
+}
+
+/**
+ * Visible sections of the page with one of `keys` (default: the sections that
+ * conflict with a new set of product blocks, PRODUCT_BLOCK_CONFLICT_KEYS). A
+ * section inside a hidden container counts as hidden.
+ */
+export function visibleSectionsWithKeys<T extends SectionLike>(
+  sections: readonly T[],
+  keys: readonly string[] = PRODUCT_BLOCK_CONFLICT_KEYS,
+): T[] {
+  const byId = new Map<string, SectionLike>(sections.map((s) => [s.id, s]));
+  const hidden = (s: SectionLike): boolean => {
+    const seen = new Set<string>();
+    let cur: SectionLike | undefined = s;
+    while (cur && !seen.has(cur.id)) {
+      if (cur.is_hidden) return true;
+      seen.add(cur.id);
+      cur = cur.parent_id ? byId.get(cur.parent_id) : undefined;
+    }
+    return false;
+  };
+  return sections.filter((s) => keys.includes(s.section_key) && !hidden(s));
+}
+
+/**
+ * The inspector offers "Convert to blocks" for a visible, top-level
+ * product-page section while the block-based product page is enabled.
+ */
+export function canConvertToBlocks(section: SectionLike | null | undefined, layoutContainers: boolean): boolean {
+  return (
+    !!section &&
+    layoutContainers &&
+    section.section_key === PRODUCT_PAGE_SECTION_KEY &&
+    !section.is_hidden &&
+    !section.parent_id
+  );
+}

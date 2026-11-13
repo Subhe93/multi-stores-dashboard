@@ -30,12 +30,15 @@ export function normalizeFlatOrder<T extends TreeSectionLike>(sections: readonly
 /**
  * Interleaves "+ add here" slots into a flattened (pre-order) list: one slot
  * after the last visible descendant of every expanded container. Collapsed
- * containers and the container being dragged get no slot.
+ * containers and the container being dragged get no slot. `addSlots: false`
+ * (the store's product layout app is off) lists the sections only, so
+ * already-saved containers stay visible but take no new children.
  */
 export function buildListRows<T extends TreeSectionLike>(
   items: readonly FlattenedSection<T>[],
-  options: { collapsed?: ReadonlySet<string>; activeId?: string | null } = {},
+  options: { collapsed?: ReadonlySet<string>; activeId?: string | null; addSlots?: boolean } = {},
 ): SectionListRow<T>[] {
+  if (options.addSlots === false) return items.map((item) => ({ kind: 'section', item }));
   const collapsed = options.collapsed ?? new Set<string>();
   const activeId = options.activeId ?? null;
   const rows: SectionListRow<T>[] = [];
@@ -71,14 +74,33 @@ export function ancestorIds<T extends TreeSectionLike>(sections: readonly T[], i
 }
 
 /**
+ * Whether a drag projection may be dropped. With `allowNewParent: false`
+ * (the store's product layout app is off; the API rejects it too) a section
+ * may stay in its current container or move to the page root, but never
+ * gain a new parent.
+ */
+export function isDropAllowed<T extends TreeSectionLike>(
+  active: Pick<FlattenedSection<T>, 'parentId'> | null | undefined,
+  projection: DragProjection | null | undefined,
+  options: { allowNewParent?: boolean } = {},
+): boolean {
+  if (!active || !projection || !projection.allowed) return false;
+  if (options.allowNewParent === false && projection.parentId !== null && projection.parentId !== active.parentId) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Turns a drag projection into a move target. Null when the drop is not
- * allowed or would leave the section where it already is.
+ * allowed (see isDropAllowed) or would leave the section where it already is.
  */
 export function resolveDropTarget<T extends TreeSectionLike>(
   active: Pick<FlattenedSection<T>, 'parentId' | 'index'> | null | undefined,
   projection: DragProjection | null | undefined,
+  options: { allowNewParent?: boolean } = {},
 ): MoveTarget | null {
-  if (!active || !projection || !projection.allowed) return null;
+  if (!active || !projection || !isDropAllowed(active, projection, options)) return null;
   if (projection.parentId === active.parentId && projection.index === active.index) return null;
   return { parentId: projection.parentId, index: projection.index };
 }

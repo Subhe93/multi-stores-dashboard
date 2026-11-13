@@ -3031,6 +3031,10 @@
         "zoho_mail": {
           "name": "Zoho Mail",
           "description": "Versenden Sie die E-Mails Ihres Shops (Bestellbestätigungen, Rechnungen, Passwort-Zurücksetzungen…) aus Ihrem eigenen Zoho-Mail-Postfach."
+        },
+        "product_layout": {
+          "name": "Produktseiten-Blöcke (Beta)",
+          "description": "Baue die Produktseite im Theme-Builder aus einzelnen Blöcken (Galerie, Titel, Preis, Varianten, In den Warenkorb …) in Zeilen, Spalten und Rastern. Beta: Bereits gespeicherte Seiten funktionieren weiter, wenn du sie ausschaltest."
         }
       },
       "b2b": {
@@ -5845,6 +5849,13 @@
     "PAGE_SECTION_PARENT_NOT_CONTAINER": "Abschnitte können nur in eine Zeile, Spalte oder ein Raster gelegt werden.",
     "PAGE_SECTION_TREE_CYCLE": "Ein Container kann nicht in sich selbst gelegt werden.",
     "PAGE_SECTION_TREE_TOO_DEEP": "Zu viele Ebenen: Abschnitte können höchstens 3 Ebenen tief verschachtelt werden (z. B. Zeile → Spalte → Block).",
+    "PRODUCT_BLOCKS_ALREADY_CONVERTED": "Diese Produktseite wurde bereits in Blöcke umgewandelt. Lösche zuerst die umgewandelte Zeile, um erneut umzuwandeln.",
+    "PRODUCT_PAGE_SECTION_NOT_FOUND": "Es gibt keinen sichtbaren Produktseiten-Block zum Umwandeln.",
+    "PRODUCT_PAGE_SECTION_NESTED": "Verschiebe den Produktseiten-Block vor dem Umwandeln auf die oberste Ebene der Seite.",
+    "PRODUCT_BLOCKS_CONFLICT": "Die Seite hat bereits einen eigenen Warenkorb-, Optionen- oder Personalisierungsblock. Blende ihn vor dem Umwandeln aus oder lösche ihn, damit die Seite nicht zwei Kaufformulare zeigt.",
+    "PRODUCT_LAYOUT_DISABLED": "Produktseiten-Blöcke sind für diesen Shop nicht aktiviert.",
+    "PRODUCT_BLOCKS_NOT_PRODUCT_TEMPLATE": "Nur die Produktvorlage kann in Blöcke umgewandelt werden.",
+    "PAGE_SECTION_LAYOUT_BLOCKS_DISABLED": "Layout-Container und die einzelnen Produktblöcke sind für diesen Shop nicht aktiviert. Aktiviere „Produktseiten-Blöcke (Beta)“ unter Apps (ein Admin muss sie zuerst freigeben).",
     "PAGE_SECTION_CONTAINER_NOT_ALLOWED": "Zeilen, Spalten und Raster gibt es nur in der Produktvorlage.",
     "PAGE_VERSION_NOT_FOUND": "Version nicht gefunden",
     "PRODUCT_BUNDLES_NOT_FOUND": "Ein oder mehrere Bundles existieren nicht",
@@ -6466,10 +6477,25 @@
     "presets": {
       "tab": "Vorlagen",
       "addedToast": "{count} Abschnitte hinzugefügt",
-      "includes": "Enthält:"
+      "includes": "Enthält:",
+      "blockedBy": "Nicht verfügbar, solange die Seite Folgendes zeigt: {names}. Blende es zuerst aus oder lösche es."
     },
     "presetOccasionName": "Anlass-Seite",
     "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines Tags, ein SEO-Textblock, dann Fragen und Antworten — das Layout einer Geschenkanlass-Seite.",
+    "presetClassicProductName": "Klassische Produktseite",
+    "presetClassicProductDesc": "Galerie neben Titel, Preis, Optionen, Personalisierung und Warenkorb-Button, darunter die Produkt-Tabs – die heutige Produktseite als einzelne Blöcke.",
+    "convertBlocks": {
+      "title": "Einzelne Produktblöcke",
+      "hint": "Baue diese Produktseite aus einzelnen Blöcken in Zeilen und Spalten neu auf, damit du jeden Teil verschieben, anders gestalten und mit anderen Abschnitten kombinieren kannst.",
+      "button": "In Blöcke umwandeln",
+      "confirmTitle": "In Blöcke umwandeln?",
+      "confirmBody": "Die Produktseite wird direkt unter diesem Block aus einzelnen Blöcken neu aufgebaut (Galerie, Titel, Preis, Optionen, Personalisierung, Warenkorb, Vertrauenssiegel, Versand und Tabs); deine Einstellungen und Vertrauenssiegel werden übernommen. Dieser Block wird nur ausgeblendet, nicht gelöscht, und kann jederzeit wieder angezeigt werden.",
+      "confirmDraft": "Das ist eine Entwurfsänderung: Dein Live-Shop bleibt unverändert, bis du die Seite in der Vorschau prüfst und veröffentlichst.",
+      "confirm": "Umwandeln",
+      "converting": "Wird umgewandelt…",
+      "failed": "Die Seite konnte nicht umgewandelt werden. Versuche es erneut.",
+      "done": "In Blöcke umgewandelt. Prüfe die Vorschau und veröffentliche dann."
+    },
     "internalLabelsGroup": "Tags",
     "missingCollection": "(Kollektion fehlt)",
     "textColors": "Text auf Farben",
