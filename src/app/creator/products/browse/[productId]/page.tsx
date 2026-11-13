@@ -11,6 +11,7 @@ import { IndependentStoreNotice } from '@/components/creator/IndependentStoreNot
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCurrency } from '@/lib/useCurrency';
+import { ProviderVideosPreview, type ProviderVideoLike } from '@/components/product/ProviderVideosPreview';
 
 const API_BASE = API_ORIGIN;
 
@@ -51,6 +52,8 @@ interface Product {
   id: string;
   base_price: number;
   images?: ProductImage[];
+  /** The provider's product videos; reselling stores show them (D5). */
+  videos?: ProviderVideoLike[];
   category?: { translations: { locale: string; name: string }[] };
   translations: { locale: string; title: string; description?: string; slug?: string }[];
   variants?: ProductVariant[];
@@ -244,6 +247,8 @@ export default function ProductDetailPage() {
               ))}
             </div>
           )}
+
+          <ProviderVideosPreview videos={product.videos} />
         </div>
 
         {/* ── Right: Product info ── */}

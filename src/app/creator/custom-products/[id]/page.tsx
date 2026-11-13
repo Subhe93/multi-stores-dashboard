@@ -39,6 +39,7 @@ import {
 } from '@/components/redirects/DeleteRedirect';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
+import { ProviderVideosPreview, type ProviderVideoLike } from '@/components/product/ProviderVideosPreview';
 
 const API_BASE = API_ORIGIN;
 
@@ -95,6 +96,8 @@ interface CustomProduct {
     creator_id?: string;
     translations: { locale: string; title: string; description?: string }[];
     images?: { url: string; sort_order: number }[];
+    /** The provider's product videos; this store shows them (D5). */
+    videos?: ProviderVideoLike[];
     variants?: ProductVariant[];
     custom_fields?: ProductCustomField[];
   };
@@ -859,6 +862,13 @@ export default function EditCustomProduct() {
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Read-only: the provider's videos this store shows. */}
+            {(product.product.videos?.length ?? 0) > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <ProviderVideosPreview videos={product.product.videos} />
               </div>
             )}
           </CardContent>

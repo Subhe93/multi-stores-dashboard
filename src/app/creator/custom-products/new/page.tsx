@@ -41,6 +41,7 @@ import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { computeProductPricingForBundleCheck } from '@/components/creator/bundles/economics';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
+import { ProviderVideosPreview, type ProviderVideoLike } from '@/components/product/ProviderVideosPreview';
 
 const API_BASE = API_ORIGIN;
 
@@ -75,6 +76,8 @@ interface Product {
   translations: ProductTranslation[];
   base_price: number;
   images: ProductImage[];
+  /** The provider's product videos; this store shows them (D5). */
+  videos?: ProviderVideoLike[];
   variants?: ProductVariant[];
   variant_option_config?: VariantOptionConfig[];
   custom_fields?: ProductCustomField[];
@@ -965,6 +968,13 @@ export default function NewCustomProductPage() {
                         );
                       })}
                     </div>
+                  </div>
+                )}
+
+                {/* Read-only: the provider's videos this store will show. */}
+                {productDetails?.videos && productDetails.videos.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <ProviderVideosPreview videos={productDetails.videos} />
                   </div>
                 )}
               </div>

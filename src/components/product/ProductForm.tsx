@@ -20,6 +20,11 @@ import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
+import {
+  featuredFirst, shouldSendVideos, videoFromServer, videosKey, videosNeedImage, videosPayload,
+  type EditorVideo, type ProductVideoOut,
+} from '@/lib/productMedia';
+import { fetchVideoConfig, type VideoUploadConfig } from '@/lib/useVideoUpload';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -134,6 +139,8 @@ interface ProductResponse {
   weight_unit?: string | null;
   status?: string | null;
   images?: ProductImage[];
+  /** Product videos; always an array on an API that supports them. */
+  videos?: ProductVideoOut[];
   custom_fields?: CustomField[];
   faqs?: Faq[];
   bundles?: { bundle_id: string }[];
@@ -249,6 +256,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [status, setStatus] = useState('DRAFT');
   const [attrValues, setAttrValues] = useState<Record<string, AttrValue>>({});
   const [images, setImages] = useState<ProductImage[]>([]);
+  // Product videos (grid order). `serverHasVideos`: the editor GET returned a
+  // `videos` array, so this API stores them and a save may send the field.
+  const [videos, setVideos] = useState<EditorVideo[]>([]);
+  const [serverHasVideos, setServerHasVideos] = useState(false);
+  // Videos as loaded / last saved: a save sends `videos` only when they changed.
+  const [savedVideosKey, setSavedVideosKey] = useState('[]');
+  const [videoConfig, setVideoConfig] = useState<VideoUploadConfig | null>(null);
+  const [mediaError, setMediaError] = useState('');
   const [variantOptions, setVariantOptions] = useState<VariantOption[]>([]);
   const [variants, setVariants] = useState<GeneratedVariant[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
@@ -346,6 +361,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       .catch(() => {}); // no store yet — keep defaults
   }, [token, hasUser, isCreator]);
 
+  // ── Fetch video upload config (null on an API without video routes) ──
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    fetchVideoConfig(token).then(cfg => { if (!cancelled) setVideoConfig(cfg); });
+    return () => { cancelled = true; };
+  }, [token]);
+
   // ── Fetch shipping profiles ────────────────────────────────
   useEffect(() => {
     if (!token) return;
@@ -397,7 +420,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setStatus(p.status || 'DRAFT');
       setSavedStatus(p.status || 'DRAFT');
       setSavedSlug(pickProductSlug(p.translations, primaryLocale) || '');
-      setImages((p.images || []).filter((img) => !img.variant_id));
+      // Featured image first: the grid shows the storefront order.
+      setImages(featuredFirst((p.images || []).filter((img) => !img.variant_id)));
+      setServerHasVideos(Array.isArray(p.videos));
+      const loadedVideos = Array.isArray(p.videos) ? p.videos.map(videoFromServer) : [];
+      setVideos(loadedVideos);
+      setSavedVideosKey(videosKey(loadedVideos));
       // Repeater children may arrive nested or flat; the editor works on a flat list.
       setCustomFields(flattenFieldTree(p.custom_fields));
       setFaqs(p.faqs || []);
@@ -564,6 +592,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       trackInventory, stockQty, weight, weightUnit, status: statusOverride ?? status,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
+      // No row ids: adopting the stored ids after a save is not an edit.
+      videos: videos.map(v => ({ kind: v.kind, url: v.url, poster: v.poster_url || '', alt: v.alt, position: v.position })),
       variantOptions,
       variants: variants.map(v => ({
         options: v.options,
@@ -619,6 +649,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                               errs.comparePrice = t('product.errComparePrice');
     if (gtin.trim() && !isValidGtin(gtin.trim()))
                               errs.gtin = t('product.errGtinInvalid');
+    // A video needs at least one product-level image (the first slot is an image).
+    if (videosNeedImage(images.length, videos.length)) errs.media = t('image.videoRequiresImage');
+    setMediaError(errs.media || '');
     categoryAttrs.filter(a => a.is_required).forEach(a => {
       const val = attrValues[a.id];
       if (val === '' || val == null || val === false)
@@ -645,6 +678,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       return false;
     }
     return true;
+  };
+
+  // Scrolls to the media card (images and videos).
+  const jumpToMedia = () => {
+    setTimeout(() => document.getElementById('product-media')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
   // Scrolls to the product options card (variant options / variation cards).
@@ -676,6 +714,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     setSaving(true);
     setError('');
     setOptionsError('');
+    setMediaError('');
     setFieldErrors({});
     // Path prefix of the create-mode custom field being written, so a config
     // error names that field instead of an anonymous one.
@@ -764,6 +803,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         attributes: Object.entries(attrValues).filter(([, v]) => v !== '' && v != null).map(([tid, value]) => ({ template_id: tid, value })),
         variants: variantsPayload,
         images: imagesPayload,
+        // Only for an API that stores videos (edit) or when videos were added
+        // (create); otherwise the stored rows stay untouched.
+        ...(shouldSendVideos({ mode, serverHasVideos, videoCount: videos.length, changed: videosKey(videos) !== savedVideosKey })
+          ? { videos: videosPayload(videos) }
+          : {}),
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
       };
 
@@ -798,7 +842,20 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         pid = product.id;
         adoptServerSlugs(product?.translations);
       } else {
-        const updated = await api<Pick<ProductResponse, 'variants' | 'translations'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        const updated = await api<Pick<ProductResponse, 'variants' | 'translations' | 'videos'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        // Adopt the stored ids of new videos (same order as sent) so the next
+        // save updates them in place and keeps their created_at.
+        const sentVideos = (body.videos as ReturnType<typeof videosPayload> | undefined) ?? null;
+        const storedVideos = Array.isArray(updated?.videos) ? updated.videos : null;
+        if (sentVideos) setSavedVideosKey(videosKey(videos));
+        if (sentVideos && storedVideos && storedVideos.length === sentVideos.length) {
+          const idByIndex = new Map(storedVideos.map((row, i) => [i, row]));
+          const sentUrls = sentVideos.map(v => v.url);
+          setVideos(prev => prev.map((v, i) => {
+            const row = idByIndex.get(i);
+            return !v.serverId && row && sentUrls[i] === v.url ? { ...v, serverId: row.id } : v;
+          }));
+        }
         storedPrimarySlug = adoptServerSlugs(updated?.translations);
         // Adopt the server-assigned ids for newly created variants so the next
         // save updates them in place instead of recreating them. Match on a
@@ -897,6 +954,16 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setError(text);
         setOptionsError(text);
         jumpToOptions();
+      } else if (err instanceof ApiError && err.code && err.code.startsWith('VIDEO_')) {
+        // Product video refusals: shown on the media card, which is scrolled into view.
+        const text = err.code === 'VIDEO_REQUIRES_IMAGE'
+          ? t('image.videoRequiresImage')
+          : err.code === 'VIDEO_LIMIT_EXCEEDED'
+            ? t('image.videoLimitReached', { max: typeof err.payload?.max === 'number' ? err.payload.max : 3 })
+            : apiError(err);
+        setError(text);
+        setMediaError(text);
+        jumpToMedia();
       } else if (err instanceof ApiError && err.code === 'PRODUCT_GTIN_INVALID') {
         setFieldErrors(p => ({ ...p, gtin: t('product.errGtinInvalid') }));
         setError(t('product.errGtinInvalid'));
@@ -1244,13 +1311,23 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             </CardContent>
           </Card>
 
-          {/* Images */}
-          <ImageGallery
-            images={images}
-            onChange={setImages}
-            onPickAndUpload={(multiple) => pickAndUpload('products', multiple)}
-            uploading={uploading}
-          />
+          {/* Images and videos */}
+          <div id="product-media" className="scroll-mt-4" {...(mediaError ? { 'data-field-error': true } : {})}>
+            <ImageGallery
+              images={images}
+              onChange={setImages}
+              onPickAndUpload={(multiple) => pickAndUpload('products', multiple)}
+              // Video covers live in the poster folder the API sweeps when unused.
+              onPickPoster={() => pickAndUpload('video-posters', false)}
+              uploading={uploading}
+              videos={videos}
+              onVideosChange={(next) => { setVideos(next); setMediaError(''); }}
+              // Edit mode on an API without videos: no video UI, nothing is sent.
+              videoConfig={mode === 'create' || serverHasVideos ? videoConfig : null}
+              token={token}
+              mediaError={mediaError}
+            />
+          </div>
 
           {/* Variants */}
           <div id="product-options" className="scroll-mt-4">
