@@ -6276,6 +6276,8 @@
     "translateRunning": "Translating…",
     "translateClose": "Close",
     "fallbackToPrimary": "No translation for this locale yet — showing {locale} content.",
+    "dynamicContentNote": "This text comes from the product shown on the page. Change the source in the Settings tab.",
+    "dynamicImageNote": "This image comes from the product shown on the page. Change the source in the Settings tab.",
     "contentGroup": "Content",
     "sectionSettings": "Section settings",
     "noSectionSelected": "No section selected",

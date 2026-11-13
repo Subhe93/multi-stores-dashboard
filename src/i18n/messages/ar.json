@@ -6276,6 +6276,8 @@
     "translateRunning": "جارٍ الترجمة…",
     "translateClose": "إغلاق",
     "fallbackToPrimary": "لا توجد ترجمة لهذه اللغة بعد — يتم عرض محتوى {locale}.",
+    "dynamicContentNote": "هذا النص يأتي من بيانات المنتج المعروض في الصفحة. غيّر المصدر من تبويب الإعدادات.",
+    "dynamicImageNote": "هذه الصورة تأتي من المنتج المعروض في الصفحة. غيّر المصدر من تبويب الإعدادات.",
     "contentGroup": "المحتوى",
     "sectionSettings": "إعدادات القسم",
     "noSectionSelected": "لم يتم تحديد قسم",

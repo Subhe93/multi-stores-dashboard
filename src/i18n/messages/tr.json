@@ -6276,6 +6276,8 @@
     "translateRunning": "Çevriliyor…",
     "translateClose": "Kapat",
     "fallbackToPrimary": "Bu dil için henüz çeviri yok — {locale} içeriği gösteriliyor.",
+    "dynamicContentNote": "Bu metin sayfada gösterilen üründen gelir. Kaynağı Ayarlar sekmesinden değiştirin.",
+    "dynamicImageNote": "Bu görsel sayfada gösterilen üründen gelir. Kaynağı Ayarlar sekmesinden değiştirin.",
     "contentGroup": "İçerik",
     "sectionSettings": "Bölüm ayarları",
     "noSectionSelected": "Bölüm seçilmedi",

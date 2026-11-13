@@ -6276,6 +6276,8 @@
     "translateRunning": "Översätter…",
     "translateClose": "Stäng",
     "fallbackToPrimary": "Ingen översättning för detta språk ännu – visar {locale}-innehåll.",
+    "dynamicContentNote": "Texten hämtas från produkten som visas på sidan. Ändra källan under fliken Inställningar.",
+    "dynamicImageNote": "Bilden hämtas från produkten som visas på sidan. Ändra källan under fliken Inställningar.",
     "contentGroup": "Innehåll",
     "sectionSettings": "Sektionsinställningar",
     "noSectionSelected": "Ingen sektion vald",

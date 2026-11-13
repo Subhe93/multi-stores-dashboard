@@ -1335,6 +1335,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               onSectionClicked={handlePreviewSectionClicked}
               onSectionAction={handlePreviewSectionAction}
               onInlineEdit={handleInlineEdit}
+              token={token}
             />
           ) : (
             <div className="h-full flex items-center justify-center">
@@ -1359,6 +1360,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
             onSelectParent={selectParent}
             layoutContainers={layoutContainers}
             onConvertToBlocks={convertToBlocks}
+            pageType={page.type}
           />
         </aside>
       </div>

@@ -112,6 +112,16 @@ function ImageWithTextPreview(props: PreviewProps) {
   );
 }
 
+function SingleImagePreview(props: PreviewProps) {
+  return (
+    <Frame {...props}>
+      <rect x="40" y="14" width="120" height="92" rx="4" fill={FILL} />
+      <circle cx="70" cy="42" r="9" fill="white" opacity="0.8" />
+      <path d="M48 98 L86 58 L112 84 L128 70 L152 98 Z" fill="white" opacity="0.6" />
+    </Frame>
+  );
+}
+
 function FaqListPreview(props: PreviewProps) {
   return (
     <Frame {...props}>
@@ -1141,6 +1151,7 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'image-gallery': ImageGalleryPreview,
   'gallery-slider': GallerySliderPreview,
   'image-with-text': ImageWithTextPreview,
+  'single-image': SingleImagePreview,
   'faq-list': FaqListPreview,
   'call-to-action': CallToActionPreview,
   'trust-badges': TrustBadgesPreview,

@@ -6276,6 +6276,8 @@
     "translateRunning": "Wird übersetzt…",
     "translateClose": "Schließen",
     "fallbackToPrimary": "Noch keine Übersetzung für diese Sprache – {locale}-Inhalt wird angezeigt.",
+    "dynamicContentNote": "Dieser Text stammt aus dem auf der Seite gezeigten Produkt. Ändere die Quelle im Tab „Einstellungen“.",
+    "dynamicImageNote": "Dieses Bild stammt aus dem auf der Seite gezeigten Produkt. Ändere die Quelle im Tab „Einstellungen“.",
     "contentGroup": "Inhalt",
     "sectionSettings": "Abschnittseinstellungen",
     "noSectionSelected": "Kein Abschnitt ausgewählt",

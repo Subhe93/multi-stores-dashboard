@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy, LayoutGrid, CornerLeftUp } from 'lucide-react';
+import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy, LayoutGrid, CornerLeftUp, Database } from 'lucide-react';
 import { CHILD_LAYOUT_FIELDS, findSectionSchema, labelOf } from '@/lib/section-schemas';
 import { getChildLayoutValue, setChildLayoutValue } from '@/lib/sectionTree';
 import { canConvertToBlocks } from '@/lib/productBlocksPreset';
+import { activeDynamicSource, visibleInspectorFields } from '@/lib/inspectorFields';
 import { cn } from '@/lib/utils';
 import { FieldRenderer } from './fields/FieldRenderer';
 import { SectionPreview } from './SectionPreviews';
@@ -35,6 +36,11 @@ interface SectionInspectorProps {
   layoutContainers?: boolean;
   /** "Convert to blocks" on a product-page section; hidden when omitted. */
   onConvertToBlocks?: (sectionId: string) => Promise<void>;
+  /**
+   * Type of the page being edited. Fields limited to some page types (the
+   * dynamic source fields: PRODUCT_TEMPLATE) show only there.
+   */
+  pageType?: string;
 }
 
 type Tab = 'content' | 'settings' | 'style' | 'layout';
@@ -60,6 +66,7 @@ export function SectionInspector({
   onSelectParent,
   layoutContainers = true,
   onConvertToBlocks,
+  pageType,
 }: SectionInspectorProps) {
   const t = useTranslations('builder');
   const tc = useTranslations('common');
@@ -87,9 +94,11 @@ export function SectionInspector({
     );
   }
 
-  const translatableKeys = new Set(schema.translatable);
-  const settingsFields = schema.schema.filter((f) => !translatableKeys.has(f.key));
-  const contentFields = schema.schema.filter((f) => translatableKeys.has(f.key));
+  // Fields split by `translatable`, minus the ones hidden for this page type
+  // or by a top-level showIf (lib/inspectorFields.ts). Fields without those
+  // rules show exactly as before.
+  const { settingsFields, contentFields } = visibleInspectorFields(schema, section.settings, pageType);
+  const dynamicSource = activeDynamicSource(schema, section.settings, pageType);
 
   // Same fallback chain as the live preview (locale → primary → first
   // translation that has content). Without the last step, changing the
@@ -264,6 +273,14 @@ export function SectionInspector({
                 <Copy className="size-3.5 mt-px shrink-0 text-amber-600" />
                 <span className="leading-relaxed">
                   {t('fallbackToPrimary', { locale: primaryLocale })}
+                </span>
+              </div>
+            )}
+            {dynamicSource && (
+              <div className="flex items-start gap-2 rounded-lg bg-indigo-50 border border-indigo-200/70 px-3 py-2 text-[11px] text-indigo-900">
+                <Database className="size-3.5 mt-px shrink-0 text-indigo-600" />
+                <span className="leading-relaxed">
+                  {t(dynamicSource.key === 'image_source' ? 'dynamicImageNote' : 'dynamicContentNote')}
                 </span>
               </div>
             )}

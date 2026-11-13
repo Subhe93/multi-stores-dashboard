@@ -34,8 +34,12 @@ export interface FieldDefinition {
   fields?: FieldDefinition[];
   // Conditional visibility — show this field only when a sibling field's
   // value is one of `in`. Used inside repeaters (e.g. a content block shows
-  // only the fields relevant to its selected `type`).
+  // only the fields relevant to its selected `type`). The section inspector
+  // also applies it to top-level fields, read against the section settings.
   showIf?: { key: string; in: string[] };
+  // Page types where the inspector offers this field (the dynamic source
+  // fields: PRODUCT_TEMPLATE only). Omitted = every page type.
+  pageTypes?: SectionSchema['pageTypes'];
 }
 
 export interface SectionSchema {
@@ -203,6 +207,87 @@ export const CHILD_LAYOUT_FIELDS: FieldDefinition[] = [
     type: 'boolean',
     label: { en: 'Stay in view while scrolling (desktop)', ar: 'تثبيت أثناء التمرير (سطح المكتب)' },
     defaultValue: false,
+  },
+];
+
+// ── Dynamic sources (product template) ─────────────────────────────────
+// Mirrors multi-stores-web/src/themes/minimal/sections/_shared/dynamicSourceFields.ts
+// (same keys, option values and showIf rules; inspectorFields.test.mjs
+// compares the two, and the options with the web renderer's
+// dynamicSourceKeys.ts). The source fields are settings (never translatable)
+// and the inspector offers them on PRODUCT_TEMPLATE pages only (`pageTypes`).
+// A missing source means static, so existing sections are unchanged.
+
+const PRODUCT_TEMPLATE_ONLY: FieldDefinition['pageTypes'] = ['PRODUCT_TEMPLATE'];
+
+/** The static field (html / image) shows only while the source is static. */
+export const STATIC_CONTENT_SHOW_IF = { key: 'content_source', in: ['', 'static'] };
+export const STATIC_IMAGE_SHOW_IF = { key: 'image_source', in: ['', 'static'] };
+
+export const CONTENT_SOURCE_FIELDS: FieldDefinition[] = [
+  {
+    key: 'content_source',
+    type: 'select',
+    label: { en: 'Content source', ar: 'مصدر المحتوى', tr: 'İçerik kaynağı', de: 'Inhaltsquelle', fr: 'Source du contenu', sv: 'Innehållskälla' },
+    description: {
+      en: 'Show this text from the product of the page instead of writing it here.',
+      ar: 'اعرض هذا النص من بيانات المنتج في الصفحة بدلاً من كتابته هنا.',
+      tr: 'Bu metni buraya yazmak yerine sayfadaki üründen göster.',
+      de: 'Diesen Text aus dem Produkt der Seite anzeigen, statt ihn hier zu schreiben.',
+      fr: 'Afficher ce texte depuis le produit de la page au lieu de l’écrire ici.',
+      sv: 'Visa texten från sidans produkt i stället för att skriva den här.',
+    },
+    defaultValue: 'static',
+    pageTypes: PRODUCT_TEMPLATE_ONLY,
+    options: [
+      { value: 'static', label: { en: 'Static (written here)', ar: 'ثابت (يُكتب هنا)', tr: 'Sabit (burada yazılır)', de: 'Statisch (hier geschrieben)', fr: 'Statique (écrit ici)', sv: 'Statisk (skrivs här)' } },
+      { value: 'product_description', label: { en: 'Product description', ar: 'وصف المنتج', tr: 'Ürün açıklaması', de: 'Produktbeschreibung', fr: 'Description du produit', sv: 'Produktbeskrivning' } },
+      { value: 'product_short_description', label: { en: 'Product short description', ar: 'الوصف المختصر للمنتج', tr: 'Ürün kısa açıklaması', de: 'Kurzbeschreibung des Produkts', fr: 'Description courte du produit', sv: 'Kort produktbeskrivning' } },
+      { value: 'product_specifications', label: { en: 'Product specifications', ar: 'مواصفات المنتج', tr: 'Ürün özellikleri', de: 'Produktspezifikationen', fr: 'Caractéristiques du produit', sv: 'Produktspecifikationer' } },
+      { value: 'product_attribute', label: { en: 'Product attribute (custom field)', ar: 'خاصية من المنتج (حقل مخصص)', tr: 'Ürün niteliği (özel alan)', de: 'Produktattribut (eigenes Feld)', fr: 'Attribut du produit (champ personnalisé)', sv: 'Produktattribut (eget fält)' } },
+      { value: 'product_title', label: { en: 'Product title', ar: 'اسم المنتج', tr: 'Ürün adı', de: 'Produktname', fr: 'Nom du produit', sv: 'Produktnamn' } },
+    ],
+  },
+  {
+    key: 'attribute_key',
+    type: 'text',
+    label: { en: 'Attribute name', ar: 'اسم الخاصية', tr: 'Nitelik adı', de: 'Attributname', fr: 'Nom de l’attribut', sv: 'Attributnamn' },
+    description: {
+      en: 'The attribute name as shown in the product specifications.',
+      ar: 'اسم الخاصية كما يظهر في مواصفات المنتج.',
+      tr: 'Ürün özelliklerinde görünen nitelik adı.',
+      de: 'Der Attributname wie in den Produktspezifikationen.',
+      fr: 'Le nom de l’attribut tel qu’il apparaît dans les caractéristiques du produit.',
+      sv: 'Attributets namn så som det visas i produktens specifikationer.',
+    },
+    pageTypes: PRODUCT_TEMPLATE_ONLY,
+    showIf: { key: 'content_source', in: ['product_attribute'] },
+  },
+];
+
+export const IMAGE_SOURCE_FIELDS: FieldDefinition[] = [
+  {
+    key: 'image_source',
+    type: 'select',
+    label: { en: 'Image source', ar: 'مصدر الصورة', tr: 'Görsel kaynağı', de: 'Bildquelle', fr: 'Source de l’image', sv: 'Bildkälla' },
+    defaultValue: 'static',
+    pageTypes: PRODUCT_TEMPLATE_ONLY,
+    options: [
+      { value: 'static', label: { en: 'Uploaded image', ar: 'صورة مرفوعة', tr: 'Yüklenen görsel', de: 'Hochgeladenes Bild', fr: 'Image importée', sv: 'Uppladdad bild' } },
+      { value: 'product_featured', label: { en: 'Product featured image', ar: 'الصورة الرئيسية للمنتج', tr: 'Ürünün ana görseli', de: 'Hauptbild des Produkts', fr: 'Image principale du produit', sv: 'Produktens huvudbild' } },
+      { value: 'product_image_n', label: { en: 'Product image by position', ar: 'صورة المنتج حسب الترتيب', tr: 'Sıraya göre ürün görseli', de: 'Produktbild nach Position', fr: 'Image du produit par position', sv: 'Produktbild efter position' } },
+      { value: 'variant_image', label: { en: 'Selected variant image', ar: 'صورة الخيار المحدد', tr: 'Seçili varyant görseli', de: 'Bild der gewählten Variante', fr: 'Image de la variante choisie', sv: 'Bild för vald variant' } },
+    ],
+  },
+  {
+    key: 'image_index',
+    type: 'number',
+    label: { en: 'Image position (1 = first)', ar: 'ترتيب الصورة (1 = الأولى)', tr: 'Görsel sırası (1 = ilk)', de: 'Bildposition (1 = erstes)', fr: 'Position de l’image (1 = première)', sv: 'Bildposition (1 = första)' },
+    min: 1,
+    max: 20,
+    defaultValue: 2,
+    pageTypes: PRODUCT_TEMPLATE_ONLY,
+    showIf: { key: 'image_source', in: ['product_image_n'] },
   },
 ];
 
@@ -715,7 +800,8 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     schema: [
       { key: 'eyebrow', type: 'text', label: { en: 'Eyebrow', ar: 'تسمية صغيرة' } },
       { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' } },
-      { key: 'html', type: 'richtext', label: { en: 'Content', ar: 'المحتوى' } },
+      { key: 'html', type: 'richtext', label: { en: 'Content', ar: 'المحتوى' }, showIf: STATIC_CONTENT_SHOW_IF },
+      ...CONTENT_SOURCE_FIELDS,
       {
         key: 'width',
         type: 'select',
@@ -921,7 +1007,8 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     },
     translatable: ['eyebrow', 'heading', 'body', 'cta_text'],
     schema: [
-      { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' } },
+      { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' }, showIf: STATIC_IMAGE_SHOW_IF },
+      ...IMAGE_SOURCE_FIELDS,
       {
         key: 'image_position',
         type: 'select',
@@ -959,6 +1046,53 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       body: 'Replace this with a short paragraph about your brand, process, or mission.',
       cta_text: 'Learn more',
     },
+  },
+  {
+    id: 'single-image',
+    label: { en: 'Image', ar: 'صورة', tr: 'Görsel', de: 'Bild', fr: 'Image', sv: 'Bild' },
+    icon: 'image',
+    category: 'content',
+    description: {
+      en: 'A single image. On the product template it can show the product or selected variant image.',
+      ar: 'صورة واحدة. في قالب المنتج يمكن أن تعرض صورة المنتج أو صورة الخيار المحدد.',
+      tr: 'Tek bir görsel. Ürün şablonunda ürünün veya seçili varyantın görselini gösterebilir.',
+      de: 'Ein einzelnes Bild. In der Produktvorlage kann es das Produktbild oder das Bild der gewählten Variante zeigen.',
+      fr: 'Une seule image. Sur le modèle de produit, elle peut afficher l’image du produit ou de la variante choisie.',
+      sv: 'En enda bild. I produktmallen kan den visa produktens bild eller den valda variantens bild.',
+    },
+    translatable: ['alt'],
+    schema: [
+      { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' }, showIf: STATIC_IMAGE_SHOW_IF },
+      ...IMAGE_SOURCE_FIELDS,
+      {
+        key: 'aspect',
+        type: 'select',
+        label: { en: 'Aspect ratio', ar: 'نسبة الصورة' },
+        defaultValue: 'auto',
+        options: [
+          { value: 'auto', label: { en: 'Original', ar: 'الأصلية', tr: 'Orijinal', de: 'Original', fr: 'Originale', sv: 'Original' } },
+          { value: 'square', label: { en: 'Square', ar: 'مربّع' } },
+          { value: 'portrait', label: { en: 'Portrait', ar: 'طولي' } },
+          { value: 'landscape', label: { en: 'Landscape', ar: 'عرضي' } },
+          { value: 'wide', label: { en: 'Wide 16:9', ar: 'عريض 16:9' } },
+        ],
+      },
+      {
+        key: 'fit',
+        type: 'select',
+        label: { en: 'Fit', ar: 'ملاءمة الصورة', tr: 'Sığdırma', de: 'Einpassen', fr: 'Ajustement', sv: 'Anpassning' },
+        defaultValue: 'cover',
+        options: [
+          { value: 'cover', label: { en: 'Fill (crop)', ar: 'ملء (قص)', tr: 'Doldur (kırp)', de: 'Füllen (zuschneiden)', fr: 'Remplir (recadrer)', sv: 'Fyll (beskär)' } },
+          { value: 'contain', label: { en: 'Fit (no crop)', ar: 'احتواء (بلا قص)', tr: 'Sığdır (kırpmadan)', de: 'Einpassen (ohne Zuschnitt)', fr: 'Contenir (sans recadrage)', sv: 'Anpassa (ingen beskärning)' } },
+        ],
+      },
+      { key: 'rounded', type: 'boolean', label: { en: 'Rounded corners', ar: 'زوايا مستديرة', tr: 'Yuvarlak köşeler', de: 'Abgerundete Ecken', fr: 'Coins arrondis', sv: 'Rundade hörn' }, defaultValue: true },
+      { key: 'link_url', type: 'url', label: { en: 'Link', ar: 'الرابط', tr: 'Bağlantı', de: 'Link', fr: 'Lien', sv: 'Länk' } },
+      { key: 'alt', type: 'text', label: { en: 'Alt text', ar: 'النص البديل', tr: 'Alternatif metin', de: 'Alt-Text', fr: 'Texte alternatif', sv: 'Alt-text' } },
+    ],
+    defaultSettings: { image_source: 'static', aspect: 'auto', fit: 'cover', rounded: true },
+    defaultContent: {},
   },
   {
     id: 'quote-banner',

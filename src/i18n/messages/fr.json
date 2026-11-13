@@ -6276,6 +6276,8 @@
     "translateRunning": "Traduction…",
     "translateClose": "Fermer",
     "fallbackToPrimary": "Pas encore de traduction pour cette langue — affichage du contenu {locale}.",
+    "dynamicContentNote": "Ce texte provient du produit affiché sur la page. Changez la source dans l’onglet Paramètres.",
+    "dynamicImageNote": "Cette image provient du produit affiché sur la page. Changez la source dans l’onglet Paramètres.",
     "contentGroup": "Contenu",
     "sectionSettings": "Paramètres de la section",
     "noSectionSelected": "Aucune section sélectionnée",

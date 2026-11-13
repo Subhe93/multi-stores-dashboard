@@ -4,6 +4,12 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import { useTranslations } from 'next-intl';
 import { Loader2, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
+import {
+  buildPreviewUpdateMessage,
+  loadPreviewSampleProduct,
+  type PreviewProduct,
+} from '@/lib/previewSampleProduct';
 import { DEVICE_WIDTHS, type DevicePreset, type SectionInstance } from './types';
 
 type Translator = ReturnType<typeof useTranslations>;
@@ -30,6 +36,10 @@ interface LivePreviewProps {
   onSectionAction?: (sectionId: string, action: string) => void;
   // Double-click inline edits made directly inside the preview.
   onInlineEdit?: (sectionId: string, path: (string | number)[], value: string) => void;
+  // Owner session token. On a PRODUCT_TEMPLATE the builder reads the sample
+  // product with it and posts it to the preview, because the preview route
+  // reads it anonymously and a store that is not LIVE refuses that read.
+  token?: string | null;
 }
 
 export interface LivePreviewHandle {
@@ -59,6 +69,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     onSectionClicked,
     onSectionAction,
     onInlineEdit,
+    token,
   },
   ref,
 ) {
@@ -88,23 +99,57 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     [sections],
   );
 
-  // Push state into the iframe whenever inputs change. The iframe acks 'PREVIEW_READY'
-  // on first mount; we resend on every change after that.
+  // Sample product for a PRODUCT_TEMPLATE, read with the owner's token (see
+  // previewSampleProduct.ts). Null until loaded or when there is none: the
+  // message then carries no product and the preview keeps its own sample.
+  // The loaded product is keyed by store, so a store switch never shows the
+  // previous store's product while the new read is in flight.
+  const [loadedSample, setLoadedSample] = useState<{ key: string; product: PreviewProduct | null } | null>(null);
+  const wantsSample = pageType === 'PRODUCT_TEMPLATE' && !!token;
+  const sampleKey = wantsSample ? storeSlug : '';
+  const sampleProduct = sampleKey && loadedSample?.key === sampleKey ? loadedSample.product : null;
+  const tokenRef = useRef(token);
   useEffect(() => {
-    if (!loaded) return;
-    iframeRef.current?.contentWindow?.postMessage(
-      {
-        type: 'UPDATE_SECTIONS',
+    tokenRef.current = token;
+  }, [token]);
+  useEffect(() => {
+    if (!sampleKey) return;
+    let cancelled = false;
+    loadPreviewSampleProduct(
+      (endpoint) => api<unknown>(endpoint, { token: tokenRef.current ?? undefined }),
+      sampleKey,
+    ).then((product) => {
+      if (!cancelled) setLoadedSample({ key: sampleKey, product });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleKey]);
+
+  const updateMessage = useMemo(
+    () =>
+      buildPreviewUpdateMessage({
         themeKey,
         customizations: themeCustomizations,
         sections: previewSections,
         locale: storeLocale,
         primaryLocale,
         menus,
-      },
-      previewOrigin,
-    );
-  }, [loaded, themeKey, themeCustomizations, previewSections, storeLocale, primaryLocale, menus, previewOrigin]);
+        product: sampleProduct,
+      }),
+    [themeKey, themeCustomizations, previewSections, storeLocale, primaryLocale, menus, sampleProduct],
+  );
+  const updateMessageRef = useRef(updateMessage);
+  useEffect(() => {
+    updateMessageRef.current = updateMessage;
+  }, [updateMessage]);
+
+  // Push state into the iframe whenever inputs change. The iframe acks 'PREVIEW_READY'
+  // on first mount; we resend on every change after that.
+  useEffect(() => {
+    if (!loaded) return;
+    iframeRef.current?.contentWindow?.postMessage(updateMessage, previewOrigin);
+  }, [loaded, updateMessage, previewOrigin]);
 
   // Keep the preview's selection highlight in sync with the builder.
   useEffect(() => {
@@ -126,18 +171,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
       if (data.type === 'PREVIEW_READY') {
         setLoaded(true);
         // Resend state immediately so the first paint shows current edits.
-        iframeRef.current?.contentWindow?.postMessage(
-          {
-            type: 'UPDATE_SECTIONS',
-            themeKey,
-            customizations: themeCustomizations,
-            sections: previewSections,
-            locale: storeLocale,
-            primaryLocale,
-            menus,
-          },
-          previewOrigin,
-        );
+        iframeRef.current?.contentWindow?.postMessage(updateMessageRef.current, previewOrigin);
       } else if (data.type === 'SECTION_CLICKED' && onSectionClicked) {
         onSectionClicked(data.section_id);
       } else if (data.type === 'SECTION_ACTION' && onSectionAction) {
@@ -148,7 +182,6 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onSectionClicked, onSectionAction, onInlineEdit, previewOrigin]);
 
   useImperativeHandle(ref, () => ({
