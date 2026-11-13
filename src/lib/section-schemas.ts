@@ -3124,8 +3124,9 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'show_savings', type: 'boolean', label: { en: 'Show savings', ar: 'إظهار مبلغ التوفير' }, defaultValue: true },
       { key: 'show_unit_price', type: 'boolean', label: { en: 'Show unit price × quantity', ar: 'إظهار سعر القطعة × الكمية' }, defaultValue: true },
       { key: 'show_sku', type: 'boolean', label: { en: 'Show SKU', ar: 'إظهار رمز المنتج (SKU)' }, defaultValue: true },
+      { key: 'show_coupon', type: 'boolean', label: { en: 'Show coupon banner (campaign link / applied code)', ar: 'إظهار شريط كود الخصم (رابط الحملة / الكود المطبَّق)' }, defaultValue: true },
     ],
-    defaultSettings: { show_compare_at: true, show_savings: true, show_unit_price: true, show_sku: true },
+    defaultSettings: { show_compare_at: true, show_savings: true, show_unit_price: true, show_sku: true, show_coupon: true },
   },
   {
     id: 'product-short-description',
