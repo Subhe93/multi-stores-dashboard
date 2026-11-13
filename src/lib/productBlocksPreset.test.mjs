@@ -4,6 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  CLASSIC_DIVIDER_SETTINGS,
   CLASSIC_PRODUCT_PRESET_SECTIONS,
   canConvertToBlocks,
   createPresetTree,
@@ -19,7 +20,7 @@ import { CONTAINER_KEYS, MAX_SECTION_DEPTH } from './sectionTree.ts';
 // Same tree as the API's convert (product-blocks-convert.ts) with shipping + tabs shown.
 const CLASSIC_SHAPE = [
   'product-breadcrumb',
-  'layout-row(layout-column(product-gallery),layout-column(product-title,product-price,product-short-description,product-promotions,product-bundles,product-personalization,product-variants,product-personalization,product-buy,product-trust,product-shipping))',
+  'layout-row(layout-column(product-gallery),layout-column(product-title,product-price,product-short-description,product-promotions,product-bundles,spacer,product-personalization,product-variants,product-personalization,spacer,product-buy,product-trust,product-shipping))',
   'product-tabs',
 ];
 
@@ -110,6 +111,33 @@ test('the Classic preset keeps personalization with variants + buy and never use
   assert.equal(presetIsNested([{ section_key: 'hero-banner' }]), false);
 });
 
+// The monolith's two always-shown `border-t border-gray-100` dividers in the
+// info column (gap-5): after promotions / bundles and above the buy block.
+// Same settings as the API's convert (CLASSIC_DIVIDER_SETTINGS there).
+test('the Classic preset reproduces the monolith dividers', () => {
+  const info = rowOf(CLASSIC_PRODUCT_PRESET_SECTIONS).children[1].children;
+  const keys = info.map((n) => n.section_key);
+  assert.deepEqual(keys.slice(keys.indexOf('product-bundles'), keys.indexOf('product-buy') + 1), [
+    'product-bundles',
+    'spacer',
+    'product-personalization',
+    'product-variants',
+    'product-personalization',
+    'spacer',
+    'product-buy',
+  ]);
+  const dividers = info.filter((n) => n.section_key === 'spacer');
+  assert.equal(dividers.length, 2);
+  for (const d of dividers) {
+    assert.deepEqual(d.settings, { height_px: 1, show_divider: true, divider_style: 'solid', divider_color: '#f3f4f6' });
+    assert.notEqual(d.settings, CLASSIC_DIVIDER_SETTINGS);
+  }
+  // 1px tall is inside the spacer schema's range; the default stays 48.
+  const height = findSectionSchema('spacer').schema.find((f) => f.key === 'height_px');
+  assert.ok(height.min <= 1);
+  assert.equal(findSectionSchema('spacer').defaultSettings.height_px, 48);
+});
+
 test('presetNodeBodies picks the locale, copies settings and drops rejected nodes with their children', () => {
   const nodes = [
     {
@@ -136,7 +164,7 @@ test('createPresetTree creates parents first and passes their ids to the childre
     calls.push(row);
     return row;
   });
-  assert.equal(created.length, 17);
+  assert.equal(created.length, 19);
   assert.deepEqual(created, calls);
   const byId = new Map(created.map((r) => [r.id, r]));
   for (const r of created) {
@@ -150,7 +178,7 @@ test('createPresetTree creates parents first and passes their ids to the childre
   const cols = created.filter((r) => r.parent_id === row.id);
   assert.deepEqual(cols.map((c) => c.section_key), ['layout-column', 'layout-column']);
   assert.deepEqual(created.filter((r) => r.parent_id === cols[0].id).map((r) => r.section_key), ['product-gallery']);
-  assert.equal(created.filter((r) => r.parent_id === cols[1].id).length, 11);
+  assert.equal(created.filter((r) => r.parent_id === cols[1].id).length, 13);
   assert.deepEqual(created.filter((r) => r.parent_id === null).map((r) => r.section_key), [
     'product-breadcrumb',
     'layout-row',

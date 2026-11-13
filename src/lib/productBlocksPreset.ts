@@ -71,13 +71,28 @@ export const CLASSIC_TABS_PADDING = {
 };
 
 /**
+ * The monolith's thin info-column divider (`border-t border-gray-100`: a 1px
+ * box whose top border is the line) as a `spacer` section: 1px tall with its
+ * 1px rule centred, so it takes the same room and draws the same line at the
+ * same spot. #f3f4f6 = Tailwind v4 gray-100. Same settings as the API's
+ * convert (CLASSIC_DIVIDER_SETTINGS there).
+ */
+export const CLASSIC_DIVIDER_SETTINGS = {
+  height_px: 1,
+  show_divider: true,
+  divider_style: 'solid',
+  divider_color: '#f3f4f6',
+};
+
+/**
  * Breadcrumb + Row [ Column(gallery, sticky) | Column(title … shipping) ] +
  * tabs, with the geometry of today's product page (ProductPageMagic +
  * ProductDetailClient): breadcrumb full width above both columns; equal
  * columns side by side from 768px (md:grid-cols-2), gap 32px below 1024px
  * and 56px above (gap-8 lg:gap-14); gallery sticky 96px from the top
  * wherever the columns sit side by side (md:sticky md:top-24); 20px between
- * the info blocks (gap-5). Personalization always sits next to variants and
+ * the info blocks (gap-5), with its two thin dividers (1px spacers, see
+ * CLASSIC_DIVIDER_SETTINGS). Personalization always sits next to variants and
  * buy: it holds the piece-one option and the designer form.
  */
 export const CLASSIC_PRODUCT_PRESET_SECTIONS: PresetNode[] = [
@@ -127,10 +142,14 @@ export const CLASSIC_PRODUCT_PRESET_SECTIONS: PresetNode[] = [
           leaf('product-short-description'),
           leaf('product-promotions', { show_end_date: true }),
           leaf('product-bundles'),
+          // The monolith's two always-shown dividers: after promotions /
+          // bundles (empty for most products) and above the buy block.
+          leaf('spacer', { ...CLASSIC_DIVIDER_SETTINGS }),
           // The app's before-variants fields sit above the picker, as today.
           leaf('product-personalization', { placement: 'before_variants', show_heading: true, button_style: 'solid' }),
           leaf('product-variants'),
           leaf('product-personalization', { placement: 'after_variants', show_heading: true, button_style: 'solid' }),
+          leaf('spacer', { ...CLASSIC_DIVIDER_SETTINGS }),
           leaf('product-buy', { button_style: 'solid', show_quantity: true, sticky_on_mobile: false }),
           leaf('product-trust', { columns: '2' }),
           leaf('product-shipping', { show_heading: true }),
