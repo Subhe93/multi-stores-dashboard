@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy } from 'lucide-react';
-import { findSectionSchema, labelOf } from '@/lib/section-schemas';
+import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy, LayoutGrid, CornerLeftUp } from 'lucide-react';
+import { CHILD_LAYOUT_FIELDS, findSectionSchema, labelOf } from '@/lib/section-schemas';
+import { getChildLayoutValue, setChildLayoutValue } from '@/lib/sectionTree';
 import { cn } from '@/lib/utils';
 import { FieldRenderer } from './fields/FieldRenderer';
 import { SectionPreview } from './SectionPreviews';
@@ -12,6 +13,8 @@ import type { SectionInstance } from './types';
 
 interface SectionInspectorProps {
   section: SectionInstance | null;
+  /** Layout container the section sits in (null for a root section). */
+  parent?: SectionInstance | null;
   locale: string;
   primaryLocale: string;
   token: string;
@@ -21,9 +24,11 @@ interface SectionInspectorProps {
   onDelete: (sectionId: string) => void;
   onToggleHidden: (sectionId: string, hidden: boolean) => void;
   onDuplicate: (sectionId: string) => void;
+  /** Selects the section's container (shown when the section has a parent). */
+  onSelectParent?: (sectionId: string) => void;
 }
 
-type Tab = 'content' | 'settings' | 'style';
+type Tab = 'content' | 'settings' | 'style' | 'layout';
 
 /**
  * Elementor-style right-pane editor. Three-tab layout (Content / Settings /
@@ -33,6 +38,7 @@ type Tab = 'content' | 'settings' | 'style';
  */
 export function SectionInspector({
   section,
+  parent = null,
   locale,
   primaryLocale,
   token,
@@ -42,6 +48,7 @@ export function SectionInspector({
   onDelete,
   onToggleHidden,
   onDuplicate,
+  onSelectParent,
 }: SectionInspectorProps) {
   const t = useTranslations('builder');
   const tc = useTranslations('common');
@@ -85,10 +92,20 @@ export function SectionInspector({
 
   const sectionStyle = ((section.settings as Record<string, unknown>)._style as SectionStyle | undefined) || {};
 
+  // "Layout in parent": the child's placement inside its container, stored in
+  // settings._layout. A column stacks its children, so width shares do not
+  // apply there.
+  const parentSchema = parent ? findSectionSchema(parent.section_key) : null;
+  const parentName = parent ? (parentSchema ? labelOf(parentSchema.label, locale) : parent.section_key) : '';
+  const layoutFields = parent
+    ? CHILD_LAYOUT_FIELDS.filter((f) => !(parent.section_key === 'layout-column' && f.key.startsWith('span.')))
+    : [];
+
   const tabs: { id: Tab; label: string; Icon: typeof Type; count?: number; show: boolean }[] = [
     { id: 'content', label: t('tabContent'), Icon: Type, count: contentFields.length, show: contentFields.length > 0 },
     { id: 'settings', label: t('tabSettings'), Icon: Settings2, count: settingsFields.length, show: settingsFields.length > 0 },
     { id: 'style', label: t('tabStyle'), Icon: Sparkles, show: true },
+    { id: 'layout', label: t('tabLayoutInParent'), Icon: LayoutGrid, show: layoutFields.length > 0 },
   ];
   const visibleTabs = tabs.filter((tb) => tb.show);
   const activeTab = visibleTabs.find((tb) => tb.id === tab) ? tab : visibleTabs[0]?.id;
@@ -120,6 +137,18 @@ export function SectionInspector({
                 <p className="text-[11px] text-zinc-500 leading-snug mt-1 line-clamp-2">
                   {labelOf(schema.description, locale)}
                 </p>
+              )}
+              {parent && (
+                <button
+                  type="button"
+                  onClick={() => onSelectParent?.(section.id)}
+                  disabled={!onSelectParent}
+                  title={t('selectParent')}
+                  className="mt-1.5 inline-flex max-w-full items-center gap-1 rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 text-[10.5px] font-medium text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 transition"
+                >
+                  <CornerLeftUp className="size-3 shrink-0 rtl:-scale-x-100" />
+                  <span className="truncate">{t('insideContainer', { name: parentName })}</span>
+                </button>
               )}
             </div>
 
@@ -249,6 +278,32 @@ export function SectionInspector({
                   field={field}
                   value={section.settings[field.key]}
                   onChange={(v) => onPatchSettings(section.id, { [field.key]: v })}
+                  locale={locale}
+                  token={token}
+                  apiBase={apiBase}
+                />
+              ))}
+            </FieldGroup>
+          </div>
+        )}
+
+        {activeTab === 'layout' && layoutFields.length > 0 && (
+          <div className="p-4 space-y-4">
+            <p className="text-[11px] text-zinc-500 leading-relaxed">
+              {t('layoutInParentDesc', { name: parentName })}
+            </p>
+            <FieldGroup title={t('layoutInParent')}>
+              {layoutFields.map((field) => (
+                <FieldRenderer
+                  key={field.key}
+                  field={field}
+                  value={getChildLayoutValue(section.settings, field.key)}
+                  onChange={(v) => {
+                    // An unticked toggle clears the key, so an untouched child keeps no _layout.
+                    const value = field.type === 'boolean' && v === false ? undefined : v;
+                    const next = setChildLayoutValue(section.settings, field.key, value);
+                    onPatchSettings(section.id, { _layout: next._layout });
+                  }}
                   locale={locale}
                   token={token}
                   apiBase={apiBase}

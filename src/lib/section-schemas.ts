@@ -42,7 +42,8 @@ export interface SectionSchema {
   id: string;
   label: LocalizedString;
   icon?: string;
-  category: 'showcase' | 'content' | 'commerce' | 'social' | 'layout' | 'header' | 'footer';
+  // 'product': the separate product blocks of a PRODUCT_TEMPLATE.
+  category: 'showcase' | 'content' | 'commerce' | 'social' | 'layout' | 'header' | 'footer' | 'product';
   description?: LocalizedString;
   translatable: string[];
   schema: FieldDefinition[];
@@ -2796,11 +2797,12 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     id: 'product-gallery',
     label: { en: 'Product Gallery', ar: 'معرض المنتج' },
     icon: 'gallery',
-    category: 'commerce',
+    category: 'product',
     description: {
-      en: 'Magic section. Four layouts with optional hover-zoom.',
-      ar: 'قسم سحري. أربع تخطيطات مع تكبير عند المرور.',
+      en: 'Product images that follow the chosen variant and colour. Classic (as the product page), main+thumbnails, grid, stacked or carousel, with optional hover-zoom.',
+      ar: 'صور المنتج تتبع الخيار واللون المختار. كلاسيكي (كصفحة المنتج)، رئيسي+مصغرات، شبكة، مكدّس أو شريط، مع تكبير عند المرور.',
     },
+    pageTypes: ['PRODUCT_TEMPLATE'],
     translatable: [],
     schema: [
       {
@@ -2809,6 +2811,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         label: { en: 'Layout', ar: 'التخطيط' },
         defaultValue: 'main-thumbnails',
         options: [
+          { value: 'classic', label: { en: 'Classic (as the product page)', ar: 'كلاسيكي (كصفحة المنتج)' } },
           { value: 'main-thumbnails', label: { en: 'Main + Thumbnails', ar: 'رئيسي + مصغرات' } },
           { value: 'carousel', label: { en: 'Carousel', ar: 'شريط' } },
           { value: 'grid', label: { en: 'Two-column grid', ar: 'شبكة عمودين' } },
@@ -2834,15 +2837,17 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     id: 'product-details',
     label: { en: 'Product Details', ar: 'تفاصيل المنتج' },
     icon: 'info',
-    category: 'commerce',
+    category: 'product',
     description: {
-      en: 'Magic section. Title, price, description, sale badge, rating, share.',
-      ar: 'قسم سحري. عنوان وسعر ووصف وشارة خصم وتقييم ومشاركة.',
+      en: 'Title, price and description of the product, following the chosen variant, with optional sale badge and share buttons.',
+      ar: 'عنوان المنتج وسعره ووصفه، يتبع الخيار المختار، مع شارة خصم وأزرار مشاركة اختيارية.',
     },
+    pageTypes: ['PRODUCT_TEMPLATE'],
     translatable: [],
+    // `show_rating` (a placeholder rating row) is no longer offered or
+    // rendered; saved templates may still carry it and it is ignored.
     schema: [
       { key: 'show_sale_badge', type: 'boolean', label: { en: 'Show sale badge', ar: 'شارة الخصم' }, defaultValue: true },
-      { key: 'show_rating', type: 'boolean', label: { en: 'Show rating row', ar: 'صف التقييم' }, defaultValue: false },
       { key: 'show_price', type: 'boolean', label: { en: 'Show price', ar: 'إظهار السعر' }, defaultValue: true },
       { key: 'show_compare_at', type: 'boolean', label: { en: 'Show compare-at price', ar: 'السعر قبل الخصم' }, defaultValue: true },
       { key: 'show_description', type: 'boolean', label: { en: 'Show description', ar: 'إظهار الوصف' }, defaultValue: true },
@@ -2850,7 +2855,6 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     ],
     defaultSettings: {
       show_sale_badge: true,
-      show_rating: false,
       show_price: true,
       show_compare_at: true,
       show_description: true,
@@ -2861,13 +2865,15 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     id: 'product-tabs',
     label: { en: 'Product Tabs', ar: 'تبويبات المنتج' },
     icon: 'tabs',
-    category: 'commerce',
+    category: 'product',
     description: {
-      en: 'Magic section. Tabbed view of description, FAQs, shipping and returns.',
-      ar: 'قسم سحري. تبويبات للوصف والأسئلة والشحن والإرجاع.',
+      en: 'Tabbed view of description, specifications, FAQs, shipping and returns.',
+      ar: 'تبويبات للوصف، المواصفات، الأسئلة الشائعة، الشحن والإرجاع.',
     },
+    pageTypes: ['PRODUCT_TEMPLATE'],
     translatable: [
       'tab_description_label',
+      'tab_specifications_label',
       'tab_faqs_label',
       'tab_shipping_label',
       'tab_returns_label',
@@ -2876,27 +2882,30 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     ],
     schema: [
       { key: 'show_description', type: 'boolean', label: { en: 'Show description tab', ar: 'تبويب الوصف' }, defaultValue: true },
-      { key: 'show_faqs', type: 'boolean', label: { en: 'Show FAQs tab', ar: 'تبويب الأسئلة' }, defaultValue: true },
+      { key: 'show_specifications', type: 'boolean', label: { en: 'Show specifications tab', ar: 'تبويب المواصفات' }, defaultValue: true },
+      { key: 'show_faqs', type: 'boolean', label: { en: 'Show FAQs tab', ar: 'تبويب الأسئلة الشائعة' }, defaultValue: true },
       { key: 'show_shipping', type: 'boolean', label: { en: 'Show shipping tab', ar: 'تبويب الشحن' }, defaultValue: false },
       { key: 'show_returns', type: 'boolean', label: { en: 'Show returns tab', ar: 'تبويب الإرجاع' }, defaultValue: false },
-      { key: 'tab_description_label', type: 'text', label: { en: 'Description label', ar: 'تسمية الوصف' } },
-      { key: 'tab_faqs_label', type: 'text', label: { en: 'FAQs label', ar: 'تسمية الأسئلة' } },
-      { key: 'tab_shipping_label', type: 'text', label: { en: 'Shipping label', ar: 'تسمية الشحن' } },
-      { key: 'tab_returns_label', type: 'text', label: { en: 'Returns label', ar: 'تسمية الإرجاع' } },
+      { key: 'tab_description_label', type: 'text', label: { en: 'Description tab label', ar: 'عنوان تبويب الوصف' } },
+      { key: 'tab_specifications_label', type: 'text', label: { en: 'Specifications tab label', ar: 'عنوان تبويب المواصفات' } },
+      { key: 'tab_faqs_label', type: 'text', label: { en: 'FAQs tab label', ar: 'عنوان تبويب الأسئلة' } },
+      { key: 'tab_shipping_label', type: 'text', label: { en: 'Shipping tab label', ar: 'عنوان تبويب الشحن' } },
+      { key: 'tab_returns_label', type: 'text', label: { en: 'Returns tab label', ar: 'عنوان تبويب الإرجاع' } },
       { key: 'shipping_html', type: 'richtext', label: { en: 'Shipping content', ar: 'محتوى الشحن' } },
       { key: 'returns_html', type: 'richtext', label: { en: 'Returns content', ar: 'محتوى الإرجاع' } },
     ],
-    defaultSettings: { show_description: true, show_faqs: true, show_shipping: false, show_returns: false },
+    defaultSettings: { show_description: true, show_specifications: true, show_faqs: true, show_shipping: false, show_returns: false },
   },
   {
     id: 'add-to-cart',
     label: { en: 'Add to Cart', ar: 'إضافة للسلة' },
     icon: 'shopping-cart',
-    category: 'commerce',
+    category: 'product',
     description: {
-      en: 'Magic section. Color swatches, size pills, quantity, optional sticky mobile CTA.',
-      ar: 'قسم سحري. دوائر ألوان، مقاسات، كمية، وزر ثابت أسفل الجوال.',
+      en: 'Options (swatches, size pills), personalization fields, price, quantity and the add-to-cart button in one block, following the page’s product state. Optional sticky mobile CTA.',
+      ar: 'الخيارات (دوائر الألوان، المقاسات) وحقول التخصيص والسعر والكمية وزر الإضافة للسلة في قسم واحد، يتبع حالة المنتج في الصفحة. زر ثابت أسفل الجوال اختياري.',
     },
+    pageTypes: ['PRODUCT_TEMPLATE'],
     translatable: ['button_label'],
     schema: [
       {
@@ -2922,6 +2931,243 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       show_stock: false,
       sticky_on_mobile: false,
     },
+  },
+  // ── Product blocks (PRODUCT_TEMPLATE only) ─────────────────────────
+  // Separate blocks that all read the storefront's shared product page state
+  // (web: themes/minimal/sections/product/blocks/registryB1.ts + registryB2.ts).
+  // Gated together with the layout containers so one per-store flag turns the
+  // whole block-based product page on. The four older split sections above
+  // (product-gallery, product-details, product-tabs, add-to-cart) stay ungated.
+  {
+    id: 'product-breadcrumb',
+    label: { en: 'Product breadcrumb', ar: 'مسار تنقل المنتج' },
+    icon: 'chevrons-right',
+    category: 'product',
+    description: {
+      en: 'Home › collection › product, from the product’s primary collection.',
+      ar: 'الرئيسية › المجموعة › المنتج، حسب المجموعة الأساسية للمنتج.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_current', type: 'boolean', label: { en: 'Show product name', ar: 'إظهار اسم المنتج' }, defaultValue: true },
+    ],
+    defaultSettings: { show_current: true },
+  },
+  {
+    id: 'product-title',
+    label: { en: 'Product title', ar: 'عنوان المنتج' },
+    icon: 'type',
+    category: 'product',
+    description: {
+      en: 'The product name (H1), with its primary collection above and the seller below.',
+      ar: 'اسم المنتج (H1)، مع مجموعته الأساسية فوقه والبائع تحته.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_collection', type: 'boolean', label: { en: 'Show primary collection', ar: 'إظهار المجموعة الأساسية' }, defaultValue: true },
+      { key: 'show_vendor', type: 'boolean', label: { en: 'Show seller', ar: 'إظهار البائع' }, defaultValue: true },
+    ],
+    defaultSettings: { show_collection: true, show_vendor: true },
+  },
+  {
+    id: 'product-price',
+    label: { en: 'Product price', ar: 'سعر المنتج' },
+    icon: 'tag',
+    category: 'product',
+    description: {
+      en: 'Price of the chosen variant × quantity, with compare-at price, savings and tax note. Follows bundles and personalization.',
+      ar: 'سعر الخيار المختار × الكمية، مع السعر قبل الخصم والتوفير وملاحظة الضريبة. يتبع العروض والتخصيص.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_compare_at', type: 'boolean', label: { en: 'Show compare-at price', ar: 'إظهار السعر قبل الخصم' }, defaultValue: true },
+      { key: 'show_savings', type: 'boolean', label: { en: 'Show savings', ar: 'إظهار مبلغ التوفير' }, defaultValue: true },
+      { key: 'show_unit_price', type: 'boolean', label: { en: 'Show unit price × quantity', ar: 'إظهار سعر القطعة × الكمية' }, defaultValue: true },
+      { key: 'show_sku', type: 'boolean', label: { en: 'Show SKU', ar: 'إظهار رمز المنتج (SKU)' }, defaultValue: true },
+    ],
+    defaultSettings: { show_compare_at: true, show_savings: true, show_unit_price: true, show_sku: true },
+  },
+  {
+    id: 'product-short-description',
+    label: { en: 'Short description', ar: 'الوصف المختصر' },
+    icon: 'text',
+    category: 'product',
+    description: {
+      en: 'The product’s short summary.',
+      ar: 'الملخص القصير للمنتج.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [],
+    defaultSettings: {},
+  },
+  {
+    id: 'product-promotions',
+    label: { en: 'Promotions', ar: 'العروض' },
+    icon: 'tag',
+    category: 'product',
+    description: {
+      en: 'Active promotions on the product: flash sale, buy X get Y, free shipping, discounts.',
+      ar: 'العروض الفعّالة على المنتج: تخفيض سريع، اشترِ X واحصل على Y، شحن مجاني، خصومات.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_end_date', type: 'boolean', label: { en: 'Show end date', ar: 'إظهار تاريخ الانتهاء' }, defaultValue: true },
+    ],
+    defaultSettings: { show_end_date: true },
+  },
+  {
+    id: 'product-bundles',
+    label: { en: 'Bundle offers', ar: 'عروض الباقات' },
+    icon: 'layers',
+    category: 'product',
+    description: {
+      en: 'Quantity-tier bundle offers. Picking one sets the quantity and the price.',
+      ar: 'عروض الباقات حسب الكمية. اختيار عرض يضبط الكمية والسعر.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [],
+    defaultSettings: {},
+  },
+  {
+    id: 'product-variants',
+    label: { en: 'Variant picker', ar: 'اختيار الخيارات' },
+    icon: 'palette',
+    category: 'product',
+    description: {
+      en: 'Colour swatches, size pills and option cards. The gallery and price follow the choice.',
+      ar: 'دوائر الألوان وأزرار المقاسات وبطاقات الخيارات. المعرض والسعر يتبعان الاختيار.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [],
+    defaultSettings: {},
+  },
+  {
+    id: 'product-personalization',
+    label: { en: 'Personalization', ar: 'التخصيص' },
+    icon: 'edit',
+    category: 'product',
+    description: {
+      en: 'Personalization fields, custom fields, customer upload and the designer form.',
+      ar: 'حقول التخصيص، الحقول المخصّصة، رفع ملف العميل ونموذج المصمّم.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+      {
+        key: 'button_style',
+        type: 'select',
+        label: { en: 'Designer button style', ar: 'نمط زر المصمّم' },
+        defaultValue: 'solid',
+        options: [
+          { value: 'solid', label: { en: 'Solid', ar: 'مملوء' } },
+          { value: 'outline', label: { en: 'Outline', ar: 'إطار' } },
+        ],
+      },
+    ],
+    defaultSettings: { show_heading: true, button_style: 'solid' },
+  },
+  {
+    id: 'product-buy',
+    label: { en: 'Quantity + add to cart', ar: 'الكمية + إضافة للسلة' },
+    icon: 'shopping-cart',
+    category: 'product',
+    description: {
+      en: 'Quantity picker (stock and bundle aware) and the add-to-cart button, with an optional sticky button on mobile.',
+      ar: 'اختيار الكمية (حسب المخزون والعروض) وزر الإضافة للسلة، مع زر ثابت اختياري أسفل الجوال.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: ['button_label'],
+    schema: [
+      {
+        key: 'button_style',
+        type: 'select',
+        label: { en: 'Button style', ar: 'نمط الزر' },
+        defaultValue: 'solid',
+        options: [
+          { value: 'solid', label: { en: 'Solid', ar: 'مملوء' } },
+          { value: 'outline', label: { en: 'Outline', ar: 'إطار' } },
+        ],
+      },
+      { key: 'show_quantity', type: 'boolean', label: { en: 'Show quantity picker', ar: 'إظهار اختيار الكمية' }, defaultValue: true },
+      { key: 'sticky_on_mobile', type: 'boolean', label: { en: 'Sticky button on mobile', ar: 'زر ثابت أسفل الجوال' }, defaultValue: false },
+      { key: 'button_label', type: 'text', label: { en: 'Button label', ar: 'نص الزر' } },
+    ],
+    defaultSettings: { button_style: 'solid', show_quantity: true, sticky_on_mobile: false },
+  },
+  {
+    id: 'product-trust',
+    label: { en: 'Trust badges (product)', ar: 'شارات الثقة (المنتج)' },
+    icon: 'shield',
+    category: 'product',
+    description: {
+      en: 'Your own reassurance badges next to the product. Nothing is shown until you add badges.',
+      ar: 'شارات الثقة الخاصة بك بجانب المنتج. لا يظهر شيء حتى تضيف شارات.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    // Per-locale content: the owner writes each claim themselves.
+    translatable: ['trust_badges'],
+    schema: [
+      {
+        key: 'trust_badges',
+        type: 'repeater',
+        label: { en: 'Trust badges', ar: 'شارات الثقة' },
+        description: {
+          en: 'Only state what is true for this store (e.g. shipping terms, returns, payment).',
+          ar: 'اذكر فقط ما ينطبق فعلاً على متجرك (مثل شروط الشحن، الإرجاع، الدفع).',
+        },
+        fields: [
+          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: ICON_OPTIONS },
+          { key: 'label', type: 'text', label: { en: 'Label', ar: 'التسمية' } },
+          { key: 'description', type: 'text', label: { en: 'Description (optional)', ar: 'الوصف (اختياري)' } },
+        ],
+      },
+      {
+        key: 'columns',
+        type: 'select',
+        label: { en: 'Columns', ar: 'الأعمدة' },
+        defaultValue: '2',
+        options: [
+          { value: '1', label: { en: 'One', ar: 'عمود واحد' } },
+          { value: '2', label: { en: 'Two', ar: 'عمودان' } },
+        ],
+      },
+    ],
+    defaultSettings: { columns: '2' },
+  },
+  {
+    id: 'product-shipping',
+    label: { en: 'Shipping info', ar: 'معلومات الشحن' },
+    icon: 'truck',
+    category: 'product',
+    description: {
+      en: 'Shipping zones and methods of the product: cost, delivery days, free-shipping threshold.',
+      ar: 'مناطق وطرق شحن المنتج: التكلفة، أيام التوصيل، حد الشحن المجاني.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: [],
+    schema: [
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+    ],
+    defaultSettings: { show_heading: true },
   },
   // ── Chrome sections (HEADER / FOOTER pages only) ────────────────
   {

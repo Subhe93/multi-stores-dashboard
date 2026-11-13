@@ -1,28 +1,47 @@
 'use client';
 
+// The builder's section list. Flat pages render a plain sortable list, as
+// always. Pages with layout containers (layout-row / -column / -grid) render a
+// tree, following the dnd-kit sortable-tree pattern: the list is flattened in
+// pre-order (lib/sectionTree.ts flattenTree), the dragged row's subtree is
+// hidden while it moves, and the horizontal drag offset picks the depth
+// (getProjection). Drops that break the nesting rules are refused.
+
+import { useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragMoveEvent,
+  type DragOverEvent,
+  type DragStartEvent,
+  type KeyboardCoordinateGetter,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useTranslations } from 'next-intl';
-import { Copy, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { findSectionSchema, labelOf } from '@/lib/section-schemas';
-import { cn } from '@/lib/utils';
-import { AddSectionDialog } from './AddSectionDialog';
-import { SectionPreview } from './SectionPreviews';
+import {
+  flattenTree,
+  getProjection,
+  moveSection,
+  removeChildrenOf,
+  subtreeHeight,
+  type MoveTarget,
+} from '@/lib/sectionTree';
+import { ancestorIds, buildListRows, normalizeFlatOrder, resolveDropTarget } from '@/lib/sectionListRows';
+import { AddSectionDialog, type SectionInsertTarget } from './AddSectionDialog';
+import { AddHereRow, SectionRowView, SortableSectionRow, TREE_INDENT_PX } from './SectionTreeRows';
 import type { SectionInstance } from './types';
 
 interface SectionListProps {
@@ -32,12 +51,39 @@ interface SectionListProps {
   primaryLocale: string;
   pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   onSelect: (id: string) => void;
-  onReorder: (orderedIds: string[]) => void;
-  onAdd: (sectionKey: string) => Promise<void> | void;
+  // Moves a section (with its subtree) under target.parentId (null = root) at
+  // sibling position target.index (the moved section not counted). Used on
+  // pages with nesting; flat pages prefer onReorder when it is given.
+  onMove?: (id: string, target: MoveTarget) => void;
+  // Legacy flat reorder (full id list in the new order). Always used on flat
+  // pages when given (keeps the array order the list shows); on tree pages
+  // only when onMove is absent, and then only for root-to-root moves.
+  onReorder?: (orderedIds: string[]) => void;
+  // Called when an "add" control is used, with where the new section should
+  // go: a container's "+ add here" passes the container and its child count;
+  // the bottom "Add section" button passes (null, root count). The chosen
+  // section is then reported through onAdd with the same target.
+  onAddInto?: (parentId: string | null, index: number) => void;
+  onAdd: (sectionKey: string, target?: SectionInsertTarget) => Promise<void> | void;
   onAddPreset?: (presetId: string) => Promise<void> | void;
   onToggleHidden: (id: string, hidden: boolean) => void;
   onDuplicate: (id: string) => Promise<void> | void;
+  // Offer layout containers in the add dialog. Defaults to the product template.
+  layoutContainers?: boolean;
 }
+
+// Left/Right change the depth while dragging with the keyboard (one indent
+// per press); Up/Down move between rows as in a plain sortable list.
+const treeKeyboardCoordinates: KeyboardCoordinateGetter = (event, args) => {
+  if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
+    event.preventDefault();
+    const step = event.code === 'ArrowRight' ? TREE_INDENT_PX : -TREE_INDENT_PX;
+    return { ...args.currentCoordinates, x: args.currentCoordinates.x + step };
+  }
+  return sortableKeyboardCoordinates(event, args);
+};
+
+const MEASURING = { droppable: { strategy: MeasuringStrategy.Always } };
 
 export function SectionList({
   sections,
@@ -46,29 +92,142 @@ export function SectionList({
   primaryLocale,
   pageType,
   onSelect,
+  onMove,
   onReorder,
+  onAddInto,
   onAdd,
   onAddPreset,
   onToggleHidden,
   onDuplicate,
+  layoutContainers,
 }: SectionListProps) {
   const t = useTranslations();
+  const listRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [offsetX, setOffsetX] = useState(0);
+  const [rtl, setRtl] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [insertTarget, setInsertTarget] = useState<SectionInsertTarget | null>(null);
+
   const sensors = useSensors(
     // 5px activation threshold so a click on a row still fires `onSelect` —
     // without it dnd-kit would swallow the click as a drag start.
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, { coordinateGetter: treeKeyboardCoordinates }),
   );
 
-  function handleDragEnd(e: DragEndEvent) {
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    const oldIndex = sections.findIndex((s) => s.id === active.id);
-    const newIndex = sections.findIndex((s) => s.id === over.id);
-    if (oldIndex < 0 || newIndex < 0) return;
-    const next = arrayMove(sections, oldIndex, newIndex);
-    onReorder(next.map((s) => s.id));
+  // Flat pages keep the order of the builder's array, as before.
+  const ordered = useMemo(() => normalizeFlatOrder(sections), [sections]);
+  const fullFlat = useMemo(() => flattenTree(ordered), [ordered]);
+  const treeMode = fullFlat.some((f) => f.isContainer || f.depth > 1);
+  const rootCount = fullFlat.filter((f) => f.depth === 1).length;
+
+  // A section selected elsewhere (e.g. in the preview) inside a collapsed
+  // container expands its ancestors (adjusting state during render).
+  const [lastSelectedId, setLastSelectedId] = useState(selectedId);
+  if (selectedId !== lastSelectedId) {
+    setLastSelectedId(selectedId);
+    const hidden = ancestorIds(ordered, selectedId).filter((id) => collapsed.has(id));
+    if (hidden.length > 0) {
+      const next = new Set(collapsed);
+      for (const id of hidden) next.delete(id);
+      setCollapsed(next);
+    }
   }
+
+  const items = useMemo(() => {
+    const flat = flattenTree(ordered, collapsed);
+    return activeId ? removeChildrenOf(flat, [activeId]) : flat;
+  }, [ordered, collapsed, activeId]);
+  const activeItem = activeId ? (items.find((i) => i.id === activeId) ?? null) : null;
+  const activeHeight = useMemo(
+    () => (activeId ? subtreeHeight(ordered, activeId) : 1),
+    [ordered, activeId],
+  );
+  const projection =
+    activeId && overId
+      ? getProjection(items, activeId, overId, rtl ? -offsetX : offsetX, TREE_INDENT_PX, activeHeight)
+      : null;
+  const rows = useMemo(() => buildListRows(items, { collapsed, activeId }), [items, collapsed, activeId]);
+
+  function resetDrag() {
+    setActiveId(null);
+    setOverId(null);
+    setOffsetX(0);
+  }
+
+  function handleDragStart({ active }: DragStartEvent) {
+    const el = listRef.current;
+    setRtl(!!el && getComputedStyle(el).direction === 'rtl');
+    setActiveId(String(active.id));
+    setOverId(String(active.id));
+    setOffsetX(0);
+  }
+
+  function handleDragMove({ delta }: DragMoveEvent) {
+    setOffsetX(delta.x);
+  }
+
+  function handleDragOver({ over }: DragOverEvent) {
+    setOverId(over ? String(over.id) : null);
+  }
+
+  function handleDragEnd(e: DragEndEvent) {
+    const id = String(e.active.id);
+    const target = e.over ? resolveDropTarget(activeItem, projection) : null;
+    resetDrag();
+    if (!target) return;
+    // moveSection validates parent, cycle and depth; an invalid move returns
+    // the same list, so nothing is reported.
+    const next = moveSection(ordered, id, target);
+    if (next === ordered) return;
+    // Flat pages keep the legacy reorder path: `next` follows the array order
+    // the list shows (not the possibly drifted sort_order), so these ids equal
+    // the old arrayMove result and reorderSections renumbers 0..n-1 from them.
+    if (!treeMode && onReorder) {
+      onReorder(flattenTree(next).map((f) => f.id));
+      return;
+    }
+    if (onMove) {
+      onMove(id, target);
+      return;
+    }
+    if (target.parentId !== null || activeItem?.parentId !== null) return;
+    onReorder?.(flattenTree(next).map((f) => f.id));
+  }
+
+  function toggleCollapsed(id: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function openAddInto(parentId: string, index: number) {
+    setInsertTarget({ parentId, index });
+    onAddInto?.(parentId, index);
+    setDialogOpen(true);
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    // The bottom trigger opens the dialog for the page root (append).
+    if (open && !dialogOpen) {
+      setInsertTarget(null);
+      onAddInto?.(null, rootCount);
+    }
+    setDialogOpen(open);
+  }
+
+  const labelFor = (sectionKey: string) => {
+    const schema = findSectionSchema(sectionKey);
+    return schema ? labelOf(schema.label, locale) : sectionKey;
+  };
+
+  const overlaySection = treeMode && activeItem ? activeItem.section : null;
 
   return (
     <div className="h-full flex flex-col">
@@ -78,138 +237,101 @@ export function SectionList({
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-1">
         {sections.length === 0 ? (
           <p className="text-[11px] text-zinc-400 text-center px-3 py-8">
             {t('builder.noSections')}
           </p>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-              {sections.map((section) => (
-                <SectionRow
-                  key={section.id}
-                  section={section}
-                  selected={selectedId === section.id}
-                  locale={locale}
-                  primaryLocale={primaryLocale}
-                  onSelect={() => onSelect(section.id)}
-                  onToggleHidden={() => onToggleHidden(section.id, !section.is_hidden)}
-                  onDuplicate={() => onDuplicate(section.id)}
-                />
-              ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            measuring={treeMode ? MEASURING : undefined}
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={resetDrag}
+          >
+            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+              {rows.map((row) => {
+                if (row.kind === 'add') {
+                  return (
+                    <AddHereRow
+                      key={`add:${row.parentId}`}
+                      depth={row.depth}
+                      containerLabel={labelFor(
+                        items.find((i) => i.id === row.parentId)?.section_key ?? '',
+                      )}
+                      dimmed={!!activeId}
+                      onClick={() => openAddInto(row.parentId, row.index)}
+                    />
+                  );
+                }
+                const item = row.item;
+                const isActive = item.id === activeId;
+                const depth = isActive && projection && treeMode ? projection.depth : item.depth;
+                return (
+                  <SortableSectionRow
+                    key={item.id}
+                    id={item.id}
+                    depth={depth}
+                    section={item.section}
+                    locale={locale}
+                    primaryLocale={primaryLocale}
+                    selected={selectedId === item.id}
+                    isContainer={item.isContainer}
+                    childCount={item.childCount}
+                    treeMode={treeMode}
+                    collapsed={collapsed.has(item.id)}
+                    invalid={isActive && !!projection && !projection.allowed}
+                    onSelect={() => onSelect(item.id)}
+                    onToggleCollapse={item.isContainer ? () => toggleCollapsed(item.id) : undefined}
+                    onToggleHidden={() => onToggleHidden(item.id, !item.section.is_hidden)}
+                    onDuplicate={() => onDuplicate(item.id)}
+                  />
+                );
+              })}
             </SortableContext>
+            {/* Tree pages drag an overlay so the in-list row can show the
+                projected depth; flat pages move the row itself, as before. */}
+            {treeMode &&
+              typeof document !== 'undefined' &&
+              createPortal(
+                <DragOverlay>
+                  {overlaySection ? (
+                    <SectionRowView
+                      section={overlaySection}
+                      locale={locale}
+                      primaryLocale={primaryLocale}
+                      isContainer={activeItem?.isContainer}
+                      childCount={activeItem?.childCount}
+                      treeMode
+                      overlay
+                    />
+                  ) : null}
+                </DragOverlay>,
+                document.body,
+              )}
           </DndContext>
         )}
       </div>
 
       <div className="p-2 border-t">
-        <AddSectionDialog locale={locale} pageType={pageType} onAdd={onAdd} onAddPreset={onAddPreset} />
+        <AddSectionDialog
+          locale={locale}
+          pageType={pageType}
+          onAdd={onAdd}
+          onAddPreset={onAddPreset}
+          target={insertTarget}
+          sections={sections}
+          layoutContainers={layoutContainers}
+          open={dialogOpen}
+          onOpenChange={handleDialogOpenChange}
+        />
       </div>
     </div>
   );
 }
 
-function SectionRow({
-  section,
-  selected,
-  locale,
-  primaryLocale,
-  onSelect,
-  onToggleHidden,
-  onDuplicate,
-}: {
-  section: SectionInstance;
-  selected: boolean;
-  locale: string;
-  primaryLocale: string;
-  onSelect: () => void;
-  onToggleHidden: () => void;
-  onDuplicate: () => void;
-}) {
-  const t = useTranslations();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: section.id,
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  const schema = findSectionSchema(section.section_key);
-  const title = schema ? labelOf(schema.label, locale) : section.section_key;
-  // Localized category name — shown as a muted suffix under the title when
-  // the section has no content preview text, so empty rows still get context.
-  const categoryKey = schema
-    ? (`builder.cat${schema.category.charAt(0).toUpperCase()}${schema.category.slice(1)}` as Parameters<typeof t>[0])
-    : null;
-  const categoryLabel = categoryKey ? t(categoryKey) : '';
-
-  // Show a short preview from the current locale's content (or primary fallback).
-  const content =
-    section.translations.find((t) => t.locale === locale)?.content ??
-    section.translations.find((t) => t.locale === primaryLocale)?.content ??
-    {};
-  const previewText = String(content.heading || content.html || '')
-    .replace(/<[^>]+>/g, '')
-    .trim()
-    .slice(0, 40);
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        'group flex items-center gap-2 rounded-md border bg-white text-start transition',
-        selected ? 'border-zinc-900 ring-1 ring-zinc-900/10 shadow-sm' : 'border-zinc-200 hover:border-zinc-300',
-        isDragging && 'opacity-50',
-        section.is_hidden && 'opacity-60',
-      )}
-    >
-      <button
-        type="button"
-        className="px-1 py-2 text-zinc-300 hover:text-zinc-500 cursor-grab active:cursor-grabbing"
-        {...attributes}
-        {...listeners}
-        aria-label={t('builder.reorder')}
-      >
-        <GripVertical className="w-3.5 h-3.5" />
-      </button>
-      <div
-        className="size-8 rounded border border-zinc-100 bg-zinc-50 overflow-hidden shrink-0"
-        aria-hidden
-      >
-        <SectionPreview sectionKey={section.section_key} className="w-full h-full" />
-      </div>
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex-1 min-w-0 py-2 pe-2 text-start"
-      >
-        <div className="text-xs font-medium truncate">{title}</div>
-        {previewText ? (
-          <div className="text-[10px] text-zinc-400 truncate">{previewText}</div>
-        ) : categoryLabel ? (
-          <div className="text-[10px] text-zinc-400 truncate">{categoryLabel}</div>
-        ) : null}
-      </button>
-      <button
-        type="button"
-        onClick={onDuplicate}
-        className="p-1.5 text-zinc-300 hover:text-zinc-700 opacity-0 group-hover:opacity-100 transition"
-        aria-label={t('builder.duplicateSection')}
-        title={t('builder.duplicateSection')}
-      >
-        <Copy className="w-3.5 h-3.5" />
-      </button>
-      <button
-        type="button"
-        onClick={onToggleHidden}
-        className="p-1.5 text-zinc-300 hover:text-zinc-700 opacity-0 group-hover:opacity-100 transition"
-        aria-label={section.is_hidden ? t('builder.show') : t('builder.hide')}
-      >
-        {section.is_hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-      </button>
-    </div>
-  );
-}
+export default SectionList;

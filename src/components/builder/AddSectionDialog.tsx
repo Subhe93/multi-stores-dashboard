@@ -12,24 +12,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { SECTION_SCHEMAS, labelOf, type SectionSchema } from '@/lib/section-schemas';
+import { SECTION_SCHEMAS, findSectionSchema, labelOf, type SectionSchema } from '@/lib/section-schemas';
 import { presetsForPageType, type SectionPreset } from '@/lib/section-presets';
 // Palette rule: `pageTypes` whitelist, default "not HEADER/FOOTER", and the
 // `chrome` flag that adds HEADER/FOOTER (embed-code).
 import { isAvailableForPageType } from '@/lib/sectionAvailability';
+import { canDropInto, flattenTree } from '@/lib/sectionTree';
 import { cn } from '@/lib/utils';
 import { SectionPreview } from './SectionPreviews';
+import type { SectionInstance } from './types';
+
+/** Where a new section goes: under `parentId` (null = page root) at sibling `index`. */
+export interface SectionInsertTarget {
+  parentId: string | null;
+  index: number;
+}
 
 interface AddSectionDialogProps {
   locale: string;
   pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
-  onAdd: (sectionKey: string) => Promise<void> | void;
+  // `target` is the insert target the dialog was opened for (absent = the
+  // classic "append at the end of the page").
+  onAdd: (sectionKey: string, target?: SectionInsertTarget) => Promise<void> | void;
   // Inserts every section of a preset in one action (M6.5). When omitted the
-  // Presets tab is hidden.
+  // Presets tab is hidden. Presets always go to the page root, so the tab is
+  // also hidden while adding into a container.
   onAddPreset?: (presetId: string) => Promise<void> | void;
+  // Insert target. A non-null parentId limits the palette to sections that
+  // may sit in that container (see canDropInto). Requires `sections`.
+  target?: SectionInsertTarget | null;
+  // The page's sections, used to resolve the target container and its depth.
+  sections?: readonly SectionInstance[];
+  // Offer the nested layout containers. Defaults to the product template only.
+  layoutContainers?: boolean;
+  // Controlled open state (optional). The trigger button is always rendered.
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-type FilterId = SectionSchema['category'] | 'all' | 'presets';
+// 'product' is the category of the product blocks (product template only).
+type FilterId = SectionSchema['category'] | 'product' | 'all' | 'presets';
 
 // Icon for a preset card; `icon` is a hint from the preset definition.
 function PresetIcon({ icon, className }: { icon?: string; className?: string }) {
@@ -47,9 +69,24 @@ const MAGIC_SECTION_KEYS = new Set([
   'add-to-cart',
 ]);
 
-export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSectionDialogProps) {
+export function AddSectionDialog({
+  locale,
+  pageType,
+  onAdd,
+  onAddPreset,
+  target = null,
+  sections,
+  layoutContainers,
+  open: openProp,
+  onOpenChange,
+}: AddSectionDialogProps) {
   const t = useTranslations();
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (next: boolean) => {
+    if (openProp === undefined) setOpenState(next);
+    onOpenChange?.(next);
+  };
   const [filter, setFilter] = useState<FilterId>('all');
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState(false);
@@ -58,7 +95,21 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
 
   // Presets exist for regular page types only (not templates / chrome); the
   // tab shows only when at least one applies and the host can insert them.
-  const presets = onAddPreset ? presetsForPageType(pageType) : [];
+  // Resolve the target container (null = page root) and the depth a new
+  // section would sit at. A target whose container is gone falls back to root.
+  const flat = target?.parentId && sections ? flattenTree(sections) : [];
+  const targetParent = target?.parentId ? (flat.find((f) => f.id === target.parentId) ?? null) : null;
+  const intoContainer = !!targetParent;
+  const insertDepth = targetParent ? targetParent.depth + 1 : 1;
+  const targetLabel = targetParent
+    ? (() => {
+        const schema = findSectionSchema(targetParent.section_key);
+        return schema ? labelOf(schema.label, locale) : targetParent.section_key;
+      })()
+    : null;
+  const containersOn = layoutContainers ?? isProductTemplate;
+
+  const presets = onAddPreset && !intoContainer ? presetsForPageType(pageType) : [];
 
   // Visibility rules (in order):
   // - First filter by `pageTypes` whitelist on the schema. Chrome sections
@@ -68,21 +119,26 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
   // - Other regular page types drop magic sections (they need product context).
   //   CATALOG_TEMPLATE / COLLECTION_TEMPLATE behave like HOME/LANDING here; the
   //   `product-listing` section reaches them via its own `pageTypes` whitelist.
+  // - Containers (gate 'layout-containers') only when enabled; inside a
+  //   container, only sections allowed at that depth (never a container where
+  //   canDropInto fails, e.g. a container at the deepest level).
   const visible = SECTION_SCHEMAS.filter((s) => {
-    if (!isAvailableForPageType(s, pageType)) return false;
-    if (isProductTemplate) return true;
-    return !MAGIC_SECTION_KEYS.has(s.id);
+    if (!isAvailableForPageType(s, pageType, { layoutContainers: containersOn })) return false;
+    // Product blocks (category 'product') need the product context too.
+    if (!isProductTemplate && (MAGIC_SECTION_KEYS.has(s.id) || s.category === 'product')) return false;
+    return canDropInto(s.id, targetParent, insertDepth, 1);
   });
 
   // Per-category counts drive both the chip badges and the "hide empty
   // categories" rule below.
-  const categoryCounts = new Map<SectionSchema['category'], number>();
+  const categoryCounts = new Map<string, number>();
   for (const s of visible) {
     categoryCounts.set(s.category, (categoryCounts.get(s.category) ?? 0) + 1);
   }
   const allCategories: { id: FilterId; label: string; count: number }[] = [
     { id: 'presets', label: t('builder.presets.tab'), count: presets.length },
     { id: 'all', label: t('builder.catAll'), count: visible.length },
+    { id: 'product', label: t('builder.catProduct'), count: categoryCounts.get('product') ?? 0 },
     { id: 'showcase', label: t('builder.catShowcase'), count: categoryCounts.get('showcase') ?? 0 },
     { id: 'content', label: t('builder.catContent'), count: categoryCounts.get('content') ?? 0 },
     { id: 'commerce', label: t('builder.catCommerce'), count: categoryCounts.get('commerce') ?? 0 },
@@ -92,6 +148,9 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
     { id: 'footer', label: t('builder.catFooter'), count: categoryCounts.get('footer') ?? 0 },
   ];
   const categories = allCategories.filter((c) => c.id === 'all' || c.count > 0);
+  // A chip that vanished (e.g. Presets while adding into a container) falls
+  // back to "All" so the grid never goes empty for a hidden reason.
+  const activeFilter: FilterId = categories.some((c) => c.id === filter) ? filter : 'all';
 
   // A non-empty search overrides the category filter: it matches against the
   // localized label and the raw section id across ALL visible sections, so
@@ -103,9 +162,9 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
           labelOf(s.label, locale).toLowerCase().includes(query) ||
           s.id.toLowerCase().includes(query),
       )
-    : filter === 'all' || filter === 'presets'
+    : activeFilter === 'all' || activeFilter === 'presets'
       ? visible
-      : visible.filter((s) => s.category === filter);
+      : visible.filter((s) => (s.category as string) === activeFilter);
   // Preset card text follows the dashboard UI locale (i18n keys) and falls
   // back to the preset's own localized strings.
   const presetName = (p: SectionPreset) => (p.i18n ? t(`builder.${p.i18n.name}`) : labelOf(p.name, locale));
@@ -119,10 +178,10 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
           labelOf(p.name, locale).toLowerCase().includes(query) ||
           p.id.toLowerCase().includes(query),
       )
-    : filter === 'presets'
+    : activeFilter === 'presets'
       ? presets
       : [];
-  const showSections = query || filter !== 'presets';
+  const showSections = query || activeFilter !== 'presets';
   const nothingFound = filteredPresets.length === 0 && (!showSections || filtered.length === 0);
 
   const presetSectionNames = (p: SectionPreset) =>
@@ -152,7 +211,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
         <DialogHeader>
           <DialogTitle>{t('builder.addASection')}</DialogTitle>
           <DialogDescription>
-            {t('builder.addSectionDesc')}
+            {targetLabel ? t('builder.addIntoContainer', { name: targetLabel }) : t('builder.addSectionDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -183,7 +242,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
               onClick={() => setFilter(c.id)}
               className={cn(
                 'px-3 py-1.5 text-xs rounded-md transition font-medium',
-                filter === c.id
+                activeFilter === c.id
                   ? 'bg-zinc-900 text-white'
                   : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100',
               )}
@@ -192,7 +251,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
               <span
                 className={cn(
                   'ms-1.5 tabular-nums',
-                  filter === c.id ? 'text-zinc-400' : 'text-zinc-400/80',
+                  activeFilter === c.id ? 'text-zinc-400' : 'text-zinc-400/80',
                 )}
               >
                 · {c.count}
@@ -258,7 +317,7 @@ export function AddSectionDialog({ locale, pageType, onAdd, onAddPreset }: AddSe
               onClick={async () => {
                 setAdding(true);
                 try {
-                  await onAdd(s.id);
+                  await onAdd(s.id, target ?? undefined);
                   setOpen(false);
                 } finally {
                   setAdding(false);

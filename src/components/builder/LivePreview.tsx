@@ -25,7 +25,8 @@ interface LivePreviewProps {
   // Currently selected section — the preview draws a highlight frame around it.
   selectedId?: string | null;
   onSectionClicked?: (sectionId: string) => void;
-  // Actions fired from the floating toolbar rendered inside the preview.
+  // Actions fired from the floating toolbar rendered inside the preview
+  // (move-up / move-down / duplicate / hide / delete / select-parent).
   onSectionAction?: (sectionId: string, action: string) => void;
   // Double-click inline edits made directly inside the preview.
   onInlineEdit?: (sectionId: string, path: (string | number)[], value: string) => void;
@@ -79,6 +80,14 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
     }
   }, [previewUrl]);
 
+  // The full flat list, every row with an explicit parent_id (null = root), so
+  // the storefront renderer can rebuild the container tree. Flat pages send
+  // the same rows as before plus parent_id: null.
+  const previewSections = useMemo(
+    () => sections.map((s) => ({ ...s, parent_id: s.parent_id ?? null })),
+    [sections],
+  );
+
   // Push state into the iframe whenever inputs change. The iframe acks 'PREVIEW_READY'
   // on first mount; we resend on every change after that.
   useEffect(() => {
@@ -88,14 +97,14 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
         type: 'UPDATE_SECTIONS',
         themeKey,
         customizations: themeCustomizations,
-        sections,
+        sections: previewSections,
         locale: storeLocale,
         primaryLocale,
         menus,
       },
       previewOrigin,
     );
-  }, [loaded, themeKey, themeCustomizations, sections, storeLocale, primaryLocale, menus, previewOrigin]);
+  }, [loaded, themeKey, themeCustomizations, previewSections, storeLocale, primaryLocale, menus, previewOrigin]);
 
   // Keep the preview's selection highlight in sync with the builder.
   useEffect(() => {
@@ -122,7 +131,7 @@ export const LivePreview = forwardRef<LivePreviewHandle, LivePreviewProps>(funct
             type: 'UPDATE_SECTIONS',
             themeKey,
             customizations: themeCustomizations,
-            sections,
+            sections: previewSections,
             locale: storeLocale,
             primaryLocale,
             menus,

@@ -3,9 +3,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Layers, Loader2, Palette } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { findSectionSchema } from '@/lib/section-schemas';
+import {
+  canDropInto,
+  flattenTree,
+  moveSection as moveSectionInTree,
+  removeSubtree,
+  collectSubtreeIds,
+  toTreeReorderPayload,
+  validateMove,
+  type MoveTarget,
+} from '@/lib/sectionTree';
+import {
+  missingInCreateOrder,
+  newSubtreeRootId,
+  parentIdOf,
+  remapSectionId,
+  siblingMoveTarget,
+  siblingsOf,
+  survivorsInsideDropped,
+  topMostDropped,
+  usesSectionTree,
+} from '@/lib/builderTreeActions';
 import { presetSections } from '@/lib/section-presets';
 import { cn } from '@/lib/utils';
 import { SlugAdjustedNotice } from '@/components/common/SlugAdjustedNotice';
@@ -86,6 +107,7 @@ interface BuilderMenu {
 export function BuilderLayout({ page, initialSections, allPages, store }: BuilderLayoutProps) {
   const { token } = useAuth();
   const tBuilder = useTranslations('builder');
+  const tRoot = useTranslations();
   const previewRef = useRef<LivePreviewHandle>(null);
 
   const [sections, setSections] = useState<SectionInstance[]>(initialSections);
@@ -194,6 +216,24 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
   const selected = useMemo(
     () => sections.find((s) => s.id === selectedId) ?? null,
     [sections, selectedId],
+  );
+  // Layout container the selected section sits in (drives the inspector's
+  // "Layout in parent" panel). Null for root sections.
+  const selectedParent = useMemo(() => {
+    const pid = selected?.parent_id ?? null;
+    return pid ? sections.find((s) => s.id === pid) ?? null : null;
+  }, [sections, selected]);
+
+  // Friendly text for a failed structural action: the API's PAGE_SECTION_*
+  // code when it is translated, else a generic message.
+  const actionErrorMessage = useCallback(
+    (err: unknown): string => {
+      if (err instanceof ApiError && err.code && tRoot.has(`errors.${err.code}`)) {
+        return tRoot(`errors.${err.code}`);
+      }
+      return tBuilder('sectionActionFailed');
+    },
+    [tRoot, tBuilder],
   );
 
   // ── Autosave queue ──────────────────────────────────────
@@ -334,9 +374,49 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     [queueAutosave],
   );
 
-  const addSection = useCallback(
-    async (sectionKey: string) => {
+  /**
+   * Persist the order (and parents) of `list` on the server. Pages without
+   * nesting keep the legacy flat endpoint so they behave exactly as before;
+   * nested pages send the whole tree in one validated transaction.
+   */
+  const persistOrder = useCallback(
+    async (list: SectionInstance[], opts: { forceTree?: boolean } = {}) => {
       if (!token) return;
+      if (opts.forceTree || usesSectionTree(list)) {
+        await api(`/v2/pages/${page.id}/sections/tree`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify(toTreeReorderPayload(list)),
+        });
+        return;
+      }
+      await api(`/v2/pages/${page.id}/sections/sort`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ section_ids: list.map((s) => s.id) }),
+      });
+    },
+    [token, page.id],
+  );
+
+  const addSection = useCallback(
+    async (sectionKey: string, target?: MoveTarget | null) => {
+      if (!token) return;
+      // The section list always reports the insert target with the add
+      // (undefined = append at the root), so no remembered target is used:
+      // a cancelled "+ add here" can never redirect a later add.
+      const insert = target ?? null;
+      const parentId = insert?.parentId ?? null;
+      const before = sectionsRef.current;
+      // Client-side guard (the dialog already filters): the parent must be a
+      // container with room for this section.
+      if (parentId) {
+        const parentRow = flattenTree(before).find((f) => f.id === parentId);
+        if (!parentRow || !canDropInto(sectionKey, parentRow.section, parentRow.depth + 1)) {
+          setNotice(tRoot('errors.PAGE_SECTION_TREE_TOO_DEEP'));
+          return;
+        }
+      }
       recordHistory({ force: true });
       const schema = findSectionSchema(sectionKey);
       // Seed with the schema's defaults so a freshly added section already has
@@ -344,22 +424,51 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       // see an "empty section" placeholder until they fill every field.
       const defaultSettings = schema?.defaultSettings || {};
       const defaultContent = schema?.defaultContent || {};
-      const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
-        method: 'POST',
-        token,
-        body: JSON.stringify({
-          section_key: sectionKey,
-          settings: defaultSettings,
-          translations: [
-            { locale: store.language_config.primary_locale, content: defaultContent },
-          ],
-        }),
-      });
-      setSections((prev) => [...prev, created]);
+      let created: SectionInstance;
+      try {
+        created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify({
+            section_key: sectionKey,
+            settings: defaultSettings,
+            translations: [
+              { locale: store.language_config.primary_locale, content: defaultContent },
+            ],
+            // Only sent for nested inserts so root adds keep the old payload.
+            ...(parentId ? { parent_id: parentId } : {}),
+          }),
+        });
+      } catch (err) {
+        setNotice(actionErrorMessage(err));
+        throw err;
+      }
+      // The server appends after the last sibling; move it to the requested
+      // slot when that is not the end.
+      const appended = [...sectionsRef.current, { ...created, parent_id: created.parent_id ?? parentId }];
+      const siblingCount = siblingsOf(sectionsRef.current, parentId).length;
+      const wantsSlot = insert != null && insert.index < siblingCount;
+      const next = wantsSlot
+        ? moveSectionInTree(appended, created.id, { parentId, index: insert.index })
+        : appended;
+      setSections(next);
       setSelectedId(created.id);
+      if (wantsSlot && next !== appended) {
+        try {
+          await persistOrder(next);
+        } catch (err) {
+          setNotice(actionErrorMessage(err));
+        }
+      }
     },
-    [token, page.id, store.language_config.primary_locale],
+    [token, page.id, store.language_config.primary_locale, recordHistory, persistOrder, actionErrorMessage, tRoot],
   );
+
+  /**
+   * "+ add here" inside a container. The target reaches addSection through
+   * onAdd's second argument, so nothing needs to be remembered here.
+   */
+  const addInto = useCallback(() => {}, []);
 
   // Insert every section of a preset (M6.5) at the end, in order. One history
   // checkpoint covers the whole batch so undo removes all of them at once.
@@ -400,97 +509,160 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     [token, page.id, store.language_config.primary_locale, recordHistory, tBuilder],
   );
 
+  /** Deletes a section with its whole subtree (the API cascades to children). */
   const deleteSection = useCallback(
     async (sectionId: string) => {
       if (!token) return;
+      const before = sectionsRef.current;
+      const removedIds = new Set(collectSubtreeIds(before, sectionId));
+      if (removedIds.size === 0) return;
+      const parentId = parentIdOf(before, sectionId);
       recordHistory({ force: true });
-      await api(`/v2/pages/sections/${sectionId}`, { method: 'DELETE', token });
-      setSections((prev) => prev.filter((s) => s.id !== sectionId));
-      setSelectedId((curr) => (curr === sectionId ? null : curr));
+      try {
+        await api(`/v2/pages/sections/${sectionId}`, { method: 'DELETE', token });
+      } catch (err) {
+        setNotice(actionErrorMessage(err));
+        throw err;
+      }
+      // Pending autosave patches for removed sections would 404 on flush.
+      for (const id of removedIds) pendingRef.current.delete(id);
+      setSections((prev) => removeSubtree(prev, sectionId));
+      // Deleting the selection (or its container) selects the parent, if any.
+      setSelectedId((curr) => (curr && removedIds.has(curr) ? parentId : curr));
     },
-    [token],
+    [token, recordHistory, actionErrorMessage],
   );
 
+  /**
+   * Server-side duplicate of the section and its subtree (placed right after
+   * the original among its siblings). Pending edits are flushed first so the
+   * copy reflects exactly what the creator sees; the returned list replaces
+   * the local one.
+   */
   const duplicateSection = useCallback(
     async (sectionId: string) => {
       if (!token) return;
-      // Local state already carries any unsaved edits, so copying from it makes
-      // the duplicate reflect exactly what the creator sees.
-      const source = sections.find((s) => s.id === sectionId);
-      if (!source) return;
+      if (!sectionsRef.current.some((s) => s.id === sectionId)) return;
       recordHistory({ force: true });
-      const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
-        method: 'POST',
-        token,
-        body: JSON.stringify({
-          section_key: source.section_key,
-          settings: source.settings,
-          translations: source.translations.map((tr) => ({
-            locale: tr.locale,
-            content: tr.content,
-          })),
-        }),
-      });
-      // CreateSectionDto has no is_hidden — carry the flag over separately.
-      if (source.is_hidden) {
-        await api(`/v2/pages/sections/${created.id}`, {
-          method: 'PUT',
-          token,
-          body: JSON.stringify({ is_hidden: true }),
-        });
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
       }
-      const copy: SectionInstance = { ...created, is_hidden: source.is_hidden };
-      // Insert the copy right below its source and persist that order.
-      const idx = sections.findIndex((s) => s.id === sectionId);
-      const next = [...sections];
-      next.splice(idx + 1, 0, copy);
-      setSections(next.map((s, i) => ({ ...s, sort_order: i })));
-      setSelectedId(copy.id);
-      await api(`/v2/pages/${page.id}/sections/sort`, {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ section_ids: next.map((s) => s.id) }),
+      await flushAutosave();
+      const before = sectionsRef.current;
+      let list: SectionInstance[];
+      try {
+        list = await api<SectionInstance[]>(`/v2/pages/sections/${sectionId}/duplicate`, {
+          method: 'POST',
+          token,
+          body: JSON.stringify({}),
+        });
+      } catch (err) {
+        setNotice(actionErrorMessage(err));
+        throw err;
+      }
+      if (!Array.isArray(list)) return;
+      // Keep edits typed while the request was in flight: rows that existed
+      // before keep their local copy, new rows come from the server.
+      const localById = new Map(sectionsRef.current.map((s) => [s.id, s]));
+      const merged = list.map((row) => {
+        const local = localById.get(row.id);
+        return local ? { ...local, parent_id: row.parent_id ?? null, sort_order: row.sort_order } : row;
       });
+      setSections(merged);
+      const copyId = newSubtreeRootId(before, merged);
+      if (copyId) setSelectedId(copyId);
     },
-    [token, page.id, sections],
+    [token, recordHistory, flushAutosave, actionErrorMessage],
   );
 
+  /**
+   * Optimistic structural change: apply `next` locally, persist its order and
+   * parents, and roll back (with a friendly message) when the server refuses.
+   */
+  const applyStructure = useCallback(
+    async (next: SectionInstance[], opts: { forceTree?: boolean } = {}) => {
+      const prev = sectionsRef.current;
+      recordHistory({ force: true });
+      setSections(next);
+      if (!token) return;
+      try {
+        await persistOrder(next, opts);
+      } catch (err) {
+        // Restore the previous structure and drop the checkpoint it created.
+        historyRef.current.past.pop();
+        syncHistoryFlags();
+        setSections(prev);
+        setNotice(actionErrorMessage(err));
+      }
+    },
+    [token, recordHistory, persistOrder, syncHistoryFlags, actionErrorMessage],
+  );
+
+  /** Legacy flat reorder (display order of every section). Parents are kept. */
   const reorderSections = useCallback(
     async (orderedIds: string[]) => {
-      recordHistory({ force: true });
-      // Optimistic: reorder locally first.
-      setSections((prev) => {
-        const byId = new Map(prev.map((s) => [s.id, s]));
-        return orderedIds
-          .map((id, idx) => {
-            const s = byId.get(id);
-            return s ? { ...s, sort_order: idx } : null;
-          })
-          .filter((s): s is SectionInstance => !!s);
+      const prev = sectionsRef.current;
+      const byId = new Map(prev.map((s) => [s.id, s]));
+      const ordered = orderedIds
+        .map((id) => byId.get(id))
+        .filter((s): s is SectionInstance => !!s);
+      // Renumber per sibling group in the given order; parent_id unchanged.
+      const nextIndex = new Map<string | null, number>();
+      const next = ordered.map((s) => {
+        const pid = s.parent_id ?? null;
+        const idx = nextIndex.get(pid) ?? 0;
+        nextIndex.set(pid, idx + 1);
+        return { ...s, sort_order: idx };
       });
-      if (!token) return;
-      await api(`/v2/pages/${page.id}/sections/sort`, {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ section_ids: orderedIds }),
-      });
+      await applyStructure(next);
     },
-    [token, page.id],
+    [applyStructure],
   );
 
-  /** Move a section one slot up or down (keyboard + preview toolbar). */
+  /** Moves a section (with its subtree) to a new parent / sibling slot. */
+  const moveSectionTo = useCallback(
+    async (sectionId: string, target: MoveTarget) => {
+      const prev = sectionsRef.current;
+      const check = validateMove(prev, sectionId, target);
+      if (!check.ok) {
+        setNotice(
+          tRoot(
+            check.reason === 'cycle'
+              ? 'errors.PAGE_SECTION_TREE_CYCLE'
+              : check.reason === 'too-deep'
+                ? 'errors.PAGE_SECTION_TREE_TOO_DEEP'
+                : check.reason === 'parent-not-container'
+                  ? 'errors.PAGE_SECTION_PARENT_NOT_CONTAINER'
+                  : 'errors.PAGE_SECTION_PARENT_INVALID',
+          ),
+        );
+        return;
+      }
+      const next = moveSectionInTree(prev, sectionId, target);
+      if (next === prev) return;
+      // A section leaving its container must reach the server through the
+      // tree endpoint even when the page ends up flat.
+      await applyStructure(next, { forceTree: usesSectionTree(prev) });
+    },
+    [applyStructure, tRoot],
+  );
+
+  /** Move a section one slot up or down among its siblings (keyboard + preview toolbar). */
   const moveSection = useCallback(
     (sectionId: string, delta: -1 | 1) => {
-      const list = sectionsRef.current;
-      const idx = list.findIndex((s) => s.id === sectionId);
-      const to = idx + delta;
-      if (idx < 0 || to < 0 || to >= list.length) return;
-      const ids = list.map((s) => s.id);
-      [ids[idx], ids[to]] = [ids[to], ids[idx]];
-      void reorderSections(ids);
+      const target = siblingMoveTarget(sectionsRef.current, sectionId, delta);
+      if (!target) return;
+      void moveSectionTo(sectionId, target);
     },
-    [reorderSections],
+    [moveSectionTo],
   );
+
+  /** Selects the container the section sits in (preview toolbar + shortcut). */
+  const selectParent = useCallback((sectionId: string) => {
+    const pid = parentIdOf(sectionsRef.current, sectionId);
+    if (pid) setSelectedId(pid);
+  }, []);
 
   // ── Undo / Redo ─────────────────────────────────────────
 
@@ -519,43 +691,70 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       try {
         const currentById = new Map(current.map((s) => [s.id, s]));
         const targetIds = new Set(next.map((s) => s.id));
-        for (const s of current) {
-          if (!targetIds.has(s.id)) {
-            await api(`/v2/pages/sections/${s.id}`, { method: 'DELETE', token });
-          }
+        const nested = usesSectionTree(current) || usesSectionTree(next);
+
+        // 1. Kept sections that sit inside a container the snapshot drops
+        //    would be cascade-deleted with it: lift them to the root first.
+        const lifted = survivorsInsideDropped(current, targetIds);
+        if (lifted.size > 0) {
+          const interim = current.map((s, i) =>
+            lifted.has(s.id) ? { ...s, parent_id: null, sort_order: current.length + i } : s,
+          );
+          await persistOrder(interim, { forceTree: true });
         }
+
+        // 2. Delete what the snapshot drops (top-most only; the API cascades).
+        for (const id of topMostDropped(current, targetIds)) {
+          await api(`/v2/pages/sections/${id}`, { method: 'DELETE', token });
+        }
+
+        // 2b. Put the kept sections where the snapshot has them (parents that
+        //     still need re-creating count as root for now), so the depth
+        //     checks of the POSTs below see the snapshot's structure.
+        const missingIds = new Set(next.filter((s) => !currentById.has(s.id)).map((s) => s.id));
+        if (nested && missingIds.size > 0) {
+          const kept = next
+            .filter((s) => !missingIds.has(s.id))
+            .map((s) => (s.parent_id && missingIds.has(s.parent_id) ? { ...s, parent_id: null } : s));
+          await persistOrder(kept, { forceTree: true });
+        }
+
+        // 3. Re-create missing sections, parents before children, under
+        //    their (possibly remapped) parent.
+        for (const s of missingInCreateOrder(next, new Set(currentById.keys()))) {
+          const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
+            method: 'POST',
+            token,
+            body: JSON.stringify({
+              section_key: s.section_key,
+              settings: s.settings,
+              translations: s.translations,
+              ...(s.parent_id ? { parent_id: s.parent_id } : {}),
+            }),
+          });
+          if (s.is_hidden) {
+            await api(`/v2/pages/sections/${created.id}`, {
+              method: 'PUT',
+              token,
+              body: JSON.stringify({ is_hidden: true }),
+            });
+          }
+          // Remap the stale id (and parent_id references) through the target,
+          // both history stacks and the selection.
+          const oldId = s.id;
+          remapSectionId(next, oldId, created.id);
+          historyRef.current.past.forEach((snap) => remapSectionId(snap, oldId, created.id));
+          historyRef.current.future.forEach((snap) => remapSectionId(snap, oldId, created.id));
+          setSelectedId((curr) => (curr === oldId ? created.id : curr));
+        }
+
+        // 4. Content / settings / hidden diffs of kept sections.
         for (const s of next) {
           const prev = currentById.get(s.id);
-          if (!prev) {
-            const created = await api<SectionInstance>(`/v2/pages/${page.id}/sections`, {
-              method: 'POST',
-              token,
-              body: JSON.stringify({
-                section_key: s.section_key,
-                settings: s.settings,
-                translations: s.translations,
-              }),
-            });
-            if (s.is_hidden) {
-              await api(`/v2/pages/sections/${created.id}`, {
-                method: 'PUT',
-                token,
-                body: JSON.stringify({ is_hidden: true }),
-              });
-            }
-            // Remap the stale id through both history stacks + selection.
-            const oldId = s.id;
-            s.id = created.id;
-            const remap = (snap: SectionInstance[]) =>
-              snap.forEach((row) => {
-                if (row.id === oldId) row.id = created.id;
-              });
-            historyRef.current.past.forEach(remap);
-            historyRef.current.future.forEach(remap);
-            setSelectedId((curr) => (curr === oldId ? created.id : curr));
-          } else if (
+          if (
+            prev &&
             JSON.stringify([prev.settings, prev.translations, prev.is_hidden ?? false]) !==
-            JSON.stringify([s.settings, s.translations, s.is_hidden ?? false])
+              JSON.stringify([s.settings, s.translations, s.is_hidden ?? false])
           ) {
             await api(`/v2/pages/sections/${s.id}`, {
               method: 'PUT',
@@ -568,19 +767,24 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
             });
           }
         }
-        // Re-sync local state (ids may have been remapped) + persist order.
-        setSections(next.map((s, i) => ({ ...s, sort_order: i })));
-        await api(`/v2/pages/${page.id}/sections/sort`, {
-          method: 'PUT',
-          token,
-          body: JSON.stringify({ section_ids: next.map((s) => s.id) }),
-        });
+
+        // 5. Re-sync local state (ids may have been remapped) + persist the
+        //    snapshot's order and parents.
+        if (nested) {
+          setSections(cloneSections(next));
+          await persistOrder(next, { forceTree: true });
+        } else {
+          const flat = next.map((s, i) => ({ ...s, sort_order: i }));
+          setSections(flat);
+          await persistOrder(flat);
+        }
         setSaveState('saved');
-      } catch {
+      } catch (err) {
         setSaveState('error');
+        setNotice(actionErrorMessage(err));
       }
     },
-    [token, page.id],
+    [token, page.id, persistOrder, actionErrorMessage],
   );
 
   const undo = useCallback(() => {
@@ -634,12 +838,18 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       if (!selectedId) return;
       if (mod && key === 'd') {
         e.preventDefault();
-        void duplicateSection(selectedId);
+        duplicateSection(selectedId).catch(() => {});
         return;
       }
       if (e.key === 'Delete') {
         e.preventDefault();
-        void deleteSection(selectedId);
+        deleteSection(selectedId).catch(() => {});
+        return;
+      }
+      // Alt+Shift+ArrowUp selects the container the section sits in.
+      if (e.altKey && e.shiftKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectParent(selectedId);
         return;
       }
       if (e.altKey && e.key === 'ArrowUp') {
@@ -654,7 +864,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedId, undo, redo, duplicateSection, deleteSection, moveSection]);
+  }, [selectedId, undo, redo, duplicateSection, deleteSection, moveSection, selectParent]);
 
   // ── Page translation (one-click machine translation) ────────────────────
   // The dialog persists server-side itself; here we just take the merged
@@ -704,13 +914,13 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     (sectionId: string, action: string) => {
       switch (action) {
         case 'duplicate':
-          void duplicateSection(sectionId);
+          duplicateSection(sectionId).catch(() => {});
           break;
         case 'hide':
           toggleHidden(sectionId, true);
           break;
         case 'delete':
-          void deleteSection(sectionId);
+          deleteSection(sectionId).catch(() => {});
           break;
         case 'move-up':
           moveSection(sectionId, -1);
@@ -718,11 +928,43 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         case 'move-down':
           moveSection(sectionId, 1);
           break;
+        case 'select-parent':
+          selectParent(sectionId);
+          break;
         default:
           break;
       }
     },
-    [duplicateSection, toggleHidden, deleteSection, moveSection],
+    [duplicateSection, toggleHidden, deleteSection, moveSection, selectParent],
+  );
+
+  // ── Handlers for the section list + inspector ───────────
+  // Errors were already shown as a notice; swallow them here so a click never
+  // leaves an unhandled rejection behind.
+  const handleDuplicate = useCallback(
+    (sectionId: string) => duplicateSection(sectionId).catch(() => {}),
+    [duplicateSection],
+  );
+  const handleDelete = useCallback(
+    (sectionId: string) => {
+      deleteSection(sectionId).catch(() => {});
+    },
+    [deleteSection],
+  );
+  // Accepts an explicit flag (old list rows / inspector) or flips the current one.
+  const handleToggleHidden = useCallback(
+    (sectionId: string, hidden?: boolean) => {
+      const current = sectionsRef.current.find((s) => s.id === sectionId);
+      if (!current) return;
+      toggleHidden(sectionId, typeof hidden === 'boolean' ? hidden : !current.is_hidden);
+    },
+    [toggleHidden],
+  );
+  const handleMove = useCallback(
+    (sectionId: string, target: MoveTarget) => {
+      void moveSectionTo(sectionId, target);
+    },
+    [moveSectionTo],
   );
 
   const publishPage = useCallback(async () => {
@@ -979,8 +1221,10 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
                 onReorder={reorderSections}
                 onAdd={addSection}
                 onAddPreset={addPreset}
-                onToggleHidden={toggleHidden}
-                onDuplicate={duplicateSection}
+                onToggleHidden={handleToggleHidden}
+                onDuplicate={handleDuplicate}
+                onMove={handleMove}
+                onAddInto={addInto}
               />
             ) : (
               <ThemePanel
@@ -1040,15 +1284,17 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
         <aside className="border-s bg-white overflow-hidden">
           <SectionInspector
             section={selected}
+            parent={selectedParent}
             locale={activeLocale}
             primaryLocale={store.language_config.primary_locale}
             token={token ?? ''}
             apiBase={API_BASE}
             onPatchSettings={patchSectionSettings}
             onPatchContent={patchSectionContent}
-            onDelete={deleteSection}
-            onToggleHidden={toggleHidden}
-            onDuplicate={duplicateSection}
+            onDelete={handleDelete}
+            onToggleHidden={handleToggleHidden}
+            onDuplicate={handleDuplicate}
+            onSelectParent={selectParent}
           />
         </aside>
       </div>
