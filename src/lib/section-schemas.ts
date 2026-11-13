@@ -3350,6 +3350,127 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     ],
     defaultSettings: { show_heading: true },
   },
+  // Standalone pieces of product-tabs (web registryB3.ts); product-tabs stays.
+  // Each gets a heading tag select via HEADING_LEVEL_DEFAULTS below.
+  {
+    id: 'product-description',
+    label: { en: 'Product description', ar: 'وصف المنتج' },
+    icon: 'align-left',
+    category: 'product',
+    description: {
+      en: 'The product’s full description.',
+      ar: 'الوصف الكامل للمنتج.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: ['heading'],
+    schema: [
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+      {
+        key: 'heading',
+        type: 'text',
+        label: { en: 'Heading (optional)', ar: 'العنوان (اختياري)' },
+        description: {
+          en: 'Leave empty to use the default word in the page language.',
+          ar: 'اتركه فارغاً لاستخدام الكلمة الافتراضية بلغة الصفحة.',
+        },
+      },
+    ],
+    defaultSettings: { show_heading: true },
+  },
+  {
+    id: 'product-specifications',
+    label: { en: 'Specifications', ar: 'المواصفات' },
+    icon: 'list',
+    category: 'product',
+    description: {
+      en: 'The product’s specifications table.',
+      ar: 'جدول مواصفات المنتج.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: ['heading'],
+    schema: [
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+      {
+        key: 'heading',
+        type: 'text',
+        label: { en: 'Heading (optional)', ar: 'العنوان (اختياري)' },
+        description: {
+          en: 'Leave empty to use the default word in the page language.',
+          ar: 'اتركه فارغاً لاستخدام الكلمة الافتراضية بلغة الصفحة.',
+        },
+      },
+      {
+        key: 'style',
+        type: 'select',
+        label: { en: 'Style', ar: 'الشكل' },
+        defaultValue: 'striped',
+        options: [
+          { value: 'striped', label: { en: 'Striped table', ar: 'جدول مخطّط' } },
+          { value: 'table', label: { en: 'Plain table', ar: 'جدول عادي' } },
+          { value: 'list', label: { en: 'List', ar: 'قائمة' } },
+        ],
+      },
+    ],
+    defaultSettings: { show_heading: true, style: 'striped' },
+  },
+  {
+    id: 'product-faq',
+    label: { en: 'Product FAQ', ar: 'الأسئلة الشائعة للمنتج' },
+    icon: 'help-circle',
+    category: 'product',
+    description: {
+      en: 'The product’s FAQs as questions that open and close.',
+      ar: 'أسئلة المنتج الشائعة كقائمة تُفتح وتُغلق.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: ['heading'],
+    schema: [
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+      {
+        key: 'heading',
+        type: 'text',
+        label: { en: 'Heading (optional)', ar: 'العنوان (اختياري)' },
+        description: {
+          en: 'Leave empty to use the default word in the page language.',
+          ar: 'اتركه فارغاً لاستخدام الكلمة الافتراضية بلغة الصفحة.',
+        },
+      },
+      { key: 'open_first', type: 'boolean', label: { en: 'Open the first question', ar: 'فتح السؤال الأول تلقائياً' }, defaultValue: false },
+      {
+        key: 'allow_multiple',
+        type: 'boolean',
+        label: { en: 'Allow several open at once', ar: 'السماح بفتح أكثر من سؤال' },
+        defaultValue: true,
+      },
+    ],
+    defaultSettings: { show_heading: true, open_first: false, allow_multiple: true },
+  },
+  {
+    id: 'product-shipping-returns',
+    label: { en: 'Shipping & returns', ar: 'الشحن والإرجاع' },
+    icon: 'package',
+    category: 'product',
+    description: {
+      en: 'Your shipping and returns texts, written in this block.',
+      ar: 'نصّا الشحن والإرجاع الخاصّان بك، تكتبهما في هذا القسم.',
+    },
+    pageTypes: ['PRODUCT_TEMPLATE'],
+    gate: 'layout-containers',
+    translatable: ['shipping_heading', 'returns_heading', 'shipping_html', 'returns_html'],
+    schema: [
+      { key: 'show_shipping', type: 'boolean', label: { en: 'Show shipping', ar: 'إظهار الشحن' }, defaultValue: true },
+      { key: 'show_returns', type: 'boolean', label: { en: 'Show returns', ar: 'إظهار الإرجاع' }, defaultValue: true },
+      { key: 'show_heading', type: 'boolean', label: { en: 'Show heading', ar: 'إظهار العنوان' }, defaultValue: true },
+      { key: 'shipping_heading', type: 'text', label: { en: 'Shipping heading (optional)', ar: 'عنوان الشحن (اختياري)' } },
+      { key: 'shipping_html', type: 'richtext', label: { en: 'Shipping content', ar: 'محتوى الشحن' } },
+      { key: 'returns_heading', type: 'text', label: { en: 'Returns heading (optional)', ar: 'عنوان الإرجاع (اختياري)' } },
+      { key: 'returns_html', type: 'richtext', label: { en: 'Returns content', ar: 'محتوى الإرجاع' } },
+    ],
+    defaultSettings: { show_shipping: true, show_returns: true, show_heading: true },
+  },
   // ── Chrome sections (HEADER / FOOTER pages only) ────────────────
   {
     id: 'header-bar',
@@ -3825,6 +3946,12 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'testimonial-carousel': 'h2',
   testimonials: 'h2',
   timeline: 'h2',
+  // Standalone product-tabs pieces: the select lands after `heading` (or at
+  // the end for shipping & returns, where it applies to both headings).
+  'product-description': 'h2',
+  'product-specifications': 'h2',
+  'product-faq': 'h2',
+  'product-shipping-returns': 'h2',
 };
 
 // Sections whose eyebrow (small label above the heading) honours eyebrow_tag.
@@ -3840,7 +3967,15 @@ const EYEBROW_SECTIONS = new Set([
 ]);
 const EYEBROW_P_SECTIONS = new Set(['rich-text', 'image-with-text']);
 // Sections without a subheading text.
-const NO_SUBHEADING_SECTIONS = new Set(['image-with-text', 'rich-text', 'testimonial-carousel']);
+const NO_SUBHEADING_SECTIONS = new Set([
+  'image-with-text',
+  'rich-text',
+  'testimonial-carousel',
+  'product-description',
+  'product-specifications',
+  'product-faq',
+  'product-shipping-returns',
+]);
 
 const TEXT_TAG_OPTIONS: { value: TextTagValue; label: LocalizedString }[] = [
   { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة' } },
@@ -3875,12 +4010,17 @@ function insertAfter(fields: FieldDefinition[], afterKey: string, field: FieldDe
   fields.splice(at >= 0 ? at + 1 : fields.length, 0, field);
 }
 
+// Sections without a `heading` field: the heading tag select goes after this key.
+const HEADING_LEVEL_ANCHOR: Record<string, string> = {
+  'product-shipping-returns': 'show_heading',
+};
+
 /** Adds the text-tag selects (heading, subheading, eyebrow) after their texts. */
 function withHeadingLevel(schema: SectionSchema): SectionSchema {
   const fallback = HEADING_LEVEL_DEFAULTS[schema.id];
   if (!fallback) return schema;
   const fields = [...schema.schema];
-  insertAfter(fields, 'heading', textTagField('heading_level', { en: 'Heading tag (SEO)', ar: 'وسم العنوان (SEO)' }, fallback));
+  insertAfter(fields, HEADING_LEVEL_ANCHOR[schema.id] ?? 'heading', textTagField('heading_level', { en: 'Heading tag (SEO)', ar: 'وسم العنوان (SEO)' }, fallback));
   if (!NO_SUBHEADING_SECTIONS.has(schema.id)) {
     insertAfter(fields, 'subheading', textTagField('subheading_tag', { en: 'Subheading tag (SEO)', ar: 'وسم العنوان الفرعي (SEO)' }, 'p'));
   }

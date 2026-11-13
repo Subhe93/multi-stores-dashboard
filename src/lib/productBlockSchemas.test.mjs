@@ -21,6 +21,10 @@ const NEW_BLOCK_KEYS = [
   'product-buy',
   'product-trust',
   'product-shipping',
+  'product-description',
+  'product-specifications',
+  'product-faq',
+  'product-shipping-returns',
 ];
 // Older split sections rebuilt on the shared state; they keep their keys and
 // setting names and stay ungated so existing templates keep their palette.
@@ -87,4 +91,66 @@ test('rebuilt sections keep their old setting names', () => {
   // The classic gallery layout (the monolith gallery) is offered.
   const layout = findSectionSchema('product-gallery').schema.find((f) => f.key === 'layout');
   assert.ok(layout.options.some((o) => o.value === 'classic'));
+});
+
+// Standalone pieces of product-tabs: field keys, translatable keys and
+// defaults must equal the web definitions (web registryB3.ts); the builder
+// adds the heading tag select (heading_level) on top.
+const B3_PARITY = {
+  'product-description': {
+    fields: ['show_heading', 'heading'],
+    translatable: ['heading'],
+    defaults: { show_heading: true },
+  },
+  'product-specifications': {
+    fields: ['show_heading', 'heading', 'style'],
+    translatable: ['heading'],
+    defaults: { show_heading: true, style: 'striped' },
+  },
+  'product-faq': {
+    fields: ['show_heading', 'heading', 'open_first', 'allow_multiple'],
+    translatable: ['heading'],
+    defaults: { show_heading: true, open_first: false, allow_multiple: true },
+  },
+  'product-shipping-returns': {
+    fields: ['show_shipping', 'show_returns', 'show_heading', 'shipping_heading', 'shipping_html', 'returns_heading', 'returns_html'],
+    translatable: ['shipping_heading', 'returns_heading', 'shipping_html', 'returns_html'],
+    defaults: { show_shipping: true, show_returns: true, show_heading: true },
+  },
+};
+
+test('standalone product-tabs pieces match the web block definitions', () => {
+  for (const [key, want] of Object.entries(B3_PARITY)) {
+    const schema = findSectionSchema(key);
+    const keys = schema.schema.map((f) => f.key);
+    assert.deepEqual(keys.filter((k) => k !== 'heading_level'), want.fields, key);
+    assert.ok(keys.includes('heading_level'), `${key} heading tag select`);
+    assert.equal(keys.includes('subheading_tag'), false, `${key} has no subheading`);
+    assert.deepEqual(schema.translatable, want.translatable, key);
+    assert.deepEqual(schema.defaultSettings, want.defaults, key);
+    assert.equal(schema.gate, 'layout-containers', key);
+  }
+  // The heading tag select sits right after the heading text, or after
+  // show_heading for shipping & returns (no single heading field).
+  for (const [key, anchor] of [
+    ['product-description', 'heading'],
+    ['product-faq', 'heading'],
+    ['product-shipping-returns', 'show_heading'],
+  ]) {
+    const keys = findSectionSchema(key).schema.map((f) => f.key);
+    assert.equal(keys[keys.indexOf(anchor) + 1], 'heading_level', `${key} heading_level position`);
+  }
+  const faq = findSectionSchema('product-faq').schema;
+  assert.equal(faq.find((f) => f.key === 'open_first').defaultValue, false);
+  assert.equal(faq.find((f) => f.key === 'allow_multiple').defaultValue, true);
+  const style = findSectionSchema('product-specifications').schema.find((f) => f.key === 'style');
+  assert.deepEqual(style.options.map((o) => o.value), ['striped', 'table', 'list']);
+});
+
+test('product-tabs is unchanged and still offered next to its pieces', () => {
+  const tabs = findSectionSchema('product-tabs');
+  assert.equal(tabs.gate, undefined);
+  assert.deepEqual(tabs.defaultSettings, {
+    show_description: true, show_specifications: true, show_faqs: true, show_shipping: false, show_returns: false,
+  });
 });

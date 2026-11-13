@@ -26,6 +26,10 @@ const GATED_KEYS = [
   'product-buy',
   'product-trust',
   'product-shipping',
+  'product-description',
+  'product-specifications',
+  'product-faq',
+  'product-shipping-returns',
 ];
 
 const s = (id, section_key, sort_order, parent_id = null) => ({ id, section_key, sort_order, parent_id });
