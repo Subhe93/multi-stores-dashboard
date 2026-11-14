@@ -315,6 +315,7 @@ export function SectionInspector({
                   field={field}
                   value={section.settings[field.key]}
                   onChange={(v) => onPatchSettings(section.id, { [field.key]: v })}
+                  siblings={section.settings}
                   contentLocale={contentLocale}
                   token={token}
                   apiBase={apiBase}

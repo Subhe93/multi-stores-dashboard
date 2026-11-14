@@ -7,6 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ImageField } from './fields/FieldRenderer';
+import { DeviceTabs, SegSelect } from './responsiveControls';
+import {
+  type Breakpoint,
+  type Responsive,
+  hasOwnResponsive,
+  inheritedSource,
+  pickResponsive,
+  resolveResponsive,
+  setResponsive,
+} from '@/lib/responsive';
+
+export type { Breakpoint, Responsive };
 
 // Mirror of multi-stores-web/src/themes/sectionStyle.ts — kept in sync manually
 // so the dashboard can type the form correctly without crossing app boundaries.
@@ -15,10 +27,7 @@ export type SpaceValue = SpaceToken | number;       // token OR raw pixels
 export type WidthToken = 'full' | 'container' | 'narrow';
 export type RadiusToken = 'none' | 'sm' | 'md' | 'lg';
 export type BackgroundToken = 'transparent' | 'surface' | 'primary' | 'accent' | 'custom' | 'image';
-export type Breakpoint = 'desktop' | 'tablet' | 'mobile';
 export type AnimateToken = 'none' | 'fade-up' | 'fade-in';
-
-export type Responsive<T> = T | Partial<Record<Breakpoint, T>>;
 
 export interface SidesSpacing {
   top?: SpaceValue;
@@ -75,63 +84,8 @@ function spaceValueToPx(v: SpaceValue | undefined): number | '' {
   return typeof v === 'number' ? v : SPACE_TOKEN_PX[v];
 }
 
-// ── Responsive value helpers ───────────────────────────────────────────
-
-function pickResponsive<T>(field: Responsive<T> | undefined, bp: Breakpoint): T | undefined {
-  if (field === undefined) return undefined;
-  if (typeof field === 'object' && field !== null && !Array.isArray(field)) {
-    return (field as Partial<Record<Breakpoint, T>>)[bp];
-  }
-  return bp === 'desktop' ? (field as T) : undefined;
-}
-
-// Cascade: mobile inherits from tablet inherits from desktop. Use when the
-// panel needs to show what the user *will see* at the active breakpoint.
-function resolveResponsive<T>(field: Responsive<T> | undefined, bp: Breakpoint): T | undefined {
-  if (bp === 'mobile') {
-    return pickResponsive(field, 'mobile')
-      ?? pickResponsive(field, 'tablet')
-      ?? pickResponsive(field, 'desktop');
-  }
-  if (bp === 'tablet') {
-    return pickResponsive(field, 'tablet') ?? pickResponsive(field, 'desktop');
-  }
-  return pickResponsive(field, 'desktop');
-}
-
-function setResponsive<T>(
-  field: Responsive<T> | undefined,
-  bp: Breakpoint,
-  val: T | undefined,
-): Responsive<T> | undefined {
-  let obj: Partial<Record<Breakpoint, T>>;
-  if (field === undefined) {
-    obj = {};
-  } else if (typeof field === 'object' && field !== null && !Array.isArray(field)) {
-    obj = { ...(field as Partial<Record<Breakpoint, T>>) };
-  } else {
-    obj = { desktop: field as T };
-  }
-  if (val === undefined) delete obj[bp];
-  else obj[bp] = val;
-  const keys = Object.keys(obj);
-  if (keys.length === 0) return undefined;
-  // Collapse to a bare value when only desktop is set — matches the legacy
-  // shape so older readers stay happy.
-  if (keys.length === 1 && obj.desktop !== undefined) return obj.desktop;
-  return obj;
-}
-
-function hasOwnResponsive<T>(field: Responsive<T> | undefined, bp: Breakpoint): boolean {
-  return pickResponsive(field, bp) !== undefined;
-}
-
-function inheritedSource<T>(field: Responsive<T> | undefined, bp: Breakpoint): Breakpoint | null {
-  if (hasOwnResponsive(field, bp)) return null;
-  if (bp === 'mobile' && hasOwnResponsive(field, 'tablet')) return 'tablet';
-  if ((bp === 'mobile' || bp === 'tablet') && hasOwnResponsive(field, 'desktop')) return 'desktop';
-  return null;
-}
+// Responsive value helpers live in lib/responsive.ts (shared with the
+// imageSize field).
 
 // ── SidesSpacing helpers (per side, per breakpoint cascade) ────────────
 
@@ -467,44 +421,6 @@ export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps)
 
 // ── Building blocks ─────────────────────────────────────────────────────
 
-function DeviceTabs({
-  value,
-  onChange,
-  labels,
-}: {
-  value: Breakpoint;
-  onChange: (v: Breakpoint) => void;
-  labels: { desktop: string; tablet: string; mobile: string };
-}) {
-  const tabs: { key: Breakpoint; label: string; Icon: typeof Monitor }[] = [
-    { key: 'desktop', label: labels.desktop, Icon: Monitor },
-    { key: 'tablet', label: labels.tablet, Icon: Tablet },
-    { key: 'mobile', label: labels.mobile, Icon: Smartphone },
-  ];
-  return (
-    <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-zinc-50 border border-zinc-200">
-      {tabs.map(({ key, label, Icon }) => {
-        const active = key === value;
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onChange(key)}
-            title={label}
-            className={cn(
-              'flex items-center justify-center gap-1.5 px-2.5 py-1 text-[11px] rounded transition flex-1',
-              active ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900',
-            )}
-          >
-            <Icon className="size-3.5" />
-            <span>{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function DeviceCheckbox({
   active,
   onToggle,
@@ -824,59 +740,6 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
     <div className="grid grid-cols-[1fr_auto] items-center gap-3">
       <Label className="text-xs text-zinc-600">{label}</Label>
       <div className="flex items-center">{children}</div>
-    </div>
-  );
-}
-
-// Inline segmented selector. `muted` softens the active chip when the value
-// is inherited from a wider breakpoint instead of explicitly set here.
-// `fullWidth` makes the chips share the row equally (used in stacked layout
-// when the field needs the whole panel width).
-function SegSelect<T extends string>({
-  value,
-  onChange,
-  options,
-  small,
-  muted,
-  fullWidth,
-}: {
-  value: T;
-  onChange: (v: T) => void;
-  options: { value: T; label: string }[];
-  small?: boolean;
-  muted?: boolean;
-  fullWidth?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        'rounded-md border border-zinc-200 bg-white p-0.5',
-        fullWidth ? 'grid w-full' : 'inline-flex items-center max-w-full overflow-x-auto',
-      )}
-      style={fullWidth ? { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` } : undefined}
-    >
-      {options.map((o) => {
-        const isActive = o.value === value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={cn(
-              'transition rounded-[4px] font-medium truncate',
-              fullWidth ? 'min-w-0' : 'shrink-0',
-              small ? 'text-[10px] px-1.5 py-1' : 'text-[11px] px-2 py-1',
-              isActive
-                ? muted
-                  ? 'bg-zinc-200 text-zinc-700'
-                  : 'bg-zinc-900 text-white'
-                : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50',
-            )}
-          >
-            {o.label}
-          </button>
-        );
-      })}
     </div>
   );
 }

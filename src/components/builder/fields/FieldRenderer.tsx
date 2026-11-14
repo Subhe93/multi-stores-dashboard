@@ -29,6 +29,7 @@ import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { api, authFetch } from '@/lib/api';
 import { type FieldDefinition } from '@/lib/section-schemas';
 import { useUiLabel } from '../useUiLabel';
+import { ImageSizeField } from './ImageSizeField';
 import { cn } from '@/lib/utils';
 
 interface FieldRendererProps {
@@ -43,6 +44,12 @@ interface FieldRendererProps {
   contentLocale: string;
   token: string;
   apiBase: string;
+  /**
+   * The object this field lives in (section settings or repeater item). Read
+   * by fields that depend on sibling keys (imageSize seeds from the legacy
+   * aspect / fit / width_px keys).
+   */
+  siblings?: Record<string, unknown>;
 }
 
 // Fields that benefit from a horizontal label-on-left layout (Elementor 3.x
@@ -55,7 +62,7 @@ const INLINE_TYPES = new Set(['boolean', 'select', 'color', 'number', 'menuPicke
  * shell based on the field type so simple controls (select/color/number)
  * align in a tidy column while text-heavy controls get full width.
  */
-export function FieldRenderer({ field, value, onChange, contentLocale, token, apiBase }: FieldRendererProps) {
+export function FieldRenderer({ field, value, onChange, contentLocale, token, apiBase, siblings }: FieldRendererProps) {
   const tc = useTranslations('common');
   const uiLabel = useUiLabel();
   const label = uiLabel(field.label);
@@ -185,6 +192,11 @@ export function FieldRenderer({ field, value, onChange, contentLocale, token, ap
               contentLocale={contentLocale}
             />
           </div>
+        );
+
+      case 'imageSize':
+        return (
+          <ImageSizeField value={value} siblings={siblings} contentLocale={contentLocale} onChange={(v) => onChange(v)} />
         );
 
       case 'productPicker':
@@ -985,6 +997,7 @@ function RepeaterItem({
                 field={f}
                 value={item[f.key]}
                 onChange={(v) => onChangeItem({ ...item, [f.key]: v })}
+                siblings={item}
                 contentLocale={contentLocale}
                 token={token}
                 apiBase={apiBase}

@@ -18,7 +18,10 @@ export type FieldType =
   | 'menuPicker'
   | 'productPicker'
   | 'collectionPicker'
-  | 'repeater';
+  | 'repeater'
+  // Image width / height / fit per breakpoint (`image_size` object).
+  // Spec: plans/image-sizing/SPEC.md.
+  | 'imageSize';
 
 export interface FieldDefinition {
   key: string;
@@ -108,6 +111,15 @@ const ICON_OPTIONS = [
   { value: 'headphones', label: { en: 'Headphones (support)', ar: 'سماعات (دعم)' } },
   { value: 'leaf', label: { en: 'Leaf (eco)', ar: 'ورقة (بيئي)' } },
 ];
+
+// Image sizing (single-image section + layout-columns image block). One
+// object under `image_size`, edited by the imageSize field. Identical in the
+// web registry; spec: plans/image-sizing/SPEC.md.
+export const IMAGE_SIZE_FIELD: FieldDefinition = {
+  key: 'image_size',
+  type: 'imageSize',
+  label: { en: 'Image size', ar: 'حجم الصورة', tr: 'Görsel boyutu', de: 'Bildgröße', fr: 'Taille de l’image', sv: 'Bildstorlek' },
+};
 
 // ── Shared field builders ──────────────────────────────────────────────
 // Per-element color and button-style fields. Spread into a section's
@@ -1064,29 +1076,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     schema: [
       { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' }, showIf: STATIC_IMAGE_SHOW_IF },
       ...IMAGE_SOURCE_FIELDS,
-      {
-        key: 'aspect',
-        type: 'select',
-        label: { en: 'Aspect ratio', ar: 'نسبة الصورة' },
-        defaultValue: 'auto',
-        options: [
-          { value: 'auto', label: { en: 'Original', ar: 'الأصلية', tr: 'Orijinal', de: 'Original', fr: 'Originale', sv: 'Original' } },
-          { value: 'square', label: { en: 'Square', ar: 'مربّع' } },
-          { value: 'portrait', label: { en: 'Portrait', ar: 'طولي' } },
-          { value: 'landscape', label: { en: 'Landscape', ar: 'عرضي' } },
-          { value: 'wide', label: { en: 'Wide 16:9', ar: 'عريض 16:9' } },
-        ],
-      },
-      {
-        key: 'fit',
-        type: 'select',
-        label: { en: 'Fit', ar: 'ملاءمة الصورة', tr: 'Sığdırma', de: 'Einpassen', fr: 'Ajustement', sv: 'Anpassning' },
-        defaultValue: 'cover',
-        options: [
-          { value: 'cover', label: { en: 'Fill (crop)', ar: 'ملء (قص)', tr: 'Doldur (kırp)', de: 'Füllen (zuschneiden)', fr: 'Remplir (recadrer)', sv: 'Fyll (beskär)' } },
-          { value: 'contain', label: { en: 'Fit (no crop)', ar: 'احتواء (بلا قص)', tr: 'Sığdır (kırpmadan)', de: 'Einpassen (ohne Zuschnitt)', fr: 'Contenir (sans recadrage)', sv: 'Anpassa (ingen beskärning)' } },
-        ],
-      },
+      IMAGE_SIZE_FIELD,
       { key: 'rounded', type: 'boolean', label: { en: 'Rounded corners', ar: 'زوايا مستديرة', tr: 'Yuvarlak köşeler', de: 'Abgerundete Ecken', fr: 'Coins arrondis', sv: 'Rundade hörn' }, defaultValue: true },
       { key: 'link_url', type: 'url', label: { en: 'Link', ar: 'الرابط', tr: 'Bağlantı', de: 'Link', fr: 'Lien', sv: 'Länk' } },
       { key: 'alt', type: 'text', label: { en: 'Alt text', ar: 'النص البديل', tr: 'Alternatif metin', de: 'Alt-Text', fr: 'Texte alternatif', sv: 'Alt-text' } },
@@ -2230,7 +2220,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
               { key: 'html', type: 'richtext', label: { en: 'Text', ar: 'النص' }, showIf: { key: 'type', in: ['text'] } },
               { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' }, showIf: { key: 'type', in: ['image'] } },
               { key: 'alt', type: 'text', label: { en: 'Alt text', ar: 'نص بديل' }, showIf: { key: 'type', in: ['image'] } },
-              { key: 'width_px', type: 'number', label: { en: 'Width (px, empty = full column)', ar: 'العرض (px، فارغ = عرض العمود)' }, min: 16, max: 1200, showIf: { key: 'type', in: ['image'] } },
+              { ...IMAGE_SIZE_FIELD, showIf: { key: 'type', in: ['image'] } },
               {
                 key: 'images',
                 type: 'repeater',
@@ -2264,20 +2254,6 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
                   { value: 'brand', label: { en: 'Brand colours', ar: 'ألوان المنصّات' } },
                 ],
                 showIf: { key: 'type', in: ['social'] },
-              },
-              {
-                key: 'aspect',
-                type: 'select',
-                label: { en: 'Aspect ratio', ar: 'نسبة الأبعاد' },
-                defaultValue: 'auto',
-                options: [
-                  { value: 'auto', label: { en: 'Original', ar: 'الأصلي' } },
-                  { value: 'square', label: { en: 'Square', ar: 'مربع' } },
-                  { value: 'landscape', label: { en: 'Landscape', ar: 'عرضي' } },
-                  { value: 'portrait', label: { en: 'Portrait', ar: 'طولي' } },
-                  { value: 'wide', label: { en: 'Wide 16:9', ar: 'عريض 16:9' } },
-                ],
-                showIf: { key: 'type', in: ['image'] },
               },
               { key: 'rounded', type: 'boolean', label: { en: 'Rounded corners', ar: 'حواف دائرية' }, defaultValue: true, showIf: { key: 'type', in: ['image'] } },
               { key: 'button_label', type: 'text', label: { en: 'Button label', ar: 'نص الزر' }, showIf: { key: 'type', in: ['button'] } },
