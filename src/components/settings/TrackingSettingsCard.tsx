@@ -11,6 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import {
+  MEDIA_VENDOR_LABELS,
+  TRACKER_VENDOR_LABELS,
+  consentSetup,
+  marketingVendorLabels,
+  type TrackerVendor,
+} from '@/lib/consentLog';
+import {
   TRACKING_ID_FIELDS,
   TRACKING_ID_RULES,
   clarityPatch,
@@ -22,10 +29,17 @@ import {
 // ── Tracking & cookies card (Namez go-live 3.9) ──────────────────────────────
 // Store settings → Store tab. Edits the public tracking ids (GA4, Meta Pixel,
 // TikTok Pixel, Microsoft Clarity) and the cookie-consent toggle as one
-// explicitly saved form (PUT /stores/my/store). The storefront shows the cookie banner only when at
-// least one id is set and loads a tracker only after consent (or right away
-// when consent is not required). Microsoft Clarity is the exception: it is
-// always consent-gated, even when consent is not required.
+// explicitly saved form (PUT /stores/my/store).
+//
+// Consent v2 (plans/consent-v2/CONTRACT.md): the storefront banner offers
+// "Acceptera alla / Avböj alla / Inställningar", and the settings dialog has
+// one switch per category. Each vendor loads only under its own category:
+// Statistik = GA4 + Clarity, Marknadsföring = Meta Pixel + TikTok Pixel (and
+// Google's ad signals), Externa medier = YouTube, Vimeo, Google Maps. The
+// banner shows only when at least one tracker is gated. With consent not
+// required, GA4/Meta/TikTok load right away; Microsoft Clarity is the
+// exception and stays gated under Statistik. The read-only overview below
+// the ids (lib/consentLog `consentSetup`) shows this mapping live.
 //
 // The Clarity id is sent only when the owner changed it, so a parent that does
 // not pass `clarity_project_id` can never clear a stored id by saving.
@@ -104,6 +118,7 @@ interface Props {
 
 export function TrackingSettingsCard({ token, value, onSaved }: Props) {
   const t = useTranslations('creator.settings.tracking');
+  const tSetup = useTranslations('consentLog.setup');
   const describeError = useApiError();
   const [form, setForm] = useState<TrackingForm>(() => toForm(value));
   const [saved, setSaved] = useState<TrackingForm>(() => toForm(value));
@@ -211,6 +226,8 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
 
   const anyId = ID_FIELDS.some((f) => form[f].trim() !== '');
   const clarityConsentWarning = showClarityConsentWarning(form.clarity_project_id, form.consent_required);
+  const setup = consentSetup(form);
+  const vendorList = (vendors: TrackerVendor[]) => vendors.map((v) => TRACKER_VENDOR_LABELS[v]).join(', ');
   const typingToken = form.meta_capi_token.trim() !== '';
   // A stored token that this save keeps (nothing typed, not being removed).
   const keepsStoredToken = tokenSet && !form.remove_capi_token && !typingToken;
@@ -321,6 +338,47 @@ export function TrackingSettingsCard({ token, value, onSaved }: Props) {
             <p className="text-[11px] text-muted-foreground">{t('clarity_project_id.help')}</p>
             <p className="text-[11px] text-amber-600">{t('clarity_project_id.noCustomCode')}</p>
           </div>
+        </div>
+
+        {/* Consent v2: categories in the storefront cookie banner and the vendors in each. */}
+        <div className="space-y-2 border-t pt-4">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">{tSetup('title')}</p>
+            <p className="text-[11px] text-muted-foreground">{tSetup(setup.banner ? 'bannerOn' : 'bannerOff')}</p>
+          </div>
+          <ul className="divide-y rounded-lg border text-[11px]">
+            {(
+              [
+                { key: 'necessary', vendors: tSetup('necessaryVendors'), on: true },
+                { key: 'analytics', vendors: vendorList(setup.analytics), on: setup.analytics.length > 0 },
+                // Google is named too when GA4 is gated: marketing grants it the ad signals.
+                { key: 'marketing', vendors: marketingVendorLabels(setup).join(', '), on: setup.marketing.length > 0 },
+                { key: 'externalMedia', vendors: MEDIA_VENDOR_LABELS.join(', '), on: true },
+              ] as const
+            ).map((c) => (
+              <li key={c.key} className="flex items-start justify-between gap-3 px-3 py-2">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="font-medium text-foreground">{tSetup(`categories.${c.key}`)}</p>
+                  <p className="text-muted-foreground">{c.on ? c.vendors : tSetup('noVendors')}</p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 ${
+                    c.key === 'necessary'
+                      ? 'bg-muted text-muted-foreground'
+                      : c.on
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {c.key === 'necessary' ? tSetup('alwaysOn') : c.on ? tSetup('offered') : tSetup('notOffered')}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {setup.ungated.length > 0 && (
+            <p className="text-[11px] text-amber-600">{tSetup('ungated', { vendors: vendorList(setup.ungated) })}</p>
+          )}
+          <p className="text-[11px] text-muted-foreground">{tSetup('externalHint')}</p>
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t pt-4">

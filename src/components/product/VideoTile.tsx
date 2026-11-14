@@ -7,6 +7,7 @@ import { ImageIcon, Play, Star, StarOff, Trash2, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { resolveMediaUrl } from '@/lib/media';
 import { formatVideoDuration, type EditorVideo } from '@/lib/productMedia';
+import { VideoFirstFrame } from './VideoFirstFrame';
 
 const KIND_LABEL: Record<EditorVideo['kind'], string | null> = {
   file: null,
@@ -15,7 +16,8 @@ const KIND_LABEL: Record<EditorVideo['kind'], string | null> = {
 };
 
 /**
- * Sortable grid tile of a product video: poster (or a dark tile), Play badge
+ * Sortable grid tile of a product video: poster (or a neutral tile with the
+ * upload's first frame), Play badge
  * and duration chip. With `allowFeatured` (API reports
  * `features.featured_video`) a star shows the video first in the gallery; it
  * needs a poster.
@@ -49,13 +51,17 @@ export function VideoTile({
 
   return (
     <div ref={setNodeRef} style={style}
-      className="relative aspect-square bg-zinc-900 rounded-lg overflow-hidden group border cursor-grab active:cursor-grabbing"
+      className={`relative aspect-square ${video.poster_url ? 'bg-zinc-900' : 'bg-zinc-200'} rounded-lg overflow-hidden group border cursor-grab active:cursor-grabbing`}
       title={video.alt || t('image.videoPlay')}
       {...attributes} {...listeners}>
       {video.poster_url ? (
         <img src={resolveMediaUrl(video.poster_url)} alt={video.alt || ''} className="w-full h-full object-cover pointer-events-none" />
       ) : (
-        <Video className="absolute inset-0 m-auto w-6 h-6 text-zinc-500 pointer-events-none" />
+        // No poster: a neutral tile, with the upload's first frame on top.
+        <>
+          <Video className="absolute inset-0 m-auto w-6 h-6 text-zinc-500 pointer-events-none" />
+          {video.kind === 'file' && <VideoFirstFrame url={video.url} />}
+        </>
       )}
 
       {/* Play badge */}

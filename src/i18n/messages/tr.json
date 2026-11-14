@@ -2744,7 +2744,7 @@
       },
       "tracking": {
         "title": "İzleme ve çerezler",
-        "subtitle": "Mağazanız için Google Analytics, Meta Pixel, TikTok Pixel ve Microsoft Clarity. En az bir kimlik girildiğinde ziyaretçiler bir çerez bildirimi görür ve izleyiciler yalnızca onay verdikten sonra yüklenir.",
+        "subtitle": "Mağazanız için Google Analytics, Meta Pixel, TikTok Pixel ve Microsoft Clarity. En az bir kimlik girildiğinde ziyaretçiler Tümünü kabul et, Tümünü reddet ve Ayarlar seçenekli bir çerez bildirimi görür; her hizmet yalnızca ziyaretçi kategorisine izin verdiyse yüklenir.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 ölçüm kimliği",
           "hint": "GA4’te Yönetici → Veri akışları altında bulunur, örn. G-XXXXXXXXXX."
@@ -2789,7 +2789,7 @@
           "consent_required": "Çerez bildirimi ayarı açık veya kapalı olmalıdır."
         },
         "consentRequired": "Çerez onayı iste",
-        "consentRequiredOn": "Ziyaretçiler bir çerez bildirimi görür; izleyiciler yalnızca onaydan sonra yüklenir (AB’de önerilir).",
+        "consentRequiredOn": "Ziyaretçiler bir çerez bildirimi görür ve kategori bazında seçer; her izleyici yalnızca kategorisine izin verildikten sonra yüklenir (AB’de önerilir).",
         "consentRequiredOff": "İzleyiciler sormadan her ziyaretçi için yüklenir. Yasal dayanaktan siz sorumlusunuz.",
         "clarityConsentOffWarning": "Bu ayar kapalı olsa bile Microsoft Clarity yalnızca ziyaretçi çerezleri kabul ettikten sonra yüklenir. AB’de analiz ve pazarlama izleyicileri onay gerektirir; bu ayarı açık tutun.",
         "noIdsHint": "Hiçbir izleyici ayarlanmadı: mağaza çerez bildirimi göstermez ve hiçbir betik yüklemez.",
@@ -8148,5 +8148,82 @@
     "loop": "Döngü",
     "autoplayBadge": "Otomatik oynatma",
     "autoplayHelp": "Görünür olduğu sürece sessizce oynatılır. Azaltılmış hareketi veya veri tasarrufunu tercih eden ziyaretçiler kapak görselini görür. YouTube ve Vimeo videoları yalnızca ziyaretçi harici videolara izin verdikten sonra otomatik oynatılır."
+  },
+  "consentLog": {
+    "title": "Onay kaydı",
+    "help": "Kayıt, ziyaretçilerin çerez bildiriminde yaptığı seçimleri IP adresi veya başka kişisel veri olmadan gösterir. 24 ay saklanır. Bir ziyaretçi sorarsa, çerez ayarlarında gördüğü onay kimliğiyle arama yapabilirsiniz.",
+    "proof": "Ziyaretçinin ne gördüğünün kanıtı: her satırda bildirim veya ayarlar penceresindeki metnin sağlama toplamı (SHA-256) bulunur. Metinler platformun sürüm geçmişinde saklanır; böylece belirli bir tarih ve dilin metni yeniden oluşturulup sağlama toplamıyla karşılaştırılabilir.",
+    "loading": "Kayıt yükleniyor …",
+    "error": "Onay kaydı yüklenemedi.",
+    "empty": "Henüz kaydedilmiş seçim yok. Ziyaretçiler çerez bildiriminde seçim yaptığında satırlar burada görünür.",
+    "emptySearch": "Bu onay kimliği için seçim bulunamadı.",
+    "loadMore": "Daha fazla göster",
+    "summary": {
+      "total": "Toplam seçim",
+      "acceptAll": "Tümünü kabul et",
+      "rejectAll": "Tümünü reddet",
+      "custom": "Özel seçim",
+      "window": "Son {days} gün. Oranlar, bildirimde ve çerez ayarlarında yapılan seçimlere göre hesaplanır."
+    },
+    "search": {
+      "label": "Onay kimliğiyle ara",
+      "button": "Ara",
+      "clear": "Tümünü göster",
+      "hint": "Ziyaretçinin çerez ayarlarında gördüğü kimliğin tamamını (36 karakter) yapıştırın.",
+      "invalid": "Onay kimliğinin tamamını girin, örn. 3f2a9c1e-1111-4222-8333-444455556666."
+    },
+    "columns": {
+      "date": "Tarih",
+      "consentId": "Onay kimliği",
+      "action": "Seçim",
+      "analytics": "İstatistik",
+      "marketing": "Pazarlama",
+      "externalMedia": "Harici medya",
+      "locale": "Dil"
+    },
+    "flag": {
+      "granted": "izin verildi",
+      "denied": "reddedildi",
+      "notOffered": "sunulmadı"
+    },
+    "actions": {
+      "acceptAll": "Tümünü kabul et",
+      "rejectAll": "Tümünü reddet",
+      "custom": "Özel seçim",
+      "externalGranted": "Harici medyaya izin verildi",
+      "externalRevoked": "Harici medya kapatıldı",
+      "migrated": "Taşındı",
+      "other": "Diğer"
+    },
+    "export": {
+      "title": "Dışa aktar",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "button": "CSV olarak dışa aktar",
+      "hint": "Dosya başına en fazla 366 gün. Dosya Excel’de açılır.",
+      "invalid": {
+        "required": "Bir başlangıç ve bir bitiş tarihi seçin.",
+        "order": "Başlangıç tarihi bitiş tarihinden önce olmalıdır.",
+        "tooLong": "Dışa aktarma başına en fazla 366 gün seçin."
+      }
+    },
+    "setup": {
+      "title": "Çerez bildirimindeki kategoriler",
+      "bannerOn": "Ziyaretçiler kategori bazında seçer: Tümünü kabul et, Tümünü reddet veya Ayarlar. Her hizmet yalnızca ziyaretçi kategorisine izin verdiyse yüklenir.",
+      "bannerOff": "Onay gerektiren izleyici yok, bu yüzden çerez bildirimi gösterilmez. Diğer sitelerden gelen videolar ve haritalar yine de yüklenmeden önce izin ister.",
+      "categories": {
+        "necessary": "Zorunlu",
+        "analytics": "İstatistik",
+        "marketing": "Pazarlama",
+        "externalMedia": "Harici medya"
+      },
+      "necessaryVendors": "Sepet, oturum açma, dil, güvenli ödeme ve çerez seçiminin kendisi.",
+      "noVendors": "Ayarlanmış hizmet yok",
+      "alwaysOn": "Her zaman açık",
+      "offered": "Gösteriliyor",
+      "notOffered": "Gösterilmiyor",
+      "ungated": "“Çerez onayı iste” kapalı olduğu için onay olmadan yüklenir: {vendors}.",
+      "externalHint": "Videolar ve haritalar mağaza sayfalarında görünebileceği için harici medya çerez ayarlarında her zaman listelenir. “Tümünü kabul et” bunlara da izin verir."
+    }
   }
 }

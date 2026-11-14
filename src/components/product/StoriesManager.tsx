@@ -19,6 +19,7 @@ import {
   MAX_STORIES_PER_PRODUCT, emptyStory, moveStory, storyText, type EditorStory,
 } from '@/lib/productStories';
 import { StoryDialog } from './StoryDialog';
+import { VideoFirstFrame } from './VideoFirstFrame';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -79,11 +80,15 @@ function StoryRow({
       >
         <GripVertical className="size-4" aria-hidden="true" />
       </button>
-      <div className={`relative size-12 shrink-0 overflow-hidden rounded-md border ${isVideo ? 'bg-zinc-900' : 'bg-zinc-50'}`}>
+      <div className={`relative size-12 shrink-0 overflow-hidden rounded-md border ${isVideo && thumb ? 'bg-zinc-900' : isVideo ? 'bg-zinc-200' : 'bg-zinc-50'}`}>
         {thumb ? (
           <img src={resolveMediaUrl(thumb)} alt="" className="h-full w-full object-cover" />
         ) : isVideo ? (
-          <Video className="absolute inset-0 m-auto size-4 text-zinc-500" aria-hidden="true" />
+          // No poster: a neutral tile, with the upload's first frame on top.
+          <>
+            <Video className="absolute inset-0 m-auto size-4 text-zinc-500" aria-hidden="true" />
+            {story.kind === 'file' && <VideoFirstFrame url={story.url} />}
+          </>
         ) : (
           <ImageIcon className="absolute inset-0 m-auto size-4 text-zinc-300" aria-hidden="true" />
         )}

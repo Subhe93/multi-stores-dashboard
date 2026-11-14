@@ -2744,7 +2744,7 @@
       },
       "tracking": {
         "title": "Spårning & cookies",
-        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel och Microsoft Clarity för din butik. När minst ett id är angivet ser besökarna en cookiebanner, och spårningen laddas först när de har accepterat.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel och Microsoft Clarity för din butik. När minst ett id är angivet ser besökarna en cookiebanner med Acceptera alla, Avböj alla och Inställningar, och varje tjänst laddas bara om besökaren har tillåtit dess kategori.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 mät-id",
           "hint": "Finns i GA4 under Administratör → Dataströmmar, t.ex. G-XXXXXXXXXX."
@@ -2789,7 +2789,7 @@
           "consent_required": "Inställningen för cookiebannern måste vara på eller av."
         },
         "consentRequired": "Be om samtycke till cookies",
-        "consentRequiredOn": "Besökare ser en cookiebanner; spårarna laddas först efter att de accepterat (rekommenderas i EU).",
+        "consentRequiredOn": "Besökare ser en cookiebanner och väljer per kategori; varje spårare laddas först när dess kategori är tillåten (rekommenderas i EU).",
         "consentRequiredOff": "Spårarna laddas för alla besökare utan att fråga. Du ansvarar för den rättsliga grunden.",
         "clarityConsentOffWarning": "Microsoft Clarity laddas ändå först när besökaren har accepterat cookies, även när den här inställningen är avstängd. Inom EU kräver analys- och marknadsföringsspårning samtycke, så låt inställningen vara på.",
         "noIdsHint": "Ingen spårare är inställd: butiken visar ingen cookiebanner och laddar inga skript.",
@@ -8148,5 +8148,82 @@
     "loop": "Upprepa",
     "autoplayBadge": "Autouppspelning",
     "autoplayHelp": "Spelas upp utan ljud medan den syns. Besökare som föredrar minskad rörelse eller sparar data ser omslagsbilden. YouTube- och Vimeo-videor spelas upp automatiskt först när besökaren har tillåtit externa videor."
+  },
+  "consentLog": {
+    "title": "Samtyckeslogg",
+    "help": "Loggen visar vilka val besökare har gjort i cookiebannern, utan IP-adress eller andra personuppgifter. Den sparas i 24 månader. Om en besökare frågar kan du söka på samtyckes-ID:t som visas i deras cookieinställningar.",
+    "proof": "Bevis på vad besökaren såg: varje rad har en kontrollsumma (SHA-256) av texten i bannern eller dialogen. Texterna finns i plattformens versionshistorik, så texten för ett visst datum och språk kan återskapas och jämföras med kontrollsumman.",
+    "loading": "Hämtar loggen …",
+    "error": "Kunde inte hämta samtyckesloggen.",
+    "empty": "Inga val har loggats ännu. Rader visas här när besökare gör ett val i cookiebannern.",
+    "emptySearch": "Inga val hittades för det här samtyckes-ID:t.",
+    "loadMore": "Visa fler",
+    "summary": {
+      "total": "Val totalt",
+      "acceptAll": "Acceptera alla",
+      "rejectAll": "Avböj alla",
+      "custom": "Eget val",
+      "window": "Senaste {days} dagarna. Andelarna räknas på val i bannern och i cookieinställningarna."
+    },
+    "search": {
+      "label": "Sök på samtyckes-ID",
+      "button": "Sök",
+      "clear": "Visa alla",
+      "hint": "Klistra in hela ID:t (36 tecken) som besökaren ser i sina cookieinställningar.",
+      "invalid": "Ange hela samtyckes-ID:t, t.ex. 3f2a9c1e-1111-4222-8333-444455556666."
+    },
+    "columns": {
+      "date": "Datum",
+      "consentId": "Samtyckes-ID",
+      "action": "Val",
+      "analytics": "Statistik",
+      "marketing": "Marknadsföring",
+      "externalMedia": "Externa medier",
+      "locale": "Språk"
+    },
+    "flag": {
+      "granted": "tillåten",
+      "denied": "avböjd",
+      "notOffered": "erbjöds inte"
+    },
+    "actions": {
+      "acceptAll": "Acceptera alla",
+      "rejectAll": "Avböj alla",
+      "custom": "Eget val",
+      "externalGranted": "Externa medier tillåtna",
+      "externalRevoked": "Externa medier avstängda",
+      "migrated": "Migrerat",
+      "other": "Annat"
+    },
+    "export": {
+      "title": "Exportera",
+      "from": "Från",
+      "to": "Till",
+      "button": "Exportera CSV",
+      "hint": "Högst 366 dagar per fil. Filen kan öppnas i Excel.",
+      "invalid": {
+        "required": "Välj både ett från- och ett tilldatum.",
+        "order": "Från-datumet måste vara före till-datumet.",
+        "tooLong": "Välj högst 366 dagar per export."
+      }
+    },
+    "setup": {
+      "title": "Kategorier i cookiebannern",
+      "bannerOn": "Besökarna väljer per kategori: Acceptera alla, Avböj alla eller Inställningar. Varje tjänst laddas bara om besökaren har tillåtit dess kategori.",
+      "bannerOff": "Ingen spårare kräver samtycke, så ingen cookiebanner visas. Videor och kartor från andra webbplatser frågar ändå om lov innan de laddas.",
+      "categories": {
+        "necessary": "Nödvändiga",
+        "analytics": "Statistik",
+        "marketing": "Marknadsföring",
+        "externalMedia": "Externa medier"
+      },
+      "necessaryVendors": "Varukorg, inloggning, språk, säker betalning och själva cookievalet.",
+      "noVendors": "Ingen tjänst är inställd",
+      "alwaysOn": "Alltid på",
+      "offered": "Visas",
+      "notOffered": "Visas inte",
+      "ungated": "Laddas utan samtycke eftersom ”Be om samtycke till cookies” är avstängt: {vendors}.",
+      "externalHint": "Externa medier finns alltid med i cookieinställningarna, eftersom videor och kartor kan visas på butikens sidor. ”Acceptera alla” tillåter även dem."
+    }
   }
 }

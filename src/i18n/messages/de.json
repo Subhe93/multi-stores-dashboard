@@ -2744,7 +2744,7 @@
       },
       "tracking": {
         "title": "Tracking & Cookies",
-        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel und Microsoft Clarity für Ihren Shop. Sobald mindestens eine ID eingetragen ist, sehen Besucher ein Cookie-Banner, und die Tracker werden erst nach ihrer Zustimmung geladen.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel und Microsoft Clarity für Ihren Shop. Sobald mindestens eine ID eingetragen ist, sehen Besucher ein Cookie-Banner mit „Alle akzeptieren“, „Alle ablehnen“ und „Einstellungen“, und jeder Dienst lädt nur, wenn der Besucher seine Kategorie erlaubt hat.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 Mess-ID",
           "hint": "In GA4 unter Verwaltung → Datenstreams, z. B. G-XXXXXXXXXX."
@@ -2789,7 +2789,7 @@
           "consent_required": "Die Cookie-Banner-Einstellung muss an oder aus sein."
         },
         "consentRequired": "Cookie-Zustimmung einholen",
-        "consentRequiredOn": "Besucher sehen einen Cookie-Banner; Tracker laden erst nach der Zustimmung (in der EU empfohlen).",
+        "consentRequiredOn": "Besucher sehen ein Cookie-Banner und entscheiden pro Kategorie; jeder Tracker lädt erst, wenn seine Kategorie erlaubt ist (in der EU empfohlen).",
         "consentRequiredOff": "Tracker laden für jeden Besucher ohne Nachfrage. Sie sind für die Rechtsgrundlage verantwortlich.",
         "clarityConsentOffWarning": "Microsoft Clarity wird auch bei ausgeschalteter Einstellung erst geladen, nachdem der Besucher Cookies akzeptiert hat. In der EU benötigen Analyse- und Marketing-Tracker eine Einwilligung, lassen Sie diese Einstellung daher eingeschaltet.",
         "noIdsHint": "Kein Tracker eingerichtet: der Shop zeigt keinen Cookie-Banner und lädt keine Skripte.",
@@ -8148,5 +8148,82 @@
     "loop": "Wiederholen",
     "autoplayBadge": "Autoplay",
     "autoplayHelp": "Läuft stumm, solange es sichtbar ist. Besucher, die reduzierte Bewegung oder Datensparen bevorzugen, sehen das Vorschaubild. YouTube- und Vimeo-Videos starten erst automatisch, wenn der Besucher externe Videos erlaubt hat."
+  },
+  "consentLog": {
+    "title": "Einwilligungsprotokoll",
+    "help": "Das Protokoll zeigt die Entscheidungen, die Besucher im Cookie-Banner getroffen haben, ohne IP-Adressen oder andere personenbezogene Daten. Es wird 24 Monate aufbewahrt. Fragt ein Besucher nach, können Sie nach der Einwilligungs-ID suchen, die in seinen Cookie-Einstellungen angezeigt wird.",
+    "proof": "Nachweis dessen, was der Besucher gesehen hat: Jede Zeile enthält eine Prüfsumme (SHA-256) des Banner- oder Dialogtexts. Die Texte liegen in der Versionshistorie der Plattform, sodass der Text für ein bestimmtes Datum und eine Sprache wiederhergestellt und mit der Prüfsumme verglichen werden kann.",
+    "loading": "Protokoll wird geladen …",
+    "error": "Das Einwilligungsprotokoll konnte nicht geladen werden.",
+    "empty": "Bisher wurden keine Entscheidungen protokolliert. Zeilen erscheinen hier, sobald Besucher im Cookie-Banner eine Auswahl treffen.",
+    "emptySearch": "Für diese Einwilligungs-ID wurden keine Entscheidungen gefunden.",
+    "loadMore": "Mehr laden",
+    "summary": {
+      "total": "Entscheidungen gesamt",
+      "acceptAll": "Alle akzeptieren",
+      "rejectAll": "Alle ablehnen",
+      "custom": "Eigene Auswahl",
+      "window": "Letzte {days} Tage. Die Anteile beziehen sich auf Entscheidungen im Banner und in den Cookie-Einstellungen."
+    },
+    "search": {
+      "label": "Nach Einwilligungs-ID suchen",
+      "button": "Suchen",
+      "clear": "Alle anzeigen",
+      "hint": "Fügen Sie die vollständige ID (36 Zeichen) ein, die der Besucher in seinen Cookie-Einstellungen sieht.",
+      "invalid": "Geben Sie die vollständige Einwilligungs-ID ein, z. B. 3f2a9c1e-1111-4222-8333-444455556666."
+    },
+    "columns": {
+      "date": "Datum",
+      "consentId": "Einwilligungs-ID",
+      "action": "Auswahl",
+      "analytics": "Statistik",
+      "marketing": "Marketing",
+      "externalMedia": "Externe Medien",
+      "locale": "Sprache"
+    },
+    "flag": {
+      "granted": "erlaubt",
+      "denied": "abgelehnt",
+      "notOffered": "nicht angeboten"
+    },
+    "actions": {
+      "acceptAll": "Alle akzeptieren",
+      "rejectAll": "Alle ablehnen",
+      "custom": "Eigene Auswahl",
+      "externalGranted": "Externe Medien erlaubt",
+      "externalRevoked": "Externe Medien deaktiviert",
+      "migrated": "Übernommen",
+      "other": "Sonstiges"
+    },
+    "export": {
+      "title": "Exportieren",
+      "from": "Von",
+      "to": "Bis",
+      "button": "CSV exportieren",
+      "hint": "Höchstens 366 Tage pro Datei. Die Datei lässt sich in Excel öffnen.",
+      "invalid": {
+        "required": "Wählen Sie ein Start- und ein Enddatum.",
+        "order": "Das Startdatum muss vor dem Enddatum liegen.",
+        "tooLong": "Wählen Sie höchstens 366 Tage pro Export."
+      }
+    },
+    "setup": {
+      "title": "Kategorien im Cookie-Banner",
+      "bannerOn": "Besucher entscheiden pro Kategorie: Alle akzeptieren, Alle ablehnen oder Einstellungen. Jeder Dienst lädt nur, wenn der Besucher seine Kategorie erlaubt hat.",
+      "bannerOff": "Kein Tracker erfordert eine Einwilligung, daher wird kein Cookie-Banner angezeigt. Videos und Karten anderer Websites fragen trotzdem vor dem Laden um Erlaubnis.",
+      "categories": {
+        "necessary": "Notwendig",
+        "analytics": "Statistik",
+        "marketing": "Marketing",
+        "externalMedia": "Externe Medien"
+      },
+      "necessaryVendors": "Warenkorb, Anmeldung, Sprache, sichere Zahlung und die Cookie-Auswahl selbst.",
+      "noVendors": "Kein Dienst eingerichtet",
+      "alwaysOn": "Immer aktiv",
+      "offered": "Angezeigt",
+      "notOffered": "Nicht angezeigt",
+      "ungated": "Lädt ohne Einwilligung, weil „Cookie-Zustimmung einholen“ ausgeschaltet ist: {vendors}.",
+      "externalHint": "Externe Medien stehen immer in den Cookie-Einstellungen, da Videos und Karten auf den Shopseiten erscheinen können. „Alle akzeptieren“ erlaubt auch sie."
+    }
   }
 }

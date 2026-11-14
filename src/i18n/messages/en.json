@@ -2744,7 +2744,7 @@
       },
       "tracking": {
         "title": "Tracking & cookies",
-        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel and Microsoft Clarity for your storefront. When at least one id is set, visitors see a cookie banner and the trackers load only after they accept.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel and Microsoft Clarity for your storefront. When at least one id is set, visitors see a cookie banner with Accept all, Reject all and Settings, and each service loads only if the visitor allowed its category.",
         "ga4_measurement_id": {
           "label": "Google Analytics 4 measurement ID",
           "hint": "Found in GA4 under Admin → Data streams, e.g. G-XXXXXXXXXX."
@@ -2789,7 +2789,7 @@
           "consent_required": "The cookie banner setting must be on or off."
         },
         "consentRequired": "Ask for cookie consent",
-        "consentRequiredOn": "Visitors see a cookie banner; trackers load only after they accept (recommended in the EU).",
+        "consentRequiredOn": "Visitors see a cookie banner and choose per category; each tracker loads only once its category is allowed (recommended in the EU).",
         "consentRequiredOff": "Trackers load for every visitor without asking. You are responsible for the legal basis.",
         "clarityConsentOffWarning": "Microsoft Clarity still loads only after the visitor accepts cookies, even with this setting off. In the EU, analytics and marketing trackers need consent, so keep this setting on.",
         "noIdsHint": "No tracker is configured: the storefront shows no cookie banner and loads no scripts.",
@@ -8148,5 +8148,82 @@
     "loop": "Loop",
     "autoplayBadge": "Autoplay",
     "autoplayHelp": "Plays silently while visible. Visitors who prefer reduced motion or save data see the poster. YouTube and Vimeo videos autoplay only after the visitor allows external videos."
+  },
+  "consentLog": {
+    "title": "Consent log",
+    "help": "The log shows the choices visitors made in the cookie banner, without IP addresses or other personal data. It is kept for 24 months. If a visitor asks, you can search for the consent ID shown in their cookie settings.",
+    "proof": "Proof of what the visitor saw: each row has a checksum (SHA-256) of the banner or dialog text. The texts are kept in the platform’s version history, so the text for a given date and language can be rebuilt and compared with the checksum.",
+    "loading": "Loading the log …",
+    "error": "Could not load the consent log.",
+    "empty": "No choices have been logged yet. Rows appear here when visitors make a choice in the cookie banner.",
+    "emptySearch": "No choices were found for this consent ID.",
+    "loadMore": "Load more",
+    "summary": {
+      "total": "Total choices",
+      "acceptAll": "Accept all",
+      "rejectAll": "Reject all",
+      "custom": "Custom choice",
+      "window": "Last {days} days. The shares are of choices made in the banner and in the cookie settings."
+    },
+    "search": {
+      "label": "Search by consent ID",
+      "button": "Search",
+      "clear": "Show all",
+      "hint": "Paste the full ID (36 characters) the visitor sees in their cookie settings.",
+      "invalid": "Enter the full consent ID, e.g. 3f2a9c1e-1111-4222-8333-444455556666."
+    },
+    "columns": {
+      "date": "Date",
+      "consentId": "Consent ID",
+      "action": "Choice",
+      "analytics": "Analytics",
+      "marketing": "Marketing",
+      "externalMedia": "External media",
+      "locale": "Language"
+    },
+    "flag": {
+      "granted": "allowed",
+      "denied": "rejected",
+      "notOffered": "not offered"
+    },
+    "actions": {
+      "acceptAll": "Accept all",
+      "rejectAll": "Reject all",
+      "custom": "Custom choice",
+      "externalGranted": "External media allowed",
+      "externalRevoked": "External media turned off",
+      "migrated": "Migrated",
+      "other": "Other"
+    },
+    "export": {
+      "title": "Export",
+      "from": "From",
+      "to": "To",
+      "button": "Export CSV",
+      "hint": "At most 366 days per file. The file opens in Excel.",
+      "invalid": {
+        "required": "Choose both a start and an end date.",
+        "order": "The start date must be before the end date.",
+        "tooLong": "Choose at most 366 days per export."
+      }
+    },
+    "setup": {
+      "title": "Categories in the cookie banner",
+      "bannerOn": "Visitors choose per category: Accept all, Reject all or Settings. Each service loads only if the visitor allowed its category.",
+      "bannerOff": "No tracker requires consent, so no cookie banner is shown. Videos and maps from other sites still ask for permission before they load.",
+      "categories": {
+        "necessary": "Necessary",
+        "analytics": "Analytics",
+        "marketing": "Marketing",
+        "externalMedia": "External media"
+      },
+      "necessaryVendors": "Cart, sign-in, language, secure payment and the cookie choice itself.",
+      "noVendors": "No service is set up",
+      "alwaysOn": "Always on",
+      "offered": "Shown",
+      "notOffered": "Not shown",
+      "ungated": "Loads without consent because “Ask for cookie consent” is off: {vendors}.",
+      "externalHint": "External media is always listed in the cookie settings, since videos and maps can appear on the store’s pages. “Accept all” allows them too."
+    }
   }
 }

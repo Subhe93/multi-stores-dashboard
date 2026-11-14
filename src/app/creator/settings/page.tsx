@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckoutSettingsCard } from '@/components/settings/CheckoutSettingsCard';
 import { TrackingSettingsCard, type TrackingSettings } from '@/components/settings/TrackingSettingsCard';
+import { ConsentLogCard } from '@/components/settings/ConsentLogCard';
 import { TwoFactorCard } from '@/components/security/TwoFactorCard';
 import { ChangePasswordCard } from '@/components/security/ChangePasswordCard';
 import { useReauth } from '@/components/security/ReauthDialog';
@@ -1054,6 +1055,13 @@ export default function CreatorSettingsPage() {
             onSaved={(settings: TrackingSettings) => setStore((s) => (s ? { ...s, ...settings } : s))}
           />
         )}
+
+        {/* Consent v2 log (proof of cookie consent): only when a tracker is set. */}
+        {token &&
+          store &&
+          [store.ga4_measurement_id, store.meta_pixel_id, store.tiktok_pixel_id, store.clarity_project_id].some(
+            (id) => typeof id === 'string' && id.trim() !== '',
+          ) && <ConsentLogCard token={token} />}
       </TabsContent>
 
       <TabsContent value="business" className="max-w-2xl space-y-4 pt-4">

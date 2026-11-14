@@ -20,6 +20,7 @@ import { useImageUpload } from '@/lib/useImageUpload';
 import { failureOf, useVideoUpload, videoFeatureFlags, type VideoUploadConfig } from '@/lib/useVideoUpload';
 import type { VideoFailure } from '@/lib/uploadError';
 import { formatVideoDuration, toRelativeUploadUrl } from '@/lib/productMedia';
+import { VideoFirstFrame } from './VideoFirstFrame';
 import {
   STORY_NAME_MAX, STORY_QUOTE_MAX, STORY_SUBTITLE_MAX, looksLikeVideoLink, storyDialogCloseAction, storyProblem,
   type EditorStory, type StoryText,
@@ -316,12 +317,16 @@ export function StoryDialog({
             <div
               className={`relative aspect-[9/16] w-full overflow-hidden rounded-lg border ${
                 problem === 'mediaRequired' ? 'border-red-400' : ''
-              } ${isVideo ? 'bg-zinc-900' : 'bg-zinc-50'}`}
+              } ${isVideo && thumb ? 'bg-zinc-900' : isVideo ? 'bg-zinc-200' : 'bg-zinc-50'}`}
             >
               {thumb ? (
                 <img src={resolveMediaUrl(thumb)} alt="" className="h-full w-full object-cover" />
               ) : isVideo ? (
-                <Video className="absolute inset-0 m-auto size-8 text-zinc-500" aria-hidden="true" />
+                // No poster: a neutral tile, with the upload's first frame on top.
+                <>
+                  <Video className="absolute inset-0 m-auto size-8 text-zinc-500" aria-hidden="true" />
+                  {draft.kind === 'file' && <VideoFirstFrame url={draft.url} />}
+                </>
               ) : (
                 <ImageIcon className="absolute inset-0 m-auto size-8 text-zinc-300" aria-hidden="true" />
               )}

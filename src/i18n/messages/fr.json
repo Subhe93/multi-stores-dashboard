@@ -2744,7 +2744,7 @@
       },
       "tracking": {
         "title": "Suivi & cookies",
-        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel et Microsoft Clarity pour votre boutique. Dès qu’un identifiant est renseigné, les visiteurs voient un bandeau cookies et les traceurs ne se chargent qu’après leur accord.",
+        "subtitle": "Google Analytics, Meta Pixel, TikTok Pixel et Microsoft Clarity pour votre boutique. Dès qu’un identifiant est renseigné, les visiteurs voient un bandeau cookies avec « Tout accepter », « Tout refuser » et « Paramètres », et chaque service ne se charge que si le visiteur a autorisé sa catégorie.",
         "ga4_measurement_id": {
           "label": "ID de mesure Google Analytics 4",
           "hint": "Dans GA4 sous Administration → Flux de données, ex. G-XXXXXXXXXX."
@@ -2789,7 +2789,7 @@
           "consent_required": "Le réglage du bandeau cookies doit être activé ou désactivé."
         },
         "consentRequired": "Demander le consentement aux cookies",
-        "consentRequiredOn": "Les visiteurs voient un bandeau cookies ; les traceurs ne se chargent qu'après leur accord (recommandé dans l'UE).",
+        "consentRequiredOn": "Les visiteurs voient un bandeau cookies et choisissent par catégorie ; chaque traceur ne se charge qu’une fois sa catégorie autorisée (recommandé dans l’UE).",
         "consentRequiredOff": "Les traceurs se chargent pour chaque visiteur sans demander. La base légale est de votre responsabilité.",
         "clarityConsentOffWarning": "Microsoft Clarity ne se charge qu’après que le visiteur a accepté les cookies, même lorsque ce réglage est désactivé. Dans l’UE, les traceurs d’analyse et de marketing nécessitent un consentement : laissez ce réglage activé.",
         "noIdsHint": "Aucun traceur configuré : la boutique n'affiche pas de bandeau cookies et ne charge aucun script.",
@@ -8148,5 +8148,82 @@
     "loop": "En boucle",
     "autoplayBadge": "Lecture auto",
     "autoplayHelp": "Se lit sans son tant qu’elle est visible. Les visiteurs qui préfèrent réduire les animations ou économiser des données voient l’image de couverture. Les vidéos YouTube et Vimeo ne se lancent automatiquement qu’après que le visiteur a autorisé les vidéos externes."
+  },
+  "consentLog": {
+    "title": "Journal des consentements",
+    "help": "Le journal affiche les choix faits par les visiteurs dans le bandeau cookies, sans adresse IP ni autre donnée personnelle. Il est conservé 24 mois. Si un visiteur le demande, vous pouvez rechercher l’identifiant de consentement affiché dans ses paramètres cookies.",
+    "proof": "Preuve de ce que le visiteur a vu : chaque ligne contient une empreinte (SHA-256) du texte du bandeau ou de la fenêtre. Les textes sont conservés dans l’historique des versions de la plateforme ; le texte d’une date et d’une langue données peut donc être reconstitué et comparé à l’empreinte.",
+    "loading": "Chargement du journal …",
+    "error": "Impossible de charger le journal des consentements.",
+    "empty": "Aucun choix n’a encore été enregistré. Les lignes apparaissent ici dès que des visiteurs font un choix dans le bandeau cookies.",
+    "emptySearch": "Aucun choix trouvé pour cet identifiant de consentement.",
+    "loadMore": "Afficher plus",
+    "summary": {
+      "total": "Total des choix",
+      "acceptAll": "Tout accepter",
+      "rejectAll": "Tout refuser",
+      "custom": "Choix personnalisé",
+      "window": "{days} derniers jours. Les parts portent sur les choix faits dans le bandeau et dans les paramètres cookies."
+    },
+    "search": {
+      "label": "Rechercher par identifiant de consentement",
+      "button": "Rechercher",
+      "clear": "Tout afficher",
+      "hint": "Collez l’identifiant complet (36 caractères) que le visiteur voit dans ses paramètres cookies.",
+      "invalid": "Saisissez l’identifiant de consentement complet, par ex. 3f2a9c1e-1111-4222-8333-444455556666."
+    },
+    "columns": {
+      "date": "Date",
+      "consentId": "ID de consentement",
+      "action": "Choix",
+      "analytics": "Statistiques",
+      "marketing": "Marketing",
+      "externalMedia": "Médias externes",
+      "locale": "Langue"
+    },
+    "flag": {
+      "granted": "autorisé",
+      "denied": "refusé",
+      "notOffered": "non proposé"
+    },
+    "actions": {
+      "acceptAll": "Tout accepter",
+      "rejectAll": "Tout refuser",
+      "custom": "Choix personnalisé",
+      "externalGranted": "Médias externes autorisés",
+      "externalRevoked": "Médias externes désactivés",
+      "migrated": "Migré",
+      "other": "Autre"
+    },
+    "export": {
+      "title": "Exporter",
+      "from": "Du",
+      "to": "Au",
+      "button": "Exporter en CSV",
+      "hint": "366 jours au maximum par fichier. Le fichier s’ouvre dans Excel.",
+      "invalid": {
+        "required": "Choisissez une date de début et une date de fin.",
+        "order": "La date de début doit précéder la date de fin.",
+        "tooLong": "Choisissez 366 jours au maximum par export."
+      }
+    },
+    "setup": {
+      "title": "Catégories du bandeau cookies",
+      "bannerOn": "Les visiteurs choisissent par catégorie : Tout accepter, Tout refuser ou Paramètres. Chaque service ne se charge que si le visiteur a autorisé sa catégorie.",
+      "bannerOff": "Aucun traceur ne nécessite de consentement : aucun bandeau cookies n’est affiché. Les vidéos et cartes d’autres sites demandent tout de même l’autorisation avant de se charger.",
+      "categories": {
+        "necessary": "Nécessaires",
+        "analytics": "Statistiques",
+        "marketing": "Marketing",
+        "externalMedia": "Médias externes"
+      },
+      "necessaryVendors": "Panier, connexion, langue, paiement sécurisé et le choix des cookies lui-même.",
+      "noVendors": "Aucun service configuré",
+      "alwaysOn": "Toujours actif",
+      "offered": "Affichée",
+      "notOffered": "Non affichée",
+      "ungated": "Se charge sans consentement, car « Demander le consentement aux cookies » est désactivé : {vendors}.",
+      "externalHint": "Les médias externes figurent toujours dans les paramètres cookies, car des vidéos et des cartes peuvent apparaître sur les pages de la boutique. « Tout accepter » les autorise aussi."
+    }
   }
 }
