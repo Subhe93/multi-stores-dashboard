@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { authFetch } from '@/lib/api';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Camera, ChevronDown, Loader2, Palette, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,7 +50,6 @@ export interface ThemeCustomizations {
 interface ThemePanelProps {
   token: string;
   apiBase: string;
-  primaryLocale: string;
   themeKey: string;
   customizations: ThemeCustomizations;
   logoUrl: string;
@@ -95,7 +94,6 @@ const AUTOSAVE_DEBOUNCE_MS = 700;
 export function ThemePanel({
   token,
   apiBase,
-  primaryLocale,
   themeKey,
   customizations,
   logoUrl,
@@ -108,11 +106,10 @@ export function ThemePanel({
   onTokensChange,
   onTokensSave,
 }: ThemePanelProps) {
-  // `primaryLocale` is the store-content locale — it still drives the theme's
-  // own display name (theme label) and is forwarded to ThemeSwitcher /
-  // ThemeCustomizer. The panel's own chrome is translated via `tb` (dashboard
-  // UI locale).
+  // Everything here is dashboard chrome, including the template names: it
+  // follows the dashboard UI locale, never the store-content locale.
   const tb = useTranslations('builder');
+  const uiLocale = useLocale();
 
   // Controlled component: values live on the parent, we read them as props.
   // The only local UI state is the transient "Saved" tick. Mirroring props
@@ -263,7 +260,7 @@ export function ThemePanel({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[11.5px] font-medium text-zinc-900 truncate flex items-center gap-1.5">
-                {isCustomized ? tb('custom') : (t.label[primaryLocale] || t.label.en)}
+                {isCustomized ? tb('custom') : (t.label[uiLocale] || t.label.en)}
                 {isCustomized && (
                   <span className="text-[8.5px] uppercase tracking-wide px-1 py-px rounded bg-indigo-50 text-indigo-600 font-bold shrink-0">
                     {tb('templateBadge')}
@@ -271,12 +268,12 @@ export function ThemePanel({
                 )}
               </div>
               <div className="text-[9.5px] text-zinc-500 truncate">
-                {isCustomized ? tb('basedOn', { name: t.label[primaryLocale] || t.label.en }) : t.fontHeading}
+                {isCustomized ? tb('basedOn', { name: t.label[uiLocale] || t.label.en }) : t.fontHeading}
               </div>
             </div>
             <ThemeSwitcher
               currentThemeKey={themeKey}
-              locale={primaryLocale}
+              uiLocale={uiLocale}
               isCustomized={isCustomized}
               onApply={handleApplyTemplate}
               trigger={
@@ -289,7 +286,6 @@ export function ThemePanel({
 
           {/* Full token-level editor for the theme's palette + fonts (previews live). */}
           <ThemeCustomizer
-            locale={primaryLocale}
             value={themeTokens}
             onChange={onTokensChange}
             onSave={onTokensSave}
@@ -453,7 +449,6 @@ export function ThemePanel({
             onChange={(auth) => set({ auth })}
             token={token}
             apiBase={apiBase}
-            locale={primaryLocale}
           />
         </Group>
 

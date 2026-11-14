@@ -53,7 +53,6 @@ export interface SectionStyle {
 interface StylePanelProps {
   value: SectionStyle | undefined;
   onChange: (next: SectionStyle) => void;
-  locale: string;
   token: string;
   apiBase: string;
 }
@@ -168,11 +167,10 @@ function resolveSideAt(
 
 // ── Component ───────────────────────────────────────────────────────────
 
-export function StylePanel({ value, onChange, locale, token, apiBase }: StylePanelProps) {
+export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps) {
   const v = value || {};
-  // `locale` is the store-content locale (kept on props for nested fields like
-  // ImageField); the StylePanel's own chrome is translated via the dashboard UI
-  // locale through `tt`. The `t` object below is a flat label bag threaded into
+  // The StylePanel's chrome is translated via the dashboard UI locale through
+  // `tt`. The `t` object below is a flat label bag threaded into
   // sub-components as `labels`.
   const tt = useTranslations('builder');
   const [device, setDevice] = useState<Breakpoint>('desktop');
@@ -387,7 +385,6 @@ export function StylePanel({ value, onChange, locale, token, apiBase }: StylePan
                 onChange={(url) => setFlat('background_image', url || undefined)}
                 token={token}
                 apiBase={apiBase}
-                locale={locale}
               />
             </div>
             <div className="grid grid-cols-[1fr_auto] items-center gap-3">

@@ -30,7 +30,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useTranslations } from 'next-intl';
-import { findSectionSchema, labelOf } from '@/lib/section-schemas';
+import { findSectionSchema } from '@/lib/section-schemas';
 import {
   flattenTree,
   getProjection,
@@ -43,11 +43,13 @@ import { ancestorIds, buildListRows, isDropAllowed, normalizeFlatOrder, resolveD
 import { AddSectionDialog, type SectionInsertTarget } from './AddSectionDialog';
 import { AddHereRow, SectionRowView, SortableSectionRow, TREE_INDENT_PX } from './SectionTreeRows';
 import type { SectionInstance } from './types';
+import { useUiLabel } from './useUiLabel';
 
 interface SectionListProps {
   sections: SectionInstance[];
   selectedId: string | null;
-  locale: string;
+  /** Store-content locale being edited (row content previews only). */
+  contentLocale: string;
   primaryLocale: string;
   pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   onSelect: (id: string) => void;
@@ -91,7 +93,7 @@ const MEASURING = { droppable: { strategy: MeasuringStrategy.Always } };
 export function SectionList({
   sections,
   selectedId,
-  locale,
+  contentLocale,
   primaryLocale,
   pageType,
   onSelect,
@@ -105,6 +107,7 @@ export function SectionList({
   layoutContainers,
 }: SectionListProps) {
   const t = useTranslations();
+  const uiLabel = useUiLabel();
   const listRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -231,7 +234,7 @@ export function SectionList({
 
   const labelFor = (sectionKey: string) => {
     const schema = findSectionSchema(sectionKey);
-    return schema ? labelOf(schema.label, locale) : sectionKey;
+    return schema ? uiLabel(schema.label) : sectionKey;
   };
 
   const overlaySection = treeMode && activeItem ? activeItem.section : null;
@@ -284,7 +287,7 @@ export function SectionList({
                     id={item.id}
                     depth={depth}
                     section={item.section}
-                    locale={locale}
+                    contentLocale={contentLocale}
                     primaryLocale={primaryLocale}
                     selected={selectedId === item.id}
                     isContainer={item.isContainer}
@@ -311,7 +314,7 @@ export function SectionList({
                   {overlaySection ? (
                     <SectionRowView
                       section={overlaySection}
-                      locale={locale}
+                      contentLocale={contentLocale}
                       primaryLocale={primaryLocale}
                       isContainer={activeItem?.isContainer}
                       childCount={activeItem?.childCount}
@@ -328,7 +331,6 @@ export function SectionList({
 
       <div className="p-2 border-t">
         <AddSectionDialog
-          locale={locale}
           pageType={pageType}
           onAdd={onAdd}
           onAddPreset={onAddPreset}

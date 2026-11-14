@@ -4038,6 +4038,12 @@ export function findSectionSchema(id: string): SectionSchema | undefined {
   return SECTION_SCHEMAS.find((s) => s.id === id);
 }
 
-export function labelOf(loc: LocalizedString, locale: string): string {
-  return loc[locale] || loc.en || Object.values(loc)[0] || '';
+/**
+ * Picks a schema label in `uiLocale`, falling back to English and then to the
+ * first value. Schema labels are dashboard chrome, so `uiLocale` must be the
+ * dashboard UI locale (next-intl useLocale / useUiLabel), never the store
+ * content locale being edited.
+ */
+export function labelOf(loc: LocalizedString, uiLocale: string): string {
+  return loc[uiLocale] || loc.en || Object.values(loc)[0] || '';
 }

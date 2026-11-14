@@ -17,7 +17,8 @@ import { THEME_CATALOG, type ThemeCatalogEntry } from '@/lib/themes-catalog';
 
 interface ThemeSwitcherProps {
   currentThemeKey: string;
-  locale?: string;
+  /** Dashboard UI locale (chrome text + theme names), not a store-content locale. */
+  uiLocale?: string;
   /** True when the store has imported a template / has theme overrides. */
   isCustomized?: boolean;
   onApply: (themeKey: string) => Promise<void> | void;
@@ -29,12 +30,12 @@ const CUSTOM = '__custom__';
 
 export function ThemeSwitcher({
   currentThemeKey,
-  locale = 'en',
+  uiLocale = 'en',
   isCustomized = false,
   onApply,
   trigger,
 }: ThemeSwitcherProps) {
-  const ar = locale === 'ar';
+  const ar = uiLocale === 'ar';
   const [open, setOpen] = useState(false);
   // When the store is customized, the "Custom" card represents the live look.
   const [selected, setSelected] = useState(isCustomized ? CUSTOM : currentThemeKey);
@@ -72,8 +73,8 @@ export function ThemeSwitcher({
     }
   };
 
-  const labelOf = (t: ThemeCatalogEntry) => t.label[locale] || t.label.en;
-  const descOf = (t: ThemeCatalogEntry) => t.description[locale] || t.description.en;
+  const labelOf = (t: ThemeCatalogEntry) => t.label[uiLocale] || t.label.en;
+  const descOf = (t: ThemeCatalogEntry) => t.description[uiLocale] || t.description.en;
 
   return (
     <Dialog

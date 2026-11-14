@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { SECTION_SCHEMAS, findSectionSchema, labelOf, type SectionSchema } from '@/lib/section-schemas';
+import { SECTION_SCHEMAS, findSectionSchema, type SectionSchema } from '@/lib/section-schemas';
 import { presetsForPageType, type SectionPreset } from '@/lib/section-presets';
 import { presetLeafKeys, visibleSectionsWithKeys } from '@/lib/productBlocksPreset';
 // Palette rule: `pageTypes` whitelist, default "not HEADER/FOOTER", and the
@@ -21,6 +21,7 @@ import { isAvailableForPageType } from '@/lib/sectionAvailability';
 import { canDropInto, flattenTree } from '@/lib/sectionTree';
 import { cn } from '@/lib/utils';
 import { SectionPreview } from './SectionPreviews';
+import { useUiLabel } from './useUiLabel';
 import type { SectionInstance } from './types';
 
 /** Where a new section goes: under `parentId` (null = page root) at sibling `index`. */
@@ -29,8 +30,9 @@ export interface SectionInsertTarget {
   index: number;
 }
 
+// Every label here (section names, descriptions, presets) is dashboard chrome
+// and resolves in the dashboard UI locale, never the store-content locale.
 interface AddSectionDialogProps {
-  locale: string;
   pageType: 'HOME' | 'STATIC' | 'LANDING' | 'PRODUCT_TEMPLATE' | 'CATALOG_TEMPLATE' | 'COLLECTION_TEMPLATE' | 'HEADER' | 'FOOTER';
   // `target` is the insert target the dialog was opened for (absent = the
   // classic "append at the end of the page").
@@ -72,7 +74,6 @@ const MAGIC_SECTION_KEYS = new Set([
 ]);
 
 export function AddSectionDialog({
-  locale,
   pageType,
   onAdd,
   onAddPreset,
@@ -83,6 +84,7 @@ export function AddSectionDialog({
   onOpenChange,
 }: AddSectionDialogProps) {
   const t = useTranslations();
+  const uiLabel = useUiLabel();
   const [openState, setOpenState] = useState(false);
   const open = openProp ?? openState;
   const setOpen = (next: boolean) => {
@@ -106,7 +108,7 @@ export function AddSectionDialog({
   const targetLabel = targetParent
     ? (() => {
         const schema = findSectionSchema(targetParent.section_key);
-        return schema ? labelOf(schema.label, locale) : targetParent.section_key;
+        return schema ? uiLabel(schema.label) : targetParent.section_key;
       })()
     : null;
   const containersOn = layoutContainers ?? isProductTemplate;
@@ -166,7 +168,7 @@ export function AddSectionDialog({
   const filtered = query
     ? visible.filter(
         (s) =>
-          labelOf(s.label, locale).toLowerCase().includes(query) ||
+          uiLabel(s.label).toLowerCase().includes(query) ||
           s.id.toLowerCase().includes(query),
       )
     : activeFilter === 'all' || activeFilter === 'presets'
@@ -174,15 +176,15 @@ export function AddSectionDialog({
       : visible.filter((s) => (s.category as string) === activeFilter);
   // Preset card text follows the dashboard UI locale (i18n keys) and falls
   // back to the preset's own localized strings.
-  const presetName = (p: SectionPreset) => (p.i18n ? t(`builder.${p.i18n.name}`) : labelOf(p.name, locale));
+  const presetName = (p: SectionPreset) => (p.i18n ? t(`builder.${p.i18n.name}`) : uiLabel(p.name));
   const presetDescription = (p: SectionPreset) =>
-    p.i18n ? t(`builder.${p.i18n.description}`) : labelOf(p.description, locale);
+    p.i18n ? t(`builder.${p.i18n.description}`) : uiLabel(p.description);
   // Presets show on their own tab, and a search also matches their names.
   const filteredPresets = query
     ? presets.filter(
         (p) =>
           presetName(p).toLowerCase().includes(query) ||
-          labelOf(p.name, locale).toLowerCase().includes(query) ||
+          uiLabel(p.name).toLowerCase().includes(query) ||
           p.id.toLowerCase().includes(query),
       )
     : activeFilter === 'presets'
@@ -196,7 +198,7 @@ export function AddSectionDialog({
     presetLeafKeys(p.sections)
       .map((key) => SECTION_SCHEMAS.find((schema) => schema.id === key))
       .filter((schema): schema is SectionSchema => !!schema)
-      .map((schema) => labelOf(schema.label, locale));
+      .map((schema) => uiLabel(schema.label));
 
   return (
     <Dialog
@@ -281,7 +283,7 @@ export function AddSectionDialog({
             const blockerNames = blockers
               .map((b) => {
                 const schema = findSectionSchema(b.section_key);
-                return schema ? labelOf(schema.label, locale) : b.section_key;
+                return schema ? uiLabel(schema.label) : b.section_key;
               })
               .filter((name, i, all) => all.indexOf(name) === i);
             return (
@@ -362,7 +364,7 @@ export function AddSectionDialog({
               <div className="flex flex-col gap-1 p-3.5 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <h4 className="text-sm font-semibold leading-tight text-zinc-900 truncate">
-                    {labelOf(s.label, locale)}
+                    {uiLabel(s.label)}
                   </h4>
                   <span className="text-[9px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 shrink-0">
                     {s.category}
@@ -370,7 +372,7 @@ export function AddSectionDialog({
                 </div>
                 {s.description && (
                   <p className="text-[11px] text-zinc-500 leading-snug line-clamp-1">
-                    {labelOf(s.description, locale)}
+                    {uiLabel(s.description)}
                   </p>
                 )}
               </div>

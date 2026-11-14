@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, Settings2, Sparkles, Trash2, Type, MoreHorizontal, Copy, LayoutGrid, CornerLeftUp, Database } from 'lucide-react';
-import { CHILD_LAYOUT_FIELDS, findSectionSchema, labelOf } from '@/lib/section-schemas';
+import { CHILD_LAYOUT_FIELDS, findSectionSchema } from '@/lib/section-schemas';
 import { getChildLayoutValue, setChildLayoutValue } from '@/lib/sectionTree';
 import { canConvertToBlocks } from '@/lib/productBlocksPreset';
 import { activeDynamicSource, visibleInspectorFields } from '@/lib/inspectorFields';
@@ -13,12 +13,17 @@ import { SectionPreview } from './SectionPreviews';
 import { StylePanel, type SectionStyle } from './StylePanel';
 import { ConvertToBlocksCard } from './ConvertToBlocksCard';
 import type { SectionInstance } from './types';
+import { useUiLabel } from './useUiLabel';
 
 interface SectionInspectorProps {
   section: SectionInstance | null;
   /** Layout container the section sits in (null for a root section). */
   parent?: SectionInstance | null;
-  locale: string;
+  /**
+   * Store-content locale being edited: picks the translation row shown and
+   * written. Section/field labels follow the dashboard UI locale instead.
+   */
+  contentLocale: string;
   primaryLocale: string;
   token: string;
   apiBase: string;
@@ -54,7 +59,7 @@ type Tab = 'content' | 'settings' | 'style' | 'layout';
 export function SectionInspector({
   section,
   parent = null,
-  locale,
+  contentLocale,
   primaryLocale,
   token,
   apiBase,
@@ -70,6 +75,7 @@ export function SectionInspector({
 }: SectionInspectorProps) {
   const t = useTranslations('builder');
   const tc = useTranslations('common');
+  const uiLabel = useUiLabel();
   const [tab, setTab] = useState<Tab>('content');
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -105,7 +111,7 @@ export function SectionInspector({
   // store's primary locale left the edit fields empty while the preview
   // still showed the old-locale content.
   const localeContent =
-    section.translations.find((tr) => tr.locale === locale)?.content ??
+    section.translations.find((tr) => tr.locale === contentLocale)?.content ??
     section.translations.find((tr) => tr.locale === primaryLocale)?.content ??
     section.translations.find((tr) => tr.content && Object.keys(tr.content).length > 0)?.content ??
     {};
@@ -116,7 +122,7 @@ export function SectionInspector({
   // settings._layout. A column stacks its children, so width shares do not
   // apply there.
   const parentSchema = parent ? findSectionSchema(parent.section_key) : null;
-  const parentName = parent ? (parentSchema ? labelOf(parentSchema.label, locale) : parent.section_key) : '';
+  const parentName = parent ? (parentSchema ? uiLabel(parentSchema.label) : parent.section_key) : '';
   const layoutFields = parent
     ? CHILD_LAYOUT_FIELDS.filter((f) => !(parent.section_key === 'layout-column' && f.key.startsWith('span.')))
     : [];
@@ -151,11 +157,11 @@ export function SectionInspector({
                 )}
               </div>
               <h2 className="text-[13.5px] font-semibold leading-tight text-zinc-900 truncate">
-                {labelOf(schema.label, locale)}
+                {uiLabel(schema.label)}
               </h2>
               {schema.description && (
                 <p className="text-[11px] text-zinc-500 leading-snug mt-1 line-clamp-2">
-                  {labelOf(schema.description, locale)}
+                  {uiLabel(schema.description)}
                 </p>
               )}
               {parent && (
@@ -268,7 +274,7 @@ export function SectionInspector({
         )}
         {activeTab === 'content' && contentFields.length > 0 && (
           <div className="p-4 space-y-4">
-            {locale !== primaryLocale && (
+            {contentLocale !== primaryLocale && (
               <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200/70 px-3 py-2 text-[11px] text-amber-900">
                 <Copy className="size-3.5 mt-px shrink-0 text-amber-600" />
                 <span className="leading-relaxed">
@@ -290,8 +296,8 @@ export function SectionInspector({
                   key={field.key}
                   field={field}
                   value={localeContent[field.key]}
-                  onChange={(v) => onPatchContent(section.id, locale, { [field.key]: v })}
-                  locale={locale}
+                  onChange={(v) => onPatchContent(section.id, contentLocale, { [field.key]: v })}
+                  contentLocale={contentLocale}
                   token={token}
                   apiBase={apiBase}
                 />
@@ -309,7 +315,7 @@ export function SectionInspector({
                   field={field}
                   value={section.settings[field.key]}
                   onChange={(v) => onPatchSettings(section.id, { [field.key]: v })}
-                  locale={locale}
+                  contentLocale={contentLocale}
                   token={token}
                   apiBase={apiBase}
                 />
@@ -335,7 +341,7 @@ export function SectionInspector({
                     const next = setChildLayoutValue(section.settings, field.key, value);
                     onPatchSettings(section.id, { _layout: next._layout });
                   }}
-                  locale={locale}
+                  contentLocale={contentLocale}
                   token={token}
                   apiBase={apiBase}
                 />
@@ -349,7 +355,6 @@ export function SectionInspector({
             <StylePanel
               value={sectionStyle}
               onChange={(next) => onPatchSettings(section.id, { _style: next })}
-              locale={locale}
               token={token}
               apiBase={apiBase}
             />

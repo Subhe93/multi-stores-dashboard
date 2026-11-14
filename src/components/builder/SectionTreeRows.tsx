@@ -21,9 +21,10 @@ import {
   Plus,
   Rows3,
 } from 'lucide-react';
-import { findSectionSchema, labelOf } from '@/lib/section-schemas';
+import { findSectionSchema } from '@/lib/section-schemas';
 import { cn } from '@/lib/utils';
 import { SectionPreview } from './SectionPreviews';
+import { useUiLabel } from './useUiLabel';
 import type { SectionInstance } from './types';
 
 /** Horizontal indent per tree level, in px (also the drag step to nest). */
@@ -42,7 +43,8 @@ function ContainerIcon({ sectionKey, className }: { sectionKey: string; classNam
 
 interface RowViewProps {
   section: SectionInstance;
-  locale: string;
+  /** Store-content locale being edited (picks the content preview row). */
+  contentLocale: string;
   primaryLocale: string;
   selected?: boolean;
   isContainer?: boolean;
@@ -65,7 +67,7 @@ interface RowViewProps {
 
 export function SectionRowView({
   section,
-  locale,
+  contentLocale,
   primaryLocale,
   selected = false,
   isContainer = false,
@@ -82,8 +84,10 @@ export function SectionRowView({
   onDuplicate,
 }: RowViewProps) {
   const t = useTranslations();
+  const uiLabel = useUiLabel();
   const schema = findSectionSchema(section.section_key);
-  const title = schema ? labelOf(schema.label, locale) : section.section_key;
+  // Section type name is dashboard chrome: UI locale, not the content locale.
+  const title = schema ? uiLabel(schema.label) : section.section_key;
   // Localized category name — shown as a muted suffix under the title when
   // the section has no content preview text, so empty rows still get context.
   const categoryKey = schema
@@ -93,7 +97,7 @@ export function SectionRowView({
 
   // Show a short preview from the current locale's content (or primary fallback).
   const content =
-    section.translations.find((tr) => tr.locale === locale)?.content ??
+    section.translations.find((tr) => tr.locale === contentLocale)?.content ??
     section.translations.find((tr) => tr.locale === primaryLocale)?.content ??
     {};
   const previewText = String(content.heading || content.html || '')

@@ -27,14 +27,20 @@ import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { api, authFetch } from '@/lib/api';
-import { labelOf, type FieldDefinition } from '@/lib/section-schemas';
+import { type FieldDefinition } from '@/lib/section-schemas';
+import { useUiLabel } from '../useUiLabel';
 import { cn } from '@/lib/utils';
 
 interface FieldRendererProps {
   field: FieldDefinition;
   value: unknown;
   onChange: (value: unknown) => void;
-  locale: string;
+  /**
+   * Store-content locale being edited. Drives content data only (category
+   * names in the collection picker, nested repeater fields). Field labels,
+   * descriptions and option labels use the dashboard UI locale instead.
+   */
+  contentLocale: string;
   token: string;
   apiBase: string;
 }
@@ -49,10 +55,11 @@ const INLINE_TYPES = new Set(['boolean', 'select', 'color', 'number', 'menuPicke
  * shell based on the field type so simple controls (select/color/number)
  * align in a tidy column while text-heavy controls get full width.
  */
-export function FieldRenderer({ field, value, onChange, locale, token, apiBase }: FieldRendererProps) {
+export function FieldRenderer({ field, value, onChange, contentLocale, token, apiBase }: FieldRendererProps) {
   const tc = useTranslations('common');
-  const label = labelOf(field.label, locale);
-  const description = field.description ? labelOf(field.description, locale) : undefined;
+  const uiLabel = useUiLabel();
+  const label = uiLabel(field.label);
+  const description = field.description ? uiLabel(field.description) : undefined;
   const inline = INLINE_TYPES.has(field.type);
 
   const control = (() => {
@@ -128,7 +135,7 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
               onChange={(v) => onChange(v)}
               options={(field.options || []).map((o) => ({
                 value: o.value,
-                label: labelOf(o.label, locale),
+                label: uiLabel(o.label),
               }))}
               placeholder={tc('select')}
             />
@@ -142,7 +149,6 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
               value={(value as string) ?? ''}
               onChange={(v) => onChange(v)}
               token={token}
-              locale={locale}
             />
           </div>
         );
@@ -154,7 +160,6 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
             onChange={(v) => onChange(v)}
             token={token}
             apiBase={apiBase}
-            locale={locale}
           />
         );
 
@@ -164,7 +169,7 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
             items={Array.isArray(value) ? (value as Record<string, unknown>[]) : []}
             onChange={(items) => onChange(items)}
             fields={field.fields || []}
-            locale={locale}
+            contentLocale={contentLocale}
             token={token}
             apiBase={apiBase}
           />
@@ -177,7 +182,7 @@ export function FieldRenderer({ field, value, onChange, locale, token, apiBase }
               value={(value as string) ?? ''}
               onChange={(v) => onChange(v)}
               token={token}
-              locale={locale}
+              contentLocale={contentLocale}
             />
           </div>
         );
@@ -444,16 +449,11 @@ function MenuPicker({
   value,
   onChange,
   token,
-  locale,
 }: {
   value: string;
   onChange: (v: string) => void;
   token: string;
-  locale: string;
 }) {
-  // `locale` is the store-content locale (kept on props for callers); the
-  // picker's own chrome is translated via the dashboard UI locale.
-  void locale;
   const t = useTranslations('builder');
   // Loaded list keyed by the token it was fetched with; `loading` is derived
   // so the effect never sets state synchronously (react-hooks rule).
@@ -590,29 +590,29 @@ function CollectionPicker({
   value,
   onChange,
   token,
-  locale,
+  contentLocale,
 }: {
   value: string;
   onChange: (v: string) => void;
   token: string;
-  locale: string;
+  contentLocale: string;
 }) {
-  // `locale` drives the category NAME shown (store-content locale). The
-  // picker's own chrome is translated via the dashboard UI locale.
+  // `contentLocale` picks the category NAME shown (store data). The picker's
+  // own chrome is translated via the dashboard UI locale.
   const t = useTranslations('builder');
   // Loaded options keyed by token + locale; `loading` is derived so the
   // effect never sets state synchronously (react-hooks rule).
-  const loadKey = `${token}|${locale}`;
+  const loadKey = `${token}|${contentLocale}`;
   const [loaded, setLoaded] = useState<{ key: string; options: CategoryOption[] } | null>(null);
   const loading = loaded?.key !== loadKey;
   const options = loaded?.key === loadKey ? loaded.options : [];
 
   useEffect(() => {
     let cancelled = false;
-    const key = `${token}|${locale}`;
+    const key = `${token}|${contentLocale}`;
     fetchCategoriesOnce(token)
       .then((tree) => {
-        if (!cancelled) setLoaded({ key, options: flattenCategories(tree, locale) });
+        if (!cancelled) setLoaded({ key, options: flattenCategories(tree, contentLocale) });
       })
       .catch(() => {
         if (!cancelled) setLoaded({ key, options: [] });
@@ -620,7 +620,7 @@ function CollectionPicker({
     return () => {
       cancelled = true;
     };
-  }, [token, locale]);
+  }, [token, contentLocale]);
 
   if (loading) {
     return (
@@ -692,17 +692,12 @@ export function ImageField({
   onChange,
   token,
   apiBase,
-  locale,
 }: {
   value: string;
   onChange: (v: string) => void;
   token: string;
   apiBase: string;
-  locale: string;
 }) {
-  // `locale` is the store-content locale (kept on props for callers); chrome
-  // text is translated via the dashboard UI locale.
-  void locale;
   const t = useTranslations('builder');
   const tc = useTranslations('common');
   const [uploading, setUploading] = useState(false);
@@ -819,19 +814,19 @@ function RepeaterField({
   items,
   onChange,
   fields,
-  locale,
+  contentLocale,
   token,
   apiBase,
 }: {
   items: Record<string, unknown>[];
   onChange: (items: Record<string, unknown>[]) => void;
   fields: FieldDefinition[];
-  locale: string;
+  contentLocale: string;
   token: string;
   apiBase: string;
 }) {
-  // `locale` is the store-content locale, threaded down to nested fields; the
-  // repeater's own chrome is translated via the dashboard UI locale.
+  // `contentLocale` is threaded down to nested fields; the repeater's own
+  // chrome is translated via the dashboard UI locale.
   const t = useTranslations('builder');
   // Drag-to-reorder via dnd-kit (same setup as the section rail). Items carry
   // no stable id, so we use positional ids ("0".."n") and arrayMove by index —
@@ -869,7 +864,7 @@ function RepeaterField({
               index={i}
               item={item}
               fields={fields}
-              locale={locale}
+              contentLocale={contentLocale}
               token={token}
               apiBase={apiBase}
               onChangeItem={(next) => {
@@ -905,7 +900,7 @@ function RepeaterItem({
   index,
   item,
   fields,
-  locale,
+  contentLocale,
   token,
   apiBase,
   onChangeItem,
@@ -915,15 +910,15 @@ function RepeaterItem({
   index: number;
   item: Record<string, unknown>;
   fields: FieldDefinition[];
-  locale: string;
+  contentLocale: string;
   token: string;
   apiBase: string;
   onChangeItem: (next: Record<string, unknown>) => void;
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(index === 0);
-  // `locale` is threaded to nested fields (store-content); chrome uses the
-  // dashboard UI locale.
+  // `contentLocale` is threaded to nested fields; chrome uses the dashboard
+  // UI locale.
   const t = useTranslations('builder');
   const tc = useTranslations('common');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -990,7 +985,7 @@ function RepeaterItem({
                 field={f}
                 value={item[f.key]}
                 onChange={(v) => onChangeItem({ ...item, [f.key]: v })}
-                locale={locale}
+                contentLocale={contentLocale}
                 token={token}
                 apiBase={apiBase}
               />

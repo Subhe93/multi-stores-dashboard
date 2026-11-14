@@ -28,10 +28,9 @@ interface AccountPagesCustomizerProps {
   onChange: (next: AuthPagesConfig) => void;
   token: string;
   apiBase: string;
-  locale: string;
 }
 
-export function AccountPagesCustomizer({ value, onChange, token, apiBase, locale }: AccountPagesCustomizerProps) {
+export function AccountPagesCustomizer({ value, onChange, token, apiBase }: AccountPagesCustomizerProps) {
   const t = useTranslations('builder.accountPages');
   const tb = useTranslations('builder');
   const v = value || {};
@@ -60,7 +59,6 @@ export function AccountPagesCustomizer({ value, onChange, token, apiBase, locale
           onChange={(url) => set({ background_image: url })}
           token={token}
           apiBase={apiBase}
-          locale={locale}
         />
       </div>
 

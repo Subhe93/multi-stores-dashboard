@@ -41,7 +41,6 @@ export interface ThemeTokenCustomizations {
 }
 
 interface ThemeCustomizerProps {
-  locale?: string;
   value: ThemeTokenCustomizations;
   /** Live-preview callback — fired on every edit. */
   onChange: (next: ThemeTokenCustomizations) => void;
@@ -80,10 +79,8 @@ const TEXT_COLOR_FIELDS: { key: TextColorKey; placeholderKey: 'color.auto' | 'co
   { key: 'link', placeholderKey: 'color.linkAuto' },
 ];
 
-export function ThemeCustomizer({ locale = 'en', value, onChange, onSave, trigger }: ThemeCustomizerProps) {
-  // `locale` is the store-content locale (kept for callers); chrome text below
-  // is translated via the dashboard UI locale.
-  void locale;
+export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCustomizerProps) {
+  // Chrome text below is translated via the dashboard UI locale.
   const t = useTranslations('builder');
   const tc = useTranslations('common');
   const [open, setOpen] = useState(false);

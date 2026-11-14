@@ -1277,7 +1277,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               <SectionList
                 sections={sections}
                 selectedId={selectedId}
-                locale={activeLocale}
+                contentLocale={activeLocale}
                 primaryLocale={store.language_config.primary_locale}
                 pageType={page.type}
                 onSelect={setSelectedId}
@@ -1294,7 +1294,6 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
               <ThemePanel
                 token={token ?? ''}
                 apiBase={API_BASE}
-                primaryLocale={store.language_config.primary_locale}
                 themeKey={themeKey}
                 customizations={themeConfig}
                 logoUrl={logoUrl}
@@ -1350,7 +1349,7 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
           <SectionInspector
             section={selected}
             parent={selectedParent}
-            locale={activeLocale}
+            contentLocale={activeLocale}
             primaryLocale={store.language_config.primary_locale}
             token={token ?? ''}
             apiBase={API_BASE}
