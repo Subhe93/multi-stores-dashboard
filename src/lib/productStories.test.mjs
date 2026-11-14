@@ -1,5 +1,5 @@
 // Unit tests of the customer stories editor helpers, their i18n keys and the
-// (not yet registered) product-stories builder schema.
+// product-stories builder schema.
 // Run: node --experimental-strip-types --test src/lib/productStories.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,8 +12,7 @@ import {
   storyFromServer,
   storyText,
 } from './productStories.ts';
-import { PRODUCT_STORIES_SECTION_SCHEMA } from './productStoriesBlockSchema.ts';
-import { SECTION_SCHEMAS } from './section-schemas.ts';
+import { SECTION_SCHEMAS, findSectionSchema } from './section-schemas.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -226,8 +225,9 @@ test('errors.STORY_* exist in all 6 locales for every API code', () => {
 });
 
 // ── Builder schema (contract 7.2) ─────────────────────────────────────
-test('product-stories schema matches the contract and is not registered yet', () => {
-  const s = PRODUCT_STORIES_SECTION_SCHEMA;
+test('product-stories schema matches the contract and is registered after product-faq', () => {
+  const s = findSectionSchema('product-stories');
+  assert.ok(s, 'registered');
   assert.equal(s.id, 'product-stories');
   assert.equal(s.category, 'product');
   assert.deepEqual(s.pageTypes, ['PRODUCT_TEMPLATE']);
@@ -239,8 +239,15 @@ test('product-stories schema matches the contract and is not registered yet', ()
     show_rating: true, show_subtitle: true, show_verified: true,
   });
   const field = (k) => s.schema.find((f) => f.key === k);
-  assert.deepEqual(s.schema.map((f) => f.key).sort(), Object.keys(s.defaultSettings).sort());
-  for (const f of s.schema) assert.equal(f.defaultValue, s.defaultSettings[f.key], f.key);
+  // heading_level / subheading_tag are the shared SEO tag selects (withHeadingLevel).
+  const own = s.schema.filter((f) => f.key !== 'heading_level' && f.key !== 'subheading_tag');
+  assert.deepEqual(own.map((f) => f.key).sort(), Object.keys(s.defaultSettings).sort());
+  for (const f of own) assert.equal(f.defaultValue, s.defaultSettings[f.key], f.key);
+  const keys = s.schema.map((f) => f.key);
+  assert.equal(keys[keys.indexOf('heading') + 1], 'heading_level');
+  assert.equal(field('heading_level').defaultValue, 'h2');
+  assert.equal(keys[keys.indexOf('subheading') + 1], 'subheading_tag');
+  assert.equal(field('subheading_tag').defaultValue, 'p');
   assert.deepEqual(field('layout').options.map((o) => o.value), ['slider', 'grid', 'overlay']);
   assert.deepEqual(field('card_aspect').options.map((o) => o.value), ['portrait', 'square', 'landscape']);
   assert.deepEqual(field('text_position').options.map((o) => o.value), ['below', 'overlay']);
@@ -248,6 +255,9 @@ test('product-stories schema matches the contract and is not registered yet', ()
   assert.deepEqual([field('columns_tablet').min, field('columns_tablet').max], [1, 4]);
   assert.deepEqual([field('columns_mobile').min, field('columns_mobile').max], [1, 2]);
   assert.equal(s.schema.some((f) => /autoplay/.test(f.key)), false);
-  // The web workflow registers it together with the renderer (contract 7.6).
-  assert.equal(SECTION_SCHEMAS.some((x) => x.id === 'product-stories'), false);
+  // Registered together with the web renderer (contract 7.6), right after product-faq.
+  const ids = SECTION_SCHEMAS.map((x) => x.id);
+  assert.equal(ids.indexOf('product-stories'), ids.indexOf('product-faq') + 1);
+  for (const f of s.schema) assert.ok(f.label.en && f.label.ar, `${f.key} label en/ar`);
+  assert.ok(s.label.en && s.label.ar && s.description.en && s.description.ar);
 });

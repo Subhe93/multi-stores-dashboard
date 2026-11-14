@@ -25,6 +25,7 @@ const NEW_BLOCK_KEYS = [
   'product-specifications',
   'product-faq',
   'product-shipping-returns',
+  'product-stories',
 ];
 // Older split sections rebuilt on the shared state; they keep their keys and
 // setting names and stay ungated so existing templates keep their palette.
