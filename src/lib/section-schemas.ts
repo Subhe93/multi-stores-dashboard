@@ -3493,6 +3493,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         defaultValue: 'portrait',
         options: [
           { value: 'portrait', label: { en: 'Portrait (9:16)', ar: 'طولي (9:16)' } },
+          { value: 'portrait_4_5', label: { en: 'Portrait (4:5)', ar: 'طولي (4:5)' } },
           { value: 'square', label: { en: 'Square (1:1)', ar: 'مربع (1:1)' } },
           { value: 'landscape', label: { en: 'Landscape (16:9)', ar: 'عرضي (16:9)' } },
         ],

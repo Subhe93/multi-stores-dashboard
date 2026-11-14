@@ -250,7 +250,7 @@ test('product-stories schema matches the contract and is registered after produc
   assert.equal(keys[keys.indexOf('subheading') + 1], 'subheading_tag');
   assert.equal(field('subheading_tag').defaultValue, 'p');
   assert.deepEqual(field('layout').options.map((o) => o.value), ['slider', 'grid', 'overlay']);
-  assert.deepEqual(field('card_aspect').options.map((o) => o.value), ['portrait', 'square', 'landscape']);
+  assert.deepEqual(field('card_aspect').options.map((o) => o.value), ['portrait', 'portrait_4_5', 'square', 'landscape']);
   assert.deepEqual(field('text_position').options.map((o) => o.value), ['below', 'overlay']);
   assert.deepEqual([field('columns').min, field('columns').max], [1, 6]);
   assert.deepEqual([field('columns_tablet').min, field('columns_tablet').max], [1, 4]);
