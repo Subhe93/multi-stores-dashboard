@@ -16,6 +16,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { VariantManager, type VariantOption, type GeneratedVariant } from './VariantManager';
 import { CustomFieldManager, type CustomField } from './CustomFieldManager';
 import FaqManager, { type Faq } from './FaqManager';
+import { StoriesManager, type StoryOpenRequest } from './StoriesManager';
 import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useImageUpload } from '@/lib/useImageUpload';
@@ -25,6 +26,10 @@ import {
   type EditorVideo, type ProductVideoOut,
 } from '@/lib/productMedia';
 import { fetchVideoConfig, type VideoUploadConfig } from '@/lib/useVideoUpload';
+import {
+  adoptStoryIds, describeStoryError, firstInvalidStory, isStoryErrorCode, shouldSendStories, storiesKey,
+  storiesPayload, storyFromServer, type EditorStory, type ProductStoryOut,
+} from '@/lib/productStories';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -143,6 +148,8 @@ interface ProductResponse {
   videos?: ProductVideoOut[];
   custom_fields?: CustomField[];
   faqs?: Faq[];
+  /** Customer stories; always an array on an API that supports them. */
+  stories?: ProductStoryOut[];
   bundles?: { bundle_id: string }[];
   creator_categories?: {
     creator_category_id?: string | null;
@@ -268,6 +275,16 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [variants, setVariants] = useState<GeneratedVariant[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  // Customer stories (display order). `serverHasStories`: the editor GET
+  // returned a `stories` array, so this API stores them (an older one rejects
+  // the key on save).
+  const [stories, setStories] = useState<EditorStory[]>([]);
+  const [serverHasStories, setServerHasStories] = useState(false);
+  // Stories as loaded / last saved: an edit save sends `stories` only when they
+  // changed (each sent story rewrites its row and translations server side).
+  const [savedStoriesKey, setSavedStoriesKey] = useState('[]');
+  const [storyRequest, setStoryRequest] = useState<StoryOpenRequest | null>(null);
+  const [storiesError, setStoriesError] = useState('');
   const [bundleIds, setBundleIds] = useState<string[]>([]);
   const [creatorCategoryIds, setCreatorCategoryIds] = useState<string[]>([]);
   const [primaryCreatorCategoryId, setPrimaryCreatorCategoryId] = useState<string | null>(null);
@@ -429,6 +446,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       // Repeater children may arrive nested or flat; the editor works on a flat list.
       setCustomFields(flattenFieldTree(p.custom_fields));
       setFaqs(p.faqs || []);
+      setServerHasStories(Array.isArray(p.stories));
+      const loadedStories = Array.isArray(p.stories) ? p.stories.map(storyFromServer) : [];
+      setStories(loadedStories);
+      setSavedStoriesKey(storiesKey(loadedStories));
       setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
       // Pre-fill creator collections. API returns links of the shape
       // { creator_category_id, creator_category: {...} }; either field works.
@@ -594,6 +615,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
       // No row ids: adopting the stored ids after a save is not an edit.
       videos: videos.map(v => ({ kind: v.kind, url: v.url, poster: v.poster_url || '', alt: v.alt, position: v.position })),
+      stories: storiesKey(stories),
       variantOptions,
       variants: variants.map(v => ({
         options: v.options,
@@ -672,12 +694,33 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     // Jump to the first such locale's tab when the primary tab has no error.
     if (seoWithoutTitle.length > 0 && !errs.title && !errs.slug) setActiveLocale(seoWithoutTitle[0]);
     setFieldErrors(errs);
+    // A story without media or name: open it (only when the stories are sent).
+    const badStory = shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories) !== savedStoriesKey })
+      ? firstInvalidStory(stories)
+      : null;
+    if (Object.keys(errs).length === 0 && badStory) {
+      const message = t(badStory.problem === 'mediaRequired' ? 'story.mediaRequired' : 'story.nameRequired');
+      setError(message);
+      openStoryWithError(badStory.index, message);
+      return false;
+    }
     if (Object.keys(errs).length > 0) {
       setError(t('product.fixErrorsBeforeSaving'));
       setTimeout(() => document.querySelector('[data-field-error]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
       return false;
     }
     return true;
+  };
+
+  // Scrolls to the customer stories card and opens one story with a message.
+  const openStoryWithError = (index: number | null, message: string) => {
+    setTimeout(() => document.getElementById('product-stories')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    if (index === null) {
+      setStoriesError(message);
+      return;
+    }
+    setStoriesError('');
+    setStoryRequest(prev => ({ index, message, nonce: (prev?.nonce ?? 0) + 1 }));
   };
 
   // Scrolls to the media card (images and videos).
@@ -715,6 +758,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     setError('');
     setOptionsError('');
     setMediaError('');
+    setStoriesError('');
     setFieldErrors({});
     // Path prefix of the create-mode custom field being written, so a config
     // error names that field instead of an anonymous one.
@@ -808,6 +852,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         ...(shouldSendVideos({ mode, serverHasVideos, videoCount: videos.length, changed: videosKey(videos) !== savedVideosKey })
           ? { videos: videosPayload(videos) }
           : {}),
+        // Edit: only for an API that stores stories and only when they changed
+        // (then the full list); create: only when stories were added.
+        // Absent = stored rows untouched.
+        ...(shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories) !== savedStoriesKey })
+          ? { stories: storiesPayload(stories) }
+          : {}),
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
       };
 
@@ -842,7 +892,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         pid = product.id;
         adoptServerSlugs(product?.translations);
       } else {
-        const updated = await api<Pick<ProductResponse, 'variants' | 'translations' | 'videos'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
+        const updated = await api<Pick<ProductResponse, 'variants' | 'translations' | 'videos' | 'stories'>>(`/products/${pid}`, { method: 'PUT', token, body: JSON.stringify(body) });
         // Adopt the stored ids of new videos (same order as sent) so the next
         // save updates them in place and keeps their created_at.
         const sentVideos = (body.videos as ReturnType<typeof videosPayload> | undefined) ?? null;
@@ -855,6 +905,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             const row = idByIndex.get(i);
             return !v.serverId && row && sentUrls[i] === v.url ? { ...v, serverId: row.id } : v;
           }));
+        }
+        // Same for new stories, so the next save updates them in place.
+        const sentStories = (body.stories as ReturnType<typeof storiesPayload> | undefined) ?? null;
+        if (sentStories) setSavedStoriesKey(storiesKey(stories));
+        if (sentStories && Array.isArray(updated?.stories)) {
+          const storedStories = updated.stories;
+          setStories(prev => (prev.length === sentStories.length ? adoptStoryIds(prev, sentStories, storedStories) : prev));
         }
         storedPrimarySlug = adoptServerSlugs(updated?.translations);
         // Adopt the server-assigned ids for newly created variants so the next
@@ -964,6 +1021,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setError(text);
         setMediaError(text);
         jumpToMedia();
+      } else if (err instanceof ApiError && isStoryErrorCode(err.code)) {
+        // Customer story refusals: the named story is opened with the message.
+        const { key, values, index } = describeStoryError(err.code, err.payload, stories.length);
+        const text = t.has(key) ? t(key, values) : apiError(err);
+        setError(text);
+        openStoryWithError(index, text);
       } else if (err instanceof ApiError && err.code === 'PRODUCT_GTIN_INVALID') {
         setFieldErrors(p => ({ ...p, gtin: t('product.errGtinInvalid') }));
         setError(t('product.errGtinInvalid'));
@@ -1422,6 +1485,25 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               />
             </CardContent>
           </Card>
+
+          {/* Customer stories (saved with the product). Edit mode on an API
+              without stories: no card, nothing is sent. */}
+          {(mode === 'create' || serverHasStories) && (
+            <Card id="product-stories" className="shadow-none scroll-mt-4">
+              <CardContent className="pt-5">
+                <StoriesManager
+                  stories={stories}
+                  onChange={(next) => { setStories(next); setStoriesError(''); }}
+                  locales={allLocales}
+                  primaryLocale={primaryLocale}
+                  token={token}
+                  videoConfig={videoConfig}
+                  openRequest={storyRequest}
+                  error={storiesError}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* SEO — per content locale (shares the active language tab) */}
           <Card className="shadow-none">
