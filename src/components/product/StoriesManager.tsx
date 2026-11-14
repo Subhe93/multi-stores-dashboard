@@ -99,6 +99,11 @@ function StoryRow({
           {story.verified && (
             <BadgeCheck className="size-3.5 shrink-0 text-emerald-600" aria-label={t('story.verified')} />
           )}
+          {isVideo && story.autoplay && (
+            <span className="shrink-0 rounded bg-zinc-100 px-1 py-px text-[9px] font-medium text-zinc-600">
+              {t('story.autoplayBadge')}
+            </span>
+          )}
         </span>
         {text.subtitle.trim() && (
           <span className="block truncate text-xs text-muted-foreground">{text.subtitle}</span>

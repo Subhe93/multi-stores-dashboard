@@ -22,10 +22,10 @@ import { CollectionTreePicker } from '@/components/creator/categories/Collection
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
 import {
-  featuredFirst, shouldSendVideos, videoFromServer, videosKey, videosNeedImage, videosPayload,
+  featuredFirst, featuredVideoMissingPoster, shouldSendVideos, videoFromServer, videosKey, videosNeedImage, videosPayload,
   type EditorVideo, type ProductVideoOut,
 } from '@/lib/productMedia';
-import { fetchVideoConfig, type VideoUploadConfig } from '@/lib/useVideoUpload';
+import { fetchVideoConfig, videoFeatureFlags, type VideoUploadConfig } from '@/lib/useVideoUpload';
 import {
   adoptStoryIds, describeStoryError, firstInvalidStory, isStoryErrorCode, shouldSendStories, storiesKey,
   storiesPayload, storyFromServer, type EditorStory, type ProductStoryOut,
@@ -60,6 +60,13 @@ const LOCALE_LABELS: Record<string, string> = {
   sv: 'Svenska',
 };
 const RTL_LOCALES = ['ar'];
+
+/**
+ * Flags of the video / story change keys: every field the editor keeps, so the
+ * "changed since loaded" check does not depend on when the video config
+ * (`features`) arrives. Payloads use the real flags (`mediaFlags`).
+ */
+const CHANGE_KEY_FLAGS = { allowFeaturedVideo: true, allowAutoplay: true } as const;
 
 /** Pick a translation row preferring the store primary locale, then English, then the first available */
 interface TranslationRow { locale: string; name?: string; label?: string }
@@ -283,6 +290,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // Stories as loaded / last saved: an edit save sends `stories` only when they
   // changed (each sent story rewrites its row and translations server side).
   const [savedStoriesKey, setSavedStoriesKey] = useState('[]');
+  // What the API accepts in a save (`features` of the video config; false on
+  // an older API). The payloads use them; the change keys use CHANGE_KEY_FLAGS
+  // so a config that loads after the product never makes the media "changed".
+  const mediaFlags = videoFeatureFlags(videoConfig);
   const [storyRequest, setStoryRequest] = useState<StoryOpenRequest | null>(null);
   const [storiesError, setStoriesError] = useState('');
   const [bundleIds, setBundleIds] = useState<string[]>([]);
@@ -442,14 +453,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setServerHasVideos(Array.isArray(p.videos));
       const loadedVideos = Array.isArray(p.videos) ? p.videos.map(videoFromServer) : [];
       setVideos(loadedVideos);
-      setSavedVideosKey(videosKey(loadedVideos));
+      setSavedVideosKey(videosKey(loadedVideos, CHANGE_KEY_FLAGS));
       // Repeater children may arrive nested or flat; the editor works on a flat list.
       setCustomFields(flattenFieldTree(p.custom_fields));
       setFaqs(p.faqs || []);
       setServerHasStories(Array.isArray(p.stories));
       const loadedStories = Array.isArray(p.stories) ? p.stories.map(storyFromServer) : [];
       setStories(loadedStories);
-      setSavedStoriesKey(storiesKey(loadedStories));
+      setSavedStoriesKey(storiesKey(loadedStories, CHANGE_KEY_FLAGS));
       setBundleIds((p.bundles || []).map((b: { bundle_id: string }) => b.bundle_id));
       // Pre-fill creator collections. API returns links of the shape
       // { creator_category_id, creator_category: {...} }; either field works.
@@ -614,8 +625,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
       // No row ids: adopting the stored ids after a save is not an edit.
-      videos: videos.map(v => ({ kind: v.kind, url: v.url, poster: v.poster_url || '', alt: v.alt, position: v.position })),
-      stories: storiesKey(stories),
+      videos: videos.map(v => ({
+        kind: v.kind, url: v.url, poster: v.poster_url || '', alt: v.alt, position: v.position,
+        autoplay: v.autoplay, loop: v.autoplay && v.loop,
+      })),
+      stories: storiesKey(stories, CHANGE_KEY_FLAGS),
       variantOptions,
       variants: variants.map(v => ({
         options: v.options,
@@ -673,6 +687,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                               errs.gtin = t('product.errGtinInvalid');
     // A video needs at least one product-level image (the first slot is an image).
     if (videosNeedImage(images.length, videos.length)) errs.media = t('image.videoRequiresImage');
+    // The video shown first needs a poster (cannot normally happen: the grid enforces it).
+    else if (featuredVideoMissingPoster(videos, mediaFlags)) errs.media = t('image.featuredVideoNeedsPoster');
     setMediaError(errs.media || '');
     categoryAttrs.filter(a => a.is_required).forEach(a => {
       const val = attrValues[a.id];
@@ -695,7 +711,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     if (seoWithoutTitle.length > 0 && !errs.title && !errs.slug) setActiveLocale(seoWithoutTitle[0]);
     setFieldErrors(errs);
     // A story without media or name: open it (only when the stories are sent).
-    const badStory = shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories) !== savedStoriesKey })
+    const badStory = shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories, CHANGE_KEY_FLAGS) !== savedStoriesKey })
       ? firstInvalidStory(stories)
       : null;
     if (Object.keys(errs).length === 0 && badStory) {
@@ -849,14 +865,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         images: imagesPayload,
         // Only for an API that stores videos (edit) or when videos were added
         // (create); otherwise the stored rows stay untouched.
-        ...(shouldSendVideos({ mode, serverHasVideos, videoCount: videos.length, changed: videosKey(videos) !== savedVideosKey })
-          ? { videos: videosPayload(videos) }
+        ...(shouldSendVideos({ mode, serverHasVideos, videoCount: videos.length, changed: videosKey(videos, CHANGE_KEY_FLAGS) !== savedVideosKey })
+          ? { videos: videosPayload(videos, mediaFlags) }
           : {}),
         // Edit: only for an API that stores stories and only when they changed
         // (then the full list); create: only when stories were added.
         // Absent = stored rows untouched.
-        ...(shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories) !== savedStoriesKey })
-          ? { stories: storiesPayload(stories) }
+        ...(shouldSendStories({ mode, serverHasStories, storyCount: stories.length, changed: storiesKey(stories, CHANGE_KEY_FLAGS) !== savedStoriesKey })
+          ? { stories: storiesPayload(stories, mediaFlags) }
           : {}),
         ...(isCreator ? { bundle_ids: bundleIds, creator_category_ids: creatorCategoryIds, primary_creator_category_id: primaryCreatorCategoryId } : {}),
       };
@@ -897,7 +913,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         // save updates them in place and keeps their created_at.
         const sentVideos = (body.videos as ReturnType<typeof videosPayload> | undefined) ?? null;
         const storedVideos = Array.isArray(updated?.videos) ? updated.videos : null;
-        if (sentVideos) setSavedVideosKey(videosKey(videos));
+        if (sentVideos) setSavedVideosKey(videosKey(videos, CHANGE_KEY_FLAGS));
         if (sentVideos && storedVideos && storedVideos.length === sentVideos.length) {
           const idByIndex = new Map(storedVideos.map((row, i) => [i, row]));
           const sentUrls = sentVideos.map(v => v.url);
@@ -908,7 +924,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         }
         // Same for new stories, so the next save updates them in place.
         const sentStories = (body.stories as ReturnType<typeof storiesPayload> | undefined) ?? null;
-        if (sentStories) setSavedStoriesKey(storiesKey(stories));
+        if (sentStories) setSavedStoriesKey(storiesKey(stories, CHANGE_KEY_FLAGS));
         if (sentStories && Array.isArray(updated?.stories)) {
           const storedStories = updated.stories;
           setStories(prev => (prev.length === sentStories.length ? adoptStoryIds(prev, sentStories, storedStories) : prev));

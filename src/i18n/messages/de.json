@@ -6238,7 +6238,9 @@
     "STORY_FILE_INVALID": "Das Video dieser Kundenstimme wurde nicht von deinem Konto hochgeladen oder ist keine MP4-Datei. Lade es erneut hoch.",
     "STORY_IMAGE_INVALID": "Foto oder Titelbild dieser Kundenstimme wurde nicht von deinem Konto hochgeladen. Lade es erneut hoch.",
     "STORY_UPLOAD_EXPIRED": "Der Upload dieser Kundenstimme ist abgelaufen. Lade Foto oder Video erneut hoch.",
-    "STORY_LOCALE_DUPLICATE": "Diese Kundenstimme enthält die Sprache „{locale}“ doppelt. Lade die Seite neu und versuche es erneut."
+    "STORY_LOCALE_DUPLICATE": "Diese Kundenstimme enthält die Sprache „{locale}“ doppelt. Lade die Seite neu und versuche es erneut.",
+    "VIDEO_FEATURED_MULTIPLE": "Nur ein Video kann zuerst gezeigt werden.",
+    "VIDEO_FEATURED_REQUIRES_POSTER": "Das zuerst gezeigte Video braucht ein Vorschaubild."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -7149,7 +7151,15 @@
     "videoLimitReached": "Ein Produkt kann höchstens {max} Videos haben.",
     "videoPlay": "Video abspielen",
     "removeVideo": "Video entfernen",
-    "videoRateLimited": "In kurzer Zeit wurden zu viele Videos hochgeladen. Warte ein paar Minuten und versuche es erneut."
+    "videoRateLimited": "In kurzer Zeit wurden zu viele Videos hochgeladen. Warte ein paar Minuten und versuche es erneut.",
+    "setFeaturedVideo": "Zuerst zeigen",
+    "unsetFeaturedVideo": "Nicht zuerst zeigen",
+    "featuredVideo": "Wird zuerst gezeigt",
+    "featuredVideoHint": "Dieses Video wird in der Galerie zuerst gezeigt. Warenkorb, Vorschauen beim Teilen, Feeds und E-Mails verwenden weiterhin das erste Bild.",
+    "featuredVideoNeedsPoster": "Füge ein Vorschaubild hinzu, um dieses Video zuerst zu zeigen.",
+    "videoAutoplay": "Automatisch abspielen (stumm)",
+    "videoLoop": "Wiederholen",
+    "videoAutoplayHelp": "Läuft stumm, solange es sichtbar ist. Besucher, die reduzierte Bewegung oder Datensparen bevorzugen, sehen das Vorschaubild. YouTube- und Vimeo-Videos starten erst automatisch, wenn der Besucher externe Videos erlaubt hat."
   },
   "bundle": {
     "searchAndPickProducts": "Produkte suchen und auswählen",
@@ -8133,6 +8143,10 @@
     "autoTranslateFrom": "Automatisch übersetzen aus {locale}",
     "autoTranslate": "Automatisch übersetzen",
     "translating": "Wird übersetzt…",
-    "save": "Kundenstimme speichern"
+    "save": "Kundenstimme speichern",
+    "autoplay": "Automatisch abspielen (stumm)",
+    "loop": "Wiederholen",
+    "autoplayBadge": "Autoplay",
+    "autoplayHelp": "Läuft stumm, solange es sichtbar ist. Besucher, die reduzierte Bewegung oder Datensparen bevorzugen, sehen das Vorschaubild. YouTube- und Vimeo-Videos starten erst automatisch, wenn der Besucher externe Videos erlaubt hat."
   }
 }

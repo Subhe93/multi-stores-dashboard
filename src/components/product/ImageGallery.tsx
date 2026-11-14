@@ -21,10 +21,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { UploadedImage } from '@/lib/useImageUpload';
 import {
-  MAX_VIDEOS_PER_PRODUCT, mergeMedia, moveMedia, newVideoKey, removeImage, setFeaturedImage, splitMedia,
-  toRelativeUploadUrl, type EditorVideo, type MediaItem,
+  MAX_VIDEOS_PER_PRODUCT, mergeMedia, moveMedia, newVideoKey, removeImage, setFeaturedImage, setFeaturedVideo,
+  splitMedia, toRelativeUploadUrl, unsetFeaturedVideo, type EditorVideo, type MediaItem,
 } from '@/lib/productMedia';
-import { failureOf, useVideoUpload, type VideoLinkResult, type VideoUploadConfig } from '@/lib/useVideoUpload';
+import {
+  failureOf, useVideoUpload, videoFeatureFlags, type VideoLinkResult, type VideoUploadConfig,
+} from '@/lib/useVideoUpload';
 import type { VideoFailure } from '@/lib/uploadError';
 import { VideoTile } from './VideoTile';
 import { VideoLinkDialog } from './VideoLinkDialog';
@@ -101,7 +103,9 @@ function SortableImage({ img, onSetFeatured, onDelete, t }: {
 
 /**
  * Product media grid: images and videos sorted together. The featured image
- * is always first (the storefront shows it first); videos never take index 0.
+ * is always the first image (the storefront shows it first). On an API that
+ * reports `features.featured_video`, one video with a poster may be shown
+ * first (index 0); otherwise videos never take index 0.
  */
 export function ImageGallery<I extends ProductImage>({
   images, onChange, onPickAndUpload, onPickPoster, uploading = false,
@@ -123,13 +127,16 @@ export function ImageGallery<I extends ProductImage>({
   const videoUi = !!videoConfig && !!onVideosChange;
   const maxVideos = videoConfig?.max_videos_per_product || MAX_VIDEOS_PER_PRODUCT;
   const atVideoLimit = videoList.length >= maxVideos;
-  const media = mergeMedia(images, videoList);
+  const { allowFeaturedVideo, allowAutoplay } = videoFeatureFlags(videoUi ? videoConfig : null);
+  const mediaOpts = { allowFeaturedVideo };
+  const media = mergeMedia(images, videoList, mediaOpts);
+  const hasFeaturedVideo = allowFeaturedVideo && media[0]?.type === 'video';
 
   const describe = (f: VideoFailure): string =>
     t.has(f.key) ? t(f.key, f.values) : (f.message || t('errors.generic'));
 
   const commit = (items: MediaItem<I>[]) => {
-    const next = splitMedia(items);
+    const next = splitMedia(items, mediaOpts);
     onChange(next.images);
     onVideosChange?.(next.videos);
   };
@@ -144,11 +151,11 @@ export function ImageGallery<I extends ProductImage>({
       image: { id: img.id, url: img.url, is_featured: false } as I,
     }));
     // The first image of the grid becomes the featured one (splitMedia).
-    commit([...mergeMedia(cur, curVideos), ...added]);
+    commit([...mergeMedia(cur, curVideos, mediaOpts), ...added]);
   };
 
   const handleDelete = (id: string) => {
-    const next = removeImage(images, videoList, id);
+    const next = removeImage(images, videoList, id, mediaOpts);
     onChange(next.images);
     onVideosChange?.(next.videos);
   };
@@ -160,16 +167,33 @@ export function ImageGallery<I extends ProductImage>({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const next = moveMedia(media, String(active.id), String(over.id));
-    const movedVideoToFront = media.find(it => it.id === active.id)?.type === 'video' && media[0]?.id === over.id;
-    setVideoNotice(movedVideoToFront ? t('image.videoCannotBeFeatured') : '');
+    const next = moveMedia(media, String(active.id), String(over.id), mediaOpts);
+    const moved = media.find(it => it.id === active.id);
+    const movedVideoToFront = moved?.type === 'video' && media[0]?.id === over.id;
+    // A video dropped at index 0 becomes the featured video when it has a
+    // poster (new API); otherwise it snaps behind the first image.
+    setVideoNotice(
+      !movedVideoToFront ? ''
+        : !allowFeaturedVideo ? t('image.videoCannotBeFeatured')
+          : moved.video.poster_url ? '' : t('image.featuredVideoNeedsPoster'),
+    );
     commit(next);
   };
 
-  const appendVideo = (v: Omit<EditorVideo, 'id' | 'position'>) => {
+  const handleSetFeaturedVideo = (id: string) => {
+    setVideoNotice('');
+    commit(setFeaturedVideo(media, id));
+  };
+
+  const handleUnsetFeaturedVideo = (id: string) => {
+    setVideoNotice('');
+    commit(unsetFeaturedVideo(media, id));
+  };
+
+  const appendVideo = (v: Omit<EditorVideo, 'id' | 'position' | 'autoplay' | 'loop'>) => {
     const { images: cur, videos: curVideos } = latest.current;
-    const item: EditorVideo = { ...v, id: newVideoKey(), position: Math.max(1, cur.length) };
-    commit([...mergeMedia(cur, curVideos), { type: 'video', id: item.id, video: item }]);
+    const item: EditorVideo = { ...v, id: newVideoKey(), position: Math.max(1, cur.length), autoplay: false, loop: false };
+    commit([...mergeMedia(cur, curVideos, mediaOpts), { type: 'video', id: item.id, video: item }]);
   };
 
   const handleUploadVideo = async () => {
@@ -305,6 +329,10 @@ export function ImageGallery<I extends ProductImage>({
                     posterBusy={posterBusyId === it.id || uploading}
                     onChangePoster={() => void handleChangePoster(it.id)}
                     onDelete={() => handleDeleteVideo(it.id)}
+                    allowFeatured={allowFeaturedVideo && images.length > 0}
+                    featured={allowFeaturedVideo && media[0]?.id === it.id}
+                    onSetFeatured={() => handleSetFeaturedVideo(it.id)}
+                    onUnsetFeatured={() => handleUnsetFeaturedVideo(it.id)}
                   />
                 ))}
 
@@ -353,23 +381,55 @@ export function ImageGallery<I extends ProductImage>({
           </div>
         )}
 
-        {/* Alt text per video (kept out of the square tiles). */}
+        {hasFeaturedVideo && (
+          <p className="text-[10px] text-muted-foreground">{t('image.featuredVideoHint')}</p>
+        )}
+
+        {/* Alt text (and autoplay options) per video, kept out of the square tiles. */}
         {videoList.length > 0 && onVideosChange && (
           <div className="space-y-1.5">
             {videoList.map((v, i) => (
-              <div key={v.id} className="flex items-center gap-2">
-                <Video className="w-3.5 h-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="w-5 shrink-0 text-[10px] text-muted-foreground tabular-nums" dir="ltr">{i + 1}</span>
-                <Input
-                  className="h-7 text-xs"
-                  value={v.alt}
-                  maxLength={300}
-                  placeholder={t('image.videoAlt')}
-                  aria-label={t('image.videoAlt')}
-                  onChange={e => updateVideo(v.id, { alt: e.target.value })}
-                />
+              <div key={v.id} className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Video className="w-3.5 h-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <span className="w-5 shrink-0 text-[10px] text-muted-foreground tabular-nums" dir="ltr">{i + 1}</span>
+                  <Input
+                    className="h-7 text-xs"
+                    value={v.alt}
+                    maxLength={300}
+                    placeholder={t('image.videoAlt')}
+                    aria-label={t('image.videoAlt')}
+                    onChange={e => updateVideo(v.id, { alt: e.target.value })}
+                  />
+                </div>
+                {allowAutoplay && videoUi && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ps-9">
+                    <label className="flex cursor-pointer items-center gap-1.5 text-[11px]">
+                      <input
+                        type="checkbox"
+                        className="rounded accent-primary"
+                        checked={v.autoplay}
+                        onChange={e => updateVideo(v.id, e.target.checked ? { autoplay: true } : { autoplay: false, loop: false })}
+                      />
+                      {t('image.videoAutoplay')}
+                    </label>
+                    <label className={`flex items-center gap-1.5 text-[11px] ${v.autoplay ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                      <input
+                        type="checkbox"
+                        className="rounded accent-primary"
+                        checked={v.autoplay && v.loop}
+                        disabled={!v.autoplay}
+                        onChange={e => updateVideo(v.id, { loop: e.target.checked })}
+                      />
+                      {t('image.videoLoop')}
+                    </label>
+                  </div>
+                )}
               </div>
             ))}
+            {allowAutoplay && videoUi && (
+              <p className="ps-9 text-[10px] leading-relaxed text-muted-foreground">{t('image.videoAutoplayHelp')}</p>
+            )}
           </div>
         )}
 

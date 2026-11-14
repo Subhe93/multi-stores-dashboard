@@ -6238,7 +6238,9 @@
     "STORY_FILE_INVALID": "Berättelsens video laddades inte upp från ditt konto eller är inte en MP4-fil. Ladda upp den igen.",
     "STORY_IMAGE_INVALID": "Berättelsens foto eller omslag laddades inte upp från ditt konto. Ladda upp det igen.",
     "STORY_UPLOAD_EXPIRED": "Uppladdningen för berättelsen har gått ut. Ladda upp fotot eller videon igen.",
-    "STORY_LOCALE_DUPLICATE": "Berättelsen har språket ”{locale}” två gånger. Ladda om sidan och försök igen."
+    "STORY_LOCALE_DUPLICATE": "Berättelsen har språket ”{locale}” två gånger. Ladda om sidan och försök igen.",
+    "VIDEO_FEATURED_MULTIPLE": "Bara en video kan visas först.",
+    "VIDEO_FEATURED_REQUIRES_POSTER": "Videon som visas först behöver en omslagsbild."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -7149,7 +7151,15 @@
     "videoLimitReached": "En produkt kan ha högst {max} videor.",
     "videoPlay": "Spela video",
     "removeVideo": "Ta bort video",
-    "videoRateLimited": "För många videor laddades upp på kort tid. Vänta några minuter och försök igen."
+    "videoRateLimited": "För många videor laddades upp på kort tid. Vänta några minuter och försök igen.",
+    "setFeaturedVideo": "Visa först",
+    "unsetFeaturedVideo": "Visa inte först",
+    "featuredVideo": "Visas först",
+    "featuredVideoHint": "Videon visas först i galleriet. Varukorgen, förhandsvisningar vid delning, flöden och e-post använder fortfarande den första bilden.",
+    "featuredVideoNeedsPoster": "Lägg till en omslagsbild för att visa videon först.",
+    "videoAutoplay": "Spela automatiskt (utan ljud)",
+    "videoLoop": "Upprepa",
+    "videoAutoplayHelp": "Spelas upp utan ljud medan den syns. Besökare som föredrar minskad rörelse eller sparar data ser omslagsbilden. YouTube- och Vimeo-videor spelas upp automatiskt först när besökaren har tillåtit externa videor."
   },
   "bundle": {
     "searchAndPickProducts": "Sök och välj produkter",
@@ -8133,6 +8143,10 @@
     "autoTranslateFrom": "Översätt automatiskt från {locale}",
     "autoTranslate": "Översätt automatiskt",
     "translating": "Översätter…",
-    "save": "Spara berättelse"
+    "save": "Spara berättelse",
+    "autoplay": "Spela automatiskt (utan ljud)",
+    "loop": "Upprepa",
+    "autoplayBadge": "Autouppspelning",
+    "autoplayHelp": "Spelas upp utan ljud medan den syns. Besökare som föredrar minskad rörelse eller sparar data ser omslagsbilden. YouTube- och Vimeo-videor spelas upp automatiskt först när besökaren har tillåtit externa videor."
   }
 }

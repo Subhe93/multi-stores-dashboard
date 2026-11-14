@@ -16,6 +16,23 @@ export interface VideoUploadConfig extends VideoUploadLimits {
   accept: string[];
   quota_bytes: number | null;
   used_bytes: number;
+  /**
+   * What the API accepts in a product save (CONTRACT-AUTOPLAY.md 2 / 4.1).
+   * Absent on an older API: the editor never sends `position: 0`, `autoplay`
+   * or `loop` then.
+   */
+  features?: { featured_video?: boolean; autoplay?: boolean };
+}
+
+/** Feature flags of a video config (both false when the API does not report them). */
+export function videoFeatureFlags(config: VideoUploadConfig | null | undefined): {
+  allowFeaturedVideo: boolean;
+  allowAutoplay: boolean;
+} {
+  return {
+    allowFeaturedVideo: config?.features?.featured_video === true,
+    allowAutoplay: config?.features?.autoplay === true,
+  };
 }
 
 /**
@@ -36,6 +53,14 @@ export async function fetchVideoConfig(token: string): Promise<VideoUploadConfig
       accept: Array.isArray(cfg.accept) ? cfg.accept : ['video/mp4'],
       quota_bytes: typeof cfg.quota_bytes === 'number' ? cfg.quota_bytes : null,
       used_bytes: typeof cfg.used_bytes === 'number' ? cfg.used_bytes : 0,
+      ...(cfg.features && typeof cfg.features === 'object'
+        ? {
+            features: {
+              featured_video: cfg.features.featured_video === true,
+              autoplay: cfg.features.autoplay === true,
+            },
+          }
+        : {}),
     };
   } catch (err) {
     if (!(err instanceof ApiError) || err.status !== 404) console.warn('Video config unavailable:', err);

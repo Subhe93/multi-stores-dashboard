@@ -6238,7 +6238,9 @@
     "STORY_FILE_INVALID": "La vidéo de ce témoignage n’a pas été importée depuis votre compte ou n’est pas un fichier MP4. Importez-la à nouveau.",
     "STORY_IMAGE_INVALID": "La photo ou la couverture de ce témoignage n’a pas été importée depuis votre compte. Importez-la à nouveau.",
     "STORY_UPLOAD_EXPIRED": "L’import de ce témoignage a expiré. Importez à nouveau la photo ou la vidéo.",
-    "STORY_LOCALE_DUPLICATE": "Ce témoignage contient deux fois la langue « {locale} ». Rechargez la page et réessayez."
+    "STORY_LOCALE_DUPLICATE": "Ce témoignage contient deux fois la langue « {locale} ». Rechargez la page et réessayez.",
+    "VIDEO_FEATURED_MULTIPLE": "Une seule vidéo peut être affichée en premier.",
+    "VIDEO_FEATURED_REQUIRES_POSTER": "La vidéo affichée en premier doit avoir une image de couverture."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -7149,7 +7151,15 @@
     "videoLimitReached": "Un produit peut avoir au maximum {max} vidéos.",
     "videoPlay": "Lire la vidéo",
     "removeVideo": "Supprimer la vidéo",
-    "videoRateLimited": "Trop de vidéos ont été téléversées en peu de temps. Patientez quelques minutes puis réessayez."
+    "videoRateLimited": "Trop de vidéos ont été téléversées en peu de temps. Patientez quelques minutes puis réessayez.",
+    "setFeaturedVideo": "Afficher en premier",
+    "unsetFeaturedVideo": "Ne plus afficher en premier",
+    "featuredVideo": "Affichée en premier",
+    "featuredVideoHint": "Cette vidéo s’affiche en premier dans la galerie. Le panier, les aperçus de partage, les flux et les e-mails utilisent toujours la première image.",
+    "featuredVideoNeedsPoster": "Ajoutez une image de couverture pour afficher cette vidéo en premier.",
+    "videoAutoplay": "Lecture automatique (sans son)",
+    "videoLoop": "En boucle",
+    "videoAutoplayHelp": "Se lit sans son tant qu’elle est visible. Les visiteurs qui préfèrent réduire les animations ou économiser des données voient l’image de couverture. Les vidéos YouTube et Vimeo ne se lancent automatiquement qu’après que le visiteur a autorisé les vidéos externes."
   },
   "bundle": {
     "searchAndPickProducts": "Rechercher et choisir des produits",
@@ -8133,6 +8143,10 @@
     "autoTranslateFrom": "Traduire automatiquement depuis {locale}",
     "autoTranslate": "Traduire automatiquement",
     "translating": "Traduction…",
-    "save": "Enregistrer le témoignage"
+    "save": "Enregistrer le témoignage",
+    "autoplay": "Lecture automatique (sans son)",
+    "loop": "En boucle",
+    "autoplayBadge": "Lecture auto",
+    "autoplayHelp": "Se lit sans son tant qu’elle est visible. Les visiteurs qui préfèrent réduire les animations ou économiser des données voient l’image de couverture. Les vidéos YouTube et Vimeo ne se lancent automatiquement qu’après que le visiteur a autorisé les vidéos externes."
   }
 }

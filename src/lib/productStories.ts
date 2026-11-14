@@ -18,7 +18,17 @@ export interface ProductStoryOut {
   name: string;
   rating: number | null;
   verified: boolean;
+  /** Muted autoplay of a video story; absent on an older API. */
+  autoplay?: boolean;
+  /** Loop while autoplaying; absent on an older API. */
+  loop?: boolean;
   translations: { locale: string; quote: string; subtitle: string | null }[];
+}
+
+/** Feature flag of `GET /uploads/video/config` (`features.autoplay`). */
+export interface StoryPayloadOptions {
+  /** The API accepts `autoplay` / `loop` on stories. */
+  allowAutoplay?: boolean;
 }
 
 /** Translated text of one content locale. */
@@ -47,6 +57,10 @@ export interface EditorStory extends StoryMedia {
   /** 0 = no rating, else 1..5. */
   rating: number;
   verified: boolean;
+  /** Muted autoplay on the storefront (video media only). */
+  autoplay: boolean;
+  /** Loop while autoplaying (ignored when `autoplay` is false). */
+  loop: boolean;
   /**
    * Text per locale. Rows of locales the store no longer uses are kept and
    * sent back unchanged (contract 5, last dialog bullet).
@@ -106,6 +120,8 @@ export function storyFromServer(row: ProductStoryOut): EditorStory {
     name: row.name ?? '',
     rating,
     verified: !!row.verified,
+    autoplay: kind !== 'image' && row.autoplay === true,
+    loop: kind !== 'image' && row.loop === true,
     translations,
   };
 }
@@ -125,6 +141,8 @@ export function emptyStory(locales: readonly string[]): EditorStory {
     name: '',
     rating: 0,
     verified: false,
+    autoplay: false,
+    loop: false,
     translations,
   };
 }
@@ -149,10 +167,15 @@ export function storyTranslationsPayload(story: EditorStory) {
     .map((tr) => ({ locale: tr.locale, quote: tr.quote, subtitle: tr.subtitle || null }));
 }
 
-/** `stories` of the product save body, in display order (contract 5, save rule). */
-export function storiesPayload(stories: readonly EditorStory[]) {
+/**
+ * `stories` of the product save body, in display order (contract 5, save rule).
+ * `autoplay` / `loop` only with `allowAutoplay` (an older API rejects unknown
+ * keys); always false for image stories.
+ */
+export function storiesPayload(stories: readonly EditorStory[], opts: StoryPayloadOptions = {}) {
   return stories.map((s) => {
     const isImage = s.kind === 'image';
+    const autoplay = !isImage && !!s.autoplay;
     return {
       ...(s.id ? { id: s.id } : {}),
       kind: s.kind,
@@ -164,14 +187,18 @@ export function storiesPayload(stories: readonly EditorStory[]) {
       name: s.name.trim(),
       rating: s.rating >= 1 && s.rating <= 5 ? Math.round(s.rating) : null,
       verified: !!s.verified,
+      ...(opts.allowAutoplay ? { autoplay, loop: autoplay && !!s.loop } : {}),
       translations: storyTranslationsPayload(s),
     };
   });
 }
 
-/** Comparable snapshot for the unsaved-changes tracker (no ids, no local keys). */
-export function storiesKey(stories: readonly EditorStory[]): string {
-  return JSON.stringify(storiesPayload(stories).map((s) => ({ ...s, id: undefined })));
+/**
+ * Comparable snapshot for the unsaved-changes tracker (no ids, no local keys).
+ * Pass the same flags as the save payload.
+ */
+export function storiesKey(stories: readonly EditorStory[], opts: StoryPayloadOptions = {}): string {
+  return JSON.stringify(storiesPayload(stories, opts).map((s) => ({ ...s, id: undefined })));
 }
 
 /**

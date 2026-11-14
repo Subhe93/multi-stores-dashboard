@@ -6238,7 +6238,9 @@
     "STORY_FILE_INVALID": "Bu hikâyenin videosu hesabınızdan yüklenmemiş veya MP4 dosyası değil. Tekrar yükleyin.",
     "STORY_IMAGE_INVALID": "Bu hikâyenin fotoğrafı veya kapağı hesabınızdan yüklenmemiş. Tekrar yükleyin.",
     "STORY_UPLOAD_EXPIRED": "Bu hikâyenin yüklemesinin süresi doldu. Fotoğrafı veya videoyu tekrar yükleyin.",
-    "STORY_LOCALE_DUPLICATE": "Bu müşteri hikâyesinde “{locale}” dili iki kez var. Sayfayı yenileyip tekrar deneyin."
+    "STORY_LOCALE_DUPLICATE": "Bu müşteri hikâyesinde “{locale}” dili iki kez var. Sayfayı yenileyip tekrar deneyin.",
+    "VIDEO_FEATURED_MULTIPLE": "Yalnızca bir video ilk sırada gösterilebilir.",
+    "VIDEO_FEATURED_REQUIRES_POSTER": "İlk gösterilen videonun bir kapak görseli olmalıdır."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -7149,7 +7151,15 @@
     "videoLimitReached": "Bir ürün en fazla {max} video içerebilir.",
     "videoPlay": "Videoyu oynat",
     "removeVideo": "Videoyu kaldır",
-    "videoRateLimited": "Kısa sürede çok fazla video yüklendi. Birkaç dakika bekleyip tekrar deneyin."
+    "videoRateLimited": "Kısa sürede çok fazla video yüklendi. Birkaç dakika bekleyip tekrar deneyin.",
+    "setFeaturedVideo": "İlk göster",
+    "unsetFeaturedVideo": "İlk gösterme",
+    "featuredVideo": "İlk gösteriliyor",
+    "featuredVideoHint": "Bu video galeride ilk sırada gösterilir. Sepet, paylaşım önizlemeleri, ürün akışları ve e-postalar yine ilk görseli kullanır.",
+    "featuredVideoNeedsPoster": "Bu videoyu ilk göstermek için bir kapak görseli ekleyin.",
+    "videoAutoplay": "Otomatik oynat (sessiz)",
+    "videoLoop": "Döngü",
+    "videoAutoplayHelp": "Görünür olduğu sürece sessizce oynatılır. Azaltılmış hareketi veya veri tasarrufunu tercih eden ziyaretçiler kapak görselini görür. YouTube ve Vimeo videoları yalnızca ziyaretçi harici videolara izin verdikten sonra otomatik oynatılır."
   },
   "bundle": {
     "searchAndPickProducts": "Ürün ara ve seç",
@@ -8133,6 +8143,10 @@
     "autoTranslateFrom": "{locale} dilinden otomatik çevir",
     "autoTranslate": "Otomatik çevir",
     "translating": "Çevriliyor…",
-    "save": "Hikâyeyi kaydet"
+    "save": "Hikâyeyi kaydet",
+    "autoplay": "Otomatik oynat (sessiz)",
+    "loop": "Döngü",
+    "autoplayBadge": "Otomatik oynatma",
+    "autoplayHelp": "Görünür olduğu sürece sessizce oynatılır. Azaltılmış hareketi veya veri tasarrufunu tercih eden ziyaretçiler kapak görselini görür. YouTube ve Vimeo videoları yalnızca ziyaretçi harici videolara izin verdikten sonra otomatik oynatılır."
   }
 }

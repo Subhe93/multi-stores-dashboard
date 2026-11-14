@@ -17,7 +17,7 @@ import { LocaleTabs, filledLocales, localeName, useTranslationPlaceholder } from
 import { resolveMediaUrl } from '@/lib/media';
 import { API_ORIGIN, api } from '@/lib/api';
 import { useImageUpload } from '@/lib/useImageUpload';
-import { failureOf, useVideoUpload, type VideoUploadConfig } from '@/lib/useVideoUpload';
+import { failureOf, useVideoUpload, videoFeatureFlags, type VideoUploadConfig } from '@/lib/useVideoUpload';
 import type { VideoFailure } from '@/lib/uploadError';
 import { formatVideoDuration, toRelativeUploadUrl } from '@/lib/productMedia';
 import {
@@ -119,6 +119,7 @@ export function StoryDialog({
 
   const busy = uploading || video.busy || linkBusy;
   const videoOptions = !!videoConfig;
+  const { allowAutoplay } = videoFeatureFlags(videoConfig);
 
   // Cancel / Esc / click outside. A running upload or poster capture blocks
   // the close (its file would never be saved and would hold store video quota
@@ -152,6 +153,9 @@ export function StoryDialog({
       duration_s: null,
       width: size?.width ?? null,
       height: size?.height ?? null,
+      // Autoplay applies to video media only.
+      autoplay: false,
+      loop: false,
     });
     setProblem(null);
   };
@@ -348,6 +352,30 @@ export function StoryDialog({
                 </Button>
               )}
             </div>
+            {isVideo && allowAutoplay && (
+              <div className="space-y-1 rounded-lg border p-2">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="rounded accent-primary"
+                    checked={draft.autoplay}
+                    onChange={(e) => update(e.target.checked ? { autoplay: true } : { autoplay: false, loop: false })}
+                  />
+                  <span className="text-xs font-medium">{t('story.autoplay')}</span>
+                </label>
+                <label className={`flex items-center gap-2 ${draft.autoplay ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                  <input
+                    type="checkbox"
+                    className="rounded accent-primary"
+                    checked={draft.autoplay && draft.loop}
+                    disabled={!draft.autoplay}
+                    onChange={(e) => update({ loop: e.target.checked })}
+                  />
+                  <span className="text-xs font-medium">{t('story.loop')}</span>
+                </label>
+                <p className="text-[10px] leading-relaxed text-muted-foreground">{t('story.autoplayHelp')}</p>
+              </div>
+            )}
             {problem === 'mediaRequired' && (
               <p className="text-[11px] text-red-600">{t('story.mediaRequired')}</p>
             )}

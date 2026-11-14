@@ -196,6 +196,7 @@ const STORY_KEYS = [
   'namePlaceholder', 'nameRequired', 'subtitle', 'subtitlePlaceholder', 'quote', 'quotePlaceholder', 'rating',
   'ratingNone', 'ratingValue', 'verified', 'verifiedHelp', 'limitReached', 'autoTranslateFrom', 'autoTranslate',
   'translating', 'save', 'busyClose', 'discardTitle', 'discard', 'keepEditing',
+  'autoplay', 'loop', 'autoplayHelp', 'autoplayBadge',
 ];
 // Top-level ICU argument names of a message ("{max}", "{rating, plural, ...}").
 const argsOf = (msg) => [...new Set([...msg.matchAll(/\{\s*([a-zA-Z_]+)\s*[,}]/g)].map((m) => m[1]))].sort();
@@ -260,4 +261,39 @@ test('product-stories schema matches the contract and is registered after produc
   assert.equal(ids.indexOf('product-stories'), ids.indexOf('product-faq') + 1);
   for (const f of s.schema) assert.ok(f.label.en && f.label.ar, `${f.key} label en/ar`);
   assert.ok(s.label.en && s.label.ar && s.description.en && s.description.ar);
+});
+
+// ── Story autoplay (plans/product-video/CONTRACT-AUTOPLAY.md 4.2) ──
+
+test('storyFromServer maps autoplay/loop for videos and forces false for images', () => {
+  const v = storyFromServer(row('v', { kind: 'file', url: '/uploads/products/v.mp4', autoplay: true, loop: true }));
+  assert.deepEqual([v.autoplay, v.loop], [true, true]);
+  const i = storyFromServer(row('i', { autoplay: true, loop: true }));
+  assert.deepEqual([i.autoplay, i.loop], [false, false]);
+  const old = storyFromServer(row('o', { kind: 'youtube', url: 'https://www.youtube.com/watch?v=x' }));
+  assert.deepEqual([old.autoplay, old.loop], [false, false]);
+  assert.deepEqual([emptyStory(['en']).autoplay, emptyStory(['en']).loop], [false, false]);
+});
+
+test('storiesPayload sends autoplay/loop only with allowAutoplay', () => {
+  const v = storyFromServer(row('v', { kind: 'file', url: '/uploads/products/v.mp4', autoplay: true, loop: true }));
+  const img = { ...storyFromServer(row('i')), autoplay: true, loop: true };
+  const off = storiesPayload([v, img]);
+  assert.equal('autoplay' in off[0], false);
+  assert.equal('loop' in off[0], false);
+  const on = storiesPayload([v, img], { allowAutoplay: true });
+  assert.deepEqual([on[0].autoplay, on[0].loop], [true, true]);
+  // Image stories never autoplay.
+  assert.deepEqual([on[1].autoplay, on[1].loop], [false, false]);
+  // Loop without autoplay is sent as false.
+  const loopOnly = storiesPayload([{ ...v, autoplay: false, loop: true }], { allowAutoplay: true })[0];
+  assert.deepEqual([loopOnly.autoplay, loopOnly.loop], [false, false]);
+});
+
+test('storiesKey sees an autoplay-only change under the flag', () => {
+  const flags = { allowAutoplay: true };
+  const loaded = [storyFromServer(row('v', { kind: 'file', url: '/uploads/products/v.mp4' }))];
+  const edited = [{ ...loaded[0], autoplay: true }];
+  assert.notEqual(storiesKey(loaded, flags), storiesKey(edited, flags));
+  assert.equal(storiesKey(loaded), storiesKey(edited));
 });
