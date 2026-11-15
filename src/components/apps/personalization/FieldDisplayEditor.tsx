@@ -43,6 +43,8 @@ interface FieldDisplayEditorProps {
   variantOptions: OptionConfigLike[];
   /** The field has an equal-length link (enables the linked counter and limit). */
   hasLinkedTarget: boolean;
+  /** The field has a built-in format check (enables the "format" message). */
+  hasFormat?: boolean;
   /** Language tab bar of the dialog, rendered above the per-language texts. */
   localeBar: ReactNode;
   extras: ExtrasForm;
@@ -53,10 +55,13 @@ interface FieldDisplayEditorProps {
 }
 
 /** Message keys that apply to a field type (C34 mapping). */
-function messageKeysFor(type: string, linked: boolean): MessageKey[] {
+function messageKeysFor(type: string, linked: boolean, hasFormat = false): MessageKey[] {
   if (type === 'REPEATER') return [];
   if (type === 'TEXT' || type === 'TEXTAREA') {
-    return ['required', 'max_length', 'pattern', 'allowed_chars', ...(linked ? (['equal_length'] as MessageKey[]) : [])];
+    return [
+      'required', 'max_length', ...(hasFormat ? (['format'] as MessageKey[]) : []), 'pattern', 'allowed_chars',
+      ...(linked ? (['equal_length'] as MessageKey[]) : []),
+    ];
   }
   if (type === 'CHECKBOX_GROUP') return ['required', 'min_checked', 'max_checked'];
   return ['required'];
@@ -85,6 +90,7 @@ export function FieldDisplayEditor({
   optionValues,
   variantOptions,
   hasLinkedTarget,
+  hasFormat = false,
   localeBar,
   extras,
   onExtrasChange,
@@ -358,12 +364,12 @@ export function FieldDisplayEditor({
           </div>
         </div>
 
-        {messageKeysFor(type, hasLinkedTarget).length > 0 && (
+        {messageKeysFor(type, hasLinkedTarget, hasFormat).length > 0 && (
           <div className="space-y-1.5">
             <Label className="text-xs">{t('messages')}</Label>
             <p className="text-[9px] text-muted-foreground">{t('messagesHint')}</p>
             <div className="divide-y rounded-md border">
-              {messageKeysFor(type, hasLinkedTarget).map((key) => (
+              {messageKeysFor(type, hasLinkedTarget, hasFormat).map((key) => (
                 <div key={key} className="flex items-center gap-2 px-2 py-1">
                   <span className="w-32 shrink-0 text-[10px] text-zinc-500">{t(`messageKeys.${key}`)}</span>
                   <Input

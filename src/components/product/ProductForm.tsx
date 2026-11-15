@@ -40,6 +40,7 @@ import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
+import { MAX_PER_ORDER_MAX, MAX_PER_ORDER_MIN, maxPerOrderPayload, maxPerOrderText, parseMaxPerOrder } from '@/lib/maxPerOrder';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
@@ -147,6 +148,8 @@ interface ProductResponse {
   sku?: string | null;
   track_inventory?: boolean | null;
   stock_quantity?: number | null;
+  /** Present on an API with the column (P1 B2); null = unlimited. */
+  max_per_order?: number | null;
   weight?: number | string | null;
   weight_unit?: string | null;
   status?: string | null;
@@ -265,6 +268,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [sku, setSku] = useState('');
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQty, setStockQty] = useState('');
+  // Max units of this product per order (empty = unlimited). The key is sent
+  // only when set, or as null to clear a stored limit (see maxPerOrderPayload).
+  const [maxPerOrder, setMaxPerOrder] = useState('');
+  const [savedMaxPerOrder, setSavedMaxPerOrder] = useState('');
+  const [serverHasMaxPerOrder, setServerHasMaxPerOrder] = useState(false);
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
   const [status, setStatus] = useState('DRAFT');
@@ -443,6 +451,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setSku(p.sku || '');
       setTrackInventory(p.track_inventory || false);
       setStockQty(p.stock_quantity ? String(p.stock_quantity) : '');
+      setMaxPerOrder(maxPerOrderText(p.max_per_order));
+      setSavedMaxPerOrder(maxPerOrderText(p.max_per_order));
+      setServerHasMaxPerOrder(Object.prototype.hasOwnProperty.call(p, 'max_per_order'));
       setWeight(p.weight ? String(p.weight) : '');
       setWeightUnit(p.weight_unit || 'kg');
       setStatus(p.status || 'DRAFT');
@@ -621,7 +632,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     return stableJson({
       trans,
       categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
-      trackInventory, stockQty, weight, weightUnit, status: statusOverride ?? status,
+      trackInventory, stockQty, maxPerOrder: maxPerOrder.trim(), weight, weightUnit, status: statusOverride ?? status,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
       // No row ids: adopting the stored ids after a save is not an edit.
@@ -685,6 +696,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                               errs.comparePrice = t('product.errComparePrice');
     if (gtin.trim() && !isValidGtin(gtin.trim()))
                               errs.gtin = t('product.errGtinInvalid');
+    if (parseMaxPerOrder(maxPerOrder) === 'invalid')
+                              errs.maxPerOrder = t('product.errMaxPerOrder', { min: MAX_PER_ORDER_MIN, max: MAX_PER_ORDER_MAX });
     // A video needs at least one product-level image (the first slot is an image).
     if (videosNeedImage(images.length, videos.length)) errs.media = t('image.videoRequiresImage');
     // The video shown first needs a poster (cannot normally happen: the grid enforces it).
@@ -844,6 +857,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         sku: sku || undefined,
         track_inventory: trackInventory,
         stock_quantity: stockQty ? parseInt(stockQty) : undefined,
+        ...maxPerOrderPayload(maxPerOrder, { mode, serverHasKey: serverHasMaxPerOrder, savedText: savedMaxPerOrder }),
         weight: weight ? parseFloat(weight) : undefined,
         weight_unit: weightUnit,
         variant_option_config: variantOptions.length > 0 ? variantOptions : undefined,
@@ -998,6 +1012,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setStatus(finalStatus);
         setSavedStatus(finalStatus);
         setSavedSlug(storedPrimarySlug || primarySlug);
+        setSavedMaxPerOrder(maxPerOrder.trim());
         markSaved(savedSnapshot, interactionsAtStart);
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
@@ -1699,6 +1714,23 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5"><Label className="text-xs">{t('product.sku')}</Label><Input className="h-8 text-sm font-mono" value={sku} onChange={e => setSku(e.target.value)} /></div>
                 <div className="space-y-1.5"><Label className="text-xs">{t('product.quantity')}</Label><Input type="number" className="h-8 text-sm" value={stockQty} onChange={e => setStockQty(e.target.value)} /></div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="product-max-per-order" className="text-xs">{t('product.maxPerOrder')}</Label>
+                <Input
+                  id="product-max-per-order"
+                  type="number"
+                  inputMode="numeric"
+                  min={MAX_PER_ORDER_MIN}
+                  max={MAX_PER_ORDER_MAX}
+                  step={1}
+                  className={`h-8 text-sm ${fieldErrors.maxPerOrder ? 'border-red-400' : ''}`}
+                  value={maxPerOrder}
+                  placeholder={t('product.maxPerOrderPlaceholder')}
+                  onChange={e => { setMaxPerOrder(e.target.value); if (fieldErrors.maxPerOrder) setFieldErrors(p => ({ ...p, maxPerOrder: '' })); }}
+                />
+                <FieldError msg={fieldErrors.maxPerOrder} />
+                <p className="text-[10px] text-muted-foreground leading-snug">{t('product.maxPerOrderHelp')}</p>
               </div>
             </CardContent>
           </Card>

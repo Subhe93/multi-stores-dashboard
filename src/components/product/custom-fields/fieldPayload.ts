@@ -222,6 +222,7 @@ export function buildFieldPayload(s: FieldFormState, ctx: PayloadContext): Custo
     if (ctx.minLen !== undefined) validationRules.min_length = ctx.minLen;
     if (s.pattern) validationRules.pattern = s.pattern;
     if (s.allowedChars) validationRules.allowed_chars = s.allowedChars;
+    if (s.format) validationRules.format = s.format;
   }
   if (on && type === 'CHECKBOX_GROUP') {
     if (ctx.minChk !== undefined) validationRules.min_checked = ctx.minChk;

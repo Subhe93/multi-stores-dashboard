@@ -118,6 +118,7 @@ export const MESSAGE_KEYS = [
   'max_length',
   'min_checked',
   'max_checked',
+  'format',
 ] as const;
 export type MessageKey = (typeof MESSAGE_KEYS)[number];
 

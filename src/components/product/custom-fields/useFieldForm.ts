@@ -47,6 +47,8 @@ export interface FieldFormState {
   minLength: string;
   pattern: string;
   allowedChars: string;
+  /** Built-in format (`validation_rules.format`), '' = none. */
+  format: string;
   selectOptions: string;
   // Linked validation
   linkedType: string;
@@ -105,7 +107,7 @@ const blankForm = (parent: string | null, { locales, primaryLocale }: FormContex
     extraTranslations: [],
     translatingLocale: '',
     maxLength: '', minLength: '', pattern: '',
-    allowedChars: '', selectOptions: '', linkedType: '', linkedTarget: '', linkedFillChar: '',
+    allowedChars: '', format: '', selectOptions: '', linkedType: '', linkedTarget: '', linkedFillChar: '',
     linkedMax: '', saveError: '',
     original: null, parentId: parent,
     conditions: null, pricing: null, repeat: null, ui: null,
@@ -156,6 +158,7 @@ const editForm = (field: CustomField, fields: CustomField[], { locales, primaryL
     minLength: field.validation_rules?.min_length != null ? String(field.validation_rules.min_length) : '',
     pattern: field.validation_rules?.pattern || '',
     allowedChars: field.validation_rules?.allowed_chars || '',
+    format: field.validation_rules?.format || '',
     minChecked: field.validation_rules?.min_checked != null ? String(field.validation_rules.min_checked) : '',
     maxChecked: field.validation_rules?.max_checked != null ? String(field.validation_rules.max_checked) : '',
     selectOptions: Array.isArray(field.options) ? field.options.join(', ') : '',

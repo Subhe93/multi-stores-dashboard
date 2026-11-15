@@ -21,6 +21,8 @@ export interface CustomFieldValidationRules {
   min_length?: number;
   pattern?: string;
   allowed_chars?: string;
+  /** Built-in format check (P1 B1); only 'personnummer' today. */
+  format?: string;
   /** CHECKBOX_GROUP bounds (M4.1, C17). */
   min_checked?: number;
   max_checked?: number;

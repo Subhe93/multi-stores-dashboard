@@ -49,7 +49,7 @@ export function FieldDialog({
   } = form;
   const {
     showForm, editingId, name, type, required, activeLocale, localeData, translatingLocale,
-    maxLength, minLength, pattern, allowedChars, selectOptions, linkedType, linkedTarget, linkedFillChar, linkedMax,
+    maxLength, minLength, pattern, allowedChars, format, selectOptions, linkedType, linkedTarget, linkedFillChar, linkedMax,
     saving, saveError, parentId, conditions, pricing, repeat, ui, localeExtras, minChecked, maxChecked,
   } = state;
   const parentField = parentId ? fields.find(f => f.id === parentId) : undefined;
@@ -235,12 +235,21 @@ export function FieldDialog({
             { label: t('customField.presetCustom'), pattern: '', chars: '' },
           ].map(preset => (
             <button key={preset.label} type="button"
-              onClick={() => patch(preset.chars ? { pattern: preset.pattern, allowedChars: preset.chars } : { pattern: preset.pattern })}
-              className={`text-[10px] px-2 py-1 rounded-md border transition ${pattern === preset.pattern ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-zinc-50'}`}>
+              onClick={() => patch(preset.chars ? { pattern: preset.pattern, allowedChars: preset.chars, format: '' } : { pattern: preset.pattern, format: '' })}
+              className={`text-[10px] px-2 py-1 rounded-md border transition ${!format && pattern === preset.pattern ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-zinc-50'}`}>
               {preset.label}
             </button>
           ))}
+          {/* Built-in check (validation_rules.format): replaces pattern and allowed characters. */}
+          <button type="button"
+            onClick={() => patch({ format: 'personnummer', pattern: '', allowedChars: '' })}
+            className={`text-[10px] px-2 py-1 rounded-md border transition ${format === 'personnummer' ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-zinc-50'}`}>
+            {t('customField.presetPersonnummer')}
+          </button>
         </div>
+        {format === 'personnummer' && (
+          <p className="text-[10px] text-muted-foreground mb-2">{t('customField.personnummerHint')}</p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-[10px] text-muted-foreground">{t('customField.regexPattern')}</Label>
@@ -426,6 +435,7 @@ export function FieldDialog({
                   optionValues={optionValues}
                   variantOptions={variantOptions}
                   hasLinkedTarget={linkedType === 'equal_length' && !!linkedTarget}
+                  hasFormat={!!format}
                   localeBar={localeBar}
                   extras={localeExtras[activeLocale] ?? emptyExtras()}
                   onExtrasChange={p => setExtras(activeLocale, p)}
