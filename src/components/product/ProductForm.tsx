@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -41,6 +42,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
 import { MAX_PER_ORDER_MAX, MAX_PER_ORDER_MIN, maxPerOrderPayload, maxPerOrderText, parseMaxPerOrder } from '@/lib/maxPerOrder';
+import { EMAIL_NOTE_MAX, emailNotePayload, emailNoteText } from '@/lib/emailNote';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
@@ -121,6 +123,8 @@ interface ProductTranslationRow {
   description?: string | null;
   // M4.4: null for products that never had one; absent on older API builds.
   short_description?: string | null;
+  // P4 E2: owner-only confirmation email note; absent on older API builds.
+  email_note?: string | null;
   slug?: string | null;
   meta_title?: string | null;
   meta_desc?: string | null;
@@ -208,6 +212,10 @@ type LocaleTranslation = {
   description: string;
   slug: string;
   short_description?: string;
+  // Order confirmation email note (P4 E2), plain text. Undefined until it
+  // was loaded or edited, like short_description: the API keeps the stored
+  // note of a locale whose payload omits it.
+  email_note?: string;
   // Per-locale SEO (product translation row).
   meta_title?: string;
   meta_desc?: string;
@@ -273,6 +281,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [maxPerOrder, setMaxPerOrder] = useState('');
   const [savedMaxPerOrder, setSavedMaxPerOrder] = useState('');
   const [serverHasMaxPerOrder, setServerHasMaxPerOrder] = useState(false);
+  // Stored confirmation email note per content locale (P4 E2): emptying a
+  // stored note sends null; an empty locale without one sends no key.
+  const [savedEmailNotes, setSavedEmailNotes] = useState<Record<string, string>>({});
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
   const [status, setStatus] = useState('DRAFT');
@@ -496,6 +507,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setFeedExcluded(!!p.feed_excluded);
 
       // Populate translations for all configured locales
+      const loadedNotes: Record<string, string> = {};
+      (p.translations || []).forEach((t) => {
+        const note = emailNoteText(t);
+        if (note !== undefined) loadedNotes[t.locale] = note;
+      });
+      setSavedEmailNotes(loadedNotes);
       setTranslations(prev => {
         const next = { ...prev };
         (p.translations || []).forEach((t) => {
@@ -504,6 +521,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             description: t.description || '',
             slug: t.slug || '',
             ...('short_description' in t ? { short_description: t.short_description || '' } : {}),
+            ...(t.locale in loadedNotes ? { email_note: loadedNotes[t.locale] } : {}),
             meta_title: t.meta_title || '',
             meta_desc: t.meta_desc || '',
           };
@@ -623,11 +641,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         title: tr?.title || '',
         description: richText(tr?.description),
         short_description: richText(tr?.short_description),
+        email_note: (tr?.email_note || '').trim(),
         slug: tr?.slug || '',
         meta_title: tr?.meta_title || '',
         meta_desc: tr?.meta_desc || '',
       };
-      if (row.title || row.description || row.short_description || row.slug || row.meta_title || row.meta_desc) trans[locale] = row;
+      if (row.title || row.description || row.short_description || row.email_note || row.slug || row.meta_title || row.meta_desc) trans[locale] = row;
     }
     return stableJson({
       trans,
@@ -822,6 +841,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             ...(t.short_description !== undefined
               ? { short_description: isBlankHtml(t.short_description) ? '' : t.short_description }
               : {}),
+            // Only when set, or null to clear a stored note (no key otherwise).
+            ...emailNotePayload(t.email_note, savedEmailNotes[locale]),
             slug: locale === primaryLocale ? primarySlug : resolved,
             meta_title: t.meta_title || undefined,
             meta_desc: t.meta_desc || undefined,
@@ -1013,6 +1034,13 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setSavedStatus(finalStatus);
         setSavedSlug(storedPrimarySlug || primarySlug);
         setSavedMaxPerOrder(maxPerOrder.trim());
+        setSavedEmailNotes(prev => {
+          const next = { ...prev };
+          for (const [locale, tr] of Object.entries(cleanTranslations)) {
+            if (tr?.email_note !== undefined && tr.title.trim()) next[locale] = tr.email_note.trim();
+          }
+          return next;
+        });
         markSaved(savedSnapshot, interactionsAtStart);
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
@@ -1368,6 +1396,32 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                     primaryPlaceholder: t('product.shortDescriptionPlaceholder'),
                   })}
                 />
+              </div>
+
+              {/* Order confirmation email note per locale (P4 E2): plain
+                  text under this product's line in that email only. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="product-email-note" className="text-xs">{t('product.emailNote')}</Label>
+                <Textarea
+                  id="product-email-note"
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  className="text-sm min-h-16"
+                  maxLength={EMAIL_NOTE_MAX}
+                  rows={2}
+                  value={translations[activeLocale]?.email_note || ''}
+                  onChange={e => setTransField(activeLocale, 'email_note', e.target.value)}
+                  placeholder={
+                    activeLocale === primaryLocale
+                      ? t('product.emailNotePlaceholder')
+                      : translations[primaryLocale]?.email_note || t('product.emailNotePlaceholder')
+                  }
+                />
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[10px] text-muted-foreground leading-snug">{t('product.emailNoteHelp')}</p>
+                  <span className="text-[10px] text-muted-foreground tabular-nums shrink-0" dir="ltr">
+                    {(translations[activeLocale]?.email_note || '').length}/{EMAIL_NOTE_MAX}
+                  </span>
+                </div>
               </div>
 
               {/* URL slug per locale (WordPress rules, any script). Leaving it
