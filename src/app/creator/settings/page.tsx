@@ -1036,6 +1036,7 @@ export default function CreatorSettingsPage() {
               ...(store.language_config?.secondary_locales || []),
             ].filter((l, i, all) => all.indexOf(l) === i)}
             onSaved={(settings) => setStore((s) => (s ? { ...s, checkout_settings: settings } : s))}
+            requestReauth={reauth.request}
           />
         )}
 

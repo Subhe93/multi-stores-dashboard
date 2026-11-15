@@ -2740,7 +2740,36 @@
         "saved": "Checkout settings saved.",
         "saveFailed": "Could not save the checkout settings.",
         "unsaved": "Unsaved changes",
-        "save": "Save"
+        "save": "Save",
+        "external": {
+          "title": "External website",
+          "subtitle": "For stores with their own website in front of this store (e.g. a course site that links here to book). After paying, customers are sent back there. Leave empty to keep the standard behaviour.",
+          "siteUrl": "Website address",
+          "siteUrlHint": "Your own website, starting with https:// (e.g. https://example.se). The checkout logo and \"continue shopping\" links lead here.",
+          "returnUrl": "Page after payment (optional)",
+          "returnUrlHint": "A page on the same website, e.g. https://example.se/tack?order={order_number}. {order_number} is replaced with the order number; nothing else is added. Empty = the website address.",
+          "returnMode": "After payment",
+          "mode": {
+            "button": "Show a \"back to website\" button",
+            "buttonHint": "The confirmation stays on screen; customers click to go back (standard).",
+            "auto": "Go back automatically",
+            "autoHint": "After a paid order, customers are sent back after 8 seconds unless they choose to stay."
+          },
+          "backLabel": "Button text",
+          "backLabelHint": "Text of the \"back to website\" button per store language (max {max} characters). Leave empty to use the standard text.",
+          "reauthNote": "Setting or changing the website address asks for your password. Every change is logged and emailed to you.",
+          "reauthDescription": "Confirm your password to change the website customers are sent to after paying.",
+          "reasons": {
+            "invalid_url": "This is not a valid web address.",
+            "too_long": "The address is too long (max 500 characters).",
+            "https_required": "The address must start with https://.",
+            "userinfo_not_allowed": "The address may not contain a user name or password.",
+            "port_not_allowed": "The address may not contain a port number.",
+            "host_not_allowed": "Use a real domain name. The page after payment must be on the website address (or its www. version).",
+            "placeholder_not_allowed": "Only {order_number} may be used, and not in the domain name.",
+            "external_site_url_required": "Enter the website address first."
+          }
+        }
       },
       "tracking": {
         "title": "Tracking & cookies",
@@ -6241,7 +6270,9 @@
     "STORY_UPLOAD_EXPIRED": "This story’s upload has expired. Upload the photo or video again.",
     "STORY_LOCALE_DUPLICATE": "This customer story has the language “{locale}” twice. Reload the page and try again.",
     "VIDEO_FEATURED_MULTIPLE": "Only one video can be shown first.",
-    "VIDEO_FEATURED_REQUIRES_POSTER": "The video shown first needs a poster image."
+    "VIDEO_FEATURED_REQUIRES_POSTER": "The video shown first needs a poster image.",
+    "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "This website address is not allowed.",
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Only the store owner can change the external website address."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",
@@ -7778,7 +7809,8 @@
         "backup_deleted": "Backup deleted",
         "payment_keys_stripe_own_key_updated": "Own Stripe key connected",
         "payment_keys_stripe_own_key_removed": "Own Stripe key removed",
-        "payment_keys_stripe_own_key_revoked": "Own Stripe key stopped working"
+        "payment_keys_stripe_own_key_revoked": "Own Stripe key stopped working",
+        "checkout_external_return_updated": "External website address changed"
       },
       "roles": {
         "ADMIN": "Admin",

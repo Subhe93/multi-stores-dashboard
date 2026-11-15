@@ -2740,7 +2740,36 @@
         "saved": "Kassainställningarna sparades.",
         "saveFailed": "Kunde inte spara kassainställningarna.",
         "unsaved": "Osparade ändringar",
-        "save": "Spara"
+        "save": "Spara",
+        "external": {
+          "title": "Extern webbplats",
+          "subtitle": "För butiker med en egen webbplats framför den här butiken (t.ex. en kurssajt som länkar hit för bokning). Efter betalningen skickas kunderna tillbaka dit. Lämna tomt för standardbeteendet.",
+          "siteUrl": "Webbplatsens adress",
+          "siteUrlHint": "Din egen webbplats, som börjar med https:// (t.ex. https://example.se). Logotypen i kassan och länkarna \"fortsätt handla\" leder hit.",
+          "returnUrl": "Sida efter betalning (valfritt)",
+          "returnUrlHint": "En sida på samma webbplats, t.ex. https://example.se/tack?order={order_number}. {order_number} ersätts med ordernumret; inget annat läggs till. Tomt = webbplatsens adress.",
+          "returnMode": "Efter betalning",
+          "mode": {
+            "button": "Visa en knapp \"tillbaka till webbplatsen\"",
+            "buttonHint": "Bekräftelsen ligger kvar; kunden klickar för att gå tillbaka (standard).",
+            "auto": "Gå tillbaka automatiskt",
+            "autoHint": "Efter en betald order skickas kunden tillbaka efter 8 sekunder om hen inte väljer att stanna."
+          },
+          "backLabel": "Knapptext",
+          "backLabelHint": "Text på knappen \"tillbaka till webbplatsen\" per butiksspråk (max {max} tecken). Lämna tomt för standardtexten.",
+          "reauthNote": "Att ange eller ändra webbplatsens adress kräver ditt lösenord. Varje ändring loggas och mejlas till dig.",
+          "reauthDescription": "Bekräfta ditt lösenord för att ändra webbplatsen som kunderna skickas till efter betalningen.",
+          "reasons": {
+            "invalid_url": "Det här är inte en giltig webbadress.",
+            "too_long": "Adressen är för lång (max 500 tecken).",
+            "https_required": "Adressen måste börja med https://.",
+            "userinfo_not_allowed": "Adressen får inte innehålla användarnamn eller lösenord.",
+            "port_not_allowed": "Adressen får inte innehålla ett portnummer.",
+            "host_not_allowed": "Använd ett riktigt domännamn. Sidan efter betalning måste ligga på webbplatsens adress (eller dess www.-version).",
+            "placeholder_not_allowed": "Endast {order_number} får användas, och inte i domännamnet.",
+            "external_site_url_required": "Ange webbplatsens adress först."
+          }
+        }
       },
       "tracking": {
         "title": "Spårning & cookies",
@@ -6241,7 +6270,9 @@
     "STORY_UPLOAD_EXPIRED": "Uppladdningen för berättelsen har gått ut. Ladda upp fotot eller videon igen.",
     "STORY_LOCALE_DUPLICATE": "Berättelsen har språket ”{locale}” två gånger. Ladda om sidan och försök igen.",
     "VIDEO_FEATURED_MULTIPLE": "Bara en video kan visas först.",
-    "VIDEO_FEATURED_REQUIRES_POSTER": "Videon som visas först behöver en omslagsbild."
+    "VIDEO_FEATURED_REQUIRES_POSTER": "Videon som visas först behöver en omslagsbild.",
+    "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Den här webbadressen är inte tillåten.",
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Endast butiksägaren kan ändra den externa webbplatsens adress."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",
@@ -7778,7 +7809,8 @@
         "backup_deleted": "Säkerhetskopia raderad",
         "payment_keys_stripe_own_key_updated": "Egen Stripe-nyckel ansluten",
         "payment_keys_stripe_own_key_removed": "Egen Stripe-nyckel borttagen",
-        "payment_keys_stripe_own_key_revoked": "Egen Stripe-nyckel slutade fungera"
+        "payment_keys_stripe_own_key_revoked": "Egen Stripe-nyckel slutade fungera",
+        "checkout_external_return_updated": "Extern webbplatsadress ändrad"
       },
       "roles": {
         "ADMIN": "Administratör",

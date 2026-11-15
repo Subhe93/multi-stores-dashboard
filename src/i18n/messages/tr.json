@@ -2740,7 +2740,36 @@
         "saved": "Ödeme ayarları kaydedildi.",
         "saveFailed": "Ödeme ayarları kaydedilemedi.",
         "unsaved": "Kaydedilmemiş değişiklikler",
-        "save": "Kaydet"
+        "save": "Kaydet",
+        "external": {
+          "title": "Harici web sitesi",
+          "subtitle": "Bu mağazanın önünde kendi web sitesi olan mağazalar için (ör. rezervasyon için buraya bağlantı veren bir kurs sitesi). Ödemeden sonra müşteriler oraya geri gönderilir. Standart davranış için boş bırakın.",
+          "siteUrl": "Web sitesi adresi",
+          "siteUrlHint": "https:// ile başlayan kendi web siteniz (ör. https://example.se). Ödeme sayfasındaki logo ve \"Alışverişe devam et\" bağlantıları buraya gider.",
+          "returnUrl": "Ödeme sonrası sayfa (isteğe bağlı)",
+          "returnUrlHint": "Aynı sitede bir sayfa, ör. https://example.se/tack?order={order_number}. {order_number} sipariş numarasıyla değiştirilir; başka hiçbir şey eklenmez. Boş = web sitesi adresi.",
+          "returnMode": "Ödemeden sonra",
+          "mode": {
+            "button": "\"Siteye dön\" düğmesi göster",
+            "buttonHint": "Onay ekranda kalır; müşteri geri dönmek için tıklar (standart).",
+            "auto": "Otomatik olarak geri dön",
+            "autoHint": "Ödenmiş bir siparişten sonra müşteri, kalmayı seçmezse 8 saniye sonra geri gönderilir."
+          },
+          "backLabel": "Düğme metni",
+          "backLabelHint": "Mağaza dili başına \"Siteye dön\" düğmesinin metni (en fazla {max} karakter). Standart metin için boş bırakın.",
+          "reauthNote": "Web sitesi adresini girmek veya değiştirmek şifrenizi gerektirir. Her değişiklik kaydedilir ve size e-postayla bildirilir.",
+          "reauthDescription": "Müşterilerin ödemeden sonra gönderileceği web sitesini değiştirmek için şifrenizi onaylayın.",
+          "reasons": {
+            "invalid_url": "Bu geçerli bir web adresi değil.",
+            "too_long": "Adres çok uzun (en fazla 500 karakter).",
+            "https_required": "Adres https:// ile başlamalıdır.",
+            "userinfo_not_allowed": "Adres kullanıcı adı veya şifre içeremez.",
+            "port_not_allowed": "Adres port numarası içeremez.",
+            "host_not_allowed": "Gerçek bir alan adı kullanın. Ödeme sonrası sayfa, web sitesi adresinde (veya www. sürümünde) olmalıdır.",
+            "placeholder_not_allowed": "Yalnızca {order_number} kullanılabilir ve alan adında kullanılamaz.",
+            "external_site_url_required": "Önce web sitesi adresini girin."
+          }
+        }
       },
       "tracking": {
         "title": "İzleme ve çerezler",
@@ -6241,7 +6270,9 @@
     "STORY_UPLOAD_EXPIRED": "Bu hikâyenin yüklemesinin süresi doldu. Fotoğrafı veya videoyu tekrar yükleyin.",
     "STORY_LOCALE_DUPLICATE": "Bu müşteri hikâyesinde “{locale}” dili iki kez var. Sayfayı yenileyip tekrar deneyin.",
     "VIDEO_FEATURED_MULTIPLE": "Yalnızca bir video ilk sırada gösterilebilir.",
-    "VIDEO_FEATURED_REQUIRES_POSTER": "İlk gösterilen videonun bir kapak görseli olmalıdır."
+    "VIDEO_FEATURED_REQUIRES_POSTER": "İlk gösterilen videonun bir kapak görseli olmalıdır.",
+    "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Bu web sitesi adresine izin verilmiyor.",
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Harici web sitesi adresini yalnızca mağaza sahibi değiştirebilir."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
@@ -7778,7 +7809,8 @@
         "backup_deleted": "Yedek silindi",
         "payment_keys_stripe_own_key_updated": "Kendi Stripe anahtarı bağlandı",
         "payment_keys_stripe_own_key_removed": "Kendi Stripe anahtarı kaldırıldı",
-        "payment_keys_stripe_own_key_revoked": "Kendi Stripe anahtarı çalışmayı durdurdu"
+        "payment_keys_stripe_own_key_revoked": "Kendi Stripe anahtarı çalışmayı durdurdu",
+        "checkout_external_return_updated": "Harici web sitesi adresi değiştirildi"
       },
       "roles": {
         "ADMIN": "Yönetici",

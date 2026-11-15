@@ -2740,7 +2740,36 @@
         "saved": "Checkout-Einstellungen gespeichert.",
         "saveFailed": "Die Checkout-Einstellungen konnten nicht gespeichert werden.",
         "unsaved": "Ungespeicherte Änderungen",
-        "save": "Speichern"
+        "save": "Speichern",
+        "external": {
+          "title": "Externe Website",
+          "subtitle": "Für Shops mit eigener Website vor diesem Shop (z. B. eine Kursseite, die zum Buchen hierher verlinkt). Nach der Zahlung werden Kunden dorthin zurückgeleitet. Leer lassen für das Standardverhalten.",
+          "siteUrl": "Website-Adresse",
+          "siteUrlHint": "Deine eigene Website, beginnend mit https:// (z. B. https://example.se). Das Logo im Checkout und die Links „Weiter einkaufen“ führen dorthin.",
+          "returnUrl": "Seite nach der Zahlung (optional)",
+          "returnUrlHint": "Eine Seite derselben Website, z. B. https://example.se/tack?order={order_number}. {order_number} wird durch die Bestellnummer ersetzt; sonst wird nichts angehängt. Leer = die Website-Adresse.",
+          "returnMode": "Nach der Zahlung",
+          "mode": {
+            "button": "Button „Zurück zur Website“ anzeigen",
+            "buttonHint": "Die Bestätigung bleibt sichtbar; Kunden klicken, um zurückzugehen (Standard).",
+            "auto": "Automatisch zurückleiten",
+            "autoHint": "Nach einer bezahlten Bestellung werden Kunden nach 8 Sekunden zurückgeleitet, sofern sie nicht bleiben möchten."
+          },
+          "backLabel": "Button-Text",
+          "backLabelHint": "Text des Buttons „Zurück zur Website“ je Shop-Sprache (max. {max} Zeichen). Leer lassen für den Standardtext.",
+          "reauthNote": "Das Festlegen oder Ändern der Website-Adresse erfordert dein Passwort. Jede Änderung wird protokolliert und dir per E-Mail gemeldet.",
+          "reauthDescription": "Bestätige dein Passwort, um die Website zu ändern, zu der Kunden nach der Zahlung geleitet werden.",
+          "reasons": {
+            "invalid_url": "Das ist keine gültige Webadresse.",
+            "too_long": "Die Adresse ist zu lang (max. 500 Zeichen).",
+            "https_required": "Die Adresse muss mit https:// beginnen.",
+            "userinfo_not_allowed": "Die Adresse darf keinen Benutzernamen und kein Passwort enthalten.",
+            "port_not_allowed": "Die Adresse darf keine Portnummer enthalten.",
+            "host_not_allowed": "Verwende einen echten Domainnamen. Die Seite nach der Zahlung muss auf der Website-Adresse (oder ihrer www.-Version) liegen.",
+            "placeholder_not_allowed": "Nur {order_number} ist erlaubt, und nicht im Domainnamen.",
+            "external_site_url_required": "Gib zuerst die Website-Adresse ein."
+          }
+        }
       },
       "tracking": {
         "title": "Tracking & Cookies",
@@ -6241,7 +6270,9 @@
     "STORY_UPLOAD_EXPIRED": "Der Upload dieser Kundenstimme ist abgelaufen. Lade Foto oder Video erneut hoch.",
     "STORY_LOCALE_DUPLICATE": "Diese Kundenstimme enthält die Sprache „{locale}“ doppelt. Lade die Seite neu und versuche es erneut.",
     "VIDEO_FEATURED_MULTIPLE": "Nur ein Video kann zuerst gezeigt werden.",
-    "VIDEO_FEATURED_REQUIRES_POSTER": "Das zuerst gezeigte Video braucht ein Vorschaubild."
+    "VIDEO_FEATURED_REQUIRES_POSTER": "Das zuerst gezeigte Video braucht ein Vorschaubild.",
+    "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Diese Website-Adresse ist nicht erlaubt.",
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Nur der Shop-Inhaber kann die externe Website-Adresse ändern."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
@@ -7778,7 +7809,8 @@
         "backup_deleted": "Backup gelöscht",
         "payment_keys_stripe_own_key_updated": "Eigener Stripe-Schlüssel verbunden",
         "payment_keys_stripe_own_key_removed": "Eigener Stripe-Schlüssel entfernt",
-        "payment_keys_stripe_own_key_revoked": "Eigener Stripe-Schlüssel funktioniert nicht mehr"
+        "payment_keys_stripe_own_key_revoked": "Eigener Stripe-Schlüssel funktioniert nicht mehr",
+        "checkout_external_return_updated": "Externe Website-Adresse geändert"
       },
       "roles": {
         "ADMIN": "Admin",

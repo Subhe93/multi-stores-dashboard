@@ -2740,7 +2740,36 @@
         "saved": "Paramètres de paiement enregistrés.",
         "saveFailed": "Impossible d’enregistrer les paramètres de paiement.",
         "unsaved": "Modifications non enregistrées",
-        "save": "Enregistrer"
+        "save": "Enregistrer",
+        "external": {
+          "title": "Site web externe",
+          "subtitle": "Pour les boutiques qui ont leur propre site devant cette boutique (par ex. un site de cours qui renvoie ici pour réserver). Après le paiement, les clients y sont renvoyés. Laissez vide pour le comportement standard.",
+          "siteUrl": "Adresse du site",
+          "siteUrlHint": "Votre propre site, commençant par https:// (par ex. https://example.se). Le logo du paiement et les liens « Continuer mes achats » y mènent.",
+          "returnUrl": "Page après le paiement (facultatif)",
+          "returnUrlHint": "Une page du même site, par ex. https://example.se/tack?order={order_number}. {order_number} est remplacé par le numéro de commande ; rien d’autre n’est ajouté. Vide = l’adresse du site.",
+          "returnMode": "Après le paiement",
+          "mode": {
+            "button": "Afficher un bouton « Retour au site »",
+            "buttonHint": "La confirmation reste affichée ; le client clique pour revenir (standard).",
+            "auto": "Revenir automatiquement",
+            "autoHint": "Après une commande payée, le client est renvoyé après 8 secondes, sauf s’il choisit de rester."
+          },
+          "backLabel": "Texte du bouton",
+          "backLabelHint": "Texte du bouton « Retour au site » par langue de la boutique ({max} caractères max.). Laissez vide pour le texte standard.",
+          "reauthNote": "Définir ou modifier l’adresse du site demande votre mot de passe. Chaque modification est journalisée et vous est envoyée par e-mail.",
+          "reauthDescription": "Confirmez votre mot de passe pour modifier le site vers lequel les clients sont renvoyés après le paiement.",
+          "reasons": {
+            "invalid_url": "Ce n’est pas une adresse web valide.",
+            "too_long": "L’adresse est trop longue (500 caractères max.).",
+            "https_required": "L’adresse doit commencer par https://.",
+            "userinfo_not_allowed": "L’adresse ne peut pas contenir de nom d’utilisateur ni de mot de passe.",
+            "port_not_allowed": "L’adresse ne peut pas contenir de numéro de port.",
+            "host_not_allowed": "Utilisez un vrai nom de domaine. La page après le paiement doit être sur l’adresse du site (ou sa version www.).",
+            "placeholder_not_allowed": "Seul {order_number} est autorisé, et pas dans le nom de domaine.",
+            "external_site_url_required": "Saisissez d’abord l’adresse du site."
+          }
+        }
       },
       "tracking": {
         "title": "Suivi & cookies",
@@ -6241,7 +6270,9 @@
     "STORY_UPLOAD_EXPIRED": "L’import de ce témoignage a expiré. Importez à nouveau la photo ou la vidéo.",
     "STORY_LOCALE_DUPLICATE": "Ce témoignage contient deux fois la langue « {locale} ». Rechargez la page et réessayez.",
     "VIDEO_FEATURED_MULTIPLE": "Une seule vidéo peut être affichée en premier.",
-    "VIDEO_FEATURED_REQUIRES_POSTER": "La vidéo affichée en premier doit avoir une image de couverture."
+    "VIDEO_FEATURED_REQUIRES_POSTER": "La vidéo affichée en premier doit avoir une image de couverture.",
+    "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Cette adresse de site n’est pas autorisée.",
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Seul le propriétaire de la boutique peut modifier l’adresse du site externe."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",
@@ -7778,7 +7809,8 @@
         "backup_deleted": "Sauvegarde supprimée",
         "payment_keys_stripe_own_key_updated": "Clé Stripe propre connectée",
         "payment_keys_stripe_own_key_removed": "Clé Stripe propre supprimée",
-        "payment_keys_stripe_own_key_revoked": "La clé Stripe propre ne fonctionne plus"
+        "payment_keys_stripe_own_key_revoked": "La clé Stripe propre ne fonctionne plus",
+        "checkout_external_return_updated": "Adresse du site externe modifiée"
       },
       "roles": {
         "ADMIN": "Administrateur",

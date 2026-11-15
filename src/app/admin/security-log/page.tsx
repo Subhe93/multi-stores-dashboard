@@ -60,6 +60,7 @@ const ACTIONS = [
   'backup.downloaded',
   'backup.restored',
   'backup.deleted',
+  'checkout.external_return.updated',
 ] as const;
 
 const KNOWN_ACTIONS = new Set<string>(ACTIONS);

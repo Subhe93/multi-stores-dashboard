@@ -2,20 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Loader2, Lock } from 'lucide-react';
+import { ExternalLink, Loader2, Lock } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
 import {
   AFTER_ADD_TO_CART,
   MAX_PAY_BUTTON_LABEL,
   NAMEZ_RECOMMENDED,
+  RETURN_MODES,
   checkoutFormErrors,
+  externalSiteNeedsReauth,
+  externalUrlRejection,
   toCheckoutBody,
   toCheckoutForm,
   type AfterAddToCart,
   type CheckoutSettings,
   type CheckoutSettingsForm,
+  type ExternalUrlReason,
+  type ReturnMode,
 } from '@/lib/checkoutSettings';
+import type { ReauthAction } from '@/components/security/ReauthDialog';
+import type { ReauthCredentials } from '@/lib/twoFactor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +43,9 @@ interface Props {
   /** Store content locales: the pay button label is editable per locale. */
   locales: string[];
   onSaved: (settings: CheckoutSettings | null) => void;
+  /** Opens the page's re-auth dialog (useReauth().request): setting or
+   *  replacing the external site URL needs the password (+ 2FA code). */
+  requestReauth?: (action: ReauthAction, description?: string) => void;
 }
 
 /** Default pay button text of the storefront per locale (mirror of web `checkout.payAndPlaceOrder`). */
@@ -48,7 +58,31 @@ const DEFAULT_PAY_LABEL: Record<string, string> = {
   ar: 'ادفع وأكّد الطلب',
 };
 
-export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) {
+/** Default "back to site" text of the storefront (mirror of web `checkout.returnToSite`). */
+const DEFAULT_BACK_LABEL: Record<string, string> = {
+  en: 'Back to {site}',
+  sv: 'Tillbaka till {site}',
+  de: 'Zurück zu {site}',
+  fr: 'Retour sur {site}',
+  tr: '{site} sitesine dön',
+  ar: 'العودة إلى {site}',
+};
+
+// Messages that mention the placeholder render it literally ({order_number}
+// is an ICU argument in the message catalog).
+const ORDER_PLACEHOLDER_VALUES = { order_number: '{order_number}' };
+
+/** Host shown in the default label preview ("example.se"), '' when unknown. */
+function siteHostForPreview(raw: string): string {
+  try {
+    const host = new URL(raw.trim()).hostname;
+    return host.startsWith('www.') ? host.slice(4) : host;
+  } catch {
+    return '';
+  }
+}
+
+export function CheckoutSettingsCard({ token, value, locales, onSaved, requestReauth }: Props) {
   const t = useTranslations('creator.settings.checkout');
   const uiLocale = useLocale();
   const describeError = useApiError();
@@ -56,6 +90,8 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) 
   const [saved, setSaved] = useState<CheckoutSettingsForm>(() => toCheckoutForm(value));
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // The API refused an external URL (P3): shown under that field.
+  const [urlRejection, setUrlRejection] = useState<{ field: 'external_site_url' | 'return_url'; reason: ExternalUrlReason } | null>(null);
 
   const dirty = JSON.stringify(form) !== JSON.stringify(saved);
 
@@ -97,35 +133,84 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) 
     description: t(`afterAdd.${key}Hint`),
   }));
 
+  const returnModeOptions = RETURN_MODES.map((key) => ({
+    value: key,
+    label: t(`external.mode.${key}`),
+    description: t(`external.mode.${key}Hint`),
+  }));
+
   const update = (patch: Partial<CheckoutSettingsForm>) => {
     setMsg(null);
+    setUrlRejection(null);
     setForm((f) => ({ ...f, ...patch }));
+  };
+
+  // PUT the form; with credentials when the external site URL changes.
+  const persist = async (credentials?: ReauthCredentials) => {
+    const body = toCheckoutBody(form, saved.external_site_url.trim() !== '');
+    await api('/stores/my/store', {
+      method: 'PUT',
+      token,
+      body: JSON.stringify({ checkout_settings: body, ...(credentials ?? {}) }),
+    });
+    setSaved(form);
+    setMsg({ type: 'success', text: t('saved') });
+    onSaved(body);
+  };
+
+  /** A refused external URL becomes a message under its field; true if handled. */
+  const showUrlRejection = (err: unknown): boolean => {
+    const rejection = externalUrlRejection(err);
+    if (!rejection) return false;
+    setUrlRejection(rejection);
+    setMsg({ type: 'error', text: t(`external.reasons.${rejection.reason}`, ORDER_PLACEHOLDER_VALUES) });
+    return true;
   };
 
   const handleSave = async () => {
     if (saving || hasErrors) return;
-    setSaving(true);
     setMsg(null);
-    const body = toCheckoutBody(form);
+    setUrlRejection(null);
+    if (requestReauth && externalSiteNeedsReauth(form, saved)) {
+      // Password errors stay in the dialog; a refused URL closes it and is
+      // shown on the field instead.
+      requestReauth(async (credentials) => {
+        setSaving(true);
+        try {
+          await persist(credentials);
+        } catch (err) {
+          if (!showUrlRejection(err)) throw err;
+        } finally {
+          setSaving(false);
+        }
+      }, t('external.reauthDescription'));
+      return;
+    }
+    setSaving(true);
     try {
-      await api('/stores/my/store', {
-        method: 'PUT',
-        token,
-        body: JSON.stringify({ checkout_settings: body }),
-      });
-      setSaved(form);
-      setMsg({ type: 'success', text: t('saved') });
-      onSaved(body);
+      await persist();
     } catch (err) {
-      setMsg({ type: 'error', text: describeError(err) });
+      if (!showUrlRejection(err)) setMsg({ type: 'error', text: describeError(err) });
     } finally {
       setSaving(false);
     }
   };
 
+  const siteError = errors.external_site_url ?? (urlRejection?.field === 'external_site_url' ? urlRejection.reason : undefined);
+  const returnError = errors.return_url ?? (urlRejection?.field === 'return_url' ? urlRejection.reason : undefined);
+  const hasSite = form.external_site_url.trim() !== '';
+  const previewHost = siteHostForPreview(form.external_site_url) || 'example.se';
+
   const applyNamez = () => {
     setMsg(null);
-    setForm(toCheckoutForm(NAMEZ_RECOMMENDED));
+    // The Namez preset covers the M5.1 keys only; the external site stays.
+    setForm((f) => ({
+      ...toCheckoutForm(NAMEZ_RECOMMENDED),
+      external_site_url: f.external_site_url,
+      return_url: f.return_url,
+      return_mode: f.return_mode,
+      back_label: f.back_label,
+    }));
   };
 
   return (
@@ -234,6 +319,98 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved }: Props) 
               <p className="text-[11px] text-muted-foreground">{t('couponParamHint')}</p>
             )}
           </div>
+        </div>
+
+        {/* External website (headless booking P3): where the shopper goes
+            back to after paying. Empty = today's behaviour. */}
+        <div className="space-y-3 border-t pt-4">
+          <div className="space-y-0.5">
+            <p className="flex items-center gap-1.5 text-sm font-medium">
+              <ExternalLink className="size-3.5" aria-hidden="true" />
+              {t('external.title')}
+            </p>
+            <p className="text-[11px] text-muted-foreground">{t('external.subtitle')}</p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ck_external_site" className="text-xs">{t('external.siteUrl')}</Label>
+            <Input
+              id="ck_external_site"
+              dir="ltr"
+              type="url"
+              inputMode="url"
+              value={form.external_site_url}
+              placeholder="https://example.se"
+              onChange={(e) => update({ external_site_url: e.target.value })}
+              aria-invalid={siteError ? true : undefined}
+            />
+            {siteError ? (
+              <p className="text-[11px] text-red-600">{t(`external.reasons.${siteError}`, ORDER_PLACEHOLDER_VALUES)}</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">{t('external.siteUrlHint')}</p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ck_return_url" className="text-xs">{t('external.returnUrl')}</Label>
+            <Input
+              id="ck_return_url"
+              dir="ltr"
+              value={form.return_url}
+              placeholder="https://example.se/tack?order={order_number}"
+              onChange={(e) => update({ return_url: e.target.value })}
+              aria-invalid={returnError ? true : undefined}
+              disabled={!hasSite && !form.return_url}
+            />
+            {returnError ? (
+              <p className="text-[11px] text-red-600">{t(`external.reasons.${returnError}`, ORDER_PLACEHOLDER_VALUES)}</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">{t('external.returnUrlHint', ORDER_PLACEHOLDER_VALUES)}</p>
+            )}
+          </div>
+          {hasSite && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="ck_return_mode" className="text-xs">{t('external.returnMode')}</Label>
+                <SearchableSelect
+                  id="ck_return_mode"
+                  options={returnModeOptions}
+                  value={form.return_mode}
+                  onChange={(v) => update({ return_mode: v as ReturnMode })}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-medium">{t('external.backLabel')}</p>
+                  <p className="text-[11px] text-muted-foreground">{t('external.backLabelHint', { max: MAX_PAY_BUTTON_LABEL })}</p>
+                </div>
+                {locales.map((locale) => {
+                  const current = form.back_label[locale] ?? '';
+                  const fallback = (DEFAULT_BACK_LABEL[locale] || DEFAULT_BACK_LABEL.en).replace('{site}', previewHost);
+                  const tooLong = errors.back_label === locale;
+                  return (
+                    <div key={locale} className="space-y-1">
+                      <Label htmlFor={`ck_back_${locale}`} className="text-xs">
+                        {localeNames(locale)} <span className="font-mono text-muted-foreground">({locale})</span>
+                      </Label>
+                      <Input
+                        id={`ck_back_${locale}`}
+                        dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                        value={current}
+                        maxLength={MAX_PAY_BUTTON_LABEL + 20}
+                        placeholder={fallback}
+                        onChange={(e) => update({ back_label: { ...form.back_label, [locale]: e.target.value } })}
+                        aria-invalid={tooLong || undefined}
+                      />
+                      {tooLong && <p className="text-[11px] text-red-600">{t('payLabelTooLong', { max: MAX_PAY_BUTTON_LABEL })}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+            <Lock className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+            {t('external.reauthNote')}
+          </p>
         </div>
 
         {/* Namez recommendation */}
