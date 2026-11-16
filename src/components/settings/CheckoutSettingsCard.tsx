@@ -15,6 +15,7 @@ import {
   externalUrlRejection,
   toCheckoutBody,
   toCheckoutForm,
+  withExternalFocus,
   type AfterAddToCart,
   type CheckoutSettings,
   type CheckoutSettingsForm,
@@ -142,12 +143,17 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
   const update = (patch: Partial<CheckoutSettingsForm>) => {
     setMsg(null);
     setUrlRejection(null);
-    setForm((f) => ({ ...f, ...patch }));
+    setForm((f) => {
+      const next = { ...f, ...patch };
+      // The focused storefront needs a website address: emptying the address
+      // switches it off in the form as well.
+      return next.external_focus && !next.external_site_url.trim() ? withExternalFocus(next, false) : next;
+    });
   };
 
   // PUT the form; with credentials when the external site URL changes.
   const persist = async (credentials?: ReauthCredentials) => {
-    const body = toCheckoutBody(form, saved.external_site_url.trim() !== '');
+    const body = toCheckoutBody(form, saved.external_site_url.trim() !== '', saved.external_focus === true);
     await api('/stores/my/store', {
       method: 'PUT',
       token,
@@ -210,6 +216,7 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
       return_url: f.return_url,
       return_mode: f.return_mode,
       back_label: f.back_label,
+      ...(f.external_focus ? { external_focus: true } : {}),
     }));
   };
 
@@ -365,6 +372,27 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
             ) : (
               <p className="text-[11px] text-muted-foreground">{t('external.returnUrlHint', ORDER_PLACEHOLDER_VALUES)}</p>
             )}
+          </div>
+          {/* Focused storefront: the store becomes a purchase step of the
+              website. Needs a website address; off = today's storefront. */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <p className={`text-xs font-medium ${hasSite ? '' : 'text-muted-foreground'}`}>{t('external.focus')}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {hasSite ? t('external.focusHint') : t('external.focusNeedsSite')}
+              </p>
+            </div>
+            <ToggleSwitch
+              id="ck_external_focus"
+              checked={hasSite && form.external_focus === true}
+              disabled={!hasSite}
+              onChange={(checked) => {
+                setMsg(null);
+                setUrlRejection(null);
+                setForm((f) => withExternalFocus(f, checked));
+              }}
+              label={t('external.focus')}
+            />
           </div>
           {hasSite && (
             <>

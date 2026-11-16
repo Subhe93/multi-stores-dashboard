@@ -2761,6 +2761,9 @@
           },
           "backLabel": "Düğme metni",
           "backLabelHint": "Mağaza dili başına \"Siteye dön\" düğmesinin metni (en fazla {max} karakter). Standart metin için boş bırakın.",
+          "focus": "Odaklı mağaza",
+          "focusHint": "Yalnızca logo, web sitenize dönüş bağlantısı ve sepet görünür; ana sayfa, koleksiyonlar ve diğer gezinme sayfaları web sitenize yönlendirilir. Ürün sayfaları, sepet ve ödeme yerinde kalır.",
+          "focusNeedsSite": "Önce web sitesi adresini girin.",
           "reauthNote": "Web sitesi adresini girmek veya değiştirmek şifrenizi gerektirir. Her değişiklik kaydedilir ve size e-postayla bildirilir.",
           "reauthDescription": "Müşterilerin ödemeden sonra gönderileceği web sitesini değiştirmek için şifrenizi onaylayın.",
           "reasons": {
@@ -2771,7 +2774,8 @@
             "port_not_allowed": "Adres port numarası içeremez.",
             "host_not_allowed": "Gerçek bir alan adı kullanın. Ödeme sonrası sayfa, web sitesi adresinde (veya www. sürümünde) olmalıdır.",
             "placeholder_not_allowed": "Yalnızca {order_number} kullanılabilir ve alan adında kullanılamaz.",
-            "external_site_url_required": "Önce web sitesi adresini girin."
+            "external_site_url_required": "Önce web sitesi adresini girin.",
+            "store_host_not_allowed": "Kendi web sitenizin adresini kullanın; bu mağazanın adresini veya alan adını değil."
           }
         }
       },

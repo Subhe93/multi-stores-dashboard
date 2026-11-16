@@ -12,6 +12,7 @@ import {
   parseCouponParams,
   toCheckoutBody,
   toCheckoutForm,
+  withExternalFocus,
 } from './checkoutSettings.ts';
 
 test('toCheckoutForm: null / garbage → defaults; stored value → form', () => {
@@ -124,4 +125,72 @@ test('P3: API rejection is read from the error payload', () => {
     { field: 'external_site_url', reason: 'invalid_url' },
   );
   assert.equal(externalUrlRejection({ code: 'OTHER' }), null);
+});
+
+// ── Focused storefront (external_focus) ─────────────────────────────────────
+
+test('focus: stores that never had it send the former body, with or without a site', () => {
+  // No site: nothing new, even with a stray flag in the form.
+  assert.deepEqual(toCheckoutBody(toCheckoutForm(NAMEZ_RECOMMENDED)), NAMEZ_RECOMMENDED);
+  assert.equal(toCheckoutBody({ ...toCheckoutForm(null), external_focus: true }), null);
+  const noSite = toCheckoutBody({ ...toCheckoutForm(null), phone_required: true, external_focus: true });
+  assert.equal('external_focus' in noSite, false);
+  assert.equal('external_site_url' in noSite, false);
+  // A site without the flag: exactly the P3 body (no external_focus key).
+  const stored = { external_site_url: SITE, return_url: null, return_mode: 'button', back_label: null };
+  const form = toCheckoutForm(stored);
+  assert.equal('external_focus' in form, false);
+  assert.deepEqual(toCheckoutBody(form, true), { ...DEFAULT_CHECKOUT_SETTINGS, ...stored });
+  assert.deepEqual(toCheckoutBody(form, true, false), { ...DEFAULT_CHECKOUT_SETTINGS, ...stored });
+});
+
+test('focus: on sends true; turning a stored one off sends an explicit false', () => {
+  const stored = { external_site_url: SITE, return_url: null, return_mode: 'button', back_label: null, external_focus: true };
+  const form = toCheckoutForm(stored);
+  assert.equal(form.external_focus, true);
+  assert.deepEqual(toCheckoutBody(form, true, true), { ...DEFAULT_CHECKOUT_SETTINGS, ...stored });
+  // Turned on for a store that has a site.
+  const on = withExternalFocus(withSite(), true);
+  assert.equal(toCheckoutBody(on, true, false).external_focus, true);
+  // Turned off: the API keeps a stored value when the key is omitted.
+  const off = withExternalFocus(form, false);
+  assert.equal('external_focus' in off, false);
+  assert.equal(toCheckoutBody(off, true, true).external_focus, false);
+  // Never on and still off: no key.
+  assert.equal('external_focus' in toCheckoutBody(off, true, false), false);
+});
+
+test('focus: clearing the site clears it (explicit nulls, no focus key)', () => {
+  const stored = { external_site_url: SITE, external_focus: true };
+  const form = { ...toCheckoutForm(stored), external_site_url: '', return_url: '' };
+  assert.equal(toCheckoutBody(form, true, true), null);
+  assert.deepEqual(toCheckoutBody({ ...form, phone_required: true }, true, true), {
+    ...DEFAULT_CHECKOUT_SETTINGS,
+    phone_required: true,
+    external_site_url: null,
+    return_url: null,
+  });
+});
+
+test('focus: the form reads it only next to a site; the switch keeps a stable shape', () => {
+  assert.equal('external_focus' in toCheckoutForm({ external_focus: true }), false);
+  assert.equal('external_focus' in toCheckoutForm({ external_site_url: SITE, external_focus: 'yes' }), false);
+  // Off -> on -> off returns to the saved shape, so the card is not "dirty".
+  const saved = toCheckoutForm({ external_site_url: SITE });
+  const toggled = withExternalFocus(withExternalFocus(saved, true), false);
+  assert.equal(JSON.stringify(toggled), JSON.stringify(saved));
+  const savedOn = toCheckoutForm({ external_site_url: SITE, external_focus: true });
+  assert.equal(JSON.stringify(withExternalFocus(withExternalFocus(savedOn, false), true)), JSON.stringify(savedOn));
+});
+
+test('focus: API rejections map to a field and a known reason', () => {
+  assert.deepEqual(
+    externalUrlRejection({ code: 'CHECKOUT_EXTERNAL_URL_NOT_ALLOWED', payload: { field: 'external_site_url', reason: 'store_host_not_allowed' } }),
+    { field: 'external_site_url', reason: 'store_host_not_allowed' },
+  );
+  // The switch without a site: shown under the website address field.
+  assert.deepEqual(
+    externalUrlRejection({ code: 'CHECKOUT_EXTERNAL_URL_NOT_ALLOWED', payload: { field: 'external_focus', reason: 'external_site_url_required' } }),
+    { field: 'external_site_url', reason: 'external_site_url_required' },
+  );
 });

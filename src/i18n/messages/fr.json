@@ -2761,6 +2761,9 @@
           },
           "backLabel": "Texte du bouton",
           "backLabelHint": "Texte du bouton « Retour au site » par langue de la boutique ({max} caractères max.). Laissez vide pour le texte standard.",
+          "focus": "Boutique épurée",
+          "focusHint": "Affiche uniquement le logo, un lien de retour vers votre site et le panier ; la page d’accueil, les collections et les autres pages de navigation renvoient vers votre site. Les pages produit, le panier et le paiement restent.",
+          "focusNeedsSite": "Saisissez d’abord l’adresse du site.",
           "reauthNote": "Définir ou modifier l’adresse du site demande votre mot de passe. Chaque modification est journalisée et vous est envoyée par e-mail.",
           "reauthDescription": "Confirmez votre mot de passe pour modifier le site vers lequel les clients sont renvoyés après le paiement.",
           "reasons": {
@@ -2771,7 +2774,8 @@
             "port_not_allowed": "L’adresse ne peut pas contenir de numéro de port.",
             "host_not_allowed": "Utilisez un vrai nom de domaine. La page après le paiement doit être sur l’adresse du site (ou sa version www.).",
             "placeholder_not_allowed": "Seul {order_number} est autorisé, et pas dans le nom de domaine.",
-            "external_site_url_required": "Saisissez d’abord l’adresse du site."
+            "external_site_url_required": "Saisissez d’abord l’adresse du site.",
+            "store_host_not_allowed": "Utilisez l’adresse de votre propre site, pas l’adresse ni le domaine de cette boutique."
           }
         }
       },

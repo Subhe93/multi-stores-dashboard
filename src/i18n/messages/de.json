@@ -2761,6 +2761,9 @@
           },
           "backLabel": "Button-Text",
           "backLabelHint": "Text des Buttons „Zurück zur Website“ je Shop-Sprache (max. {max} Zeichen). Leer lassen für den Standardtext.",
+          "focus": "Fokussierter Shop",
+          "focusHint": "Zeigt nur das Logo, einen Link zurück zu deiner Website und den Warenkorb; Startseite, Kollektionen und andere Seiten zum Stöbern leiten auf deine Website weiter. Produktseiten, Warenkorb und Kasse bleiben.",
+          "focusNeedsSite": "Gib zuerst die Website-Adresse ein.",
           "reauthNote": "Das Festlegen oder Ändern der Website-Adresse erfordert dein Passwort. Jede Änderung wird protokolliert und dir per E-Mail gemeldet.",
           "reauthDescription": "Bestätige dein Passwort, um die Website zu ändern, zu der Kunden nach der Zahlung geleitet werden.",
           "reasons": {
@@ -2771,7 +2774,8 @@
             "port_not_allowed": "Die Adresse darf keine Portnummer enthalten.",
             "host_not_allowed": "Verwende einen echten Domainnamen. Die Seite nach der Zahlung muss auf der Website-Adresse (oder ihrer www.-Version) liegen.",
             "placeholder_not_allowed": "Nur {order_number} ist erlaubt, und nicht im Domainnamen.",
-            "external_site_url_required": "Gib zuerst die Website-Adresse ein."
+            "external_site_url_required": "Gib zuerst die Website-Adresse ein.",
+            "store_host_not_allowed": "Verwende die Adresse deiner eigenen Website, nicht die Adresse oder Domain dieses Shops."
           }
         }
       },

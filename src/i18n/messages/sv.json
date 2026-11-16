@@ -2761,6 +2761,9 @@
           },
           "backLabel": "Knapptext",
           "backLabelHint": "Text på knappen \"tillbaka till webbplatsen\" per butiksspråk (max {max} tecken). Lämna tomt för standardtexten.",
+          "focus": "Fokuserad butik",
+          "focusHint": "Visar bara logotypen, en länk tillbaka till din webbplats och varukorgen; startsidan, kollektioner och andra sidor för att bläddra leder till din webbplats. Produktsidor, varukorg och kassa finns kvar.",
+          "focusNeedsSite": "Ange webbplatsens adress först.",
           "reauthNote": "Att ange eller ändra webbplatsens adress kräver ditt lösenord. Varje ändring loggas och mejlas till dig.",
           "reauthDescription": "Bekräfta ditt lösenord för att ändra webbplatsen som kunderna skickas till efter betalningen.",
           "reasons": {
@@ -2771,7 +2774,8 @@
             "port_not_allowed": "Adressen får inte innehålla ett portnummer.",
             "host_not_allowed": "Använd ett riktigt domännamn. Sidan efter betalning måste ligga på webbplatsens adress (eller dess www.-version).",
             "placeholder_not_allowed": "Endast {order_number} får användas, och inte i domännamnet.",
-            "external_site_url_required": "Ange webbplatsens adress först."
+            "external_site_url_required": "Ange webbplatsens adress först.",
+            "store_host_not_allowed": "Använd adressen till din egen webbplats, inte den här butikens adress eller domän."
           }
         }
       },

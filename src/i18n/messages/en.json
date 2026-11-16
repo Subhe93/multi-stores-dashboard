@@ -2761,6 +2761,9 @@
           },
           "backLabel": "Button text",
           "backLabelHint": "Text of the \"back to website\" button per store language (max {max} characters). Leave empty to use the standard text.",
+          "focus": "Focused storefront",
+          "focusHint": "Shows only the logo, a link back to your website and the cart, and sends the home page, collections and other browsing pages to your website. Product pages, cart and checkout stay.",
+          "focusNeedsSite": "Enter the website address first.",
           "reauthNote": "Setting or changing the website address asks for your password. Every change is logged and emailed to you.",
           "reauthDescription": "Confirm your password to change the website customers are sent to after paying.",
           "reasons": {
@@ -2771,7 +2774,8 @@
             "port_not_allowed": "The address may not contain a port number.",
             "host_not_allowed": "Use a real domain name. The page after payment must be on the website address (or its www. version).",
             "placeholder_not_allowed": "Only {order_number} may be used, and not in the domain name.",
-            "external_site_url_required": "Enter the website address first."
+            "external_site_url_required": "Enter the website address first.",
+            "store_host_not_allowed": "Use the address of your own website, not this store's address or domain."
           }
         }
       },

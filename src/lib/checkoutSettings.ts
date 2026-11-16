@@ -21,6 +21,9 @@ export interface CheckoutSettings {
   return_url?: string | null;
   return_mode?: ReturnMode;
   back_label?: Record<string, string> | null;
+  // Focused storefront: sent as true when on, and as false only to turn a
+  // stored one off (the API keeps the stored value when the key is omitted).
+  external_focus?: boolean;
 }
 
 export const DEFAULT_CHECKOUT_SETTINGS: Readonly<CheckoutSettings> = Object.freeze({
@@ -46,6 +49,9 @@ export interface CheckoutSettingsForm {
   return_mode: ReturnMode;
   /** "Back to site" label per store locale. */
   back_label: Record<string, string>;
+  /** Focused storefront: present (true) only when on, so the form of every
+   *  store without it is the former one. Needs a website address. */
+  external_focus?: boolean;
 }
 
 const COUPON_PARAM_RE = /^[A-Za-z0-9_-]{1,32}$/;
@@ -85,7 +91,14 @@ export function toCheckoutForm(raw: unknown): CheckoutSettingsForm {
     return_url: site && typeof s.return_url === 'string' ? s.return_url : '',
     return_mode: site && s.return_mode === 'auto' ? 'auto' : 'button',
     back_label: site ? labelMap(s.back_label) : {},
+    ...(site && s.external_focus === true ? { external_focus: true } : {}),
   };
+}
+
+/** The form with the focused storefront switched on or off (off = key absent). */
+export function withExternalFocus(form: CheckoutSettingsForm, on: boolean): CheckoutSettingsForm {
+  const { external_focus: _focus, ...rest } = form;
+  return on ? { ...rest, external_focus: true } : rest;
 }
 
 /** "coupon, coupon1 kampanj" → ['coupon', 'coupon1', 'kampanj'] (deduplicated, order kept). */
@@ -145,6 +158,8 @@ export const EXTERNAL_URL_REASONS = [
   'host_not_allowed',
   'placeholder_not_allowed',
   'external_site_url_required',
+  // The address is the platform, a store address on it, or this store's own domain.
+  'store_host_not_allowed',
 ] as const;
 export type ExternalUrlReason = (typeof EXTERNAL_URL_REASONS)[number];
 
@@ -255,8 +270,16 @@ function trimmedLabels(map: Record<string, string>): Record<string, string> | nu
  * then sends `external_site_url: null` explicitly (the API keeps stored
  * external keys when a body omits them all). Stores that never had one get
  * exactly the former body.
+ *
+ * `hadExternalFocus`: the stored settings have the focused storefront on.
+ * Turning it off then sends `external_focus: false` explicitly; a store that
+ * never had it on sends no `external_focus` key at all (the former body).
  */
-export function toCheckoutBody(form: CheckoutSettingsForm, hadExternalSite = false): CheckoutSettings | null {
+export function toCheckoutBody(
+  form: CheckoutSettingsForm,
+  hadExternalSite = false,
+  hadExternalFocus = false,
+): CheckoutSettings | null {
   const params = parseCouponParams(form.coupon_param_text);
   const settings: CheckoutSettings = {
     after_add_to_cart: form.after_add_to_cart,
@@ -271,6 +294,8 @@ export function toCheckoutBody(form: CheckoutSettingsForm, hadExternalSite = fal
     settings.return_url = form.return_url.trim() || null;
     settings.return_mode = form.return_mode;
     settings.back_label = trimmedLabels(form.back_label);
+    if (form.external_focus === true) settings.external_focus = true;
+    else if (hadExternalFocus) settings.external_focus = false;
   } else if (hadExternalSite) {
     settings.external_site_url = null;
     settings.return_url = null;
