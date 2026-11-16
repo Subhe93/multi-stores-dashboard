@@ -1583,7 +1583,11 @@
       "revenuePending": "Ausstehender Umsatz",
       "revenueBreakdown": "Umsatzübersicht",
       "independentBannerTitle": "Direktzahlungen",
-      "independentBannerDesc": "Ihr Shop ist unabhängig: Jede Bestellung wird direkt auf Ihr verbundenes Stripe-Konto gezahlt und die Plattform erhebt keine Provision.",
+      "independentBannerDesc": "Ihr Shop ist unabhängig: Jede Bestellung wird direkt auf Ihr eigenes Zahlungskonto (Stripe oder Kustom) gezahlt und die Plattform erhebt keine Provision.",
+      "paymentsTitle": "Zahlungen",
+      "paymentProviders": "Zahlungsanbieter",
+      "paymentProvidersDesc": "Zahlungen gehen direkt auf Ihr eigenes Stripe- oder Kustom-Konto. Verbinden oder ändern Sie einen Anbieter in den Einstellungen.",
+      "setUpPayments": "Zahlungen einrichten",
       "independentBannerLink": "Auszahlungsdetails im Stripe-Dashboard ansehen",
       "byCurrency": {
         "title": "Einnahmen in {currency}",

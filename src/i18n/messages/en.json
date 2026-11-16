@@ -1583,7 +1583,11 @@
       "revenuePending": "Pending Revenue",
       "revenueBreakdown": "Revenue Breakdown",
       "independentBannerTitle": "Direct payments",
-      "independentBannerDesc": "Your store is independent: every order is paid directly into your connected Stripe account and the platform takes no commission.",
+      "independentBannerDesc": "Your store is independent: every order is paid directly into your own payment account (Stripe or Kustom) and the platform takes no commission.",
+      "paymentsTitle": "Payments",
+      "paymentProviders": "Payment providers",
+      "paymentProvidersDesc": "Payments go straight to your own Stripe or Kustom account. Connect or change a provider in Settings.",
+      "setUpPayments": "Set up payments",
       "independentBannerLink": "View payout details in your Stripe dashboard",
       "byCurrency": {
         "title": "Earnings in {currency}",

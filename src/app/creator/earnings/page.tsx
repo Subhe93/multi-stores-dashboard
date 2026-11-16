@@ -99,6 +99,8 @@ export default function CreatorEarnings() {
   const [connectStatusLoading, setConnectStatusLoading] = useState(true);
   // Independent stores: own Stripe account via a restricted key (preferred route).
   const [ownKeyStatus, setOwnKeyStatus] = useState<OwnKeyStatus | null>(null);
+  // Independent stores: Kustom (Klarna) is a second direct provider.
+  const [kustomReady, setKustomReady] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -122,6 +124,13 @@ export default function CreatorEarnings() {
       .catch(() => setOwnKeyStatus(null));
   }, [token, isIndependent]);
 
+  useEffect(() => {
+    if (!token || !isIndependent) return;
+    api<{ enabled?: boolean; ready?: boolean } | null>('/payments/kustom/settings', { token })
+      .then((k) => setKustomReady(Boolean(k?.enabled && k?.ready)))
+      .catch(() => setKustomReady(false));
+  }, [token, isIndependent]);
+
   // Independent stores charge customers directly, so what matters is being
   // able to take payments; marketplace creators are paid out by the platform,
   // so what matters is payouts being enabled.
@@ -133,6 +142,14 @@ export default function CreatorEarnings() {
         ? connectStatus.charges_enabled && !connectStatus.requires_relink
         : connectStatus.payouts_enabled
       : false);
+
+  // Independent stores can take payments through Stripe, Kustom or both, so
+  // the page speaks of "payments" and names the providers that are ready.
+  const kustomActive = isIndependent && kustomReady;
+  const paymentsReady = stripeReady || kustomActive;
+  const readyProviders = [stripeReady ? 'Stripe' : null, kustomActive ? 'Kustom' : null]
+    .filter(Boolean)
+    .join(' · ');
 
   useEffect(() => {
     if (!token) return;
@@ -255,6 +272,7 @@ export default function CreatorEarnings() {
           <div className="space-y-0.5">
             <p className="font-medium">{t('earnings.independentBannerTitle')}</p>
             <p>{t('earnings.independentBannerDesc')}</p>
+            {stripeReady && (
             <a
               href="https://dashboard.stripe.com"
               target="_blank"
@@ -264,6 +282,7 @@ export default function CreatorEarnings() {
               {t('earnings.independentBannerLink')}
               <ExternalLink className="size-3" />
             </a>
+            )}
           </div>
         </div>
       )}
@@ -315,18 +334,18 @@ export default function CreatorEarnings() {
           </>
         )}
         <StatCard
-          title={t('earnings.stripe')}
+          title={isIndependent ? t('earnings.paymentsTitle') : t('earnings.stripe')}
           value={
             connectStatusLoading
               ? '...'
-              : stripeReady
+              : paymentsReady
                 ? t('earnings.connected')
                 : t('earnings.notConnected')
           }
           subtitle={
-            stripeReady
+            paymentsReady
               ? isIndependent
-                ? t('settings.paymentsEnabled')
+                ? readyProviders
                 : t('settings.payoutsEnabled')
               : connectStatus?.requires_relink
                 ? t('settings.stripeRelinkRequired')
@@ -361,28 +380,38 @@ export default function CreatorEarnings() {
       <Card className="shadow-none">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">{t('earnings.stripePayout')}</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              {isIndependent ? t('earnings.paymentProviders') : t('earnings.stripePayout')}
+            </CardTitle>
             <Badge
               variant="outline"
               className={`text-[10px] border-0 ${
-                stripeReady ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                paymentsReady ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
               }`}
             >
-              {stripeReady ? t('earnings.connected') : t('earnings.notConnectedBadge')}
+              {paymentsReady
+                ? isIndependent
+                  ? readyProviders
+                  : t('earnings.connected')
+                : t('earnings.notConnectedBadge')}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-[11px] text-muted-foreground">
-            {isIndependent ? t('settings.stripeAccountDesc') : t('settings.stripeConnectDesc')}
+            {isIndependent ? t('earnings.paymentProvidersDesc') : t('settings.stripeConnectDesc')}
           </p>
           <Button
             size="sm"
             onClick={() =>
-              router.push(isIndependent ? '/creator/settings?tab=payments#own-stripe-key' : '/creator/settings?tab=payments')
+              router.push('/creator/settings?tab=payments')
             }
           >
-            {stripeReady ? t('earnings.manageInSettings') : t('earnings.connectStripe')}
+            {paymentsReady
+              ? t('earnings.manageInSettings')
+              : isIndependent
+                ? t('earnings.setUpPayments')
+                : t('earnings.connectStripe')}
           </Button>
         </CardContent>
       </Card>

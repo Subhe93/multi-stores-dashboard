@@ -1583,7 +1583,11 @@
       "revenuePending": "الإيرادات المعلقة",
       "revenueBreakdown": "تفاصيل الإيرادات",
       "independentBannerTitle": "مدفوعات مباشرة",
-      "independentBannerDesc": "متجرك مستقل: يُدفع كل طلب مباشرة إلى حساب سترايب المرتبط بك ولا تأخذ المنصة أي عمولة.",
+      "independentBannerDesc": "متجرك مستقل: يُدفع كل طلب مباشرة إلى حساب الدفع الخاص بك (سترايب أو Kustom) ولا تأخذ المنصة أي عمولة.",
+      "paymentsTitle": "المدفوعات",
+      "paymentProviders": "مزوّدو الدفع",
+      "paymentProvidersDesc": "تذهب المدفوعات مباشرة إلى حسابك في سترايب أو Kustom. اربط مزوّداً أو غيّره من الإعدادات.",
+      "setUpPayments": "إعداد المدفوعات",
       "independentBannerLink": "عرض تفاصيل التحويلات في لوحة تحكم سترايب",
       "byCurrency": {
         "title": "الأرباح بعملة {currency}",

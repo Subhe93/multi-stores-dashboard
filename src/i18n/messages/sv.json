@@ -1583,7 +1583,11 @@
       "revenuePending": "Väntande intäkter",
       "revenueBreakdown": "Intäktsöversikt",
       "independentBannerTitle": "Direktbetalningar",
-      "independentBannerDesc": "Din butik är fristående: varje beställning betalas direkt till ditt anslutna Stripe-konto och plattformen tar ingen provision.",
+      "independentBannerDesc": "Din butik är fristående: varje beställning betalas direkt till ditt eget betalkonto (Stripe eller Kustom) och plattformen tar ingen provision.",
+      "paymentsTitle": "Betalningar",
+      "paymentProviders": "Betalleverantörer",
+      "paymentProvidersDesc": "Betalningar går direkt till ditt eget Stripe- eller Kustom-konto. Anslut eller byt leverantör i Inställningar.",
+      "setUpPayments": "Konfigurera betalningar",
       "independentBannerLink": "Se utbetalningsdetaljer i din Stripe-panel",
       "byCurrency": {
         "title": "Intäkter i {currency}",

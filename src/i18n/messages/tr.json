@@ -1583,7 +1583,11 @@
       "revenuePending": "Bekleyen Gelir",
       "revenueBreakdown": "Gelir Dökümü",
       "independentBannerTitle": "Doğrudan ödemeler",
-      "independentBannerDesc": "Mağazanız bağımsız: her sipariş doğrudan bağlı Stripe hesabınıza ödenir ve platform komisyon almaz.",
+      "independentBannerDesc": "Mağazanız bağımsız: her sipariş doğrudan kendi ödeme hesabınıza (Stripe veya Kustom) ödenir ve platform komisyon almaz.",
+      "paymentsTitle": "Ödemeler",
+      "paymentProviders": "Ödeme sağlayıcıları",
+      "paymentProvidersDesc": "Ödemeler doğrudan kendi Stripe veya Kustom hesabınıza gider. Ayarlar bölümünden bir sağlayıcı bağlayın veya değiştirin.",
+      "setUpPayments": "Ödemeleri ayarla",
       "independentBannerLink": "Ödeme ayrıntılarını Stripe panelinizde görüntüleyin",
       "byCurrency": {
         "title": "{currency} kazançları",

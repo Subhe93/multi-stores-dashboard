@@ -1583,7 +1583,11 @@
       "revenuePending": "Revenus en attente",
       "revenueBreakdown": "Détail des revenus",
       "independentBannerTitle": "Paiements directs",
-      "independentBannerDesc": "Votre boutique est indépendante : chaque commande est payée directement sur votre compte Stripe connecté et la plateforme ne prélève aucune commission.",
+      "independentBannerDesc": "Votre boutique est indépendante : chaque commande est payée directement sur votre propre compte de paiement (Stripe ou Kustom) et la plateforme ne prélève aucune commission.",
+      "paymentsTitle": "Paiements",
+      "paymentProviders": "Prestataires de paiement",
+      "paymentProvidersDesc": "Les paiements arrivent directement sur votre propre compte Stripe ou Kustom. Connectez ou changez de prestataire dans les Paramètres.",
+      "setUpPayments": "Configurer les paiements",
       "independentBannerLink": "Voir les détails des versements dans votre tableau de bord Stripe",
       "byCurrency": {
         "title": "Revenus en {currency}",
