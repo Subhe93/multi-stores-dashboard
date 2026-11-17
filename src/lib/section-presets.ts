@@ -10,6 +10,7 @@ import {
   presetNodeBodies,
   type PresetNodeBody,
 } from './productBlocksPreset';
+import { buildEditorialPresets } from './editorialPresets';
 
 export interface PresetSection {
   section_key: string;
@@ -154,6 +155,16 @@ SECTION_PRESETS.push({
   blockedBy: PRODUCT_BLOCK_CONFLICT_KEYS,
   sections: CLASSIC_PRODUCT_PRESET_SECTIONS,
 });
+
+// Editorial set: an editorial homepage and a projects page. Data lives in
+// editorialPresets.ts (pure, unit-tested); the three new sections take their
+// settings and English content from their schema defaults.
+SECTION_PRESETS.push(
+  ...buildEditorialPresets((key) => {
+    const schema = findSectionSchema(key);
+    return { settings: schema?.defaultSettings ?? {}, content: schema?.defaultContent ?? {} };
+  }),
+);
 
 export function findSectionPreset(id: string): SectionPreset | undefined {
   return SECTION_PRESETS.find((p) => p.id === id);
