@@ -674,7 +674,9 @@ test('presets: the agreed settings of the variants, schema defaults for the new 
   });
 
   const [intro, spotlight, cards] = preset('projects-page').sections;
-  assert.deepEqual(intro.settings, { width: 'normal', alignment: 'left', padding: 'medium', surface: false });
+  // The intro heading is the page's h1: nothing else on the page provides one.
+  assert.deepEqual(intro.settings, { width: 'normal', alignment: 'left', padding: 'medium', surface: false, heading_level: 'h1' });
+  assert.equal(findSectionSchema('rich-text').defaultSettings?.heading_level, undefined);
   assert.deepEqual(intro.content.en, {
     heading: 'Our projects',
     html: '<p>Explain what the projects are, how they are chosen and how results are reported.</p>',

@@ -180,7 +180,9 @@ export function buildEditorialPresets(defaultsOf: (sectionKey: string) => Sectio
   const projectsPage: PresetSection[] = [
     {
       section_key: 'rich-text',
-      settings: { width: 'normal', alignment: 'left', padding: 'medium', surface: false },
+      // The intro carries the page's only h1 (rich-text defaults to h2 and a
+      // builder page prints no title of its own).
+      settings: { width: 'normal', alignment: 'left', padding: 'medium', surface: false, heading_level: 'h1' },
       content: {
         en: {
           heading: 'Our projects',

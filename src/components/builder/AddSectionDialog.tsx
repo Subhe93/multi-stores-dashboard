@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Gift, LayoutTemplate, PanelsTopLeft, Plus, Search, SearchX } from 'lucide-react';
+import { Gift, LayoutTemplate, PanelsTopLeft, Plus, Search, SearchX, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -60,6 +60,7 @@ type FilterId = SectionSchema['category'] | 'product' | 'all' | 'presets';
 function PresetIcon({ icon, className }: { icon?: string; className?: string }) {
   if (icon === 'gift') return <Gift className={className} />;
   if (icon === 'layout') return <PanelsTopLeft className={className} />;
+  if (icon === 'target') return <Target className={className} />;
   return <LayoutTemplate className={className} />;
 }
 
