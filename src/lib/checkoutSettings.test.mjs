@@ -10,6 +10,7 @@ import {
   externalUrlProblem,
   externalUrlRejection,
   parseCouponParams,
+  sameCheckoutForm,
   toCheckoutBody,
   toCheckoutForm,
   withExternalFocus,
@@ -308,4 +309,31 @@ test('new options: the helpers keep a stable form shape', () => {
   // No accounts needs no site.
   assert.deepEqual(withNoCustomerAccounts(toCheckoutForm(null), true), { ...toCheckoutForm(null), no_customer_accounts: true });
   assert.equal(withReturnLabel(full, null).no_customer_accounts, true);
+});
+
+test('sameCheckoutForm: a locale field typed into and emptied again is not a change', () => {
+  const saved = toCheckoutForm({ external_site_url: SITE, back_label: { sv: 'Tillbaka' }, return_label: { sv: 'Tack' } });
+  assert.equal(sameCheckoutForm(saved, saved), true);
+  // Typed one character in the English field and deleted it.
+  const touched = withReturnLabel(withReturnLabel(saved, 'en', 'x'), 'en', '');
+  assert.deepEqual(touched.return_label, { sv: 'Tack', en: '' });
+  assert.equal(sameCheckoutForm(touched, saved), true);
+  assert.deepEqual(
+    toCheckoutBody(touched, true, false, { returnLabel: true }),
+    toCheckoutBody(saved, true, false, { returnLabel: true }),
+  );
+  // Same for the other label maps.
+  assert.equal(sameCheckoutForm({ ...saved, back_label: { sv: 'Tillbaka', en: '' } }, saved), true);
+  assert.equal(sameCheckoutForm({ ...saved, pay_button_label: { en: '  ' } }, saved), true);
+  // Real edits are still changes.
+  assert.equal(sameCheckoutForm(withReturnLabel(saved, 'en', 'Thanks'), saved), false);
+  assert.equal(sameCheckoutForm(withReturnLabel(saved, 'sv', 'Tack!'), saved), false);
+  assert.equal(sameCheckoutForm(withReturnLabel(saved, 'sv', ''), saved), false);
+  assert.equal(sameCheckoutForm({ ...saved, back_label: {} }, saved), false);
+  assert.equal(sameCheckoutForm(withNoCustomerAccounts(saved, true), saved), false);
+  assert.equal(sameCheckoutForm({ ...saved, phone_required: true }, saved), false);
+  // A form that never had the options compares as before.
+  const blank = toCheckoutForm(null);
+  assert.equal(sameCheckoutForm(blank, toCheckoutForm(null)), true);
+  assert.equal(sameCheckoutForm({ ...blank, coupon_param_text: 'coupon, x' }, blank), false);
 });

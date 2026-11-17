@@ -15,6 +15,7 @@ import {
   externalUrlRejection,
   toCheckoutBody,
   toCheckoutForm,
+  sameCheckoutForm,
   withExternalFocus,
   withNoCustomerAccounts,
   withReturnLabel,
@@ -96,7 +97,7 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
   // The API refused an external URL (P3): shown under that field.
   const [urlRejection, setUrlRejection] = useState<{ field: 'external_site_url' | 'return_url'; reason: ExternalUrlReason } | null>(null);
 
-  const dirty = JSON.stringify(form) !== JSON.stringify(saved);
+  const dirty = !sameCheckoutForm(form, saved);
 
   // A fresh store payload (e.g. after another card saved) re-seeds the form,
   // but only when the stored settings actually changed and never over

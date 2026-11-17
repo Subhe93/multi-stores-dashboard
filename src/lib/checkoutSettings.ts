@@ -152,6 +152,31 @@ export function withReturnLabel(form: CheckoutSettingsForm, locale: string | nul
   return withOptionalKeys(form, { return_label: { ...(form.return_label ?? {}), [locale]: text } });
 }
 
+/** A label map without the locales whose text is empty (never sent anyway). */
+function filledLabels(map: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [locale, label] of Object.entries(map)) {
+    if (label.trim() !== '') out[locale] = label;
+  }
+  return out;
+}
+
+/**
+ * Whether two forms are the same for the "unsaved changes" check. A locale
+ * field that was typed into and emptied again leaves an empty entry in its
+ * label map; such entries are ignored, as the request body drops them too.
+ */
+export function sameCheckoutForm(a: CheckoutSettingsForm, b: CheckoutSettingsForm): boolean {
+  const comparable = (form: CheckoutSettingsForm): string =>
+    JSON.stringify({
+      ...form,
+      pay_button_label: filledLabels(form.pay_button_label),
+      back_label: filledLabels(form.back_label),
+      ...(form.return_label ? { return_label: filledLabels(form.return_label) } : {}),
+    });
+  return comparable(a) === comparable(b);
+}
+
 /** "coupon, coupon1 kampanj" → ['coupon', 'coupon1', 'kampanj'] (deduplicated, order kept). */
 export function parseCouponParams(text: string): string[] {
   const out: string[] = [];
