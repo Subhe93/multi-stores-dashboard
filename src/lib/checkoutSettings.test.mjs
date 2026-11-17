@@ -13,6 +13,8 @@ import {
   toCheckoutBody,
   toCheckoutForm,
   withExternalFocus,
+  withNoCustomerAccounts,
+  withReturnLabel,
 } from './checkoutSettings.ts';
 
 test('toCheckoutForm: null / garbage → defaults; stored value → form', () => {
@@ -193,4 +195,117 @@ test('focus: API rejections map to a field and a known reason', () => {
     externalUrlRejection({ code: 'CHECKOUT_EXTERNAL_URL_NOT_ALLOWED', payload: { field: 'external_focus', reason: 'external_site_url_required' } }),
     { field: 'external_site_url', reason: 'external_site_url_required' },
   );
+});
+
+// ── Store without customer accounts (no_customer_accounts) ──────────────────
+
+test('no accounts: stores that never used it keep the former form and body', () => {
+  assert.equal('no_customer_accounts' in toCheckoutForm(null), false);
+  assert.equal('no_customer_accounts' in toCheckoutForm({ no_customer_accounts: false }), false);
+  assert.equal('no_customer_accounts' in toCheckoutForm({ no_customer_accounts: 'yes' }), false);
+  assert.equal(toCheckoutBody(toCheckoutForm(null), false, false, {}), null);
+  assert.deepEqual(toCheckoutBody(toCheckoutForm(NAMEZ_RECOMMENDED), false, false, {}), NAMEZ_RECOMMENDED);
+  const body = toCheckoutBody({ ...toCheckoutForm(null), phone_required: true }, false, false, { noCustomerAccounts: false });
+  assert.equal('no_customer_accounts' in body, false);
+  assert.equal('return_label' in body, false);
+});
+
+test('no accounts: on sends the full default object plus the key, without a site', () => {
+  const on = withNoCustomerAccounts(toCheckoutForm(null), true);
+  assert.deepEqual(toCheckoutBody(on), { ...DEFAULT_CHECKOUT_SETTINGS, no_customer_accounts: true });
+  assert.deepEqual(toCheckoutBody(on, false, false, { noCustomerAccounts: true }), {
+    ...DEFAULT_CHECKOUT_SETTINGS,
+    no_customer_accounts: true,
+  });
+  // Read back from the stored value, independent of a site.
+  const form = toCheckoutForm({ no_customer_accounts: true });
+  assert.equal(form.no_customer_accounts, true);
+  assert.equal(form.external_site_url, '');
+  // Clearing the site does not touch it.
+  const stored = { external_site_url: SITE, no_customer_accounts: true };
+  const cleared = { ...toCheckoutForm(stored), external_site_url: '' };
+  assert.deepEqual(toCheckoutBody(cleared, true, false, { noCustomerAccounts: true }), {
+    ...DEFAULT_CHECKOUT_SETTINGS,
+    external_site_url: null,
+    return_url: null,
+    no_customer_accounts: true,
+  });
+});
+
+test('no accounts: turning a stored one off sends false, or null when all is default', () => {
+  const off = withNoCustomerAccounts(toCheckoutForm({ no_customer_accounts: true }), false);
+  assert.equal('no_customer_accounts' in off, false);
+  assert.equal(toCheckoutBody(off, false, false, { noCustomerAccounts: true }), null);
+  assert.deepEqual(toCheckoutBody({ ...off, phone_required: true }, false, false, { noCustomerAccounts: true }), {
+    ...DEFAULT_CHECKOUT_SETTINGS,
+    phone_required: true,
+    no_customer_accounts: false,
+  });
+  const withSiteOff = withNoCustomerAccounts(toCheckoutForm({ external_site_url: SITE, no_customer_accounts: true }), false);
+  assert.equal(toCheckoutBody(withSiteOff, true, false, { noCustomerAccounts: true }).no_customer_accounts, false);
+});
+
+// ── Button text after payment (return_label) ────────────────────────────────
+
+test('return label: a site without one keeps the exact P3 body', () => {
+  const stored = { external_site_url: SITE, return_url: null, return_mode: 'button', back_label: { sv: 'Till skolan' } };
+  const form = toCheckoutForm(stored);
+  assert.equal('return_label' in form, false);
+  assert.deepEqual(toCheckoutBody(form, true, false, {}), { ...DEFAULT_CHECKOUT_SETTINGS, ...stored });
+  // A map with only blank entries counts as none.
+  assert.equal('return_label' in toCheckoutForm({ external_site_url: SITE, return_label: { sv: '  ' } }), false);
+  assert.equal('return_label' in toCheckoutBody({ ...form, return_label: { sv: '   ' } }, true, false, {}), false);
+});
+
+test('return label: sent trimmed with a site; null only to clear a stored one', () => {
+  const stored = { external_site_url: SITE, return_url: null, return_mode: 'button', back_label: null, return_label: { sv: 'Till bokningsbekräftelsen' } };
+  const form = toCheckoutForm(stored);
+  assert.deepEqual(form.return_label, { sv: 'Till bokningsbekräftelsen' });
+  assert.deepEqual(toCheckoutBody(form, true, false, { returnLabel: true }), { ...DEFAULT_CHECKOUT_SETTINGS, ...stored });
+  const typed = withReturnLabel(withReturnLabel(withSite(), 'sv', '  Till bekräftelsen '), 'en', '   ');
+  assert.deepEqual(toCheckoutBody(typed, true).return_label, { sv: 'Till bekräftelsen' });
+  // Emptied: explicit null because one was stored.
+  const emptied = withReturnLabel(form, 'sv', '');
+  assert.equal('return_label' in emptied, false);
+  assert.equal(toCheckoutBody(emptied, true, false, { returnLabel: true }).return_label, null);
+  // Never stored and still empty: no key.
+  assert.equal('return_label' in toCheckoutBody(emptied, true, false, { returnLabel: false }), false);
+});
+
+test('return label: ignored without a site and not sent when the site is cleared', () => {
+  assert.equal('return_label' in toCheckoutForm({ return_label: { sv: 'Tillbaka' } }), false);
+  const noSite = toCheckoutBody({ ...toCheckoutForm(null), phone_required: true, return_label: { sv: 'Tillbaka' } });
+  assert.equal('return_label' in noSite, false);
+  assert.equal(toCheckoutBody({ ...toCheckoutForm(null), return_label: { sv: 'Tillbaka' } }), null);
+  const stored = { external_site_url: SITE, return_label: { sv: 'Tillbaka' } };
+  const cleared = { ...toCheckoutForm(stored), external_site_url: '', return_url: '' };
+  assert.equal(toCheckoutBody(cleared, true, false, { returnLabel: true }), null);
+  assert.deepEqual(toCheckoutBody({ ...cleared, phone_required: true }, true, false, { returnLabel: true }), {
+    ...DEFAULT_CHECKOUT_SETTINGS,
+    phone_required: true,
+    external_site_url: null,
+    return_url: null,
+  });
+});
+
+test('return label: too long is an error only next to a site', () => {
+  assert.deepEqual(checkoutFormErrors(withSite({ return_label: { sv: 'x'.repeat(61) } })), { return_label: 'sv' });
+  assert.deepEqual(checkoutFormErrors(withSite({ return_label: { sv: ` ${'x'.repeat(60)} ` } })), {});
+  assert.deepEqual(checkoutFormErrors({ ...toCheckoutForm(null), return_label: { sv: 'x'.repeat(61) } }), {});
+});
+
+test('new options: the helpers keep a stable form shape', () => {
+  const saved = toCheckoutForm({ external_site_url: SITE });
+  // On -> off returns to the saved shape, so the card is not "dirty".
+  assert.equal(JSON.stringify(withNoCustomerAccounts(withNoCustomerAccounts(saved, true), false)), JSON.stringify(saved));
+  assert.equal(JSON.stringify(withReturnLabel(withReturnLabel(saved, 'sv', 'Tack'), 'sv', '')), JSON.stringify(saved));
+  assert.equal(JSON.stringify(withReturnLabel(saved, null)), JSON.stringify(saved));
+  // Toggling one option does not reorder the others.
+  const full = toCheckoutForm({ external_site_url: SITE, external_focus: true, no_customer_accounts: true, return_label: { sv: 'Tack', en: 'Thanks' } });
+  assert.equal(JSON.stringify(withExternalFocus(withExternalFocus(full, false), true)), JSON.stringify(full));
+  assert.equal(JSON.stringify(withNoCustomerAccounts(withNoCustomerAccounts(full, false), true)), JSON.stringify(full));
+  assert.equal(JSON.stringify(withReturnLabel(withReturnLabel(full, 'sv', ''), 'sv', 'Tack')), JSON.stringify(full));
+  // No accounts needs no site.
+  assert.deepEqual(withNoCustomerAccounts(toCheckoutForm(null), true), { ...toCheckoutForm(null), no_customer_accounts: true });
+  assert.equal(withReturnLabel(full, null).no_customer_accounts, true);
 });

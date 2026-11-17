@@ -16,6 +16,8 @@ import {
   toCheckoutBody,
   toCheckoutForm,
   withExternalFocus,
+  withNoCustomerAccounts,
+  withReturnLabel,
   type AfterAddToCart,
   type CheckoutSettings,
   type CheckoutSettingsForm,
@@ -145,15 +147,20 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
     setUrlRejection(null);
     setForm((f) => {
       const next = { ...f, ...patch };
-      // The focused storefront needs a website address: emptying the address
-      // switches it off in the form as well.
-      return next.external_focus && !next.external_site_url.trim() ? withExternalFocus(next, false) : next;
+      // The focused storefront and the after-payment button text need a
+      // website address: emptying the address drops them from the form too.
+      if (next.external_site_url.trim()) return next;
+      const unfocused = next.external_focus ? withExternalFocus(next, false) : next;
+      return unfocused.return_label ? withReturnLabel(unfocused, null) : unfocused;
     });
   };
 
   // PUT the form; with credentials when the external site URL changes.
   const persist = async (credentials?: ReauthCredentials) => {
-    const body = toCheckoutBody(form, saved.external_site_url.trim() !== '', saved.external_focus === true);
+    const body = toCheckoutBody(form, saved.external_site_url.trim() !== '', saved.external_focus === true, {
+      noCustomerAccounts: saved.no_customer_accounts === true,
+      returnLabel: Boolean(saved.return_label),
+    });
     await api('/stores/my/store', {
       method: 'PUT',
       token,
@@ -209,7 +216,8 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
 
   const applyNamez = () => {
     setMsg(null);
-    // The Namez preset covers the M5.1 keys only; the external site stays.
+    // The Namez preset covers the M5.1 keys only; the external site, the
+    // after-payment button text and the no-accounts option stay.
     setForm((f) => ({
       ...toCheckoutForm(NAMEZ_RECOMMENDED),
       external_site_url: f.external_site_url,
@@ -217,6 +225,8 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
       return_mode: f.return_mode,
       back_label: f.back_label,
       ...(f.external_focus ? { external_focus: true } : {}),
+      ...(f.no_customer_accounts ? { no_customer_accounts: true } : {}),
+      ...(f.return_label ? { return_label: f.return_label } : {}),
     }));
   };
 
@@ -250,6 +260,25 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
             checked={form.phone_required}
             onChange={(checked) => update({ phone_required: checked })}
             label={t('phoneRequired')}
+          />
+        </div>
+
+        {/* Store without customer accounts: no account email, no "view your
+            order" link. The customer record is still saved. */}
+        <div className="flex items-center justify-between gap-4 border-t pt-4">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">{t('noAccounts')}</p>
+            <p className="text-[11px] text-muted-foreground">{t('noAccountsHint')}</p>
+          </div>
+          <ToggleSwitch
+            id="ck_no_customer_accounts"
+            checked={form.no_customer_accounts === true}
+            onChange={(checked) => {
+              setMsg(null);
+              setUrlRejection(null);
+              setForm((f) => withNoCustomerAccounts(f, checked));
+            }}
+            label={t('noAccounts')}
           />
         </div>
 
@@ -426,6 +455,42 @@ export function CheckoutSettingsCard({ token, value, locales, onSaved, requestRe
                         maxLength={MAX_PAY_BUTTON_LABEL + 20}
                         placeholder={fallback}
                         onChange={(e) => update({ back_label: { ...form.back_label, [locale]: e.target.value } })}
+                        aria-invalid={tooLong || undefined}
+                      />
+                      {tooLong && <p className="text-[11px] text-red-600">{t('payLabelTooLong', { max: MAX_PAY_BUTTON_LABEL })}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Text of the return button on the paid confirmation page only;
+                  empty = the button text above (or the standard text). */}
+              <div className="space-y-2">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-medium">{t('external.returnLabel')}</p>
+                  <p className="text-[11px] text-muted-foreground">{t('external.returnLabelHint', { max: MAX_PAY_BUTTON_LABEL })}</p>
+                </div>
+                {locales.map((locale) => {
+                  const current = form.return_label?.[locale] ?? '';
+                  const fallback =
+                    (form.back_label[locale] ?? '').trim() ||
+                    (DEFAULT_BACK_LABEL[locale] || DEFAULT_BACK_LABEL.en).replace('{site}', previewHost);
+                  const tooLong = errors.return_label === locale;
+                  return (
+                    <div key={locale} className="space-y-1">
+                      <Label htmlFor={`ck_return_label_${locale}`} className="text-xs">
+                        {localeNames(locale)} <span className="font-mono text-muted-foreground">({locale})</span>
+                      </Label>
+                      <Input
+                        id={`ck_return_label_${locale}`}
+                        dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                        value={current}
+                        maxLength={MAX_PAY_BUTTON_LABEL + 20}
+                        placeholder={fallback}
+                        onChange={(e) => {
+                          setMsg(null);
+                          setUrlRejection(null);
+                          setForm((f) => withReturnLabel(f, locale, e.target.value));
+                        }}
                         aria-invalid={tooLong || undefined}
                       />
                       {tooLong && <p className="text-[11px] text-red-600">{t('payLabelTooLong', { max: MAX_PAY_BUTTON_LABEL })}</p>}

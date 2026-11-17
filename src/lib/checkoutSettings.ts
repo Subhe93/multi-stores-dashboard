@@ -24,6 +24,12 @@ export interface CheckoutSettings {
   // Focused storefront: sent as true when on, and as false only to turn a
   // stored one off (the API keeps the stored value when the key is omitted).
   external_focus?: boolean;
+  // Store without customer accounts: sent as true when on, and as false only
+  // to turn a stored one off (omitted = the API keeps the stored value).
+  no_customer_accounts?: boolean;
+  // Label of the "return to the website after payment" button per locale.
+  // Sent only next to a site; null only to clear a stored one.
+  return_label?: Record<string, string> | null;
 }
 
 export const DEFAULT_CHECKOUT_SETTINGS: Readonly<CheckoutSettings> = Object.freeze({
@@ -52,6 +58,12 @@ export interface CheckoutSettingsForm {
   /** Focused storefront: present (true) only when on, so the form of every
    *  store without it is the former one. Needs a website address. */
   external_focus?: boolean;
+  /** Store without customer accounts: present (true) only when on. Does not
+   *  need a website address. */
+  no_customer_accounts?: boolean;
+  /** Label of the return button on the paid confirmation page per store
+   *  locale: present only while at least one locale has text. */
+  return_label?: Record<string, string>;
 }
 
 const COUPON_PARAM_RE = /^[A-Za-z0-9_-]{1,32}$/;
@@ -72,8 +84,14 @@ function labelMap(raw: unknown): Record<string, string> {
   return labels;
 }
 
+/** True when at least one label of the map has text. */
+function hasLabelText(map: Record<string, string>): boolean {
+  return Object.values(map).some((label) => label.trim() !== '');
+}
+
 export function toCheckoutForm(raw: unknown): CheckoutSettingsForm {
   const s = isPlainObject(raw) ? raw : {};
+  const returnLabel = labelMap(s.return_label);
   const labels = labelMap(s.pay_button_label);
   const site = typeof s.external_site_url === 'string' ? s.external_site_url : '';
   const params = Array.isArray(s.coupon_param)
@@ -92,13 +110,46 @@ export function toCheckoutForm(raw: unknown): CheckoutSettingsForm {
     return_mode: site && s.return_mode === 'auto' ? 'auto' : 'button',
     back_label: site ? labelMap(s.back_label) : {},
     ...(site && s.external_focus === true ? { external_focus: true } : {}),
+    ...(s.no_customer_accounts === true ? { no_customer_accounts: true } : {}),
+    ...(site && hasLabelText(returnLabel) ? { return_label: returnLabel } : {}),
+  };
+}
+
+/**
+ * The form with its optional keys in the order `toCheckoutForm` writes them,
+ * so switching an option on and off again gives the saved shape back (the
+ * card compares the two forms as JSON).
+ */
+function withOptionalKeys(
+  form: CheckoutSettingsForm,
+  patch: Pick<CheckoutSettingsForm, 'external_focus' | 'no_customer_accounts' | 'return_label'>,
+): CheckoutSettingsForm {
+  const { external_focus, no_customer_accounts, return_label, ...rest } = { ...form, ...patch };
+  return {
+    ...rest,
+    ...(external_focus === true ? { external_focus: true } : {}),
+    ...(no_customer_accounts === true ? { no_customer_accounts: true } : {}),
+    ...(return_label && hasLabelText(return_label) ? { return_label } : {}),
   };
 }
 
 /** The form with the focused storefront switched on or off (off = key absent). */
 export function withExternalFocus(form: CheckoutSettingsForm, on: boolean): CheckoutSettingsForm {
-  const { external_focus: _focus, ...rest } = form;
-  return on ? { ...rest, external_focus: true } : rest;
+  return withOptionalKeys(form, { external_focus: on });
+}
+
+/** The form with "store without customer accounts" on or off (off = key absent). */
+export function withNoCustomerAccounts(form: CheckoutSettingsForm, on: boolean): CheckoutSettingsForm {
+  return withOptionalKeys(form, { no_customer_accounts: on });
+}
+
+/**
+ * The form with the after-payment button text of one locale set. The key is
+ * removed when no locale has text left (`null` as locale drops it outright).
+ */
+export function withReturnLabel(form: CheckoutSettingsForm, locale: string | null, text = ''): CheckoutSettingsForm {
+  if (locale === null) return withOptionalKeys(form, { return_label: undefined });
+  return withOptionalKeys(form, { return_label: { ...(form.return_label ?? {}), [locale]: text } });
 }
 
 /** "coupon, coupon1 kampanj" → ['coupon', 'coupon1', 'kampanj'] (deduplicated, order kept). */
@@ -118,6 +169,7 @@ export interface CheckoutFormErrors {
   external_site_url?: ExternalUrlReason;
   return_url?: ExternalUrlReason;
   back_label?: string;
+  return_label?: string;
 }
 
 /** Keys of the form that are not valid; empty when the form can be saved. */
@@ -139,6 +191,8 @@ export function checkoutFormErrors(form: CheckoutSettingsForm): CheckoutFormErro
     }
     const longBack = Object.entries(form.back_label).find(([, label]) => label.trim().length > MAX_PAY_BUTTON_LABEL);
     if (longBack) errors.back_label = longBack[0];
+    const longReturn = Object.entries(form.return_label ?? {}).find(([, label]) => label.trim().length > MAX_PAY_BUTTON_LABEL);
+    if (longReturn) errors.return_label = longReturn[0];
   } else if (ret) {
     errors.return_url = 'external_site_url_required';
   }
@@ -274,11 +328,16 @@ function trimmedLabels(map: Record<string, string>): Record<string, string> | nu
  * `hadExternalFocus`: the stored settings have the focused storefront on.
  * Turning it off then sends `external_focus: false` explicitly; a store that
  * never had it on sends no `external_focus` key at all (the former body).
+ *
+ * `had.noCustomerAccounts` / `had.returnLabel`: the stored settings have the
+ * option on / a button text. Only then is turning it off sent explicitly
+ * (`false` / `null`); a store that never used them sends neither key.
  */
 export function toCheckoutBody(
   form: CheckoutSettingsForm,
   hadExternalSite = false,
   hadExternalFocus = false,
+  had: { noCustomerAccounts?: boolean; returnLabel?: boolean } = {},
 ): CheckoutSettings | null {
   const params = parseCouponParams(form.coupon_param_text);
   const settings: CheckoutSettings = {
@@ -294,12 +353,18 @@ export function toCheckoutBody(
     settings.return_url = form.return_url.trim() || null;
     settings.return_mode = form.return_mode;
     settings.back_label = trimmedLabels(form.back_label);
+    const returnLabel = trimmedLabels(form.return_label ?? {});
+    if (returnLabel) settings.return_label = returnLabel;
+    else if (had.returnLabel) settings.return_label = null;
     if (form.external_focus === true) settings.external_focus = true;
     else if (hadExternalFocus) settings.external_focus = false;
   } else if (hadExternalSite) {
     settings.external_site_url = null;
     settings.return_url = null;
   }
+  // Independent of the website address.
+  if (form.no_customer_accounts === true) settings.no_customer_accounts = true;
+  else if (had.noCustomerAccounts) settings.no_customer_accounts = false;
   return isDefaultCheckoutSettings(settings) ? null : settings;
 }
 
@@ -311,6 +376,7 @@ export function isDefaultCheckoutSettings(s: CheckoutSettings): boolean {
     s.coupon_autoapply === d.coupon_autoapply &&
     s.pay_button_label === null &&
     !s.external_site_url &&
+    s.no_customer_accounts !== true &&
     s.coupon_param.length === d.coupon_param.length &&
     s.coupon_param.every((k, i) => k === d.coupon_param[i])
   );
