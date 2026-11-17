@@ -27,6 +27,13 @@ import { TestOrderBadge } from '@/components/orders/TestOrderBadge';
 import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
 import { DeleteOrderButton, DeletedOrderBanner, TestFlagButton } from '@/components/orders/OrderTrashControls';
 import Link from 'next/link';
+import {
+  orderRequiresShipping,
+  orderStatusLabel,
+  showNoShippingBadge,
+  withoutShippedOption,
+  type ShippingFlagSource,
+} from '@/lib/requiresShipping';
 
 // Shapes below cover only the fields this page reads from GET /orders/:id.
 interface LocalizedTitle { locale: string; title: string }
@@ -39,6 +46,8 @@ interface OrderItem {
   total_price: number | string;
   fulfiller_type?: string | null;
   fulfillment_status?: string | null;
+  // Snapshot at purchase time; false = the line needs no shipping.
+  requires_shipping?: boolean | null;
   image_url?: string | null;
   design_notes?: string | null;
   variant?: { options?: Record<string, string> | null } | null;
@@ -89,6 +98,8 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   total: number | string;
   shipping_method_name?: string | null;
   shipping_method_type?: string | null;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   // Tax fields consumed by OrderTaxLines.
   tax_lines?: TaxLine[] | null;
   tax_rate_bp?: number | null;
@@ -220,9 +231,12 @@ export default function OrderDetailPage() {
   const { token } = useAuth();
   const { fmt, currency } = useCurrency();
 
-  const statusLabel = (status: string) =>
+  const baseStatusLabel = (status: string) =>
     STATUS_LABELS[status] ? t(`orderStatus_${status}` as Parameters<typeof t>[0]) : status;
   const [order, setOrder] = useState<AdminOrder | null>(null);
+  // DELIVERED reads "Fulfilled" on an order (or line) that needs no shipping.
+  const statusLabel = (status: string, source: ShippingFlagSource | null = order) =>
+    orderStatusLabel(status, source, baseStatusLabel, tb('statusFulfilled'));
   const [loading, setLoading] = useState(true);
 
   const fetchOrder = () => {
@@ -264,6 +278,12 @@ export default function OrderDetailPage() {
   const currentIdx = statusFlow.indexOf(order.status);
   // Soft-deleted order: banner with Restore; status actions hidden.
   const isDeleted = !!order.deleted_at;
+  // Service / digital order: no SHIPPED step, no shipping row, billing address.
+  const needsShipping = orderRequiresShipping(order);
+  const nextStatuses = withoutShippedOption(
+    statusFlow.slice(currentIdx + 1).map((s) => ({ value: s, label: statusLabel(s) })),
+    order,
+  );
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -298,8 +318,8 @@ export default function OrderDetailPage() {
         <Card className="shadow-none">
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('updateStatus')}</CardTitle></CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
-            {statusFlow.slice(currentIdx + 1).map(s => (
-              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{statusLabel(s)}</Button>
+            {nextStatuses.map(({ value: s, label }) => (
+              <Button key={s} variant="outline" size="sm" className="text-xs" onClick={() => handleStatusUpdate(s)}>{label}</Button>
             ))}
             <Separator orientation="vertical" className="h-7" />
             <Button variant="outline" size="sm" className="text-xs text-red-600" onClick={() => handleStatusUpdate('CANCELLED')}>{t('cancel')}</Button>
@@ -347,10 +367,14 @@ export default function OrderDetailPage() {
                               const itemStatus = effectiveItemStatus(order.status, item.fulfillment_status);
                               return (
                                 <Badge variant="outline" className={`text-[11px] font-semibold ${statusColors[itemStatus] || 'bg-zinc-100 text-zinc-600'}`}>
-                                  {statusLabel(itemStatus)}
+                                  {statusLabel(itemStatus, item)}
                                 </Badge>
                               );
                             })()}
+                            {/* Mixed order: this line is a service / digital product. */}
+                            {showNoShippingBadge(order, item) && (
+                              <Badge variant="secondary" className="text-[11px]">{tb('noShippingBadge')}</Badge>
+                            )}
                             <Badge variant="outline" className="text-[11px]">{item.fulfiller_type}</Badge>
                           </div>
                         </div>
@@ -385,17 +409,20 @@ export default function OrderDetailPage() {
             <Separator className="my-3" />
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('subtotal')}</span><span>{fmt(Number(order.subtotal))}</span></div>
-              {/* Shipping line names the chosen method; pickup orders get a small badge. */}
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground inline-flex items-center gap-1.5">
-                  {t('shipping')}
-                  {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
-                  {order.shipping_method_type === 'PICKUP' && (
-                    <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
-                  )}
-                </span>
-                <span>{fmt(Number(order.shipping_cost))}</span>
-              </div>
+              {/* Shipping line names the chosen method; pickup orders get a small badge.
+                  An order that needs no shipping has no shipping row at all. */}
+              {needsShipping && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                    {t('shipping')}
+                    {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
+                    {order.shipping_method_type === 'PICKUP' && (
+                      <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
+                    )}
+                  </span>
+                  <span>{fmt(Number(order.shipping_cost))}</span>
+                </div>
+              )}
               {Number(order.discount_amount) > 0 && <div className="flex justify-between text-xs text-emerald-600"><span>{t('discount')}</span><span>-{fmt(Number(order.discount_amount))}</span></div>}
               {/* Company orders (b2b app): net total before the VAT rows, gross labelled "incl. VAT". */}
               {order.customer_type === 'COMPANY' && (
@@ -425,7 +452,7 @@ export default function OrderDetailPage() {
           {token && <OrderInvoiceCard orderId={id} token={token} readOnly />}
 
           <Card className="shadow-none">
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('shippingAddress')}</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{needsShipping ? t('shippingAddress') : tb('billingAddress')}</CardTitle></CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
               <p>{order.address?.line1}</p>

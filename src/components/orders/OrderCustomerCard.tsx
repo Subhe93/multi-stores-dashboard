@@ -11,6 +11,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { getCustomer, type CustomerScope } from '@/lib/customers.api';
 import { isBlockedStatus, normalizeCustomerDetail, type CustomerDetail } from '@/lib/customers';
 import { CustomerStatusBadge, formatMoney, useDateFormatter } from '@/components/customers/shared';
+import { orderRequiresShipping } from '@/lib/requiresShipping';
 
 /** Address shape shared by the order's shipping address and Kustom's billing address. */
 export interface CardAddress {
@@ -37,6 +38,8 @@ export interface OrderCustomerCardOrder {
   payment_method?: string | null;
   locale?: string | null;
   market?: { name: string } | null;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   customer?: {
     id?: string;
     first_name?: string | null;
@@ -213,10 +216,16 @@ export function OrderCustomerCard({ scope, token, order, onOrderChanged, childre
     </div>
   );
 
+  // An order that needs no shipping has no shipping address to refer to: its
+  // one address is the billing address, shown by the page's address card.
+  const sameAsShippingLine = orderRequiresShipping(order) ? (
+    <p className="text-muted-foreground">{t('orderDetail.sameAsShipping')}</p>
+  ) : null;
+
   let billingBlock: ReactNode;
   if (!isKustom || billing === null) {
     // Card / cash checkouts collect one address: billing = shipping.
-    billingBlock = <p className="text-muted-foreground">{t('orderDetail.sameAsShipping')}</p>;
+    billingBlock = sameAsShippingLine;
   } else if (billing === undefined) {
     billingBlock = (
       <div className="space-y-1">
@@ -234,7 +243,7 @@ export function OrderCustomerCard({ scope, token, order, onOrderChanged, childre
       </div>
     );
   } else if (order.address && sameAddress(billing, order.address)) {
-    billingBlock = <p className="text-muted-foreground">{t('orderDetail.sameAsShipping')}</p>;
+    billingBlock = sameAsShippingLine;
   } else {
     billingBlock = renderAddress(billing);
   }
@@ -329,11 +338,14 @@ export function OrderCustomerCard({ scope, token, order, onOrderChanged, childre
           {children}
         </div>
 
-        {/* Billing address */}
-        <div className="space-y-1 border-t pt-3">
-          <p className="font-medium text-muted-foreground">{t('orderDetail.billingAddress')}</p>
-          {billingBlock}
-        </div>
+        {/* Billing address (hidden when it would only say "same as shipping"
+            on an order that has no shipping). */}
+        {billingBlock !== null && (
+          <div className="space-y-1 border-t pt-3">
+            <p className="font-medium text-muted-foreground">{t('orderDetail.billingAddress')}</p>
+            {billingBlock}
+          </div>
+        )}
 
         {/* Order language / market */}
         {(language || order.market) && (

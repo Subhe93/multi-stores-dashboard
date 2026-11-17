@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { orderStatusLabel } from '@/lib/requiresShipping';
 import { DataTable } from '@/components/common/DataTable';
 import { ListEmptyState } from '@/components/common/ListEmptyState';
 import { ClipboardList } from 'lucide-react';
@@ -69,6 +70,8 @@ interface OrderRow {
   id: string;
   order_number: string;
   status: string;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   // Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
   // Soft delete time; only rows of the Deleted tab carry it.
@@ -412,7 +415,8 @@ export default function CreatorOrdersPage() {
           variant="outline"
           className={`text-[11px] font-semibold ${statusColors[item.status] ?? ''}`}
         >
-          {STATUS_LABELS[item.status] || item.status}
+          {/* DELIVERED reads "Fulfilled" on an order that needs no shipping. */}
+          {orderStatusLabel(item.status, item, (s) => STATUS_LABELS[s] || s, t('orderDetail.statusFulfilled'))}
         </Badge>
       ),
     },

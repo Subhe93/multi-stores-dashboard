@@ -32,6 +32,14 @@ import { countryName } from '@/lib/taxCountries';
 import { TestOrderBadge, isTestOrder } from '@/components/orders/TestOrderBadge';
 import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
 import { DeleteOrderButton, DeletedOrderBanner } from '@/components/orders/OrderTrashControls';
+import {
+  canMarkFulfilled,
+  orderRequiresShipping,
+  orderStatusLabel,
+  showNoShippingBadge,
+  withoutShippedOption,
+  type ShippingFlagSource,
+} from '@/lib/requiresShipping';
 
 // E14: the production checklist and the designer card (renderer mirror,
 // canvas preview) load on demand, only when their app is available.
@@ -85,6 +93,8 @@ interface OrderItem {
   original_unit_price?: number | string | null;
   total_price?: number | string | null;
   fulfillment_status?: string | null;
+  // Snapshot at purchase time; false = the line needs no shipping.
+  requires_shipping?: boolean | null;
   fulfiller_type?: string;
   fulfiller_id?: string;
   image_url?: string | null;
@@ -150,6 +160,8 @@ interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFi
   shipping_cost?: number | string | null;
   shipping_method_name?: string | null;
   shipping_method_type?: string | null;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   discount_amount?: number | string | null;
   currency?: string | null;
   // Markets app: set when the order was placed through a market (M1).
@@ -275,14 +287,26 @@ export default function CreatorOrderDetailPage() {
       | { use_quality_check?: unknown }
       | null
       | undefined)?.use_quality_check !== false;
-  const STATUS_OPTIONS = statusOptions(t, qualityCheckEnabled);
   const [order, setOrder] = useState<Order | null>(null);
+  // An order that needs no shipping has no SHIPPED option and its DELIVERED
+  // option reads "Fulfilled"; other orders keep today's dropdown.
+  const STATUS_OPTIONS = withoutShippedOption(
+    statusOptions(t, qualityCheckEnabled),
+    order,
+    t('orderDetail.statusFulfilled'),
+  );
+  // Badge / timeline wording: DELIVERED reads "Fulfilled" on an order (or
+  // line) that needs no shipping.
+  const statusText = (status: string, source: ShippingFlagSource | null = order) =>
+    orderStatusLabel(status, source, (s) => STATUS_LABELS[s] || s, t('orderDetail.statusFulfilled'));
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [nextStatus, setNextStatus] = useState('');
   const [statusNotes, setStatusNotes] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
+  // "Mark as fulfilled" (orders that need no shipping): customer email opt-out.
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [primaryLocale, setPrimaryLocale] = useState('en');
   const describeError = useApiError();
 
@@ -329,6 +353,32 @@ export default function CreatorOrderDetailPage() {
       fetchOrder();
     } catch (err) {
       // Localized by error code when the API sends one; else its message.
+      setStatusError(describeError(err) || t('orderDetail.updateFailed'));
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  // Orders that need no shipping: completes the order (stored as DELIVERED,
+  // shown as "Fulfilled"), with the customer email on or off.
+  const handleMarkFulfilled = async () => {
+    if (!token) return;
+    setUpdatingStatus(true);
+    setStatusError('');
+    try {
+      await api(`/orders/${id}/status`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({
+          status: 'DELIVERED',
+          notify_customer: notifyCustomer,
+          ...(statusNotes.trim() ? { note: statusNotes } : {}),
+        }),
+      });
+      setStatusNotes('');
+      setNotifyCustomer(true);
+      fetchOrder();
+    } catch (err) {
       setStatusError(describeError(err) || t('orderDetail.updateFailed'));
     } finally {
       setUpdatingStatus(false);
@@ -399,6 +449,9 @@ export default function CreatorOrderDetailPage() {
   const hasProviderItems = items.some((it) => it.fulfiller_type === 'PROVIDER');
   // Soft-deleted order: banner with Restore; status / fulfillment controls hidden.
   const isDeleted = !!order.deleted_at;
+  // Service / digital order: billing address title, "Mark as fulfilled" action.
+  const needsShipping = orderRequiresShipping(order);
+  const showMarkFulfilled = canMarkFulfilled(order);
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -443,7 +496,7 @@ export default function CreatorOrderDetailPage() {
             variant="outline"
             className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
           >
-            {STATUS_LABELS[order.status] || order.status}
+            {statusText(order.status)}
           </Badge>
           {/* Order trash (M69): soft delete; disabled with a hint on paid orders. */}
           {!isDeleted && (
@@ -542,11 +595,18 @@ export default function CreatorOrderDetailPage() {
                                       statusColors[itemStatus] ?? 'bg-zinc-100 text-zinc-600'
                                     }`}
                                   >
-                                    {STATUS_LABELS[itemStatus] || itemStatus}
+                                    {statusText(itemStatus, item)}
                                   </Badge>
                                 );
                               })()}
                             </div>
+
+                            {/* Mixed order: this line is a service / digital product. */}
+                            {showNoShippingBadge(order, item) && (
+                              <Badge variant="secondary" className="mt-1 text-[11px]">
+                                {t('orderDetail.noShippingBadge')}
+                              </Badge>
+                            )}
 
                             {/* Variant */}
                             {variantLabel && (
@@ -689,7 +749,8 @@ export default function CreatorOrderDetailPage() {
                       tTimeline,
                       entry.status,
                       entry.note ?? entry.notes,
-                      (s) => STATUS_LABELS[s],
+                      // Unknown statuses stay undefined (humanized by the helper).
+                      (s) => (STATUS_LABELS[s] ? statusText(s) : undefined),
                     );
                     return (
                       <div key={entry.id ?? idx} className="flex items-start gap-3">
@@ -737,12 +798,33 @@ export default function CreatorOrderDetailPage() {
                   variant="outline"
                   className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
                 >
-                  {STATUS_LABELS[order.status] || order.status}
+                  {statusText(order.status)}
                 </Badge>
                 {statusError && (
                   <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                     <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                     {statusError}
+                  </div>
+                )}
+                {/* Order without shipping: one primary action completes it,
+                    with the customer email on by default (Shopify "Mark as fulfilled"). */}
+                {showMarkFulfilled && (
+                  <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {t('orderDetail.markFulfilledHint')}
+                    </p>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded accent-primary"
+                        checked={notifyCustomer}
+                        onChange={(e) => setNotifyCustomer(e.target.checked)}
+                      />
+                      <span className="text-xs font-medium">{t('orderDetail.notifyCustomer')}</span>
+                    </label>
+                    <Button size="sm" className="w-full" onClick={handleMarkFulfilled} disabled={updatingStatus}>
+                      {updatingStatus ? t('orderDetail.updating') : t('orderDetail.markFulfilled')}
+                    </Button>
                   </div>
                 )}
                 <SearchableSelect
@@ -761,6 +843,7 @@ export default function CreatorOrderDetailPage() {
                 />
                 <Button
                   size="sm"
+                  variant={showMarkFulfilled ? 'outline' : 'default'}
                   className="w-full"
                   onClick={handleStatusUpdate}
                   disabled={!nextStatus || updatingStatus}
@@ -782,7 +865,7 @@ export default function CreatorOrderDetailPage() {
                   variant="outline"
                   className={`text-xs font-semibold ${statusColors[order.status] ?? ''}`}
                 >
-                  {STATUS_LABELS[order.status] || order.status}
+                  {statusText(order.status)}
                 </Badge>
                 <p className="text-xs text-blue-700 leading-relaxed">
                   {hasProviderItems
@@ -819,7 +902,9 @@ export default function CreatorOrderDetailPage() {
           {/* Address */}
           <Card className="shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">{t('orderDetail.shippingAddress')}</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                {needsShipping ? t('orderDetail.shippingAddress') : t('orderDetail.billingAddress')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               {order.address ? (

@@ -42,6 +42,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
 import { MAX_PER_ORDER_MAX, MAX_PER_ORDER_MIN, maxPerOrderPayload, maxPerOrderText, parseMaxPerOrder } from '@/lib/maxPerOrder';
+import { productRequiresShipping, requiresShippingPayload } from '@/lib/requiresShipping';
 import { EMAIL_NOTE_MAX, emailNotePayload, emailNoteText } from '@/lib/emailNote';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
@@ -172,6 +173,8 @@ interface ProductResponse {
   /** The linked collection that drives the storefront breadcrumb / URL path. */
   primary_creator_category_id?: string | null;
   shipping_profile_id?: string | null;
+  // False = service / digital product (no shipping); missing = physical.
+  requires_shipping?: boolean | null;
   tax_class_id?: string | null;
   tax_exempt?: boolean | null;
   // Feed data (feeds app, M5.6).
@@ -286,6 +289,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   const [savedEmailNotes, setSavedEmailNotes] = useState<Record<string, string>>({});
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
+  // "Physical product" (Shopify): off = no shipping at checkout. The stored
+  // value decides whether a save has to send the key at all.
+  const [requiresShipping, setRequiresShipping] = useState(true);
+  const [savedRequiresShipping, setSavedRequiresShipping] = useState(true);
   const [status, setStatus] = useState('DRAFT');
   const [attrValues, setAttrValues] = useState<Record<string, AttrValue>>({});
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -467,6 +474,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       setServerHasMaxPerOrder(Object.prototype.hasOwnProperty.call(p, 'max_per_order'));
       setWeight(p.weight ? String(p.weight) : '');
       setWeightUnit(p.weight_unit || 'kg');
+      setRequiresShipping(productRequiresShipping(p));
+      setSavedRequiresShipping(productRequiresShipping(p));
       setStatus(p.status || 'DRAFT');
       setSavedStatus(p.status || 'DRAFT');
       setSavedSlug(pickProductSlug(p.translations, primaryLocale) || '');
@@ -651,7 +660,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
     return stableJson({
       trans,
       categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
-      trackInventory, stockQty, maxPerOrder: maxPerOrder.trim(), weight, weightUnit, status: statusOverride ?? status,
+      trackInventory, stockQty, maxPerOrder: maxPerOrder.trim(), weight, weightUnit, requiresShipping, status: statusOverride ?? status,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
       images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
       // No row ids: adopting the stored ids after a save is not an edit.
@@ -881,6 +890,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         ...maxPerOrderPayload(maxPerOrder, { mode, serverHasKey: serverHasMaxPerOrder, savedText: savedMaxPerOrder }),
         weight: weight ? parseFloat(weight) : undefined,
         weight_unit: weightUnit,
+        // Only when off, or to switch a stored "off" back on (no key otherwise).
+        // Weight and profile stay stored while the product needs no shipping.
+        ...requiresShippingPayload(requiresShipping, { mode, savedValue: savedRequiresShipping }),
         variant_option_config: variantOptions.length > 0 ? variantOptions : undefined,
         shipping_profile_id: shippingProfileId || undefined,
         // null = default class of the scope (platform or store).
@@ -1034,6 +1046,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         setSavedStatus(finalStatus);
         setSavedSlug(storedPrimarySlug || primarySlug);
         setSavedMaxPerOrder(maxPerOrder.trim());
+        setSavedRequiresShipping(requiresShipping);
         setSavedEmailNotes(prev => {
           const next = { ...prev };
           for (const [locale, tr] of Object.entries(cleanTranslations)) {
@@ -1792,6 +1805,23 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           <Card className="shadow-none">
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('product.shipping')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              {/* "Physical product" (Shopify): off for services and digital
+                  products. Profile and weight are hidden then, never cleared. */}
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="rounded accent-primary"
+                    checked={requiresShipping}
+                    onChange={e => setRequiresShipping(e.target.checked)}
+                  />
+                  <span className="text-xs font-medium">{t('product.physicalProduct')}</span>
+                </label>
+                {!requiresShipping && (
+                  <p className="text-[10px] text-muted-foreground leading-snug">{t('product.physicalProductHelp')}</p>
+                )}
+              </div>
+              {requiresShipping && (<>
               <div className="space-y-1.5">
                 <Label className="text-xs">{t('product.shippingProfile')}</Label>
                 <SearchableSelect
@@ -1818,6 +1848,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                 <div className="space-y-1.5"><Label className="text-xs">{t('product.unit')}</Label>
                   <SearchableSelect value={weightUnit} onChange={setWeightUnit} options={[{ value: 'kg', label: 'kg' }, { value: 'g', label: 'g' }, { value: 'lb', label: 'lb' }]} /></div>
               </div>
+              </>)}
             </CardContent>
           </Card>
 

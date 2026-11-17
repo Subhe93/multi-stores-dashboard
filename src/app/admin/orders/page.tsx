@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { orderStatusLabel } from '@/lib/requiresShipping';
 import { DataTable } from '@/components/common/DataTable';
 import { useBulkAction } from '@/components/common/useBulkAction';
 import {
@@ -24,6 +25,8 @@ interface AdminOrderRow {
   id: string;
   order_number: string;
   status: string;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   // Stripe test key / pre-live owner checkout (absent = false).
   is_test?: boolean | null;
   // Soft delete time; only rows of the Deleted tab carry it.
@@ -76,6 +79,8 @@ export default function AdminOrders() {
   const t = useTranslations('admin');
   const tb = useTranslations('bulk');
   const tt = useTranslations('orders.trash');
+  // "Fulfilled" wording of an order that needs no shipping (shared key).
+  const tf = useTranslations('creator.orderDetail');
   const bulk = useBulkAction();
   // admin.orderStatus_* exists for every lifecycle status.
   const statusLabel = (s: string) =>
@@ -167,7 +172,7 @@ export default function AdminOrders() {
             <span className="text-sm font-medium">{fmt(item.total)}</span>
           )},
           { key: 'status', label: t('status'), sortable: true, render: (item: AdminOrderRow) => (
-            <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{statusLabel(item.status)}</Badge>
+            <Badge variant="outline" className={`text-[10px] font-semibold ${statusColors[item.status] || ''}`}>{orderStatusLabel(item.status, item, statusLabel, tf('statusFulfilled'))}</Badge>
           )},
           { key: 'created_at', label: t('date'), sortable: true, render: (item: AdminOrderRow) => (
             <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString()}</span>

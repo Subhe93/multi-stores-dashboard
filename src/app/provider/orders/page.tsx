@@ -18,6 +18,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useTranslations } from 'next-intl';
+import { orderStatusLabel } from '@/lib/requiresShipping';
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:        'bg-amber-50 text-amber-700 border-amber-200',
@@ -37,6 +38,8 @@ interface OrderRow {
   id: string;
   order_number: string;
   status: string;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   total: number | string;
   created_at: string;
   currency?: string | null;
@@ -231,7 +234,8 @@ export default function ProviderOrders() {
             sortable: true,
             render: (item: OrderRow) => (
               <Badge variant="outline" className={`text-[10px] font-semibold ${STATUS_COLORS[item.status] || ''}`}>
-                {statusLabel(item.status)}
+                {/* DELIVERED reads "Fulfilled" on an order that needs no shipping. */}
+                {orderStatusLabel(item.status, item, statusLabel, t('orderStatus.fulfilled'))}
               </Badge>
             ),
           },

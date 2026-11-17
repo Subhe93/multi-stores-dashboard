@@ -25,6 +25,13 @@ import { GroupedOrderFieldValues } from '@/components/apps/personalization/Group
 import type { OrderFieldValueRow } from '@/lib/customFields';
 import { timelineEntryText } from '@/lib/orderTimeline';
 import { countryName } from '@/lib/taxCountries';
+import {
+  noLineRequiresShipping,
+  orderRequiresShipping,
+  orderStatusLabel,
+  showNoShippingBadge,
+  type ShippingFlagSource,
+} from '@/lib/requiresShipping';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -50,6 +57,8 @@ interface OrderItem {
   fulfiller_type?: string;
   fulfiller_id?: string;
   fulfillment_status?: string | null;
+  // Snapshot at purchase time; false = the line needs no shipping.
+  requires_shipping?: boolean | null;
   quantity: number;
   unit_price: number;
   total_price?: number | string | null;
@@ -87,6 +96,8 @@ interface OrderDetail {
   shipping_cost: number | string;
   shipping_method_name?: string | null;
   shipping_method_type?: string | null;
+  // False when no line required shipping at purchase time (service / digital).
+  requires_shipping?: boolean | null;
   discount_amount?: number | string | null;
   total: number | string;
   payment_status?: string | null;
@@ -247,6 +258,8 @@ export default function ProviderOrderDetail() {
   const tp = useTranslations('payments');
   const tt = useTranslations('provider.fulfillmentTracking');
   const te = useTranslations('errors');
+  // Wording shared with the creator order page (billing address, badge).
+  const tb = useTranslations('creator.orderDetail');
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -301,6 +314,12 @@ export default function ProviderOrderDetail() {
   );
   const shippedItems = myItems.filter((it) => it.fulfillment_status === 'SHIPPED');
   const dialogItems = trackingMode === 'edit' ? shippedItems : unshippedItems;
+  // All my open items are services / digital products: nothing to ship, so
+  // "Mark as fulfilled" replaces the tracking dialog.
+  const nothingToShip = noLineRequiresShipping(unshippedItems);
+  // DELIVERED reads "Fulfilled" on an order (or line) that needs no shipping.
+  const labelOf = (status: string, source: ShippingFlagSource | null = order) =>
+    orderStatusLabel(status, source, (s) => statusLabel(t, s), t('orderStatus.fulfilled'));
 
   const handleStatusUpdate = async (status: string, note?: string) => {
     if (!token || !order) return;
@@ -327,7 +346,36 @@ export default function ProviderOrderDetail() {
           });
         }
       }
-      setNotice({ kind: 'success', text: tt('statusUpdated', { status: statusLabel(t, status) }) });
+      setNotice({ kind: 'success', text: tt('statusUpdated', { status: labelOf(status) }) });
+    } catch (err) {
+      setNotice({ kind: 'error', text: errorText(err) });
+    } finally {
+      await fetchOrder();
+      setUpdating(false);
+    }
+  };
+
+  // Completes my open items that need no shipping (stored as DELIVERED, shown
+  // as "Fulfilled"): no tracking. Items of mine already shipped are left alone.
+  const handleMarkFulfilled = async () => {
+    if (!token || !order || unshippedItems.length === 0) return;
+    setUpdating(true);
+    setNotice(null);
+    try {
+      if (unshippedItems.length === myItems.length) {
+        await api(`/orders/${id}/status`, {
+          method: 'PUT', token,
+          body: JSON.stringify({ status: 'DELIVERED', note: t('noteStatusUpdated', { status: 'DELIVERED' }) }),
+        });
+      } else {
+        for (const it of unshippedItems) {
+          await api(`/orders/${id}/items/${it.id}/fulfillment`, {
+            method: 'PUT', token,
+            body: JSON.stringify({ fulfillment_status: 'DELIVERED' }),
+          });
+        }
+      }
+      setNotice({ kind: 'success', text: tt('statusUpdated', { status: t('orderStatus.fulfilled') }) });
     } catch (err) {
       setNotice({ kind: 'error', text: errorText(err) });
     } finally {
@@ -494,7 +542,7 @@ export default function ProviderOrderDetail() {
           </div>
         </div>
         <Badge variant="outline" className={`text-xs font-semibold px-2.5 py-1 ${STATUS_COLORS[order.status] || ''}`}>
-          {statusLabel(t, order.status)}
+          {labelOf(order.status)}
         </Badge>
       </div>
 
@@ -556,9 +604,9 @@ export default function ProviderOrderDetail() {
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs"
                 disabled={updating || unshippedItems.length === 0}
-                onClick={() => openTrackingDialog('ship')}
+                onClick={() => (nothingToShip ? handleMarkFulfilled() : openTrackingDialog('ship'))}
               >
-                <CheckCircle2 className="w-3.5 h-3.5 me-1.5" /> {t('approveShipOrder')}
+                <CheckCircle2 className="w-3.5 h-3.5 me-1.5" /> {nothingToShip ? tt('markFulfilled') : t('approveShipOrder')}
               </Button>
               <Button
                 variant="outline"
@@ -581,19 +629,26 @@ export default function ProviderOrderDetail() {
             <CardTitle className="text-sm font-semibold">{t('updateFulfillment')}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-2 flex-wrap">
-            {!isTerminal && !isQualityCheck && STATUS_FLOW.slice(currentIdx + 1).map(s => (
+            {/* Nothing to ship: no "Ship + tracking" step, and the last step
+                is "Mark as fulfilled" (no tracking dialog). */}
+            {!isTerminal && !isQualityCheck && STATUS_FLOW.slice(currentIdx + 1)
+              .filter((s) => !(nothingToShip && s === 'SHIPPED'))
+              .map(s => (
               <Button
                 key={s}
-                variant="outline"
+                variant={nothingToShip && s === 'DELIVERED' ? 'default' : 'outline'}
                 size="sm"
                 className="text-xs"
                 disabled={updating || (s === 'SHIPPED' && unshippedItems.length === 0)}
                 onClick={() => {
-                  if (s === 'SHIPPED') openTrackingDialog('ship');
+                  if (nothingToShip && s === 'DELIVERED') handleMarkFulfilled();
+                  else if (s === 'SHIPPED') openTrackingDialog('ship');
                   else handleStatusUpdate(s);
                 }}
               >
-                {s === 'SHIPPED' ? t('shipPlusTracking') : statusLabel(t, s)}
+                {nothingToShip && s === 'DELIVERED'
+                  ? tt('markFulfilled')
+                  : s === 'SHIPPED' ? t('shipPlusTracking') : statusLabel(t, s)}
               </Button>
             ))}
             {canEditTracking && (
@@ -652,11 +707,15 @@ export default function ProviderOrderDetail() {
                               <Badge variant="outline" className={`text-[11px] font-semibold shrink-0 ${
                                 STATUS_COLORS[itemStatus] || 'bg-zinc-100 text-zinc-600'
                               }`}>
-                                {statusLabel(t, itemStatus)}
+                                {labelOf(itemStatus, item)}
                               </Badge>
                             );
                           })()}
                         </div>
+                        {/* Mixed order: this line is a service / digital product. */}
+                        {showNoShippingBadge(order, item) && (
+                          <Badge variant="secondary" className="mt-0.5 text-[11px]">{tb('noShippingBadge')}</Badge>
+                        )}
                         {variantLabel && <p className="text-xs text-muted-foreground mt-0.5">{variantLabel}</p>}
                         {!isMine && (
                           <p className="text-[11px] text-muted-foreground mt-0.5">{tt('fulfilledByOther')}</p>
@@ -708,17 +767,20 @@ export default function ProviderOrderDetail() {
                 <span className="text-muted-foreground">{t('subtotal')}</span>
                 <span>{fmt(Number(order.subtotal))}</span>
               </div>
-              {/* Shipping line names the chosen method; pickup orders get a small badge. */}
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground inline-flex items-center gap-1.5">
-                  {t('shipping')}
-                  {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
-                  {order.shipping_method_type === 'PICKUP' && (
-                    <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
-                  )}
-                </span>
-                <span>{fmt(Number(order.shipping_cost))}</span>
-              </div>
+              {/* Shipping line names the chosen method; pickup orders get a small badge.
+                  An order that needs no shipping has no shipping row at all. */}
+              {orderRequiresShipping(order) && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                    {t('shipping')}
+                    {order.shipping_method_name && <span>({order.shipping_method_name})</span>}
+                    {order.shipping_method_type === 'PICKUP' && (
+                      <Badge variant="secondary" className="h-4 px-1.5 text-[11px]">{tp('pickup')}</Badge>
+                    )}
+                  </span>
+                  <span>{fmt(Number(order.shipping_cost))}</span>
+                </div>
+              )}
               {Number(order.discount_amount) > 0 && (
                 <div className="flex justify-between text-xs text-emerald-600">
                   <span>{t('discount')}</span>
@@ -818,7 +880,9 @@ export default function ProviderOrderDetail() {
           {/* Shipping address */}
           <Card className="shadow-none">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">{t('shippingAddress')}</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                {orderRequiresShipping(order) ? t('shippingAddress') : tb('billingAddress')}
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
@@ -868,7 +932,7 @@ export default function ProviderOrderDetail() {
               {order.timeline?.length > 0 ? (
                 <div className="space-y-2.5">
                   {[...order.timeline].reverse().map((e, i) => {
-                    const text = timelineEntryText(tTimeline, e.status, e.note, (s) => statusLabel(t, s));
+                    const text = timelineEntryText(tTimeline, e.status, e.note, (s) => labelOf(s));
                     return (
                       <div key={e.id || i} className="flex items-start gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${i === 0 ? 'bg-zinc-800' : 'bg-zinc-300'}`} />

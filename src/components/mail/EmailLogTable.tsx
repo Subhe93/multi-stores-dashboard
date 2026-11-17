@@ -54,6 +54,7 @@ const KNOWN_EVENTS = new Set([
   'order_confirmation',
   'order_shipped',
   'order_delivered',
+  'order_fulfilled',
   'order_cancelled',
   'order_refunded',
   'new_order_owner',
