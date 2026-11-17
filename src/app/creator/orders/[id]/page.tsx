@@ -442,7 +442,11 @@ export default function CreatorOrderDetailPage() {
   // status update applies only to their own items, and the overall order status
   // is re-derived (slowest item wins). Provider items are advanced by the provider.
   const creatorId = user?.creator?.id as string | undefined;
-  const items = (order.items ?? []) as Array<{ fulfiller_type?: string; fulfiller_id?: string }>;
+  const items = (order.items ?? []) as Array<{
+    fulfiller_type?: string;
+    fulfiller_id?: string;
+    fulfillment_status?: string | null;
+  }>;
   const canUpdateStatus =
     !!creatorId &&
     items.some((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId);
@@ -451,7 +455,12 @@ export default function CreatorOrderDetailPage() {
   const isDeleted = !!order.deleted_at;
   // Service / digital order: billing address title, "Mark as fulfilled" action.
   const needsShipping = orderRequiresShipping(order);
-  const showMarkFulfilled = canMarkFulfilled(order);
+  // Not offered once every line of mine is fulfilled (the header may still
+  // wait for a provider's lines).
+  const showMarkFulfilled = canMarkFulfilled(
+    order,
+    items.filter((it) => it.fulfiller_type === 'CREATOR' && it.fulfiller_id === creatorId),
+  );
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -869,7 +878,7 @@ export default function CreatorOrderDetailPage() {
                 </Badge>
                 <p className="text-xs text-blue-700 leading-relaxed">
                   {hasProviderItems
-                    ? t('orderDetail.providerFulfilledNotice')
+                    ? t(needsShipping ? 'orderDetail.providerFulfilledNotice' : 'orderDetail.providerFulfilledNoticeNoShipping')
                     : t('orderDetail.notFulfilledNotice')}
                 </p>
               </CardContent>

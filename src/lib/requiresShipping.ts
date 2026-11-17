@@ -83,12 +83,31 @@ export function withoutShippedOption<T extends { value: string; label: string }>
 // Statuses from which "Mark as fulfilled" is no longer offered.
 const FULFIL_CLOSED_STATUSES = ['DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'];
 
-/** "Mark as fulfilled" is offered for an open order that needs no shipping. */
+/**
+ * "Mark as fulfilled" is offered for an open order that needs no shipping.
+ * `ownItems` are the lines the viewer fulfils: once all of them are
+ * DELIVERED there is nothing left to mark, even while the order header
+ * still waits for another fulfiller's lines.
+ */
 export function canMarkFulfilled(
   order: (ShippingFlagSource & { status?: string | null }) | null | undefined,
+  ownItems?: readonly { fulfillment_status?: string | null }[] | null,
 ): boolean {
   if (!order || orderRequiresShipping(order)) return false;
-  return !FULFIL_CLOSED_STATUSES.includes(order.status ?? '');
+  if (FULFIL_CLOSED_STATUSES.includes(order.status ?? '')) return false;
+  if (ownItems && ownItems.length > 0 && ownItems.every((it) => it.fulfillment_status === 'DELIVERED')) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Body part of a fulfil action carrying the "Send a notification to the
+ * customer" checkbox. The key is sent only when the box is unticked, so a
+ * fulfilment with the notification on sends the same body as before.
+ */
+export function fulfilNotificationBody(notifyCustomer: boolean): { notify_customer?: false } {
+  return notifyCustomer ? {} : { notify_customer: false };
 }
 
 /** "No shipping" badge: only on a non-shipping line of an order that ships. */

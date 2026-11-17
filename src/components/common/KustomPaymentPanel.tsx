@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
+import { orderRequiresShipping } from '@/lib/requiresShipping';
 
 /**
  * Kustom-specific order fields. The API exposes them to admins and the owning
@@ -19,6 +20,8 @@ export interface KustomOrderFields {
   kustom_order_id?: string | null;
   kustom_capture_id?: string | null;
   kustom_captured_at?: string | null;
+  /** False = order without shipping: captured on fulfilment, not on SHIPPED. */
+  requires_shipping?: boolean | null;
 }
 
 interface KustomCaptureResponse {
@@ -303,7 +306,9 @@ export function KustomPaymentPanel({ orderId, order, token, onRefresh, showProvi
             {capturing && <Loader2 className="size-3.5 animate-spin" />}
             {tp('kustomCapturePayment')}
           </Button>
-          <p className="text-[10px] text-muted-foreground">{tp('kustomCaptureHint')}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {tp(orderRequiresShipping(order) ? 'kustomCaptureHint' : 'kustomCaptureHintNoShipping')}
+          </p>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canMarkFulfilled,
+  fulfilNotificationBody,
   noLineRequiresShipping,
   orderLineRequiresShipping,
   orderRequiresShipping,
@@ -99,6 +100,26 @@ test('canMarkFulfilled: open non-shipping orders only', () => {
     assert.equal(canMarkFulfilled({ status, requires_shipping: false }), false, status);
   }
   assert.equal(canMarkFulfilled(null), false);
+});
+
+test('canMarkFulfilled: not offered once every line of the viewer is fulfilled', () => {
+  const order = { status: 'PROCESSING', requires_shipping: false };
+  // The header waits for another fulfiller's lines: nothing left to mark.
+  assert.equal(canMarkFulfilled(order, [{ fulfillment_status: 'DELIVERED' }, { fulfillment_status: 'DELIVERED' }]), false);
+  assert.equal(canMarkFulfilled(order, [{ fulfillment_status: 'DELIVERED' }, { fulfillment_status: 'PROCESSING' }]), true);
+  assert.equal(canMarkFulfilled(order, [{ fulfillment_status: null }]), true);
+  assert.equal(canMarkFulfilled(order, [{}]), true);
+  // No own-lines information: the order status alone decides, as before.
+  assert.equal(canMarkFulfilled(order, []), true);
+  assert.equal(canMarkFulfilled(order, null), true);
+  assert.equal(canMarkFulfilled(order), true);
+  // An order that ships never offers it.
+  assert.equal(canMarkFulfilled({ status: 'PROCESSING' }, [{ fulfillment_status: 'PROCESSING' }]), false);
+});
+
+test('fulfilNotificationBody: the key only when the notification is switched off', () => {
+  assert.deepEqual(fulfilNotificationBody(true), {});
+  assert.deepEqual(fulfilNotificationBody(false), { notify_customer: false });
 });
 
 test('showNoShippingBadge: only a non-shipping line of an order that ships', () => {

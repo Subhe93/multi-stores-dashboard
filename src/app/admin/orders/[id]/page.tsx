@@ -28,6 +28,7 @@ import { DeletedOrderBadge } from '@/components/orders/DeletedOrderBadge';
 import { DeleteOrderButton, DeletedOrderBanner, TestFlagButton } from '@/components/orders/OrderTrashControls';
 import Link from 'next/link';
 import {
+  fulfilNotificationBody,
   orderRequiresShipping,
   orderStatusLabel,
   showNoShippingBadge,
@@ -263,12 +264,20 @@ export default function OrderDetailPage() {
     }
   };
 
+  // "Fulfilled" on an order that needs no shipping: customer email on or off
+  // (Shopify "Send a notification to the customer").
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
   const handleStatusUpdate = async (status: string) => {
     if (!token) return;
     await api(`/orders/${id}/status`, {
       method: 'PUT', token,
-      body: JSON.stringify({ status, note: `Status changed to ${status} by admin` }),
+      body: JSON.stringify({
+        status,
+        note: `Status changed to ${status} by admin`,
+        ...(status === 'DELIVERED' && !orderRequiresShipping(order) ? fulfilNotificationBody(notifyCustomer) : {}),
+      }),
     });
+    setNotifyCustomer(true);
     fetchOrder();
   };
 
@@ -323,6 +332,18 @@ export default function OrderDetailPage() {
             ))}
             <Separator orientation="vertical" className="h-7" />
             <Button variant="outline" size="sm" className="text-xs text-red-600" onClick={() => handleStatusUpdate('CANCELLED')}>{t('cancel')}</Button>
+            {/* Order without shipping: the "Fulfilled" button sends the customer email unless unticked. */}
+            {!needsShipping && nextStatuses.some((s) => s.value === 'DELIVERED') && (
+              <label className="flex w-full items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded accent-primary"
+                  checked={notifyCustomer}
+                  onChange={(e) => setNotifyCustomer(e.target.checked)}
+                />
+                <span className="text-xs font-medium">{tb('notifyCustomer')}</span>
+              </label>
+            )}
           </CardContent>
         </Card>
       )}

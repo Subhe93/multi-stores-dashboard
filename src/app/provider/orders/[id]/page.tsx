@@ -26,6 +26,7 @@ import type { OrderFieldValueRow } from '@/lib/customFields';
 import { timelineEntryText } from '@/lib/orderTimeline';
 import { countryName } from '@/lib/taxCountries';
 import {
+  fulfilNotificationBody,
   noLineRequiresShipping,
   orderRequiresShipping,
   orderStatusLabel,
@@ -355,6 +356,20 @@ export default function ProviderOrderDetail() {
     }
   };
 
+  // "Mark as fulfilled": customer email on or off (default on).
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
+  const notifyCheckbox = (
+    <label className="flex w-full items-center gap-2 cursor-pointer">
+      <input
+        type="checkbox"
+        className="rounded accent-primary"
+        checked={notifyCustomer}
+        onChange={(e) => setNotifyCustomer(e.target.checked)}
+      />
+      <span className="text-xs font-medium">{tt('notifyCustomer')}</span>
+    </label>
+  );
+
   // Completes my open items that need no shipping (stored as DELIVERED, shown
   // as "Fulfilled"): no tracking. Items of mine already shipped are left alone.
   const handleMarkFulfilled = async () => {
@@ -365,16 +380,21 @@ export default function ProviderOrderDetail() {
       if (unshippedItems.length === myItems.length) {
         await api(`/orders/${id}/status`, {
           method: 'PUT', token,
-          body: JSON.stringify({ status: 'DELIVERED', note: t('noteStatusUpdated', { status: 'DELIVERED' }) }),
+          body: JSON.stringify({
+            status: 'DELIVERED',
+            note: t('noteStatusUpdated', { status: 'DELIVERED' }),
+            ...fulfilNotificationBody(notifyCustomer),
+          }),
         });
       } else {
         for (const it of unshippedItems) {
           await api(`/orders/${id}/items/${it.id}/fulfillment`, {
             method: 'PUT', token,
-            body: JSON.stringify({ fulfillment_status: 'DELIVERED' }),
+            body: JSON.stringify({ fulfillment_status: 'DELIVERED', ...fulfilNotificationBody(notifyCustomer) }),
           });
         }
       }
+      setNotifyCustomer(true);
       setNotice({ kind: 'success', text: tt('statusUpdated', { status: t('orderStatus.fulfilled') }) });
     } catch (err) {
       setNotice({ kind: 'error', text: errorText(err) });
@@ -618,6 +638,7 @@ export default function ProviderOrderDetail() {
                 <XCircle className="w-3.5 h-3.5 me-1.5" /> {t('rejectBackToManufacturing')}
               </Button>
             </div>
+            {nothingToShip && <div className="mt-3">{notifyCheckbox}</div>}
           </CardContent>
         </Card>
       )}
@@ -662,6 +683,7 @@ export default function ProviderOrderDetail() {
                 <Pencil className="w-3.5 h-3.5 me-1.5" /> {tt('editTracking')}
               </Button>
             )}
+            {nothingToShip && !isTerminal && !isQualityCheck && notifyCheckbox}
           </CardContent>
         </Card>
       )}
