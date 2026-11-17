@@ -6495,6 +6495,7 @@
     "noItemsYet": "No items yet",
     "addItem": "Add item",
     "itemN": "Item {n}",
+    "repeaterMaxItems": "Up to {max} items",
     "styleLayout": "Layout",
     "styleBackground": "Background",
     "styleSpacing": "Spacing",
@@ -6581,6 +6582,10 @@
     "presetOccasionDesc": "Hero banner, the products of one collection or tag, an SEO text block, then questions and answers — the layout of a gift-occasion page.",
     "presetClassicProductName": "Classic product page",
     "presetClassicProductDesc": "Gallery beside title, price, options, personalization and add to cart, with the product tabs below — today's product page as separate blocks.",
+    "presetEditorialHomeName": "Editorial homepage",
+    "presetEditorialHomeDesc": "Edge-to-edge split hero, a strip of highlights, category tiles, new products and a story band.",
+    "presetProjectsPageName": "Projects page",
+    "presetProjectsPageDesc": "An intro text, a progress spotlight and a grid of project cards with their status.",
     "convertBlocks": {
       "title": "Separate product blocks",
       "hint": "Rebuild this product page as separate blocks in rows and columns, so you can move and restyle each part and mix in other sections.",

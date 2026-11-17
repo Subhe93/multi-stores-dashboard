@@ -6495,6 +6495,7 @@
     "noItemsYet": "Noch keine Elemente",
     "addItem": "Element hinzufügen",
     "itemN": "Element {n}",
+    "repeaterMaxItems": "Bis zu {max} Elemente",
     "styleLayout": "Layout",
     "styleBackground": "Hintergrund",
     "styleSpacing": "Abstände",
@@ -6581,6 +6582,10 @@
     "presetOccasionDesc": "Hero-Banner, die Produkte einer Kollektion oder eines Tags, ein SEO-Textblock, dann Fragen und Antworten — das Layout einer Geschenkanlass-Seite.",
     "presetClassicProductName": "Klassische Produktseite",
     "presetClassicProductDesc": "Galerie neben Titel, Preis, Optionen, Personalisierung und Warenkorb-Button, darunter die Produkt-Tabs – die heutige Produktseite als einzelne Blöcke.",
+    "presetEditorialHomeName": "Editorial-Startseite",
+    "presetEditorialHomeDesc": "Randloser geteilter Hero, eine Leiste mit Highlights, Kategorie-Kacheln, neue Produkte und ein Story-Band.",
+    "presetProjectsPageName": "Projektseite",
+    "presetProjectsPageDesc": "Ein Einleitungstext, ein Fortschritt im Fokus und ein Raster aus Projektkarten mit ihrem Status.",
     "convertBlocks": {
       "title": "Einzelne Produktblöcke",
       "hint": "Baue diese Produktseite aus einzelnen Blöcken in Zeilen und Spalten neu auf, damit du jeden Teil verschieben, anders gestalten und mit anderen Abschnitten kombinieren kannst.",

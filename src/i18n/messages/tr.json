@@ -6495,6 +6495,7 @@
     "noItemsYet": "Henüz öğe yok",
     "addItem": "Öğe ekle",
     "itemN": "Öğe {n}",
+    "repeaterMaxItems": "En fazla {max} öğe",
     "styleLayout": "Düzen",
     "styleBackground": "Arka plan",
     "styleSpacing": "Boşluk",
@@ -6581,6 +6582,10 @@
     "presetOccasionDesc": "Hero banner, bir koleksiyonun veya etiketin ürünleri, bir SEO metin bloğu, ardından sorular ve cevaplar — hediye günü sayfasının düzeni.",
     "presetClassicProductName": "Klasik ürün sayfası",
     "presetClassicProductDesc": "Başlık, fiyat, seçenekler, kişiselleştirme ve sepete ekle yanında galeri, altında ürün sekmeleri — bugünkü ürün sayfası ayrı bloklar olarak.",
+    "presetEditorialHomeName": "Editoryal ana sayfa",
+    "presetEditorialHomeDesc": "Kenardan kenara bölünmüş hero, öne çıkanlar şeridi, kategori kartları, yeni ürünler ve bir hikâye bandı.",
+    "presetProjectsPageName": "Projeler sayfası",
+    "presetProjectsPageDesc": "Bir giriş metni, bir ilerleme vitrini ve durumlarıyla birlikte proje kartları ızgarası.",
     "convertBlocks": {
       "title": "Ayrı ürün blokları",
       "hint": "Bu ürün sayfasını satır ve sütunlardaki ayrı bloklar olarak yeniden oluşturun; her parçayı taşıyıp biçimlendirebilir ve diğer bölümlerle birleştirebilirsiniz.",

@@ -28,6 +28,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { api, authFetch } from '@/lib/api';
 import { type FieldDefinition } from '@/lib/section-schemas';
+import { repeaterAtLimit } from '@/lib/repeaterLimit';
 import { useUiLabel } from '../useUiLabel';
 import { ImageSizeField } from './ImageSizeField';
 import { cn } from '@/lib/utils';
@@ -176,6 +177,7 @@ export function FieldRenderer({ field, value, onChange, contentLocale, token, ap
             items={Array.isArray(value) ? (value as Record<string, unknown>[]) : []}
             onChange={(items) => onChange(items)}
             fields={field.fields || []}
+            maxItems={field.maxItems}
             contentLocale={contentLocale}
             token={token}
             apiBase={apiBase}
@@ -826,6 +828,7 @@ function RepeaterField({
   items,
   onChange,
   fields,
+  maxItems,
   contentLocale,
   token,
   apiBase,
@@ -833,6 +836,8 @@ function RepeaterField({
   items: Record<string, unknown>[];
   onChange: (items: Record<string, unknown>[]) => void;
   fields: FieldDefinition[];
+  // Most items the repeater accepts (schema `maxItems`); undefined = unlimited.
+  maxItems?: number;
   contentLocale: string;
   token: string;
   apiBase: string;
@@ -840,6 +845,9 @@ function RepeaterField({
   // `contentLocale` is threaded down to nested fields; the repeater's own
   // chrome is translated via the dashboard UI locale.
   const t = useTranslations('builder');
+  // Existing items above the limit stay editable and removable; only adding
+  // is blocked.
+  const atLimit = repeaterAtLimit(items.length, maxItems);
   // Drag-to-reorder via dnd-kit (same setup as the section rail). Items carry
   // no stable id, so we use positional ids ("0".."n") and arrayMove by index —
   // the grip in each item header is the drag handle.
@@ -897,12 +905,20 @@ function RepeaterField({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onChange([...items, {}])}
+        disabled={atLimit}
+        onClick={() => {
+          if (!atLimit) onChange([...items, {}]);
+        }}
         className="w-full h-9 border-dashed border-zinc-300 text-zinc-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/40 transition"
       >
         <Plus className="size-3.5 me-1.5" />
         {t('addItem')}
       </Button>
+      {atLimit && (
+        <p className="text-[11px] text-zinc-500 text-center">
+          {t('repeaterMaxItems', { max: maxItems as number })}
+        </p>
+      )}
     </div>
   );
 }

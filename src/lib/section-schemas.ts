@@ -35,6 +35,9 @@ export interface FieldDefinition {
   max?: number;
   options?: { value: string; label: LocalizedString }[];
   fields?: FieldDefinition[];
+  // Repeaters only: the most items the inspector lets the creator add (the
+  // storefront renders no more than this). Omitted = unlimited.
+  maxItems?: number;
   // Conditional visibility — show this field only when a sibling field's
   // value is one of `in`. Used inside repeaters (e.g. a content block shows
   // only the fields relevant to its selected `type`). The section inspector
@@ -102,14 +105,29 @@ const ALIGNMENT_OPTIONS = [
 ];
 
 const ICON_OPTIONS = [
-  { value: 'truck', label: { en: 'Truck (shipping)', ar: 'شاحنة (شحن)' } },
-  { value: 'refresh', label: { en: 'Refresh (returns)', ar: 'تحديث (إرجاع)' } },
-  { value: 'shield', label: { en: 'Shield (secure)', ar: 'درع (آمن)' } },
-  { value: 'card', label: { en: 'Card (payment)', ar: 'بطاقة (دفع)' } },
-  { value: 'award', label: { en: 'Award (quality)', ar: 'جائزة (جودة)' } },
-  { value: 'star', label: { en: 'Star (rated)', ar: 'نجمة (مقيّم)' } },
-  { value: 'headphones', label: { en: 'Headphones (support)', ar: 'سماعات (دعم)' } },
-  { value: 'leaf', label: { en: 'Leaf (eco)', ar: 'ورقة (بيئي)' } },
+  { value: 'truck', label: { en: 'Truck (shipping)', ar: 'شاحنة (شحن)', tr: 'Kamyon (kargo)', de: 'Lkw (Versand)', fr: 'Camion (livraison)', sv: 'Lastbil (frakt)' } },
+  { value: 'refresh', label: { en: 'Refresh (returns)', ar: 'تحديث (إرجاع)', tr: 'Yenile (iade)', de: 'Pfeile (Rückgabe)', fr: 'Flèches (retours)', sv: 'Pilar (returer)' } },
+  { value: 'shield', label: { en: 'Shield (secure)', ar: 'درع (آمن)', tr: 'Kalkan (güvenli)', de: 'Schild (sicher)', fr: 'Bouclier (sécurisé)', sv: 'Sköld (säkert)' } },
+  { value: 'card', label: { en: 'Card (payment)', ar: 'بطاقة (دفع)', tr: 'Kart (ödeme)', de: 'Karte (Zahlung)', fr: 'Carte (paiement)', sv: 'Kort (betalning)' } },
+  { value: 'award', label: { en: 'Award (quality)', ar: 'جائزة (جودة)', tr: 'Ödül (kalite)', de: 'Auszeichnung (Qualität)', fr: 'Récompense (qualité)', sv: 'Utmärkelse (kvalitet)' } },
+  { value: 'star', label: { en: 'Star (rated)', ar: 'نجمة (مقيّم)', tr: 'Yıldız (puanlı)', de: 'Stern (bewertet)', fr: 'Étoile (noté)', sv: 'Stjärna (betyg)' } },
+  { value: 'headphones', label: { en: 'Headphones (support)', ar: 'سماعات (دعم)', tr: 'Kulaklık (destek)', de: 'Kopfhörer (Support)', fr: 'Casque (assistance)', sv: 'Hörlurar (support)' } },
+  { value: 'leaf', label: { en: 'Leaf (eco)', ar: 'ورقة (بيئي)', tr: 'Yaprak (çevreci)', de: 'Blatt (umweltfreundlich)', fr: 'Feuille (écologique)', sv: 'Löv (miljövänligt)' } },
+];
+
+// Icons of the trust badge repeaters (trust-badges, product-page,
+// product-trust) and of progress-spotlight. They all render through the
+// storefront's shared map (multi-stores-web/src/lib/trustBadgeIcons.ts), which
+// knows the six keys added here. ICON_OPTIONS itself stays as it is: the
+// feature grid spreads it and cannot render the extra keys.
+const TRUST_BADGE_ICON_OPTIONS = [
+  ...ICON_OPTIONS,
+  { value: 'graduation', label: { en: 'Graduation cap (education)', ar: 'قبعة تخرّج (تعليم)', tr: 'Mezuniyet kepi (eğitim)', de: 'Doktorhut (Bildung)', fr: 'Toque de diplômé (éducation)', sv: 'Studentmössa (utbildning)' } },
+  { value: 'gem', label: { en: 'Gem (quality)', ar: 'جوهرة (جودة)', tr: 'Mücevher (kalite)', de: 'Edelstein (Qualität)', fr: 'Gemme (qualité)', sv: 'Ädelsten (kvalitet)' } },
+  { value: 'globe', label: { en: 'Globe (worldwide)', ar: 'كرة أرضية (عالمي)', tr: 'Küre (dünya çapında)', de: 'Globus (weltweit)', fr: 'Globe (monde entier)', sv: 'Jordglob (hela världen)' } },
+  { value: 'book', label: { en: 'Book (learning)', ar: 'كتاب (تعلّم)', tr: 'Kitap (öğrenme)', de: 'Buch (Lernen)', fr: 'Livre (apprentissage)', sv: 'Bok (lärande)' } },
+  { value: 'heart', label: { en: 'Heart (care)', ar: 'قلب (عناية)', tr: 'Kalp (özen)', de: 'Herz (Fürsorge)', fr: 'Cœur (attention)', sv: 'Hjärta (omtanke)' } },
+  { value: 'sparkles', label: { en: 'Sparkles (new)', ar: 'بريق (جديد)', tr: 'Parıltı (yeni)', de: 'Funkeln (neu)', fr: 'Étincelles (nouveau)', sv: 'Gnistor (nytt)' } },
 ];
 
 // Image sizing (single-image section + layout-columns image block). One
@@ -163,6 +181,177 @@ function buttonStyleFields(prefix: string, en: { suffix?: string } = {}, ar: { s
     n(`${prefix}_border_radius`, `Button corner radius (px)${enS}`, `انحناء زوايا الزر (px)${arS}`, { min: 0, max: 100 }),
   ];
 }
+
+// ── Editorial set (category-tiles, progress-spotlight, project-cards and the
+// edge-to-edge variants of hero-split / image-with-text / trust-badges) ──────
+// Every label here carries all six dashboard locales. Keys, option values and
+// defaults mirror the storefront sections of the same names
+// (multi-stores-web/src/themes/minimal/sections/); the value sets are shared
+// with multi-stores-web/.../_shared/tone.ts, cta.ts, StatusBadge.tsx.
+
+/** Six-locale label, in the order en, ar, tr, de, fr, sv. */
+const L = (en: string, ar: string, tr: string, de: string, fr: string, sv: string): LocalizedString => ({
+  en, ar, tr, de, fr, sv,
+});
+
+/** Colour override with a six-locale label. Empty = theme colour. */
+const cL = (key: string, label: LocalizedString, extra: Partial<FieldDefinition> = {}): FieldDefinition => ({
+  key, type: 'color', label, ...extra,
+});
+
+/**
+ * Same keys, types and limits as buttonStyleFields, with six-locale labels.
+ * `suffix` (already in brackets) tells two buttons of one section apart.
+ */
+function buttonStyleFieldsL(prefix: string, suffix?: LocalizedString): FieldDefinition[] {
+  const s = (label: LocalizedString): LocalizedString =>
+    suffix
+      ? (Object.fromEntries(Object.entries(label).map(([loc, text]) => [loc, `${text} ${suffix[loc] ?? suffix.en}`])) as LocalizedString)
+      : label;
+  return [
+    cL(`${prefix}_bg_color`, s(L('Button background', 'خلفية الزر', 'Buton arka planı', 'Button-Hintergrund', 'Fond du bouton', 'Knappens bakgrund'))),
+    cL(`${prefix}_text_color`, s(L('Button text color', 'لون نص الزر', 'Buton metin rengi', 'Button-Textfarbe', 'Couleur du texte du bouton', 'Knappens textfärg'))),
+    cL(`${prefix}_border_color`, s(L('Button border color', 'لون حدود الزر', 'Buton kenarlık rengi', 'Button-Rahmenfarbe', 'Couleur de bordure du bouton', 'Knappens kantfärg'))),
+    {
+      key: `${prefix}_border_width`,
+      type: 'number',
+      label: s(L('Button border width (px)', 'سماكة حدود الزر (px)', 'Buton kenarlık kalınlığı (px)', 'Button-Rahmenbreite (px)', 'Épaisseur de bordure du bouton (px)', 'Knappens kantbredd (px)')),
+      min: 0,
+      max: 8,
+      defaultValue: 0,
+    },
+    {
+      key: `${prefix}_border_radius`,
+      type: 'number',
+      label: s(L('Button corner radius (px)', 'انحناء زوايا الزر (px)', 'Buton köşe yuvarlaklığı (px)', 'Button-Eckenradius (px)', 'Rayon des coins du bouton (px)', 'Knappens hörnradie (px)')),
+      min: 0,
+      max: 100,
+    },
+  ];
+}
+
+const SECONDARY_SUFFIX = L('(secondary)', '(ثانوي)', '(ikincil)', '(sekundär)', '(secondaire)', '(sekundär)');
+
+// Logical sides: "start" is the right-hand side in a right-to-left language.
+const START_LABEL = L('Start', 'البداية', 'Başlangıç', 'Anfang', 'Début', 'Start');
+const END_LABEL = L('End', 'النهاية', 'Bitiş', 'Ende', 'Fin', 'Slut');
+const CENTER_LABEL = L('Center', 'الوسط', 'Orta', 'Mitte', 'Centre', 'Mitten');
+
+const START_END_OPTIONS = [
+  { value: 'start', label: START_LABEL },
+  { value: 'end', label: END_LABEL },
+];
+
+const HEADING_ALIGN_OPTIONS = [
+  { value: 'start', label: START_LABEL },
+  { value: 'center', label: CENTER_LABEL },
+];
+
+// Tone = 'none' | 'surface' | 'primary' | 'accent' (section background).
+const TONE_OPTIONS = [
+  { value: 'none', label: L('None (page background)', 'بدون (خلفية الصفحة)', 'Yok (sayfa arka planı)', 'Keine (Seitenhintergrund)', 'Aucune (fond de la page)', 'Ingen (sidans bakgrund)') },
+  { value: 'surface', label: L('Surface (soft tint)', 'سطح (لون هادئ)', 'Yüzey (yumuşak ton)', 'Fläche (sanfter Ton)', 'Surface (teinte douce)', 'Yta (mjuk ton)') },
+  { value: 'primary', label: L('Primary color', 'اللون الأساسي', 'Ana renk', 'Primärfarbe', 'Couleur principale', 'Primärfärg') },
+  { value: 'accent', label: L('Accent color', 'لون التمييز', 'Vurgu rengi', 'Akzentfarbe', 'Couleur d’accent', 'Accentfärg') },
+];
+
+// CtaTone = 'primary' | 'accent' (button colour).
+const CTA_TONE_OPTIONS = [
+  { value: 'primary', label: L('Primary color', 'اللون الأساسي', 'Ana renk', 'Primärfarbe', 'Couleur principale', 'Primärfärg') },
+  { value: 'accent', label: L('Accent color', 'لون التمييز', 'Vurgu rengi', 'Akzentfarbe', 'Couleur d’accent', 'Accentfärg') },
+];
+
+// Focus = 'center' | 'top' | 'bottom' (which part of a cropped image stays visible).
+const FOCUS_OPTIONS = [
+  { value: 'center', label: CENTER_LABEL },
+  { value: 'top', label: L('Top', 'الأعلى', 'Üst', 'Oben', 'Haut', 'Överkant') },
+  { value: 'bottom', label: L('Bottom', 'الأسفل', 'Alt', 'Unten', 'Bas', 'Underkant') },
+];
+
+// Edge = 'soft' | 'hard' (how the image meets the text half).
+const EDGE_OPTIONS = [
+  { value: 'soft', label: L('Soft (fades into the background)', 'ناعمة (تتلاشى في الخلفية)', 'Yumuşak (arka plana karışır)', 'Weich (läuft in den Hintergrund aus)', 'Douce (se fond dans l’arrière-plan)', 'Mjuk (tonar ut i bakgrunden)') },
+  { value: 'hard', label: L('Hard (straight edge)', 'حادّة (حافة مستقيمة)', 'Keskin (düz kenar)', 'Hart (gerade Kante)', 'Nette (bord droit)', 'Hård (rak kant)') },
+];
+
+// Status = 'none' | 'planned' | 'in_progress' | 'completed'.
+const STATUS_OPTIONS = [
+  { value: 'none', label: L('No status', 'بدون حالة', 'Durum yok', 'Kein Status', 'Aucun statut', 'Ingen status') },
+  { value: 'planned', label: L('Planned', 'مخطَّط', 'Planlandı', 'Geplant', 'Planifié', 'Planerat') },
+  { value: 'in_progress', label: L('In progress', 'قيد التنفيذ', 'Devam ediyor', 'In Arbeit', 'En cours', 'Pågår') },
+  { value: 'completed', label: L('Completed', 'مكتمل', 'Tamamlandı', 'Abgeschlossen', 'Terminé', 'Slutfört') },
+];
+
+const ALT_LABEL = L('Image description (alt text)', 'وصف الصورة (النص البديل)', 'Görsel açıklaması (alt metni)', 'Bildbeschreibung (Alt-Text)', 'Description de l’image (texte alternatif)', 'Bildbeskrivning (alt-text)');
+const ALT_DESCRIPTION = L(
+  'Read by screen readers and search engines. Leave empty when the image is only decoration.',
+  'يقرؤه قارئ الشاشة ومحركات البحث. اتركه فارغاً إذا كانت الصورة للزينة فقط.',
+  'Ekran okuyucular ve arama motorları okur. Görsel yalnızca süs ise boş bırakın.',
+  'Wird von Screenreadern und Suchmaschinen gelesen. Leer lassen, wenn das Bild nur Dekoration ist.',
+  'Lu par les lecteurs d’écran et les moteurs de recherche. Laissez vide si l’image est purement décorative.',
+  'Läses av skärmläsare och sökmotorer. Lämna tomt om bilden bara är dekoration.',
+);
+
+const BG_COLOR_LABEL = L('Background color', 'لون الخلفية', 'Arka plan rengi', 'Hintergrundfarbe', 'Couleur de fond', 'Bakgrundsfärg');
+const BG_COLOR_DESCRIPTION = L(
+  'Replaces the background of the chosen tone. Empty = the tone’s own color.',
+  'يستبدل خلفية الدرجة المختارة. فارغ = لون الدرجة نفسه.',
+  'Seçilen tonun arka planını değiştirir. Boş = tonun kendi rengi.',
+  'Ersetzt den Hintergrund des gewählten Tons. Leer = die Farbe des Tons.',
+  'Remplace le fond du ton choisi. Vide = la couleur du ton.',
+  'Ersätter bakgrunden för den valda tonen. Tomt = tonens egen färg.',
+);
+
+const TONE_LABEL = L('Background tone', 'درجة الخلفية', 'Arka plan tonu', 'Hintergrundton', 'Ton du fond', 'Bakgrundston');
+const IMAGE_FOCUS_LABEL = L('Image focus', 'تركيز الصورة', 'Görsel odağı', 'Bildfokus', 'Point focal de l’image', 'Bildens fokus');
+const IMAGE_FOCUS_DESCRIPTION = L(
+  'The part of the image that stays visible when it is cropped.',
+  'الجزء الذي يبقى ظاهراً من الصورة عند قصّها.',
+  'Görsel kırpıldığında görünür kalan bölüm.',
+  'Der Teil des Bildes, der beim Zuschneiden sichtbar bleibt.',
+  'La partie de l’image qui reste visible lorsqu’elle est rognée.',
+  'Den del av bilden som syns när den beskärs.',
+);
+const EDGE_LABEL = L('Image edge', 'حافة الصورة', 'Görsel kenarı', 'Bildkante', 'Bord de l’image', 'Bildens kant');
+const CTA_TONE_LABEL = L('Button color', 'لون الزر', 'Buton rengi', 'Button-Farbe', 'Couleur du bouton', 'Knappens färg');
+const CTA_TONE_DESCRIPTION = L(
+  'Takes the theme’s primary or accent color. The button color fields below still win.',
+  'يأخذ اللون الأساسي أو لون التمييز من الثيم. حقول ألوان الزر في الأسفل لها الأولوية.',
+  'Temanın ana veya vurgu rengini alır. Aşağıdaki buton renk alanları önceliklidir.',
+  'Übernimmt die Primär- oder Akzentfarbe des Themes. Die Button-Farbfelder unten haben Vorrang.',
+  'Reprend la couleur principale ou d’accent du thème. Les champs de couleur du bouton ci-dessous restent prioritaires.',
+  'Tar temats primär- eller accentfärg. Knappens färgfält nedan gäller i första hand.',
+);
+const CTA_ARROW_LABEL = L('Arrow after the button text', 'سهم بعد نص الزر', 'Buton metninden sonra ok', 'Pfeil nach dem Button-Text', 'Flèche après le texte du bouton', 'Pil efter knapptexten');
+const HEADING_ALIGN_LABEL = L('Heading alignment', 'محاذاة العنوان', 'Başlık hizalaması', 'Ausrichtung der Überschrift', 'Alignement du titre', 'Rubrikens justering');
+const HEADING_RULE_LABEL = L('Lines beside the heading', 'خطوط بجانب العنوان', 'Başlığın yanında çizgiler', 'Linien neben der Überschrift', 'Lignes de part et d’autre du titre', 'Linjer bredvid rubriken');
+const HEADING_RULE_DESCRIPTION = L(
+  'Shown only with a centered heading.',
+  'تظهر فقط مع العنوان الموسَّط.',
+  'Yalnızca ortalanmış başlıkla gösterilir.',
+  'Nur bei zentrierter Überschrift sichtbar.',
+  'Affichées uniquement avec un titre centré.',
+  'Visas bara med centrerad rubrik.',
+);
+const ROUNDED_LABEL = L('Rounded corners', 'زوايا مستديرة', 'Yuvarlatılmış köşeler', 'Abgerundete Ecken', 'Coins arrondis', 'Rundade hörn');
+const HEADING_LABEL = L('Heading', 'العنوان', 'Başlık', 'Überschrift', 'Titre', 'Rubrik');
+const SUBHEADING_LABEL = L('Subheading', 'العنوان الفرعي', 'Alt başlık', 'Unterüberschrift', 'Sous-titre', 'Underrubrik');
+const IMAGE_LABEL = L('Image', 'الصورة', 'Görsel', 'Bild', 'Image', 'Bild');
+const TITLE_LABEL = L('Title', 'العنوان', 'Başlık', 'Titel', 'Titre', 'Titel');
+const LINK_LABEL = L('Link', 'الرابط', 'Bağlantı', 'Link', 'Lien', 'Länk');
+const COLUMNS_DESKTOP_LABEL = L('Columns — desktop', 'الأعمدة — سطح المكتب', 'Sütunlar — masaüstü', 'Spalten — Desktop', 'Colonnes — ordinateur', 'Kolumner — dator');
+const COLUMNS_TABLET_LABEL = L('Columns — tablet', 'الأعمدة — تابلت', 'Sütunlar — tablet', 'Spalten — Tablet', 'Colonnes — tablette', 'Kolumner — surfplatta');
+const COLUMNS_MOBILE_LABEL = L('Columns — mobile', 'الأعمدة — جوال', 'Sütunlar — mobil', 'Spalten — Mobil', 'Colonnes — mobile', 'Kolumner — mobil');
+const IMAGE_ASPECT_LABEL = L('Image aspect', 'نسبة الصورة', 'Görsel oranı', 'Bildformat', 'Format de l’image', 'Bildformat');
+const HEADING_COLOR_LABEL = L('Heading color', 'لون العنوان', 'Başlık rengi', 'Farbe der Überschrift', 'Couleur du titre', 'Rubrikens färg');
+const SUBHEADING_COLOR_LABEL = L('Subheading color', 'لون العنوان الفرعي', 'Alt başlık rengi', 'Farbe der Unterüberschrift', 'Couleur du sous-titre', 'Underrubrikens färg');
+const EYEBROW_COLOR_LABEL = L('Small label color', 'لون التسمية الصغيرة', 'Küçük etiket rengi', 'Farbe des kleinen Labels', 'Couleur du petit libellé', 'Den lilla etikettens färg');
+const BODY_COLOR_LABEL = L('Body text color', 'لون النص', 'Metin rengi', 'Farbe des Fließtexts', 'Couleur du texte', 'Brödtextens färg');
+
+const ASPECT_SQUARE = L('Square (1:1)', 'مربّع (1:1)', 'Kare (1:1)', 'Quadrat (1:1)', 'Carré (1:1)', 'Kvadrat (1:1)');
+const ASPECT_PORTRAIT = L('Portrait (4:5)', 'طولي (4:5)', 'Dikey (4:5)', 'Hochformat (4:5)', 'Portrait (4:5)', 'Stående (4:5)');
+const ASPECT_LANDSCAPE = L('Landscape (4:3)', 'عرضي (4:3)', 'Yatay (4:3)', 'Querformat (4:3)', 'Paysage (4:3)', 'Liggande (4:3)');
+const ASPECT_WIDE = L('Wide (16:9)', 'عريض (16:9)', 'Geniş (16:9)', 'Breit (16:9)', 'Large (16:9)', 'Bred (16:9)');
 
 // Cross-axis alignment of the children of a layout container.
 // Mirrors ALIGN_OPTIONS in multi-stores-web/src/themes/minimal/sections/layout/options.ts.
@@ -539,9 +728,45 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       en: 'Half image, half text hero with primary and secondary CTAs. The image can sit on either side.',
       ar: 'بانر نصفه صورة ونصفه نص مع زرّين رئيسي وثانوي. يمكن وضع الصورة في أي من الجهتين.',
     },
-    translatable: ['eyebrow', 'heading', 'subheading', 'cta_text', 'cta_secondary_text'],
+    // `alt` is the only addition; URL keys stay in settings.
+    translatable: ['eyebrow', 'heading', 'subheading', 'cta_text', 'cta_secondary_text', 'alt'],
     schema: [
+      // Unset = framed (the boxed image with radius and shadow, as before).
+      // 'bleed' runs the image to the viewport edge; the fields gated on it
+      // below do nothing in the framed variant.
+      {
+        key: 'variant',
+        type: 'select',
+        label: L('Style', 'النمط', 'Stil', 'Stil', 'Style', 'Stil'),
+        description: L(
+          'Framed keeps the image in a rounded box inside the page width. Edge to edge runs the image to the side of the screen.',
+          'المؤطَّر يُبقي الصورة في صندوق بزوايا مستديرة داخل عرض الصفحة. من الحافة إلى الحافة يمدّ الصورة حتى طرف الشاشة.',
+          'Çerçeveli, görseli sayfa genişliği içinde yuvarlatılmış bir kutuda tutar. Kenardan kenara, görseli ekranın kenarına kadar uzatır.',
+          'Gerahmt hält das Bild in einem abgerundeten Kasten innerhalb der Seitenbreite. Randlos führt das Bild bis an den Bildschirmrand.',
+          'Encadré garde l’image dans un cadre arrondi à l’intérieur de la largeur de page. Bord à bord étend l’image jusqu’au bord de l’écran.',
+          'Inramad håller bilden i en rundad ruta inom sidbredden. Kant till kant drar ut bilden till skärmens kant.',
+        ),
+        defaultValue: 'framed',
+        options: [
+          { value: 'framed', label: L('Framed', 'مؤطَّر', 'Çerçeveli', 'Gerahmt', 'Encadré', 'Inramad') },
+          { value: 'bleed', label: L('Edge to edge', 'من الحافة إلى الحافة', 'Kenardan kenara', 'Randlos', 'Bord à bord', 'Kant till kant') },
+        ],
+      },
       { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' } },
+      {
+        key: 'alt',
+        type: 'text',
+        label: ALT_LABEL,
+        description: L(
+          'Read by screen readers and search engines. Empty = the heading is used.',
+          'يقرؤه قارئ الشاشة ومحركات البحث. فارغ = يُستخدم العنوان.',
+          'Ekran okuyucular ve arama motorları okur. Boş = başlık kullanılır.',
+          'Wird von Screenreadern und Suchmaschinen gelesen. Leer = die Überschrift wird verwendet.',
+          'Lu par les lecteurs d’écran et les moteurs de recherche. Vide = le titre est utilisé.',
+          'Läses av skärmläsare och sökmotorer. Tomt = rubriken används.',
+        ),
+        maxLength: 160,
+      },
       {
         key: 'image_side',
         type: 'select',
@@ -563,6 +788,54 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'lg', label: { en: 'Large', ar: 'كبير' } },
         ],
       },
+      {
+        key: 'image_width',
+        type: 'select',
+        label: L('Image width', 'عرض الصورة', 'Görsel genişliği', 'Bildbreite', 'Largeur de l’image', 'Bildens bredd'),
+        defaultValue: 'half',
+        showIf: { key: 'variant', in: ['bleed'] },
+        options: [
+          { value: 'half', label: L('Half', 'النصف', 'Yarım', 'Hälfte', 'Moitié', 'Halva') },
+          { value: 'wide', label: L('Wide (58%)', 'عريضة (58%)', 'Geniş (%58)', 'Breit (58 %)', 'Large (58 %)', 'Bred (58 %)') },
+        ],
+      },
+      {
+        key: 'image_focus',
+        type: 'select',
+        label: IMAGE_FOCUS_LABEL,
+        description: IMAGE_FOCUS_DESCRIPTION,
+        defaultValue: 'center',
+        showIf: { key: 'variant', in: ['bleed'] },
+        options: FOCUS_OPTIONS,
+      },
+      {
+        key: 'tone',
+        type: 'select',
+        label: TONE_LABEL,
+        defaultValue: 'surface',
+        showIf: { key: 'variant', in: ['bleed'] },
+        options: TONE_OPTIONS,
+      },
+      cL('bg_color', BG_COLOR_LABEL, { description: BG_COLOR_DESCRIPTION, showIf: { key: 'variant', in: ['bleed'] } }),
+      {
+        key: 'edge',
+        type: 'select',
+        label: EDGE_LABEL,
+        defaultValue: 'soft',
+        showIf: { key: 'variant', in: ['bleed'] },
+        options: EDGE_OPTIONS,
+      },
+      {
+        key: 'mobile_order',
+        type: 'select',
+        label: L('Order on mobile', 'الترتيب على الجوال', 'Mobilde sıra', 'Reihenfolge auf Mobilgeräten', 'Ordre sur mobile', 'Ordning på mobil'),
+        defaultValue: 'image-first',
+        showIf: { key: 'variant', in: ['bleed'] },
+        options: [
+          { value: 'image-first', label: L('Image first', 'الصورة أولاً', 'Önce görsel', 'Bild zuerst', 'Image d’abord', 'Bilden först') },
+          { value: 'text-first', label: L('Text first', 'النص أولاً', 'Önce metin', 'Text zuerst', 'Texte d’abord', 'Texten först') },
+        ],
+      },
       { key: 'eyebrow', type: 'text', label: { en: 'Eyebrow', ar: 'تسمية صغيرة' }, maxLength: 40 },
       { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' }, maxLength: 120 },
       { key: 'subheading', type: 'textarea', label: { en: 'Subheading', ar: 'العنوان الفرعي' }, maxLength: 280 },
@@ -570,6 +843,22 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'cta_url', type: 'url', label: { en: 'Primary button URL', ar: 'رابط الزر الرئيسي' } },
       { key: 'cta_secondary_text', type: 'text', label: { en: 'Secondary button text', ar: 'نص الزر الثاني' }, maxLength: 40 },
       { key: 'cta_secondary_url', type: 'url', label: { en: 'Secondary button URL', ar: 'رابط الزر الثاني' } },
+      // Both variants. Unset or 'primary' = the button as it was.
+      {
+        key: 'cta_tone',
+        type: 'select',
+        label: CTA_TONE_LABEL,
+        description: CTA_TONE_DESCRIPTION,
+        defaultValue: 'primary',
+        options: CTA_TONE_OPTIONS,
+      },
+      {
+        key: 'cta_arrow',
+        type: 'boolean',
+        label: CTA_ARROW_LABEL,
+        defaultValue: false,
+        showIf: { key: 'variant', in: ['bleed'] },
+      },
       ...textColorFields({ eyebrow: true, heading: true, subheading: true }),
       ...buttonStyleFields('cta', { suffix: '(primary)' }, { suffix: '(رئيسي)' }),
       ...buttonStyleFields('cta_secondary', { suffix: '(secondary)' }, { suffix: '(ثانوي)' }),
@@ -696,6 +985,152 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         { size: 'small', title: 'Secure' },
         { size: 'wide', title: 'Loved by thousands', text: 'Add a supporting line.' },
         { size: 'tall', title: 'Quality' },
+      ],
+    },
+  },
+  {
+    // Editorial set. Mirrors multi-stores-web/.../sections/CategoryTiles.tsx:
+    // translatable keys live in the per-locale content, the rest in settings.
+    // A boolean reads as off when unset, so `true` defaults are written into
+    // defaultSettings explicitly.
+    id: 'category-tiles',
+    label: L('Category tiles', 'بطاقات الفئات', 'Kategori kartları', 'Kategorie-Kacheln', 'Tuiles de catégories', 'Kategoribrickor'),
+    icon: 'layout-grid',
+    category: 'commerce',
+    description: L(
+      'Equal image cards with a title, a subtitle and a link. Good for collections and categories.',
+      'بطاقات صور متساوية بعنوان وعنوان فرعي ورابط. مناسبة للمجموعات والفئات.',
+      'Başlık, alt başlık ve bağlantı içeren eşit görsel kartlar. Koleksiyonlar ve kategoriler için uygundur.',
+      'Gleich große Bildkarten mit Titel, Untertitel und Link. Gut für Kollektionen und Kategorien.',
+      'Cartes d’images de même taille avec un titre, un sous-titre et un lien. Idéal pour les collections et les catégories.',
+      'Lika stora bildkort med titel, undertitel och länk. Passar för kollektioner och kategorier.',
+    ),
+    translatable: ['heading', 'subheading', 'items'],
+    schema: [
+      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'subheading', type: 'textarea', label: SUBHEADING_LABEL, maxLength: 240 },
+      {
+        key: 'items',
+        type: 'repeater',
+        label: L('Tiles', 'البطاقات', 'Kartlar', 'Kacheln', 'Tuiles', 'Brickor'),
+        description: L(
+          'Up to 12 tiles. A tile shows when it has a title or an image.',
+          'حتى 12 بطاقة. تظهر البطاقة عندما يكون لها عنوان أو صورة.',
+          'En fazla 12 kart. Bir kart, başlığı veya görseli olduğunda gösterilir.',
+          'Bis zu 12 Kacheln. Eine Kachel erscheint, sobald sie einen Titel oder ein Bild hat.',
+          'Jusqu’à 12 tuiles. Une tuile s’affiche dès qu’elle a un titre ou une image.',
+          'Upp till 12 brickor. En bricka visas när den har en titel eller en bild.',
+        ),
+        maxItems: 12,
+        fields: [
+          { key: 'image', type: 'image', label: IMAGE_LABEL },
+          { key: 'title', type: 'text', label: TITLE_LABEL, maxLength: 60 },
+          { key: 'subtitle', type: 'text', label: L('Subtitle', 'العنوان الفرعي', 'Alt başlık', 'Untertitel', 'Sous-titre', 'Undertitel'), maxLength: 80 },
+          {
+            key: 'url',
+            type: 'url',
+            label: LINK_LABEL,
+            description: L(
+              'Where the tile leads, for example /collections/your-collection. Without a link the tile is not clickable.',
+              'إلى أين تقود البطاقة، مثلاً /collections/your-collection. بدون رابط لا تكون البطاقة قابلة للنقر.',
+              'Kartın yönlendirdiği yer, örneğin /collections/your-collection. Bağlantı yoksa kart tıklanamaz.',
+              'Wohin die Kachel führt, zum Beispiel /collections/your-collection. Ohne Link ist die Kachel nicht klickbar.',
+              'La destination de la tuile, par exemple /collections/your-collection. Sans lien, la tuile n’est pas cliquable.',
+              'Vart brickan leder, till exempel /collections/your-collection. Utan länk går brickan inte att klicka på.',
+            ),
+          },
+          { key: 'alt', type: 'text', label: ALT_LABEL, description: ALT_DESCRIPTION, maxLength: 160 },
+        ],
+      },
+      {
+        key: 'card_style',
+        type: 'select',
+        label: L('Card style', 'نمط البطاقة', 'Kart stili', 'Kartenstil', 'Style de carte', 'Kortstil'),
+        defaultValue: 'caption',
+        options: [
+          { value: 'caption', label: L('Text below the image', 'النص تحت الصورة', 'Metin görselin altında', 'Text unter dem Bild', 'Texte sous l’image', 'Text under bilden') },
+          { value: 'overlay', label: L('Text over the image', 'النص فوق الصورة', 'Metin görselin üzerinde', 'Text über dem Bild', 'Texte sur l’image', 'Text över bilden') },
+        ],
+      },
+      {
+        key: 'aspect',
+        type: 'select',
+        label: IMAGE_ASPECT_LABEL,
+        defaultValue: 'square',
+        options: [
+          { value: 'square', label: ASPECT_SQUARE },
+          { value: 'portrait', label: ASPECT_PORTRAIT },
+          { value: 'landscape', label: ASPECT_LANDSCAPE },
+        ],
+      },
+      { key: 'columns', type: 'number', label: COLUMNS_DESKTOP_LABEL, min: 2, max: 6, defaultValue: 4 },
+      { key: 'columns_tablet', type: 'number', label: COLUMNS_TABLET_LABEL, min: 2, max: 4, defaultValue: 3 },
+      { key: 'columns_mobile', type: 'number', label: COLUMNS_MOBILE_LABEL, min: 1, max: 2, defaultValue: 2 },
+      {
+        key: 'mobile_scroll',
+        type: 'boolean',
+        label: L('Swipeable row on mobile', 'صف قابل للسحب على الجوال', 'Mobilde kaydırılabilir satır', 'Wischbare Reihe auf Mobilgeräten', 'Rangée défilante sur mobile', 'Svepbar rad på mobil'),
+        description: L(
+          'On phones the tiles sit in one row that is swiped sideways, instead of wrapping.',
+          'على الهواتف تصطف البطاقات في صف واحد يُسحب جانبياً بدل أن تنزل إلى أسطر.',
+          'Telefonlarda kartlar alt alta sarmak yerine yana kaydırılan tek bir satırda durur.',
+          'Auf Smartphones stehen die Kacheln in einer Reihe, die seitlich gewischt wird, statt umzubrechen.',
+          'Sur téléphone, les tuiles tiennent sur une seule rangée que l’on fait défiler, au lieu de passer à la ligne.',
+          'På mobilen ligger brickorna i en rad som sveps i sidled i stället för att radbrytas.',
+        ),
+        defaultValue: false,
+      },
+      { key: 'heading_align', type: 'select', label: HEADING_ALIGN_LABEL, defaultValue: 'center', options: HEADING_ALIGN_OPTIONS },
+      { key: 'heading_rule', type: 'boolean', label: HEADING_RULE_LABEL, description: HEADING_RULE_DESCRIPTION, defaultValue: false },
+      {
+        key: 'show_arrow',
+        type: 'boolean',
+        label: L('Show arrow', 'إظهار السهم', 'Oku göster', 'Pfeil anzeigen', 'Afficher la flèche', 'Visa pil'),
+        defaultValue: true,
+      },
+      {
+        key: 'card_surface',
+        type: 'boolean',
+        label: L('Card background', 'خلفية البطاقة', 'Kart arka planı', 'Kartenhintergrund', 'Fond de la carte', 'Kortets bakgrund'),
+        description: L(
+          'A soft tint behind the image and the text.',
+          'لون هادئ خلف الصورة والنص.',
+          'Görselin ve metnin arkasında yumuşak bir ton.',
+          'Ein sanfter Ton hinter Bild und Text.',
+          'Une teinte douce derrière l’image et le texte.',
+          'En mjuk ton bakom bilden och texten.',
+        ),
+        defaultValue: true,
+        showIf: { key: 'card_style', in: ['', 'caption'] },
+      },
+      { key: 'rounded', type: 'boolean', label: ROUNDED_LABEL, defaultValue: true },
+      cL('heading_color', HEADING_COLOR_LABEL),
+      cL('subheading_color', SUBHEADING_COLOR_LABEL),
+      cL('title_color', L('Tile title color', 'لون عنوان البطاقة', 'Kart başlığı rengi', 'Farbe des Kacheltitels', 'Couleur du titre de la tuile', 'Brickans titelfärg')),
+      cL('subtitle_color', L('Tile subtitle color', 'لون العنوان الفرعي للبطاقة', 'Kart alt başlığı rengi', 'Farbe des Kacheluntertitels', 'Couleur du sous-titre de la tuile', 'Brickans undertitelfärg')),
+      cL('arrow_bg_color', L('Arrow background', 'خلفية السهم', 'Ok arka planı', 'Pfeil-Hintergrund', 'Fond de la flèche', 'Pilens bakgrund')),
+      cL('arrow_color', L('Arrow color', 'لون السهم', 'Ok rengi', 'Pfeilfarbe', 'Couleur de la flèche', 'Pilens färg')),
+    ],
+    defaultSettings: {
+      card_style: 'caption',
+      aspect: 'square',
+      columns: 4,
+      columns_tablet: 3,
+      columns_mobile: 2,
+      mobile_scroll: false,
+      heading_align: 'center',
+      heading_rule: false,
+      show_arrow: true,
+      card_surface: true,
+      rounded: true,
+    },
+    defaultContent: {
+      heading: 'Shop by category',
+      items: [
+        { title: 'New in', subtitle: 'The latest arrivals', url: '/products' },
+        { title: 'Clothing', subtitle: 'Everyday pieces', url: '/products' },
+        { title: 'Accessories', subtitle: 'Finishing touches', url: '/products' },
+        { title: 'Gifts', subtitle: 'Something for everyone', url: '/products' },
       ],
     },
   },
@@ -1017,18 +1452,45 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       en: '50/50 image and text. Common for "About", "Story", or feature spotlights.',
       ar: 'صورة 50/50 مع نص. مناسب لـ "من نحن"، "قصتنا"، أو ميزة.',
     },
-    translatable: ['eyebrow', 'heading', 'body', 'cta_text'],
+    // `cta_secondary_text` and `alt` are the additions; URL keys stay in settings.
+    translatable: ['eyebrow', 'heading', 'body', 'cta_text', 'cta_secondary_text', 'alt'],
     schema: [
       { key: 'image', type: 'image', label: { en: 'Image', ar: 'الصورة' }, showIf: STATIC_IMAGE_SHOW_IF },
+      // Alt text of the uploaded image, in both styles. Unset = empty alt, as before.
+      { key: 'alt', type: 'text', label: ALT_LABEL, description: ALT_DESCRIPTION, maxLength: 160, showIf: STATIC_IMAGE_SHOW_IF },
       ...IMAGE_SOURCE_FIELDS,
       {
+        // Stored values stay 'left' / 'right': 'left' is the inline start and
+        // 'right' the inline end (the storefront places the image through
+        // grid order, so it mirrors in a right-to-left language).
         key: 'image_position',
         type: 'select',
         label: { en: 'Image position', ar: 'موقع الصورة' },
         defaultValue: 'left',
         options: [
-          { value: 'left', label: { en: 'Left', ar: 'يسار' } },
-          { value: 'right', label: { en: 'Right', ar: 'يمين' } },
+          { value: 'left', label: START_LABEL },
+          { value: 'right', label: END_LABEL },
+        ],
+      },
+      {
+        // Unset = framed (as before). 'bleed' applies to an uploaded image
+        // only; with a product image source the storefront keeps the framed
+        // layout.
+        key: 'image_style',
+        type: 'select',
+        label: L('Image style', 'نمط الصورة', 'Görsel stili', 'Bildstil', 'Style de l’image', 'Bildstil'),
+        description: L(
+          'Framed keeps the image inside the page width. Edge to edge runs it to the side of the screen (uploaded images only).',
+          'المؤطَّر يُبقي الصورة داخل عرض الصفحة. من الحافة إلى الحافة يمدّها حتى طرف الشاشة (للصور المرفوعة فقط).',
+          'Çerçeveli, görseli sayfa genişliği içinde tutar. Kenardan kenara, onu ekranın kenarına kadar uzatır (yalnızca yüklenen görseller).',
+          'Gerahmt hält das Bild innerhalb der Seitenbreite. Randlos führt es bis an den Bildschirmrand (nur hochgeladene Bilder).',
+          'Encadré garde l’image à l’intérieur de la largeur de page. Bord à bord l’étend jusqu’au bord de l’écran (images importées uniquement).',
+          'Inramad håller bilden inom sidbredden. Kant till kant drar ut den till skärmens kant (endast uppladdade bilder).',
+        ),
+        defaultValue: 'framed',
+        options: [
+          { value: 'framed', label: L('Framed', 'مؤطَّر', 'Çerçeveli', 'Gerahmt', 'Encadré', 'Inramad') },
+          { value: 'bleed', label: L('Edge to edge', 'من الحافة إلى الحافة', 'Kenardan kenara', 'Randlos', 'Bord à bord', 'Kant till kant') },
         ],
       },
       {
@@ -1043,13 +1505,89 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           { value: 'wide', label: { en: 'Wide 16:9', ar: 'عريض 16:9' } },
         ],
       },
+      {
+        key: 'min_height',
+        type: 'select',
+        label: L('Minimum height', 'أدنى ارتفاع', 'En az yükseklik', 'Mindesthöhe', 'Hauteur minimale', 'Minsta höjd'),
+        description: L(
+          'On tablets and computers. On phones the image keeps the aspect chosen above.',
+          'على التابلت والحاسوب. على الهواتف تحتفظ الصورة بالنسبة المختارة في الأعلى.',
+          'Tablet ve bilgisayarda. Telefonlarda görsel yukarıda seçilen oranı korur.',
+          'Auf Tablets und Computern. Auf Smartphones behält das Bild das oben gewählte Format.',
+          'Sur tablette et ordinateur. Sur téléphone, l’image garde le format choisi ci-dessus.',
+          'På surfplatta och dator. På mobilen behåller bilden formatet som valts ovan.',
+        ),
+        defaultValue: 'md',
+        showIf: { key: 'image_style', in: ['bleed'] },
+        options: [
+          { value: 'sm', label: L('Small (360px)', 'صغير (360px)', 'Küçük (360px)', 'Klein (360px)', 'Petite (360px)', 'Liten (360px)') },
+          { value: 'md', label: L('Medium (480px)', 'متوسط (480px)', 'Orta (480px)', 'Mittel (480px)', 'Moyenne (480px)', 'Medel (480px)') },
+          { value: 'lg', label: L('Large (600px)', 'كبير (600px)', 'Büyük (600px)', 'Groß (600px)', 'Grande (600px)', 'Stor (600px)') },
+        ],
+      },
+      {
+        key: 'image_focus',
+        type: 'select',
+        label: IMAGE_FOCUS_LABEL,
+        description: IMAGE_FOCUS_DESCRIPTION,
+        defaultValue: 'center',
+        showIf: { key: 'image_style', in: ['bleed'] },
+        options: FOCUS_OPTIONS,
+      },
+      {
+        key: 'tone',
+        type: 'select',
+        label: TONE_LABEL,
+        defaultValue: 'none',
+        showIf: { key: 'image_style', in: ['bleed'] },
+        options: TONE_OPTIONS,
+      },
+      cL('bg_color', BG_COLOR_LABEL, { description: BG_COLOR_DESCRIPTION, showIf: { key: 'image_style', in: ['bleed'] } }),
+      {
+        key: 'edge',
+        type: 'select',
+        label: EDGE_LABEL,
+        defaultValue: 'hard',
+        showIf: { key: 'image_style', in: ['bleed'] },
+        options: EDGE_OPTIONS,
+      },
       { key: 'eyebrow', type: 'text', label: { en: 'Eyebrow', ar: 'تسمية صغيرة' } },
       { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' } },
       { key: 'body', type: 'textarea', label: { en: 'Body text', ar: 'النص' } },
       { key: 'cta_text', type: 'text', label: { en: 'Button text', ar: 'نص الزر' } },
       { key: 'cta_url', type: 'url', label: { en: 'Button URL', ar: 'رابط الزر' } },
+      // Second button, both styles. It appears only when it has a text.
+      {
+        key: 'cta_secondary_text',
+        type: 'text',
+        label: L('Second button text', 'نص الزر الثاني', 'İkinci buton metni', 'Text des zweiten Buttons', 'Texte du second bouton', 'Text på andra knappen'),
+        description: L(
+          'The second button shows only when this text is filled in.',
+          'يظهر الزر الثاني فقط عند تعبئة هذا النص.',
+          'İkinci buton yalnızca bu metin doldurulduğunda görünür.',
+          'Der zweite Button erscheint nur, wenn dieser Text ausgefüllt ist.',
+          'Le second bouton n’apparaît que si ce texte est renseigné.',
+          'Den andra knappen visas bara när den här texten är ifylld.',
+        ),
+        maxLength: 40,
+      },
+      {
+        key: 'cta_secondary_url',
+        type: 'url',
+        label: L('Second button URL', 'رابط الزر الثاني', 'İkinci buton bağlantısı', 'URL des zweiten Buttons', 'URL du second bouton', 'Länk för andra knappen'),
+      },
+      // Both styles. Unset or 'primary' = the button as it was.
+      {
+        key: 'cta_tone',
+        type: 'select',
+        label: CTA_TONE_LABEL,
+        description: CTA_TONE_DESCRIPTION,
+        defaultValue: 'primary',
+        options: CTA_TONE_OPTIONS,
+      },
       ...textColorFields({ eyebrow: true, heading: true, body: true }),
       ...buttonStyleFields('cta'),
+      ...buttonStyleFieldsL('cta_secondary', SECONDARY_SUFFIX),
     ],
     defaultSettings: { image_position: 'left', aspect: 'square' },
     defaultContent: {
@@ -1232,6 +1770,8 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         options: [
           { value: 'cards', label: { en: 'Cards', ar: 'بطاقات' } },
           { value: 'inline', label: { en: 'Inline row', ar: 'سطر' } },
+          // One row of line icons with thin dividers (two per row on phones).
+          { value: 'strip', label: L('Strip', 'شريط', 'Şerit', 'Leiste', 'Bandeau', 'Remsa') },
         ],
       },
       {
@@ -1249,11 +1789,14 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         type: 'repeater',
         label: { en: 'Badges', ar: 'الشارات' },
         fields: [
-          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: ICON_OPTIONS },
+          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: TRUST_BADGE_ICON_OPTIONS },
           { key: 'label', type: 'text', label: { en: 'Label', ar: 'التسمية' } },
           { key: 'description', type: 'text', label: { en: 'Description', ar: 'الوصف' } },
         ],
       },
+      cL('icon_color', L('Icon color', 'لون الأيقونة', 'Simge rengi', 'Symbolfarbe', 'Couleur de l’icône', 'Ikonfärg'), {
+        showIf: { key: 'layout', in: ['strip'] },
+      }),
     ],
     defaultSettings: { layout: 'cards', padding: 'comfortable' },
     defaultContent: {
@@ -1806,6 +2349,349 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         { name: 'Sofia Bergman', role: 'Founder & Creative Director', bio: 'Started the studio in 2018 with a sketchbook and a stubborn belief that everyday objects deserve better design.' },
         { name: 'Omar Haddad', role: 'Head of Product', bio: 'Turns wild ideas into things you can actually hold. Obsessed with materials, tolerances, and tiny details.' },
         { name: 'Elena Petrova', role: 'Customer Experience Lead', bio: 'Makes sure every order, question, and return feels effortless. Probably answering your email right now.' },
+      ],
+    },
+  },
+  {
+    // Editorial set. Mirrors multi-stores-web/.../sections/ProgressSpotlight.tsx.
+    // The bar is computed by the storefront from `goal` and `reached`; there
+    // is no typed percentage. Unset booleans read as off, so the `true`
+    // defaults are written into defaultSettings.
+    id: 'progress-spotlight',
+    label: L('Progress spotlight', 'تسليط الضوء على التقدّم', 'İlerleme vitrini', 'Fortschritt im Fokus', 'Progression à la une', 'Framsteg i fokus'),
+    icon: 'target',
+    category: 'content',
+    description: L(
+      'A goal with its status and a progress bar calculated from two numbers you enter.',
+      'هدف مع حالته وشريط تقدّم يُحسب من رقمين تُدخلهما.',
+      'Durumuyla birlikte bir hedef ve girdiğiniz iki sayıdan hesaplanan bir ilerleme çubuğu.',
+      'Ein Ziel mit seinem Status und einem Fortschrittsbalken, der aus zwei von Ihnen eingegebenen Zahlen berechnet wird.',
+      'Un objectif avec son statut et une barre de progression calculée à partir de deux nombres que vous saisissez.',
+      'Ett mål med sin status och en förloppsindikator som beräknas från två tal som du anger.',
+    ),
+    translatable: ['eyebrow', 'heading', 'body', 'item_title', 'item_meta', 'unit_label', 'note', 'cta_text', 'alt'],
+    schema: [
+      {
+        key: 'layout',
+        type: 'select',
+        label: L('Layout', 'التخطيط', 'Düzen', 'Layout', 'Disposition', 'Layout'),
+        defaultValue: 'split',
+        options: [
+          { value: 'split', label: L('Image beside text (edge to edge)', 'صورة بجانب النص (من الحافة إلى الحافة)', 'Metnin yanında görsel (kenardan kenara)', 'Bild neben Text (randlos)', 'Image à côté du texte (bord à bord)', 'Bild bredvid text (kant till kant)') },
+          { value: 'card', label: L('Compact card (no image)', 'بطاقة مدمجة (بدون صورة)', 'Kompakt kart (görselsiz)', 'Kompakte Karte (ohne Bild)', 'Carte compacte (sans image)', 'Kompakt kort (utan bild)') },
+        ],
+      },
+      { key: 'image', type: 'image', label: IMAGE_LABEL, showIf: { key: 'layout', in: ['', 'split'] } },
+      { key: 'alt', type: 'text', label: ALT_LABEL, description: ALT_DESCRIPTION, maxLength: 160, showIf: { key: 'layout', in: ['', 'split'] } },
+      {
+        key: 'image_side',
+        type: 'select',
+        label: L('Image side', 'جهة الصورة', 'Görsel tarafı', 'Bildseite', 'Côté de l’image', 'Bildens sida'),
+        defaultValue: 'start',
+        showIf: { key: 'layout', in: ['', 'split'] },
+        options: START_END_OPTIONS,
+      },
+      {
+        key: 'image_focus',
+        type: 'select',
+        label: IMAGE_FOCUS_LABEL,
+        description: IMAGE_FOCUS_DESCRIPTION,
+        defaultValue: 'center',
+        showIf: { key: 'layout', in: ['', 'split'] },
+        options: FOCUS_OPTIONS,
+      },
+      { key: 'tone', type: 'select', label: TONE_LABEL, defaultValue: 'surface', options: TONE_OPTIONS },
+      cL('bg_color', BG_COLOR_LABEL, { description: BG_COLOR_DESCRIPTION }),
+      { key: 'eyebrow', type: 'text', label: L('Small label', 'تسمية صغيرة', 'Küçük etiket', 'Kleines Label', 'Petit libellé', 'Liten etikett'), maxLength: 40 },
+      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'body', type: 'textarea', label: L('Body text', 'النص', 'Metin', 'Fließtext', 'Texte', 'Brödtext'), maxLength: 400 },
+      {
+        key: 'item_title',
+        type: 'text',
+        label: L('Goal name', 'اسم الهدف', 'Hedef adı', 'Name des Ziels', 'Nom de l’objectif', 'Målets namn'),
+        maxLength: 120,
+      },
+      {
+        key: 'item_meta',
+        type: 'text',
+        label: L('Place or date', 'المكان أو التاريخ', 'Yer veya tarih', 'Ort oder Datum', 'Lieu ou date', 'Plats eller datum'),
+        description: L(
+          'A short second line under the goal name.',
+          'سطر ثانٍ قصير تحت اسم الهدف.',
+          'Hedef adının altında kısa bir ikinci satır.',
+          'Eine kurze zweite Zeile unter dem Namen des Ziels.',
+          'Une courte seconde ligne sous le nom de l’objectif.',
+          'En kort andra rad under målets namn.',
+        ),
+        maxLength: 80,
+      },
+      {
+        key: 'icon',
+        type: 'select',
+        label: L('Icon', 'الأيقونة', 'Simge', 'Symbol', 'Icône', 'Ikon'),
+        defaultValue: 'none',
+        options: [
+          { value: 'none', label: L('No icon', 'بدون أيقونة', 'Simge yok', 'Kein Symbol', 'Aucune icône', 'Ingen ikon') },
+          ...TRUST_BADGE_ICON_OPTIONS,
+        ],
+      },
+      {
+        key: 'status',
+        type: 'select',
+        label: L('Status', 'الحالة', 'Durum', 'Status', 'Statut', 'Status'),
+        description: L(
+          'Planned shows the goal only, never a bar or a percentage. In progress and Completed show the bar from your numbers.',
+          'المخطَّط يعرض الهدف فقط دون شريط أو نسبة. قيد التنفيذ والمكتمل يعرضان الشريط من أرقامك.',
+          'Planlandı yalnızca hedefi gösterir; çubuk veya yüzde göstermez. Devam ediyor ve Tamamlandı, çubuğu sayılarınızdan gösterir.',
+          'Geplant zeigt nur das Ziel, nie einen Balken oder Prozentwert. In Arbeit und Abgeschlossen zeigen den Balken aus Ihren Zahlen.',
+          'Planifié affiche seulement l’objectif, jamais de barre ni de pourcentage. En cours et Terminé affichent la barre d’après vos nombres.',
+          'Planerat visar bara målet, aldrig en indikator eller procent. Pågår och Slutfört visar indikatorn utifrån dina tal.',
+        ),
+        defaultValue: 'in_progress',
+        options: STATUS_OPTIONS,
+      },
+      {
+        key: 'goal',
+        type: 'number',
+        label: L('Goal (number)', 'الهدف (رقم)', 'Hedef (sayı)', 'Ziel (Zahl)', 'Objectif (nombre)', 'Mål (antal)'),
+        description: L(
+          'The target amount. Without a goal above 0 no bar is shown.',
+          'الكمية المستهدفة. بدون هدف أكبر من 0 لا يظهر الشريط.',
+          'Hedef miktar. 0’dan büyük bir hedef olmadan çubuk gösterilmez.',
+          'Die Zielmenge. Ohne ein Ziel über 0 wird kein Balken angezeigt.',
+          'La quantité visée. Sans objectif supérieur à 0, aucune barre n’est affichée.',
+          'Målmängden. Utan ett mål över 0 visas ingen indikator.',
+        ),
+        min: 0,
+        defaultValue: 100,
+      },
+      {
+        key: 'reached',
+        type: 'number',
+        label: L('Reached so far (number)', 'المُنجَز حتى الآن (رقم)', 'Şimdiye kadar ulaşılan (sayı)', 'Bisher erreicht (Zahl)', 'Atteint à ce jour (nombre)', 'Uppnått hittills (antal)'),
+        description: L(
+          'Enter a figure you can verify. The percentage is calculated from this number and the goal, and it reads 100% only when the goal is met.',
+          'أدخل رقماً يمكنك التحقق منه. تُحسب النسبة من هذا الرقم ومن الهدف، ولا تصل إلى 100% إلا عند بلوغ الهدف.',
+          'Doğrulayabileceğiniz bir rakam girin. Yüzde, bu sayı ile hedeften hesaplanır ve yalnızca hedefe ulaşıldığında %100 olur.',
+          'Geben Sie eine Zahl ein, die Sie belegen können. Der Prozentwert wird aus dieser Zahl und dem Ziel berechnet und zeigt erst 100 %, wenn das Ziel erreicht ist.',
+          'Saisissez un chiffre que vous pouvez vérifier. Le pourcentage est calculé à partir de ce nombre et de l’objectif, et n’affiche 100 % que lorsque l’objectif est atteint.',
+          'Ange en siffra som du kan styrka. Procenten beräknas från det här talet och målet och visar 100 % först när målet är nått.',
+        ),
+        min: 0,
+        defaultValue: 0,
+      },
+      {
+        key: 'unit_label',
+        type: 'text',
+        label: L('Unit text', 'نص الوحدة', 'Birim metni', 'Text der Einheit', 'Texte de l’unité', 'Enhetstext'),
+        description: L(
+          'Follows the numbers, as in “60 of 100 completed”.',
+          'يأتي بعد الأرقام، كما في «60 من 100 مكتمل».',
+          'Sayılardan sonra gelir; örneğin “60 / 100 tamamlandı”.',
+          'Folgt auf die Zahlen, wie in „60 von 100 abgeschlossen“.',
+          'Suit les nombres, comme dans « 60 sur 100 terminés ».',
+          'Följer efter talen, som i ”60 av 100 slutförda”.',
+        ),
+        maxLength: 40,
+      },
+      {
+        key: 'show_progress',
+        type: 'boolean',
+        label: L('Show progress bar', 'إظهار شريط التقدّم', 'İlerleme çubuğunu göster', 'Fortschrittsbalken anzeigen', 'Afficher la barre de progression', 'Visa förloppsindikator'),
+        defaultValue: true,
+      },
+      {
+        key: 'show_percent',
+        type: 'boolean',
+        label: L('Show percentage', 'إظهار النسبة المئوية', 'Yüzdeyi göster', 'Prozentwert anzeigen', 'Afficher le pourcentage', 'Visa procent'),
+        defaultValue: true,
+      },
+      {
+        key: 'note',
+        type: 'text',
+        label: L('Note', 'ملاحظة', 'Not', 'Hinweis', 'Note', 'Notering'),
+        description: L(
+          'For example the source of the figures or the date they were last updated.',
+          'مثلاً مصدر الأرقام أو تاريخ آخر تحديث لها.',
+          'Örneğin rakamların kaynağı veya son güncellendikleri tarih.',
+          'Zum Beispiel die Quelle der Zahlen oder das Datum der letzten Aktualisierung.',
+          'Par exemple la source des chiffres ou la date de leur dernière mise à jour.',
+          'Till exempel källan till siffrorna eller datumet då de senast uppdaterades.',
+        ),
+        maxLength: 160,
+      },
+      { key: 'cta_text', type: 'text', label: L('Button text', 'نص الزر', 'Buton metni', 'Button-Text', 'Texte du bouton', 'Knapptext'), maxLength: 40 },
+      { key: 'cta_url', type: 'url', label: L('Button URL', 'رابط الزر', 'Buton bağlantısı', 'Button-URL', 'URL du bouton', 'Knappens länk') },
+      { key: 'cta_tone', type: 'select', label: CTA_TONE_LABEL, description: CTA_TONE_DESCRIPTION, defaultValue: 'primary', options: CTA_TONE_OPTIONS },
+      { key: 'cta_arrow', type: 'boolean', label: CTA_ARROW_LABEL, defaultValue: false },
+      cL('eyebrow_color', EYEBROW_COLOR_LABEL),
+      cL('heading_color', HEADING_COLOR_LABEL),
+      cL('body_color', BODY_COLOR_LABEL),
+      cL('bar_color', L('Progress bar color', 'لون شريط التقدّم', 'İlerleme çubuğu rengi', 'Farbe des Fortschrittsbalkens', 'Couleur de la barre de progression', 'Förloppsindikatorns färg')),
+      ...buttonStyleFieldsL('cta'),
+    ],
+    defaultSettings: {
+      layout: 'split',
+      image_side: 'start',
+      image_focus: 'center',
+      tone: 'surface',
+      icon: 'none',
+      status: 'in_progress',
+      goal: 100,
+      // 0 by default: the bar is visible in the builder without claiming progress.
+      reached: 0,
+      show_progress: true,
+      show_percent: true,
+      cta_tone: 'primary',
+      cta_arrow: false,
+    },
+    defaultContent: {
+      eyebrow: 'Our goal',
+      heading: 'Follow our progress',
+      body: 'Describe what you are working towards and why it matters. The bar is calculated from the two numbers you enter.',
+      item_title: 'Name of the goal',
+      item_meta: 'Where or when',
+      unit_label: 'completed',
+      cta_text: 'Learn more',
+    },
+  },
+  {
+    // Editorial set. Mirrors multi-stores-web/.../sections/ProjectCards.tsx.
+    // Image and status live inside each locale's copy of `items` (the
+    // repeater is translatable), so a status changed in one language has to
+    // be changed in the others too.
+    id: 'project-cards',
+    label: L('Project cards', 'بطاقات المشاريع', 'Proje kartları', 'Projektkarten', 'Cartes de projets', 'Projektkort'),
+    icon: 'layout-grid',
+    category: 'content',
+    description: L(
+      'Cards with an image, a status, a category, a location and a link.',
+      'بطاقات بصورة وحالة وفئة وموقع ورابط.',
+      'Görsel, durum, kategori, konum ve bağlantı içeren kartlar.',
+      'Karten mit Bild, Status, Kategorie, Ort und Link.',
+      'Cartes avec une image, un statut, une catégorie, un lieu et un lien.',
+      'Kort med bild, status, kategori, plats och länk.',
+    ),
+    translatable: ['heading', 'subheading', 'link_label', 'items'],
+    schema: [
+      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'subheading', type: 'textarea', label: SUBHEADING_LABEL, maxLength: 240 },
+      {
+        key: 'items',
+        type: 'repeater',
+        label: L('Cards', 'البطاقات', 'Kartlar', 'Karten', 'Cartes', 'Kort'),
+        description: L(
+          'Up to 24 cards. A card shows when it has a title or an image. Image and status are saved per language: change them in every language you publish.',
+          'حتى 24 بطاقة. تظهر البطاقة عندما يكون لها عنوان أو صورة. الصورة والحالة تُحفظان لكل لغة: غيّرهما في كل لغة تنشرها.',
+          'En fazla 24 kart. Bir kart, başlığı veya görseli olduğunda gösterilir. Görsel ve durum her dil için ayrı kaydedilir: yayınladığınız her dilde değiştirin.',
+          'Bis zu 24 Karten. Eine Karte erscheint, sobald sie einen Titel oder ein Bild hat. Bild und Status werden pro Sprache gespeichert: Ändern Sie sie in jeder veröffentlichten Sprache.',
+          'Jusqu’à 24 cartes. Une carte s’affiche dès qu’elle a un titre ou une image. L’image et le statut sont enregistrés par langue : modifiez-les dans chaque langue publiée.',
+          'Upp till 24 kort. Ett kort visas när det har en titel eller en bild. Bild och status sparas per språk: ändra dem i varje språk du publicerar.',
+        ),
+        maxItems: 24,
+        fields: [
+          { key: 'image', type: 'image', label: IMAGE_LABEL },
+          // `title` sits before `alt` so the collapsed item shows the title
+          // (the repeater previews its first text field).
+          { key: 'title', type: 'text', label: TITLE_LABEL, maxLength: 120 },
+          { key: 'alt', type: 'text', label: ALT_LABEL, description: ALT_DESCRIPTION, maxLength: 160 },
+          { key: 'category', type: 'text', label: L('Category', 'الفئة', 'Kategori', 'Kategorie', 'Catégorie', 'Kategori'), maxLength: 60 },
+          { key: 'location', type: 'text', label: L('Location', 'الموقع', 'Konum', 'Ort', 'Lieu', 'Plats'), maxLength: 80 },
+          { key: 'status', type: 'select', label: L('Status', 'الحالة', 'Durum', 'Status', 'Statut', 'Status'), defaultValue: 'none', options: STATUS_OPTIONS },
+          { key: 'description', type: 'textarea', label: L('Short text', 'نص قصير', 'Kısa metin', 'Kurzer Text', 'Texte court', 'Kort text'), maxLength: 240 },
+          {
+            key: 'url',
+            type: 'url',
+            label: LINK_LABEL,
+            description: L(
+              'With a link the whole card is clickable.',
+              'مع الرابط تصبح البطاقة كلها قابلة للنقر.',
+              'Bağlantı varsa kartın tamamı tıklanabilir olur.',
+              'Mit einem Link ist die ganze Karte klickbar.',
+              'Avec un lien, toute la carte est cliquable.',
+              'Med en länk blir hela kortet klickbart.',
+            ),
+          },
+        ],
+      },
+      { key: 'columns', type: 'number', label: COLUMNS_DESKTOP_LABEL, min: 1, max: 4, defaultValue: 3 },
+      { key: 'columns_tablet', type: 'number', label: COLUMNS_TABLET_LABEL, min: 1, max: 3, defaultValue: 2 },
+      { key: 'columns_mobile', type: 'number', label: COLUMNS_MOBILE_LABEL, min: 1, max: 2, defaultValue: 1 },
+      {
+        key: 'aspect',
+        type: 'select',
+        label: IMAGE_ASPECT_LABEL,
+        defaultValue: 'landscape',
+        options: [
+          { value: 'landscape', label: ASPECT_LANDSCAPE },
+          { value: 'square', label: ASPECT_SQUARE },
+          { value: 'portrait', label: ASPECT_PORTRAIT },
+          { value: 'wide', label: ASPECT_WIDE },
+        ],
+      },
+      {
+        key: 'card_style',
+        type: 'select',
+        label: L('Card style', 'نمط البطاقة', 'Kart stili', 'Kartenstil', 'Style de carte', 'Kortstil'),
+        defaultValue: 'bordered',
+        options: [
+          { value: 'plain', label: L('Plain', 'بسيط', 'Sade', 'Schlicht', 'Simple', 'Enkel') },
+          { value: 'bordered', label: L('Bordered', 'بإطار', 'Kenarlıklı', 'Mit Rahmen', 'Avec bordure', 'Med ram') },
+          { value: 'surface', label: L('Tinted background', 'بخلفية هادئة', 'Tonlu arka plan', 'Getönter Hintergrund', 'Fond teinté', 'Tonad bakgrund') },
+        ],
+      },
+      {
+        key: 'show_status',
+        type: 'boolean',
+        label: L('Show status badge', 'إظهار شارة الحالة', 'Durum rozetini göster', 'Status-Abzeichen anzeigen', 'Afficher le badge de statut', 'Visa statusmärke'),
+        defaultValue: true,
+      },
+      { key: 'heading_align', type: 'select', label: HEADING_ALIGN_LABEL, defaultValue: 'start', options: HEADING_ALIGN_OPTIONS },
+      { key: 'heading_rule', type: 'boolean', label: HEADING_RULE_LABEL, description: HEADING_RULE_DESCRIPTION, defaultValue: false },
+      { key: 'rounded', type: 'boolean', label: ROUNDED_LABEL, defaultValue: true },
+      {
+        key: 'link_label',
+        type: 'text',
+        label: L('“View all” link text', 'نص رابط «عرض الكل»', '“Tümünü gör” bağlantı metni', 'Text des „Alle ansehen“-Links', 'Texte du lien « Tout voir »', 'Text för länken ”Visa alla”'),
+        description: L(
+          'A link under the cards. It shows only when both the text and the address are filled in.',
+          'رابط تحت البطاقات. يظهر فقط عند تعبئة النص والعنوان معاً.',
+          'Kartların altında bir bağlantı. Yalnızca metin ve adres birlikte doldurulduğunda görünür.',
+          'Ein Link unter den Karten. Er erscheint nur, wenn Text und Adresse ausgefüllt sind.',
+          'Un lien sous les cartes. Il n’apparaît que si le texte et l’adresse sont renseignés.',
+          'En länk under korten. Den visas bara när både text och adress är ifyllda.',
+        ),
+        maxLength: 40,
+      },
+      {
+        key: 'link_url',
+        type: 'url',
+        label: L('“View all” link address', 'عنوان رابط «عرض الكل»', '“Tümünü gör” bağlantı adresi', 'Adresse des „Alle ansehen“-Links', 'Adresse du lien « Tout voir »', 'Adress för länken ”Visa alla”'),
+      },
+      cL('heading_color', HEADING_COLOR_LABEL),
+      cL('subheading_color', SUBHEADING_COLOR_LABEL),
+      cL('title_color', L('Card title color', 'لون عنوان البطاقة', 'Kart başlığı rengi', 'Farbe des Kartentitels', 'Couleur du titre de la carte', 'Kortets titelfärg')),
+      cL('body_color', L('Card text color', 'لون نص البطاقة', 'Kart metni rengi', 'Farbe des Kartentexts', 'Couleur du texte de la carte', 'Kortets textfärg')),
+      cL('link_color', L('Link color', 'لون الرابط', 'Bağlantı rengi', 'Linkfarbe', 'Couleur du lien', 'Länkfärg')),
+    ],
+    defaultSettings: {
+      columns: 3,
+      columns_tablet: 2,
+      columns_mobile: 1,
+      aspect: 'landscape',
+      card_style: 'bordered',
+      show_status: true,
+      heading_align: 'start',
+      heading_rule: false,
+      rounded: true,
+    },
+    defaultContent: {
+      heading: 'Our projects',
+      subheading: 'What is planned, what is under way and what is done.',
+      items: [
+        { title: 'First project', category: 'Category', location: 'Location', status: 'completed', description: 'Describe the project in one or two sentences.' },
+        { title: 'Second project', category: 'Category', location: 'Location', status: 'in_progress', description: 'Describe the project in one or two sentences.' },
+        { title: 'Third project', category: 'Category', location: 'Location', status: 'planned', description: 'Describe the project in one or two sentences.' },
       ],
     },
   },
@@ -2783,7 +3669,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           ar: 'اذكر فقط ما ينطبق فعلاً على متجرك (مثل شروط الشحن، الإرجاع، الدفع). لا يظهر شيء حتى تضيف شارات.',
         },
         fields: [
-          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: ICON_OPTIONS },
+          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: TRUST_BADGE_ICON_OPTIONS },
           { key: 'label', type: 'text', label: { en: 'Label', ar: 'التسمية' } },
           { key: 'description', type: 'text', label: { en: 'Description (optional)', ar: 'الوصف (اختياري)' } },
         ],
@@ -3291,7 +4177,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
           ar: 'اذكر فقط ما ينطبق فعلاً على متجرك (مثل شروط الشحن، الإرجاع، الدفع).',
         },
         fields: [
-          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: ICON_OPTIONS },
+          { key: 'icon', type: 'select', label: { en: 'Icon', ar: 'الأيقونة' }, options: TRUST_BADGE_ICON_OPTIONS },
           { key: 'label', type: 'text', label: { en: 'Label', ar: 'التسمية' } },
           { key: 'description', type: 'text', label: { en: 'Description (optional)', ar: 'الوصف (اختياري)' } },
         ],
@@ -4002,6 +4888,10 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'stats-bar': 'h2',
   steps: 'h2',
   'team-grid': 'h2',
+  // Editorial set.
+  'category-tiles': 'h2',
+  'progress-spotlight': 'h2',
+  'project-cards': 'h2',
   'testimonial-carousel': 'h2',
   testimonials: 'h2',
   timeline: 'h2',
@@ -4023,12 +4913,14 @@ const EYEBROW_SECTIONS = new Set([
   'hero-video',
   'image-with-text',
   'parallax-banner',
+  'progress-spotlight',
   'rich-text',
 ]);
 const EYEBROW_P_SECTIONS = new Set(['rich-text', 'image-with-text']);
 // Sections without a subheading text.
 const NO_SUBHEADING_SECTIONS = new Set([
   'image-with-text',
+  'progress-spotlight',
   'rich-text',
   'testimonial-carousel',
   'product-description',
@@ -4038,15 +4930,15 @@ const NO_SUBHEADING_SECTIONS = new Set([
 ]);
 
 const TEXT_TAG_OPTIONS: { value: TextTagValue; label: LocalizedString }[] = [
-  { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة' } },
-  { value: 'h2', label: { en: 'H2 — section title', ar: 'H2 — عنوان قسم' } },
-  { value: 'h3', label: { en: 'H3 — sub-title', ar: 'H3 — عنوان فرعي' } },
-  { value: 'h4', label: { en: 'H4', ar: 'H4' } },
-  { value: 'h5', label: { en: 'H5', ar: 'H5' } },
-  { value: 'h6', label: { en: 'H6', ar: 'H6' } },
-  { value: 'p', label: { en: 'P — paragraph', ar: 'P — فقرة' } },
-  { value: 'div', label: { en: 'DIV — plain block', ar: 'DIV — كتلة عادية' } },
-  { value: 'span', label: { en: 'SPAN — plain text', ar: 'SPAN — نص عادي' } },
+  { value: 'h1', label: { en: 'H1 — page title', ar: 'H1 — عنوان الصفحة', tr: 'H1 — sayfa başlığı', de: 'H1 — Seitentitel', fr: 'H1 — titre de la page', sv: 'H1 — sidans titel' } },
+  { value: 'h2', label: { en: 'H2 — section title', ar: 'H2 — عنوان قسم', tr: 'H2 — bölüm başlığı', de: 'H2 — Abschnittstitel', fr: 'H2 — titre de section', sv: 'H2 — avsnittsrubrik' } },
+  { value: 'h3', label: { en: 'H3 — sub-title', ar: 'H3 — عنوان فرعي', tr: 'H3 — alt başlık', de: 'H3 — Untertitel', fr: 'H3 — sous-titre', sv: 'H3 — underrubrik' } },
+  { value: 'h4', label: { en: 'H4', ar: 'H4', tr: 'H4', de: 'H4', fr: 'H4', sv: 'H4' } },
+  { value: 'h5', label: { en: 'H5', ar: 'H5', tr: 'H5', de: 'H5', fr: 'H5', sv: 'H5' } },
+  { value: 'h6', label: { en: 'H6', ar: 'H6', tr: 'H6', de: 'H6', fr: 'H6', sv: 'H6' } },
+  { value: 'p', label: { en: 'P — paragraph', ar: 'P — فقرة', tr: 'P — paragraf', de: 'P — Absatz', fr: 'P — paragraphe', sv: 'P — stycke' } },
+  { value: 'div', label: { en: 'DIV — plain block', ar: 'DIV — كتلة عادية', tr: 'DIV — düz blok', de: 'DIV — einfacher Block', fr: 'DIV — bloc simple', sv: 'DIV — vanligt block' } },
+  { value: 'span', label: { en: 'SPAN — plain text', ar: 'SPAN — نص عادي', tr: 'SPAN — düz metin', de: 'SPAN — einfacher Text', fr: 'SPAN — texte simple', sv: 'SPAN — vanlig text' } },
 ];
 
 function textTagField(key: string, label: LocalizedString, fallback: TextTagValue): FieldDefinition {
@@ -4057,6 +4949,10 @@ function textTagField(key: string, label: LocalizedString, fallback: TextTagValu
     description: {
       en: 'HTML tag for SEO. Use H1 once per page, for its main title. The look does not change.',
       ar: 'وسم HTML لتحسين الظهور. استخدم H1 مرة واحدة في الصفحة لعنوانها الرئيسي. الشكل لا يتغير.',
+      tr: 'SEO için HTML etiketi. H1’i sayfada bir kez, ana başlık için kullanın. Görünüm değişmez.',
+      de: 'HTML-Tag für SEO. Verwenden Sie H1 einmal pro Seite, für den Haupttitel. Das Aussehen ändert sich nicht.',
+      fr: 'Balise HTML pour le SEO. Utilisez H1 une seule fois par page, pour son titre principal. L’apparence ne change pas.',
+      sv: 'HTML-tagg för SEO. Använd H1 en gång per sida, för huvudrubriken. Utseendet ändras inte.',
     },
     defaultValue: fallback,
     options: TEXT_TAG_OPTIONS,
@@ -4080,14 +4976,14 @@ function withHeadingLevel(schema: SectionSchema): SectionSchema {
   const fallback = HEADING_LEVEL_DEFAULTS[schema.id];
   if (!fallback) return schema;
   const fields = [...schema.schema];
-  insertAfter(fields, HEADING_LEVEL_ANCHOR[schema.id] ?? 'heading', textTagField('heading_level', { en: 'Heading tag (SEO)', ar: 'وسم العنوان (SEO)' }, fallback));
+  insertAfter(fields, HEADING_LEVEL_ANCHOR[schema.id] ?? 'heading', textTagField('heading_level', { en: 'Heading tag (SEO)', ar: 'وسم العنوان (SEO)', tr: 'Başlık etiketi (SEO)', de: 'Überschriften-Tag (SEO)', fr: 'Balise du titre (SEO)', sv: 'Rubriktagg (SEO)' }, fallback));
   if (!NO_SUBHEADING_SECTIONS.has(schema.id)) {
-    insertAfter(fields, 'subheading', textTagField('subheading_tag', { en: 'Subheading tag (SEO)', ar: 'وسم العنوان الفرعي (SEO)' }, 'p'));
+    insertAfter(fields, 'subheading', textTagField('subheading_tag', { en: 'Subheading tag (SEO)', ar: 'وسم العنوان الفرعي (SEO)', tr: 'Alt başlık etiketi (SEO)', de: 'Unterüberschriften-Tag (SEO)', fr: 'Balise du sous-titre (SEO)', sv: 'Underrubrikstagg (SEO)' }, 'p'));
   }
   if (EYEBROW_SECTIONS.has(schema.id)) {
     // rich-text and image-with-text render their eyebrow as a p.
     const eyebrowDefault = EYEBROW_P_SECTIONS.has(schema.id) ? 'p' : 'span';
-    insertAfter(fields, 'eyebrow', textTagField('eyebrow_tag', { en: 'Small label tag (SEO)', ar: 'وسم التسمية الصغيرة (SEO)' }, eyebrowDefault));
+    insertAfter(fields, 'eyebrow', textTagField('eyebrow_tag', { en: 'Small label tag (SEO)', ar: 'وسم التسمية الصغيرة (SEO)', tr: 'Küçük etiketin HTML etiketi (SEO)', de: 'Tag des kleinen Labels (SEO)', fr: 'Balise du petit libellé (SEO)', sv: 'Tagg för den lilla etiketten (SEO)' }, eyebrowDefault));
   }
   return { ...schema, schema: fields };
 }

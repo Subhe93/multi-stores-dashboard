@@ -6495,6 +6495,7 @@
     "noItemsYet": "Aucun élément pour l’instant",
     "addItem": "Ajouter un élément",
     "itemN": "Élément {n}",
+    "repeaterMaxItems": "Jusqu’à {max} éléments",
     "styleLayout": "Mise en page",
     "styleBackground": "Arrière-plan",
     "styleSpacing": "Espacement",
@@ -6581,6 +6582,10 @@
     "presetOccasionDesc": "Bannière hero, les produits d’une collection ou d’un tag, un bloc de texte SEO, puis questions et réponses — la mise en page d’une page d’occasion cadeau.",
     "presetClassicProductName": "Page produit classique",
     "presetClassicProductDesc": "Galerie à côté du titre, du prix, des options, de la personnalisation et de l’ajout au panier, avec les onglets produit en dessous — la page produit actuelle en blocs séparés.",
+    "presetEditorialHomeName": "Page d’accueil éditoriale",
+    "presetEditorialHomeDesc": "Hero scindé bord à bord, un bandeau de points forts, des tuiles de catégories, les nouveautés et un bandeau d’histoire.",
+    "presetProjectsPageName": "Page de projets",
+    "presetProjectsPageDesc": "Un texte d’introduction, une progression à la une et une grille de cartes de projets avec leur statut.",
     "convertBlocks": {
       "title": "Blocs produit séparés",
       "hint": "Reconstruisez cette page produit en blocs séparés dans des rangées et des colonnes, pour déplacer et styliser chaque partie et y mêler d’autres sections.",

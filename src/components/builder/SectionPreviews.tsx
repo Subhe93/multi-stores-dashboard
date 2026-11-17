@@ -1086,6 +1086,93 @@ function BentoGridPreview(props: PreviewProps) {
   );
 }
 
+// ── Editorial set ───────────────────────────────────────────────
+
+function CategoryTilesPreview(props: PreviewProps) {
+  // Centered heading between two thin rules, then four equal cards: image on
+  // top, a title and a subtitle below, a small round arrow at the end.
+  return (
+    <Frame {...props}>
+      <line x1="34" y1="16" x2="62" y2="16" stroke={BORDER} strokeWidth="1" />
+      <Bar x="70" y="13" w="60" h="6" c={ACCENT} />
+      <line x1="138" y1="16" x2="166" y2="16" stroke={BORDER} strokeWidth="1" />
+      {[0, 1, 2, 3].map((i) => {
+        const x = 12 + i * 45;
+        return (
+          <g key={i}>
+            <rect x={x} y="30" width="41" height="76" rx="3" fill="white" stroke={BORDER} />
+            <rect x={x} y="30" width="41" height="50" rx="3" fill={FILL} />
+            <Bar x={x + 4} y="87" w="20" h="3" c={ACCENT} />
+            <Bar x={x + 4} y="95" w="16" h="2" c={TEXT} />
+            <circle cx={x + 34} cy="93" r="4" fill={ACCENT} />
+            <path
+              d={`M${x + 32.5} 93 h3 m-1.2 -1.2 l1.2 1.2 l-1.2 1.2`}
+              fill="none"
+              stroke="white"
+              strokeWidth="0.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        );
+      })}
+    </Frame>
+  );
+}
+
+function ProgressSpotlightPreview(props: PreviewProps) {
+  // Image half running to the edge; label, heading and text beside it, then
+  // a bordered panel with a status pill and a progress bar, and a button.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="92" height="120" fill={FILL} />
+      <circle cx="46" cy="60" r="12" fill={BORDER} />
+      <Bar x="104" y="14" w="26" h="3" c={PRIMARY} />
+      <Bar x="104" y="22" w="78" h="6" c={ACCENT} />
+      <Bar x="104" y="34" w="80" />
+      <Bar x="104" y="41" w="64" />
+      <rect x="104" y="52" width="84" height="38" rx="3" fill="white" stroke={BORDER} />
+      <Bar x="110" y="59" w="36" h="3" c={ACCENT} />
+      <Bar x="110" y="66" w="24" h="2" c={TEXT} />
+      <rect x="158" y="57" width="24" height="8" rx="4" fill={PRIMARY} opacity="0.2" />
+      <circle cx="163" cy="61" r="1.6" fill={PRIMARY} />
+      <rect x="110" y="76" width="56" height="4" rx="2" fill={BORDER} />
+      <rect x="110" y="76" width="34" height="4" rx="2" fill={PRIMARY} />
+      <Bar x="171" y="76" w="11" h="4" c={TEXT} />
+      <rect x="104" y="98" width="40" height="10" rx="2" fill={ACCENT} />
+    </Frame>
+  );
+}
+
+function ProjectCardsPreview(props: PreviewProps) {
+  // Heading at the start, then three cards: image with a status pill in its
+  // top corner, a small meta line, a title and two text lines. The three
+  // pills differ in fill so the three states read apart.
+  return (
+    <Frame {...props}>
+      <Bar x="14" y="11" w="64" h="6" c={ACCENT} />
+      <Bar x="14" y="21" w="96" h="2" c={TEXT} />
+      {[0, 1, 2].map((i) => {
+        const x = 14 + i * 59;
+        return (
+          <g key={i}>
+            <rect x={x} y="32" width="54" height="78" rx="3" fill="white" stroke={BORDER} />
+            <rect x={x} y="32" width="54" height="38" rx="3" fill={FILL} />
+            {i === 0 && <rect x={x + 4} y="36" width="20" height="7" rx="3.5" fill={ACCENT} />}
+            {i === 1 && <rect x={x + 4} y="36" width="20" height="7" rx="3.5" fill={PRIMARY} />}
+            {i === 2 && <rect x={x + 4} y="36" width="20" height="7" rx="3.5" fill="white" stroke={TEXT} strokeWidth="0.8" />}
+            <Bar x={x + 6} y="76" w="22" h="2" c={TEXT} />
+            <Bar x={x + 6} y="82" w="38" h="4" c={ACCENT} />
+            <Bar x={x + 6} y="91" w="42" h="2" />
+            <Bar x={x + 6} y="96" w="34" h="2" />
+            <Bar x={x + 6} y="103" w="18" h="2" c={PRIMARY} />
+          </g>
+        );
+      })}
+    </Frame>
+  );
+}
+
 function AnimatedFeaturesPreview(props: PreviewProps) {
   // Row of circular line-icons (drawn) with a title + line beneath each.
   return (
@@ -1134,6 +1221,9 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'hero-slider': HeroSliderPreview,
   'aurora-hero': AuroraHeroPreview,
   'bento-grid': BentoGridPreview,
+  'category-tiles': CategoryTilesPreview,
+  'progress-spotlight': ProgressSpotlightPreview,
+  'project-cards': ProjectCardsPreview,
   'animated-features': AnimatedFeaturesPreview,
   'marquee-text': MarqueeTextPreview,
   'hero-video': HeroVideoPreview,

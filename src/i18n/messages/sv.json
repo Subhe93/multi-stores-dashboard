@@ -6495,6 +6495,7 @@
     "noItemsYet": "Inga objekt ännu",
     "addItem": "Lägg till objekt",
     "itemN": "Objekt {n}",
+    "repeaterMaxItems": "Upp till {max} objekt",
     "styleLayout": "Layout",
     "styleBackground": "Bakgrund",
     "styleSpacing": "Avstånd",
@@ -6581,6 +6582,10 @@
     "presetOccasionDesc": "Hero-banner, produkterna i en kollektion eller tagg, ett SEO-textblock, sedan frågor och svar — layouten för en presentsida.",
     "presetClassicProductName": "Klassisk produktsida",
     "presetClassicProductDesc": "Galleri bredvid titel, pris, alternativ, personalisering och lägg i varukorg, med produktflikarna under – dagens produktsida som separata block.",
+    "presetEditorialHomeName": "Redaktionell startsida",
+    "presetEditorialHomeDesc": "Delad hero kant till kant, en remsa med höjdpunkter, kategoribrickor, nya produkter och ett berättelseband.",
+    "presetProjectsPageName": "Projektsida",
+    "presetProjectsPageDesc": "En inledande text, framsteg i fokus och ett rutnät med projektkort och deras status.",
     "convertBlocks": {
       "title": "Separata produktblock",
       "hint": "Bygg om den här produktsidan som separata block i rader och kolumner, så att du kan flytta och styla varje del och blanda in andra sektioner.",
