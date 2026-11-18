@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "معرّف المتجر مستخدم بالفعل",
     "STORE_CREATOR_NOT_FOUND": "لم يتم العثور على المنشئ",
     "STORE_NOT_FOUND": "لم يتم العثور على المتجر",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "الدفع عند الاستلام غير متاح لمتاجر السوق.",
     "PAGE_CREATOR_NOT_FOUND": "لم يتم العثور على المنشئ",
     "PAGE_STORE_NOT_FOUND": "لم يتم العثور على المتجر",
     "PAGE_NOT_FOUND": "لم يتم العثور على الصفحة",

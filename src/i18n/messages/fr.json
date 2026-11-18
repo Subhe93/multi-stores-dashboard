@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "Le slug de la boutique est déjà pris",
     "STORE_CREATOR_NOT_FOUND": "Créateur introuvable",
     "STORE_NOT_FOUND": "Boutique introuvable",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "Le paiement à la livraison n’est pas disponible pour les boutiques de la marketplace.",
     "PAGE_CREATOR_NOT_FOUND": "Créateur introuvable",
     "PAGE_STORE_NOT_FOUND": "Boutique introuvable",
     "PAGE_NOT_FOUND": "Page introuvable",

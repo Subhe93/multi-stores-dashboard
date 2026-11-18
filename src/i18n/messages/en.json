@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "Store slug already taken",
     "STORE_CREATOR_NOT_FOUND": "Creator not found",
     "STORE_NOT_FOUND": "Store not found",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "Cash on delivery is not available for marketplace stores.",
     "PAGE_CREATOR_NOT_FOUND": "Creator not found",
     "PAGE_STORE_NOT_FOUND": "Store not found",
     "PAGE_NOT_FOUND": "Page not found",

@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "Mağaza slug'ı zaten alınmış",
     "STORE_CREATOR_NOT_FOUND": "Oluşturucu bulunamadı",
     "STORE_NOT_FOUND": "Mağaza bulunamadı",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "Kapıda ödeme pazaryeri mağazalarında kullanılamaz.",
     "PAGE_CREATOR_NOT_FOUND": "Oluşturucu bulunamadı",
     "PAGE_STORE_NOT_FOUND": "Mağaza bulunamadı",
     "PAGE_NOT_FOUND": "Sayfa bulunamadı",

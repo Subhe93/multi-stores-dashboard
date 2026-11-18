@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "Butiks-sluggen är redan tagen",
     "STORE_CREATOR_NOT_FOUND": "Skaparen hittades inte",
     "STORE_NOT_FOUND": "Butiken hittades inte",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "Betalning vid leverans är inte tillgängligt för marknadsplatsbutiker.",
     "PAGE_CREATOR_NOT_FOUND": "Skaparen hittades inte",
     "PAGE_STORE_NOT_FOUND": "Butiken hittades inte",
     "PAGE_NOT_FOUND": "Sidan hittades inte",

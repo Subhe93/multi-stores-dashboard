@@ -5914,6 +5914,7 @@
     "STORE_SLUG_TAKEN": "Store-Slug bereits vergeben",
     "STORE_CREATOR_NOT_FOUND": "Creator nicht gefunden",
     "STORE_NOT_FOUND": "Store nicht gefunden",
+    "STORE_COD_MARKETPLACE_NOT_ALLOWED": "Barzahlung bei Lieferung ist für Marktplatz-Shops nicht verfügbar.",
     "PAGE_CREATOR_NOT_FOUND": "Creator nicht gefunden",
     "PAGE_STORE_NOT_FOUND": "Store nicht gefunden",
     "PAGE_NOT_FOUND": "Seite nicht gefunden",
