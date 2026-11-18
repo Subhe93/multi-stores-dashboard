@@ -315,3 +315,167 @@ test('the customizer reset and the builder theme switch keep the owner settings'
   assert.ok(builder.includes('setThemeCustomizations((prev) => keepOwnerSettings(prev)'), 'theme switch mirror');
   assert.ok(builder.includes('hasLookOverrides(themeCustomizations)'), 'customized flag');
 });
+
+// ── Product card (store.theme_customizations.product.card) ─────────────────
+// Mirror of multi-stores-web/src/lib/productCard/settings.ts: the object
+// exists = the enhanced card; only what the owner chose is stored.
+
+const CARD_OFF = {
+  enabled: false,
+  style: 'classic',
+  aspect: '',
+  corners: '',
+  hover_image: false,
+  swatches: false,
+  sizes_line: false,
+  availability: 'off',
+  low_stock_threshold: 3,
+  badge: 'percent',
+  quick_add: false,
+};
+
+test('product card: the value lists, the cap and the defaults are the storefront contract', async () => {
+  const m = await import('./themeTokens.ts');
+  assert.deepEqual([...m.CARD_STYLES], ['classic', 'editorial']);
+  assert.deepEqual([...m.CARD_ASPECTS], ['square', 'portrait', 'landscape']);
+  assert.deepEqual([...m.CARD_CORNERS], ['theme', 'square']);
+  assert.deepEqual([...m.CARD_AVAILABILITY], ['off', 'sold_out', 'sold_out_and_low']);
+  assert.deepEqual([...m.CARD_BADGES], ['percent', 'sale', 'none']);
+  assert.equal(m.LOW_STOCK_CAP, 10);
+  assert.equal(m.LOW_STOCK_DEFAULT, 3);
+  assert.deepEqual(m.cardStyleDefaults('classic'), { aspect: 'square', corners: 'theme' });
+  assert.deepEqual(m.cardStyleDefaults('editorial'), { aspect: 'portrait', corners: 'square' });
+});
+
+test('product card: anything but a plain card object reads as off', async () => {
+  const { productCardValue } = await import('./themeTokens.ts');
+  for (const tokens of [
+    undefined,
+    null,
+    {},
+    full(),
+    { product: null },
+    { product: 'card' },
+    { product: {} },
+    { product: { swatchShape: 'square' } },
+    { product: { card: null } },
+    { product: { card: true } },
+    { product: { card: 'editorial' } },
+    { product: { card: [] } },
+  ]) {
+    assert.deepEqual(productCardValue(tokens), CARD_OFF, JSON.stringify(tokens));
+  }
+});
+
+test('product card: an empty object is on with every default; junk values fall back', async () => {
+  const { productCardValue } = await import('./themeTokens.ts');
+  assert.deepEqual(productCardValue({ product: { card: {} } }), { ...CARD_OFF, enabled: true });
+  assert.deepEqual(
+    productCardValue({
+      product: {
+        card: {
+          style: 'fancy', aspect: 'wide', corners: 1, hover_image: 'true', swatches: 1, sizes_line: null,
+          availability: 'low', low_stock_threshold: 'x', badge: 'big', quick_add: 'yes',
+        },
+      },
+    }),
+    { ...CARD_OFF, enabled: true },
+  );
+  assert.deepEqual(
+    productCardValue({
+      product: {
+        card: {
+          style: 'editorial', aspect: 'landscape', corners: 'theme', hover_image: true, swatches: true, sizes_line: true,
+          availability: 'sold_out_and_low', low_stock_threshold: 5, badge: 'sale', quick_add: true,
+        },
+      },
+    }),
+    {
+      enabled: true, style: 'editorial', aspect: 'landscape', corners: 'theme', hover_image: true, swatches: true,
+      sizes_line: true, availability: 'sold_out_and_low', low_stock_threshold: 5, badge: 'sale', quick_add: true,
+    },
+  );
+  // The threshold is clamped to 1..10, as the storefront reads it.
+  assert.equal(productCardValue({ product: { card: { low_stock_threshold: 25 } } }).low_stock_threshold, 10);
+  assert.equal(productCardValue({ product: { card: { low_stock_threshold: 0 } } }).low_stock_threshold, 1);
+  assert.equal(productCardValue({ product: { card: { low_stock_threshold: 2.5 } } }).low_stock_threshold, 3);
+});
+
+test('product card: switching on stores {} and nothing else moves', async () => {
+  const { withProductCard } = await import('./themeTokens.ts');
+  const before = full();
+  const on = withProductCard(before, { enabled: true });
+  assert.deepEqual(on, { ...full(), product: { swatchShape: 'square', card: {} } });
+  assert.deepEqual(before, full(), 'input not mutated');
+  assert.deepEqual(withProductCard({}, { enabled: true }), { product: { card: {} } });
+  assert.deepEqual(withProductCard({ product: 'junk' }, { enabled: true }), { product: { card: {} } });
+});
+
+test('product card: only what differs from the default is stored', async () => {
+  const { withProductCard } = await import('./themeTokens.ts');
+  let t = withProductCard({}, { enabled: true });
+  t = withProductCard(t, { style: 'editorial' });
+  assert.deepEqual(t, { product: { card: { style: 'editorial' } } });
+  t = withProductCard(t, { hover_image: true, swatches: true, sizes_line: true, quick_add: true });
+  t = withProductCard(t, { availability: 'sold_out_and_low', low_stock_threshold: 2, badge: 'sale' });
+  t = withProductCard(t, { aspect: 'portrait', corners: 'theme' });
+  assert.deepEqual(t.product.card, {
+    style: 'editorial', aspect: 'portrait', corners: 'theme', hover_image: true, swatches: true, sizes_line: true,
+    availability: 'sold_out_and_low', low_stock_threshold: 2, badge: 'sale', quick_add: true,
+  });
+  // Back to every default: the object stays (still opted in) and is empty.
+  t = withProductCard(t, {
+    style: 'classic', aspect: '', corners: '', hover_image: false, swatches: false, sizes_line: false,
+    availability: 'off', low_stock_threshold: 3, badge: 'percent', quick_add: false,
+  });
+  assert.deepEqual(t, { product: { card: {} } });
+  // Out-of-range and junk patches never reach the store.
+  assert.deepEqual(withProductCard(t, { low_stock_threshold: 99 }).product.card, { low_stock_threshold: 10 });
+  assert.deepEqual(withProductCard(t, { low_stock_threshold: -4 }).product.card, { low_stock_threshold: 1 });
+  assert.deepEqual(withProductCard(t, { style: 'fancy', badge: 'big', aspect: 'wide' }).product.card, {});
+});
+
+test('product card: switching off removes the key and prunes an emptied product', async () => {
+  const { withProductCard, keepOwnerSettings, hasLookOverrides } = await import('./themeTokens.ts');
+  const stored = { ...full(), product: { swatchShape: 'square', card: { style: 'editorial', quick_add: true } } };
+  assert.deepEqual(withProductCard(stored, { enabled: false }), full());
+  assert.deepEqual(withProductCard({ product: { card: {} } }, { enabled: false }), {});
+  assert.deepEqual(withProductCard({ colors: {}, product: { card: { style: 'editorial' } } }, { enabled: false }), { colors: {} });
+  // Nothing stored: the copy is deep-equal to the input.
+  assert.deepEqual(withProductCard(full(), { enabled: false }), full());
+  assert.deepEqual(withProductCard({ product: 'junk' }, { enabled: false }), { product: 'junk' });
+  // Keys the editor does not know survive an edit.
+  assert.deepEqual(
+    withProductCard({ product: { card: { future: 1, style: 'editorial' } } }, { style: 'classic' }).product.card,
+    { future: 1 },
+  );
+  // The card is a store setting: a look reset keeps it and it is not a look override.
+  const on = withProductCard({ colors: { primary: '#000' } }, { enabled: true, style: 'editorial' });
+  assert.deepEqual(keepOwnerSettings(on), { product: { card: { style: 'editorial' } } });
+  assert.equal(hasLookOverrides(keepOwnerSettings(on)), false);
+});
+
+test('product card: the customizer edits it through the helpers, with texts in six locales', () => {
+  const source = readFileSync(
+    fileURLToPath(new URL('../components/builder/ThemeCustomizer.tsx', import.meta.url)),
+    'utf8',
+  );
+  for (const name of ['productCardValue(draft)', 'withProductCard(draft, patch)', "t('card.lowStockThresholdHint', { max: LOW_STOCK_CAP })"]) {
+    assert.ok(source.includes(name), name);
+  }
+  // Every card.* key the customizer names exists, non-empty, in every locale.
+  const used = new Set([...source.matchAll(/'card\.([A-Za-z]+)'/g)].map((m) => m[1]));
+  assert.ok(used.size >= 30, `card keys used: ${used.size}`);
+  const en = JSON.parse(readFileSync(fileURLToPath(new URL('../i18n/messages/en.json', import.meta.url)), 'utf8')).builder.card;
+  for (const locale of LOCALES) {
+    const file = fileURLToPath(new URL(`../i18n/messages/${locale}.json`, import.meta.url));
+    const card = JSON.parse(readFileSync(file, 'utf8')).builder.card;
+    assert.deepEqual(Object.keys(card), Object.keys(en), `${locale} key set`);
+    for (const key of used) assert.ok(typeof card[key] === 'string' && card[key].trim(), `${locale} card.${key}`);
+    for (const [key, text] of Object.entries(card)) {
+      const placeholders = text.match(/\{[^}]*\}/g) ?? [];
+      assert.deepEqual(placeholders, key === 'lowStockThresholdHint' ? ['{max}'] : [], `${locale} card.${key}`);
+    }
+  }
+  for (const key of Object.keys(en)) assert.ok(used.has(key), `unused key card.${key}`);
+});

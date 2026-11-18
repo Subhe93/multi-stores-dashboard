@@ -327,3 +327,179 @@ export function hasLookOverrides(tokens: unknown): boolean {
     return !(isDict(product) && Object.keys(product).length > 0 && Object.keys(product).every((k) => k === 'card'));
   });
 }
+
+// ── Product card (store.theme_customizations.product.card) ─────────────────
+// Opt-in object: present (even `{}`) = the enhanced product card on every
+// listing of the storefront, absent = the classic card. Mirrors
+// multi-stores-web/src/lib/productCard/settings.ts: same keys, value sets
+// and defaults. Only what the owner chose is stored, never a default.
+
+export const CARD_STYLES = ['classic', 'editorial'] as const;
+export const CARD_ASPECTS = ['square', 'portrait', 'landscape'] as const;
+export const CARD_CORNERS = ['theme', 'square'] as const;
+export const CARD_AVAILABILITY = ['off', 'sold_out', 'sold_out_and_low'] as const;
+export const CARD_BADGES = ['percent', 'sale', 'none'] as const;
+
+export type CardStyle = (typeof CARD_STYLES)[number];
+export type CardAspect = (typeof CARD_ASPECTS)[number];
+export type CardCorners = (typeof CARD_CORNERS)[number];
+export type CardAvailability = (typeof CARD_AVAILABILITY)[number];
+export type CardBadge = (typeof CARD_BADGES)[number];
+
+/**
+ * Highest "Only N left" number a card may show. Equal to the storefront's
+ * LOW_STOCK_CAP and the API's LOW_STOCK_DISPLAY_THRESHOLD: above it a stock
+ * change does not refresh the store, so the number would be stale.
+ */
+export const LOW_STOCK_CAP = 10;
+export const LOW_STOCK_DEFAULT = 3;
+
+/** The object as stored (every key optional). */
+export interface ProductCardStored {
+  style?: CardStyle;
+  aspect?: CardAspect;
+  corners?: CardCorners;
+  hover_image?: boolean;
+  swatches?: boolean;
+  sizes_line?: boolean;
+  availability?: CardAvailability;
+  low_stock_threshold?: number;
+  badge?: CardBadge;
+  quick_add?: boolean;
+  [key: string]: unknown; // keys this editor does not know are kept
+}
+
+/** The card settings as the customizer shows them. */
+export interface ProductCardValue {
+  /** The opt-in switch: the `card` object exists. */
+  enabled: boolean;
+  style: CardStyle;
+  /** '' = automatic: follows the style (portrait if editorial, else square). */
+  aspect: CardAspect | '';
+  /** '' = automatic: follows the style (square if editorial, else the theme's). */
+  corners: CardCorners | '';
+  hover_image: boolean;
+  swatches: boolean;
+  sizes_line: boolean;
+  availability: CardAvailability;
+  /** 1..LOW_STOCK_CAP. */
+  low_stock_threshold: number;
+  badge: CardBadge;
+  quick_add: boolean;
+}
+
+const CARD_OFF: ProductCardValue = {
+  enabled: false,
+  style: 'classic',
+  aspect: '',
+  corners: '',
+  hover_image: false,
+  swatches: false,
+  sizes_line: false,
+  availability: 'off',
+  low_stock_threshold: LOW_STOCK_DEFAULT,
+  badge: 'percent',
+  quick_add: false,
+};
+
+function cardChoice<T extends string>(set: readonly T[], value: unknown, fallback: T): T;
+function cardChoice<T extends string>(set: readonly T[], value: unknown, fallback: ''): T | '';
+function cardChoice(set: readonly string[], value: unknown, fallback: string): string {
+  return typeof value === 'string' && set.includes(value) ? value : fallback;
+}
+
+/** A threshold as the storefront reads it: an integer clamped to 1..cap, else the default. */
+function cardThreshold(value: unknown): number {
+  const n = Number(value);
+  return Number.isInteger(n) ? Math.min(LOW_STOCK_CAP, Math.max(1, n)) : LOW_STOCK_DEFAULT;
+}
+
+/** The aspect and corners a card gets when the owner left them automatic. */
+export function cardStyleDefaults(style: CardStyle): { aspect: CardAspect; corners: CardCorners } {
+  return style === 'editorial' ? { aspect: 'portrait', corners: 'square' } : { aspect: 'square', corners: 'theme' };
+}
+
+/**
+ * The stored card settings. Anything but a plain `product.card` object reads
+ * as off (the classic card), with every option at its default.
+ */
+export function productCardValue(tokens: ThemeTokensLike | null | undefined): ProductCardValue {
+  const product = tokens?.product;
+  const card = isDict(product) ? product.card : undefined;
+  if (!isDict(card)) return { ...CARD_OFF };
+  return {
+    enabled: true,
+    style: cardChoice(CARD_STYLES, card.style, 'classic'),
+    aspect: cardChoice(CARD_ASPECTS, card.aspect, ''),
+    corners: cardChoice(CARD_CORNERS, card.corners, ''),
+    hover_image: card.hover_image === true,
+    swatches: card.swatches === true,
+    sizes_line: card.sizes_line === true,
+    availability: cardChoice(CARD_AVAILABILITY, card.availability, 'off'),
+    low_stock_threshold: cardThreshold(card.low_stock_threshold),
+    badge: cardChoice(CARD_BADGES, card.badge, 'percent'),
+    quick_add: card.quick_add === true,
+  };
+}
+
+const CARD_KNOWN_KEYS = [
+  'style',
+  'aspect',
+  'corners',
+  'hover_image',
+  'swatches',
+  'sizes_line',
+  'availability',
+  'low_stock_threshold',
+  'badge',
+  'quick_add',
+] as const;
+
+/**
+ * Copy of `tokens` with the card settings changed by `patch`.
+ *  - Off removes `product.card` (and `product` once it is empty).
+ *  - On writes the object with only what differs from the default: switching
+ *    on with nothing chosen stores `{}`. Automatic aspect / corners are never
+ *    stored; an explicit choice is.
+ * Every other key (`product.swatchShape`, unknown keys inside `card`) is
+ * kept; switching off a store that has no card leaves the copy deep-equal to
+ * the input.
+ */
+export function withProductCard<T extends ThemeTokensLike>(tokens: T, patch: Partial<ProductCardValue>): T {
+  const next: Dict = { ...tokens };
+  const stored = next.product;
+  const value = { ...productCardValue(tokens), ...patch };
+
+  if (value.enabled === true) {
+    const storedCard = isDict(stored) && isDict(stored.card) ? stored.card : {};
+    const card: Dict = { ...storedCard };
+    for (const key of CARD_KNOWN_KEYS) delete card[key];
+    const style = cardChoice(CARD_STYLES, value.style, 'classic');
+    const aspect = cardChoice(CARD_ASPECTS, value.aspect, '');
+    const corners = cardChoice(CARD_CORNERS, value.corners, '');
+    const availability = cardChoice(CARD_AVAILABILITY, value.availability, 'off');
+    const badge = cardChoice(CARD_BADGES, value.badge, 'percent');
+    const threshold = cardThreshold(value.low_stock_threshold);
+    if (style !== 'classic') card.style = style;
+    if (aspect) card.aspect = aspect;
+    if (corners) card.corners = corners;
+    if (value.hover_image === true) card.hover_image = true;
+    if (value.swatches === true) card.swatches = true;
+    if (value.sizes_line === true) card.sizes_line = true;
+    if (availability !== 'off') card.availability = availability;
+    if (threshold !== LOW_STOCK_DEFAULT) card.low_stock_threshold = threshold;
+    if (badge !== 'percent') card.badge = badge;
+    if (value.quick_add === true) card.quick_add = true;
+    next.product = { ...(isDict(stored) ? stored : {}), card };
+    return next as T;
+  }
+
+  // Nothing stored: nothing to remove, nothing to prune.
+  if (!isDict(stored) || !('card' in stored)) return next as T;
+
+  const nextProduct = { ...stored };
+  delete nextProduct.card;
+  if (Object.keys(nextProduct).length) next.product = nextProduct;
+  else delete next.product;
+  return next as T;
+}

@@ -8,7 +8,7 @@
 
 import { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronDown, Loader2, Palette, RotateCcw, X } from 'lucide-react';
+import { ChevronDown, Loader2, Palette, Plus, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,20 +27,31 @@ import { CUSTOM_CSS_MAX_LENGTH, customCssOf, isCustomCssTooLong, withCustomCss }
 import {
   ARABIC_FONT_FAMILIES,
   BUTTON_RADIUS_OPTIONS,
+  CARD_ASPECTS,
+  CARD_AVAILABILITY,
+  CARD_BADGES,
+  CARD_CORNERS,
+  CARD_STYLES,
+  LOW_STOCK_CAP,
   MOTION_REVEAL_VALUES,
   MOTION_ZOOM_VALUES,
   arabicFontValue,
   buttonRadiusValue,
+  cardStyleDefaults,
   creativeValue,
   keepOwnerSettings,
   motionValue,
+  productCardValue,
   withArabicFont,
   withButtonRadius,
   withCreative,
   withMotion,
+  withProductCard,
   type ArabicFontSlot,
   type CreativeValue,
   type MotionKey,
+  type ProductCardStored,
+  type ProductCardValue,
 } from '@/lib/themeTokens';
 import { cn } from '@/lib/utils';
 
@@ -64,8 +75,12 @@ export interface ThemeTokenCustomizations {
     radius?: { button?: string; [key: string]: unknown };
     [key: string]: unknown; // preserve unrelated keys (shadow, containerMaxWidth…)
   };
-  /** Product page: colour swatch shape (storefront `--theme-swatch-radius`). */
-  product?: { swatchShape?: SwatchShape };
+  /**
+   * Product page: colour swatch shape (storefront `--theme-swatch-radius`).
+   * `card` is the opt-in product card of every listing: the object exists
+   * (even empty) = the enhanced card, absent = the classic card.
+   */
+  product?: { swatchShape?: SwatchShape; card?: ProductCardStored };
   /**
    * Store-wide motion profile (storefront `data-motion-reveal` /
    * `data-motion-zoom` on the store root). Unset = the standard movement;
@@ -115,6 +130,15 @@ const BUTTON_SHAPE_LABEL_KEYS = ['buttonShapeSquare', 'buttonShapeSlight', 'butt
 // MOTION_ZOOM_VALUES (subtle, off).
 const MOTION_REVEAL_LABEL_KEYS = ['motion.revealCalm', 'motion.revealOff'] as const;
 const MOTION_ZOOM_LABEL_KEYS = ['motion.zoomSubtle', 'motion.zoomOff'] as const;
+
+// Product card choices, in the order of the CARD_* value lists.
+const CARD_STYLE_LABEL_KEYS = ['card.styleClassic', 'card.styleEditorial'] as const;
+const CARD_ASPECT_LABEL_KEYS = ['card.aspectSquare', 'card.aspectPortrait', 'card.aspectLandscape'] as const;
+const CARD_CORNERS_LABEL_KEYS = ['card.cornersTheme', 'card.cornersSquare'] as const;
+const CARD_AVAILABILITY_LABEL_KEYS = ['card.availabilityOff', 'card.availabilitySoldOut', 'card.availabilitySoldOutAndLow'] as const;
+const CARD_BADGE_LABEL_KEYS = ['card.badgePercent', 'card.badgeSale', 'card.badgeNone'] as const;
+// "Only N left" thresholds: 1 to the cap, shown as plain numbers.
+const LOW_STOCK_OPTIONS = Array.from({ length: LOW_STOCK_CAP }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 type SwatchShape = 'circle' | 'square';
@@ -184,6 +208,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   const setCreative = (patch: Partial<CreativeValue>) => apply(withCreative(draft, patch));
   // Calm and Off keep the page-level options (smooth scrolling, magnetic, curtain, bar, dot) from starting.
   const creativeMuted = creative.enabled && motionValue(draft, 'reveal') !== '';
+  // Off removes product.card (and `product` once empty); on stores only what differs from the default.
+  const card = productCardValue(draft);
+  const setCard = (patch: Partial<ProductCardValue>) => apply(withProductCard(draft, patch));
 
   const buttonRadius = buttonRadiusValue(draft);
   // A valid stored radius outside the four shapes stays selectable as it is.
@@ -387,6 +414,140 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                 placeholder={t('themeDefault')}
               />
               <p className="text-[11px] text-zinc-500">{t('swatchShapeHint')}</p>
+            </div>
+          </section>
+
+          {/* Product card: the opt-in card of every product listing */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('card.title')}
+            </div>
+            <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50/50 p-2.5">
+              <CreativeSwitchRow
+                id={`${fieldId}-card`}
+                label={t('card.enabled')}
+                checked={card.enabled}
+                onChange={(enabled) => setCard({ enabled })}
+                strong
+              />
+              <p className="text-[11px] text-zinc-500">{t('card.enabledHint')}</p>
+              {card.enabled && (
+                <div className="space-y-3 border-t border-zinc-200 pt-2.5">
+                  {/* Look: a small live sketch next to the three look selects */}
+                  <div className="flex items-start gap-3">
+                    <CardPreview
+                      value={card}
+                      label={t('card.preview')}
+                      title={t('card.sampleTitle')}
+                      sale={t('card.sampleSale')}
+                      low={t('card.sampleLow')}
+                    />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-card-style`} className="text-[11.5px] text-zinc-700">{t('card.style')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-card-style`}
+                          value={card.style}
+                          onChange={(v) => setCard({ style: v as ProductCardValue['style'] })}
+                          options={CARD_STYLES.map((value, i) => ({ value, label: t(CARD_STYLE_LABEL_KEYS[i]) }))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-card-aspect`} className="text-[11.5px] text-zinc-700">{t('card.aspect')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-card-aspect`}
+                          value={card.aspect}
+                          onChange={(v) => setCard({ aspect: v as ProductCardValue['aspect'] })}
+                          options={[
+                            { value: '', label: t('card.aspectAuto') },
+                            ...CARD_ASPECTS.map((value, i) => ({ value, label: t(CARD_ASPECT_LABEL_KEYS[i]) })),
+                          ]}
+                          placeholder={t('card.aspectAuto')}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-card-corners`} className="text-[11.5px] text-zinc-700">{t('card.corners')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-card-corners`}
+                          value={card.corners}
+                          onChange={(v) => setCard({ corners: v as ProductCardValue['corners'] })}
+                          options={[
+                            { value: '', label: t('card.cornersAuto') },
+                            ...CARD_CORNERS.map((value, i) => ({ value, label: t(CARD_CORNERS_LABEL_KEYS[i]) })),
+                          ]}
+                          placeholder={t('card.cornersAuto')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-zinc-500">{t('card.styleHint')} {t('card.aspectHint')}</p>
+
+                  {/* What the card shows */}
+                  <div className="space-y-2 border-t border-zinc-200 pt-2.5">
+                    <CreativeSwitchRow
+                      id={`${fieldId}-card-hover`}
+                      label={t('card.hoverImage')}
+                      checked={card.hover_image}
+                      onChange={(hover_image) => setCard({ hover_image })}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('card.hoverImageHint')}</p>
+                    <CreativeSwitchRow
+                      id={`${fieldId}-card-swatches`}
+                      label={t('card.swatches')}
+                      checked={card.swatches}
+                      onChange={(swatches) => setCard({ swatches })}
+                    />
+                    <CreativeSwitchRow
+                      id={`${fieldId}-card-sizes`}
+                      label={t('card.sizesLine')}
+                      checked={card.sizes_line}
+                      onChange={(sizes_line) => setCard({ sizes_line })}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('card.optionsHint')}</p>
+                    <CreativeSwitchRow
+                      id={`${fieldId}-card-quick-add`}
+                      label={t('card.quickAdd')}
+                      checked={card.quick_add}
+                      onChange={(quick_add) => setCard({ quick_add })}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('card.quickAddHint')}</p>
+                  </div>
+
+                  {/* Badge and availability */}
+                  <div className="space-y-2 border-t border-zinc-200 pt-2.5">
+                    <div className="space-y-1">
+                      <Label htmlFor={`${fieldId}-card-badge`} className="text-[11.5px] text-zinc-700">{t('card.badge')}</Label>
+                      <SearchableSelect
+                        id={`${fieldId}-card-badge`}
+                        value={card.badge}
+                        onChange={(v) => setCard({ badge: v as ProductCardValue['badge'] })}
+                        options={CARD_BADGES.map((value, i) => ({ value, label: t(CARD_BADGE_LABEL_KEYS[i]) }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`${fieldId}-card-availability`} className="text-[11.5px] text-zinc-700">{t('card.availability')}</Label>
+                      <SearchableSelect
+                        id={`${fieldId}-card-availability`}
+                        value={card.availability}
+                        onChange={(v) => setCard({ availability: v as ProductCardValue['availability'] })}
+                        options={CARD_AVAILABILITY.map((value, i) => ({ value, label: t(CARD_AVAILABILITY_LABEL_KEYS[i]) }))}
+                      />
+                    </div>
+                    {card.availability === 'sold_out_and_low' && (
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-card-threshold`} className="text-[11.5px] text-zinc-700">{t('card.lowStockThreshold')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-card-threshold`}
+                          value={String(card.low_stock_threshold)}
+                          onChange={(v) => setCard({ low_stock_threshold: Number(v) })}
+                          options={LOW_STOCK_OPTIONS}
+                        />
+                        <p className="text-[11px] text-zinc-500">{t('card.lowStockThresholdHint', { max: LOW_STOCK_CAP })}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -633,6 +794,95 @@ function CreativeSwitchRow({
           )}
         />
       </button>
+    </div>
+  );
+}
+
+/**
+ * Small sketch of the product card with the current settings: photo shape,
+ * corners, badge, quick add, swatches, sizes and the low-stock line. A
+ * picture for the owner only; the storefront draws the real card.
+ */
+function CardPreview({
+  value,
+  label,
+  title,
+  sale,
+  low,
+}: {
+  value: ProductCardValue;
+  label: string;
+  title: string;
+  sale: string;
+  low: string;
+}) {
+  const editorial = value.style === 'editorial';
+  const auto = cardStyleDefaults(value.style);
+  const aspect = value.aspect || auto.aspect;
+  const sharp = (value.corners || auto.corners) === 'square';
+  return (
+    <div role="img" aria-label={label} className="w-[104px] shrink-0 select-none rounded-md border border-zinc-200 bg-white p-2">
+      <div
+        className={cn(
+          'relative w-full overflow-hidden bg-gradient-to-br from-stone-200 via-stone-100 to-stone-300 transition-all',
+          aspect === 'portrait' ? 'aspect-[4/5]' : aspect === 'landscape' ? 'aspect-[4/3]' : 'aspect-square',
+          sharp ? 'rounded-none' : 'rounded-lg',
+        )}
+      >
+        {value.badge !== 'none' && (
+          <span
+            className={cn(
+              'absolute start-1 top-1 leading-none',
+              editorial
+                ? 'bg-white px-1 py-0.5 text-[6.5px] font-medium uppercase tracking-[0.14em] text-zinc-900'
+                : 'rounded-full bg-red-600 px-1.5 py-0.5 text-[7px] font-bold text-white',
+            )}
+          >
+            {value.badge === 'sale' ? sale : <span dir="ltr">-20%</span>}
+          </span>
+        )}
+        {value.quick_add && (
+          <span
+            className={cn(
+              'absolute bottom-1 end-1 flex size-4 items-center justify-center bg-white text-zinc-900 shadow-sm',
+              sharp ? 'rounded-none' : 'rounded-full',
+            )}
+          >
+            <Plus className="size-2.5" />
+          </span>
+        )}
+        {value.hover_image && (
+          <span className="absolute bottom-1.5 start-1 flex gap-0.5">
+            <span className="size-1 rounded-full bg-zinc-900" />
+            <span className="size-1 rounded-full bg-zinc-900/30" />
+          </span>
+        )}
+      </div>
+      <div className={cn('mt-1.5 truncate text-zinc-900', editorial ? 'text-[7.5px] uppercase tracking-[0.12em]' : 'text-[8.5px] font-semibold')}>
+        {title}
+      </div>
+      <div className={cn('flex gap-1', editorial ? 'text-[7.5px] text-zinc-500' : 'text-[8.5px] font-bold text-zinc-900')}>
+        <span>79</span>
+        <span className="font-normal text-zinc-400 line-through">99</span>
+      </div>
+      {value.swatches && (
+        <div className="mt-1 flex gap-1">
+          {['#1f2937', '#a8a29e', '#7c2d12'].map((c) => (
+            <span key={c} className="size-2 rounded-full border border-black/10" style={{ backgroundColor: c }} />
+          ))}
+        </div>
+      )}
+      {value.sizes_line && (
+        <div className="mt-1 flex gap-1 text-[7px] tracking-wide text-zinc-600">
+          <span>S</span>
+          <span>M</span>
+          <span>L</span>
+          <span className="text-zinc-300 line-through">XL</span>
+        </div>
+      )}
+      {value.availability === 'sold_out_and_low' && (
+        <div className={cn('mt-1 text-[7px]', editorial ? 'uppercase tracking-[0.1em] text-zinc-500' : 'font-medium text-amber-700')}>{low}</div>
+      )}
     </div>
   );
 }
