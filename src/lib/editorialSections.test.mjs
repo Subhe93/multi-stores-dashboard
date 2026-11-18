@@ -342,12 +342,13 @@ test('labels of the three new sections cover every dashboard locale', () => {
 
 // ── The three variants ──────────────────────────────────────────────────
 
-const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow'];
+const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow', 'heading_accent', 'heading_accent_color'];
 const IMAGE_WITH_TEXT_ADDED = [
   'alt', 'image_style', 'min_height', 'image_focus', 'tone', 'bg_color', 'edge',
   'cta_secondary_text', 'cta_secondary_url', 'cta_tone',
   'cta_secondary_bg_color', 'cta_secondary_text_color', 'cta_secondary_border_color',
   'cta_secondary_border_width', 'cta_secondary_border_radius',
+  'heading_accent', 'heading_accent_color',
 ];
 const TRUST_BADGES_ADDED = ['icon_color'];
 

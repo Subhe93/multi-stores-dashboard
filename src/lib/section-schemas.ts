@@ -936,6 +936,125 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     },
   },
   {
+    // Closing brand band: a photo with a dark overlay, the mark, the wordmark
+    // and a tagline, centred. Mirrors
+    // multi-stores-web/src/themes/minimal/sections/BrandBand.tsx. The heading
+    // tag and the heading accent pair are injected below (withHeadingLevel,
+    // withHeadingAccent).
+    id: 'brand-band',
+    label: L('Brand Band', 'شريط العلامة', 'Marka bandı', 'Markenband', 'Bandeau de marque', 'Varumärkesband'),
+    icon: 'image',
+    category: 'showcase',
+    description: L(
+      'Full-width photo band with your logo, brand name and a short tagline, centred. A calm close for a page.',
+      'شريط صورة بعرض كامل يحمل شعارك واسم علامتك وعبارة قصيرة في الوسط. ختام هادئ للصفحة.',
+      'Logonuzu, marka adınızı ve kısa bir sloganı ortada gösteren tam genişlikte fotoğraf bandı. Sayfa için sakin bir kapanış.',
+      'Fotoband in voller Breite mit Logo, Markenname und kurzem Slogan, zentriert. Ein ruhiger Abschluss für eine Seite.',
+      'Bandeau photo pleine largeur avec votre logo, le nom de la marque et un court slogan, centrés. Une fin de page apaisée.',
+      'Fotoband i full bredd med logotyp, varumärkesnamn och en kort tagline, centrerat. Ett lugnt avslut på en sida.',
+    ),
+    pageTypes: ['HOME', 'STATIC', 'LANDING', 'FOOTER'],
+    translatable: ['alt', 'heading', 'tagline', 'cta_text'],
+    schema: [
+      { key: 'image', type: 'image', label: IMAGE_LABEL },
+      { key: 'alt', type: 'text', label: ALT_LABEL, description: ALT_DESCRIPTION, maxLength: 160 },
+      {
+        key: 'image_focus',
+        type: 'select',
+        label: IMAGE_FOCUS_LABEL,
+        description: IMAGE_FOCUS_DESCRIPTION,
+        defaultValue: 'center',
+        options: FOCUS_OPTIONS,
+      },
+      {
+        key: 'overlay_opacity',
+        type: 'number',
+        label: L('Overlay darkness (%)', 'تعتيم الصورة (%)', 'Kaplama koyuluğu (%)', 'Abdunklung (%)', 'Assombrissement (%)', 'Mörkläggning (%)'),
+        description: L(
+          'How much black is laid over the photo, 0 to 80. More darkness makes the text easier to read.',
+          'مقدار السواد فوق الصورة، من 0 إلى 80. كلما زاد التعتيم سهلت قراءة النص.',
+          'Fotoğrafın üzerine binen siyahın oranı, 0 ile 80 arası. Koyuluk arttıkça metin daha kolay okunur.',
+          'Wie viel Schwarz über dem Foto liegt, 0 bis 80. Mehr Abdunklung macht den Text besser lesbar.',
+          'Part de noir posée sur la photo, de 0 à 80. Plus elle est sombre, plus le texte est lisible.',
+          'Hur mycket svart som läggs över fotot, 0 till 80. Mer mörker gör texten lättare att läsa.',
+        ),
+        min: 0,
+        max: 80,
+        defaultValue: 40,
+      },
+      {
+        key: 'height',
+        type: 'select',
+        label: L('Height', 'الارتفاع', 'Yükseklik', 'Höhe', 'Hauteur', 'Höjd'),
+        defaultValue: 'md',
+        options: [
+          { value: 'sm', label: L('Small', 'صغير', 'Küçük', 'Klein', 'Petite', 'Liten') },
+          { value: 'md', label: L('Medium', 'متوسط', 'Orta', 'Mittel', 'Moyenne', 'Medel') },
+          { value: 'lg', label: L('Large', 'كبير', 'Büyük', 'Groß', 'Grande', 'Stor') },
+        ],
+      },
+      {
+        key: 'logo',
+        type: 'image',
+        label: L('Logo (optional)', 'الشعار (اختياري)', 'Logo (isteğe bağlı)', 'Logo (optional)', 'Logo (facultatif)', 'Logotyp (valfritt)'),
+        description: L(
+          'Shown above the brand name. Use a version that reads well on a dark photo.',
+          'يظهر فوق اسم العلامة. استخدم نسخة واضحة فوق صورة داكنة.',
+          'Marka adının üstünde gösterilir. Koyu bir fotoğraf üzerinde iyi okunan bir sürüm kullanın.',
+          'Wird über dem Markennamen angezeigt. Verwenden Sie eine Version, die auf einem dunklen Foto gut erkennbar ist.',
+          'Affiché au-dessus du nom de la marque. Utilisez une version lisible sur une photo sombre.',
+          'Visas ovanför varumärkesnamnet. Använd en version som syns bra på ett mörkt foto.',
+        ),
+      },
+      {
+        key: 'logo_height',
+        type: 'number',
+        label: L('Logo height (px)', 'ارتفاع الشعار (px)', 'Logo yüksekliği (px)', 'Logo-Höhe (px)', 'Hauteur du logo (px)', 'Logotypens höjd (px)'),
+        min: 32,
+        max: 160,
+        defaultValue: 72,
+      },
+      {
+        key: 'heading',
+        type: 'text',
+        label: L('Brand name', 'اسم العلامة', 'Marka adı', 'Markenname', 'Nom de la marque', 'Varumärkesnamn'),
+        maxLength: 80,
+      },
+      {
+        key: 'heading_style',
+        type: 'select',
+        label: L('Brand name style', 'نمط اسم العلامة', 'Marka adı stili', 'Stil des Markennamens', 'Style du nom de la marque', 'Varumärkesnamnets stil'),
+        defaultValue: 'ruled',
+        options: [
+          { value: 'ruled', label: L('With a line on each side', 'مع خط على كل جانب', 'Her iki yanında çizgi', 'Mit einer Linie auf jeder Seite', 'Avec une ligne de chaque côté', 'Med en linje på varje sida') },
+          { value: 'plain', label: L('Plain', 'بسيط', 'Sade', 'Schlicht', 'Simple', 'Enkel') },
+        ],
+      },
+      {
+        key: 'tagline',
+        type: 'text',
+        label: L('Tagline', 'العبارة التعريفية', 'Slogan', 'Slogan', 'Slogan', 'Tagline'),
+        maxLength: 160,
+      },
+      cL('text_color', L('Text color', 'لون النص', 'Metin rengi', 'Textfarbe', 'Couleur du texte', 'Textfärg'), {
+        description: L('Empty = white.', 'فارغ = أبيض.', 'Boş = beyaz.', 'Leer = Weiß.', 'Vide = blanc.', 'Tomt = vitt.'),
+      }),
+      {
+        key: 'cta_text',
+        type: 'text',
+        label: L('Button text', 'نص الزر', 'Buton metni', 'Button-Text', 'Texte du bouton', 'Knapptext'),
+        maxLength: 40,
+      },
+      {
+        key: 'cta_url',
+        type: 'url',
+        label: L('Button URL', 'رابط الزر', 'Buton bağlantısı', 'Button-Link', 'Lien du bouton', 'Knappens länk'),
+      },
+    ],
+    defaultSettings: { image_focus: 'center', overlay_opacity: 40, height: 'md', logo_height: 72, heading_style: 'ruled' },
+    defaultContent: { heading: 'Your brand', tagline: 'A short line about what you stand for' },
+  },
+  {
     id: 'before-after',
     label: { en: 'Before / After', ar: 'قبل / بعد' },
     icon: 'columns',
@@ -4502,6 +4621,22 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         ],
       },
       {
+        // Opt-in: unset or false renders the bar as before. The storefront
+        // ignores it when the bar is not sticky.
+        key: 'compact_on_scroll',
+        type: 'boolean',
+        label: L('Compact on scroll', 'تصغير عند التمرير', 'Kaydırınca küçült', 'Beim Scrollen verkleinern', 'Compact au défilement', 'Kompakt vid rullning'),
+        description: L(
+          'The bar gets lower and the logo smaller once the page is scrolled. Needs "Sticky on scroll".',
+          'يصبح الشريط أقل ارتفاعاً والشعار أصغر بعد تمرير الصفحة. يتطلب «التثبيت عند التمرير».',
+          'Sayfa kaydırıldığında çubuk alçalır ve logo küçülür. "Sticky on scroll" ayarı gerekir.',
+          'Sobald die Seite gescrollt wird, wird die Leiste niedriger und das Logo kleiner. Erfordert „Sticky on scroll“.',
+          'La barre devient plus basse et le logo plus petit dès que la page défile. Nécessite « Sticky on scroll ».',
+          'Fältet blir lägre och logotypen mindre när sidan har rullats. Kräver ”Sticky on scroll”.',
+        ),
+        defaultValue: false,
+      },
+      {
         key: 'submenu_style',
         type: 'select',
         label: { en: 'Submenu style (desktop)', ar: 'نمط القوائم الفرعية (سطح المكتب)' },
@@ -4905,6 +5040,7 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'aurora-hero': 'h1',
   'hero-slider': 'h1',
   'parallax-banner': 'h2',
+  'brand-band': 'h2',
   'rich-text': 'h2',
   'image-with-text': 'h2',
   'collection-products': 'h2',
@@ -4960,6 +5096,7 @@ const EYEBROW_SECTIONS = new Set([
 const EYEBROW_P_SECTIONS = new Set(['rich-text', 'image-with-text']);
 // Sections without a subheading text.
 const NO_SUBHEADING_SECTIONS = new Set([
+  'brand-band',
   'image-with-text',
   'progress-spotlight',
   'rich-text',
@@ -5029,7 +5166,61 @@ function withHeadingLevel(schema: SectionSchema): SectionSchema {
   return { ...schema, schema: fields };
 }
 
-export const SECTION_SCHEMAS: SectionSchema[] = BASE_SECTION_SCHEMAS.map(withHeadingLevel);
+// ── Heading accent ─────────────────────────────────────────────────────────
+// A small decoration under the big heading of the hero-type sections and the
+// brand band: nothing, a short line or a brush stroke. Unset or 'none' renders
+// nothing on the storefront. The two fields mirror HEADING_ACCENT_FIELDS in
+// multi-stores-web/src/themes/minimal/sections/_shared/headingAccentFields.ts
+// (same keys, types, option values and showIf); they are settings, never
+// translatable and never part of a section's defaultSettings.
+const HEADING_ACCENT_SECTIONS = new Set([
+  'hero-banner',
+  'hero-split',
+  'hero-slider',
+  'hero-video',
+  'parallax-banner',
+  'image-with-text',
+  'brand-band',
+]);
+
+const HEADING_ACCENT_FIELD: FieldDefinition = {
+  key: 'heading_accent',
+  type: 'select',
+  label: L('Heading accent', 'زخرفة العنوان', 'Başlık vurgusu', 'Akzent der Überschrift', 'Accent du titre', 'Rubrikens accent'),
+  defaultValue: 'none',
+  options: [
+    { value: 'none', label: L('None', 'بدون', 'Yok', 'Keiner', 'Aucun', 'Ingen') },
+    { value: 'line', label: L('Line', 'خط', 'Çizgi', 'Linie', 'Ligne', 'Linje') },
+    { value: 'brush', label: L('Brush stroke', 'ضربة فرشاة', 'Fırça darbesi', 'Pinselstrich', 'Coup de pinceau', 'Penseldrag') },
+  ],
+};
+
+const HEADING_ACCENT_COLOR_FIELD: FieldDefinition = cL(
+  'heading_accent_color',
+  L('Accent colour', 'لون الزخرفة', 'Vurgu rengi', 'Akzentfarbe', 'Couleur de l’accent', 'Accentfärg'),
+  {
+    description: L(
+      'Empty = the theme accent colour.',
+      'فارغ = لون التمييز في القالب.',
+      'Boş = temanın vurgu rengi.',
+      'Leer = die Akzentfarbe des Themes.',
+      'Vide = la couleur d’accent du thème.',
+      'Tomt = temats accentfärg.',
+    ),
+    showIf: { key: 'heading_accent', in: ['line', 'brush'] },
+  },
+);
+
+/** Adds the heading accent pair right after the heading tag select. */
+function withHeadingAccent(schema: SectionSchema): SectionSchema {
+  if (!HEADING_ACCENT_SECTIONS.has(schema.id)) return schema;
+  const fields = [...schema.schema];
+  insertAfter(fields, 'heading_level', HEADING_ACCENT_FIELD);
+  insertAfter(fields, 'heading_accent', HEADING_ACCENT_COLOR_FIELD);
+  return { ...schema, schema: fields };
+}
+
+export const SECTION_SCHEMAS: SectionSchema[] = BASE_SECTION_SCHEMAS.map(withHeadingLevel).map(withHeadingAccent);
 
 export function findSectionSchema(id: string): SectionSchema | undefined {
   return SECTION_SCHEMAS.find((s) => s.id === id);

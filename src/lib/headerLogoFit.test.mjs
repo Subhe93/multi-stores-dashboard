@@ -70,7 +70,7 @@ test('every other header-bar field and default is as it was', () => {
   assert.deepEqual(header.schema.map((f) => f.key), [
     'show_logo', 'show_store_name', 'logo_url', 'logo_url_mobile', 'store_name_override',
     'logo_size', 'logo_fit', 'show_search', 'show_cart', 'cart_action', 'show_account',
-    'show_locale', 'sticky_mode', 'submenu_style', 'active_style', 'bg_color', 'text_color',
+    'show_locale', 'sticky_mode', 'compact_on_scroll', 'submenu_style', 'active_style', 'bg_color', 'text_color',
     'border_color', 'accent_color', 'menu_key', 'items',
   ]);
   const logoSize = header.schema.find((f) => f.key === 'logo_size');

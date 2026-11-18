@@ -860,6 +860,24 @@ function ParallaxBannerPreview(props: PreviewProps) {
   );
 }
 
+function BrandBandPreview(props: PreviewProps) {
+  // Dark photo band (hills under a dimmed sky) with everything centred: a
+  // round mark, the wordmark between two thin rules, and a tagline bar.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="14" width="200" height="92" fill="#3f3f46" />
+      <path d="M0 78 Q 50 58 100 72 T 200 66 L 200 106 L 0 106 Z" fill="#52525b" />
+      <path d="M0 94 Q 60 78 120 92 T 200 88 L 200 106 L 0 106 Z" fill="#27272a" />
+      <circle cx="100" cy="40" r="9" fill="none" stroke="#fafafa" strokeWidth="2" />
+      <circle cx="100" cy="40" r="3" fill="#fafafa" />
+      <rect x="42" y="62.5" width="26" height="1" fill="#fafafa" opacity="0.8" />
+      <Bar x="74" y="60" w="52" h="6" c="#fafafa" />
+      <rect x="132" y="62.5" width="26" height="1" fill="#fafafa" opacity="0.8" />
+      <Bar x="65" y="74" w="70" c="#d4d4d8" />
+    </Frame>
+  );
+}
+
 function BeforeAfterPreview(props: PreviewProps) {
   // One image split by a draggable vertical handle: dark "before" half on
   // the left, light "after" half on the right, with a circular grip carrying
@@ -1229,6 +1247,7 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'hero-video': HeroVideoPreview,
   'hero-split': HeroSplitPreview,
   'parallax-banner': ParallaxBannerPreview,
+  'brand-band': BrandBandPreview,
   'before-after': BeforeAfterPreview,
   'image-hotspots': ImageHotspotsPreview,
   'masonry-gallery': MasonryGalleryPreview,
