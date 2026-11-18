@@ -1025,6 +1025,12 @@ export default function CreatorOrderDetailPage() {
                           <Badge variant="outline" className={`text-[11px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                             {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
                           </Badge>
+                        ) : order.payment_method === 'COD' ? (
+                          // Cash on delivery: the cash never passes through the
+                          // platform, so no payout will ever follow.
+                          <Badge variant="outline" className="text-[11px] bg-sky-50 text-sky-700 border-sky-200">
+                            {tp('statusOutsidePlatform')}
+                          </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[11px] bg-zinc-100 text-zinc-600 border-zinc-200">
                             {order.payment_status === 'paid'

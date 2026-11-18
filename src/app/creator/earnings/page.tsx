@@ -16,6 +16,7 @@ import { api } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
 import { OWN_KEY_ENDPOINT, type OwnKeyStatus } from '@/lib/ownStripeKey';
+import { isOfflineEarning, offlineHintRows } from '@/lib/creatorEarnings';
 
 interface CommissionSummary {
   total_earnings: number;
@@ -24,7 +25,10 @@ interface CommissionSummary {
   total_orders?: number;
   // Markets app: per-currency split (M1). The cross-currency totals above
   // are meaningless when more than one currency is present (L14).
-  by_currency?: Array<{ currency: string; orders: number; total_earnings: number; pending: number; paid: number }>;
+  by_currency?: Array<{ currency: string; orders: number; total_earnings: number; pending: number; paid: number; offline?: number }>;
+  // Marketplace stores: earnings of cash-on-delivery orders, settled outside
+  // platform payouts (absent on an API that does not send it yet).
+  offline?: number;
 }
 
 interface OrderCommission {
@@ -44,6 +48,7 @@ interface Order {
   created_at: string;
   // Stripe test key / pre-live owner checkout (absent = false); no money moved.
   is_test?: boolean | null;
+  payment_method?: string | null;
   commission?: OrderCommission | null;
 }
 
@@ -164,6 +169,7 @@ export default function CreatorEarnings() {
 
   const byCurrency = summary?.by_currency ?? [];
   const multiCurrency = byCurrency.length > 1;
+  const offlineHints = offlineHintRows(summary);
   const fmtIn = (currency: string, amount: number | string | null | undefined) => {
     try {
       return new Intl.NumberFormat('en', { style: 'currency', currency }).format(Number(amount ?? 0));
@@ -233,6 +239,19 @@ export default function CreatorEarnings() {
               className="text-[10px] font-semibold bg-zinc-50 text-zinc-600 border-zinc-200"
             >
               {t('earnings.notApplicable')}
+            </Badge>
+          );
+        }
+        // Cash on delivery in a marketplace store: the cash never passes
+        // through the platform, so the share is not "completed" (paid out).
+        if (status !== 'FAILED' && isOfflineEarning(item, storeType)) {
+          return (
+            <Badge
+              variant="outline"
+              title={t('earnings.statusOfflineTitle')}
+              className="text-[10px] font-semibold bg-sky-50 text-sky-700 border-sky-200"
+            >
+              {t('earnings.statusOffline')}
             </Badge>
           );
         }
@@ -356,6 +375,20 @@ export default function CreatorEarnings() {
           icon={<CreditCard className="w-4 h-4" />}
         />
       </div>
+
+      {/* Earnings of cash-on-delivery orders: counted above, never paid out
+          by the platform. Shown only when the API reports such an amount. */}
+      {offlineHints.length > 0 && (
+        <div className="space-y-1">
+          {offlineHints.map((row) => (
+            <p key={row.currency ?? 'all'} className="text-xs text-sky-700">
+              {t('earnings.offlineHint', {
+                amount: row.currency ? fmtIn(row.currency, row.amount) : fmt(row.amount),
+              })}
+            </p>
+          ))}
+        </div>
+      )}
 
       {/* Commission Breakdown */}
       <Card className="shadow-none">
