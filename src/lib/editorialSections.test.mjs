@@ -17,7 +17,16 @@ import { repeaterAtLimit } from './repeaterLimit.ts';
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
 const NEW_KEYS = ['category-tiles', 'progress-spotlight', 'project-cards'];
 // The creative engine sections have their own test (creativeSchemas.test.mjs).
-const CREATIVE_KEYS = ['ornament-line'];
+const CREATIVE_KEYS = [
+  'ornament-line',
+  // Brand sections: their own rules are checked in creativeSchemas.test.mjs.
+  'cover-hero',
+  'look-spread',
+  'object-study',
+  'script-manifesto',
+  'impact-arc',
+  'pattern-band',
+];
 // Creative options injected into existing sections (withCreativeOptions).
 const CREATIVE_OPTION_KEYS = [];
 
