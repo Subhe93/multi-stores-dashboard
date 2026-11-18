@@ -41,6 +41,7 @@ import { PublishBar } from './PublishBar';
 import { TranslatePageDialog } from './TranslatePageDialog';
 import { ThemePanel, type ThemeCustomizations } from './ThemePanel';
 import type { ThemeTokenCustomizations } from './ThemeCustomizer';
+import { hasLookOverrides, keepOwnerSettings } from '@/lib/themeTokens';
 import type { StorePageSummary } from './PageSwitcher';
 import type { BuilderPage, SectionInstance } from './types';
 import { StorefrontEditHandoff } from '@/components/creator/StorefrontEditHandoff';
@@ -1135,14 +1136,15 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
       // Applying a theme installs it as a fresh preset: the API clears token
       // overrides and strips brand fields from theme_config so the theme's
       // colours/fonts take effect. Mirror that locally so the live preview and
-      // the design panel reset to the theme's defaults.
+      // the design panel reset to the theme's defaults. The store's own
+      // settings (custom CSS, motion, product.card) survive the reset.
       await api('/stores/my/theme-selection', {
         method: 'PUT',
         token,
         body: JSON.stringify({ theme_key: newKey, reset_customizations: true }),
       });
       setThemeKey(newKey);
-      setThemeCustomizations({});
+      setThemeCustomizations((prev) => keepOwnerSettings(prev) as ThemeTokenCustomizations);
       // Mirror the API's brand strip so the design panel resets too.
       setThemeConfig((prev) => {
         const next = { ...prev } as Record<string, unknown>;
@@ -1170,9 +1172,10 @@ export function BuilderLayout({ page, initialSections, allPages, store }: Builde
     [token],
   );
 
-  // The store is "customized" when it carries token overrides (e.g. from an
-  // imported template). Drives the "Custom" card in the theme picker.
-  const isThemeCustomized = Object.keys(themeCustomizations || {}).length > 0;
+  // The store is "customized" when it carries look overrides (e.g. from an
+  // imported template). Drives the "Custom" card in the theme picker. The
+  // custom CSS, motion, product.card and preset_id are not look overrides.
+  const isThemeCustomized = hasLookOverrides(themeCustomizations);
 
   // ── Click-in-preview to select section ──────────────────
 
