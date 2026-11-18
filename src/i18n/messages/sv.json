@@ -9,6 +9,7 @@
     "statusFailed": "Misslyckades",
     "statusPending": "Väntar",
     "statusRefunded": "Återbetald",
+    "statusReversed": "Återförd",
     "statusOutsidePlatform": "Utanför plattformen",
     "card": "Kort",
     "paidAt": "Betald den",
@@ -1399,7 +1400,8 @@
         "failed": "Överföringen misslyckades",
         "refunded": "Återbetald",
         "cancelled": "Avbruten",
-        "offline": "Regleras utanför plattformens utbetalningar"
+        "offline": "Regleras utanför plattformens utbetalningar",
+        "reversed": "Överföringen återförd"
       },
       "store": "Butik",
       "items": "Artiklar",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "Kreditfaktura utfärdad",
     "DELETED": "Order raderad",
     "RESTORED": "Order återställd",
-    "TEST_FLAG": "Testmarkering ändrad"
+    "TEST_FLAG": "Testmarkering ändrad",
+    "STOCK_RETURNED": "Lagret återfört",
+    "STOCK_RETAKEN": "Lagret draget igen",
+    "TRANSFER_REVERSAL_DUE": "Utbetalning ska återföras",
+    "TRANSFER_REVERSED": "Utbetalning återförd",
+    "TRANSFER_REVERSAL_FAILED": "Återföring av utbetalning misslyckades"
   },
   "testOrder": {
     "badge": "Test",

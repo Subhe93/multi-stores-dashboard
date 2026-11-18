@@ -9,6 +9,7 @@
     "statusFailed": "فشل",
     "statusPending": "قيد الانتظار",
     "statusRefunded": "مسترد",
+    "statusReversed": "مُسترجَع",
     "statusOutsidePlatform": "خارج المنصة",
     "card": "البطاقة",
     "paidAt": "تاريخ الدفع",
@@ -1399,7 +1400,8 @@
         "failed": "فشل التحويل",
         "refunded": "مُسترد",
         "cancelled": "ملغى",
-        "offline": "تُسوّى خارج تحويلات المنصة"
+        "offline": "تُسوّى خارج تحويلات المنصة",
+        "reversed": "استُرجع التحويل"
       },
       "store": "المتجر",
       "items": "القطع",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "صدر إشعار دائن",
     "DELETED": "حُذف الطلب",
     "RESTORED": "استُعيد الطلب",
-    "TEST_FLAG": "تغيّرت علامة التجربة"
+    "TEST_FLAG": "تغيّرت علامة التجربة",
+    "STOCK_RETURNED": "أُعيد المخزون",
+    "STOCK_RETAKEN": "خُصم المخزون مجدداً",
+    "TRANSFER_REVERSAL_DUE": "استرجاع تحويلات مستحق",
+    "TRANSFER_REVERSED": "استُرجع التحويل",
+    "TRANSFER_REVERSAL_FAILED": "فشل استرجاع التحويل"
   },
   "testOrder": {
     "badge": "تجريبي",

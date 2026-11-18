@@ -9,6 +9,7 @@
     "statusFailed": "Fehlgeschlagen",
     "statusPending": "Ausstehend",
     "statusRefunded": "Erstattet",
+    "statusReversed": "Zurückgebucht",
     "statusOutsidePlatform": "Außerhalb der Plattform",
     "card": "Karte",
     "paidAt": "Bezahlt am",
@@ -1399,7 +1400,8 @@
         "failed": "Überweisung fehlgeschlagen",
         "refunded": "Erstattet",
         "cancelled": "Storniert",
-        "offline": "Außerhalb der Plattform-Auszahlungen abgerechnet"
+        "offline": "Außerhalb der Plattform-Auszahlungen abgerechnet",
+        "reversed": "Überweisung zurückgebucht"
       },
       "store": "Shop",
       "items": "Artikel",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "Gutschrift ausgestellt",
     "DELETED": "Bestellung gelöscht",
     "RESTORED": "Bestellung wiederhergestellt",
-    "TEST_FLAG": "Test-Markierung geändert"
+    "TEST_FLAG": "Test-Markierung geändert",
+    "STOCK_RETURNED": "Bestand zurückgebucht",
+    "STOCK_RETAKEN": "Bestand erneut abgebucht",
+    "TRANSFER_REVERSAL_DUE": "Rückbuchung der Auszahlung fällig",
+    "TRANSFER_REVERSED": "Auszahlung zurückgebucht",
+    "TRANSFER_REVERSAL_FAILED": "Rückbuchung der Auszahlung fehlgeschlagen"
   },
   "testOrder": {
     "badge": "Test",

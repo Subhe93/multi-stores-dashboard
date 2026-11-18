@@ -9,6 +9,7 @@
     "statusFailed": "Échec",
     "statusPending": "En attente",
     "statusRefunded": "Remboursé",
+    "statusReversed": "Annulé",
     "statusOutsidePlatform": "Hors plateforme",
     "card": "Carte",
     "paidAt": "Payé le",
@@ -1399,7 +1400,8 @@
         "failed": "Échec du virement",
         "refunded": "Remboursé",
         "cancelled": "Annulé",
-        "offline": "Réglé hors des virements de la plateforme"
+        "offline": "Réglé hors des virements de la plateforme",
+        "reversed": "Virement annulé"
       },
       "store": "Boutique",
       "items": "Articles",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "Avoir émis",
     "DELETED": "Commande supprimée",
     "RESTORED": "Commande restaurée",
-    "TEST_FLAG": "Marqueur test modifié"
+    "TEST_FLAG": "Marqueur test modifié",
+    "STOCK_RETURNED": "Stock restitué",
+    "STOCK_RETAKEN": "Stock prélevé à nouveau",
+    "TRANSFER_REVERSAL_DUE": "Annulation du versement à effectuer",
+    "TRANSFER_REVERSED": "Versement annulé",
+    "TRANSFER_REVERSAL_FAILED": "Échec de l’annulation du versement"
   },
   "testOrder": {
     "badge": "Test",

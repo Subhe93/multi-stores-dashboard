@@ -14,6 +14,7 @@ import {
   XCircle, ExternalLink, Package, Info, AlertCircle, Pencil,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { PAYOUT_BADGE_CLASS, PAYOUT_BADGE_LABEL_KEY, payoutBadgeKind } from '@/lib/payoutStatus';
 import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
@@ -873,8 +874,8 @@ export default function ProviderOrderDetail() {
                       <div className="flex items-center justify-between text-xs border-t pt-2 mt-1">
                         <span className="text-muted-foreground">{tp('yourPayout')}</span>
                         {myPayout ? (
-                          <Badge variant="outline" className={`text-[11px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                            {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                          <Badge variant="outline" className={`text-[11px] ${PAYOUT_BADGE_CLASS[payoutBadgeKind(myPayout.status)]}`}>
+                            {tp(PAYOUT_BADGE_LABEL_KEY[payoutBadgeKind(myPayout.status)])}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[11px] bg-zinc-100 text-zinc-600 border-zinc-200">

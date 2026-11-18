@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Clock, Package, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { PAYOUT_BADGE_CLASS, PAYOUT_BADGE_LABEL_KEY, payoutBadgeKind } from '@/lib/payoutStatus';
 import { api, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
@@ -561,8 +562,8 @@ export default function OrderDetailPage() {
                       <span className="text-muted-foreground">{p.recipient_type === 'PROVIDER' ? tp('provider') : tp('creator')}</span>
                       <span className="flex items-center gap-2">
                         <span className="font-medium">{fmt(Number(p.amount))}</span>
-                        <Badge variant="outline" className={`text-[11px] ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                          {p.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                        <Badge variant="outline" className={`text-[11px] ${PAYOUT_BADGE_CLASS[payoutBadgeKind(p.status)]}`}>
+                          {tp(PAYOUT_BADGE_LABEL_KEY[payoutBadgeKind(p.status)])}
                         </Badge>
                       </span>
                     </div>

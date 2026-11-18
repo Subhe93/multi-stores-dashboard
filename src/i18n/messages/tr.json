@@ -9,6 +9,7 @@
     "statusFailed": "Başarısız",
     "statusPending": "Beklemede",
     "statusRefunded": "İade edildi",
+    "statusReversed": "Geri alındı",
     "statusOutsidePlatform": "Platform dışında",
     "card": "Kart",
     "paidAt": "Ödeme tarihi",
@@ -1399,7 +1400,8 @@
         "failed": "Transfer başarısız",
         "refunded": "İade edildi",
         "cancelled": "İptal edildi",
-        "offline": "Platform ödemeleri dışında kapatılır"
+        "offline": "Platform ödemeleri dışında kapatılır",
+        "reversed": "Aktarım geri alındı"
       },
       "store": "Mağaza",
       "items": "Ürünler",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "İade faturası kesildi",
     "DELETED": "Sipariş silindi",
     "RESTORED": "Sipariş geri yüklendi",
-    "TEST_FLAG": "Test işareti değiştirildi"
+    "TEST_FLAG": "Test işareti değiştirildi",
+    "STOCK_RETURNED": "Stok iade edildi",
+    "STOCK_RETAKEN": "Stok yeniden düşüldü",
+    "TRANSFER_REVERSAL_DUE": "Ödeme aktarımı geri alınmalı",
+    "TRANSFER_REVERSED": "Ödeme aktarımı geri alındı",
+    "TRANSFER_REVERSAL_FAILED": "Ödeme aktarımı geri alınamadı"
   },
   "testOrder": {
     "badge": "Test",

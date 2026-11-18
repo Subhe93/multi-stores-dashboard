@@ -9,6 +9,7 @@
     "statusFailed": "Failed",
     "statusPending": "Pending",
     "statusRefunded": "Refunded",
+    "statusReversed": "Reversed",
     "statusOutsidePlatform": "Outside the platform",
     "card": "Card",
     "paidAt": "Paid at",
@@ -1399,7 +1400,8 @@
         "failed": "Transfer failed",
         "refunded": "Refunded",
         "cancelled": "Cancelled",
-        "offline": "Settled outside platform payouts"
+        "offline": "Settled outside platform payouts",
+        "reversed": "Transfer reversed"
       },
       "store": "Store",
       "items": "Items",
@@ -8089,7 +8091,12 @@
     "CREDIT_NOTE_ISSUED": "Credit note issued",
     "DELETED": "Order deleted",
     "RESTORED": "Order restored",
-    "TEST_FLAG": "Test flag changed"
+    "TEST_FLAG": "Test flag changed",
+    "STOCK_RETURNED": "Stock returned",
+    "STOCK_RETAKEN": "Stock taken again",
+    "TRANSFER_REVERSAL_DUE": "Payout reversal due",
+    "TRANSFER_REVERSED": "Payout reversed",
+    "TRANSFER_REVERSAL_FAILED": "Payout reversal failed"
   },
   "testOrder": {
     "badge": "Test",
