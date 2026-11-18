@@ -4455,6 +4455,26 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'logo_url_mobile', type: 'image', label: { en: 'Mobile logo (optional)', ar: 'شعار الجوال (اختياري)' } },
       { key: 'store_name_override', type: 'text', label: { en: 'Store name override (optional)', ar: 'استبدال اسم المتجر (اختياري)' } },
       { key: 'logo_size', type: 'number', label: { en: 'Logo size (px)', ar: 'حجم الشعار (px)' }, min: 16, max: 96, defaultValue: 32 },
+      {
+        // Unset reads as 'box' on the storefront (the square logo box every
+        // stored header has today); new headers start with 'height'.
+        key: 'logo_fit',
+        type: 'select',
+        label: L('Logo fit', 'ملاءمة الشعار', 'Logo sığdırma', 'Logo-Anpassung', 'Ajustement du logo', 'Logotypens anpassning'),
+        description: L(
+          'For a wide wordmark choose "Keep proportions": the logo is as tall as the logo size (at most 56 px) and as wide as it needs, up to five times its height.',
+          'للشعار العريض اختر «الحفاظ على النِّسب»: يكون ارتفاع الشعار بحجم الشعار (56 بكسل كحد أقصى) وعرضه بحسب حاجته حتى خمسة أضعاف ارتفاعه.',
+          'Geniş bir yazı logosu için "Oranları koru" seçeneğini kullanın: logo, logo boyutu kadar yüksek (en fazla 56 px) ve gerektiği kadar geniş olur (yüksekliğinin en fazla beş katı).',
+          'Für eine breite Wortmarke „Proportionen beibehalten“ wählen: Das Logo ist so hoch wie die Logo-Größe (höchstens 56 px) und so breit wie nötig, bis zum Fünffachen seiner Höhe.',
+          'Pour un logo large, choisissez « Conserver les proportions » : le logo a la hauteur de la taille du logo (56 px au maximum) et la largeur nécessaire, jusqu’à cinq fois sa hauteur.',
+          'För en bred ordlogotyp, välj ”Behåll proportionerna”: logotypen blir lika hög som logotypstorleken (högst 56 px) och så bred som den behöver, upp till fem gånger sin höjd.',
+        ),
+        defaultValue: 'box',
+        options: [
+          { value: 'box', label: L('Inside a square', 'داخل مربع', 'Kare içinde', 'In einem Quadrat', 'Dans un carré', 'I en kvadrat') },
+          { value: 'height', label: L('Keep proportions', 'الحفاظ على النِّسب', 'Oranları koru', 'Proportionen beibehalten', 'Conserver les proportions', 'Behåll proportionerna') },
+        ],
+      },
       { key: 'show_search', type: 'boolean', label: { en: 'Show search', ar: 'إظهار البحث' }, defaultValue: true },
       { key: 'show_cart', type: 'boolean', label: { en: 'Show cart', ar: 'إظهار السلة' }, defaultValue: true },
       {
@@ -4536,6 +4556,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       submenu_style: 'dropdown',
       active_style: 'text',
       logo_size: 32,
+      logo_fit: 'height',
     },
   },
   {
