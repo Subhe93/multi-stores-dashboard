@@ -24,12 +24,37 @@ import {
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { GOOGLE_FONT_OPTIONS } from '@/lib/google-fonts';
 import { CUSTOM_CSS_MAX_LENGTH, customCssOf, isCustomCssTooLong, withCustomCss } from '@/lib/customCss';
+import {
+  ARABIC_FONT_FAMILIES,
+  BUTTON_RADIUS_OPTIONS,
+  arabicFontValue,
+  buttonRadiusValue,
+  withArabicFont,
+  withButtonRadius,
+  type ArabicFontSlot,
+} from '@/lib/themeTokens';
 import { cn } from '@/lib/utils';
 
 // ── Token shape (subset of the storefront's ThemeTokens we expose) ──
 export interface ThemeTokenCustomizations {
   colors?: Partial<Record<ColorKey | TextColorKey, string>>;
-  typography?: { fontFamily?: { heading?: string; body?: string } };
+  typography?: {
+    fontFamily?: { heading?: string; body?: string };
+    /**
+     * Fallback fonts for Arabic-script text, placed after the Latin family in
+     * the storefront's font stack. One of ARABIC_FONT_FAMILIES; unset = none.
+     */
+    fontFamilyArabic?: { heading?: string; body?: string };
+    [key: string]: unknown; // preserve unrelated keys (scale, lineHeight…)
+  };
+  /**
+   * `radius.button` is the one button shape of the page sections (a px string,
+   * storefront `--theme-radius-button`); unset = each section's own shape.
+   */
+  spacing?: {
+    radius?: { button?: string; [key: string]: unknown };
+    [key: string]: unknown; // preserve unrelated keys (shadow, containerMaxWidth…)
+  };
   /** Product page: colour swatch shape (storefront `--theme-swatch-radius`). */
   product?: { swatchShape?: SwatchShape };
   /**
@@ -51,6 +76,12 @@ interface ThemeCustomizerProps {
 
 // Every Google Fonts family, popularity-ordered (shared catalog).
 const FONT_OPTIONS = GOOGLE_FONT_OPTIONS;
+
+// The curated Arabic families; a family name is its own label in every locale.
+const ARABIC_FONT_OPTIONS = ARABIC_FONT_FAMILIES.map((family) => ({ value: family, label: family }));
+
+// Button shapes, in the order of BUTTON_RADIUS_OPTIONS (0px, 4px, 8px, 9999px).
+const BUTTON_SHAPE_LABEL_KEYS = ['buttonShapeSquare', 'buttonShapeSlight', 'buttonShapeRounded', 'buttonShapePill'] as const;
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 type SwatchShape = 'circle' | 'square';
@@ -107,6 +138,14 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
     else delete fontFamily[key];
     apply({ ...draft, typography: { ...draft.typography, fontFamily } });
   };
+
+  // '' removes the key (and the objects it emptied); other keys are kept.
+  const setArabicFont = (slot: ArabicFontSlot, v: string) => apply(withArabicFont(draft, slot, v));
+  const setButtonRadius = (v: string) => apply(withButtonRadius(draft, v));
+
+  const buttonRadius = buttonRadiusValue(draft);
+  // A valid stored radius outside the four shapes stays selectable as it is.
+  const buttonRadiusIsCustom = buttonRadius !== '' && !(BUTTON_RADIUS_OPTIONS as readonly string[]).includes(buttonRadius);
 
   const setSwatchShape = (v: string) => {
     const product = { ...(draft.product || {}) };
@@ -236,6 +275,49 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                   placeholder={t('themeDefault')}
                 />
               </div>
+              {/* Arabic-script fallback fonts (optional; unset loads nothing) */}
+              <div className="space-y-1">
+                <Label className="text-[11.5px] text-zinc-700">{t('arabicHeadingFont')}</Label>
+                <SearchableSelect
+                  value={arabicFontValue(draft, 'heading')}
+                  onChange={(v) => setArabicFont('heading', v)}
+                  options={[{ value: '', label: t('arabicFontNone') }, ...ARABIC_FONT_OPTIONS]}
+                  placeholder={t('arabicFontNone')}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11.5px] text-zinc-700">{t('arabicBodyFont')}</Label>
+                <SearchableSelect
+                  value={arabicFontValue(draft, 'body')}
+                  onChange={(v) => setArabicFont('body', v)}
+                  options={[{ value: '', label: t('arabicFontNone') }, ...ARABIC_FONT_OPTIONS]}
+                  placeholder={t('arabicFontNone')}
+                />
+                <p className="text-[11px] text-zinc-500">{t('arabicFontHint')}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Buttons: one shape for the main buttons of the page sections */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('buttons')}
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11.5px] text-zinc-700">{t('buttonShape')}</Label>
+              <SearchableSelect
+                value={buttonRadius}
+                onChange={setButtonRadius}
+                options={[
+                  { value: '', label: t('themeDefault') },
+                  ...BUTTON_RADIUS_OPTIONS.map((value, i) => ({ value, label: t(BUTTON_SHAPE_LABEL_KEYS[i]) })),
+                  ...(buttonRadiusIsCustom
+                    ? [{ value: buttonRadius, label: t('buttonShapeCustom', { value: buttonRadius }) }]
+                    : []),
+                ]}
+                placeholder={t('themeDefault')}
+              />
+              <p className="text-[11px] text-zinc-500">{t('buttonShapeHint')}</p>
             </div>
           </section>
 
