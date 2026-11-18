@@ -282,10 +282,3 @@ test('the calm note names the motion setting and its two values by their labels'
     }
   }
 });
-
-test('the colour scene and living background texts are gone', () => {
-  for (const loc of LOCALES) {
-    const keys = Object.keys(builderTexts(loc)).filter((k) => /^style(Scene|Backdrop)/.test(k));
-    assert.deepEqual(keys, [], loc);
-  }
-});

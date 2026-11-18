@@ -4,6 +4,7 @@ import { schema as lookSpreadSchema } from './creative-sections/look-spread.ts';
 import { schema as objectStudySchema } from './creative-sections/object-study.ts';
 import { schema as patternBandSchema } from './creative-sections/pattern-band.ts';
 import { schema as scriptManifestoSchema } from './creative-sections/script-manifesto.ts';
+import { SCROLL_SECTION_SCHEMAS } from './creative-sections/scroll-sections.ts';
 // Section schemas mirror the storefront's theme registry. Kept in sync
 // manually — these are content contracts (field keys + types + labels) that
 // drive the Inspector forms. The runtime React components stay in
@@ -5085,6 +5086,10 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'product-faq': 'h2',
   'product-shipping-returns': 'h2',
   'product-stories': 'h2',
+  // Creative engine (marquee-band has a small label, not a heading).
+  'story-pinned': 'h2',
+  'sticky-steps': 'h2',
+  'motion-path': 'h2',
 };
 
 // Sections whose eyebrow (small label above the heading) honours eyebrow_tag.
@@ -5111,6 +5116,10 @@ const NO_SUBHEADING_SECTIONS = new Set([
   'product-specifications',
   'product-faq',
   'product-shipping-returns',
+  // Creative sections: only the heading tag is read by the storefront.
+  'story-pinned',
+  'sticky-steps',
+  'motion-path',
 ]);
 
 const TEXT_TAG_OPTIONS: { value: TextTagValue; label: LocalizedString }[] = [
@@ -5435,7 +5444,7 @@ const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [
   },
 ];
 
-export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS, ...BRAND_SECTION_SCHEMAS]
+export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...SCROLL_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS, ...BRAND_SECTION_SCHEMAS]
   .map(withHeadingLevel)
   .map(withHeadingAccent)
   .map(withHeroEmblem);

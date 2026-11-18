@@ -18,6 +18,15 @@ import {
   setResponsive,
 } from '@/lib/responsive';
 import { SECTION_MOTION_CHOICES, sectionMotionValue, withSectionMotion, type SectionMotionChoice } from '@/lib/sectionMotion';
+import {
+  type SceneStyleKey,
+  backdropOf,
+  sceneContrastIssues,
+  sceneOf,
+  withBackdrop,
+  withScene,
+  withStyleKey,
+} from '@/lib/sceneStyle';
 
 export type { Breakpoint, Responsive };
 
@@ -55,6 +64,19 @@ export interface SectionStyle {
   // off; absent = automatic (never stored as 'auto').
   motion?: 'none';
   hide_on?: Breakpoint[];
+  // Scene theme and living background (flat, all devices). Mirrors
+  // multi-stores-web/src/themes/sectionStyle.ts; rendered by the storefront's
+  // creative decor (themes/creative/decor). Unset = nothing is rendered.
+  scene?: 'dark' | 'light' | 'accent';
+  scene_bg?: string;
+  scene_text?: string;
+  scene_accent?: string;
+  backdrop?: 'dots' | 'particles' | 'glow';
+  backdrop_color_1?: string;
+  backdrop_color_2?: string;
+  backdrop_intensity?: 'soft' | 'medium';
+  backdrop_motion?: 'slow' | 'still';
+  backdrop_particle?: 'dot' | 'ring';
   // Legacy fields kept here for the type, so older _style payloads pass through
   // unchanged. The storefront resolver reads them; the panel no longer writes.
   padding_top?: Responsive<SpaceToken>;
@@ -182,7 +204,43 @@ export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps)
     sideBottom: tt('styleSideBottom'),
     sideLeft: tt('styleSideLeft'),
     presets: tt('styleQuickFill'),
+    scene: tt('styleScene'),
+    sceneHint: tt('styleSceneHint'),
+    sceneDark: tt('styleSceneDark'),
+    sceneLight: tt('styleSceneLight'),
+    sceneAccent: tt('styleSceneAccent'),
+    sceneBg: tt('styleSceneBg'),
+    sceneText: tt('styleSceneText'),
+    sceneAccentColor: tt('styleSceneAccentColor'),
+    sceneEmptyHint: tt('styleSceneEmptyHint'),
+    backdrop: tt('styleBackdrop'),
+    backdropHint: tt('styleBackdropHint'),
+    backdropKind: tt('styleBackdropKind'),
+    backdropDots: tt('styleBackdropDots'),
+    backdropParticles: tt('styleBackdropParticles'),
+    backdropGlow: tt('styleBackdropGlow'),
+    backdropColor1: tt('styleBackdropColor1'),
+    backdropColor2: tt('styleBackdropColor2'),
+    backdropColorHint: tt('styleBackdropColorHint'),
+    backdropIntensity: tt('styleBackdropIntensity'),
+    backdropSoft: tt('styleBackdropSoft'),
+    backdropMedium: tt('styleBackdropMedium'),
+    backdropMotion: tt('styleBackdropMotion'),
+    backdropSlow: tt('styleBackdropSlow'),
+    backdropStill: tt('styleBackdropStill'),
+    backdropParticle: tt('styleBackdropParticle'),
+    backdropDot: tt('styleBackdropDot'),
+    backdropRing: tt('styleBackdropRing'),
   };
+
+  // Scene and living background: flat keys; an unset value REMOVES its key
+  // (the storefront renders nothing for a section without them).
+  const scene = sceneOf(v);
+  const backdrop = backdropOf(v);
+  const setSceneKey = (key: SceneStyleKey, val: string) => onChange(withStyleKey(v, key, val));
+  const contrast = sceneContrastIssues(v);
+  // Overrides stored without a scene render as a light scene: keep them editable.
+  const sceneColorsOpen = scene !== '' || !!(v.scene_bg || v.scene_text || v.scene_accent);
 
   // Generic responsive setter — writes to the active breakpoint. We accept
   // `unknown` here because each caller already knows the value type for the
@@ -373,6 +431,99 @@ export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps)
           onClear={() => clearR('text_color')}
           labels={t}
         />
+      </Group>
+
+      {/* Scene group — the section's own colour theme (all devices). */}
+      <Group title={t.scene} hint={t.sceneHint}>
+        <SegSelect
+          value={scene || 'none'}
+          onChange={(val) => onChange(withScene(v, val))}
+          options={[
+            { value: 'none', label: t.none },
+            { value: 'dark', label: t.sceneDark },
+            { value: 'light', label: t.sceneLight },
+            { value: 'accent', label: t.sceneAccent },
+          ]}
+          small
+          fullWidth
+        />
+        {sceneColorsOpen && (
+          <div className="space-y-2.5 rounded-md border border-zinc-100 bg-zinc-50/30 p-2">
+            <FlatColor label={t.sceneBg} value={v.scene_bg} onChange={(c) => setSceneKey('scene_bg', c)} clearLabel={t.reset} />
+            <FlatColor label={t.sceneText} value={v.scene_text} onChange={(c) => setSceneKey('scene_text', c)} clearLabel={t.reset} />
+            <FlatColor label={t.sceneAccentColor} value={v.scene_accent} onChange={(c) => setSceneKey('scene_accent', c)} clearLabel={t.reset} />
+            <p className="text-[9.5px] text-zinc-400 italic">{t.sceneEmptyHint}</p>
+            {contrast.text !== undefined && (
+              <p role="status" className="text-[10.5px] leading-snug text-amber-700">
+                {tt('styleSceneContrastText', { ratio: contrast.text.toFixed(1) })}
+              </p>
+            )}
+            {contrast.accent !== undefined && (
+              <p role="status" className="text-[10.5px] leading-snug text-amber-700">
+                {tt('styleSceneContrastAccent', { ratio: contrast.accent.toFixed(1) })}
+              </p>
+            )}
+          </div>
+        )}
+      </Group>
+
+      {/* Living background group — a quiet CSS pattern behind the section. */}
+      <Group title={t.backdrop}>
+        <p className="text-[9.5px] text-zinc-400 italic">{t.backdropHint}</p>
+        <SegSelect
+          value={backdrop || 'none'}
+          onChange={(val) => onChange(withBackdrop(v, val))}
+          options={[
+            { value: 'none', label: t.none },
+            { value: 'dots', label: t.backdropDots },
+            { value: 'particles', label: t.backdropParticles },
+            { value: 'glow', label: t.backdropGlow },
+          ]}
+          small
+          fullWidth
+        />
+        {backdrop !== '' && (
+          <div className="space-y-2.5 rounded-md border border-zinc-100 bg-zinc-50/30 p-2">
+            <FlatColor label={t.backdropColor1} value={v.backdrop_color_1} onChange={(c) => setSceneKey('backdrop_color_1', c)} clearLabel={t.reset} />
+            <FlatColor label={t.backdropColor2} value={v.backdrop_color_2} onChange={(c) => setSceneKey('backdrop_color_2', c)} clearLabel={t.reset} />
+            <p className="text-[9.5px] text-zinc-400 italic">{t.backdropColorHint}</p>
+            <FieldRow label={t.backdropIntensity}>
+              <SegSelect
+                value={v.backdrop_intensity === 'medium' ? 'medium' : 'soft'}
+                onChange={(val) => setSceneKey('backdrop_intensity', val)}
+                options={[
+                  { value: 'soft', label: t.backdropSoft },
+                  { value: 'medium', label: t.backdropMedium },
+                ]}
+                small
+              />
+            </FieldRow>
+            <FieldRow label={t.backdropMotion}>
+              <SegSelect
+                value={v.backdrop_motion === 'still' ? 'still' : 'slow'}
+                onChange={(val) => setSceneKey('backdrop_motion', val)}
+                options={[
+                  { value: 'slow', label: t.backdropSlow },
+                  { value: 'still', label: t.backdropStill },
+                ]}
+                small
+              />
+            </FieldRow>
+            {backdrop === 'particles' && (
+              <FieldRow label={t.backdropParticle}>
+                <SegSelect
+                  value={v.backdrop_particle === 'ring' ? 'ring' : 'dot'}
+                  onChange={(val) => setSceneKey('backdrop_particle', val)}
+                  options={[
+                    { value: 'dot', label: t.backdropDot },
+                    { value: 'ring', label: t.backdropRing },
+                  ]}
+                  small
+                />
+              </FieldRow>
+            )}
+          </div>
+        )}
       </Group>
 
       {/* Spacing group — 4-sided, per device. */}
@@ -759,6 +910,41 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
     <div className="grid grid-cols-[1fr_auto] items-center gap-3">
       <Label className="text-xs text-zinc-600">{label}</Label>
       <div className="flex items-center">{children}</div>
+    </div>
+  );
+}
+
+// Flat (all devices) colour with a clear button; clearing removes the key.
+function FlatColor({
+  label,
+  value,
+  onChange,
+  clearLabel,
+}: {
+  label: string;
+  value: string | undefined;
+  onChange: (v: string) => void;
+  clearLabel: string;
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+      <Label className="text-xs text-zinc-600">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPick value={value || ''} onChange={onChange} placeholder="#" muted={!value} />
+        {value ? (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            title={clearLabel}
+            aria-label={`${clearLabel}: ${label}`}
+            className="text-[10px] text-zinc-400 hover:text-zinc-700"
+          >
+            <RotateCcw className="size-3" />
+          </button>
+        ) : (
+          <span className="size-3" aria-hidden />
+        )}
+      </div>
     </div>
   );
 }

@@ -13,7 +13,9 @@ import { SECTION_SCHEMAS, findSectionSchema } from './section-schemas.ts';
 import { isAvailableForPageType } from './sectionAvailability.ts';
 
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
-const DROPPED = ['hero-outline', 'hero-sunrise', 'stage-scenes', 'story-pinned', 'sticky-steps', 'motion-path', 'marquee-band'];
+const DROPPED = ['hero-outline', 'hero-sunrise', 'stage-scenes'];
+// The scroll sections own their emphasis and colour-scene fields.
+const SCROLL_SECTIONS = ['story-pinned', 'sticky-steps', 'motion-path', 'marquee-band'];
 const DROPPED_OPTION_KEYS = ['heading_reveal', 'heading_emphasis', 'heading_emphasis_color', 'image_reveal', 'image_reveal_direction'];
 
 /** Every field under `fields`, repeater sub-fields included, with its path. */
@@ -124,12 +126,13 @@ test('hero emblem: every text exists in six locales', () => {
   }
 });
 
-test('the compositions of the first draft are not offered', () => {
+test('the reference compositions that were never built are not offered', () => {
   for (const id of DROPPED) assert.equal(findSectionSchema(id), undefined, id);
 });
 
 test('no section carries a per-section motion option: motion is automatic', () => {
   for (const schema of SECTION_SCHEMAS) {
+    if (SCROLL_SECTIONS.includes(schema.id)) continue;
     const keys = schema.schema.map((f) => f.key);
     for (const key of DROPPED_OPTION_KEYS) assert.ok(!keys.includes(key), `${schema.id}.${key}`);
     for (const key of ['scene', 'scene_bg', 'scene_text', 'scene_accent']) assert.ok(!keys.includes(key), `${schema.id}.${key}`);
