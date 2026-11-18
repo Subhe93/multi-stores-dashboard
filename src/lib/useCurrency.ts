@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from './api';
 import { useAuth } from './auth';
+import { ownStoreCurrency, type OwnerStoreCurrencyFields } from './storeCurrency';
 
 let cachedCurrency: string | null = null;
 
@@ -23,12 +24,16 @@ function readToken(): string | null {
  * product forms have to follow it rather than the platform default. Everyone
  * else — admins, providers, and marketplace creators — sees the platform
  * currency, which is what those orders are actually charged in.
+ *
+ * The API resolves this as `effective_currency`; a marketplace store row can
+ * hold a stale currency of its own, which is never used (ownStoreCurrency).
  */
 async function fetchCurrency(token: string, isCreator: boolean): Promise<string> {
   if (isCreator) {
     try {
-      const store = await api<{ currency?: string | null }>('/stores/my/store', { token });
-      if (store?.currency) return store.currency;
+      const store = await api<OwnerStoreCurrencyFields>('/stores/my/store', { token });
+      const own = ownStoreCurrency(store);
+      if (own) return own;
     } catch {
       // No store yet, or the request failed — fall through to the platform value.
     }
