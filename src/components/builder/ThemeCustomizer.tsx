@@ -27,11 +27,16 @@ import { CUSTOM_CSS_MAX_LENGTH, customCssOf, isCustomCssTooLong, withCustomCss }
 import {
   ARABIC_FONT_FAMILIES,
   BUTTON_RADIUS_OPTIONS,
+  MOTION_REVEAL_VALUES,
+  MOTION_ZOOM_VALUES,
   arabicFontValue,
   buttonRadiusValue,
+  motionValue,
   withArabicFont,
   withButtonRadius,
+  withMotion,
   type ArabicFontSlot,
+  type MotionKey,
 } from '@/lib/themeTokens';
 import { cn } from '@/lib/utils';
 
@@ -58,6 +63,12 @@ export interface ThemeTokenCustomizations {
   /** Product page: colour swatch shape (storefront `--theme-swatch-radius`). */
   product?: { swatchShape?: SwatchShape };
   /**
+   * Store-wide motion profile (storefront `data-motion-reveal` /
+   * `data-motion-zoom` on the store root). Unset = the standard movement;
+   * the standard is never stored.
+   */
+  motion?: { reveal?: 'calm' | 'off'; zoom?: 'subtle' | 'off' };
+  /**
    * Store-wide custom CSS (owner content, not a token). The storefront
    * sanitizes it and renders it on every page of the store.
    */
@@ -82,6 +93,11 @@ const ARABIC_FONT_OPTIONS = ARABIC_FONT_FAMILIES.map((family) => ({ value: famil
 
 // Button shapes, in the order of BUTTON_RADIUS_OPTIONS (0px, 4px, 8px, 9999px).
 const BUTTON_SHAPE_LABEL_KEYS = ['buttonShapeSquare', 'buttonShapeSlight', 'buttonShapeRounded', 'buttonShapePill'] as const;
+
+// Motion choices, in the order of MOTION_REVEAL_VALUES (calm, off) and
+// MOTION_ZOOM_VALUES (subtle, off).
+const MOTION_REVEAL_LABEL_KEYS = ['motion.revealCalm', 'motion.revealOff'] as const;
+const MOTION_ZOOM_LABEL_KEYS = ['motion.zoomSubtle', 'motion.zoomOff'] as const;
 
 type ColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'surface' | 'text';
 type SwatchShape = 'circle' | 'square';
@@ -144,6 +160,8 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   // '' removes the key (and the objects it emptied); other keys are kept.
   const setArabicFont = (slot: ArabicFontSlot, v: string) => apply(withArabicFont(draft, slot, v));
   const setButtonRadius = (v: string) => apply(withButtonRadius(draft, v));
+  // '' (Standard) removes the key, and `motion` once it is empty.
+  const setMotion = (key: MotionKey, v: string) => apply(withMotion(draft, key, v));
 
   const buttonRadius = buttonRadiusValue(draft);
   // A valid stored radius outside the four shapes stays selectable as it is.
@@ -346,6 +364,42 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                 placeholder={t('themeDefault')}
               />
               <p className="text-[11px] text-zinc-500">{t('swatchShapeHint')}</p>
+            </div>
+          </section>
+
+          {/* Motion: scroll animations and image zoom, store-wide */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('motion.title')}
+            </div>
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor={`${fieldId}-motion-reveal`} className="text-[11.5px] text-zinc-700">{t('motion.reveal')}</Label>
+                <SearchableSelect
+                  id={`${fieldId}-motion-reveal`}
+                  value={motionValue(draft, 'reveal')}
+                  onChange={(v) => setMotion('reveal', v)}
+                  options={[
+                    { value: '', label: t('motion.revealDefault') },
+                    ...MOTION_REVEAL_VALUES.map((value, i) => ({ value, label: t(MOTION_REVEAL_LABEL_KEYS[i]) })),
+                  ]}
+                  placeholder={t('motion.revealDefault')}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`${fieldId}-motion-zoom`} className="text-[11.5px] text-zinc-700">{t('motion.zoom')}</Label>
+                <SearchableSelect
+                  id={`${fieldId}-motion-zoom`}
+                  value={motionValue(draft, 'zoom')}
+                  onChange={(v) => setMotion('zoom', v)}
+                  options={[
+                    { value: '', label: t('motion.zoomDefault') },
+                    ...MOTION_ZOOM_VALUES.map((value, i) => ({ value, label: t(MOTION_ZOOM_LABEL_KEYS[i]) })),
+                  ]}
+                  placeholder={t('motion.zoomDefault')}
+                />
+              </div>
+              <p className="text-[11px] text-zinc-500">{t('motion.reducedMotionNote')}</p>
             </div>
           </section>
 

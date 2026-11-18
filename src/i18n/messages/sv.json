@@ -6633,6 +6633,18 @@
     "swatchCircle": "Cirkel",
     "swatchSquare": "Kvadrat",
     "swatchShapeHint": "Gäller variantfärger och färgpaletter i personalisering. Temats standard är cirkel.",
+    "motion": {
+      "title": "Rörelse",
+      "reveal": "Rullningsanimationer",
+      "revealDefault": "Standard",
+      "revealCalm": "Lugn",
+      "revealOff": "Av",
+      "zoom": "Bildzoom vid hovring",
+      "zoomDefault": "Standard",
+      "zoomSubtle": "Diskret",
+      "zoomOff": "Av",
+      "reducedMotionNote": "Besökare som har bett sin enhet om minskad rörelse ser aldrig någon rörelse."
+    },
     "customCss": "Egen CSS",
     "customCssHint": "För avancerade användare. Den här CSS-koden läggs till på alla sidor i din butik, efter temats stilar, och kan därför skriva över dem.",
     "customCssEmptyHint": "Lämna fältet tomt för att ta bort din egen CSS.",

@@ -2,6 +2,7 @@
 // store.theme_customizations (free-form JSON):
 //   typography.fontFamilyArabic.heading / .body  - Arabic-script fallback font
 //   spacing.radius.button                        - one button shape
+//   motion.reveal / motion.zoom                  - calmer or no movement
 // Absent, empty, wrong type or invalid all mean "unset": the storefront then
 // renders exactly as before. The setters keep every other key and prune only
 // the objects they emptied themselves.
@@ -32,6 +33,7 @@ export type ArabicFontSlot = 'heading' | 'body';
 export interface ThemeTokensLike {
   typography?: unknown;
   spacing?: unknown;
+  motion?: unknown;
   [key: string]: unknown; // colors, product, customCss, preset_id… are kept as they are
 }
 
@@ -117,4 +119,59 @@ export function withArabicFont<T extends ThemeTokensLike>(tokens: T, slot: Arabi
  */
 export function withButtonRadius<T extends ThemeTokensLike>(tokens: T, value: string): T {
   return withNested(tokens, 'spacing', 'radius', 'button', buttonRadius(value));
+}
+
+// ── Motion (store.theme_customizations.motion) ─────────────────────────────
+//   motion.reveal - scroll animations: 'calm' | 'off'
+//   motion.zoom   - image zoom on hover: 'subtle' | 'off'
+// The standard behaviour is never stored: the key is absent. The storefront
+// (multi-stores-web/src/themes/tokens.ts, motionAttrs) reads absent,
+// 'default', a wrong type and any unknown value as unset.
+
+/** Stored values of motion.reveal, besides the unset standard. */
+export const MOTION_REVEAL_VALUES = ['calm', 'off'] as const;
+/** Stored values of motion.zoom, besides the unset standard. */
+export const MOTION_ZOOM_VALUES = ['subtle', 'off'] as const;
+
+export type MotionKey = 'reveal' | 'zoom';
+
+const MOTION_VALUES: Record<MotionKey, readonly string[]> = {
+  reveal: MOTION_REVEAL_VALUES,
+  zoom: MOTION_ZOOM_VALUES,
+};
+
+function motionChoice(key: MotionKey, value: unknown): string {
+  return typeof value === 'string' && MOTION_VALUES[key].includes(value) ? value : '';
+}
+
+/** The stored motion value of `key` when it is one of its two values, else ''. */
+export function motionValue(tokens: ThemeTokensLike | null | undefined, key: MotionKey): string {
+  const motion = tokens?.motion;
+  return isDict(motion) ? motionChoice(key, motion[key]) : '';
+}
+
+/**
+ * Copy of `tokens` with motion[key] set. '', 'default' or a value outside the
+ * list removes the key, and removes `motion` when that left it empty. Every
+ * other key is kept; a key that was not there leaves the copy deep-equal to
+ * the input.
+ */
+export function withMotion<T extends ThemeTokensLike>(tokens: T, key: MotionKey, value: string): T {
+  const next: Dict = { ...tokens };
+  const stored = next.motion;
+  const choice = motionChoice(key, value);
+
+  if (choice) {
+    next.motion = { ...(isDict(stored) ? stored : {}), [key]: choice };
+    return next as T;
+  }
+
+  // Nothing stored under that key: nothing to remove, nothing to prune.
+  if (!isDict(stored) || !(key in stored)) return next as T;
+
+  const nextMotion = { ...stored };
+  delete nextMotion[key];
+  if (Object.keys(nextMotion).length) next.motion = nextMotion;
+  else delete next.motion;
+  return next as T;
 }

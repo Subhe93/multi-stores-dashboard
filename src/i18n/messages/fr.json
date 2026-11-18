@@ -6633,6 +6633,18 @@
     "swatchCircle": "Cercle",
     "swatchSquare": "Carré",
     "swatchShapeHint": "S’applique aux options de couleur des variantes et aux palettes de personnalisation. Par défaut du thème : cercle.",
+    "motion": {
+      "title": "Mouvement",
+      "reveal": "Animations au défilement",
+      "revealDefault": "Standard",
+      "revealCalm": "Calme",
+      "revealOff": "Désactivé",
+      "zoom": "Zoom des images au survol",
+      "zoomDefault": "Standard",
+      "zoomSubtle": "Léger",
+      "zoomOff": "Désactivé",
+      "reducedMotionNote": "Les visiteurs qui demandent à leur appareil de réduire les animations ne voient jamais de mouvement."
+    },
     "customCss": "CSS personnalisé",
     "customCssHint": "Pour les utilisateurs avancés. Ce CSS est ajouté à toutes les pages de votre boutique, après les styles du thème, et peut donc les remplacer.",
     "customCssEmptyHint": "Laissez le champ vide pour supprimer le CSS personnalisé.",

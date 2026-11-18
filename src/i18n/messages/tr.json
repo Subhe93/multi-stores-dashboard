@@ -6633,6 +6633,18 @@
     "swatchCircle": "Daire",
     "swatchSquare": "Kare",
     "swatchShapeHint": "Varyant renk seçenekleri ve kişiselleştirme renk paletlerine uygulanır. Tema varsayılanı dairedir.",
+    "motion": {
+      "title": "Hareket",
+      "reveal": "Kaydırma animasyonları",
+      "revealDefault": "Standart",
+      "revealCalm": "Sakin",
+      "revealOff": "Kapalı",
+      "zoom": "Üzerine gelince görsel yakınlaştırma",
+      "zoomDefault": "Standart",
+      "zoomSubtle": "Hafif",
+      "zoomOff": "Kapalı",
+      "reducedMotionNote": "Cihazında azaltılmış hareketi seçen ziyaretçiler hiçbir hareket görmez."
+    },
     "customCss": "Özel CSS",
     "customCssHint": "İleri düzey kullanıcılar içindir. Bu CSS, mağazanızın tüm sayfalarına tema stillerinden sonra eklenir ve onları geçersiz kılabilir.",
     "customCssEmptyHint": "Özel CSS’i kaldırmak için alanı boş bırakın.",

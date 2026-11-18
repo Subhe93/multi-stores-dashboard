@@ -6633,6 +6633,18 @@
     "swatchCircle": "Circle",
     "swatchSquare": "Square",
     "swatchShapeHint": "Applies to variant colour options and personalization colour palettes. Theme default is circle.",
+    "motion": {
+      "title": "Motion",
+      "reveal": "Scroll animations",
+      "revealDefault": "Standard",
+      "revealCalm": "Calm",
+      "revealOff": "Off",
+      "zoom": "Image zoom on hover",
+      "zoomDefault": "Standard",
+      "zoomSubtle": "Subtle",
+      "zoomOff": "Off",
+      "reducedMotionNote": "Visitors who ask their device for reduced motion never see movement."
+    },
     "customCss": "Custom CSS",
     "customCssHint": "For advanced users. This CSS is added to every page of your storefront, after the theme styles, so it can override them.",
     "customCssEmptyHint": "Leave the field empty to remove the custom CSS.",

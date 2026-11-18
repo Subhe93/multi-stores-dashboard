@@ -6633,6 +6633,18 @@
     "swatchCircle": "Kreis",
     "swatchSquare": "Quadrat",
     "swatchShapeHint": "Gilt für Varianten-Farboptionen und Farbpaletten der Personalisierung. Standard des Themes: Kreis.",
+    "motion": {
+      "title": "Bewegung",
+      "reveal": "Scroll-Animationen",
+      "revealDefault": "Standard",
+      "revealCalm": "Ruhig",
+      "revealOff": "Aus",
+      "zoom": "Bildzoom beim Überfahren",
+      "zoomDefault": "Standard",
+      "zoomSubtle": "Dezent",
+      "zoomOff": "Aus",
+      "reducedMotionNote": "Besucher, die auf ihrem Gerät reduzierte Bewegung eingestellt haben, sehen nie Bewegung."
+    },
     "customCss": "Eigenes CSS",
     "customCssHint": "Für fortgeschrittene Nutzer. Dieses CSS wird auf jeder Seite Ihres Shops nach den Theme-Stilen eingefügt und kann sie überschreiben.",
     "customCssEmptyHint": "Lassen Sie das Feld leer, um das eigene CSS zu entfernen.",
