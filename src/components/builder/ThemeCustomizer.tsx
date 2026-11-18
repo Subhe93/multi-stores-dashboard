@@ -6,7 +6,7 @@
 // fully tune the custom theme's palette and fonts. Edits preview live via
 // onChange and persist via onSave (PUT /stores/my/theme-selection).
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, Loader2, Palette, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -114,6 +114,8 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   // Chrome text below is translated via the dashboard UI locale.
   const t = useTranslations('builder');
   const tc = useTranslations('common');
+  // Ties each select to its label (the customizer is mounted in two places).
+  const fieldId = useId();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ThemeTokenCustomizations>(value);
   const [saving, setSaving] = useState(false);
@@ -258,8 +260,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
             </div>
             <div className="space-y-2">
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{t('headingFont')}</Label>
+                <Label htmlFor={`${fieldId}-heading-font`} className="text-[11.5px] text-zinc-700">{t('headingFont')}</Label>
                 <SearchableSelect
+                  id={`${fieldId}-heading-font`}
                   value={draft.typography?.fontFamily?.heading || ''}
                   onChange={(v) => setFont('heading', v)}
                   options={[{ value: '', label: t('themeDefault') }, ...FONT_OPTIONS]}
@@ -267,8 +270,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{t('bodyFont')}</Label>
+                <Label htmlFor={`${fieldId}-body-font`} className="text-[11.5px] text-zinc-700">{t('bodyFont')}</Label>
                 <SearchableSelect
+                  id={`${fieldId}-body-font`}
                   value={draft.typography?.fontFamily?.body || ''}
                   onChange={(v) => setFont('body', v)}
                   options={[{ value: '', label: t('themeDefault') }, ...FONT_OPTIONS]}
@@ -277,8 +281,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
               </div>
               {/* Arabic-script fallback fonts (optional; unset loads nothing) */}
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{t('arabicHeadingFont')}</Label>
+                <Label htmlFor={`${fieldId}-arabic-heading-font`} className="text-[11.5px] text-zinc-700">{t('arabicHeadingFont')}</Label>
                 <SearchableSelect
+                  id={`${fieldId}-arabic-heading-font`}
                   value={arabicFontValue(draft, 'heading')}
                   onChange={(v) => setArabicFont('heading', v)}
                   options={[{ value: '', label: t('arabicFontNone') }, ...ARABIC_FONT_OPTIONS]}
@@ -286,8 +291,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[11.5px] text-zinc-700">{t('arabicBodyFont')}</Label>
+                <Label htmlFor={`${fieldId}-arabic-body-font`} className="text-[11.5px] text-zinc-700">{t('arabicBodyFont')}</Label>
                 <SearchableSelect
+                  id={`${fieldId}-arabic-body-font`}
                   value={arabicFontValue(draft, 'body')}
                   onChange={(v) => setArabicFont('body', v)}
                   options={[{ value: '', label: t('arabicFontNone') }, ...ARABIC_FONT_OPTIONS]}
@@ -304,8 +310,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
               {t('buttons')}
             </div>
             <div className="space-y-1">
-              <Label className="text-[11.5px] text-zinc-700">{t('buttonShape')}</Label>
+              <Label htmlFor={`${fieldId}-button-shape`} className="text-[11.5px] text-zinc-700">{t('buttonShape')}</Label>
               <SearchableSelect
+                id={`${fieldId}-button-shape`}
                 value={buttonRadius}
                 onChange={setButtonRadius}
                 options={[
