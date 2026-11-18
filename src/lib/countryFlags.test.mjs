@@ -116,6 +116,17 @@ test('bundledFlagSrc points at the same-origin file, only for bundled flags', ()
   }
 });
 
+test('territory and emoji-only region codes with a motto or letters are covered', () => {
+  // None is in the country picker or the seeded tax list: such a code can
+  // only come from stored data, and must still never be drawn as an emoji.
+  for (const code of ['SX', 'TF', 'YT', 'BL', 'TA', 'AC', 'IC', 'EA', 'DG']) {
+    assert.ok(FLAGS_WITH_WRITING.has(code), code);
+    assert.ok(!LISTED_CODES.includes(code), `${code} is not a listed country`);
+    assert.equal(flagEmoji(code), '', code);
+    assert.equal(bundledFlagSrc(code), null, code);
+  }
+});
+
 // ── The bundled files ──────────────────────────────────────────────────────
 
 test('every bundled flag carries writing and ships as the recorded, unmodified file', () => {

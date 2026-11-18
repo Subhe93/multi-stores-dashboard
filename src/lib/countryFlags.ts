@@ -19,6 +19,13 @@ export const FLAGS_WITH_WRITING: ReadonlySet<string> = new Set([
   // Listing one too many is harmless, the flag is simply not drawn.
   'CR', 'VE', 'EC', 'FJ', 'GU', 'VI', 'BM', 'FK', 'GS', 'IO', 'KY', 'MS', 'PN', 'SH',
   'TC', 'VG', 'AS', 'MP',
+  // Territories and the emoji-only region codes whose flag (or the flag a
+  // vendor draws for them) carries a motto or letters: Sint Maarten, the
+  // French Southern Territories ("TAAF"), Mayotte, Saint Barthelemy, Tristan
+  // da Cunha, Ascension, the Canary Islands, Ceuta and Melilla (Spain's
+  // flag), Diego Garcia. None is in the country picker; they can only come
+  // from stored data (an order address, a market country).
+  'SX', 'TF', 'YT', 'BL', 'TA', 'AC', 'IC', 'EA', 'DG',
 ]);
 
 /**
