@@ -335,6 +335,26 @@ const HEADING_RULE_DESCRIPTION = L(
 );
 const ROUNDED_LABEL = L('Rounded corners', 'زوايا مستديرة', 'Yuvarlatılmış köşeler', 'Abgerundete Ecken', 'Coins arrondis', 'Rundade hörn');
 const HEADING_LABEL = L('Heading', 'العنوان', 'Başlık', 'Überschrift', 'Titre', 'Rubrik');
+// Manual line breaks: these headings are textareas, the storefront keeps up to
+// four typed lines (multi-stores-web/.../_shared/headingLines.ts).
+const HEADING_MULTILINE_HINT = L(
+  'Press Enter to start a new line (up to 4 lines).',
+  'اضغط Enter لبدء سطر جديد (حتى 4 أسطر).',
+  'Yeni bir satıra geçmek için Enter’a basın (en fazla 4 satır).',
+  'Mit der Eingabetaste beginnen Sie eine neue Zeile (bis zu 4 Zeilen).',
+  'Appuyez sur Entrée pour commencer une nouvelle ligne (4 lignes au maximum).',
+  'Tryck på Enter för att börja på en ny rad (upp till 4 rader).',
+);
+// hero-split and image-with-text keep the typed lines in their edge-to-edge
+// variant only; the framed variant renders the heading on one flowing line.
+const HEADING_MULTILINE_BLEED_HINT = L(
+  'Press Enter to start a new line (up to 4 lines). Line breaks show in the edge-to-edge style only.',
+  'اضغط Enter لبدء سطر جديد (حتى 4 أسطر). تظهر فواصل الأسطر في نمط «من الحافة إلى الحافة» فقط.',
+  'Yeni bir satıra geçmek için Enter’a basın (en fazla 4 satır). Satır sonları yalnızca “Kenardan kenara” stilinde görünür.',
+  'Mit der Eingabetaste beginnen Sie eine neue Zeile (bis zu 4 Zeilen). Zeilenumbrüche erscheinen nur im Stil „Randlos“.',
+  'Appuyez sur Entrée pour commencer une nouvelle ligne (4 lignes au maximum). Les sauts de ligne n’apparaissent que dans le style « Bord à bord ».',
+  'Tryck på Enter för att börja på en ny rad (upp till 4 rader). Radbrytningarna visas bara i stilen ”Kant till kant”.',
+);
 const SUBHEADING_LABEL = L('Subheading', 'العنوان الفرعي', 'Alt başlık', 'Unterüberschrift', 'Sous-titre', 'Underrubrik');
 const IMAGE_LABEL = L('Image', 'الصورة', 'Görsel', 'Bild', 'Image', 'Bild');
 const TITLE_LABEL = L('Title', 'العنوان', 'Başlık', 'Titel', 'Titre', 'Titel');
@@ -837,7 +857,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         ],
       },
       { key: 'eyebrow', type: 'text', label: { en: 'Eyebrow', ar: 'تسمية صغيرة' }, maxLength: 40 },
-      { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' }, maxLength: 120 },
+      { key: 'heading', type: 'textarea', label: { en: 'Heading', ar: 'العنوان' }, description: HEADING_MULTILINE_BLEED_HINT, maxLength: 120 },
       { key: 'subheading', type: 'textarea', label: { en: 'Subheading', ar: 'العنوان الفرعي' }, maxLength: 280 },
       { key: 'cta_text', type: 'text', label: { en: 'Primary button text', ar: 'نص الزر الرئيسي' }, maxLength: 40 },
       { key: 'cta_url', type: 'url', label: { en: 'Primary button URL', ar: 'رابط الزر الرئيسي' } },
@@ -1007,7 +1027,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     ),
     translatable: ['heading', 'subheading', 'items'],
     schema: [
-      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'heading', type: 'textarea', label: HEADING_LABEL, description: HEADING_MULTILINE_HINT, maxLength: 120 },
       { key: 'subheading', type: 'textarea', label: SUBHEADING_LABEL, maxLength: 240 },
       {
         key: 'items',
@@ -1552,7 +1572,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
         options: EDGE_OPTIONS,
       },
       { key: 'eyebrow', type: 'text', label: { en: 'Eyebrow', ar: 'تسمية صغيرة' } },
-      { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' } },
+      { key: 'heading', type: 'textarea', label: { en: 'Heading', ar: 'العنوان' }, description: HEADING_MULTILINE_BLEED_HINT },
       { key: 'body', type: 'textarea', label: { en: 'Body text', ar: 'النص' } },
       { key: 'cta_text', type: 'text', label: { en: 'Button text', ar: 'نص الزر' } },
       { key: 'cta_url', type: 'url', label: { en: 'Button URL', ar: 'رابط الزر' } },
@@ -2403,7 +2423,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'tone', type: 'select', label: TONE_LABEL, defaultValue: 'surface', options: TONE_OPTIONS },
       cL('bg_color', BG_COLOR_LABEL, { description: BG_COLOR_DESCRIPTION }),
       { key: 'eyebrow', type: 'text', label: L('Small label', 'تسمية صغيرة', 'Küçük etiket', 'Kleines Label', 'Petit libellé', 'Liten etikett'), maxLength: 40 },
-      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'heading', type: 'textarea', label: HEADING_LABEL, description: HEADING_MULTILINE_HINT, maxLength: 120 },
       { key: 'body', type: 'textarea', label: L('Body text', 'النص', 'Metin', 'Fließtext', 'Texte', 'Brödtext'), maxLength: 400 },
       {
         key: 'item_title',
@@ -2574,7 +2594,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     ),
     translatable: ['heading', 'subheading', 'link_label', 'items'],
     schema: [
-      { key: 'heading', type: 'text', label: HEADING_LABEL, maxLength: 120 },
+      { key: 'heading', type: 'textarea', label: HEADING_LABEL, description: HEADING_MULTILINE_HINT, maxLength: 120 },
       { key: 'subheading', type: 'textarea', label: SUBHEADING_LABEL, maxLength: 240 },
       {
         key: 'items',

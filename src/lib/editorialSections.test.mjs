@@ -526,6 +526,87 @@ test('labels of the added variant fields cover every dashboard locale', () => {
   assertSixLocales(icons.map((o) => [`icon ${o.value}`, o.label]));
 });
 
+// ── Manual line breaks in headings ──────────────────────────────────────
+
+const MULTILINE_HEADINGS = ['hero-split', 'category-tiles', 'image-with-text', 'progress-spotlight', 'project-cards'];
+
+/** Every field named `heading` under `fields`, repeater items included. */
+function headingFields(fields, out = []) {
+  for (const f of fields) {
+    if (f.key === 'heading') out.push(f);
+    if (f.fields) headingFields(f.fields, out);
+  }
+  return out;
+}
+
+test('the heading is a textarea in exactly the five sections that keep typed line breaks', () => {
+  // Catalog order; same five as the storefront schemas (the web test compares the types).
+  const textarea = SECTION_SCHEMAS.filter((s) => field(s, 'heading')?.type === 'textarea').map((s) => s.id);
+  assert.deepEqual(textarea, MULTILINE_HEADINGS);
+  // Every other heading, nested ones included, is still a one-line text field.
+  for (const schema of SECTION_SCHEMAS) {
+    const multiline = MULTILINE_HEADINGS.includes(schema.id);
+    for (const f of headingFields(schema.schema)) {
+      const top = f === field(schema, 'heading');
+      assert.equal(f.type, multiline && top ? 'textarea' : 'text', `${schema.id} heading`);
+      // The Enter hint is on the five only.
+      if (!(multiline && top)) assert.ok(!/Enter/.test(f.description?.en ?? ''), `${schema.id} heading description`);
+    }
+  }
+});
+
+test('the multi-line headings explain the Enter key in six locales, limits unchanged', () => {
+  const hint = 'Press Enter to start a new line (up to 4 lines).';
+  const bleedHint = `${hint} Line breaks show in the edge-to-edge style only.`;
+  for (const id of MULTILINE_HEADINGS) {
+    const heading = field(findSectionSchema(id), 'heading');
+    assertSixLocales([[`${id}.heading description`, heading.description]]);
+    // The framed variants of the two existing sections render one flowing line.
+    const bleedOnly = id === 'hero-split' || id === 'image-with-text';
+    assert.equal(heading.description.en, bleedOnly ? bleedHint : hint, id);
+    for (const loc of LOCALES) assert.ok(heading.description[loc].includes('4'), `${id} ${loc}: line limit`);
+    // The heading is content in both variants: no showIf, not required.
+    assert.equal(heading.showIf, undefined, id);
+    assert.ok(!heading.required, id);
+  }
+  // maxLength is as before the change.
+  assert.deepEqual(
+    MULTILINE_HEADINGS.map((id) => field(findSectionSchema(id), 'heading').maxLength),
+    [120, 120, undefined, 120, 120],
+  );
+  // The labels are untouched (en / ar on the two existing sections).
+  for (const id of ['hero-split', 'image-with-text']) {
+    assert.deepEqual(field(findSectionSchema(id), 'heading').label, { en: 'Heading', ar: 'العنوان' }, id);
+  }
+  // Still content, still translatable, and the tag select still follows it.
+  for (const id of MULTILINE_HEADINGS) {
+    const schema = findSectionSchema(id);
+    assert.ok(schema.translatable.includes('heading'), id);
+    assert.ok(keys(visibleInspectorFields(schema, {}, 'HOME').contentFields).includes('heading'), id);
+    const k = keys(schema.schema);
+    assert.equal(k[k.indexOf('heading') + 1], 'heading_level', id);
+  }
+});
+
+test('no other field of the five sections changed its type', () => {
+  // The fields that are textareas besides the heading, as before the change.
+  const textareas = (id) => findSectionSchema(id).schema.filter((f) => f.type === 'textarea').map((f) => f.key);
+  assert.deepEqual(textareas('hero-split'), ['heading', 'subheading']);
+  assert.deepEqual(textareas('category-tiles'), ['heading', 'subheading']);
+  assert.deepEqual(textareas('image-with-text'), ['heading', 'body']);
+  assert.deepEqual(textareas('progress-spotlight'), ['heading', 'body']);
+  assert.deepEqual(textareas('project-cards'), ['heading', 'subheading']);
+  // Eyebrows, tile and card titles stay one-line.
+  assert.equal(field(findSectionSchema('hero-split'), 'eyebrow').type, 'text');
+  assert.equal(field(findSectionSchema('image-with-text'), 'eyebrow').type, 'text');
+  assert.equal(field(findSectionSchema('progress-spotlight'), 'eyebrow').type, 'text');
+  assert.equal(field(findSectionSchema('progress-spotlight'), 'item_title').type, 'text');
+  for (const id of ['category-tiles', 'project-cards']) {
+    const title = field(findSectionSchema(id), 'items').fields.find((f) => f.key === 'title');
+    assert.equal(title.type, 'text', id);
+  }
+});
+
 // ── Repeater limit ──────────────────────────────────────────────────────
 
 test('repeaterAtLimit: unset means unlimited, the add control stops at the limit', () => {
