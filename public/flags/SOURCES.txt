@@ -1,0 +1,19 @@
+Flags that carry writing, as the complete official artwork.
+
+Each file is the Wikimedia Commons original, downloaded on 2026-11-18 and stored
+byte for byte: not minified, no path simplified, nothing edited. .gitattributes
+turns line-ending conversion off for this folder so the hashes below hold on
+every checkout. src/lib/countryFlags.test.mjs checks them.
+
+To update a flag: download the file again from its URL, replace it unmodified,
+record the new sha256 here and in src/lib/countryFlags.test.mjs, then open it
+enlarged (900 px or wider) and check that the writing is complete.
+
+file    bytes   sha256                                                            source
+sa.svg  28593   b0b36326e3e5b74624ee8b5de8273ea00f7bbe9b5ba0da6250cbe7b3c637505e  https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg
+ir.svg  2218    c1d6eb64f7060fb362ad8efd0205cdd37c7443fa1f009b9882feede56022009c  https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg
+iq.svg  1204    2a3ac265b9efcfb0b8761b753b8dba85b63af329deed39dc7a363e61dad70667  https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Iraq.svg
+eg.svg  18439   031b7bebb493d69f092a6c9a4aed4b66d8ce13e72ab8dd99f1f8a040f4447e53  https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Egypt.svg
+br.svg  4243    041479c6a955990d32c8e45b7283afcd62eacc3592eba9bbf0162299ad77ff01  https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg
+es.svg  155900  af0b860424a9bd6af63dce070d7f7cb4c7b490c6269fc1cd4f35c45679a20500  https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg
+mt.svg  15715   a5c2eee915ed72695afcc7898018bf57c41e62c9b7b964e8de8bbbec9e895d2d  https://upload.wikimedia.org/wikipedia/commons/7/73/Flag_of_Malta.svg
