@@ -3,6 +3,7 @@
 //   typography.fontFamilyArabic.heading / .body  - Arabic-script fallback font
 //   spacing.radius.button                        - one button shape
 //   motion.reveal / motion.zoom                  - calmer or no movement
+//   motion.creative                              - store-level creative motion
 // Absent, empty, wrong type or invalid all mean "unset": the storefront then
 // renders exactly as before. The setters keep every other key and prune only
 // the objects they emptied themselves.
@@ -171,6 +172,82 @@ export function withMotion<T extends ThemeTokensLike>(tokens: T, key: MotionKey,
 
   const nextMotion = { ...stored };
   delete nextMotion[key];
+  if (Object.keys(nextMotion).length) next.motion = nextMotion;
+  else delete next.motion;
+  return next as T;
+}
+
+// ── Creative motion (store.theme_customizations.motion.creative) ───────────
+//   creative.enabled    - true; absent = off (never stored as false)
+//   creative.smooth     - 'off'; absent = smooth scrolling on
+//   creative.magnetic   - 'off'; absent = magnetic buttons on
+//   creative.transition - 'curtain'; absent = no page transition
+// Mirrors readCreative in multi-stores-web/src/themes/creative/creativeAttrs.ts:
+// anything but `enabled === true` reads as off. Unset values are never
+// stored; switching the master off removes `creative`, and `motion` when
+// that left it empty.
+
+export interface CreativeValue {
+  /** The store-level creative motion switch. */
+  enabled: boolean;
+  /** Smooth scrolling (on by default once enabled). */
+  smooth: boolean;
+  /** Magnetic buttons (on by default once enabled). */
+  magnetic: boolean;
+  /** Page transition curtain (off by default). */
+  curtain: boolean;
+}
+
+/** What switching the master on gives before any option is touched. */
+const CREATIVE_OFF: CreativeValue = { enabled: false, smooth: true, magnetic: true, curtain: false };
+
+/**
+ * The creative switches as booleans. While the master is off the three
+ * options read as their defaults (smooth and magnetic on, curtain off).
+ */
+export function creativeValue(tokens: ThemeTokensLike | null | undefined): CreativeValue {
+  const motion = tokens?.motion;
+  const creative = isDict(motion) ? motion.creative : undefined;
+  if (!isDict(creative) || creative.enabled !== true) return { ...CREATIVE_OFF };
+  return {
+    enabled: true,
+    smooth: creative.smooth !== 'off',
+    magnetic: creative.magnetic !== 'off',
+    curtain: creative.transition === 'curtain',
+  };
+}
+
+/**
+ * Copy of `tokens` with the creative switches changed by `patch`. Off
+ * removes `motion.creative` (and `motion` once it is empty); on stores
+ * `enabled: true` plus only the options that differ from their default.
+ * Every other key is kept; switching off a store that has no `creative`
+ * leaves the copy deep-equal to the input.
+ */
+export function withCreative<T extends ThemeTokensLike>(tokens: T, patch: Partial<CreativeValue>): T {
+  const next: Dict = { ...tokens };
+  const stored = next.motion;
+  const value = { ...creativeValue(tokens), ...patch };
+
+  if (value.enabled === true) {
+    const storedCreative = isDict(stored) && isDict(stored.creative) ? stored.creative : {};
+    // Unknown keys inside creative survive; the four known ones are rewritten.
+    const creative: Dict = { ...storedCreative, enabled: true };
+    delete creative.smooth;
+    delete creative.magnetic;
+    delete creative.transition;
+    if (value.smooth === false) creative.smooth = 'off';
+    if (value.magnetic === false) creative.magnetic = 'off';
+    if (value.curtain === true) creative.transition = 'curtain';
+    next.motion = { ...(isDict(stored) ? stored : {}), creative };
+    return next as T;
+  }
+
+  // Nothing stored: nothing to remove, nothing to prune.
+  if (!isDict(stored) || !('creative' in stored)) return next as T;
+
+  const nextMotion = { ...stored };
+  delete nextMotion.creative;
   if (Object.keys(nextMotion).length) next.motion = nextMotion;
   else delete next.motion;
   return next as T;

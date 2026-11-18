@@ -31,11 +31,14 @@ import {
   MOTION_ZOOM_VALUES,
   arabicFontValue,
   buttonRadiusValue,
+  creativeValue,
   motionValue,
   withArabicFont,
   withButtonRadius,
+  withCreative,
   withMotion,
   type ArabicFontSlot,
+  type CreativeValue,
   type MotionKey,
 } from '@/lib/themeTokens';
 import { cn } from '@/lib/utils';
@@ -65,9 +68,15 @@ export interface ThemeTokenCustomizations {
   /**
    * Store-wide motion profile (storefront `data-motion-reveal` /
    * `data-motion-zoom` on the store root). Unset = the standard movement;
-   * the standard is never stored.
+   * the standard is never stored. `creative` is the store-level creative
+   * motion switch (storefront `data-creative*` attributes): absent = off,
+   * and only options that differ from their default are stored.
    */
-  motion?: { reveal?: 'calm' | 'off'; zoom?: 'subtle' | 'off' };
+  motion?: {
+    reveal?: 'calm' | 'off';
+    zoom?: 'subtle' | 'off';
+    creative?: { enabled: true; smooth?: 'off'; magnetic?: 'off'; transition?: 'curtain' };
+  };
   /**
    * Store-wide custom CSS (owner content, not a token). The storefront
    * sanitizes it and renders it on every page of the store.
@@ -162,6 +171,11 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   const setButtonRadius = (v: string) => apply(withButtonRadius(draft, v));
   // '' (Standard) removes the key, and `motion` once it is empty.
   const setMotion = (key: MotionKey, v: string) => apply(withMotion(draft, key, v));
+  // Off removes motion.creative (and `motion` once empty); defaults are never stored.
+  const creative = creativeValue(draft);
+  const setCreative = (patch: Partial<CreativeValue>) => apply(withCreative(draft, patch));
+  // Calm and Off keep the store-level engine (smooth scrolling, magnetic, curtain) from starting.
+  const creativeMuted = creative.enabled && motionValue(draft, 'reveal') !== '';
 
   const buttonRadius = buttonRadiusValue(draft);
   // A valid stored radius outside the four shapes stays selectable as it is.
@@ -400,6 +414,44 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                 />
               </div>
               <p className="text-[11px] text-zinc-500">{t('motion.reducedMotionNote')}</p>
+
+              {/* Creative motion: store-level engine on brand pages (home, landing, story) */}
+              <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50/50 p-2.5">
+                <CreativeSwitchRow
+                  id={`${fieldId}-creative`}
+                  label={t('creative.enabled')}
+                  checked={creative.enabled}
+                  onChange={(enabled) => setCreative({ enabled })}
+                  strong
+                />
+                <p className="text-[11px] text-zinc-500">{t('creative.enabledHint')}</p>
+                {creative.enabled && (
+                  <div className="space-y-2 border-t border-zinc-200 pt-2">
+                    <CreativeSwitchRow
+                      id={`${fieldId}-creative-smooth`}
+                      label={t('creative.smooth')}
+                      checked={creative.smooth}
+                      onChange={(smooth) => setCreative({ smooth })}
+                    />
+                    <CreativeSwitchRow
+                      id={`${fieldId}-creative-magnetic`}
+                      label={t('creative.magnetic')}
+                      checked={creative.magnetic}
+                      onChange={(magnetic) => setCreative({ magnetic })}
+                    />
+                    <CreativeSwitchRow
+                      id={`${fieldId}-creative-curtain`}
+                      label={t('creative.curtain')}
+                      checked={creative.curtain}
+                      onChange={(curtain) => setCreative({ curtain })}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('creative.optionsHint')}</p>
+                    {creativeMuted && (
+                      <p role="status" className="text-[11px] text-amber-700">{t('creative.calmNote')}</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
@@ -518,6 +570,48 @@ function ColorField({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/** One labelled on/off row of the creative motion group. */
+function CreativeSwitchRow({
+  id,
+  label,
+  checked,
+  onChange,
+  strong,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  strong?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span id={`${id}-label`} className={cn('text-[11.5px] text-zinc-700', strong && 'font-semibold text-zinc-900')}>
+        {label}
+      </span>
+      <button
+        id={id}
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={`${id}-label`}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors outline-none focus-visible:ring-3 focus-visible:ring-indigo-100',
+          checked ? 'bg-indigo-600' : 'bg-zinc-200',
+        )}
+      >
+        <span
+          className={cn(
+            'inline-block size-4 rounded-full bg-white shadow transition-transform',
+            checked ? 'translate-x-4.5 rtl:-translate-x-4.5' : 'translate-x-0.5 rtl:-translate-x-0.5',
+          )}
+        />
+      </button>
     </div>
   );
 }
