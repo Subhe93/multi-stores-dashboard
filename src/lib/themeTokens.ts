@@ -3,7 +3,7 @@
 //   typography.fontFamilyArabic.heading / .body  - Arabic-script fallback font
 //   spacing.radius.button                        - one button shape
 //   motion.reveal / motion.zoom                  - calmer or no movement
-//   motion.creative                              - store-level creative motion
+//   motion.creative                              - store-level motion style
 // Absent, empty, wrong type or invalid all mean "unset": the storefront then
 // renders exactly as before. The setters keep every other key and prune only
 // the objects they emptied themselves.
@@ -177,18 +177,20 @@ export function withMotion<T extends ThemeTokensLike>(tokens: T, key: MotionKey,
   return next as T;
 }
 
-// ── Creative motion (store.theme_customizations.motion.creative) ───────────
+// ── Motion style (store.theme_customizations.motion.creative) ──────────────
 //   creative.enabled    - true; absent = off (never stored as false)
 //   creative.smooth     - 'off'; absent = smooth scrolling on
 //   creative.magnetic   - 'off'; absent = magnetic buttons on
 //   creative.transition - 'curtain'; absent = no page transition
+//   creative.progress   - 'bar'; absent = no scroll progress bar
+//   creative.cursor     - 'dot'; absent = the normal pointer
 // Mirrors readCreative in multi-stores-web/src/themes/creative/creativeAttrs.ts:
 // anything but `enabled === true` reads as off. Unset values are never
 // stored; switching the master off removes `creative`, and `motion` when
 // that left it empty.
 
 export interface CreativeValue {
-  /** The store-level creative motion switch. */
+  /** The store-level motion style switch. */
   enabled: boolean;
   /** Smooth scrolling (on by default once enabled). */
   smooth: boolean;
@@ -196,14 +198,26 @@ export interface CreativeValue {
   magnetic: boolean;
   /** Page transition curtain (off by default). */
   curtain: boolean;
+  /** Thin scroll progress bar at the top of the page (off by default). */
+  progress: boolean;
+  /** Small dot that follows the pointer (off by default). */
+  cursor: boolean;
 }
 
 /** What switching the master on gives before any option is touched. */
-const CREATIVE_OFF: CreativeValue = { enabled: false, smooth: true, magnetic: true, curtain: false };
+const CREATIVE_OFF: CreativeValue = {
+  enabled: false,
+  smooth: true,
+  magnetic: true,
+  curtain: false,
+  progress: false,
+  cursor: false,
+};
 
 /**
- * The creative switches as booleans. While the master is off the three
- * options read as their defaults (smooth and magnetic on, curtain off).
+ * The motion style switches as booleans. While the master is off the
+ * options read as their defaults (smooth and magnetic on; curtain, progress
+ * bar and cursor dot off).
  */
 export function creativeValue(tokens: ThemeTokensLike | null | undefined): CreativeValue {
   const motion = tokens?.motion;
@@ -214,6 +228,8 @@ export function creativeValue(tokens: ThemeTokensLike | null | undefined): Creat
     smooth: creative.smooth !== 'off',
     magnetic: creative.magnetic !== 'off',
     curtain: creative.transition === 'curtain',
+    progress: creative.progress === 'bar',
+    cursor: creative.cursor === 'dot',
   };
 }
 
@@ -231,14 +247,18 @@ export function withCreative<T extends ThemeTokensLike>(tokens: T, patch: Partia
 
   if (value.enabled === true) {
     const storedCreative = isDict(stored) && isDict(stored.creative) ? stored.creative : {};
-    // Unknown keys inside creative survive; the four known ones are rewritten.
+    // Unknown keys inside creative survive; the known ones are rewritten.
     const creative: Dict = { ...storedCreative, enabled: true };
     delete creative.smooth;
     delete creative.magnetic;
     delete creative.transition;
+    delete creative.progress;
+    delete creative.cursor;
     if (value.smooth === false) creative.smooth = 'off';
     if (value.magnetic === false) creative.magnetic = 'off';
     if (value.curtain === true) creative.transition = 'curtain';
+    if (value.progress === true) creative.progress = 'bar';
+    if (value.cursor === true) creative.cursor = 'dot';
     next.motion = { ...(isDict(stored) ? stored : {}), creative };
     return next as T;
   }

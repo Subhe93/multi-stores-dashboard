@@ -6536,6 +6536,9 @@
     "styleImageAllDevices": "Bild und Overlay gelten für alle Geräte.",
     "styleFadeIn": "Einblenden",
     "styleFadeUp": "Nach oben einblenden",
+    "styleMotion": "Bewegungsstil",
+    "styleMotionAuto": "Automatisch",
+    "styleMotionHint": "Gilt, wenn der Bewegungsstil des Shops eingeschaltet ist (Theme-Einstellungen). „Keine“ lässt diesen Abschnitt unbewegt.",
     "styleFromTheme": "Vom Design",
     "styleDesktop": "Desktop",
     "styleTablet": "Tablet",
@@ -6646,13 +6649,15 @@
       "reducedMotionNote": "Besucher, die auf ihrem Gerät reduzierte Bewegung eingestellt haben, sehen nie Bewegung."
     },
     "creative": {
-      "enabled": "Kreative Bewegung",
-      "enabledHint": "Fügt shopweite Bewegung auf Startseite, Landingpages und Story-Seiten hinzu. Produkt-, Warenkorb- und Checkout-Seiten bleiben unverändert.",
+      "enabled": "Bewegungsstil",
+      "enabledHint": "Gibt jedem Abschnitt auf jeder Seite automatisch einen ruhigen, präzisen Auftritt und eine Hover-Reaktion. Produkt-, Warenkorb- und Checkout-Seiten erhalten nur leichte, schnelle Bewegung. Ein einzelner Abschnitt lässt sich in seinem Stil-Tab ausschalten.",
       "smooth": "Sanftes Scrollen",
       "magnetic": "Magnetische Buttons",
       "curtain": "Seitenübergang",
-      "optionsHint": "Sanftes Scrollen und magnetische Buttons funktionieren am Desktop mit Maus. Der Seitenübergang ist ein kurzer Vorhang zwischen Markenseiten.",
-      "calmNote": "Diese drei bleiben aus, solange Scroll-Animationen auf Ruhig oder Aus steht."
+      "progress": "Scroll-Fortschrittsbalken",
+      "cursor": "Cursor-Punkt",
+      "optionsHint": "Sanftes Scrollen, magnetische Buttons und der Cursor-Punkt funktionieren am Desktop mit Maus. Der Seitenübergang ist ein kurzer Vorhang zwischen Markenseiten. Der Fortschrittsbalken ist eine dünne Linie am oberen Seitenrand.",
+      "calmNote": "Solange Scroll-Animationen auf Ruhig steht, ist die Bewegung sanfter und diese Optionen bleiben aus; bei Aus bewegt sich der Shop gar nicht."
     },
     "customCss": "Eigenes CSS",
     "customCssHint": "Für fortgeschrittene Nutzer. Dieses CSS wird auf jeder Seite Ihres Shops nach den Theme-Stilen eingefügt und kann sie überschreiben.",

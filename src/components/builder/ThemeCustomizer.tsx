@@ -68,14 +68,21 @@ export interface ThemeTokenCustomizations {
   /**
    * Store-wide motion profile (storefront `data-motion-reveal` /
    * `data-motion-zoom` on the store root). Unset = the standard movement;
-   * the standard is never stored. `creative` is the store-level creative
-   * motion switch (storefront `data-creative*` attributes): absent = off,
+   * the standard is never stored. `creative` is the store-level motion
+   * style switch (storefront `data-creative*` attributes): absent = off,
    * and only options that differ from their default are stored.
    */
   motion?: {
     reveal?: 'calm' | 'off';
     zoom?: 'subtle' | 'off';
-    creative?: { enabled: true; smooth?: 'off'; magnetic?: 'off'; transition?: 'curtain' };
+    creative?: {
+      enabled: true;
+      smooth?: 'off';
+      magnetic?: 'off';
+      transition?: 'curtain';
+      progress?: 'bar';
+      cursor?: 'dot';
+    };
   };
   /**
    * Store-wide custom CSS (owner content, not a token). The storefront
@@ -174,7 +181,7 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   // Off removes motion.creative (and `motion` once empty); defaults are never stored.
   const creative = creativeValue(draft);
   const setCreative = (patch: Partial<CreativeValue>) => apply(withCreative(draft, patch));
-  // Calm and Off keep the store-level engine (smooth scrolling, magnetic, curtain) from starting.
+  // Calm and Off keep the page-level options (smooth scrolling, magnetic, curtain, bar, dot) from starting.
   const creativeMuted = creative.enabled && motionValue(draft, 'reveal') !== '';
 
   const buttonRadius = buttonRadiusValue(draft);
@@ -415,7 +422,7 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
               </div>
               <p className="text-[11px] text-zinc-500">{t('motion.reducedMotionNote')}</p>
 
-              {/* Creative motion: store-level engine on brand pages (home, landing, story) */}
+              {/* Motion style: one store switch, every section of every page (light motion on product, cart, checkout) */}
               <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50/50 p-2.5">
                 <CreativeSwitchRow
                   id={`${fieldId}-creative`}
@@ -444,6 +451,18 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                       label={t('creative.curtain')}
                       checked={creative.curtain}
                       onChange={(curtain) => setCreative({ curtain })}
+                    />
+                    <CreativeSwitchRow
+                      id={`${fieldId}-creative-progress`}
+                      label={t('creative.progress')}
+                      checked={creative.progress}
+                      onChange={(progress) => setCreative({ progress })}
+                    />
+                    <CreativeSwitchRow
+                      id={`${fieldId}-creative-cursor`}
+                      label={t('creative.cursor')}
+                      checked={creative.cursor}
+                      onChange={(cursor) => setCreative({ cursor })}
                     />
                     <p className="text-[11px] text-zinc-500">{t('creative.optionsHint')}</p>
                     {creativeMuted && (
@@ -574,7 +593,7 @@ function ColorField({
   );
 }
 
-/** One labelled on/off row of the creative motion group. */
+/** One labelled on/off row of the motion style group. */
 function CreativeSwitchRow({
   id,
   label,

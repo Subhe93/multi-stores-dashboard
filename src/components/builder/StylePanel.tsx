@@ -17,6 +17,7 @@ import {
   resolveResponsive,
   setResponsive,
 } from '@/lib/responsive';
+import { SECTION_MOTION_CHOICES, sectionMotionValue, withSectionMotion, type SectionMotionChoice } from '@/lib/sectionMotion';
 
 export type { Breakpoint, Responsive };
 
@@ -50,6 +51,9 @@ export interface SectionStyle {
   background_overlay_opacity?: number; // 0–100
   text_color?: Responsive<string>;
   animate?: AnimateToken;
+  // Store motion style, per-section override: 'none' switches this section
+  // off; absent = automatic (never stored as 'auto').
+  motion?: 'none';
   hide_on?: Breakpoint[];
   // Legacy fields kept here for the type, so older _style payloads pass through
   // unchanged. The storefront resolver reads them; the panel no longer writes.
@@ -159,6 +163,9 @@ export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps)
     noAnimation: tt('styleNone'),
     fadeIn: tt('styleFadeIn'),
     fadeUp: tt('styleFadeUp'),
+    motion: tt('styleMotion'),
+    motionAuto: tt('styleMotionAuto'),
+    motionHint: tt('styleMotionHint'),
     inheritText: tt('styleFromTheme'),
     desktop: tt('styleDesktop'),
     tablet: tt('styleTablet'),
@@ -403,6 +410,18 @@ export function StylePanel({ value, onChange, token, apiBase }: StylePanelProps)
             ]}
           />
         </FieldRow>
+        {/* Store motion style: Automatic removes the key, None stores 'none'. */}
+        <FieldRow label={t.motion}>
+          <SegSelect
+            value={sectionMotionValue(v)}
+            onChange={(choice: SectionMotionChoice) => onChange(withSectionMotion(v, choice))}
+            options={SECTION_MOTION_CHOICES.map((choice) => ({
+              value: choice,
+              label: choice === 'none' ? t.none : t.motionAuto,
+            }))}
+          />
+        </FieldRow>
+        <p className="text-[11px] text-zinc-500">{t.motionHint}</p>
       </Group>
 
       <div className="pt-2 border-t flex justify-end">

@@ -3,7 +3,9 @@
 // by field by the storefront's creative.contract.test.tsx). Checked here:
 // presence, six-locale texts, that it is a divider only, and that the
 // compositions and per-section options of the first draft are gone (motion
-// is automatic: one store switch, one per-section override).
+// is automatic: one store switch, one per-section override). Also the hero
+// emblem: four optional fields at the end of hero-split and hero-banner, a
+// mirror of the storefront's sections/_shared/emblemFields.ts.
 // Run: node --experimental-strip-types --test src/lib/creativeSchemas.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -57,6 +59,68 @@ test('every text of the ornament divider exists in six locales', () => {
     assertSixLocales(`${path} label`, f.label);
     if (f.description) assertSixLocales(`${path} description`, f.description);
     for (const o of f.options || []) assertSixLocales(`${path}.${o.value}`, o.label);
+  }
+});
+
+// ── Hero emblem ─────────────────────────────────────────────────────────
+
+const EMBLEM_KEYS = ['emblem_image', 'emblem_motion', 'emblem_size', 'emblem_position'];
+const EMBLEM_SECTIONS = ['hero-split', 'hero-banner'];
+
+/** Key, type, default, option values and visibility rule: what the storefront compares. */
+const shape = (f) => ({
+  key: f.key,
+  type: f.type,
+  defaultValue: f.defaultValue,
+  options: f.options?.map((o) => o.value),
+  showIf: f.showIf,
+});
+
+test('hero emblem: the four fields are the last four of hero-split and hero-banner, in order', () => {
+  for (const id of EMBLEM_SECTIONS) {
+    const keys = findSectionSchema(id).schema.map((f) => f.key);
+    assert.deepEqual(keys.slice(-4), EMBLEM_KEYS, id);
+    assert.equal(new Set(keys).size, keys.length, `${id}: no duplicate key`);
+  }
+});
+
+test('hero emblem: types, option values and defaults follow the contract', () => {
+  for (const id of EMBLEM_SECTIONS) {
+    const fields = findSectionSchema(id).schema.slice(-4);
+    assert.deepEqual(fields.map(shape), [
+      { key: 'emblem_image', type: 'image', defaultValue: undefined, options: undefined, showIf: undefined },
+      { key: 'emblem_motion', type: 'select', defaultValue: 'rise', options: ['none', 'rise', 'turn'], showIf: undefined },
+      { key: 'emblem_size', type: 'select', defaultValue: 'md', options: ['sm', 'md'], showIf: undefined },
+      { key: 'emblem_position', type: 'select', defaultValue: 'start', options: ['start', 'end'], showIf: undefined },
+    ], id);
+  }
+});
+
+test('hero emblem: optional decor, never a default setting, default content or translatable', () => {
+  for (const id of EMBLEM_SECTIONS) {
+    const schema = findSectionSchema(id);
+    for (const key of EMBLEM_KEYS) {
+      assert.equal(key in (schema.defaultSettings || {}), false, `${id} defaultSettings ${key}`);
+      assert.equal(key in (schema.defaultContent || {}), false, `${id} defaultContent ${key}`);
+      assert.equal(schema.translatable.includes(key), false, `${id} translatable ${key}`);
+    }
+  }
+});
+
+test('hero emblem: no other section carries the fields', () => {
+  for (const schema of SECTION_SCHEMAS) {
+    if (EMBLEM_SECTIONS.includes(schema.id)) continue;
+    for (const [path, f] of walk(schema.schema, schema.id)) assert.ok(!EMBLEM_KEYS.includes(f.key), path);
+  }
+});
+
+test('hero emblem: every text exists in six locales', () => {
+  for (const id of EMBLEM_SECTIONS) {
+    for (const f of findSectionSchema(id).schema.slice(-4)) {
+      assertSixLocales(`${id}.${f.key} label`, f.label);
+      if (f.description) assertSixLocales(`${id}.${f.key} description`, f.description);
+      for (const o of f.options || []) assertSixLocales(`${id}.${f.key}.${o.value}`, o.label);
+    }
   }
 });
 

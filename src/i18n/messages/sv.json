@@ -6536,6 +6536,9 @@
     "styleImageAllDevices": "Bild och överlägg gäller för alla enheter.",
     "styleFadeIn": "Tona in",
     "styleFadeUp": "Tona uppåt",
+    "styleMotion": "Rörelsestil",
+    "styleMotionAuto": "Automatisk",
+    "styleMotionHint": "Gäller när butikens Rörelsestil är på (temainställningar). Ingen låter den här sektionen vara stilla.",
     "styleFromTheme": "Från tema",
     "styleDesktop": "Dator",
     "styleTablet": "Surfplatta",
@@ -6646,13 +6649,15 @@
       "reducedMotionNote": "Besökare som har bett sin enhet om minskad rörelse ser aldrig någon rörelse."
     },
     "creative": {
-      "enabled": "Kreativ rörelse",
-      "enabledHint": "Lägger till rörelse i hela butiken på startsidan, landningssidor och berättelsesidor. Produkt-, varukorgs- och kassasidor förblir som de är.",
+      "enabled": "Rörelsestil",
+      "enabledHint": "Ger varje sektion på varje sida en lugn och precis entré och hovringsrespons, automatiskt. Produkt-, varukorgs- och kassasidor får bara lätt och snabb rörelse. En enskild sektion kan stängas av under dess flik Stil.",
       "smooth": "Mjuk rullning",
       "magnetic": "Magnetiska knappar",
       "curtain": "Sidövergång",
-      "optionsHint": "Mjuk rullning och magnetiska knappar fungerar på dator med mus. Sidövergången är en kort ridå mellan varumärkessidor.",
-      "calmNote": "De här tre är avstängda så länge Rullningsanimationer är inställt på Lugn eller Av."
+      "progress": "Förloppslinje för rullning",
+      "cursor": "Markörpunkt",
+      "optionsHint": "Mjuk rullning, magnetiska knappar och markörpunkten fungerar på dator med mus. Sidövergången är en kort ridå mellan varumärkessidor. Förloppslinjen är en tunn linje högst upp på sidan.",
+      "calmNote": "Så länge Rullningsanimationer är inställt på Lugn är rörelsen mjukare och de här alternativen är avstängda; med Av rör sig butiken inte alls."
     },
     "customCss": "Egen CSS",
     "customCssHint": "För avancerade användare. Den här CSS-koden läggs till på alla sidor i din butik, efter temats stilar, och kan därför skriva över dem.",

@@ -6536,6 +6536,9 @@
     "styleImageAllDevices": "L’image et la superposition s’appliquent à tous les appareils.",
     "styleFadeIn": "Apparition en fondu",
     "styleFadeUp": "Fondu vers le haut",
+    "styleMotion": "Style de mouvement",
+    "styleMotionAuto": "Automatique",
+    "styleMotionHint": "S’applique lorsque le Style de mouvement de la boutique est activé (réglages du thème). « Aucun » laisse cette section immobile.",
     "styleFromTheme": "Du thème",
     "styleDesktop": "Bureau",
     "styleTablet": "Tablette",
@@ -6646,13 +6649,15 @@
       "reducedMotionNote": "Les visiteurs qui demandent à leur appareil de réduire les animations ne voient jamais de mouvement."
     },
     "creative": {
-      "enabled": "Mouvement créatif",
-      "enabledHint": "Ajoute du mouvement à l’échelle de la boutique sur l’accueil, les pages d’atterrissage et les pages de récit. Les pages produit, panier et paiement restent inchangées.",
+      "enabled": "Style de mouvement",
+      "enabledHint": "Donne automatiquement à chaque section de chaque page une entrée calme et précise ainsi qu’une réaction au survol. Les pages produit, panier et paiement ne reçoivent qu’un mouvement léger et rapide. Une section peut être désactivée dans son onglet Style.",
       "smooth": "Défilement fluide",
       "magnetic": "Boutons magnétiques",
       "curtain": "Transition de page",
-      "optionsHint": "Le défilement fluide et les boutons magnétiques fonctionnent sur ordinateur avec une souris. La transition de page est un court rideau entre les pages de marque.",
-      "calmNote": "Ces trois options restent désactivées tant que « Animations au défilement » est réglé sur Calme ou Désactivé."
+      "progress": "Barre de progression du défilement",
+      "cursor": "Point du curseur",
+      "optionsHint": "Le défilement fluide, les boutons magnétiques et le point du curseur fonctionnent sur ordinateur avec une souris. La transition de page est un court rideau entre les pages de marque. La barre de progression est une fine ligne en haut de la page.",
+      "calmNote": "Tant que « Animations au défilement » est réglé sur Calme, le mouvement est plus doux et ces options restent désactivées ; sur Désactivé, la boutique ne bouge plus du tout."
     },
     "customCss": "CSS personnalisé",
     "customCssHint": "Pour les utilisateurs avancés. Ce CSS est ajouté à toutes les pages de votre boutique, après les styles du thème, et peut donc les remplacer.",

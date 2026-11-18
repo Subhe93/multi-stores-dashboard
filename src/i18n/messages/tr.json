@@ -6536,6 +6536,9 @@
     "styleImageAllDevices": "Görsel ve katman tüm cihazlara uygulanır.",
     "styleFadeIn": "Belirme",
     "styleFadeUp": "Yukarı belirme",
+    "styleMotion": "Hareket stili",
+    "styleMotionAuto": "Otomatik",
+    "styleMotionHint": "Mağazanın Hareket stili açıkken geçerlidir (tema ayarları). Yok, bu bölümü hareketsiz bırakır.",
     "styleFromTheme": "Temadan",
     "styleDesktop": "Masaüstü",
     "styleTablet": "Tablet",
@@ -6646,13 +6649,15 @@
       "reducedMotionNote": "Cihazında azaltılmış hareketi seçen ziyaretçiler hiçbir hareket görmez."
     },
     "creative": {
-      "enabled": "Yaratıcı hareket",
-      "enabledHint": "Ana sayfa, açılış ve hikâye sayfalarına mağaza genelinde hareket ekler. Ürün, sepet ve ödeme sayfaları olduğu gibi kalır.",
+      "enabled": "Hareket stili",
+      "enabledHint": "Her sayfadaki her bölüme otomatik olarak sakin, özenli bir giriş ve üzerine gelme tepkisi verir. Ürün, sepet ve ödeme sayfaları yalnızca hafif ve hızlı hareket alır. Tek bir bölüm kendi Stil sekmesinden kapatılabilir.",
       "smooth": "Yumuşak kaydırma",
       "magnetic": "Manyetik butonlar",
       "curtain": "Sayfa geçişi",
-      "optionsHint": "Yumuşak kaydırma ve manyetik butonlar masaüstünde fareyle çalışır. Sayfa geçişi, marka sayfaları arasında kısa bir perdedir.",
-      "calmNote": "Kaydırma animasyonları Sakin veya Kapalı olarak ayarlıyken bu üçü kapalı kalır."
+      "progress": "Kaydırma ilerleme çubuğu",
+      "cursor": "İmleç noktası",
+      "optionsHint": "Yumuşak kaydırma, manyetik butonlar ve imleç noktası masaüstünde fareyle çalışır. Sayfa geçişi, marka sayfaları arasında kısa bir perdedir. İlerleme çubuğu sayfanın üstünde ince bir çizgidir.",
+      "calmNote": "Kaydırma animasyonları Sakin olarak ayarlıyken hareket daha yumuşaktır ve bu seçenekler kapalı kalır; Kapalı seçiliyken mağaza hiç hareket etmez."
     },
     "customCss": "Özel CSS",
     "customCssHint": "İleri düzey kullanıcılar içindir. Bu CSS, mağazanızın tüm sayfalarına tema stillerinden sonra eklenir ve onları geçersiz kılabilir.",

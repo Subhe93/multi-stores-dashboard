@@ -6536,6 +6536,9 @@
     "styleImageAllDevices": "Image and overlay apply to all devices.",
     "styleFadeIn": "Fade in",
     "styleFadeUp": "Fade up",
+    "styleMotion": "Motion style",
+    "styleMotionAuto": "Automatic",
+    "styleMotionHint": "Used when the store’s Motion style is on (theme settings). None keeps this section still.",
     "styleFromTheme": "From theme",
     "styleDesktop": "Desktop",
     "styleTablet": "Tablet",
@@ -6646,13 +6649,15 @@
       "reducedMotionNote": "Visitors who ask their device for reduced motion never see movement."
     },
     "creative": {
-      "enabled": "Creative motion",
-      "enabledHint": "Adds store-wide movement on the home, landing and story pages. Product, cart and checkout pages stay as they are.",
+      "enabled": "Motion style",
+      "enabledHint": "Gives every section on every page a calm, precise entrance and hover response, automatically. Product, cart and checkout pages get light, fast motion only. One section can be switched off in its Style tab.",
       "smooth": "Smooth scrolling",
       "magnetic": "Magnetic buttons",
       "curtain": "Page transition",
-      "optionsHint": "Smooth scrolling and magnetic buttons work on desktop with a mouse. The page transition is a short curtain between brand pages.",
-      "calmNote": "These three stay off while Scroll animations is set to Calm or Off."
+      "progress": "Scroll progress bar",
+      "cursor": "Cursor dot",
+      "optionsHint": "Smooth scrolling, magnetic buttons and the cursor dot work on desktop with a mouse. The page transition is a short curtain between brand pages. The progress bar is a thin line at the top of the page.",
+      "calmNote": "While Scroll animations is set to Calm the movement is softer and these options stay off; set to Off, the store does not move at all."
     },
     "customCss": "Custom CSS",
     "customCssHint": "For advanced users. This CSS is added to every page of your storefront, after the theme styles, so it can override them.",

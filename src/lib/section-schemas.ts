@@ -5220,6 +5220,84 @@ function withHeadingAccent(schema: SectionSchema): SectionSchema {
   return { ...schema, schema: fields };
 }
 
+// ── Hero emblem ────────────────────────────────────────────────────────────
+// Optional decor of hero-split and hero-banner: a small symbol the owner
+// uploads (an SVG mark), shown in a fixed square box above the small label.
+// It moves gently only when the store's motion style is on; without it the
+// emblem is a still image. The four fields mirror the emblem fields in
+// multi-stores-web/src/themes/minimal/sections/_shared/emblemFields.ts (same
+// keys, order, types, option values and defaults). They are appended at the
+// END of the schema, are settings (never translatable) and never part of a
+// section's defaultSettings: an empty image renders nothing.
+const HERO_EMBLEM_SECTIONS = new Set(['hero-split', 'hero-banner']);
+
+const HERO_EMBLEM_FIELDS: FieldDefinition[] = [
+  {
+    key: 'emblem_image',
+    type: 'image',
+    label: L('Emblem (small symbol)', 'الرمز (شعار صغير)', 'Amblem (küçük sembol)', 'Emblem (kleines Symbol)', 'Emblème (petit symbole)', 'Emblem (liten symbol)'),
+    description: L(
+      'Optional. A small symbol above the text, best as an SVG with a transparent background. Decoration only: screen readers skip it. Empty = nothing is shown.',
+      'اختياري. رمز صغير فوق النص، والأفضل ملف SVG بخلفية شفافة. للزينة فقط ويتجاوزه قارئ الشاشة. فارغ = لا يظهر شيء.',
+      'İsteğe bağlı. Metnin üzerinde küçük bir sembol; en iyisi şeffaf arka planlı bir SVG. Yalnızca süs: ekran okuyucular atlar. Boş = hiçbir şey gösterilmez.',
+      'Optional. Ein kleines Symbol über dem Text, am besten als SVG mit transparentem Hintergrund. Nur Dekoration: Screenreader überspringen es. Leer = es wird nichts angezeigt.',
+      'Facultatif. Un petit symbole au-dessus du texte, idéalement un SVG à fond transparent. Décoration uniquement : les lecteurs d’écran l’ignorent. Vide = rien n’est affiché.',
+      'Valfritt. En liten symbol ovanför texten, helst en SVG med transparent bakgrund. Endast dekoration: skärmläsare hoppar över den. Tomt = inget visas.',
+    ),
+  },
+  {
+    key: 'emblem_motion',
+    type: 'select',
+    label: L('Emblem movement', 'حركة الرمز', 'Amblem hareketi', 'Bewegung des Emblems', 'Mouvement de l’emblème', 'Emblemets rörelse'),
+    description: L(
+      'Moves only while the store’s Motion style is on; otherwise the emblem is still.',
+      'يتحرك فقط عندما يكون «نمط الحركة» مفعّلاً في المتجر، وإلا يبقى الرمز ساكناً.',
+      'Yalnızca mağazanın Hareket stili açıkken hareket eder; aksi halde amblem sabittir.',
+      'Bewegt sich nur, wenn der Bewegungsstil des Shops eingeschaltet ist; sonst steht das Emblem still.',
+      'Ne bouge que si le Style de mouvement de la boutique est activé ; sinon l’emblème reste immobile.',
+      'Rör sig bara när butikens Rörelsestil är på; annars står emblemet stilla.',
+    ),
+    defaultValue: 'rise',
+    options: [
+      { value: 'none', label: L('None', 'بدون', 'Yok', 'Keine', 'Aucun', 'Ingen') },
+      { value: 'rise', label: L('Slow rise', 'صعود بطيء', 'Yavaş yükseliş', 'Langsames Aufsteigen', 'Lente montée', 'Långsam stigning') },
+      { value: 'turn', label: L('Slow turn', 'دوران بطيء', 'Yavaş dönüş', 'Langsame Drehung', 'Lente rotation', 'Långsam vridning') },
+    ],
+  },
+  {
+    key: 'emblem_size',
+    type: 'select',
+    label: L('Emblem size', 'حجم الرمز', 'Amblem boyutu', 'Größe des Emblems', 'Taille de l’emblème', 'Emblemets storlek'),
+    defaultValue: 'md',
+    options: [
+      { value: 'sm', label: L('Small', 'صغير', 'Küçük', 'Klein', 'Petit', 'Liten') },
+      { value: 'md', label: L('Medium', 'متوسط', 'Orta', 'Mittel', 'Moyen', 'Medel') },
+    ],
+  },
+  {
+    key: 'emblem_position',
+    type: 'select',
+    label: L('Emblem position', 'موضع الرمز', 'Amblem konumu', 'Position des Emblems', 'Position de l’emblème', 'Emblemets position'),
+    description: L(
+      'Side of the text block. With centred text the emblem stays centred.',
+      'جهة كتلة النص. مع النص المتوسط يبقى الرمز في الوسط.',
+      'Metin bloğunun tarafı. Ortalanmış metinde amblem ortada kalır.',
+      'Seite des Textblocks. Bei zentriertem Text bleibt das Emblem in der Mitte.',
+      'Côté du bloc de texte. Avec un texte centré, l’emblème reste centré.',
+      'Textblockets sida. Med centrerad text förblir emblemet centrerat.',
+    ),
+    defaultValue: 'start',
+    options: START_END_OPTIONS,
+  },
+];
+
+/** Appends the four emblem fields at the end of the two hero schemas. */
+function withHeroEmblem(schema: SectionSchema): SectionSchema {
+  if (!HERO_EMBLEM_SECTIONS.has(schema.id)) return schema;
+  const have = new Set(schema.schema.map((f) => f.key));
+  return { ...schema, schema: [...schema.schema, ...HERO_EMBLEM_FIELDS.filter((f) => !have.has(f.key))] };
+}
+
 // ── Creative engine ────────────────────────────────────────────────────────
 // Hand-made mirror of multi-stores-web/src/themes/creative/schemas.ts: the
 // ornament divider, field for field (same keys, order, types, option values,
@@ -5342,7 +5420,8 @@ const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [
 
 export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS]
   .map(withHeadingLevel)
-  .map(withHeadingAccent);
+  .map(withHeadingAccent)
+  .map(withHeroEmblem);
 
 export function findSectionSchema(id: string): SectionSchema | undefined {
   return SECTION_SCHEMAS.find((s) => s.id === id);

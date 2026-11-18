@@ -346,7 +346,9 @@ test('labels of the three new sections cover every dashboard locale', () => {
 
 // ── The three variants ──────────────────────────────────────────────────
 
-const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow', 'heading_accent', 'heading_accent_color', ...CREATIVE_OPTION_KEYS];
+// The hero emblem (optional decor, last four fields of hero-split and hero-banner).
+const HERO_EMBLEM_KEYS = ['emblem_image', 'emblem_motion', 'emblem_size', 'emblem_position'];
+const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow', 'heading_accent', 'heading_accent_color', ...CREATIVE_OPTION_KEYS, ...HERO_EMBLEM_KEYS];
 const IMAGE_WITH_TEXT_ADDED = [
   'alt', 'image_style', 'min_height', 'image_focus', 'tone', 'bg_color', 'edge',
   'cta_secondary_text', 'cta_secondary_url', 'cta_tone',
