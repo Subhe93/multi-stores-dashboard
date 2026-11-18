@@ -1,26 +1,14 @@
-// Creative engine, store level: the creative motion switch of the theme
-// customizer (store.theme_customizations.motion.creative) and the scene /
-// living-background keys of a section's `_style`. Unset values are never
-// stored, so a store or section that does not opt in keeps its data as it is.
-// The value names are the contract shared with the storefront
-// (multi-stores-web/src/themes/creative/creativeAttrs.ts, decor/sectionDecor.tsx).
+// Motion style, store level: the switch of the theme customizer
+// (store.theme_customizations.motion.creative). Unset values are never
+// stored, so a store that does not opt in keeps its data as it is. The
+// value names are the contract shared with the storefront
+// (multi-stores-web/src/themes/creative/creativeAttrs.ts).
 // Run: node --experimental-strip-types --test src/lib/creativeTokens.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { creativeValue, withCreative, withMotion } from './themeTokens.ts';
-import {
-  BACKDROP_KEYS,
-  SCENE_KEYS,
-  backdropOf,
-  contrastRatio,
-  sceneContrastIssues,
-  sceneOf,
-  withBackdrop,
-  withScene,
-  withStyleKey,
-} from './sceneStyle.ts';
 
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
 const OFF = { enabled: false, smooth: true, magnetic: true, curtain: false };
@@ -149,112 +137,9 @@ test('junk is replaced by a clean object when switched on, removed when switched
   );
 });
 
-// ── Scene and living background of a section (_style) ───────────────────
-
-const styled = () => ({ padding: { desktop: { top: 'lg' } }, animate: 'fade-up', hide_on: ['mobile'] });
-
-test('the key lists are the storefront contract', () => {
-  assert.deepEqual([...SCENE_KEYS], ['scene', 'scene_bg', 'scene_text', 'scene_accent']);
-  assert.deepEqual([...BACKDROP_KEYS], [
-    'backdrop', 'backdrop_color_1', 'backdrop_color_2', 'backdrop_intensity', 'backdrop_motion', 'backdrop_particle',
-  ]);
-});
-
-test('sceneOf / backdropOf read only their three values', () => {
-  for (const value of ['dark', 'light', 'accent']) assert.equal(sceneOf({ scene: value }), value);
-  for (const value of ['dots', 'particles', 'glow']) assert.equal(backdropOf({ backdrop: value }), value);
-  for (const style of [undefined, null, {}, { scene: 'none' }, { scene: 'DARK' }, { scene: 1 }, { backdrop: 'stars' }]) {
-    assert.equal(sceneOf(style), '');
-    assert.equal(backdropOf(style), '');
-  }
-});
-
-test('withScene sets the scene and keeps every other key', () => {
-  const next = withScene(styled(), 'dark');
-  assert.deepEqual(next, { ...styled(), scene: 'dark' });
-  assert.deepEqual(withScene({ ...next, scene_bg: '#111111' }, 'accent'), { ...styled(), scene: 'accent', scene_bg: '#111111' });
-});
-
-test('scene none removes the scene and its three overrides, nothing else', () => {
-  const stored = { ...styled(), scene: 'dark', scene_bg: '#111111', scene_text: '#ffffff', scene_accent: '#a38250', backdrop: 'dots' };
-  assert.deepEqual(withScene(stored, 'none'), { ...styled(), backdrop: 'dots' });
-  assert.deepEqual(withScene(stored, ''), { ...styled(), backdrop: 'dots' });
-  // Overrides alone would still render a light scene on the storefront.
-  assert.deepEqual(withScene({ scene_bg: '#111111' }, 'none'), {});
-  // An unset section stays deep-equal.
-  assert.deepEqual(withScene(styled(), 'none'), styled());
-});
-
-test('withBackdrop: none removes all six keys; the particle shape belongs to particles', () => {
-  const stored = {
-    ...styled(), scene: 'light', backdrop: 'particles', backdrop_color_1: '#a38250', backdrop_color_2: '#b60018',
-    backdrop_intensity: 'medium', backdrop_motion: 'still', backdrop_particle: 'ring',
-  };
-  assert.deepEqual(withBackdrop(stored, 'none'), { ...styled(), scene: 'light' });
-  assert.deepEqual(withBackdrop(styled(), 'none'), styled());
-  const glow = withBackdrop(stored, 'glow');
-  assert.equal(glow.backdrop, 'glow');
-  assert.equal('backdrop_particle' in glow, false);
-  assert.equal(glow.backdrop_intensity, 'medium');
-  assert.deepEqual(withBackdrop(styled(), 'dots'), { ...styled(), backdrop: 'dots' });
-});
-
-test('withStyleKey: empty and the unset behaviour remove the key', () => {
-  assert.deepEqual(withStyleKey(styled(), 'scene_bg', '#111111'), { ...styled(), scene_bg: '#111111' });
-  assert.deepEqual(withStyleKey({ ...styled(), scene_bg: '#111111' }, 'scene_bg', ''), styled());
-  assert.deepEqual(withStyleKey({ ...styled(), scene_bg: '#111111' }, 'scene_bg', undefined), styled());
-  assert.deepEqual(withStyleKey(styled(), 'scene_text', '  #ffffff '), { ...styled(), scene_text: '#ffffff' });
-  // soft / slow / dot are what the storefront does without the key.
-  assert.deepEqual(withStyleKey({ backdrop_intensity: 'medium' }, 'backdrop_intensity', 'soft'), {});
-  assert.deepEqual(withStyleKey({ backdrop_motion: 'still' }, 'backdrop_motion', 'slow'), {});
-  assert.deepEqual(withStyleKey({ backdrop_particle: 'ring' }, 'backdrop_particle', 'dot'), {});
-  assert.deepEqual(withStyleKey({}, 'backdrop_intensity', 'medium'), { backdrop_intensity: 'medium' });
-  assert.deepEqual(withStyleKey({}, 'backdrop_motion', 'still'), { backdrop_motion: 'still' });
-  // No key is ever stored as undefined.
-  const cleared = withStyleKey({ scene_accent: '#a38250' }, 'scene_accent', '');
-  assert.equal('scene_accent' in cleared, false);
-});
-
-test('contrastRatio follows WCAG; non-hex input gives null', () => {
-  assert.equal(Math.round(contrastRatio('#000000', '#ffffff')), 21);
-  assert.equal(contrastRatio('#fff', '#ffffff'), 1);
-  assert.equal(contrastRatio('#000', '#FFF'), contrastRatio('#ffffff', '#000000'));
-  for (const bad of ['', 'red', '#12', '#12345', 'rgb(0,0,0)', undefined, null, 12]) {
-    assert.equal(contrastRatio(bad, '#ffffff'), null, String(bad));
-    assert.equal(contrastRatio('#ffffff', bad), null, String(bad));
-  }
-});
-
-test('contrast warning: only for a pair of overrides under 4.5', () => {
-  // White on a saturated red passes; a muted gold on cream does not.
-  assert.deepEqual(sceneContrastIssues({ scene: 'accent', scene_bg: '#B60018', scene_text: '#FFFFFF' }), {});
-  const gold = sceneContrastIssues({ scene: 'light', scene_bg: '#F7F4EF', scene_text: '#111111', scene_accent: '#A38250' });
-  assert.equal(gold.text, undefined);
-  assert.ok(gold.accent > 3 && gold.accent < 4.5, String(gold.accent));
-  const grey = sceneContrastIssues({ scene_bg: '#ffffff', scene_text: '#999999' });
-  assert.ok(grey.text < 4.5);
-  // Rounded down, so a failing ratio never reads as 4.5.
-  assert.ok(sceneContrastIssues({ scene_bg: '#ffffff', scene_text: '#777777' }).text <= 4.4);
-  // One colour of the pair missing (the theme supplies it) or not a hex: no warning.
-  assert.deepEqual(sceneContrastIssues({ scene_text: '#999999' }), {});
-  assert.deepEqual(sceneContrastIssues({ scene_bg: '#ffffff' }), {});
-  assert.deepEqual(sceneContrastIssues({ scene_bg: '#fff', scene_text: '#9' }), {});
-  assert.deepEqual(sceneContrastIssues(undefined), {});
-});
-
 // ── UI texts ────────────────────────────────────────────────────────────
 
 const CREATIVE_TEXT_KEYS = ['enabled', 'enabledHint', 'smooth', 'magnetic', 'curtain', 'optionsHint', 'calmNote'];
-const STYLE_TEXT_KEYS = [
-  'styleScene', 'styleSceneHint', 'styleSceneDark', 'styleSceneLight', 'styleSceneAccent',
-  'styleSceneBg', 'styleSceneText', 'styleSceneAccentColor', 'styleSceneEmptyHint',
-  'styleSceneContrastText', 'styleSceneContrastAccent',
-  'styleBackdrop', 'styleBackdropHint', 'styleBackdropKind', 'styleBackdropDots', 'styleBackdropParticles',
-  'styleBackdropGlow', 'styleBackdropColor1', 'styleBackdropColor2', 'styleBackdropColorHint',
-  'styleBackdropIntensity', 'styleBackdropSoft', 'styleBackdropMedium',
-  'styleBackdropMotion', 'styleBackdropSlow', 'styleBackdropStill',
-  'styleBackdropParticle', 'styleBackdropDot', 'styleBackdropRing',
-];
 
 const builderTexts = (loc) =>
   JSON.parse(readFileSync(fileURLToPath(new URL(`../i18n/messages/${loc}.json`, import.meta.url)), 'utf8')).builder;
@@ -282,14 +167,9 @@ test('the calm note names the motion setting and its two values by their labels'
   }
 });
 
-test('the scene and living-background texts exist in six locales', () => {
+test('the colour scene and living background texts are gone', () => {
   for (const loc of LOCALES) {
-    const builder = builderTexts(loc);
-    for (const key of STYLE_TEXT_KEYS) assert.ok(typeof builder[key] === 'string' && builder[key].trim(), `${loc}: ${key}`);
-    // The two warnings show the measured ratio and the 4.5 target.
-    for (const key of ['styleSceneContrastText', 'styleSceneContrastAccent']) {
-      assert.ok(builder[key].includes('{ratio}'), `${loc}: ${key} ratio`);
-      assert.match(builder[key], /4[.,]5/, `${loc}: ${key} target`);
-    }
+    const keys = Object.keys(builderTexts(loc)).filter((k) => /^style(Scene|Backdrop)/.test(k));
+    assert.deepEqual(keys, [], loc);
   }
 });

@@ -1222,249 +1222,10 @@ function MarqueeTextPreview(props: PreviewProps) {
   );
 }
 
-// ── Creative engine sections ────────────────────────────────
-// Decorative words in these thumbnails stay small on purpose: the sections
-// offer Small / Medium accents only.
-
-/** A pill button, as the creative sections draw them. */
-function Pill({ x, y, w, outline }: { x: number; y: number; w: number; outline?: boolean }) {
-  return outline ? (
-    <rect x={x} y={y} width={w} height="9" rx="4.5" fill="none" stroke={TEXT} strokeWidth="0.9" />
-  ) : (
-    <rect x={x} y={y} width={w} height="9" rx="4.5" fill={PRIMARY} />
-  );
-}
-
-/** Eyebrow: a short rule followed by a thin label. */
-function EyebrowMark({ x, y, c = TEXT }: { x: number; y: number; c?: string }) {
-  return (
-    <g>
-      <rect x={x} y={y + 0.75} width="9" height="0.9" fill={c} />
-      <Bar x={x + 12} y={y} w="22" h="2.4" c={c} />
-    </g>
-  );
-}
-
-function HeroOutlinePreview(props: PreviewProps) {
-  // Copy at the start, one photo in the centre inside an arch, a modest
-  // outlined word crossing behind it, buttons and figures at the end.
-  return (
-    <Frame {...props}>
-      <path d="M78 104 V52 a22 22 0 0 1 44 0 V104 Z" fill={BORDER} />
-      <text
-        x="100" y="64" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5"
-        fill="none" stroke={TEXT} strokeWidth="0.7"
-      >
-        ATELIER
-      </text>
-      <path d="M86 104 V58 a14 14 0 0 1 28 0 V104 Z" fill={FILL} />
-      <circle cx="100" cy="52" r="6" fill="#a1a1aa" />
-      <EyebrowMark x={12} y={34} />
-      <Bar x="12" y="43" w="48" h="5" c={ACCENT} />
-      <Bar x="12" y="52" w="20" h="5" c={ACCENT} />
-      <Bar x="35" y="52" w="22" h="5" c={PRIMARY} />
-      <Bar x="142" y="42" w="46" />
-      <Bar x="142" y="49" w="36" />
-      <Pill x={142} y={60} w={23} />
-      <Pill x={168} y={60} w={21} outline />
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          <Bar x={142 + i * 17} y="82" w="10" h="4" c={ACCENT} />
-          <Bar x={142 + i * 17} y="89" w="12" h="2" />
-        </g>
-      ))}
-    </Frame>
-  );
-}
-
-function HeroSunrisePreview(props: PreviewProps) {
-  // A rayed emblem rising from behind a ridge, beside the headline.
-  return (
-    <Frame {...props}>
-      <rect x="0" y="0" width="200" height="120" fill={ACCENT} />
-      <circle cx="146" cy="70" r="34" fill={PRIMARY} opacity="0.16" />
-      {Array.from({ length: 11 }, (_, i) => {
-        const a = Math.PI + (i * Math.PI) / 10;
-        const x1 = 146 + Math.cos(a) * 22;
-        const y1 = 74 + Math.sin(a) * 22;
-        const x2 = 146 + Math.cos(a) * 30;
-        const y2 = 74 + Math.sin(a) * 30;
-        return (
-          <line
-            key={i}
-            x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)}
-            stroke={PRIMARY} strokeWidth="1.6" strokeLinecap="round"
-          />
-        );
-      })}
-      <circle cx="146" cy="74" r="17" fill={PRIMARY} />
-      <path d="M96 120 V92 L124 78 L146 90 L170 72 L200 90 V120 Z" fill="#3f3f46" />
-      <path d="M118 120 V100 L146 84 L176 100 V120 Z" fill="#52525b" />
-      <EyebrowMark x={14} y={32} c="#a1a1aa" />
-      <Bar x="14" y="42" w="62" h="5" c="#fafafa" />
-      <Bar x="14" y="51" w="26" h="5" c="#fafafa" />
-      <Bar x="43" y="51" w="24" h="5" c={PRIMARY} />
-      <Bar x="14" y="63" w="56" c="#71717a" />
-      <Bar x="14" y="70" w="44" c="#71717a" />
-      <rect x="14" y="82" width="28" height="9" rx="4.5" fill={PRIMARY} />
-      <rect x="46" y="82" width="26" height="9" rx="4.5" fill="none" stroke="#a1a1aa" strokeWidth="0.9" />
-    </Frame>
-  );
-}
-
-function StageScenesPreview(props: PreviewProps) {
-  // Three colour scenes; one object travels through them, tilts and changes side.
-  return (
-    <Frame {...props}>
-      <rect x="0" y="0" width="200" height="40" fill={ACCENT} />
-      <rect x="0" y="40" width="200" height="40" fill="#f4f4f5" />
-      <rect x="0" y="80" width="200" height="40" fill={PRIMARY} />
-      <path
-        d="M150 20 C 150 44, 50 36, 50 60 C 50 84, 150 76, 150 100"
-        fill="none" stroke="#a1a1aa" strokeWidth="0.9" strokeDasharray="2.5 2.5"
-      />
-      <circle cx="50" cy="60" r="15" fill={BORDER} />
-      <g transform="rotate(10 150 20)">
-        <rect x="143" y="8" width="14" height="24" rx="4" fill="none" stroke="#71717a" strokeWidth="0.9" />
-      </g>
-      <g transform="rotate(-10 50 60)">
-        <rect x="42" y="46" width="16" height="28" rx="4.5" fill="#ffffff" stroke={ACCENT} strokeWidth="1.1" />
-        <rect x="46" y="54" width="8" height="8" rx="4" fill={PRIMARY} />
-      </g>
-      <g transform="rotate(10 150 100)">
-        <rect x="143" y="88" width="14" height="24" rx="4" fill="none" stroke="#bfdbfe" strokeWidth="0.9" />
-      </g>
-      <Bar x="16" y="14" w="46" h="4" c="#fafafa" />
-      <Bar x="16" y="22" w="34" h="2.4" c="#71717a" />
-      <Bar x="96" y="52" w="50" h="4" c={ACCENT} />
-      <Bar x="96" y="60" w="40" h="2.4" />
-      <rect x="96" y="66" width="20" height="6" rx="3" fill={ACCENT} />
-      <Bar x="16" y="94" w="46" h="4" c="#ffffff" />
-      <Bar x="16" y="102" w="34" h="2.4" c="#bfdbfe" />
-    </Frame>
-  );
-}
-
-function StoryPinnedPreview(props: PreviewProps) {
-  // A row of tall cards running off the edge, with a progress bar under it.
-  return (
-    <Frame {...props}>
-      <EyebrowMark x={12} y={10} />
-      <Bar x="12" y="18" w="54" h="5" c={ACCENT} />
-      {[0, 1, 2, 3].map((i) => {
-        const x = 12 + i * 52;
-        return (
-          <g key={i}>
-            <rect x={x} y="32" width="46" height="62" rx="6" fill="white" stroke={BORDER} />
-            <rect x={x + 3} y="35" width="40" height="34" rx="4" fill={FILL} />
-            <Bar x={x + 4} y="74" w="8" h="2.4" c={PRIMARY} />
-            <Bar x={x + 4} y="80" w="30" h="3.5" c={ACCENT} />
-            <Bar x={x + 4} y="87" w="36" h="2" />
-          </g>
-        );
-      })}
-      <rect x="12" y="106" width="120" height="2" rx="1" fill={BORDER} />
-      <rect x="12" y="106" width="44" height="2" rx="1" fill={PRIMARY} />
-      <Bar x="168" y="104" w="20" h="3" c={TEXT} />
-    </Frame>
-  );
-}
-
-function StickyStepsPreview(props: PreviewProps) {
-  // A heading that stays beside numbered steps on a rail with a progress fill.
-  return (
-    <Frame {...props}>
-      <EyebrowMark x={14} y={26} />
-      <Bar x="14" y="36" w="54" h="5" c={ACCENT} />
-      <Bar x="14" y="45" w="24" h="5" c={ACCENT} />
-      <Bar x="41" y="45" w="20" h="5" c={PRIMARY} />
-      <Bar x="14" y="58" w="50" />
-      <Bar x="14" y="65" w="40" />
-      <rect x="94" y="14" width="1" height="92" fill={BORDER} />
-      <rect x="94" y="14" width="1" height="50" fill={PRIMARY} />
-      {[0, 1, 2].map((i) => {
-        const y = 14 + i * 34;
-        const passed = i < 2;
-        return (
-          <g key={i}>
-            <circle cx="94.5" cy={y + 6} r="3" fill={passed ? PRIMARY : SURFACE} stroke={passed ? PRIMARY : FILL} strokeWidth="1" />
-            <text
-              x="106" y={y + 11} fontSize="13" fontWeight="800"
-              fill="none" stroke={passed ? ACCENT : FILL} strokeWidth="0.7"
-            >
-              {`0${i + 1}`}
-            </text>
-            <Bar x="130" y={y + 2} w="46" h="4" c={passed ? ACCENT : FILL} />
-            <Bar x="130" y={y + 10} w="56" h="2" />
-            <Bar x="130" y={y + 15} w="42" h="2" />
-          </g>
-        );
-      })}
-    </Frame>
-  );
-}
-
-function MotionPathPreview(props: PreviewProps) {
-  // A wavy line down the middle, stops on alternating sides, artwork on the line.
-  return (
-    <Frame {...props}>
-      <Bar x="72" y="8" w="56" h="5" c={ACCENT} />
-      <path
-        d="M100 22 C 124 34, 76 46, 100 58 C 124 70, 76 82, 100 94 C 112 100, 100 108, 100 112"
-        fill="none" stroke={BORDER} strokeWidth="1.6" strokeLinecap="round"
-      />
-      <path d="M100 22 C 124 34, 76 46, 100 58" fill="none" stroke={PRIMARY} strokeWidth="1.6" strokeLinecap="round" />
-      {[
-        { y: 30, side: -1 },
-        { y: 58, side: 1 },
-        { y: 86, side: -1 },
-      ].map(({ y, side }, i) => {
-        const x = side < 0 ? 22 : 122;
-        return (
-          <g key={i}>
-            <rect x={x} y={y - 9} width="56" height="20" rx="4" fill="white" stroke={BORDER} />
-            <Bar x={x + 5} y={y - 4} w="30" h="3.5" c={ACCENT} />
-            <Bar x={x + 5} y={y + 3} w="42" h="2" />
-          </g>
-        );
-      })}
-      <circle cx="100" cy="22" r="2.5" fill={PRIMARY} />
-      <circle cx="100" cy="94" r="2.5" fill={SURFACE} stroke={FILL} strokeWidth="1" />
-      <circle cx="100" cy="58" r="6" fill={PRIMARY} />
-      <circle cx="100" cy="58" r="2.4" fill="#ffffff" />
-    </Frame>
-  );
-}
-
-function MarqueeBandPreview(props: PreviewProps) {
-  // Two rows of modest words, filled and outlined in turn, a symbol between them.
-  const row = (y: number, shift: number, flip: boolean) =>
-    [0, 1, 2, 3].map((i) => {
-      const x = shift + i * 62;
-      const outlined = (i % 2 === 1) !== flip;
-      return (
-        <g key={`${y}-${i}`}>
-          <text
-            x={x} y={y} fontSize="13" fontWeight="800" letterSpacing="1.2"
-            fill={outlined ? 'none' : '#fafafa'} stroke={outlined ? '#a1a1aa' : 'none'} strokeWidth="0.7"
-          >
-            {outlined ? 'CRAFT' : 'STORY'}
-          </text>
-          <circle cx={x + 52} cy={y - 4.5} r="2.2" fill={PRIMARY} />
-        </g>
-      );
-    });
-  return (
-    <Frame {...props}>
-      <rect x="0" y="30" width="200" height="60" fill={ACCENT} />
-      {row(55, -14, false)}
-      {row(78, -44, true)}
-    </Frame>
-  );
-}
+// ── Motion engine: ornament divider ────────────────────────────────
 
 function OrnamentLinePreview(props: PreviewProps) {
-  // A drawn frame with corner motifs around a heading, and a tiled divider.
+  // A thin tiled divider between two blocks of content.
   const tile = (x: number, y: number) => (
     <g key={x} fill="none" strokeWidth="1">
       <path d={`M${x} ${y} h6 v-4 h4 v-4 h8 v4 h4 v4 h6`} stroke={ACCENT} />
@@ -1473,23 +1234,11 @@ function OrnamentLinePreview(props: PreviewProps) {
   );
   return (
     <Frame {...props}>
-      {[0, 1, 2, 3, 4].map((i) => tile(30 + i * 28, 22))}
-      <rect x="24" y="38" width="152" height="68" fill="none" stroke={TEXT} strokeWidth="1" />
-      {[
-        [24, 38],
-        [176, 38],
-        [176, 106],
-        [24, 106],
-      ].map(([cx, cy], i) => (
-        <g key={i}>
-          <rect x={cx - 5} y={cy - 5} width="10" height="10" fill={SURFACE} stroke={ACCENT} strokeWidth="1" />
-          <path d={`M${cx} ${cy - 3} l3 3 l-3 3 l-3 -3 Z`} fill="none" stroke={PRIMARY} strokeWidth="1" />
-        </g>
-      ))}
-      <Bar x="64" y="56" w="72" h="5" c={ACCENT} />
-      <Bar x="54" y="67" w="92" />
-      <Bar x="66" y="74" w="68" />
-      <rect x="84" y="84" width="32" height="9" rx="4.5" fill={PRIMARY} />
+      <Bar x="64" y="26" w="72" h="5" c={TEXT} />
+      <Bar x="54" y="37" w="92" />
+      {[0, 1, 2, 3, 4].map((i) => tile(30 + i * 28, 66))}
+      <Bar x="54" y="84" w="92" />
+      <Bar x="66" y="92" w="68" />
     </Frame>
   );
 }
@@ -1520,13 +1269,6 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'hero-split': HeroSplitPreview,
   'parallax-banner': ParallaxBannerPreview,
   'brand-band': BrandBandPreview,
-  'hero-outline': HeroOutlinePreview,
-  'hero-sunrise': HeroSunrisePreview,
-  'stage-scenes': StageScenesPreview,
-  'story-pinned': StoryPinnedPreview,
-  'sticky-steps': StickyStepsPreview,
-  'motion-path': MotionPathPreview,
-  'marquee-band': MarqueeBandPreview,
   'ornament-line': OrnamentLinePreview,
   'before-after': BeforeAfterPreview,
   'image-hotspots': ImageHotspotsPreview,

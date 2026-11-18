@@ -114,7 +114,7 @@ test('brand-band: identity and field order', () => {
   assert.deepEqual(keys(band), [
     'image', 'alt', 'image_focus', 'overlay_opacity', 'height', 'logo', 'logo_height',
     'heading', 'heading_level', 'heading_accent', 'heading_accent_color',
-    'heading_reveal', 'heading_emphasis', 'heading_emphasis_color', 'heading_style',
+    'heading_style',
     'tagline', 'text_color', 'cta_text', 'cta_url',
   ]);
   assert.equal(SECTION_SCHEMAS.filter((s) => s.id === 'brand-band').length, 1);

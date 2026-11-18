@@ -17,12 +17,9 @@ import { repeaterAtLimit } from './repeaterLimit.ts';
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
 const NEW_KEYS = ['category-tiles', 'progress-spotlight', 'project-cards'];
 // The creative engine sections have their own test (creativeSchemas.test.mjs).
-const CREATIVE_KEYS = [
-  'hero-outline', 'hero-sunrise', 'stage-scenes', 'story-pinned',
-  'sticky-steps', 'motion-path', 'marquee-band', 'ornament-line',
-];
+const CREATIVE_KEYS = ['ornament-line'];
 // Creative options injected into existing sections (withCreativeOptions).
-const CREATIVE_OPTION_KEYS = ['heading_reveal', 'heading_emphasis', 'heading_emphasis_color', 'image_reveal', 'image_reveal_direction'];
+const CREATIVE_OPTION_KEYS = [];
 
 const keys = (fields) => fields.map((f) => f.key);
 const field = (schema, key) => schema.schema.find((f) => f.key === key);
@@ -468,8 +465,7 @@ test('image-with-text: bleed style, second button, alt', () => {
   assert.equal(field(s, 'cta_secondary_text').maxLength, 40);
   assert.equal(field(s, 'cta_secondary_url').type, 'url');
   // The second button's style fields come last (before the image reveal pair).
-  assert.deepEqual(k.slice(-2), ['image_reveal', 'image_reveal_direction']);
-  assert.deepEqual(k.slice(-7, -2), [
+  assert.deepEqual(k.slice(-5), [
     'cta_secondary_bg_color', 'cta_secondary_text_color', 'cta_secondary_border_color',
     'cta_secondary_border_width', 'cta_secondary_border_radius',
   ]);
