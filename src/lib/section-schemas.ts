@@ -1,3 +1,9 @@
+import { schema as coverHeroSchema } from './creative-sections/cover-hero.ts';
+import { schema as impactArcSchema } from './creative-sections/impact-arc.ts';
+import { schema as lookSpreadSchema } from './creative-sections/look-spread.ts';
+import { schema as objectStudySchema } from './creative-sections/object-study.ts';
+import { schema as patternBandSchema } from './creative-sections/pattern-band.ts';
+import { schema as scriptManifestoSchema } from './creative-sections/script-manifesto.ts';
 // Section schemas mirror the storefront's theme registry. Kept in sync
 // manually — these are content contracts (field keys + types + labels) that
 // drive the Inspector forms. The runtime React components stay in
@@ -5361,6 +5367,17 @@ const CX_ORNAMENT_PATH_FIELDS: FieldDefinition[] = [
 
 const CX_PAGE_AND_FOOTER: NonNullable<SectionSchema['pageTypes']> = ['HOME', 'STATIC', 'LANDING', 'FOOTER'];
 
+// Brand sections: one file per section (lib/creative-sections), each a mirror
+// of the storefront's themes/creative/schemas/<key>.schema.ts.
+const BRAND_SECTION_SCHEMAS: SectionSchema[] = [
+  coverHeroSchema,
+  lookSpreadSchema,
+  objectStudySchema,
+  scriptManifestoSchema,
+  impactArcSchema,
+  patternBandSchema,
+];
+
 const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [
   {
     id: 'ornament-line',
@@ -5418,7 +5435,7 @@ const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [
   },
 ];
 
-export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS]
+export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS, ...BRAND_SECTION_SCHEMAS]
   .map(withHeadingLevel)
   .map(withHeadingAccent)
   .map(withHeroEmblem);

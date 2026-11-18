@@ -135,3 +135,21 @@ test('no section carries a per-section motion option: motion is automatic', () =
     for (const key of ['scene', 'scene_bg', 'scene_text', 'scene_accent']) assert.ok(!keys.includes(key), `${schema.id}.${key}`);
   }
 });
+
+// Brand sections: one schema file each (lib/creative-sections), wired into
+// the palette. The field-by-field mirror is the storefront contract test's job.
+const BRAND_SECTIONS = ['cover-hero', 'look-spread', 'object-study', 'script-manifesto', 'impact-arc', 'pattern-band'];
+
+test('the six brand sections exist with every text in six locales', () => {
+  for (const id of BRAND_SECTIONS) {
+    const schema = findSectionSchema(id);
+    assert.ok(schema, id);
+    assertSixLocales(`${id}.label`, schema.label);
+    if (schema.description) assertSixLocales(`${id}.description`, schema.description);
+    for (const [path, f] of walk(schema.schema, id)) {
+      assertSixLocales(`${path}.label`, f.label);
+      if (f.description) assertSixLocales(`${path}.description`, f.description);
+      for (const o of f.options || []) assertSixLocales(`${path}.${o.value}`, o.label);
+    }
+  }
+});
