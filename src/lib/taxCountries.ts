@@ -3,7 +3,8 @@
 // country (EU, GB/CH/NO/TR, GCC), so both sets are merged and named through
 // Intl.DisplayNames in the dashboard UI locale.
 
-import { COUNTRIES, countryFlag } from '@/components/common/CountryMultiSelect';
+import { COUNTRIES } from '@/components/common/CountryMultiSelect';
+import { flagEmoji, flagSortKey } from '@/lib/countryFlags';
 
 export const EU_COUNTRY_CODES = [
   'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT',
@@ -36,12 +37,15 @@ export function countryName(code: string, locale: string): string {
   return COUNTRIES.find((c) => c.code === upper)?.name || upper;
 }
 
-// "🇸🇪 Sweden" for table cells.
+// "🇸🇪 Sweden" for table cells. A flag that carries writing is never drawn as
+// an emoji (see lib/countryFlags.ts): those countries show the name alone.
 export function countryLabel(code: string, locale: string): string {
-  return `${countryFlag(code)} ${countryName(code, locale)}`;
+  return `${flagEmoji(code)} ${countryName(code, locale)}`.trim();
 }
 
-// Searchable-select options: merged country set, sorted by localised name.
+// Searchable-select options: merged country set. The order is the one the
+// list had when every label started with its flag emoji (flagSortKey), so it
+// does not move for the countries whose label lost the emoji.
 // `extraCodes` lets a page include codes that already appear in its data.
 export function taxCountryOptions(locale: string, extraCodes: string[] = []): CountryOption[] {
   const codes = new Set<string>([
@@ -50,6 +54,10 @@ export function taxCountryOptions(locale: string, extraCodes: string[] = []): Co
     ...extraCodes.map((c) => c.toUpperCase()).filter((c) => c.length === 2),
   ]);
   return Array.from(codes)
-    .map((code) => ({ value: code, label: countryLabel(code, locale), description: code }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .map((code) => ({
+      option: { value: code, label: countryLabel(code, locale), description: code },
+      sortKey: `${flagSortKey(code)} ${countryName(code, locale)}`,
+    }))
+    .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+    .map((entry) => entry.option);
 }

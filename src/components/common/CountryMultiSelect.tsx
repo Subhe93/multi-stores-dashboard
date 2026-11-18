@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { ChevronsUpDown, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { flagEmoji } from '@/lib/countryFlags';
+import { CountryFlag } from './CountryFlag';
 
 // --- Country data ---
 export interface Country {
@@ -13,13 +15,13 @@ export interface Country {
   region: string;
 }
 
-/** Convert ISO alpha-2 code to flag emoji */
+/**
+ * Flag emoji of an ISO alpha-2 code, for text. Empty for a flag that carries
+ * writing (see lib/countryFlags.ts); in JSX use <CountryFlag />, which draws
+ * those from the bundled official artwork.
+ */
 export function countryFlag(code: string): string {
-  if (!code || code.length !== 2) return '🌐';
-  return String.fromCodePoint(
-    0x1f1e6 + (code.toUpperCase().charCodeAt(0) - 65),
-    0x1f1e6 + (code.toUpperCase().charCodeAt(1) - 65),
-  );
+  return flagEmoji(code);
 }
 
 export const COUNTRIES: Country[] = [
@@ -222,7 +224,7 @@ export function CountryMultiSelect({ value, onChange, placeholder }: CountryMult
               key={c.code}
               className="inline-flex items-center gap-0.5 bg-zinc-100 border border-zinc-200 rounded px-1.5 py-0.5 text-[11px] font-medium"
             >
-              <span>{countryFlag(c.code)}</span>
+              <span><CountryFlag code={c.code} /></span>
               <span>{c.code}</span>
               <button
                 type="button"
@@ -303,7 +305,7 @@ export function CountryMultiSelect({ value, onChange, placeholder }: CountryMult
                           isSelected ? 'bg-zinc-100' : 'hover:bg-zinc-50',
                         )}
                       >
-                        <span className="text-base w-6 text-center shrink-0">{countryFlag(c.code)}</span>
+                        <span className="text-base min-w-6 text-center shrink-0"><CountryFlag code={c.code} /></span>
                         <span className="flex-1">{c.name}</span>
                         <span className="text-[10px] text-muted-foreground font-mono">{c.code}</span>
                         <Check className={cn('w-3.5 h-3.5 shrink-0', isSelected ? 'opacity-100 text-zinc-700' : 'opacity-0')} />

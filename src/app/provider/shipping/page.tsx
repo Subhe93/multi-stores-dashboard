@@ -11,7 +11,8 @@ import { Plus, Globe, Trash2, Truck, Pencil, Star, AlertTriangle, AlertCircle, C
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
-import { CountryMultiSelect, countryFlag, COUNTRIES } from '@/components/common/CountryMultiSelect';
+import { CountryMultiSelect, COUNTRIES } from '@/components/common/CountryMultiSelect';
+import { CountryFlag } from '@/components/common/CountryFlag';
 import { useRowOpen } from '@/components/common/useTableSelection';
 import {
   ZoneMethods,
@@ -536,7 +537,7 @@ export default function ProviderShipping() {
                                   : 'bg-zinc-100 border-zinc-200'
                               }`}
                             >
-                              <span>{countryFlag(code)}</span>
+                              <span><CountryFlag code={code} /></span>
                               <span className="font-mono">{code}</span>
                               {isDupe && <AlertTriangle className="w-2.5 h-2.5 text-amber-500" />}
                             </span>

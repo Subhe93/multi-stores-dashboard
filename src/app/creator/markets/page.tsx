@@ -13,7 +13,7 @@ import { AppTurnedOff } from '@/components/apps/AppTurnedOff';
 import { useRowOpen } from '@/components/common/useTableSelection';
 import { localeLabel } from '@/components/markets/MarketForm';
 import { MARKET_STATUS_CLASS, ProviderDot, kustomCheckMessage, stripeCheckMessage } from '@/components/markets/PaymentCheckCard';
-import { countryFlag } from '@/components/common/CountryMultiSelect';
+import { CountryFlag } from '@/components/common/CountryFlag';
 import { countryName } from '@/lib/taxCountries';
 import { useAuth } from '@/lib/auth';
 import { useApiError } from '@/lib/useApiError';
@@ -128,7 +128,7 @@ export default function CreatorMarketsPage() {
                     ) : (
                       m.countries.map((c) => (
                         <span key={c} className="inline-flex items-center gap-1 rounded-full border bg-zinc-50 px-2 py-0.5" title={countryName(c, locale)}>
-                          <span aria-hidden>{countryFlag(c)}</span> {c}
+                          <span aria-hidden><CountryFlag code={c} /></span> {c}
                         </span>
                       ))
                     )}

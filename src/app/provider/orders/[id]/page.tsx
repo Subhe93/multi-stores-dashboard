@@ -17,7 +17,7 @@ import { useAuth } from '@/lib/auth';
 import { api, ApiError, API_ORIGIN } from '@/lib/api';
 import { useCurrency } from '@/lib/useCurrency';
 import { OrderTaxLines } from '@/components/common/OrderTaxLines';
-import { countryFlag } from '@/components/common/CountryMultiSelect';
+import { CountryFlag } from '@/components/common/CountryFlag';
 import type { TaxLine, TaxPricingMode } from '@/lib/taxRate';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
@@ -913,7 +913,7 @@ export default function ProviderOrderDetail() {
               <p>{order.address?.city}{order.address?.postal_code ? `, ${order.address.postal_code}` : ''}</p>
               {order.address?.country_code && (
                 <p className="flex items-center gap-1">
-                  <span>{countryFlag(order.address.country_code)}</span>
+                  <span><CountryFlag code={order.address.country_code} /></span>
                   <span>{countryName(order.address.country_code, uiLocale)}</span>
                 </p>
               )}
