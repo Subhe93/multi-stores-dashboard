@@ -108,9 +108,12 @@ interface OrderDetail {
   tax_pricing_mode?: TaxPricingMode | null;
   items: OrderItem[];
   timeline: TimelineEntry[];
+  // A provider gets its OWN share as provider_amount. On an order shared
+  // with another provider, platform_amount and creator_amount are null: with
+  // the total they would reveal the other provider's amount.
   commission?: {
-    platform_amount: number | string;
-    creator_amount: number | string;
+    platform_amount: number | string | null;
+    creator_amount: number | string | null;
     provider_amount: number | string;
     /** Marketplace VAT kept by the platform as seller (null on older orders). */
     vat_amount?: number | string | null;
@@ -831,10 +834,12 @@ export default function ProviderOrderDetail() {
                       <span className="text-zinc-500">−{fmt(Number(order.net_shipping))}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{t('platformFeeLower')}</span>
-                    <span className="text-zinc-500">−{fmt(Number(order.commission.platform_amount))}</span>
-                  </div>
+                  {order.commission.platform_amount != null && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{t('platformFeeLower')}</span>
+                      <span className="text-zinc-500">−{fmt(Number(order.commission.platform_amount))}</span>
+                    </div>
+                  )}
                   {Number(order.commission.creator_amount) > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">{t('creatorShareLower')}</span>
