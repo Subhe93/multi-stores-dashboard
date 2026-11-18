@@ -81,6 +81,8 @@ const STATUS_COLORS: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   failed: 'bg-red-50 text-red-700 border-red-200',
   offline: 'bg-sky-50 text-sky-700 border-sky-200',
+  // A payout whose transfer was taken back in full after a refund.
+  reversed: 'bg-zinc-100 text-zinc-700 border-zinc-200',
   refunded: 'bg-zinc-100 text-zinc-500 border-zinc-200',
   cancelled: 'bg-zinc-100 text-zinc-500 border-zinc-200',
 };
@@ -345,7 +347,7 @@ export default function ProviderEarnings() {
       render: (p: PayoutRow) => (
         <div className="flex flex-col items-start gap-1">
           <Badge variant="outline" className={`text-[10px] ${STATUS_COLORS[p.status] ?? ''}`}>
-            {p.status === 'paid' ? statusLabel('transferred') : statusLabel('failed')}
+            {p.status === 'paid' ? statusLabel('transferred') : p.status === 'reversed' ? statusLabel('reversed') : statusLabel('failed')}
           </Badge>
           {p.order_refunded && (
             <span className="text-[10px] text-amber-700">{te('refundedAfterTransfer')}</span>

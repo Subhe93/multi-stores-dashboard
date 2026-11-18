@@ -32,6 +32,7 @@ import {
   arabicFontValue,
   buttonRadiusValue,
   creativeValue,
+  keepOwnerSettings,
   motionValue,
   withArabicFont,
   withButtonRadius,
@@ -206,8 +207,9 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   const customCss = customCssOf(draft);
   const cssTooLong = isCustomCssTooLong(customCss);
 
-  // Resets the look tokens only: the custom CSS is owner content and stays.
-  const handleReset = () => apply(withCustomCss({}, customCss));
+  // Resets the look tokens only. The store's own settings stay: the custom
+  // CSS (owner content), the motion profile and product.card.
+  const handleReset = () => apply(keepOwnerSettings(draft) as ThemeTokenCustomizations);
 
   const handleSave = async () => {
     // Over the cap: the message under the field explains what to do.

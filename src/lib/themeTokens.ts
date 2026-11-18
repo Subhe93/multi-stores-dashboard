@@ -272,3 +272,58 @@ export function withCreative<T extends ThemeTokensLike>(tokens: T, patch: Partia
   else delete next.motion;
   return next as T;
 }
+
+// ── Look reset ("Reset to theme", a theme switch, a preset) ────────────────
+// A reset clears the look tokens. What is the store's own stays: the custom
+// CSS (owner content) and the behaviour settings `motion` and `product.card`.
+// Same rule and vectors as keepOwnerSettings in the API
+// (multi-stores-api/src/modules/themes/keep-owner-css.ts).
+
+/** What a look reset keeps. Spread it into the new customizations object. */
+export interface OwnerSettings {
+  customCss?: string;
+  motion?: Dict;
+  product?: { card: unknown };
+}
+
+/**
+ * The store's own settings in `previous`:
+ *  - `customCss` when it is a non-blank string;
+ *  - `motion` when it is a non-empty plain object;
+ *  - `product.card` when it is not null / undefined. Other `product` keys
+ *    (e.g. `swatchShape`) are look tokens and are reset.
+ * Anything else (not an object, an array, a string) gives {}.
+ */
+export function keepOwnerSettings(previous: unknown): OwnerSettings {
+  if (!isDict(previous)) return {};
+  const kept: OwnerSettings = {};
+  const css = previous.customCss;
+  if (typeof css === 'string' && css.trim() !== '') kept.customCss = css;
+  const motion = previous.motion;
+  if (isDict(motion) && Object.keys(motion).length > 0) kept.motion = motion;
+  const product = previous.product;
+  if (isDict(product) && product.card !== null && product.card !== undefined) {
+    kept.product = { card: product.card };
+  }
+  return kept;
+}
+
+/** Top-level keys that never make a store's look "customized". */
+const NON_LOOK_KEYS: ReadonlySet<string> = new Set(['customCss', 'motion', 'preset_id']);
+
+/**
+ * True when the customizations carry look overrides (colours, fonts, spacing,
+ * a swatch shape…). The custom CSS, `motion`, `product.card` and `preset_id`
+ * are not look overrides: a store that holds only those is on its theme's
+ * own look.
+ */
+export function hasLookOverrides(tokens: unknown): boolean {
+  if (!isDict(tokens)) return false;
+  return Object.keys(tokens).some((key) => {
+    if (NON_LOOK_KEYS.has(key)) return false;
+    if (key !== 'product') return true;
+    const product = tokens.product;
+    // A product object that holds nothing but `card` is behaviour only.
+    return !(isDict(product) && Object.keys(product).length > 0 && Object.keys(product).every((k) => k === 'card'));
+  });
+}

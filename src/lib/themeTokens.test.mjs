@@ -251,3 +251,67 @@ test('the customizer offers the Arabic fonts and the button shape through the he
   // Right-to-left: no physical side classes in the customizer.
   assert.equal(/\b(?:ml|mr|pl|pr|left|right)-\d/.test(source), false);
 });
+
+// ── Look reset keeps the store's own settings (same vectors as the API) ────
+
+test('keepOwnerSettings keeps the custom CSS, motion and product.card only', async () => {
+  const { keepOwnerSettings } = await import('./themeTokens.ts');
+  assert.deepEqual(
+    keepOwnerSettings({
+      colors: { primary: '#111111' },
+      customCss: 'a{}',
+      motion: { reveal: 'off' },
+      product: { swatchShape: 'square', card: { x: 1 } },
+    }),
+    { customCss: 'a{}', motion: { reveal: 'off' }, product: { card: { x: 1 } } },
+  );
+  for (const input of [{ motion: {} }, { motion: [] }, { product: { swatchShape: 'square' } }, null, 'x', undefined, [], { customCss: '   ' }, { product: { card: null } }, { product: 'card' }]) {
+    assert.deepEqual(keepOwnerSettings(input), {}, JSON.stringify(input));
+  }
+  // Each key is kept on its own.
+  assert.deepEqual(keepOwnerSettings({ motion: { zoom: 'subtle' }, colors: {} }), { motion: { zoom: 'subtle' } });
+  assert.deepEqual(keepOwnerSettings({ product: { card: false } }), { product: { card: false } });
+  assert.deepEqual(keepOwnerSettings(full()), { customCss: full().customCss });
+  // The input is not mutated.
+  const before = { ...full(), motion: { reveal: 'calm' } };
+  const copy = structuredClone(before);
+  keepOwnerSettings(before);
+  assert.deepEqual(before, copy);
+});
+
+test('hasLookOverrides ignores the custom CSS, motion, product.card and preset_id', async () => {
+  const { hasLookOverrides, keepOwnerSettings } = await import('./themeTokens.ts');
+  for (const input of [
+    undefined, null, 'x', [], {},
+    { customCss: 'a{}' },
+    { motion: { reveal: 'off' } },
+    { product: { card: { x: 1 } } },
+    { preset_id: 'editorial-serif' },
+    { customCss: 'a{}', motion: { zoom: 'off' }, product: { card: 1 }, preset_id: 'p' },
+  ]) {
+    assert.equal(hasLookOverrides(input), false, JSON.stringify(input));
+  }
+  for (const input of [
+    full(),
+    { colors: { primary: '#000' } },
+    { colors: {} },
+    { typography: { fontFamily: { heading: 'Inter' } } },
+    { product: { swatchShape: 'square' } },
+    { product: { swatchShape: 'square', card: { x: 1 } } },
+    { product: {} },
+    { motion: { reveal: 'off' }, spacing: { radius: { button: '0px' } } },
+  ]) {
+    assert.equal(hasLookOverrides(input), true, JSON.stringify(input));
+  }
+  // What a reset keeps is never a look override.
+  assert.equal(hasLookOverrides(keepOwnerSettings({ ...full(), motion: { reveal: 'off' }, product: { swatchShape: 'square', card: { x: 1 } } })), false);
+});
+
+test('the customizer reset and the builder theme switch keep the owner settings', () => {
+  const read = (path) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf8');
+  const customizer = read('../components/builder/ThemeCustomizer.tsx');
+  assert.ok(customizer.includes('apply(keepOwnerSettings(draft)'), 'customizer reset');
+  const builder = read('../components/builder/BuilderLayout.tsx');
+  assert.ok(builder.includes('setThemeCustomizations((prev) => keepOwnerSettings(prev)'), 'theme switch mirror');
+  assert.ok(builder.includes('hasLookOverrides(themeCustomizations)'), 'customized flag');
+});

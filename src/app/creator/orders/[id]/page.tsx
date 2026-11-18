@@ -16,6 +16,7 @@ import { OrderTaxLines } from '@/components/common/OrderTaxLines';
 import { OrderCompanyLines } from '@/components/common/OrderCompanyLines';
 import { OrderCustomerCard } from '@/components/orders/OrderCustomerCard';
 import { useStoreType } from '@/lib/useStoreType';
+import { PAYOUT_BADGE_CLASS, PAYOUT_BADGE_LABEL_KEY, payoutBadgeKind } from '@/lib/payoutStatus';
 import { KustomPaymentPanel, type KustomOrderFields } from '@/components/common/KustomPaymentPanel';
 import { deriveNetTotals, formatAmountIn, type TaxLine, type TaxPricingMode } from '@/lib/taxRate';
 import { normalizeB2bSettings, type CustomerB2bDefaults, type OrderB2bSnapshot, type OrderTaxExemptionFields } from '@/lib/b2b';
@@ -1022,8 +1023,14 @@ export default function CreatorOrderDetailPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">{tp('yourPayout')}</span>
                         {myPayout ? (
-                          <Badge variant="outline" className={`text-[11px] ${myPayout.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                            {myPayout.status === 'paid' ? tp('statusPaid') : tp('statusFailed')}
+                          <Badge variant="outline" className={`text-[11px] ${PAYOUT_BADGE_CLASS[payoutBadgeKind(myPayout.status)]}`}>
+                            {tp(PAYOUT_BADGE_LABEL_KEY[payoutBadgeKind(myPayout.status)])}
+                          </Badge>
+                        ) : order.payment_method === 'COD' ? (
+                          // Cash on delivery: the cash never passes through the
+                          // platform, so no payout will ever follow.
+                          <Badge variant="outline" className="text-[11px] bg-sky-50 text-sky-700 border-sky-200">
+                            {tp('statusOutsidePlatform')}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[11px] bg-zinc-100 text-zinc-600 border-zinc-200">

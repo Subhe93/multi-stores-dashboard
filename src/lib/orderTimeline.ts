@@ -23,6 +23,14 @@ export const PAYMENT_TIMELINE_STATUSES = [
   'DELETED',
   'RESTORED',
   'TEST_FLAG',
+  // Stock moved by an admin cancel / refund, and back.
+  'STOCK_RETURNED',
+  'STOCK_RETAKEN',
+  // Payouts to take back after a refund (creator and admin pages only: the
+  // API drops these rows from the buyer and provider views).
+  'TRANSFER_REVERSAL_DUE',
+  'TRANSFER_REVERSED',
+  'TRANSFER_REVERSAL_FAILED',
 ] as const;
 
 export type PaymentTimelineStatus = (typeof PAYMENT_TIMELINE_STATUSES)[number];

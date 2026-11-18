@@ -42,6 +42,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { localizedTaxText, type TaxClass } from '@/lib/taxRate';
 import { isValidGtin } from '@/lib/gtin';
 import { MAX_PER_ORDER_MAX, MAX_PER_ORDER_MIN, maxPerOrderPayload, maxPerOrderText, parseMaxPerOrder } from '@/lib/maxPerOrder';
+import { productStockPayload, variantStockSummary } from '@/lib/variantStock';
 import { productRequiresShipping, requiresShippingPayload } from '@/lib/requiresShipping';
 import { EMAIL_NOTE_MAX, emailNotePayload, emailNoteText } from '@/lib/emailNote';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
@@ -886,7 +887,9 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         cost_price: costPrice ? parseFloat(costPrice) : undefined,
         sku: sku || undefined,
         track_inventory: trackInventory,
-        stock_quantity: stockQty ? parseInt(stockQty) : undefined,
+        // With variants the stock lives on the variant rows: the product-level
+        // number is not sent, so a save never overwrites it with a stale value.
+        stock_quantity: productStockPayload(stockQty, variants),
         ...maxPerOrderPayload(maxPerOrder, { mode, serverHasKey: serverHasMaxPerOrder, savedText: savedMaxPerOrder }),
         weight: weight ? parseFloat(weight) : undefined,
         weight_unit: weightUnit,
@@ -1780,7 +1783,34 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5"><Label className="text-xs">{t('product.sku')}</Label><Input className="h-8 text-sm font-mono" value={sku} onChange={e => setSku(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label className="text-xs">{t('product.quantity')}</Label><Input type="number" className="h-8 text-sm" value={stockQty} onChange={e => setStockQty(e.target.value)} /></div>
+                {/* With variants the stock is sold from the variant rows, so the
+                    product-level number is read-only: the sum of the active
+                    variants, or "per variant" when one of them is untracked. */}
+                {(() => {
+                  const stock = variantStockSummary(variants);
+                  if (stock.kind === 'product') {
+                    return (
+                      <div className="space-y-1.5"><Label className="text-xs">{t('product.quantity')}</Label><Input type="number" className="h-8 text-sm" value={stockQty} onChange={e => setStockQty(e.target.value)} /></div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="product-quantity-variants" className="text-xs">{t('product.quantity')}</Label>
+                      <Input
+                        id="product-quantity-variants"
+                        type="text"
+                        readOnly
+                        aria-readonly="true"
+                        aria-describedby="product-quantity-variants-help"
+                        className="h-8 text-sm bg-zinc-50 text-muted-foreground"
+                        value={stock.kind === 'sum' ? String(stock.total) : t('product.quantityPerVariant')}
+                      />
+                      <p id="product-quantity-variants-help" className="text-[10px] text-muted-foreground leading-snug">
+                        {stock.kind === 'sum' ? t('product.quantityFromVariantsHelp') : t('product.quantityPerVariantHelp')}
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="product-max-per-order" className="text-xs">{t('product.maxPerOrder')}</Label>
