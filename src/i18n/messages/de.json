@@ -6738,7 +6738,31 @@
     "customCss": "Eigenes CSS",
     "customCssHint": "Für fortgeschrittene Nutzer. Dieses CSS wird auf jeder Seite Ihres Shops nach den Theme-Stilen eingefügt und kann sie überschreiben.",
     "customCssEmptyHint": "Lassen Sie das Feld leer, um das eigene CSS zu entfernen.",
-    "customCssTooLong": "Eigenes CSS ist auf {max} Zeichen begrenzt. Entfernen Sie {over} Zeichen, um zu speichern."
+    "customCssTooLong": "Eigenes CSS ist auf {max} Zeichen begrenzt. Entfernen Sie {over} Zeichen, um zu speichern.",
+    "listing": {
+      "title": "Produktliste",
+      "enabled": "Filter und Sortierung auf Produktseiten",
+      "enabledHint": "Ergänzt /products und jede Kollektionsseite um Filter mit Anzahlen (Kategorie, Preis, Verfügbarkeit, Farbe, Größe), Sortierung und eine Spaltenwahl. Kundinnen und Kunden können eine gefilterte Seite per Link teilen. Ausschalten stellt die bisherige Liste wieder her.",
+      "style": "Filter am Desktop",
+      "styleBar": "Leiste mit Menüs über den Produkten",
+      "styleRail": "Seitenspalte neben den Produkten",
+      "styleHint": "Auf dem Smartphone öffnen sich die Filter immer in einem Fenster von unten.",
+      "filters": "Angezeigte Filter (in dieser Reihenfolge)",
+      "filterCollection": "Kategorie (deine Kollektionen)",
+      "filterType": "Produktart",
+      "filterPrice": "Preis",
+      "filterAvailability": "Nur verfügbare",
+      "filterColor": "Farbe",
+      "filterSize": "Größe",
+      "moveUp": "{name} nach oben",
+      "moveDown": "{name} nach unten",
+      "filtersHint": "Ein Filter erscheint nur, wenn deine Produkte dafür etwas bieten: Farbe und Größe stammen aus Variantenoptionen, die wie eine Farbe oder Größe heißen; die Produktart braucht mindestens zwei Arten.",
+      "density": "Spalten am Desktop",
+      "mobileDensity": "Spalten am Smartphone",
+      "columns": "{count, plural, one {# Spalte} other {# Spalten}}",
+      "densitySwitch": "Kundschaft kann die Spalten ändern",
+      "densitySwitchHint": "Die Wahl wird auf dem jeweiligen Gerät gespeichert."
+    }
   },
   "product": {
     "seededFromLocale": "Name & Beschreibung stammen aus einer früheren Shopsprache ({locale}). Prüfe sie und speichere, um sie in der aktuellen Sprache zu übernehmen.",

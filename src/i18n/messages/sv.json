@@ -6738,7 +6738,31 @@
     "customCss": "Egen CSS",
     "customCssHint": "För avancerade användare. Den här CSS-koden läggs till på alla sidor i din butik, efter temats stilar, och kan därför skriva över dem.",
     "customCssEmptyHint": "Lämna fältet tomt för att ta bort din egen CSS.",
-    "customCssTooLong": "Egen CSS är begränsad till {max} tecken. Ta bort {over} tecken för att spara."
+    "customCssTooLong": "Egen CSS är begränsad till {max} tecken. Ta bort {over} tecken för att spara.",
+    "listing": {
+      "title": "Produktlista",
+      "enabled": "Filter och sortering på produktsidor",
+      "enabledHint": "Ger /products och varje kollektionssida filter med antal (kategori, pris, tillgänglighet, färg, storlek), sortering och val av antal kolumner. Kunder kan dela en filtrerad sida med dess länk. Stäng av för att gå tillbaka till listan som den var.",
+      "style": "Filter på datorn",
+      "styleBar": "Rad med menyer ovanför produkterna",
+      "styleRail": "Sidokolumn bredvid produkterna",
+      "styleHint": "På mobilen öppnas filtren alltid i en panel nerifrån.",
+      "filters": "Filter som visas (i denna ordning)",
+      "filterCollection": "Kategori (dina kollektioner)",
+      "filterType": "Produkttyp",
+      "filterPrice": "Pris",
+      "filterAvailability": "Endast i lager",
+      "filterColor": "Färg",
+      "filterSize": "Storlek",
+      "moveUp": "Flytta upp {name}",
+      "moveDown": "Flytta ner {name}",
+      "filtersHint": "Ett filter visas bara när dina produkter har något att erbjuda i det: färg och storlek kommer från variantalternativ som heter som en färg eller storlek, produkttyp kräver minst två typer.",
+      "density": "Kolumner på datorn",
+      "mobileDensity": "Kolumner på mobilen",
+      "columns": "{count, plural, one {# kolumn} other {# kolumner}}",
+      "densitySwitch": "Kunder kan ändra antal kolumner",
+      "densitySwitchHint": "Varje kunds val sparas på deras enhet."
+    }
   },
   "product": {
     "seededFromLocale": "Namn & beskrivning visas från ett tidigare butiksspråk ({locale}). Granska dem och spara för att lagra dem på det aktuella språket.",

@@ -6738,7 +6738,31 @@
     "customCss": "Custom CSS",
     "customCssHint": "For advanced users. This CSS is added to every page of your storefront, after the theme styles, so it can override them.",
     "customCssEmptyHint": "Leave the field empty to remove the custom CSS.",
-    "customCssTooLong": "Custom CSS is limited to {max} characters. Remove {over} characters to save."
+    "customCssTooLong": "Custom CSS is limited to {max} characters. Remove {over} characters to save.",
+    "listing": {
+      "title": "Product listing",
+      "enabled": "Filters and sorting on product pages",
+      "enabledHint": "Gives /products and every collection page filters with counts (category, price, availability, colour, size), sorting and a column switch. Shoppers can share a filtered page by its link. Switch it off to go back to the listing as it was.",
+      "style": "Filters on desktop",
+      "styleBar": "Bar of dropdowns above the products",
+      "styleRail": "Side column next to the products",
+      "styleHint": "On phones the filters always open in a sheet from the bottom.",
+      "filters": "Filters shown (in this order)",
+      "filterCollection": "Category (your collections)",
+      "filterType": "Product type",
+      "filterPrice": "Price",
+      "filterAvailability": "In stock only",
+      "filterColor": "Colour",
+      "filterSize": "Size",
+      "moveUp": "Move {name} up",
+      "moveDown": "Move {name} down",
+      "filtersHint": "A filter appears only when your products have something to offer in it: colour and size come from variant options named like a colour or a size, product type needs two or more types.",
+      "density": "Columns on desktop",
+      "mobileDensity": "Columns on phones",
+      "columns": "{count, plural, one {# column} other {# columns}}",
+      "densitySwitch": "Shoppers can change the columns",
+      "densitySwitchHint": "Each shopper’s choice is remembered on their device."
+    }
   },
   "product": {
     "seededFromLocale": "Name & description are shown from a previous store language ({locale}). Review them, then save to store them in the current language.",

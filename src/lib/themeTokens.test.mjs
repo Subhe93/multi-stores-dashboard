@@ -479,3 +479,86 @@ test('product card: the customizer edits it through the helpers, with texts in s
   }
   for (const key of Object.keys(en)) assert.ok(used.has(key), `unused key card.${key}`);
 });
+
+// ── Product listing (store.theme_customizations.listing) ───────────────────
+// Mirror of multi-stores-web/src/lib/listingFilters/settings.ts: the object
+// exists = the filtered listing; only what the owner chose is stored.
+
+test('product listing: the value lists and the defaults are the storefront contract', async () => {
+  const m = await import('./themeTokens.ts');
+  assert.deepEqual([...m.LISTING_FILTER_KEYS], ['collection', 'type', 'price', 'availability', 'color', 'size']);
+  assert.deepEqual([...m.LISTING_DENSITIES], [2, 3, 4]);
+  assert.deepEqual([...m.LISTING_MOBILE_DENSITIES], [1, 2]);
+  assert.deepEqual([...m.LISTING_STYLES], ['bar', 'rail']);
+  const off = m.listingValue({});
+  assert.deepEqual(off, {
+    enabled: false,
+    filters: ['collection', 'type', 'price', 'availability', 'color', 'size'],
+    density: 4,
+    mobile_density: 2,
+    style: 'bar',
+    density_switch: true,
+  });
+  for (const listing of [null, [], 'on', true, 1]) assert.equal(m.listingValue({ listing }).enabled, false);
+  assert.deepEqual(m.listingValue({ listing: {} }), { ...off, enabled: true });
+  assert.deepEqual(
+    m.listingValue({ listing: { filters: ['size', 'x', 'size', 'price'], density: 5, mobile_density: 1, style: 'grid', density_switch: false } }),
+    { enabled: true, filters: ['size', 'price'], density: 4, mobile_density: 1, style: 'bar', density_switch: false },
+  );
+});
+
+test('product listing: on stores {} and only what differs; off removes the key', async () => {
+  const { withListing } = await import('./themeTokens.ts');
+  const base = full();
+  const on = withListing(base, { enabled: true });
+  assert.deepEqual(on, { ...full(), listing: {} });
+  assert.deepEqual(
+    withListing(on, { filters: ['color', 'size'], density: 3, mobile_density: 1, style: 'rail', density_switch: false }).listing,
+    { filters: ['color', 'size'], density: 3, mobile_density: 1, style: 'rail', density_switch: false },
+  );
+  // The default order of all six is not stored; an empty list is.
+  assert.deepEqual(withListing(on, { filters: ['collection', 'type', 'price', 'availability', 'color', 'size'] }).listing, {});
+  assert.deepEqual(withListing(on, { filters: [] }).listing, { filters: [] });
+  // Unknown keys inside listing are kept.
+  assert.deepEqual(withListing({ listing: { future: 1 } }, { density: 2 }).listing, { future: 1, density: 2 });
+  // Off removes it; off on a store without it is a deep-equal copy.
+  assert.deepEqual(withListing(on, { enabled: false }), full());
+  assert.deepEqual(withListing(full(), { enabled: false }), full());
+  assert.deepEqual(base, full());
+});
+
+test('product listing: kept by a look reset, never a look override', async () => {
+  const { keepOwnerSettings, hasLookOverrides } = await import('./themeTokens.ts');
+  assert.deepEqual(keepOwnerSettings({ ...full(), listing: {} }), { customCss: full().customCss, listing: {} });
+  assert.deepEqual(keepOwnerSettings({ listing: { density: 3 } }), { listing: { density: 3 } });
+  for (const listing of [null, [], 'on']) assert.deepEqual(keepOwnerSettings({ listing }), {});
+  assert.equal(hasLookOverrides({ listing: {} }), false);
+  assert.equal(hasLookOverrides({ listing: { style: 'rail' }, customCss: 'a{}' }), false);
+  assert.equal(hasLookOverrides({ listing: {}, colors: { primary: '#000' } }), true);
+});
+
+test('product listing: the customizer edits it through the helpers, with texts in six locales', () => {
+  const source = readFileSync(
+    fileURLToPath(new URL('../components/builder/ThemeCustomizer.tsx', import.meta.url)),
+    'utf8',
+  );
+  for (const name of ['listingValue(draft)', 'withListing(draft, patch)']) assert.ok(source.includes(name), name);
+  const used = new Set([...source.matchAll(/'listing\.([A-Za-z]+)'/g)].map((m) => m[1]));
+  assert.ok(used.size >= 20, `listing keys used: ${used.size}`);
+  const en = JSON.parse(readFileSync(fileURLToPath(new URL('../i18n/messages/en.json', import.meta.url)), 'utf8')).builder.listing;
+  const PLACEHOLDERS = { moveUp: ['{name}'], moveDown: ['{name}'] };
+  for (const locale of LOCALES) {
+    const file = fileURLToPath(new URL(`../i18n/messages/${locale}.json`, import.meta.url));
+    const listing = JSON.parse(readFileSync(file, 'utf8')).builder.listing;
+    assert.deepEqual(Object.keys(listing), Object.keys(en), `${locale} key set`);
+    for (const key of used) assert.ok(typeof listing[key] === 'string' && listing[key].trim(), `${locale} listing.${key}`);
+    for (const [key, text] of Object.entries(listing)) {
+      if (key === 'columns') {
+        assert.ok(text.startsWith('{count, plural,'), `${locale} listing.columns`);
+        continue;
+      }
+      assert.deepEqual(text.match(/\{[^}]*\}/g) ?? [], PLACEHOLDERS[key] ?? [], `${locale} listing.${key}`);
+    }
+  }
+  for (const key of Object.keys(en)) assert.ok(used.has(key), `unused key listing.${key}`);
+});
