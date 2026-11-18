@@ -16,6 +16,13 @@ import { repeaterAtLimit } from './repeaterLimit.ts';
 
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
 const NEW_KEYS = ['category-tiles', 'progress-spotlight', 'project-cards'];
+// The creative engine sections have their own test (creativeSchemas.test.mjs).
+const CREATIVE_KEYS = [
+  'hero-outline', 'hero-sunrise', 'stage-scenes', 'story-pinned',
+  'sticky-steps', 'motion-path', 'marquee-band', 'ornament-line',
+];
+// Creative options injected into existing sections (withCreativeOptions).
+const CREATIVE_OPTION_KEYS = ['heading_reveal', 'heading_emphasis', 'heading_emphasis_color', 'image_reveal', 'image_reveal_direction'];
 
 const keys = (fields) => fields.map((f) => f.key);
 const field = (schema, key) => schema.schema.find((f) => f.key === key);
@@ -294,7 +301,7 @@ test('no repeater in the new schemas lacks maxItems', () => {
   }
   // Repeaters of the other sections stay unlimited.
   for (const schema of SECTION_SCHEMAS) {
-    if (NEW_KEYS.includes(schema.id)) continue;
+    if (NEW_KEYS.includes(schema.id) || CREATIVE_KEYS.includes(schema.id)) continue;
     for (const f of schema.schema) assert.equal(f.maxItems, undefined, `${schema.id}.${f.key}`);
   }
 });
@@ -342,13 +349,13 @@ test('labels of the three new sections cover every dashboard locale', () => {
 
 // ── The three variants ──────────────────────────────────────────────────
 
-const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow', 'heading_accent', 'heading_accent_color'];
+const HERO_SPLIT_ADDED = ['variant', 'alt', 'image_width', 'image_focus', 'tone', 'bg_color', 'edge', 'mobile_order', 'cta_tone', 'cta_arrow', 'heading_accent', 'heading_accent_color', ...CREATIVE_OPTION_KEYS];
 const IMAGE_WITH_TEXT_ADDED = [
   'alt', 'image_style', 'min_height', 'image_focus', 'tone', 'bg_color', 'edge',
   'cta_secondary_text', 'cta_secondary_url', 'cta_tone',
   'cta_secondary_bg_color', 'cta_secondary_text_color', 'cta_secondary_border_color',
   'cta_secondary_border_width', 'cta_secondary_border_radius',
-  'heading_accent', 'heading_accent_color',
+  'heading_accent', 'heading_accent_color', ...CREATIVE_OPTION_KEYS,
 ];
 const TRUST_BADGES_ADDED = ['icon_color'];
 
@@ -460,8 +467,9 @@ test('image-with-text: bleed style, second button, alt', () => {
   }
   assert.equal(field(s, 'cta_secondary_text').maxLength, 40);
   assert.equal(field(s, 'cta_secondary_url').type, 'url');
-  // The second button's style fields come last.
-  assert.deepEqual(k.slice(-5), [
+  // The second button's style fields come last (before the image reveal pair).
+  assert.deepEqual(k.slice(-2), ['image_reveal', 'image_reveal_direction']);
+  assert.deepEqual(k.slice(-7, -2), [
     'cta_secondary_bg_color', 'cta_secondary_text_color', 'cta_secondary_border_color',
     'cta_secondary_border_width', 'cta_secondary_border_radius',
   ]);
@@ -542,10 +550,11 @@ function headingFields(fields, out = []) {
 
 test('the heading is a textarea in exactly the five sections that keep typed line breaks', () => {
   // Catalog order; same five as the storefront schemas (the web test compares the types).
-  const textarea = SECTION_SCHEMAS.filter((s) => field(s, 'heading')?.type === 'textarea').map((s) => s.id);
+  const catalog = SECTION_SCHEMAS.filter((s) => !CREATIVE_KEYS.includes(s.id));
+  const textarea = catalog.filter((s) => field(s, 'heading')?.type === 'textarea').map((s) => s.id);
   assert.deepEqual(textarea, MULTILINE_HEADINGS);
   // Every other heading, nested ones included, is still a one-line text field.
-  for (const schema of SECTION_SCHEMAS) {
+  for (const schema of catalog) {
     const multiline = MULTILINE_HEADINGS.includes(schema.id);
     for (const f of headingFields(schema.schema)) {
       const top = f === field(schema, 'heading');
