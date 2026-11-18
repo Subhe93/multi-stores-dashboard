@@ -4,7 +4,7 @@ import { schema as lookSpreadSchema } from './creative-sections/look-spread.ts';
 import { schema as objectStudySchema } from './creative-sections/object-study.ts';
 import { schema as patternBandSchema } from './creative-sections/pattern-band.ts';
 import { schema as scriptManifestoSchema } from './creative-sections/script-manifesto.ts';
-import { SCROLL_SECTION_SCHEMAS } from './creative-sections/scroll-sections.ts';
+import { HERO_SECTION_SCHEMAS, SCROLL_SECTION_SCHEMAS } from './creative-sections/scroll-sections.ts';
 // Section schemas mirror the storefront's theme registry. Kept in sync
 // manually — these are content contracts (field keys + types + labels) that
 // drive the Inspector forms. The runtime React components stay in
@@ -4675,6 +4675,84 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
       { key: 'text_color', type: 'color', label: { en: 'Text color', ar: 'لون النص' } },
       { key: 'border_color', type: 'color', label: { en: 'Bottom border color', ar: 'لون الحد السفلي' } },
       { key: 'accent_color', type: 'color', label: { en: 'Accent (active link / locale)', ar: 'لون التمييز (الرابط النشط / اللغة)' } },
+      {
+        // Opt-in: unset or 'off' renders the bar as before. Contract shared
+        // with the storefront (HeaderBar.tsx + globals.css): at the top of the
+        // page the bar lies over the first section, transparent with light
+        // text, and turns solid on scroll. The section can read the bar height
+        // from var(--store-header-h).
+        key: 'overlay_hero',
+        type: 'select',
+        label: L(
+          'Transparent over the first section',
+          'شفاف فوق القسم الأول',
+          'İlk bölümün üzerinde şeffaf',
+          'Transparent über dem ersten Abschnitt',
+          'Transparent sur la première section',
+          'Transparent över första sektionen',
+        ),
+        description: L(
+          'At the top of the page the bar lies over the first section with a transparent background and light text, and turns solid on scroll. "Pages with a hero" means every page whose first section is a hero. A hero can use var(--store-header-h) as its top padding.',
+          'في أعلى الصفحة يظهر الشريط فوق القسم الأول بخلفية شفافة ونص فاتح، ويعود صلباً عند التمرير. «الصفحات ذات البانر الرئيسي» تعني كل صفحة قسمها الأول بانر رئيسي. يمكن للبانر استخدام var(--store-header-h) كمسافة علوية.',
+          'Sayfanın en üstünde çubuk, şeffaf arka plan ve açık renkli metinle ilk bölümün üzerinde durur ve kaydırınca düz renge döner. "Hero içeren sayfalar", ilk bölümü bir hero olan her sayfa demektir. Hero, üst boşluğu için var(--store-header-h) kullanabilir.',
+          'Oben auf der Seite liegt die Leiste mit transparentem Hintergrund und hellem Text über dem ersten Abschnitt und wird beim Scrollen deckend. „Seiten mit Hero“ sind alle Seiten, deren erster Abschnitt ein Hero ist. Ein Hero kann var(--store-header-h) als oberen Innenabstand nutzen.',
+          'En haut de la page, la barre se superpose à la première section avec un fond transparent et un texte clair, puis redevient opaque au défilement. « Pages avec un hero » désigne chaque page dont la première section est un hero. Un hero peut utiliser var(--store-header-h) comme marge intérieure supérieure.',
+          'Överst på sidan ligger fältet över första sektionen med transparent bakgrund och ljus text, och blir heltäckande när sidan rullas. ”Sidor med hero” betyder varje sida vars första sektion är en hero. En hero kan använda var(--store-header-h) som övre utfyllnad.',
+        ),
+        defaultValue: 'off',
+        options: [
+          { value: 'off', label: L('Off', 'إيقاف', 'Kapalı', 'Aus', 'Désactivé', 'Av') },
+          { value: 'home', label: L('Home page only', 'الصفحة الرئيسية فقط', 'Yalnızca ana sayfa', 'Nur Startseite', 'Page d’accueil uniquement', 'Endast startsidan') },
+          { value: 'all', label: L('Pages with a hero', 'الصفحات ذات البانر الرئيسي', 'Hero içeren sayfalar', 'Seiten mit Hero', 'Pages avec un hero', 'Sidor med hero') },
+        ],
+      },
+      {
+        key: 'overlay_scrim',
+        type: 'select',
+        label: L(
+          'Shade behind the transparent bar',
+          'تظليل خلف الشريط الشفاف',
+          'Şeffaf çubuğun arkasında gölge',
+          'Schattierung hinter der transparenten Leiste',
+          'Ombre derrière la barre transparente',
+          'Skugga bakom det transparenta fältet',
+        ),
+        description: L(
+          'A soft dark gradient at the top keeps the light text readable over a bright image.',
+          'تدرّج داكن خفيف في الأعلى يُبقي النص الفاتح مقروءاً فوق صورة ساطعة.',
+          'Üstteki yumuşak koyu geçiş, açık renkli metni parlak bir görselin üzerinde okunur tutar.',
+          'Ein sanfter dunkler Verlauf oben hält den hellen Text über einem hellen Bild lesbar.',
+          'Un léger dégradé sombre en haut garde le texte clair lisible sur une image lumineuse.',
+          'En mjuk mörk toning överst håller den ljusa texten läsbar över en ljus bild.',
+        ),
+        defaultValue: 'soft',
+        options: [
+          { value: 'soft', label: L('Soft gradient', 'تدرّج خفيف', 'Yumuşak geçiş', 'Sanfter Verlauf', 'Dégradé doux', 'Mjuk toning') },
+          { value: 'none', label: L('None', 'بدون', 'Yok', 'Keine', 'Aucune', 'Ingen') },
+        ],
+        showIf: { key: 'overlay_hero', in: ['home', 'all'] },
+      },
+      {
+        key: 'logo_url_light',
+        type: 'image',
+        label: L(
+          'Light logo for the transparent bar (optional)',
+          'شعار فاتح للشريط الشفاف (اختياري)',
+          'Şeffaf çubuk için açık renkli logo (isteğe bağlı)',
+          'Helles Logo für die transparente Leiste (optional)',
+          'Logo clair pour la barre transparente (facultatif)',
+          'Ljus logotyp för det transparenta fältet (valfritt)',
+        ),
+        description: L(
+          'A white or light version of the logo. Without one, the logo is shown in white.',
+          'نسخة بيضاء أو فاتحة من الشعار. بدونها يظهر الشعار باللون الأبيض.',
+          'Logonun beyaz veya açık renkli sürümü. Yoksa logo beyaz gösterilir.',
+          'Eine weiße oder helle Version des Logos. Ohne sie wird das Logo weiß dargestellt.',
+          'Une version blanche ou claire du logo. Sans elle, le logo s’affiche en blanc.',
+          'En vit eller ljus version av logotypen. Utan den visas logotypen i vitt.',
+        ),
+        showIf: { key: 'overlay_hero', in: ['home', 'all'] },
+      },
       { key: 'menu_key', type: 'menuPicker', label: { en: 'Menu', ar: 'القائمة' }, description: { en: 'Pick a menu built in the Menus page. Leave as None to use the inline links below.', ar: 'اختر قائمة من صفحة القوائم. اتركها بدون لاستخدام الروابط أدناه.' } },
       {
         key: 'items',
@@ -5087,6 +5165,9 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   'product-shipping-returns': 'h2',
   'product-stories': 'h2',
   // Creative engine (marquee-band has a small label, not a heading).
+  'hero-outline': 'h1',
+  'hero-sunrise': 'h1',
+  'stage-scenes': 'h2',
   'story-pinned': 'h2',
   'sticky-steps': 'h2',
   'motion-path': 'h2',
@@ -5117,6 +5198,9 @@ const NO_SUBHEADING_SECTIONS = new Set([
   'product-faq',
   'product-shipping-returns',
   // Creative sections: only the heading tag is read by the storefront.
+  'hero-outline',
+  'hero-sunrise',
+  'stage-scenes',
   'story-pinned',
   'sticky-steps',
   'motion-path',
@@ -5162,6 +5246,8 @@ function insertAfter(fields: FieldDefinition[], afterKey: string, field: FieldDe
 // Sections without a `heading` field: the heading tag select goes after this key.
 const HEADING_LEVEL_ANCHOR: Record<string, string> = {
   'product-shipping-returns': 'show_heading',
+  // The tag applies to the first scene's heading (later scenes are h2).
+  'stage-scenes': 'marker_image',
 };
 
 /** Adds the text-tag selects (heading, subheading, eyebrow) after their texts. */
@@ -5444,7 +5530,7 @@ const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [
   },
 ];
 
-export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...SCROLL_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS, ...BRAND_SECTION_SCHEMAS]
+export const SECTION_SCHEMAS: SectionSchema[] = [...BASE_SECTION_SCHEMAS, ...HERO_SECTION_SCHEMAS, ...SCROLL_SECTION_SCHEMAS, ...CREATIVE_SECTION_SCHEMAS, ...BRAND_SECTION_SCHEMAS]
   .map(withHeadingLevel)
   .map(withHeadingAccent)
   .map(withHeroEmblem);

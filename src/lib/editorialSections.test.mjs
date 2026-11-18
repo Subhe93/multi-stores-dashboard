@@ -18,6 +18,7 @@ const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
 const NEW_KEYS = ['category-tiles', 'progress-spotlight', 'project-cards'];
 // The creative engine sections have their own test (creativeSchemas.test.mjs).
 const CREATIVE_KEYS = [
+  'hero-outline', 'hero-sunrise', 'stage-scenes',
   'story-pinned', 'sticky-steps', 'motion-path', 'marquee-band',
   'ornament-line',
   // Brand sections: their own rules are checked in creativeSchemas.test.mjs.

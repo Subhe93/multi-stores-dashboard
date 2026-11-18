@@ -13,9 +13,9 @@ import { SECTION_SCHEMAS, findSectionSchema } from './section-schemas.ts';
 import { isAvailableForPageType } from './sectionAvailability.ts';
 
 const LOCALES = ['en', 'ar', 'tr', 'de', 'fr', 'sv'];
-const DROPPED = ['hero-outline', 'hero-sunrise', 'stage-scenes'];
+const DROPPED = [];
 // The scroll sections own their emphasis and colour-scene fields.
-const SCROLL_SECTIONS = ['story-pinned', 'sticky-steps', 'motion-path', 'marquee-band'];
+const SCROLL_SECTIONS = ['hero-outline', 'hero-sunrise', 'stage-scenes', 'story-pinned', 'sticky-steps', 'motion-path', 'marquee-band'];
 const DROPPED_OPTION_KEYS = ['heading_reveal', 'heading_emphasis', 'heading_emphasis_color', 'image_reveal', 'image_reveal_direction'];
 
 /** Every field under `fields`, repeater sub-fields included, with its path. */

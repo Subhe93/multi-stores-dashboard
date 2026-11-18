@@ -1250,6 +1250,109 @@ function EyebrowMark({ x, y, c = TEXT }: { x: number; y: number; c?: string }) {
   );
 }
 
+function HeroOutlinePreview(props: PreviewProps) {
+  // Copy at the start, one photo in the centre inside an arch, a modest
+  // outlined word crossing behind it, buttons and figures at the end.
+  return (
+    <Frame {...props}>
+      {Array.from({ length: 25 }, (_, i) => (
+        <circle key={i} cx={76 + (i % 5) * 12} cy={36 + Math.floor(i / 5) * 12} r="0.9" fill={ACCENT} opacity="0.35" />
+      ))}
+      <path d="M78 104 V52 a22 22 0 0 1 44 0 V104 Z" fill={BORDER} />
+      <text
+        x="100" y="64" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.5"
+        fill="none" stroke={TEXT} strokeWidth="0.7"
+      >
+        ATELIER
+      </text>
+      <path d="M86 104 V58 a14 14 0 0 1 28 0 V104 Z" fill={FILL} />
+      <circle cx="100" cy="52" r="6" fill="#a1a1aa" />
+      <EyebrowMark x={12} y={34} />
+      <Bar x="12" y="43" w="48" h="5" c={ACCENT} />
+      <Bar x="12" y="52" w="20" h="5" c={ACCENT} />
+      <Bar x="35" y="52" w="22" h="5" c={PRIMARY} />
+      <Bar x="142" y="42" w="46" />
+      <Bar x="142" y="49" w="36" />
+      <Pill x={142} y={60} w={23} />
+      <Pill x={168} y={60} w={21} outline />
+      {[0, 1, 2].map((i) => (
+        <g key={i}>
+          <Bar x={142 + i * 17} y="82" w="10" h="4" c={ACCENT} />
+          <Bar x={142 + i * 17} y="89" w="12" h="2" />
+        </g>
+      ))}
+    </Frame>
+  );
+}
+
+function HeroSunrisePreview(props: PreviewProps) {
+  // A rayed emblem rising from behind a ridge, beside the headline.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="200" height="120" fill={ACCENT} />
+      <circle cx="146" cy="70" r="34" fill={PRIMARY} opacity="0.16" />
+      {Array.from({ length: 11 }, (_, i) => {
+        const a = Math.PI + (i * Math.PI) / 10;
+        const x1 = 146 + Math.cos(a) * 22;
+        const y1 = 74 + Math.sin(a) * 22;
+        const x2 = 146 + Math.cos(a) * 30;
+        const y2 = 74 + Math.sin(a) * 30;
+        return (
+          <line
+            key={i}
+            x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)}
+            stroke={PRIMARY} strokeWidth="1.6" strokeLinecap="round"
+          />
+        );
+      })}
+      <circle cx="146" cy="74" r="17" fill={PRIMARY} />
+      <path d="M96 120 V92 L124 78 L146 90 L170 72 L200 90 V120 Z" fill="#3f3f46" />
+      <path d="M118 120 V100 L146 84 L176 100 V120 Z" fill="#52525b" />
+      <EyebrowMark x={14} y={32} c="#a1a1aa" />
+      <Bar x="14" y="42" w="62" h="5" c="#fafafa" />
+      <Bar x="14" y="51" w="26" h="5" c="#fafafa" />
+      <Bar x="43" y="51" w="24" h="5" c={PRIMARY} />
+      <Bar x="14" y="63" w="56" c="#71717a" />
+      <Bar x="14" y="70" w="44" c="#71717a" />
+      <rect x="14" y="82" width="28" height="9" rx="4.5" fill={PRIMARY} />
+      <rect x="46" y="82" width="26" height="9" rx="4.5" fill="none" stroke="#a1a1aa" strokeWidth="0.9" />
+    </Frame>
+  );
+}
+
+function StageScenesPreview(props: PreviewProps) {
+  // Three colour scenes; one object travels through them, tilts and changes side.
+  return (
+    <Frame {...props}>
+      <rect x="0" y="0" width="200" height="40" fill={ACCENT} />
+      <rect x="0" y="40" width="200" height="40" fill="#f4f4f5" />
+      <rect x="0" y="80" width="200" height="40" fill={PRIMARY} />
+      <path
+        d="M150 20 C 150 44, 50 36, 50 60 C 50 84, 150 76, 150 100"
+        fill="none" stroke="#a1a1aa" strokeWidth="0.9" strokeDasharray="2.5 2.5"
+      />
+      <circle cx="50" cy="60" r="15" fill={BORDER} />
+      <g transform="rotate(10 150 20)">
+        <rect x="143" y="8" width="14" height="24" rx="4" fill="none" stroke="#71717a" strokeWidth="0.9" />
+      </g>
+      <g transform="rotate(-10 50 60)">
+        <rect x="42" y="46" width="16" height="28" rx="4.5" fill="#ffffff" stroke={ACCENT} strokeWidth="1.1" />
+        <rect x="46" y="54" width="8" height="8" rx="4" fill={PRIMARY} />
+      </g>
+      <g transform="rotate(10 150 100)">
+        <rect x="143" y="88" width="14" height="24" rx="4" fill="none" stroke="#bfdbfe" strokeWidth="0.9" />
+      </g>
+      <Bar x="16" y="14" w="46" h="4" c="#fafafa" />
+      <Bar x="16" y="22" w="34" h="2.4" c="#71717a" />
+      <Bar x="96" y="52" w="50" h="4" c={ACCENT} />
+      <Bar x="96" y="60" w="40" h="2.4" />
+      <rect x="96" y="66" width="20" height="6" rx="3" fill={ACCENT} />
+      <Bar x="16" y="94" w="46" h="4" c="#ffffff" />
+      <Bar x="16" y="102" w="34" h="2.4" c="#bfdbfe" />
+    </Frame>
+  );
+}
+
 function StoryPinnedPreview(props: PreviewProps) {
   // A row of tall cards running off the edge, with a progress bar under it.
   return (
@@ -1415,6 +1518,9 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'hero-split': HeroSplitPreview,
   'parallax-banner': ParallaxBannerPreview,
   'brand-band': BrandBandPreview,
+  'hero-outline': HeroOutlinePreview,
+  'hero-sunrise': HeroSunrisePreview,
+  'stage-scenes': StageScenesPreview,
   'story-pinned': StoryPinnedPreview,
   'sticky-steps': StickyStepsPreview,
   'motion-path': MotionPathPreview,
