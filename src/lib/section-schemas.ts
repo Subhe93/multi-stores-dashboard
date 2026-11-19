@@ -1,8 +1,10 @@
 import { schema as coverHeroSchema } from './creative-sections/cover-hero.ts';
+import { schema as heroDawnSchema } from './creative-sections/hero-dawn.ts';
 import { schema as impactArcSchema } from './creative-sections/impact-arc.ts';
 import { schema as lookSpreadSchema } from './creative-sections/look-spread.ts';
 import { schema as objectStudySchema } from './creative-sections/object-study.ts';
 import { schema as patternBandSchema } from './creative-sections/pattern-band.ts';
+import { schema as promiseBandSchema } from './creative-sections/promise-band.ts';
 import { schema as scriptManifestoSchema } from './creative-sections/script-manifesto.ts';
 import { HERO_SECTION_SCHEMAS, SCROLL_SECTION_SCHEMAS } from './creative-sections/scroll-sections.ts';
 // Section schemas mirror the storefront's theme registry. Kept in sync
@@ -5167,10 +5169,12 @@ const HEADING_LEVEL_DEFAULTS: Record<string, 'h1' | 'h2'> = {
   // Creative engine (marquee-band has a small label, not a heading).
   'hero-outline': 'h1',
   'hero-sunrise': 'h1',
+  'hero-dawn': 'h1',
   'stage-scenes': 'h2',
   'story-pinned': 'h2',
   'sticky-steps': 'h2',
   'motion-path': 'h2',
+  'promise-band': 'h2',
 };
 
 // Sections whose eyebrow (small label above the heading) honours eyebrow_tag.
@@ -5200,10 +5204,12 @@ const NO_SUBHEADING_SECTIONS = new Set([
   // Creative sections: only the heading tag is read by the storefront.
   'hero-outline',
   'hero-sunrise',
+  'hero-dawn',
   'stage-scenes',
   'story-pinned',
   'sticky-steps',
   'motion-path',
+  'promise-band',
 ]);
 
 const TEXT_TAG_OPTIONS: { value: TextTagValue; label: LocalizedString }[] = [
@@ -5248,6 +5254,8 @@ const HEADING_LEVEL_ANCHOR: Record<string, string> = {
   'product-shipping-returns': 'show_heading',
   // The tag applies to the first scene's heading (later scenes are h2).
   'stage-scenes': 'marker_image',
+  // After the second heading line (the tag wraps both lines).
+  'hero-dawn': 'heading_2',
 };
 
 /** Adds the text-tag selects (heading, subheading, eyebrow) after their texts. */
@@ -5471,6 +5479,8 @@ const BRAND_SECTION_SCHEMAS: SectionSchema[] = [
   scriptManifestoSchema,
   impactArcSchema,
   patternBandSchema,
+  heroDawnSchema,
+  promiseBandSchema,
 ];
 
 const CREATIVE_SECTION_SCHEMAS: SectionSchema[] = [

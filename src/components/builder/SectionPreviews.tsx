@@ -13,6 +13,8 @@ import { ImpactArcPreview } from './creative-previews/ImpactArcPreview';
 import { LookSpreadPreview } from './creative-previews/LookSpreadPreview';
 import { ObjectStudyPreview } from './creative-previews/ObjectStudyPreview';
 import { PatternBandPreview } from './creative-previews/PatternBandPreview';
+import { HeroDawnPreview } from './creative-previews/HeroDawnPreview';
+import { PromiseBandPreview } from './creative-previews/PromiseBandPreview';
 import { ScriptManifestoPreview } from './creative-previews/ScriptManifestoPreview';
 
 type PreviewProps = SVGProps<SVGSVGElement> & { compact?: boolean };
@@ -1532,6 +1534,8 @@ const PREVIEW_MAP: Record<string, (p: PreviewProps) => ReactElement> = {
   'script-manifesto': ScriptManifestoPreview,
   'impact-arc': ImpactArcPreview,
   'pattern-band': PatternBandPreview,
+  'hero-dawn': HeroDawnPreview,
+  'promise-band': PromiseBandPreview,
   'before-after': BeforeAfterPreview,
   'image-hotspots': ImageHotspotsPreview,
   'masonry-gallery': MasonryGalleryPreview,
