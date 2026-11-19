@@ -8,7 +8,7 @@
 
 import { useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ChevronDown, Loader2, Palette, Plus, RotateCcw, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Loader2, Palette, Plus, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,10 @@ import {
   CARD_BADGES,
   CARD_CORNERS,
   CARD_STYLES,
+  LISTING_DENSITIES,
+  LISTING_FILTER_KEYS,
+  LISTING_MOBILE_DENSITIES,
+  LISTING_STYLES,
   LOW_STOCK_CAP,
   MOTION_REVEAL_VALUES,
   MOTION_ZOOM_VALUES,
@@ -40,15 +44,20 @@ import {
   cardStyleDefaults,
   creativeValue,
   keepOwnerSettings,
+  listingValue,
   motionValue,
   productCardValue,
   withArabicFont,
   withButtonRadius,
   withCreative,
   withMotion,
+  withListing,
   withProductCard,
   type ArabicFontSlot,
   type CreativeValue,
+  type ListingFilterKey,
+  type ListingStored,
+  type ListingValue,
   type MotionKey,
   type ProductCardStored,
   type ProductCardValue,
@@ -101,6 +110,11 @@ export interface ThemeTokenCustomizations {
     };
   };
   /**
+   * Filtered product listing of /products and the collection pages: the
+   * object exists (even empty) = on, absent = the listing as before.
+   */
+  listing?: ListingStored;
+  /**
    * Store-wide custom CSS (owner content, not a token). The storefront
    * sanitizes it and renders it on every page of the store.
    */
@@ -137,6 +151,16 @@ const CARD_ASPECT_LABEL_KEYS = ['card.aspectSquare', 'card.aspectPortrait', 'car
 const CARD_CORNERS_LABEL_KEYS = ['card.cornersTheme', 'card.cornersSquare'] as const;
 const CARD_AVAILABILITY_LABEL_KEYS = ['card.availabilityOff', 'card.availabilitySoldOut', 'card.availabilitySoldOutAndLow'] as const;
 const CARD_BADGE_LABEL_KEYS = ['card.badgePercent', 'card.badgeSale', 'card.badgeNone'] as const;
+// Product listing choices, in the order of the LISTING_* value lists.
+const LISTING_FILTER_LABEL_KEYS: Record<ListingFilterKey, string> = {
+  collection: 'listing.filterCollection',
+  type: 'listing.filterType',
+  price: 'listing.filterPrice',
+  availability: 'listing.filterAvailability',
+  color: 'listing.filterColor',
+  size: 'listing.filterSize',
+};
+const LISTING_STYLE_LABEL_KEYS = ['listing.styleBar', 'listing.styleRail'] as const;
 // "Only N left" thresholds: 1 to the cap, shown as plain numbers.
 const LOW_STOCK_OPTIONS = Array.from({ length: LOW_STOCK_CAP }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
@@ -211,6 +235,26 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
   // Off removes product.card (and `product` once empty); on stores only what differs from the default.
   const card = productCardValue(draft);
   const setCard = (patch: Partial<ProductCardValue>) => apply(withProductCard(draft, patch));
+  // Off removes `listing`; on stores only what differs from the default.
+  const listing = listingValue(draft);
+  const setListing = (patch: Partial<ListingValue>) => apply(withListing(draft, patch));
+  // Shown filters in their order, then the hidden ones in the default order.
+  const listingRows: Array<{ key: ListingFilterKey; shown: boolean }> = [
+    ...listing.filters.map((key) => ({ key, shown: true })),
+    ...LISTING_FILTER_KEYS.filter((k) => !listing.filters.includes(k)).map((key) => ({ key, shown: false })),
+  ];
+  const toggleListingFilter = (key: ListingFilterKey) =>
+    setListing({
+      filters: listing.filters.includes(key) ? listing.filters.filter((f) => f !== key) : [...listing.filters, key],
+    });
+  const moveListingFilter = (key: ListingFilterKey, step: -1 | 1) => {
+    const list = [...listing.filters];
+    const i = list.indexOf(key);
+    const j = i + step;
+    if (i < 0 || j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j]!, list[i]!];
+    setListing({ filters: list });
+  };
 
   const buttonRadius = buttonRadiusValue(draft);
   // A valid stored radius outside the four shapes stays selectable as it is.
@@ -545,6 +589,119 @@ export function ThemeCustomizer({ value, onChange, onSave, trigger }: ThemeCusto
                         <p className="text-[11px] text-zinc-500">{t('card.lowStockThresholdHint', { max: LOW_STOCK_CAP })}</p>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Product listing: filters, sort and columns of /products and the collection pages */}
+          <section className="space-y-2">
+            <div className="text-[10.5px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+              {t('listing.title')}
+            </div>
+            <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50/50 p-2.5">
+              <CreativeSwitchRow
+                id={`${fieldId}-listing`}
+                label={t('listing.enabled')}
+                checked={listing.enabled}
+                onChange={(enabled) => setListing({ enabled })}
+                strong
+              />
+              <p className="text-[11px] text-zinc-500">{t('listing.enabledHint')}</p>
+              {listing.enabled && (
+                <div className="space-y-3 border-t border-zinc-200 pt-2.5">
+                  <div className="space-y-1">
+                    <Label htmlFor={`${fieldId}-listing-style`} className="text-[11.5px] text-zinc-700">{t('listing.style')}</Label>
+                    <SearchableSelect
+                      id={`${fieldId}-listing-style`}
+                      value={listing.style}
+                      onChange={(v) => setListing({ style: v as ListingValue['style'] })}
+                      options={LISTING_STYLES.map((value, i) => ({ value, label: t(LISTING_STYLE_LABEL_KEYS[i]) }))}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('listing.styleHint')}</p>
+                  </div>
+
+                  {/* Which filters, in which order */}
+                  <div className="space-y-1.5 border-t border-zinc-200 pt-2.5">
+                    <div id={`${fieldId}-listing-filters`} className="text-[11.5px] text-zinc-700">{t('listing.filters')}</div>
+                    <ul aria-labelledby={`${fieldId}-listing-filters`} className="space-y-1">
+                      {listingRows.map(({ key, shown }) => {
+                        const index = listing.filters.indexOf(key);
+                        const label = t(LISTING_FILTER_LABEL_KEYS[key]);
+                        return (
+                          <li key={key} className="flex items-center gap-2 rounded border border-zinc-200 bg-white px-2 py-1">
+                            <input
+                              id={`${fieldId}-listing-f-${key}`}
+                              type="checkbox"
+                              checked={shown}
+                              onChange={() => toggleListingFilter(key)}
+                              className="size-3.5 accent-indigo-600"
+                            />
+                            <label
+                              htmlFor={`${fieldId}-listing-f-${key}`}
+                              className={cn('flex-1 text-[11.5px]', shown ? 'text-zinc-800' : 'text-zinc-400')}
+                            >
+                              {label}
+                            </label>
+                            {shown && (
+                              <span className="flex gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => moveListingFilter(key, -1)}
+                                  disabled={index === 0}
+                                  aria-label={t('listing.moveUp', { name: label })}
+                                  className="rounded p-0.5 text-zinc-500 hover:bg-zinc-100 disabled:opacity-30"
+                                >
+                                  <ArrowUp className="size-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveListingFilter(key, 1)}
+                                  disabled={index === listing.filters.length - 1}
+                                  aria-label={t('listing.moveDown', { name: label })}
+                                  className="rounded p-0.5 text-zinc-500 hover:bg-zinc-100 disabled:opacity-30"
+                                >
+                                  <ArrowDown className="size-3" />
+                                </button>
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="text-[11px] text-zinc-500">{t('listing.filtersHint')}</p>
+                  </div>
+
+                  {/* Columns */}
+                  <div className="space-y-2 border-t border-zinc-200 pt-2.5">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-listing-density`} className="text-[11.5px] text-zinc-700">{t('listing.density')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-listing-density`}
+                          value={String(listing.density)}
+                          onChange={(v) => setListing({ density: Number(v) as ListingValue['density'] })}
+                          options={LISTING_DENSITIES.map((n) => ({ value: String(n), label: t('listing.columns', { count: n }) }))}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor={`${fieldId}-listing-mobile`} className="text-[11.5px] text-zinc-700">{t('listing.mobileDensity')}</Label>
+                        <SearchableSelect
+                          id={`${fieldId}-listing-mobile`}
+                          value={String(listing.mobile_density)}
+                          onChange={(v) => setListing({ mobile_density: Number(v) as ListingValue['mobile_density'] })}
+                          options={LISTING_MOBILE_DENSITIES.map((n) => ({ value: String(n), label: t('listing.columns', { count: n }) }))}
+                        />
+                      </div>
+                    </div>
+                    <CreativeSwitchRow
+                      id={`${fieldId}-listing-switch`}
+                      label={t('listing.densitySwitch')}
+                      checked={listing.density_switch}
+                      onChange={(density_switch) => setListing({ density_switch })}
+                    />
+                    <p className="text-[11px] text-zinc-500">{t('listing.densitySwitchHint')}</p>
                   </div>
                 </div>
               )}

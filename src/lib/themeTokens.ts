@@ -275,7 +275,8 @@ export function withCreative<T extends ThemeTokensLike>(tokens: T, patch: Partia
 
 // ── Look reset ("Reset to theme", a theme switch, a preset) ────────────────
 // A reset clears the look tokens. What is the store's own stays: the custom
-// CSS (owner content) and the behaviour settings `motion` and `product.card`.
+// CSS (owner content) and the behaviour settings `motion`, `product.card` and
+// `listing`.
 // Same rule and vectors as keepOwnerSettings in the API
 // (multi-stores-api/src/modules/themes/keep-owner-css.ts).
 
@@ -284,6 +285,7 @@ export interface OwnerSettings {
   customCss?: string;
   motion?: Dict;
   product?: { card: unknown };
+  listing?: Dict;
 }
 
 /**
@@ -291,7 +293,9 @@ export interface OwnerSettings {
  *  - `customCss` when it is a non-blank string;
  *  - `motion` when it is a non-empty plain object;
  *  - `product.card` when it is not null / undefined. Other `product` keys
- *    (e.g. `swatchShape`) are look tokens and are reset.
+ *    (e.g. `swatchShape`) are look tokens and are reset;
+ *  - `listing` (filtered product listing) when it is a plain object, even
+ *    empty (`{}` = switched on with the defaults).
  * Anything else (not an object, an array, a string) gives {}.
  */
 export function keepOwnerSettings(previous: unknown): OwnerSettings {
@@ -305,16 +309,18 @@ export function keepOwnerSettings(previous: unknown): OwnerSettings {
   if (isDict(product) && product.card !== null && product.card !== undefined) {
     kept.product = { card: product.card };
   }
+  const listing = previous.listing;
+  if (isDict(listing)) kept.listing = listing;
   return kept;
 }
 
 /** Top-level keys that never make a store's look "customized". */
-const NON_LOOK_KEYS: ReadonlySet<string> = new Set(['customCss', 'motion', 'preset_id']);
+const NON_LOOK_KEYS: ReadonlySet<string> = new Set(['customCss', 'motion', 'preset_id', 'listing']);
 
 /**
  * True when the customizations carry look overrides (colours, fonts, spacing,
- * a swatch shape…). The custom CSS, `motion`, `product.card` and `preset_id`
- * are not look overrides: a store that holds only those is on its theme's
+ * a swatch shape…). The custom CSS, `motion`, `product.card`, `listing` and
+ * `preset_id` are not look overrides: a store that holds only those is on its theme's
  * own look.
  */
 export function hasLookOverrides(tokens: unknown): boolean {
@@ -501,5 +507,118 @@ export function withProductCard<T extends ThemeTokensLike>(tokens: T, patch: Par
   delete nextProduct.card;
   if (Object.keys(nextProduct).length) next.product = nextProduct;
   else delete next.product;
+  return next as T;
+}
+
+// ── Product listing (store.theme_customizations.listing) ───────────────────
+// Opt-in object: present (even `{}`) = the filtered product listing on
+// /products and the collection pages (filters with counts, chips, sort,
+// column switch), absent = the listing as before. Mirrors
+// multi-stores-web/src/lib/listingFilters/settings.ts: same keys, value sets
+// and defaults. Only what the owner chose is stored, never a default.
+
+export const LISTING_FILTER_KEYS = ['collection', 'type', 'price', 'availability', 'color', 'size'] as const;
+export const LISTING_DENSITIES = [2, 3, 4] as const;
+export const LISTING_MOBILE_DENSITIES = [1, 2] as const;
+export const LISTING_STYLES = ['bar', 'rail'] as const;
+
+export type ListingFilterKey = (typeof LISTING_FILTER_KEYS)[number];
+export type ListingDensity = (typeof LISTING_DENSITIES)[number];
+export type ListingMobileDensity = (typeof LISTING_MOBILE_DENSITIES)[number];
+export type ListingStyle = (typeof LISTING_STYLES)[number];
+
+/** The object as stored (every key optional). */
+export interface ListingStored {
+  filters?: ListingFilterKey[];
+  density?: ListingDensity;
+  mobile_density?: ListingMobileDensity;
+  style?: ListingStyle;
+  density_switch?: boolean;
+  [key: string]: unknown; // keys this editor does not know are kept
+}
+
+/** The listing settings as the customizer shows them. */
+export interface ListingValue {
+  /** The opt-in switch: the `listing` object exists. */
+  enabled: boolean;
+  /** Filters shown, in this order. */
+  filters: ListingFilterKey[];
+  density: ListingDensity;
+  mobile_density: ListingMobileDensity;
+  style: ListingStyle;
+  density_switch: boolean;
+}
+
+const LISTING_OFF: ListingValue = {
+  enabled: false,
+  filters: [...LISTING_FILTER_KEYS],
+  density: 4,
+  mobile_density: 2,
+  style: 'bar',
+  density_switch: true,
+};
+
+function listingFilters(value: unknown): ListingFilterKey[] {
+  if (!Array.isArray(value)) return [...LISTING_FILTER_KEYS];
+  return value.filter(
+    (f, i, all): f is ListingFilterKey => (LISTING_FILTER_KEYS as readonly unknown[]).includes(f) && all.indexOf(f) === i,
+  );
+}
+
+function listingChoice<T extends string | number>(set: readonly T[], value: unknown, fallback: T): T {
+  return (set as readonly unknown[]).includes(value) ? (value as T) : fallback;
+}
+
+/** The stored listing settings; anything but a plain `listing` object reads as off. */
+export function listingValue(tokens: ThemeTokensLike | null | undefined): ListingValue {
+  const stored = (tokens as Dict | null | undefined)?.listing;
+  if (!isDict(stored)) return { ...LISTING_OFF, filters: [...LISTING_OFF.filters] };
+  return {
+    enabled: true,
+    filters: listingFilters(stored.filters),
+    density: listingChoice(LISTING_DENSITIES, stored.density, 4),
+    mobile_density: listingChoice(LISTING_MOBILE_DENSITIES, stored.mobile_density, 2),
+    style: listingChoice(LISTING_STYLES, stored.style, 'bar'),
+    density_switch: stored.density_switch !== false,
+  };
+}
+
+const LISTING_KNOWN_KEYS = ['filters', 'density', 'mobile_density', 'style', 'density_switch'] as const;
+
+/**
+ * Copy of `tokens` with the listing settings changed by `patch`.
+ *  - Off removes `listing`.
+ *  - On writes the object with only what differs from the default:
+ *    switching on with nothing chosen stores `{}`. `filters` is stored only
+ *    when it is not all six in the default order (an empty list is stored:
+ *    sort and columns without filters).
+ * Unknown keys inside `listing` are kept; switching off a store that has no
+ * listing leaves the copy deep-equal to the input.
+ */
+export function withListing<T extends ThemeTokensLike>(tokens: T, patch: Partial<ListingValue>): T {
+  const next: Dict = { ...tokens };
+  const stored = next.listing;
+  const value = { ...listingValue(tokens), ...patch };
+
+  if (value.enabled === true) {
+    const listing: Dict = { ...(isDict(stored) ? stored : {}) };
+    for (const key of LISTING_KNOWN_KEYS) delete listing[key];
+    const filters = listingFilters(value.filters);
+    const isDefaultFilters =
+      filters.length === LISTING_FILTER_KEYS.length && filters.every((f, i) => f === LISTING_FILTER_KEYS[i]);
+    if (!isDefaultFilters) listing.filters = filters;
+    const density = listingChoice(LISTING_DENSITIES, value.density, 4);
+    const mobile = listingChoice(LISTING_MOBILE_DENSITIES, value.mobile_density, 2);
+    const style = listingChoice(LISTING_STYLES, value.style, 'bar');
+    if (density !== 4) listing.density = density;
+    if (mobile !== 2) listing.mobile_density = mobile;
+    if (style !== 'bar') listing.style = style;
+    if (value.density_switch === false) listing.density_switch = false;
+    next.listing = listing;
+    return next as T;
+  }
+
+  if (!('listing' in next)) return next as T;
+  delete next.listing;
   return next as T;
 }

@@ -6738,7 +6738,31 @@
     "customCss": "Özel CSS",
     "customCssHint": "İleri düzey kullanıcılar içindir. Bu CSS, mağazanızın tüm sayfalarına tema stillerinden sonra eklenir ve onları geçersiz kılabilir.",
     "customCssEmptyHint": "Özel CSS’i kaldırmak için alanı boş bırakın.",
-    "customCssTooLong": "Özel CSS en fazla {max} karakter olabilir. Kaydetmek için {over} karakter silin."
+    "customCssTooLong": "Özel CSS en fazla {max} karakter olabilir. Kaydetmek için {over} karakter silin.",
+    "listing": {
+      "title": "Ürün listesi",
+      "enabled": "Ürün sayfalarında filtreler ve sıralama",
+      "enabledHint": "/products sayfasına ve tüm koleksiyon sayfalarına sayılı filtreler (kategori, fiyat, stok durumu, renk, beden), sıralama ve sütun seçimi ekler. Müşteriler filtrelenmiş sayfayı bağlantısıyla paylaşabilir. Kapatınca liste eski haline döner.",
+      "style": "Masaüstünde filtreler",
+      "styleBar": "Ürünlerin üstünde açılır menü çubuğu",
+      "styleRail": "Ürünlerin yanında yan sütun",
+      "styleHint": "Telefonda filtreler her zaman alttan açılan bir panelde gösterilir.",
+      "filters": "Gösterilen filtreler (bu sırayla)",
+      "filterCollection": "Kategori (koleksiyonlarınız)",
+      "filterType": "Ürün türü",
+      "filterPrice": "Fiyat",
+      "filterAvailability": "Yalnızca stoktakiler",
+      "filterColor": "Renk",
+      "filterSize": "Beden",
+      "moveUp": "{name} yukarı taşı",
+      "moveDown": "{name} aşağı taşı",
+      "filtersHint": "Bir filtre yalnızca ürünlerinizde gösterecek bir şey varsa görünür: renk ve beden, renk ya da beden adlı varyant seçeneklerinden gelir; ürün türü için en az iki tür gerekir.",
+      "density": "Masaüstünde sütun",
+      "mobileDensity": "Telefonda sütun",
+      "columns": "{count, plural, one {# sütun} other {# sütun}}",
+      "densitySwitch": "Müşteriler sütun sayısını değiştirebilir",
+      "densitySwitchHint": "Her müşterinin seçimi kendi cihazında hatırlanır."
+    }
   },
   "product": {
     "seededFromLocale": "Ad ve açıklama önceki bir mağaza dilinden ({locale}) gösteriliyor. Kontrol edin, ardından geçerli dilde kaydetmek için kaydedin.",

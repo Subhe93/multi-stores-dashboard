@@ -6738,7 +6738,31 @@
     "customCss": "CSS personnalisé",
     "customCssHint": "Pour les utilisateurs avancés. Ce CSS est ajouté à toutes les pages de votre boutique, après les styles du thème, et peut donc les remplacer.",
     "customCssEmptyHint": "Laissez le champ vide pour supprimer le CSS personnalisé.",
-    "customCssTooLong": "Le CSS personnalisé est limité à {max} caractères. Supprimez {over} caractères pour enregistrer."
+    "customCssTooLong": "Le CSS personnalisé est limité à {max} caractères. Supprimez {over} caractères pour enregistrer.",
+    "listing": {
+      "title": "Liste de produits",
+      "enabled": "Filtres et tri sur les pages produits",
+      "enabledHint": "Ajoute à /products et à chaque page de collection des filtres avec leur nombre de produits (catégorie, prix, disponibilité, couleur, taille), le tri et le choix du nombre de colonnes. Les clients peuvent partager une page filtrée par son lien. Désactivez-le pour revenir à la liste d’avant.",
+      "style": "Filtres sur ordinateur",
+      "styleBar": "Barre de menus au-dessus des produits",
+      "styleRail": "Colonne latérale à côté des produits",
+      "styleHint": "Sur mobile, les filtres s’ouvrent toujours dans un panneau en bas de l’écran.",
+      "filters": "Filtres affichés (dans cet ordre)",
+      "filterCollection": "Catégorie (vos collections)",
+      "filterType": "Type de produit",
+      "filterPrice": "Prix",
+      "filterAvailability": "En stock uniquement",
+      "filterColor": "Couleur",
+      "filterSize": "Taille",
+      "moveUp": "Monter {name}",
+      "moveDown": "Descendre {name}",
+      "filtersHint": "Un filtre n’apparaît que si vos produits ont quelque chose à y proposer : la couleur et la taille viennent des options de variantes nommées comme une couleur ou une taille ; le type de produit demande au moins deux types.",
+      "density": "Colonnes sur ordinateur",
+      "mobileDensity": "Colonnes sur mobile",
+      "columns": "{count, plural, one {# colonne} other {# colonnes}}",
+      "densitySwitch": "Les clients peuvent changer les colonnes",
+      "densitySwitchHint": "Le choix de chaque client est mémorisé sur son appareil."
+    }
   },
   "product": {
     "seededFromLocale": "Le nom et la description proviennent d'une ancienne langue de la boutique ({locale}). Vérifiez-les puis enregistrez pour les stocker dans la langue actuelle.",
