@@ -18,7 +18,7 @@ export const CONTENT_LOCALE_CODES: string[] = CONTENT_LOCALES.map((l) => l.value
 // them and edit their content, the storefront serves them under their URL
 // prefix, but keeps them out of the language switcher, hreflang, sitemaps and
 // search indexing until a native speaker has reviewed the texts.
-export const REVIEW_LOCALES: readonly string[] = ['ku'];
+export const REVIEW_LOCALES: readonly string[] = [];
 
 export function isReviewLocale(code: string | null | undefined): boolean {
   return REVIEW_LOCALES.includes(code ?? '');

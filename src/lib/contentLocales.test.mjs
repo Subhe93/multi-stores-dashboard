@@ -1,6 +1,6 @@
 // Unit tests of the store content locales and the "in review" locales
 // (Kurdish Kurmanji, 'ku': enabled per store as a secondary language, hidden
-// from the storefront switcher until a native speaker has reviewed it).
+// from the storefront switcher while in review; the review list is empty now).
 // Run: node --experimental-strip-types --test src/lib/contentLocales.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -23,24 +23,32 @@ test('content locales: the six platform locales keep their order, ku is appended
   assert.equal(CONTENT_LOCALES.find((l) => l.value === 'ku')?.label, 'Kurdî');
 });
 
-test('review locales: ku is in review, the six platform locales are not', () => {
-  assert.deepEqual([...REVIEW_LOCALES], ['ku']);
-  assert.equal(isReviewLocale('ku'), true);
-  for (const code of UI_LOCALES) assert.equal(isReviewLocale(code), false, code);
+test('ku left review: the list is empty and ku is a normal content locale', () => {
+  assert.deepEqual([...REVIEW_LOCALES], []);
+  for (const code of CONTENT_LOCALE_CODES) assert.equal(isReviewLocale(code), false, code);
   assert.equal(isReviewLocale(null), false);
   assert.equal(isReviewLocale(undefined), false);
   assert.equal(isReviewLocale(''), false);
-});
-
-test('review locales are content locales (the owner can enable and edit them)', () => {
-  for (const code of REVIEW_LOCALES) assert.ok(CONTENT_LOCALE_CODES.includes(code), code);
-});
-
-test('primary / fallback options: filtering out review locales leaves exactly the six platform locales', () => {
+  // With nothing in review, primary / fallback options offer every content locale.
   assert.deepEqual(
     CONTENT_LOCALE_CODES.filter((l) => !isReviewLocale(l)),
-    UI_LOCALES,
+    [...UI_LOCALES, 'ku'],
   );
+});
+
+test('review mechanism still works with an injected review locale', () => {
+  REVIEW_LOCALES.push('ku');
+  try {
+    assert.equal(isReviewLocale('ku'), true);
+    for (const code of UI_LOCALES) assert.equal(isReviewLocale(code), false, code);
+    for (const code of REVIEW_LOCALES) assert.ok(CONTENT_LOCALE_CODES.includes(code), code);
+    assert.deepEqual(
+      CONTENT_LOCALE_CODES.filter((l) => !isReviewLocale(l)),
+      UI_LOCALES,
+    );
+  } finally {
+    REVIEW_LOCALES.length = 0;
+  }
 });
 
 test('the dashboard UI itself is not translated into ku (no ku message file)', () => {
