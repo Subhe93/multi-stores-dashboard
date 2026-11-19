@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "Geben Sie die Frage ein",
     "answer": "Antwort",
     "answerPlaceholder": "Geben Sie die Antwort ein",
-    "update": "Aktualisieren"
+    "update": "Aktualisieren",
+    "dragToReorder": "Zum Sortieren ziehen",
+    "reorderFailed": "Die neue Reihenfolge konnte nicht gespeichert werden. Bitte erneut versuchen."
   },
   "image": {
     "featured": "Hervorgehoben",

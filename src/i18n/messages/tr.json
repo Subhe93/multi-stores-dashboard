@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "Soruyu girin",
     "answer": "Cevap",
     "answerPlaceholder": "Cevabı girin",
-    "update": "Güncelle"
+    "update": "Güncelle",
+    "dragToReorder": "Sıralamak için sürükleyin",
+    "reorderFailed": "Yeni sıra kaydedilemedi. Tekrar deneyin."
   },
   "image": {
     "featured": "Öne çıkan",

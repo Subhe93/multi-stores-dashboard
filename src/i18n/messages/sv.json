@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "Ange frågan",
     "answer": "Svar",
     "answerPlaceholder": "Ange svaret",
-    "update": "Uppdatera"
+    "update": "Uppdatera",
+    "dragToReorder": "Dra för att ändra ordning",
+    "reorderFailed": "Den nya ordningen kunde inte sparas. Försök igen."
   },
   "image": {
     "featured": "Utvald",

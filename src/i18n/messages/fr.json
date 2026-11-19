@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "Saisissez la question",
     "answer": "Réponse",
     "answerPlaceholder": "Saisissez la réponse",
-    "update": "Mettre à jour"
+    "update": "Mettre à jour",
+    "dragToReorder": "Faites glisser pour réordonner",
+    "reorderFailed": "Le nouvel ordre n'a pas pu être enregistré. Réessayez."
   },
   "image": {
     "featured": "En vedette",

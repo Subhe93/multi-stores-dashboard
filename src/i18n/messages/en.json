@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "Enter the question",
     "answer": "Answer",
     "answerPlaceholder": "Enter the answer",
-    "update": "Update"
+    "update": "Update",
+    "dragToReorder": "Drag to reorder",
+    "reorderFailed": "The new order could not be saved. Try again."
   },
   "image": {
     "featured": "Featured",

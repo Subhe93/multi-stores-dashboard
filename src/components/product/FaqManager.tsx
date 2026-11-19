@@ -1,13 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle, Languages, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle, Languages, Loader2, GripVertical } from 'lucide-react';
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -28,6 +45,8 @@ interface FaqManagerProps {
   createUrl?: string;
   /** Override the base URL for PUT/DELETE on a specific FAQ (default: /faqs/:id) */
   faqBaseUrl?: string;
+  /** Override the PUT URL that saves a new order (default: /products/:productId/faqs/sort) */
+  sortUrl?: string;
 }
 
 const LOCALE_LABELS: Record<string, string> = {
@@ -42,6 +61,7 @@ export default function FaqManager({
   primaryLocale,
   createUrl,
   faqBaseUrl,
+  sortUrl,
 }: FaqManagerProps) {
   const t = useTranslations();
   const { token } = useAuth();
@@ -52,6 +72,56 @@ export default function FaqManager({
   const [formData, setFormData] = useState<Record<string, { question: string; answer: string }>>({});
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [translatingLocale, setTranslatingLocale] = useState('');
+  const [reorderError, setReorderError] = useState(false);
+
+  // Stable drag ids: the saved id, else one per draft object (create mode).
+  const draftIds = useRef(new WeakMap<Faq, string>());
+  const dragId = (faq: Faq) => {
+    if (faq.id) return faq.id;
+    let id = draftIds.current.get(faq);
+    if (!id) {
+      id = `draft-${Math.random().toString(36).slice(2)}`;
+      draftIds.current.set(faq, id);
+    }
+    return id;
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  // New order: shown at once, sort_order renumbered (drafts are created in
+  // that order), saved right away for a stored product; reverted on failure.
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = faqs.map(dragId);
+    const from = ids.indexOf(String(active.id));
+    const to = ids.indexOf(String(over.id));
+    if (from < 0 || to < 0) return;
+    const before = faqs;
+    const next = arrayMove(faqs, from, to).map((f, i) => {
+      const copy = { ...f, sort_order: i };
+      // Keep a draft's drag id on its renumbered copy.
+      if (!f.id) draftIds.current.set(copy, dragId(f));
+      return copy;
+    });
+    setExpandedIndex(null);
+    setReorderError(false);
+    onChange(next);
+    if (!productId || !token || next.some((f) => !f.id)) return;
+    try {
+      await api(sortUrl || `/products/${productId}/faqs/sort`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ faq_ids: next.map((f) => f.id) }),
+      });
+    } catch {
+      onChange(before);
+      setReorderError(true);
+    }
+  };
 
   const handleTranslateTo = async (targetLocale: string) => {
     const sourceQuestion = formData[primaryLocale]?.question || '';
@@ -185,45 +255,31 @@ export default function FaqManager({
           {t('faq.empty')}
         </p>
       ) : (
-        <div className="rounded-md border divide-y">
-          {faqs.map((faq, i) => (
-            <div key={faq.id || i} className="px-3 py-2">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-                  className="flex-1 text-start flex items-center gap-2"
-                >
-                  {expandedIndex === i ? (
-                    <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
-                  )}
-                  <span className="text-sm font-medium truncate">{primaryQ(faq)}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openEdit(i)}
-                  className="p-1 hover:bg-muted rounded transition shrink-0"
-                >
-                  <Pencil className="w-3 h-3 text-muted-foreground" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(i)}
-                  className="p-1 hover:bg-red-50 rounded transition shrink-0"
-                >
-                  <Trash2 className="w-3 h-3 text-red-500" />
-                </button>
-              </div>
-              {expandedIndex === i && (
-                <p className="text-xs text-muted-foreground mt-1.5 ms-5 whitespace-pre-wrap">
-                  {primaryA(faq)}
-                </p>
-              )}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={faqs.map(dragId)} strategy={verticalListSortingStrategy}>
+            <div className="rounded-md border divide-y">
+              {faqs.map((faq, i) => (
+                <SortableFaqRow
+                  key={dragId(faq)}
+                  id={dragId(faq)}
+                  question={primaryQ(faq)}
+                  answer={primaryA(faq)}
+                  expanded={expandedIndex === i}
+                  dragLabel={t('faq.dragToReorder')}
+                  onToggle={() => setExpandedIndex(expandedIndex === i ? null : i)}
+                  onEdit={() => openEdit(i)}
+                  onDelete={() => handleDelete(i)}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      {reorderError && (
+        <p role="alert" className="text-xs text-red-600">
+          {t('faq.reorderFailed')}
+        </p>
       )}
 
       {/* Add/Edit Dialog */}
@@ -324,6 +380,69 @@ export default function FaqManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/** One FAQ row with a drag handle (pointer and keyboard: Space, arrows, Space). */
+function SortableFaqRow({
+  id,
+  question,
+  answer,
+  expanded,
+  dragLabel,
+  onToggle,
+  onEdit,
+  onDelete,
+}: {
+  id: string;
+  question: string;
+  answer: string;
+  expanded: boolean;
+  dragLabel: string;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative bg-white px-3 py-2 ${isDragging ? 'shadow-md ring-1 ring-zinc-200' : ''}`}
+    >
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={dragLabel}
+          title={dragLabel}
+          className="cursor-grab touch-none rounded p-1 text-muted-foreground transition hover:bg-zinc-100 active:cursor-grabbing shrink-0"
+        >
+          <GripVertical className="w-3.5 h-3.5" />
+        </button>
+        <button type="button" onClick={onToggle} className="flex-1 min-w-0 text-start flex items-center gap-2">
+          {expanded ? (
+            <ChevronUp className="w-3 h-3 text-muted-foreground shrink-0" />
+          ) : (
+            <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
+          )}
+          <span className="text-sm font-medium truncate">{question}</span>
+        </button>
+        <button type="button" onClick={onEdit} className="p-1 hover:bg-muted rounded transition shrink-0">
+          <Pencil className="w-3 h-3 text-muted-foreground" />
+        </button>
+        <button type="button" onClick={onDelete} className="p-1 hover:bg-red-50 rounded transition shrink-0">
+          <Trash2 className="w-3 h-3 text-red-500" />
+        </button>
+      </div>
+      {expanded && <p className="text-xs text-muted-foreground mt-1.5 ms-11 whitespace-pre-wrap">{answer}</p>}
     </div>
   );
 }

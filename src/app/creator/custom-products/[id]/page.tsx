@@ -1029,6 +1029,7 @@ export default function EditCustomProduct() {
             primaryLocale={primaryLocale}
             createUrl={`/custom-products/${id}/faqs`}
             faqBaseUrl="/custom-products/faqs"
+            sortUrl={`/custom-products/${id}/faqs/sort`}
           />
         </CardContent>
       </Card>

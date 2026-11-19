@@ -7333,7 +7333,9 @@
     "questionPlaceholder": "أدخل السؤال",
     "answer": "الإجابة",
     "answerPlaceholder": "أدخل الإجابة",
-    "update": "تحديث"
+    "update": "تحديث",
+    "dragToReorder": "اسحب لتغيير الترتيب",
+    "reorderFailed": "تعذّر حفظ الترتيب الجديد. حاول مرة أخرى."
   },
   "image": {
     "featured": "مميزة",
