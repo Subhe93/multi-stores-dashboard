@@ -13,6 +13,7 @@ export const LOCALE_NAMES: Record<string, string> = {
   de: 'Deutsch',
   fr: 'Français',
   sv: 'Svenska',
+  ku: 'Kurdî',
   es: 'Español',
 };
 

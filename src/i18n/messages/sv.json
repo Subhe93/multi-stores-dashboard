@@ -5733,6 +5733,10 @@
       },
       "propagationNote": "Det kan ta upp till cirka 2 minuter innan ändringar syns i din butik.",
       "unknownTarget": "Inget publicerat hittades på den här adressen. Kontrollera den innan du fortsätter."
+    },
+    "languageReview": {
+      "badge": "Under granskning",
+      "hint": "{language} är under granskning: språket är dolt i butikens språkväljare och nås bara via {path} tills texterna har granskats."
     }
   },
   "components": {
@@ -6303,7 +6307,8 @@
     "VIDEO_FEATURED_MULTIPLE": "Bara en video kan visas först.",
     "VIDEO_FEATURED_REQUIRES_POSTER": "Videon som visas först behöver en omslagsbild.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Den här webbadressen är inte tillåten.",
-    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Endast butiksägaren kan ändra den externa webbplatsens adress."
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Endast butiksägaren kan ändra den externa webbplatsens adress.",
+    "STORE_LANGUAGE_IN_REVIEW": "Det här språket är fortfarande under granskning och kan inte vara huvudspråk eller standardspråk än. Lägg till det som ett sekundärt språk i stället."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

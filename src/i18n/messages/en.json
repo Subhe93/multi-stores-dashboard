@@ -5733,6 +5733,10 @@
       },
       "propagationNote": "Changes can take up to about 2 minutes to reach your storefront.",
       "unknownTarget": "Nothing published was found at this address. Check it before you continue."
+    },
+    "languageReview": {
+      "badge": "In review",
+      "hint": "{language} is in review: it is hidden from the storefront language switcher and reachable only at {path} until its texts have been checked."
     }
   },
   "components": {
@@ -6303,7 +6307,8 @@
     "VIDEO_FEATURED_MULTIPLE": "Only one video can be shown first.",
     "VIDEO_FEATURED_REQUIRES_POSTER": "The video shown first needs a poster image.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "This website address is not allowed.",
-    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Only the store owner can change the external website address."
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Only the store owner can change the external website address.",
+    "STORE_LANGUAGE_IN_REVIEW": "This language is still in review and cannot be the primary or default language yet. Add it as a secondary language instead."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

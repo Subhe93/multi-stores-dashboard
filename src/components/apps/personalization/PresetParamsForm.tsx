@@ -34,6 +34,8 @@ const LOCALE_NAMES: Record<string, string> = {
   de: 'Deutsch',
   fr: 'Français',
   sv: 'Svenska',
+  // Kurdish, Kurmanji (Latin script, left to right).
+  ku: 'Kurdî',
 };
 const localeName = (code: string) => LOCALE_NAMES[code] ?? code.toUpperCase();
 

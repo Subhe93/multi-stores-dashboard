@@ -5733,6 +5733,10 @@
       },
       "propagationNote": "Änderungen können bis zu etwa 2 Minuten brauchen, bis sie in deinem Shop wirksam sind.",
       "unknownTarget": "Unter dieser Adresse wurde nichts Veröffentlichtes gefunden. Prüfe sie, bevor du fortfährst."
+    },
+    "languageReview": {
+      "badge": "In Prüfung",
+      "hint": "{language} ist in Prüfung: Die Sprache ist in der Sprachauswahl des Shops ausgeblendet und nur unter {path} erreichbar, bis ihre Texte geprüft sind."
     }
   },
   "components": {
@@ -6303,7 +6307,8 @@
     "VIDEO_FEATURED_MULTIPLE": "Nur ein Video kann zuerst gezeigt werden.",
     "VIDEO_FEATURED_REQUIRES_POSTER": "Das zuerst gezeigte Video braucht ein Vorschaubild.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Diese Website-Adresse ist nicht erlaubt.",
-    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Nur der Shop-Inhaber kann die externe Website-Adresse ändern."
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Nur der Shop-Inhaber kann die externe Website-Adresse ändern.",
+    "STORE_LANGUAGE_IN_REVIEW": "Diese Sprache ist noch in Prüfung und kann noch nicht Haupt- oder Standardsprache sein. Fügen Sie sie stattdessen als zusätzliche Sprache hinzu."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
