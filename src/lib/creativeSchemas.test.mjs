@@ -141,9 +141,9 @@ test('no section carries a per-section motion option: motion is automatic', () =
 
 // Brand sections: one schema file each (lib/creative-sections), wired into
 // the palette. The field-by-field mirror is the storefront contract test's job.
-const BRAND_SECTIONS = ['cover-hero', 'look-spread', 'object-study', 'script-manifesto', 'impact-arc', 'pattern-band'];
+const BRAND_SECTIONS = ['cover-hero', 'look-spread', 'object-study', 'script-manifesto', 'impact-arc', 'pattern-band', 'hero-dawn', 'promise-band'];
 
-test('the six brand sections exist with every text in six locales', () => {
+test('the brand sections exist with every text in six locales', () => {
   for (const id of BRAND_SECTIONS) {
     const schema = findSectionSchema(id);
     assert.ok(schema, id);

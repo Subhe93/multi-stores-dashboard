@@ -28,6 +28,8 @@ const CREATIVE_KEYS = [
   'script-manifesto',
   'impact-arc',
   'pattern-band',
+  'hero-dawn',
+  'promise-band',
 ];
 // Creative options injected into existing sections (withCreativeOptions).
 const CREATIVE_OPTION_KEYS = [];
