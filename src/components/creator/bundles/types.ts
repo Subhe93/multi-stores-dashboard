@@ -53,6 +53,8 @@ export const LOCALE_LABELS: Record<string, string> = {
   de: 'Deutsch',
   fr: 'Français',
   sv: 'Svenska',
+  // Kurdish, Kurmanji (Latin script, left to right).
+  ku: 'Kurdî',
 };
 
 export const RTL_LOCALES = new Set(['ar']);

@@ -38,6 +38,8 @@ const LOCALES: { code: string; label: string; dir: 'ltr' | 'rtl' }[] = [
   { code: 'de', label: 'Deutsch', dir: 'ltr' },
   { code: 'fr', label: 'Français', dir: 'ltr' },
   { code: 'sv', label: 'Svenska', dir: 'ltr' },
+  // Kurdish, Kurmanji (Latin script): platform email texts for stores that enable it.
+  { code: 'ku', label: 'Kurdî', dir: 'ltr' },
 ];
 
 // Treat whitespace-only / tag-only HTML as empty so the dot indicator reflects real emptiness.

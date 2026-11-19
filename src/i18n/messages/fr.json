@@ -5733,6 +5733,10 @@
       },
       "propagationNote": "Les modifications peuvent mettre jusqu’à 2 minutes environ pour s’appliquer à votre boutique.",
       "unknownTarget": "Aucun contenu publié n'a été trouvé à cette adresse. Vérifiez-la avant de continuer."
+    },
+    "languageReview": {
+      "badge": "En révision",
+      "hint": "{language} est en révision : la langue est masquée du sélecteur de langue de la boutique et accessible uniquement via {path} jusqu’à la vérification de ses textes."
     }
   },
   "components": {
@@ -6303,7 +6307,8 @@
     "VIDEO_FEATURED_MULTIPLE": "Une seule vidéo peut être affichée en premier.",
     "VIDEO_FEATURED_REQUIRES_POSTER": "La vidéo affichée en premier doit avoir une image de couverture.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Cette adresse de site n’est pas autorisée.",
-    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Seul le propriétaire de la boutique peut modifier l’adresse du site externe."
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Seul le propriétaire de la boutique peut modifier l’adresse du site externe.",
+    "STORE_LANGUAGE_IN_REVIEW": "Cette langue est encore en révision et ne peut pas encore être la langue principale ou par défaut. Ajoutez-la plutôt comme langue secondaire."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

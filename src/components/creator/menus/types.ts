@@ -266,7 +266,7 @@ export function moveNode(items: TreeItem[], activeCid: string, overCid: string):
 // ── Locale helpers ────────────────────────────────────────
 
 const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska', es: 'Español',
+  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska', es: 'Español', ku: 'Kurdî',
 };
 
 export function localeLabel(code: string): string {

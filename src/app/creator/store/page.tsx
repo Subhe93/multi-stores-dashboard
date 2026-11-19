@@ -27,7 +27,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { CONTENT_LOCALES, isReviewLocale } from '@/lib/contentLocales';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
@@ -133,18 +134,13 @@ interface TranslatableFields {
 // Constants
 // ---------------------------------------------------------------------------
 
-const LOCALES = [
-  { value: 'en', label: 'English' },
-  { value: 'ar', label: 'العربية' },
-  { value: 'tr', label: 'Türkçe' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' },
-  { value: 'sv', label: 'Svenska' },
-];
+// Store content locales (shared list). Locales in review can only be added as
+// secondary languages: a primary locale has no URL prefix, so it cannot be
+// hidden from the storefront (the API answers STORE_LANGUAGE_IN_REVIEW).
+const LOCALES = CONTENT_LOCALES.map((l) => ({ value: l.value, label: l.label }));
+const PRIMARY_LOCALE_OPTIONS = LOCALES.filter((l) => !isReviewLocale(l.value));
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = Object.fromEntries(LOCALES.map((l) => [l.value, l.label]));
 
 const RTL_LOCALES = ['ar'];
 
@@ -428,6 +424,7 @@ export default function CreatorStorePage() {
   const router = useRouter();
   const t = useTranslations('creator');
   const tcom = useTranslations('common');
+  const tErrors = useTranslations('errors');
   const { pickAndUpload, uploading: heroUploading } = useImageUpload(token);
   // While the Markets app is enabled, domains and languages are owned by the
   // Markets page: the custom-domain field is hidden and languages are read-only.
@@ -760,7 +757,12 @@ export default function CreatorStorePage() {
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Save error:', err);
-      setSaveError((err instanceof Error && err.message) || t('myStore.saveFailed'));
+      // A review locale sent as primary: friendly text instead of the raw API message.
+      if (err instanceof ApiError && err.code === 'STORE_LANGUAGE_IN_REVIEW') {
+        setSaveError(tErrors('STORE_LANGUAGE_IN_REVIEW'));
+      } else {
+        setSaveError((err instanceof Error && err.message) || t('myStore.saveFailed'));
+      }
     }
     finally { setSaving(false); }
   };
@@ -1209,7 +1211,7 @@ export default function CreatorStorePage() {
                 setActiveLocale(v);
               }}
               placeholder={t('myStore.selectLanguage')}
-              options={LOCALES}
+              options={PRIMARY_LOCALE_OPTIONS}
             />
             )}
           </div>
@@ -1219,18 +1221,27 @@ export default function CreatorStorePage() {
               {LOCALES.map((locale) => {
                 const isSelected = form.secondary_locales.includes(locale.value);
                 const isPrimary = form.primary_locale === locale.value;
+                const inReview = isReviewLocale(locale.value);
                 return (
                   <button key={locale.value} type="button"
                     onClick={() => { if (!isPrimary && !marketsEnabled) toggleSecondaryLocale(locale.value); }}
                     disabled={isPrimary || marketsEnabled}
+                    title={inReview ? t('languageReview.hint', { language: locale.label, path: `/${locale.value}/` }) : undefined}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border text-xs font-medium transition-colors ${isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'} ${isPrimary ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                   >
                     {locale.label}
                     {isPrimary && <Badge variant="secondary" className="ms-1 text-[9px] px-1 py-0 h-auto">{t('myStore.primary')}</Badge>}
+                    {inReview && <Badge variant="outline" className="ms-1 text-[9px] px-1 py-0 h-auto border-amber-300 bg-amber-50 text-amber-800">{t('languageReview.badge')}</Badge>}
                   </button>
                 );
               })}
             </div>
+            {/* Locales in review: hidden from the storefront switcher, reachable by their URL prefix. */}
+            {LOCALES.filter((l) => isReviewLocale(l.value)).map((l) => (
+              <p key={l.value} className="text-[11px] text-muted-foreground">
+                {t('languageReview.hint', { language: l.label, path: `/${l.value}/` })}
+              </p>
+            ))}
           </div>
           <Separator />
           <div className="flex items-center justify-between py-1">

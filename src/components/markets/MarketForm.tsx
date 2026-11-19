@@ -18,7 +18,7 @@ import { clearCurrencyCache, useCurrency } from '@/lib/useCurrency';
 import { useTransientFlag } from '@/lib/useTransientFlag';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
-import { CONTENT_LOCALES } from '@/lib/contentLocales';
+import { CONTENT_LOCALES, isReviewLocale } from '@/lib/contentLocales';
 import { createMarket, updateMarket, type MarketIndexing, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
 
 // Mirror of the API key rule (CreateMarketDto): 1–16 lowercase letters, digits
@@ -28,6 +28,10 @@ const KEY_RE = /^[a-z0-9](?:[a-z0-9-]{0,14}[a-z0-9])?$/;
 // Storefront locales the proxy can serve (web `locales` list); the API rejects
 // anything else with MARKET_LOCALE_UNSUPPORTED.
 export const MARKET_LOCALES: { value: string; label: string }[] = CONTENT_LOCALES.map((l) => ({ ...l }));
+
+// Locales in review cannot be a market's default locale (no URL prefix, so it
+// could not stay hidden): the API answers STORE_LANGUAGE_IN_REVIEW.
+const DEFAULT_LOCALE_OPTIONS = MARKET_LOCALES.filter((l) => !isReviewLocale(l.value));
 
 export const localeLabel = (code: string) => MARKET_LOCALES.find((l) => l.value === code)?.label ?? code.toUpperCase();
 
@@ -52,6 +56,7 @@ interface MarketFormProps {
  */
 export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveFailed }: MarketFormProps) {
   const t = useTranslations('creator.markets.form');
+  const tReview = useTranslations('creator.languageReview');
   const { token } = useAuth();
   const describeError = useApiError();
   // Base currency = the store currency (prices are entered in it).
@@ -182,7 +187,7 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
               <SearchableSelect
                 value={form.default_locale}
                 onChange={(v) => setForm((prev) => ({ ...prev, default_locale: v, locales: prev.locales.filter((l) => l !== v) }))}
-                options={MARKET_LOCALES}
+                options={DEFAULT_LOCALE_OPTIONS}
               />
             </div>
             <div className="space-y-1.5">
@@ -215,22 +220,31 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
               {MARKET_LOCALES.map((locale) => {
                 const isDefaultLocale = locale.value === form.default_locale;
                 const selected = form.locales.includes(locale.value);
+                const inReview = isReviewLocale(locale.value);
                 return (
                   <button
                     key={locale.value}
                     type="button"
                     disabled={isDefaultLocale}
                     onClick={() => toggleLocale(locale.value)}
+                    title={inReview ? tReview('hint', { language: locale.label, path: `/${locale.value}/` }) : undefined}
                     className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                       selected || isDefaultLocale ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'
                     } ${isDefaultLocale ? 'cursor-default opacity-80' : 'cursor-pointer'}`}
                   >
                     {locale.label}
                     {isDefaultLocale && <Badge variant="secondary" className="ms-1 h-auto px-1 py-0 text-[9px]">{t('defaultBadge')}</Badge>}
+                    {inReview && <Badge variant="outline" className="ms-1 h-auto border-amber-300 bg-amber-50 px-1 py-0 text-[9px] text-amber-800">{tReview('badge')}</Badge>}
                   </button>
                 );
               })}
             </div>
+            {/* Locales in review: hidden from the storefront switcher, reachable by their URL prefix. */}
+            {MARKET_LOCALES.filter((l) => isReviewLocale(l.value)).map((l) => (
+              <p key={l.value} className="text-[11px] text-muted-foreground">
+                {tReview('hint', { language: l.label, path: `/${l.value}/` })}
+              </p>
+            ))}
           </div>
         </CardContent>
       </Card>

@@ -5733,6 +5733,10 @@
       },
       "propagationNote": "Değişikliklerin mağazanıza yansıması yaklaşık 2 dakika sürebilir.",
       "unknownTarget": "Bu adreste yayınlanmış bir içerik bulunamadı. Devam etmeden önce kontrol edin."
+    },
+    "languageReview": {
+      "badge": "İncelemede",
+      "hint": "{language} incelemede: metinleri kontrol edilene kadar mağazanın dil seçicisinde gizlidir ve yalnızca {path} adresinden erişilebilir."
     }
   },
   "components": {
@@ -6303,7 +6307,8 @@
     "VIDEO_FEATURED_MULTIPLE": "Yalnızca bir video ilk sırada gösterilebilir.",
     "VIDEO_FEATURED_REQUIRES_POSTER": "İlk gösterilen videonun bir kapak görseli olmalıdır.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Bu web sitesi adresine izin verilmiyor.",
-    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Harici web sitesi adresini yalnızca mağaza sahibi değiştirebilir."
+    "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Harici web sitesi adresini yalnızca mağaza sahibi değiştirebilir.",
+    "STORE_LANGUAGE_IN_REVIEW": "Bu dil hâlâ incelemede ve henüz birincil veya varsayılan dil olamaz. Bunun yerine ikincil dil olarak ekleyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

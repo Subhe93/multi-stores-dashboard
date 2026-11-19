@@ -46,7 +46,7 @@ import { productStockPayload, variantStockSummary } from '@/lib/variantStock';
 import { productRequiresShipping, requiresShippingPayload } from '@/lib/requiresShipping';
 import { EMAIL_NOTE_MAX, emailNotePayload, emailNoteText } from '@/lib/emailNote';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
-import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE } from '@/lib/contentLocales';
+import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE, isReviewLocale } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
 import { ViewInStoreButton } from './ViewInStoreButton';
 import { PreviewOnStoreButton } from './PreviewOnStoreButton';
@@ -63,6 +63,8 @@ const LOCALE_LABELS: Record<string, string> = {
   de: 'Deutsch',
   fr: 'Français',
   sv: 'Svenska',
+  // Kurdish, Kurmanji (Latin script, left to right).
+  ku: 'Kurdî',
 };
 const RTL_LOCALES = ['ar'];
 
@@ -395,7 +397,11 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           primary: store.language_config?.primary_locale || 'en',
           secondary: store.language_config?.secondary_locales || [],
         }))
-      : Promise.resolve({ primary: PLATFORM_PRIMARY_LOCALE, secondary: CONTENT_LOCALE_CODES });
+      // Locales still in review (not yet public) are left out of this list.
+      : Promise.resolve({
+          primary: PLATFORM_PRIMARY_LOCALE,
+          secondary: CONTENT_LOCALE_CODES.filter((l) => !isReviewLocale(l)),
+        });
     localeConfig
       .then(({ primary, secondary }) => {
         const all = [primary, ...secondary.filter((l: string) => l !== primary)];
