@@ -33,6 +33,7 @@ import { downloadCustomerUploadOriginal } from '@/lib/customerUploads.api';
 import { downloadPrintFile } from '@/lib/designer/designer.api';
 import { cn } from '@/lib/utils';
 import { ProductionProgressBar } from './ProductionProgressBar';
+import { groupChecks } from './checkGroups';
 import { ProductionActivityLog } from './ProductionActivityLog';
 import {
   CLOSED_ORDER_STATUSES,
@@ -208,7 +209,12 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
       let next = prev;
       if (res.check) {
         const stored = res.check;
-        next = patchChecks(next, (c) => c.id === stored.id, () => stored);
+        // Write responses carry no display extras: keep the ones held.
+        next = patchChecks(
+          next,
+          (c) => c.id === stored.id,
+          (c) => ({ ...stored, hex: c.hex, group_label: c.group_label, quantity: stored.quantity ?? c.quantity }),
+        );
       }
       return {
         ...next,
@@ -376,7 +382,7 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
       ? t('doneBy', { name: c.done_by_name || t('someone'), time: new Date(c.done_at).toLocaleString(locale) })
       : undefined;
 
-  const renderCheck = (c: ProductionCheck, line: ProductionLine) => {
+  const renderCheck = (c: ProductionCheck, line: ProductionLine, displayLabel: string = c.label) => {
     const busy = pending.has(c.id);
     const disabled = closed || c.stale || !line.owned || !!bulkBusy;
     const isImage = !!c.file_url && IMAGE_EXT_RE.test(c.file_url);
@@ -412,10 +418,20 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
 
         <div className="min-w-0 flex-1 py-1.5" title={doneByTitle(c)}>
           <p className={cn('break-words leading-snug', workspace ? 'text-base' : 'text-sm', c.stale && 'line-through')}>
-            <span className={cn(c.value ? 'text-muted-foreground' : 'font-medium')}>{c.label}</span>
+            <span className={cn(c.value ? 'text-muted-foreground' : 'font-medium')}>{displayLabel}</span>
             {c.value && (
               <>
                 <span className="text-muted-foreground">: </span>
+                {c.hex && (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'me-1.5 inline-block shrink-0 rounded-full border border-zinc-300 align-[-0.15em] shadow-sm',
+                      workspace ? 'size-5' : 'size-4',
+                    )}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                )}
                 <span className={cn('font-semibold', workspace && 'text-lg')}>{c.value}</span>
               </>
             )}
@@ -509,7 +525,31 @@ export function ProductionChecklist({ orderId, token, mode = 'card', onOrderStat
             {sorted.length === 0 ? (
               <p className="px-1 text-xs text-muted-foreground">{t('noChecks')}</p>
             ) : (
-              <ul className="space-y-1">{sorted.map((c) => renderCheck(c, line))}</ul>
+              <ul className="space-y-1">
+                {groupChecks(sorted).map((block) =>
+                  block.kind === 'single' ? (
+                    renderCheck(block.check, line)
+                  ) : (
+                    <li key={`group-${block.index}`} className="list-none">
+                      <section
+                        aria-label={block.label}
+                        className={cn(
+                          'rounded-xl border-2 bg-white px-2 pb-1.5 pt-2',
+                          block.done >= block.total && block.total > 0 ? 'border-emerald-300' : 'border-zinc-200',
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2 px-2 pb-1">
+                          <p className={cn('font-semibold', workspace ? 'text-base' : 'text-sm')}>{block.label}</p>
+                          <span className="text-xs tabular-nums text-muted-foreground">
+                            {block.done}/{block.total}
+                          </span>
+                        </div>
+                        <ul className="space-y-1">{block.checks.map((g) => renderCheck(g.check, line, g.fieldLabel))}</ul>
+                      </section>
+                    </li>
+                  ),
+                )}
+              </ul>
             )}
 
             {!closed && (

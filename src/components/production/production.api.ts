@@ -50,6 +50,10 @@ export interface ProductionCheck {
   /** Source disappeared from the order: shown struck through, not counted. */
   stale: boolean;
   custom: boolean;
+  /** Swatch colour of a colour value (`#rrggbb`); null otherwise. Absent on older APIs. */
+  hex?: string | null;
+  /** Repeater instance label ("Artikel 2"), the prefix of `label`; null outside a group. */
+  group_label?: string | null;
 }
 
 export interface ProductionProgress {

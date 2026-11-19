@@ -19,6 +19,7 @@ import {
   type ProductionPrintFile,
   type ProductionWorkspace,
 } from '@/components/production/production.api';
+import { groupChecks } from '@/components/production/checkGroups';
 
 const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i;
 
@@ -229,49 +230,75 @@ function Sheet({ orderId, token }: { orderId: string; token: string }) {
                   <p className="mt-2 text-sm text-zinc-500">{tp('noChecks')}</p>
                 ) : (
                   <ul className="mt-3 space-y-2">
-                    {checks.map((c) => {
+                    {groupChecks(checks).map((block) => {
+                      const renderSheetCheck = (c: ProductionCheck, label: string = c.label) => {
                       const isImage = !!c.file_url && IMAGE_EXT_RE.test(c.file_url);
-                      return (
-                        <li key={c.id} className="flex items-start gap-3 break-inside-avoid">
-                          <span
-                            aria-hidden
-                            className={cn(
-                              'mt-1 flex size-6 shrink-0 items-center justify-center border-2 border-zinc-900 text-base font-bold leading-none',
-                              c.done && 'bg-zinc-900 text-white',
-                            )}
-                          >
-                            {c.done ? '✓' : ''}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm text-zinc-600">{c.label}</p>
-                            {c.value && <p className="break-words text-2xl font-bold leading-tight">{c.value}</p>}
-                            {c.file_url && (
-                              <div className="mt-1 flex flex-wrap items-center gap-3">
-                                {isImage ? (
-                                  <img src={resolveMediaUrl(c.file_url)} alt="" className="h-28 max-w-[60mm] rounded border object-contain" />
-                                ) : (
-                                  <span className="flex size-16 items-center justify-center rounded border bg-zinc-50">
-                                    <FileText className="size-6 text-zinc-400" />
-                                  </span>
-                                )}
-                                {c.file_removed ? (
-                                  <span className="text-xs text-zinc-500">{tp('fileRemoved')}</span>
-                                ) : c.upload_id ? (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="print:hidden"
-                                    disabled={downloading === c.id}
-                                    onClick={() => download(c)}
-                                  >
-                                    {downloading === c.id ? <Loader2 className="animate-spin" /> : <Download />}
-                                    {tp('downloadOriginal')}
-                                  </Button>
-                                ) : null}
-                              </div>
-                            )}
-                          </div>
+                        return (
+                          <li key={c.id} className="flex items-start gap-3 break-inside-avoid">
+                            <span
+                              aria-hidden
+                              className={cn(
+                                'mt-1 flex size-6 shrink-0 items-center justify-center border-2 border-zinc-900 text-base font-bold leading-none',
+                                c.done && 'bg-zinc-900 text-white',
+                              )}
+                            >
+                              {c.done ? '✓' : ''}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-zinc-600">{label}</p>
+                              {c.value && (
+                                <p className="flex items-center gap-2 break-words text-2xl font-bold leading-tight">
+                                  {c.hex && (
+                                    <span
+                                      aria-hidden
+                                      className="inline-block size-6 shrink-0 rounded-full border-2 border-zinc-900 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]"
+                                      style={{ backgroundColor: c.hex }}
+                                    />
+                                  )}
+                                  {c.value}
+                                </p>
+                              )}
+                              {c.file_url && (
+                                <div className="mt-1 flex flex-wrap items-center gap-3">
+                                  {isImage ? (
+                                    <img src={resolveMediaUrl(c.file_url)} alt="" className="h-28 max-w-[60mm] rounded border object-contain" />
+                                  ) : (
+                                    <span className="flex size-16 items-center justify-center rounded border bg-zinc-50">
+                                      <FileText className="size-6 text-zinc-400" />
+                                    </span>
+                                  )}
+                                  {c.file_removed ? (
+                                    <span className="text-xs text-zinc-500">{tp('fileRemoved')}</span>
+                                  ) : c.upload_id ? (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="print:hidden"
+                                      disabled={downloading === c.id}
+                                      onClick={() => download(c)}
+                                    >
+                                      {downloading === c.id ? <Loader2 className="animate-spin" /> : <Download />}
+                                      {tp('downloadOriginal')}
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      };
+                      return block.kind === 'single' ? (
+                        renderSheetCheck(block.check)
+                      ) : (
+                        <li key={`group-${block.index}`} className="break-inside-avoid rounded-lg border-2 border-zinc-900 p-3">
+                          <p className="mb-2 flex items-center justify-between text-base font-bold">
+                            <span>{block.label}</span>
+                            <span className="text-sm font-normal tabular-nums text-zinc-600" dir="ltr">
+                              {block.done}/{block.total}
+                            </span>
+                          </p>
+                          <ul className="space-y-2">{block.checks.map((g) => renderSheetCheck(g.check, g.fieldLabel))}</ul>
                         </li>
                       );
                     })}
