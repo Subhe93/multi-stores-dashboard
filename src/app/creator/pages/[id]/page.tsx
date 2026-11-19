@@ -23,10 +23,9 @@ import {
   DeleteRedirectLegalNote,
   useDeleteRedirect,
 } from '@/components/redirects/DeleteRedirect';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 type LocaleTranslation = { title: string; content: string };

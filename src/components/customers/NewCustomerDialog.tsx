@@ -19,25 +19,10 @@ import { isValidEmail } from '@/lib/customers';
 import { createCustomer, type CustomerScope } from '@/lib/customers.api';
 import { useCustomerError } from './useCustomerError';
 import { locales as uiLocales } from '@/i18n/config';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 // Native language names for the email language picker.
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-  es: 'Español',
-  it: 'Italiano',
-  nl: 'Nederlands',
-  da: 'Dansk',
-  no: 'Norsk',
-  nb: 'Norsk bokmål',
-  fi: 'Suomi',
-  pl: 'Polski',
-  pt: 'Português',
-};
+const LOCALE_LABELS: Record<string, string> = { ...CONTENT_LOCALE_LABELS, es: 'Español', it: 'Italiano', nl: 'Nederlands', da: 'Dansk', no: 'Norsk', nb: 'Norsk bokmål', fi: 'Suomi', pl: 'Polski', pt: 'Português' };
 
 export interface StoreOption {
   id: string;

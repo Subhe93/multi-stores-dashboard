@@ -13,10 +13,9 @@ import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/componen
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { noticeIfSlugAdjusted, useSlugField } from '@/lib/useSlugField';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 type Translator = ReturnType<typeof useTranslations>;

@@ -25,16 +25,10 @@ import { api } from '@/lib/api';
 import { useBulkAction } from '@/components/common/useBulkAction';
 import { ReauthCancelled, useAdminGrant } from '@/components/security/useAdminGrant';
 import { locales } from '@/i18n/config';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 // Native language names for the credentials-email language picker.
-const EMAIL_LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-};
+const EMAIL_LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 
 interface User {
   id: string;

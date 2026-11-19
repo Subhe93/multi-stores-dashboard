@@ -42,12 +42,11 @@ import { computeProductPricingForBundleCheck } from '@/components/creator/bundle
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useCurrency } from '@/lib/useCurrency';
 import { ProviderVideosPreview, type ProviderVideoLike } from '@/components/product/ProviderVideosPreview';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 const API_BASE = API_ORIGIN;
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 // ── Types ────────────────────────────────────────────────

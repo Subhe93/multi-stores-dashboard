@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Languages, Check, X, Loader2, RefreshCw, Globe } from 'lucide-react';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -31,9 +32,7 @@ interface Overview {
 // ──────────────────────────────────────────────────────────
 // Constants
 // ──────────────────────────────────────────────────────────
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 
 type Translator = ReturnType<typeof useTranslations>;
 

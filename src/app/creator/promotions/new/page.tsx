@@ -25,10 +25,9 @@ import { RichTextEditor } from '@/components/common/RichTextEditor';
 import { useCurrency } from '@/lib/useCurrency';
 import { useStoreType } from '@/lib/useStoreType';
 import { DiscountKindToggle, type DiscountKind } from '@/components/creator/DiscountKindToggle';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 // ─── Types ───────────────────────────────────────────────────────────────────

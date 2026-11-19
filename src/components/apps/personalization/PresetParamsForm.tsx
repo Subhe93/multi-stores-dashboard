@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { isPlainObject } from '@/lib/customFields';
 import { optionValueCount, type OptionConfigLike, type PresetParam } from '@/lib/personalization';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 interface PresetParamsFormProps {
   presetKey: string;
@@ -27,16 +28,7 @@ interface PresetParamsFormProps {
 }
 
 /** Native names of the platform locales; other codes show upper-cased. */
-const LOCALE_NAMES: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-  // Kurdish, Kurmanji (Latin script, left to right).
-  ku: 'Kurdî',
-};
+const LOCALE_NAMES: Record<string, string> = CONTENT_LOCALE_LABELS;
 const localeName = (code: string) => LOCALE_NAMES[code] ?? code.toUpperCase();
 
 /** Translated label of a param: `presets.items.<preset>.params.<key>`, else the generic one, else the key. */

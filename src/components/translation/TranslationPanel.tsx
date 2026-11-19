@@ -1,3 +1,4 @@
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 'use client';
 
 interface TranslationField {
@@ -13,14 +14,7 @@ interface TranslationPanelProps {
   onChange: (locale: string, key: string, value: string) => void;
 }
 
-const localeNames: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-};
+const localeNames: Record<string, string> = CONTENT_LOCALE_LABELS;
 
 export function TranslationPanel({
   locales,

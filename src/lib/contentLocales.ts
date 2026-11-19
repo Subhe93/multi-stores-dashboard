@@ -12,6 +12,11 @@ export const CONTENT_LOCALES = [
   { value: 'ku', label: 'Kurdî' },
 ] as const;
 
+// code -> native name, the single label source for every locale picker/tab.
+export const CONTENT_LOCALE_LABELS: Record<string, string> = Object.fromEntries(
+  CONTENT_LOCALES.map((l) => [l.value, l.label]),
+);
+
 export const CONTENT_LOCALE_CODES: string[] = CONTENT_LOCALES.map((l) => l.value);
 
 // Locales in review (mirror of the API's REVIEW_LOCALES): a store can enable

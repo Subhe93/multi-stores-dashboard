@@ -1,4 +1,5 @@
 import type { PConditions, PPricing, PRepeat, PUi } from '@/lib/personalization';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 export interface CustomFieldTranslation {
   locale: string;
@@ -85,9 +86,7 @@ export interface FieldTypeOption {
   description?: string;
 }
 
-export const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+export const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 export const RTL_LOCALES = ['ar'];
 
 /** Field types whose `options` array is edited in the dialog */

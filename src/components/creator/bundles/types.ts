@@ -1,3 +1,4 @@
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 export type BundleDiscountType = 'ITEM' | 'PERCENTAGE' | 'FIXED';
 export type BundleStatus = 'ACTIVE' | 'DISABLED';
 
@@ -46,16 +47,7 @@ export interface BundleTemplate {
   }[];
 }
 
-export const LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-  // Kurdish, Kurmanji (Latin script, left to right).
-  ku: 'Kurdî',
-};
+export const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 
 export const RTL_LOCALES = new Set(['ar']);
 

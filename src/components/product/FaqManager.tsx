@@ -28,6 +28,7 @@ import { Plus, Trash2, Pencil, ChevronDown, ChevronUp, HelpCircle, Languages, Lo
 import { LocaleTabs, filledLocales, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 export interface Faq {
   id?: string;
@@ -49,9 +50,7 @@ interface FaqManagerProps {
   sortUrl?: string;
 }
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 
 export default function FaqManager({
   productId,

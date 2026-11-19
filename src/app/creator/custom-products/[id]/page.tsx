@@ -40,12 +40,11 @@ import {
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
 import { ProviderVideosPreview, type ProviderVideoLike } from '@/components/product/ProviderVideosPreview';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 const API_BASE = API_ORIGIN;
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English', ar: 'العربية', tr: 'Türkçe', de: 'Deutsch', fr: 'Français', sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 function resolveUrl(url?: string): string | undefined {

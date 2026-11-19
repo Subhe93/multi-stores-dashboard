@@ -52,20 +52,12 @@ import { ViewInStoreButton } from './ViewInStoreButton';
 import { PreviewOnStoreButton } from './PreviewOnStoreButton';
 import { resolveSlugForSubmit, slugFromText, slugPreviewPath } from '@/lib/slug';
 import { noticeIfSlugAdjusted } from '@/lib/useSlugField';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 // ─────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-  // Kurdish, Kurmanji (Latin script, left to right).
-  ku: 'Kurdî',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 /**

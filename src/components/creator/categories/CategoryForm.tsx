@@ -43,18 +43,12 @@ import {
   type CustomProductRow,
   type OwnProductRow,
 } from '@/components/creator/categories/CollectionProductsPicker';
+import { CONTENT_LOCALE_LABELS } from '@/lib/contentLocales';
 
 const API_BASE = API_ORIGIN;
 const WEB_ORIGIN = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3003';
 
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'English',
-  ar: 'العربية',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  fr: 'Français',
-  sv: 'Svenska',
-};
+const LOCALE_LABELS: Record<string, string> = CONTENT_LOCALE_LABELS;
 const RTL_LOCALES = ['ar'];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
