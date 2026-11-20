@@ -4778,7 +4778,10 @@
           "AUTO": "Indexeras inte så länge marknaden körs på plattformsadressen. När en egen domän är aktiv indexeras den och plattformsadressen omdirigerar dit.",
           "ALWAYS": "Indexera på alla adresser, även plattformsadressen.",
           "NEVER": "Håll utanför sökmotorer (test- eller staging-domäner). Sidorna kan fortfarande crawlas så att Google ser noindex; ingen bestående påföljd efter att du byter tillbaka."
-        }
+        },
+        "xDefault": "Standard för besökare utan matchning (x-default)",
+        "xDefaultHint": "Sökmotorer skickar besökare vars språk eller land inte matchar någon marknad till den här marknadens adress, på dess standardspråk. Bara en marknad kan ha detta; om ingen är vald används standardmarknaden.",
+        "xDefaultWarningNotIndexable": "Den här marknaden indexeras inte än, så sökmotorerna skickas till standardmarknaden tills den gör det."
       },
       "preview": {
         "title": "Förhandsvisningslänk",
@@ -4878,7 +4881,8 @@
           "unknown_country": "Inga Kustom-uppgifter för {country}. Bekräfta med Kustoms support.",
           "currency_not_supported": "Kustom stöder inte den här valutan."
         }
-      }
+      },
+      "xDefaultBadge": "x-default"
     },
     "invoices": {
       "title": "Fakturor",
@@ -6308,7 +6312,8 @@
     "VIDEO_FEATURED_REQUIRES_POSTER": "Videon som visas först behöver en omslagsbild.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Den här webbadressen är inte tillåten.",
     "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Endast butiksägaren kan ändra den externa webbplatsens adress.",
-    "STORE_LANGUAGE_IN_REVIEW": "Det här språket är fortfarande under granskning och kan inte vara huvudspråk eller standardspråk än. Lägg till det som ett sekundärt språk i stället."
+    "STORE_LANGUAGE_IN_REVIEW": "Det här språket är fortfarande under granskning och kan inte vara huvudspråk eller standardspråk än. Lägg till det som ett sekundärt språk i stället.",
+    "MARKET_X_DEFAULT_CONFLICT": "En annan marknad valdes just som standard för besökare utan matchning. Ladda om sidan och försök igen."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

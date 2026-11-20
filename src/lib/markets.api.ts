@@ -81,6 +81,12 @@ export interface MarketView {
    * ALWAYS: indexable on any host; NEVER: noindex everywhere.
    */
   indexing: MarketIndexing;
+  /**
+   * hreflang x-default target: where search engines send visitors that match
+   * no market. At most one per store (the API clears the others); none = the
+   * default market. Ignored by the storefront while the market is not indexable.
+   */
+  is_x_default: boolean;
 }
 
 export interface MarketInput {
@@ -92,6 +98,8 @@ export interface MarketInput {
   currency: string;
   price_rule: PriceRule;
   indexing?: MarketIndexing;
+  /** Sent only when changed: true moves the x-default here, false unsets it. */
+  is_x_default?: boolean;
 }
 
 export interface DnsTarget {

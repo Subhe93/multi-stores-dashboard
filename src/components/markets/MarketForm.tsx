@@ -71,6 +71,7 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     currency: initial?.currency ?? baseCurrency,
     price_rule: initial?.price_rule && initial.price_rule.mode ? initial.price_rule : DEFAULT_RULE,
     indexing: initial?.indexing ?? 'AUTO',
+    is_x_default: initial?.is_x_default ?? false,
   });
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useTransientFlag();
@@ -108,6 +109,10 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
       : mode === 'AUTO' && !hasLiveHost
         ? t('indexingWarningNoDomain')
         : null;
+  // The storefront honours the x-default choice only while the market is
+  // indexable: LIVE, not NEVER, and (a non-default market) on a live host.
+  // Otherwise the default market stays the target.
+  const xDefaultIndexable = initial?.status === 'LIVE' && mode !== 'NEVER' && hasLiveHost;
 
   const handleSave = async () => {
     if (!token || !canSave) return;
@@ -125,6 +130,9 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
         ? { mode: 'convert', source: 'manual', rate: 1, rounding: form.price_rule.rounding ?? {} }
         : form.price_rule,
     };
+    // Sent only when changed, so saving a stale form never moves the
+    // x-default back from a market chosen elsewhere in the meantime.
+    if (!!payload.is_x_default === !!initial?.is_x_default) delete payload.is_x_default;
     try {
       // The key is locked after creation, so the update omits it.
       const { key, ...editable } = payload;
@@ -303,6 +311,33 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
               </label>
             );
           })}
+
+          {/* hreflang x-default target (one market per store); the default market is the fallback, so it needs no switch. */}
+          {!isDefault && (
+            <div className="space-y-2 border-t pt-3">
+              <label className="flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={!!form.is_x_default}
+                  onChange={(e) => set('is_x_default', e.target.checked)}
+                />
+                <div className="space-y-0.5">
+                  <span className="block text-xs font-medium">{t('xDefault')}</span>
+                  <p className="text-[10px] text-muted-foreground">{t('xDefaultHint')}</p>
+                </div>
+              </label>
+              {form.is_x_default && !xDefaultIndexable && (
+                <div
+                  role="status"
+                  className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900"
+                >
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <span>{t('xDefaultWarningNotIndexable')}</span>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

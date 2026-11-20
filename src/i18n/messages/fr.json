@@ -4778,7 +4778,10 @@
           "AUTO": "Non indexé tant que le marché fonctionne sur l’adresse de la plateforme. Dès qu’un domaine personnalisé est actif, il est indexé et l’adresse de la plateforme y redirige.",
           "ALWAYS": "Indexer sur toute adresse, y compris l’adresse de la plateforme.",
           "NEVER": "Tenir à l’écart des moteurs de recherche (domaines de test ou de préproduction). Les pages restent explorables pour que Google voie le noindex ; aucune pénalité durable après retour en arrière."
-        }
+        },
+        "xDefault": "Par défaut pour les visiteurs sans correspondance (x-default)",
+        "xDefaultHint": "Les moteurs de recherche envoient les visiteurs dont la langue ou le pays ne correspond à aucun marché vers l'adresse de ce marché, dans sa langue par défaut. Un seul marché peut l'être ; si aucun n'est choisi, le marché par défaut est utilisé.",
+        "xDefaultWarningNotIndexable": "Ce marché n'est pas encore indexé : les moteurs de recherche sont dirigés vers le marché par défaut en attendant."
       },
       "preview": {
         "title": "Lien d'aperçu",
@@ -4878,7 +4881,8 @@
           "unknown_country": "Aucune donnée Kustom pour {country}. Confirmez auprès du support Kustom.",
           "currency_not_supported": "Kustom ne prend pas en charge cette devise."
         }
-      }
+      },
+      "xDefaultBadge": "x-default"
     },
     "invoices": {
       "title": "Factures",
@@ -6308,7 +6312,8 @@
     "VIDEO_FEATURED_REQUIRES_POSTER": "La vidéo affichée en premier doit avoir une image de couverture.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Cette adresse de site n’est pas autorisée.",
     "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Seul le propriétaire de la boutique peut modifier l’adresse du site externe.",
-    "STORE_LANGUAGE_IN_REVIEW": "Cette langue est encore en révision et ne peut pas encore être la langue principale ou par défaut. Ajoutez-la plutôt comme langue secondaire."
+    "STORE_LANGUAGE_IN_REVIEW": "Cette langue est encore en révision et ne peut pas encore être la langue principale ou par défaut. Ajoutez-la plutôt comme langue secondaire.",
+    "MARKET_X_DEFAULT_CONFLICT": "Un autre marché vient d'être choisi par défaut pour les visiteurs sans correspondance. Rechargez la page et réessayez."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

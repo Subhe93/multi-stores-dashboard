@@ -115,6 +115,9 @@ export default function CreatorMarketsPage() {
                       {m.indexing === 'NEVER' && (
                         <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">{t('noindexBadge')}</Badge>
                       )}
+                      {m.is_x_default && (
+                        <Badge variant="outline" className="text-[10px] font-mono bg-violet-50 text-violet-700 border-violet-200" dir="ltr">{t('xDefaultBadge')}</Badge>
+                      )}
                     </div>
                   </div>
                   <Link href={`/creator/markets/${m.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>

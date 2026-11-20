@@ -4778,7 +4778,10 @@
           "AUTO": "Not indexed while the market runs on the platform address. Once a custom domain is active it is indexed and the platform address redirects to it.",
           "ALWAYS": "Index on any address, including the platform address.",
           "NEVER": "Keep out of search engines (test or staging domains). Pages stay crawlable so Google sees the noindex; no lasting penalty after switching back."
-        }
+        },
+        "xDefault": "Default for unmatched visitors (x-default)",
+        "xDefaultHint": "Search engines send visitors whose language or country matches no market to this market's address, in its default language. Only one market can have this; when none is chosen, the default market is used.",
+        "xDefaultWarningNotIndexable": "This market is not indexed yet, so search engines are sent to the default market until it is."
       },
       "preview": {
         "title": "Preview link",
@@ -4878,7 +4881,8 @@
           "unknown_country": "No Kustom data for {country}. Confirm with Kustom support.",
           "currency_not_supported": "Kustom does not support this currency."
         }
-      }
+      },
+      "xDefaultBadge": "x-default"
     },
     "invoices": {
       "title": "Invoices",
@@ -6308,7 +6312,8 @@
     "VIDEO_FEATURED_REQUIRES_POSTER": "The video shown first needs a poster image.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "This website address is not allowed.",
     "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Only the store owner can change the external website address.",
-    "STORE_LANGUAGE_IN_REVIEW": "This language is still in review and cannot be the primary or default language yet. Add it as a secondary language instead."
+    "STORE_LANGUAGE_IN_REVIEW": "This language is still in review and cannot be the primary or default language yet. Add it as a secondary language instead.",
+    "MARKET_X_DEFAULT_CONFLICT": "Another market was just chosen as the default for unmatched visitors. Reload the page and try again."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

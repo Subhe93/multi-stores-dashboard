@@ -4778,7 +4778,10 @@
           "AUTO": "Nicht indexiert, solange der Markt unter der Plattformadresse läuft. Sobald eine eigene Domain aktiv ist, wird er indexiert und die Plattformadresse leitet dorthin weiter.",
           "ALWAYS": "Unter jeder Adresse indexieren, auch unter der Plattformadresse.",
           "NEVER": "Aus Suchmaschinen heraushalten (Test- oder Staging-Domains). Die Seiten bleiben crawlbar, damit Google das noindex sieht; nach dem Zurückschalten gibt es keine bleibenden Nachteile."
-        }
+        },
+        "xDefault": "Standard für nicht zugeordnete Besucher (x-default)",
+        "xDefaultHint": "Suchmaschinen leiten Besucher, deren Sprache oder Land zu keinem Markt passt, zur Adresse dieses Markts in seiner Standardsprache. Das kann nur ein Markt sein; ist keiner gewählt, gilt der Standardmarkt.",
+        "xDefaultWarningNotIndexable": "Dieser Markt wird noch nicht indexiert. Bis dahin verweisen Suchmaschinen auf den Standardmarkt."
       },
       "preview": {
         "title": "Vorschau-Link",
@@ -4878,7 +4881,8 @@
           "unknown_country": "Keine Kustom-Daten für {country}. Bestätigen Sie dies beim Kustom-Support.",
           "currency_not_supported": "Kustom unterstützt diese Währung nicht."
         }
-      }
+      },
+      "xDefaultBadge": "x-default"
     },
     "invoices": {
       "title": "Rechnungen",
@@ -6308,7 +6312,8 @@
     "VIDEO_FEATURED_REQUIRES_POSTER": "Das zuerst gezeigte Video braucht ein Vorschaubild.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Diese Website-Adresse ist nicht erlaubt.",
     "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Nur der Shop-Inhaber kann die externe Website-Adresse ändern.",
-    "STORE_LANGUAGE_IN_REVIEW": "Diese Sprache ist noch in Prüfung und kann noch nicht Haupt- oder Standardsprache sein. Fügen Sie sie stattdessen als zusätzliche Sprache hinzu."
+    "STORE_LANGUAGE_IN_REVIEW": "Diese Sprache ist noch in Prüfung und kann noch nicht Haupt- oder Standardsprache sein. Fügen Sie sie stattdessen als zusätzliche Sprache hinzu.",
+    "MARKET_X_DEFAULT_CONFLICT": "Gerade wurde ein anderer Markt als Standard für nicht zugeordnete Besucher gewählt. Laden Sie die Seite neu und versuchen Sie es erneut."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

@@ -4778,7 +4778,10 @@
           "AUTO": "Pazar platform adresinde çalıştığı sürece dizine eklenmez. Özel bir alan adı etkinleştiğinde dizine eklenir ve platform adresi ona yönlendirilir.",
           "ALWAYS": "Platform adresi dahil her adreste dizine ekle.",
           "NEVER": "Arama motorlarının dışında tut (test veya hazırlık alan adları). Google noindex etiketini görsün diye sayfalar taranabilir kalır; geri alındığında kalıcı bir ceza olmaz."
-        }
+        },
+        "xDefault": "Eşleşmeyen ziyaretçiler için varsayılan (x-default)",
+        "xDefaultHint": "Arama motorları, dili veya ülkesi hiçbir pazara uymayan ziyaretçileri bu pazarın adresine, varsayılan dilinde yönlendirir. Bunu yalnızca bir pazar seçebilir; hiçbiri seçilmezse varsayılan pazar kullanılır.",
+        "xDefaultWarningNotIndexable": "Bu pazar henüz dizine eklenmiyor; dizine eklenene kadar arama motorları varsayılan pazara yönlendirilir."
       },
       "preview": {
         "title": "Önizleme bağlantısı",
@@ -4878,7 +4881,8 @@
           "unknown_country": "{country} için Kustom verisi yok. Kustom desteğiyle doğrulayın.",
           "currency_not_supported": "Kustom bu para birimini desteklemiyor."
         }
-      }
+      },
+      "xDefaultBadge": "x-default"
     },
     "invoices": {
       "title": "Faturalar",
@@ -6308,7 +6312,8 @@
     "VIDEO_FEATURED_REQUIRES_POSTER": "İlk gösterilen videonun bir kapak görseli olmalıdır.",
     "CHECKOUT_EXTERNAL_URL_NOT_ALLOWED": "Bu web sitesi adresine izin verilmiyor.",
     "CHECKOUT_EXTERNAL_URL_OWNER_ONLY": "Harici web sitesi adresini yalnızca mağaza sahibi değiştirebilir.",
-    "STORE_LANGUAGE_IN_REVIEW": "Bu dil hâlâ incelemede ve henüz birincil veya varsayılan dil olamaz. Bunun yerine ikincil dil olarak ekleyin."
+    "STORE_LANGUAGE_IN_REVIEW": "Bu dil hâlâ incelemede ve henüz birincil veya varsayılan dil olamaz. Bunun yerine ikincil dil olarak ekleyin.",
+    "MARKET_X_DEFAULT_CONFLICT": "Eşleşmeyen ziyaretçiler için az önce başka bir pazar seçildi. Sayfayı yenileyip tekrar deneyin."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",
