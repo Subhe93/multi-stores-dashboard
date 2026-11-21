@@ -2,6 +2,12 @@
 // markets module views; see plans/namez-store-apps/M1-DESIGN.md §3.1.
 
 import { api } from '@/lib/api';
+import type { MarketPaymentMethod } from './marketPaymentMethods';
+
+// M157 shared contract (§10): the method list lives in the pure module so the
+// node unit tests can load it; re-exported here with the rest of the contract.
+export { MARKET_PAYMENT_METHODS } from './marketPaymentMethods';
+export type { MarketPaymentMethod } from './marketPaymentMethods';
 
 export type MarketStatus = 'DRAFT' | 'LIVE';
 export type StoreDomainStatus = 'PENDING' | 'VERIFIED' | 'ACTIVE';
@@ -95,6 +101,40 @@ export type MarketLocalePathErrorCode =
   | 'MARKET_LOCALE_PATH_DUPLICATE'
   | 'MARKET_LOCALE_PATH_HREFLANG';
 
+// ── M157: payment methods per market ─────────────────────────────────────
+// Shared contract (plans/namez-store-apps/M157-MARKET-PAYMENT-METHODS-DESIGN.md
+// §10). Mirrors: api src/modules/markets/market.types.ts — keep in sync.
+
+/** Why the store cannot offer a method at all (GET /markets/payment-methods). */
+export type StorePaymentMethodUnavailableReason =
+  | 'card_not_connected'
+  | 'kustom_not_configured'
+  | 'cod_disabled'
+  | 'not_independent';
+
+export interface StorePaymentMethodStatus {
+  method: MarketPaymentMethod;
+  /** The store offers the method (currency-agnostic; the market check covers currencies). */
+  available: boolean;
+  /** null when available. */
+  reason: StorePaymentMethodUnavailableReason | null;
+  /** card only: the only card route is an ACTIVE TEST own key. */
+  test_mode?: true;
+}
+
+/** GET /markets/payment-methods: always three rows, in MARKET_PAYMENT_METHODS order. */
+export interface StorePaymentMethodsView {
+  methods: StorePaymentMethodStatus[];
+}
+
+/** Error codes (HTTP 400, body { code, message, ... }). */
+export type MarketPaymentMethodsErrorCode =
+  | 'MARKET_PAYMENT_METHODS_INVALID' // + reason: 'unknown' | 'duplicate' | 'empty', value?: string
+  | 'MARKET_PAYMENT_METHODS_NOT_READY';
+export type PaymentMethodRuntimeErrorCode =
+  | 'MARKET_PAYMENT_METHOD_NOT_ALLOWED' // + method: MarketPaymentMethod
+  | 'KUSTOM_CURRENCY_NOT_ENABLED'; // + currency?: string
+
 export interface MarketView {
   id: string;
   key: string;
@@ -135,6 +175,12 @@ export interface MarketView {
    * deployed before M156 does not send it).
    */
   locale_paths: MarketLocalePathView[];
+  /**
+   * M157: null = the store's methods (default); otherwise the allowed subset,
+   * non-empty, sorted. Readers default a missing field to null
+   * (readPaymentMethods): an API deployed before M157 does not send it.
+   */
+  payment_methods?: MarketPaymentMethod[] | null;
 }
 
 export interface MarketInput {
@@ -150,6 +196,8 @@ export interface MarketInput {
   is_x_default?: boolean;
   /** M156: omitted = unchanged; null or [] = cleared (bare /<locale>/ folders). */
   locale_paths?: MarketLocalePath[] | null;
+  /** M157: omitted = unchanged; null = use the store's methods; array = non-empty, known, unique. */
+  payment_methods?: MarketPaymentMethod[] | null;
 }
 
 export interface DnsTarget {
@@ -242,6 +290,10 @@ export const verifyDomain = (token: string, marketId: string, domainId: string) 
 
 export const setPrimaryDomain = (token: string, marketId: string, domainId: string) =>
   api<DomainView>(`/markets/${marketId}/domains/${domainId}/primary`, { method: 'PUT', token });
+
+/** M157: which payment methods the store offers (no ids, keys or secrets). */
+export const getStorePaymentMethods = (token: string) =>
+  api<StorePaymentMethodsView>('/markets/payment-methods', { token });
 
 export const getDnsTarget = (token: string) => api<DnsTarget>('/markets/dns-target', { token });
 

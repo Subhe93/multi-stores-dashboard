@@ -4813,6 +4813,44 @@
           "errorCountry": "Ce pays ne fait pas partie du marché",
           "errorHreflang": "Ce code hreflang est déjà utilisé par une autre URL",
           "errorSummary": "Corrigez les URL langue-pays signalées avant d’enregistrer."
+        },
+        "paymentMethods": {
+          "title": "Moyens de paiement",
+          "hint": "Choisissez quels moyens de paiement de votre boutique les clients de ce marché peuvent utiliser.",
+          "modeStore": "Utiliser les moyens de paiement de la boutique",
+          "modeStoreHint": "Les clients de ce marché peuvent utiliser tous les moyens de paiement de votre boutique : {methods}.",
+          "modeStoreHintUnknown": "Les clients de ce marché peuvent utiliser tous les moyens de paiement de votre boutique.",
+          "storeNone": "Votre boutique ne propose encore aucun moyen de paiement.",
+          "loading": "Chargement des moyens de paiement…",
+          "modeCustom": "Choisir les moyens de paiement de ce marché",
+          "modeCustomHint": "Seuls les moyens cochés sont proposés dans ce marché. Un moyen que votre boutique ne propose pas ne peut pas être choisi.",
+          "card": "Carte (Stripe)",
+          "kustom": "Kustom",
+          "cod": "Paiement à la livraison",
+          "unavailable": "Non proposé par votre boutique",
+          "stale": "Sélectionné, mais votre boutique ne le propose pas actuellement : il n'a donc aucun effet. Décochez-le pour le retirer.",
+          "testMode": "Seule une clé de TEST est connectée : aucun paiement réel par carte tant qu'une clé live n'est pas active.",
+          "appliesToNew": "Les modifications s’appliquent aux nouveaux paiements. Les commandes déjà passées gardent leur moyen de paiement.",
+          "codOnly": "Le paiement à la livraison seul ne permet pas de mettre un marché en ligne : il faut la carte ou Kustom.",
+          "defaultMarketHint": "C'est le marché par défaut : le choix s'applique aussi à votre adresse sur la plateforme et à tous les pays qu'aucun autre marché ne couvre.",
+          "loadFailed": "Impossible de charger les moyens de paiement de votre boutique.",
+          "retry": "Réessayer",
+          "unsupported": "Le choix des moyens de paiement par marché n'est pas encore disponible. Ce marché utilise les moyens de paiement de la boutique.",
+          "reasons": {
+            "card_not_connected": "Connectez d’abord un compte Stripe ou votre propre clé Stripe.",
+            "kustom_not_configured": "Configurez d’abord Kustom dans les paramètres.",
+            "cod_disabled": "Activez d’abord le paiement à la livraison dans les paramètres de la boutique.",
+            "not_independent": "Seules les boutiques indépendantes peuvent choisir les moyens de paiement par marché."
+          },
+          "links": {
+            "card": "Paramètres Stripe",
+            "kustom": "Paramètres Kustom",
+            "cod": "Paramètres de la boutique"
+          },
+          "errors": {
+            "empty": "Choisissez au moins un moyen de paiement, ou utilisez ceux de la boutique."
+          },
+          "errorSummary": "Vérifiez les moyens de paiement de ce marché."
         }
       },
       "preview": {
@@ -4912,9 +4950,21 @@
           "currency_mismatch": "Kustom attend {expected} pour {country}.",
           "unknown_country": "Aucune donnée Kustom pour {country}. Confirmez auprès du support Kustom.",
           "currency_not_supported": "Kustom ne prend pas en charge cette devise."
-        }
+        },
+        "notUsedInMarket": "non utilisé dans ce marché"
       },
-      "xDefaultBadge": "x-default"
+      "xDefaultBadge": "x-default",
+      "paymentMethods": {
+        "summary": {
+          "card": "Paiement : carte uniquement",
+          "kustom": "Paiement : Kustom uniquement",
+          "cod": "Paiement : à la livraison uniquement",
+          "cardKustom": "Paiement : carte + Kustom",
+          "cardCod": "Paiement : carte + à la livraison",
+          "kustomCod": "Paiement : Kustom + à la livraison",
+          "all": "Paiement : carte + Kustom + à la livraison"
+        }
+      }
     },
     "invoices": {
       "title": "Factures",
@@ -6352,7 +6402,14 @@
     "MARKET_LOCALE_PATH_MISMATCH": "Une URL langue-pays ne correspond pas à sa langue et à son pays",
     "MARKET_LOCALE_PATH_COUNTRY": "Une URL langue-pays utilise un pays qui ne fait pas partie du marché",
     "MARKET_LOCALE_PATH_DUPLICATE": "Deux URL langue-pays utilisent la même adresse ou la même langue et le même pays",
-    "MARKET_LOCALE_PATH_HREFLANG": "Un code hreflang ne correspond pas à son URL ou est utilisé par plusieurs URL"
+    "MARKET_LOCALE_PATH_HREFLANG": "Un code hreflang ne correspond pas à son URL ou est utilisé par plusieurs URL",
+    "MARKET_PAYMENT_METHODS_INVALID": "Les moyens de paiement de ce marché ne sont pas valides.",
+    "MARKET_PAYMENT_METHODS_INVALID_UNKNOWN": "Moyen de paiement inconnu. Choisissez carte, Kustom ou paiement à la livraison.",
+    "MARKET_PAYMENT_METHODS_INVALID_DUPLICATE": "Un moyen de paiement figure deux fois.",
+    "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Choisissez au moins un moyen de paiement, ou utilisez ceux de la boutique.",
+    "MARKET_PAYMENT_METHODS_NOT_READY": "Aucun des moyens de paiement choisis pour ce marché ne peut encore encaisser dans sa devise. Le marché conserve ses paramètres actuels.",
+    "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Ce moyen de paiement n'est pas disponible dans ce marché.",
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom n'est pas encore configuré pour cette devise. Demandez à Kustom de l'activer, ou proposez un autre moyen de paiement dans ce marché."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

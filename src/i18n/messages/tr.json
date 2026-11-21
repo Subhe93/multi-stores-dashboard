@@ -4813,6 +4813,44 @@
           "errorCountry": "Bu ülke pazarın parçası değil",
           "errorHreflang": "Bu hreflang kodu zaten başka bir URL tarafından kullanılıyor",
           "errorSummary": "Kaydetmeden önce işaretli dil-ülke URL’lerini düzeltin."
+        },
+        "paymentMethods": {
+          "title": "Ödeme yöntemleri",
+          "hint": "Bu pazardaki müşterilerin mağazanızın hangi ödeme yöntemlerini kullanabileceğini seçin.",
+          "modeStore": "Mağazanın ödeme yöntemlerini kullan",
+          "modeStoreHint": "Bu pazardaki müşteriler mağazanızın sunduğu tüm ödeme yöntemlerini kullanabilir: {methods}.",
+          "modeStoreHintUnknown": "Bu pazardaki müşteriler mağazanızın sunduğu tüm ödeme yöntemlerini kullanabilir.",
+          "storeNone": "Mağazanız henüz hiçbir ödeme yöntemi sunmuyor.",
+          "loading": "Ödeme yöntemleri yükleniyor…",
+          "modeCustom": "Bu pazar için ödeme yöntemlerini seç",
+          "modeCustomHint": "Bu pazarda yalnızca işaretlediğiniz yöntemler sunulur. Mağazanızın sunmadığı bir yöntem seçilemez.",
+          "card": "Kart (Stripe)",
+          "kustom": "Kustom",
+          "cod": "Kapıda ödeme",
+          "unavailable": "Mağazanız sunmuyor",
+          "stale": "Seçili, ancak mağazanız şu anda bunu sunmuyor, bu yüzden etkisi yok. Kaldırmak için işareti kaldırın.",
+          "testMode": "Yalnızca bir TEST anahtarı bağlı: canlı anahtar etkinleşene kadar gerçek kart ödemesi yok.",
+          "appliesToNew": "Değişiklikler yeni ödemeler için geçerlidir. Verilmiş siparişler ödeme yöntemlerini korur.",
+          "codOnly": "Tek başına kapıda ödeme bir pazarı yayına almaya yetmez: yayındaki bir pazar kart veya Kustom gerektirir.",
+          "defaultMarketHint": "Bu varsayılan pazardır: seçim platform adresiniz ve başka bir pazarın kapsamadığı tüm ülkeler için de geçerlidir.",
+          "loadFailed": "Mağazanızın ödeme yöntemleri yüklenemedi.",
+          "retry": "Tekrar dene",
+          "unsupported": "Pazar başına ödeme yöntemi seçimi henüz kullanılamıyor. Bu pazar mağazanın ödeme yöntemlerini kullanır.",
+          "reasons": {
+            "card_not_connected": "Önce bir Stripe hesabı veya kendi Stripe anahtarınızı bağlayın.",
+            "kustom_not_configured": "Önce Ayarlar’da Kustom’u kurun.",
+            "cod_disabled": "Önce mağaza ayarlarında kapıda ödemeyi açın.",
+            "not_independent": "Yalnızca bağımsız mağazalar pazar başına ödeme yöntemi seçebilir."
+          },
+          "links": {
+            "card": "Stripe ayarları",
+            "kustom": "Kustom ayarları",
+            "cod": "Mağaza ayarları"
+          },
+          "errors": {
+            "empty": "En az bir ödeme yöntemi seçin veya mağazanın ödeme yöntemlerini kullanın."
+          },
+          "errorSummary": "Bu pazarın ödeme yöntemlerini kontrol edin."
         }
       },
       "preview": {
@@ -4912,9 +4950,21 @@
           "currency_mismatch": "Kustom, {country} için {expected} bekliyor.",
           "unknown_country": "{country} için Kustom verisi yok. Kustom desteğiyle doğrulayın.",
           "currency_not_supported": "Kustom bu para birimini desteklemiyor."
-        }
+        },
+        "notUsedInMarket": "bu pazarda kullanılmıyor"
       },
-      "xDefaultBadge": "x-default"
+      "xDefaultBadge": "x-default",
+      "paymentMethods": {
+        "summary": {
+          "card": "Ödeme: yalnızca kart",
+          "kustom": "Ödeme: yalnızca Kustom",
+          "cod": "Ödeme: yalnızca kapıda ödeme",
+          "cardKustom": "Ödeme: kart + Kustom",
+          "cardCod": "Ödeme: kart + kapıda ödeme",
+          "kustomCod": "Ödeme: Kustom + kapıda ödeme",
+          "all": "Ödeme: kart + Kustom + kapıda ödeme"
+        }
+      }
     },
     "invoices": {
       "title": "Faturalar",
@@ -6352,7 +6402,14 @@
     "MARKET_LOCALE_PATH_MISMATCH": "Bir dil-ülke URL’si dili ve ülkesiyle eşleşmiyor",
     "MARKET_LOCALE_PATH_COUNTRY": "Bir dil-ülke URL’si pazarın parçası olmayan bir ülke kullanıyor",
     "MARKET_LOCALE_PATH_DUPLICATE": "İki dil-ülke URL’si aynı adresi veya aynı dil ve ülkeyi kullanıyor",
-    "MARKET_LOCALE_PATH_HREFLANG": "Bir hreflang kodu URL’siyle eşleşmiyor veya birden fazla URL tarafından kullanılıyor"
+    "MARKET_LOCALE_PATH_HREFLANG": "Bir hreflang kodu URL’siyle eşleşmiyor veya birden fazla URL tarafından kullanılıyor",
+    "MARKET_PAYMENT_METHODS_INVALID": "Bu pazarın ödeme yöntemleri geçersiz.",
+    "MARKET_PAYMENT_METHODS_INVALID_UNKNOWN": "Bilinmeyen ödeme yöntemi. Kart, Kustom veya kapıda ödeme seçin.",
+    "MARKET_PAYMENT_METHODS_INVALID_DUPLICATE": "Bir ödeme yöntemi iki kez listelenmiş.",
+    "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "En az bir ödeme yöntemi seçin veya mağazanın ödeme yöntemlerini kullanın.",
+    "MARKET_PAYMENT_METHODS_NOT_READY": "Bu pazar için seçilen ödeme yöntemlerinin hiçbiri henüz pazarın para biriminde ödeme alamıyor. Pazar mevcut ayarlarını korur.",
+    "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Bu ödeme yöntemi bu pazarda kullanılamıyor.",
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom bu para birimi için henüz ayarlanmadı. Kustom’dan etkinleştirmesini isteyin veya bu pazarda başka bir ödeme yöntemi sunun."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

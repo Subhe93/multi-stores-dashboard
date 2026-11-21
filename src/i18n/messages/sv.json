@@ -4813,6 +4813,44 @@
           "errorCountry": "Det här landet ingår inte i marknaden",
           "errorHreflang": "Den här hreflang-koden används redan av en annan URL",
           "errorSummary": "Rätta de markerade språk- och lands-URL:erna innan du sparar."
+        },
+        "paymentMethods": {
+          "title": "Betalsätt",
+          "hint": "Välj vilka av butikens betalsätt kunder på den här marknaden kan använda.",
+          "modeStore": "Använd butikens betalsätt",
+          "modeStoreHint": "Kunder på den här marknaden kan använda alla betalsätt som butiken erbjuder: {methods}.",
+          "modeStoreHintUnknown": "Kunder på den här marknaden kan använda alla betalsätt som butiken erbjuder.",
+          "storeNone": "Din butik erbjuder inget betalsätt ännu.",
+          "loading": "Laddar betalsätt…",
+          "modeCustom": "Välj betalsätt för den här marknaden",
+          "modeCustomHint": "Bara de betalsätt du bockar i erbjuds på den här marknaden. Ett betalsätt som butiken inte erbjuder kan inte väljas.",
+          "card": "Kort (Stripe)",
+          "kustom": "Kustom",
+          "cod": "Betalning vid leverans",
+          "unavailable": "Erbjuds inte av butiken",
+          "stale": "Valt, men butiken erbjuder det inte just nu, så det har ingen effekt. Bocka ur det för att ta bort det.",
+          "testMode": "Bara en TEST-nyckel är kopplad: inga riktiga kortbetalningar förrän en live-nyckel är aktiv.",
+          "appliesToNew": "Ändringar gäller nya kassor. Redan lagda beställningar behåller sitt betalsätt.",
+          "codOnly": "Betalning vid leverans räcker inte ensamt för att göra en marknad live: en live-marknad behöver kort eller Kustom.",
+          "defaultMarketHint": "Det här är standardmarknaden: valet gäller också din plattformsadress och alla länder som ingen annan marknad täcker.",
+          "loadFailed": "Butikens betalsätt kunde inte laddas.",
+          "retry": "Försök igen",
+          "unsupported": "Betalsätt per marknad är inte tillgängligt ännu. Den här marknaden använder butikens betalsätt.",
+          "reasons": {
+            "card_not_connected": "Koppla först ett Stripe-konto eller din egen Stripe-nyckel.",
+            "kustom_not_configured": "Ställ först in Kustom under Inställningar.",
+            "cod_disabled": "Slå först på betalning vid leverans i butiksinställningarna.",
+            "not_independent": "Bara fristående butiker kan välja betalsätt per marknad."
+          },
+          "links": {
+            "card": "Stripe-inställningar",
+            "kustom": "Kustom-inställningar",
+            "cod": "Butiksinställningar"
+          },
+          "errors": {
+            "empty": "Välj minst ett betalsätt, eller använd butikens betalsätt."
+          },
+          "errorSummary": "Kontrollera betalsätten för den här marknaden."
         }
       },
       "preview": {
@@ -4912,9 +4950,21 @@
           "currency_mismatch": "Kustom förväntar sig {expected} för {country}.",
           "unknown_country": "Inga Kustom-uppgifter för {country}. Bekräfta med Kustoms support.",
           "currency_not_supported": "Kustom stöder inte den här valutan."
-        }
+        },
+        "notUsedInMarket": "används inte på den här marknaden"
       },
-      "xDefaultBadge": "x-default"
+      "xDefaultBadge": "x-default",
+      "paymentMethods": {
+        "summary": {
+          "card": "Betalning: bara kort",
+          "kustom": "Betalning: bara Kustom",
+          "cod": "Betalning: bara vid leverans",
+          "cardKustom": "Betalning: kort + Kustom",
+          "cardCod": "Betalning: kort + vid leverans",
+          "kustomCod": "Betalning: Kustom + vid leverans",
+          "all": "Betalning: kort + Kustom + vid leverans"
+        }
+      }
     },
     "invoices": {
       "title": "Fakturor",
@@ -6352,7 +6402,14 @@
     "MARKET_LOCALE_PATH_MISMATCH": "En språk- och lands-URL stämmer inte med sitt språk och land",
     "MARKET_LOCALE_PATH_COUNTRY": "En språk- och lands-URL använder ett land som inte ingår i marknaden",
     "MARKET_LOCALE_PATH_DUPLICATE": "Två språk- och lands-URL:er använder samma adress eller samma språk och land",
-    "MARKET_LOCALE_PATH_HREFLANG": "En hreflang-kod stämmer inte med sin URL eller används av mer än en URL"
+    "MARKET_LOCALE_PATH_HREFLANG": "En hreflang-kod stämmer inte med sin URL eller används av mer än en URL",
+    "MARKET_PAYMENT_METHODS_INVALID": "Marknadens betalsätt är ogiltiga.",
+    "MARKET_PAYMENT_METHODS_INVALID_UNKNOWN": "Okänt betalsätt. Välj kort, Kustom eller betalning vid leverans.",
+    "MARKET_PAYMENT_METHODS_INVALID_DUPLICATE": "Ett betalsätt finns med två gånger.",
+    "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Välj minst ett betalsätt, eller använd butikens betalsätt.",
+    "MARKET_PAYMENT_METHODS_NOT_READY": "Inget av betalsätten som valts för den här marknaden kan ta emot betalningar i dess valuta ännu. Marknaden behåller sina nuvarande inställningar.",
+    "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Det här betalsättet är inte tillgängligt på den här marknaden.",
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom är inte inställt för den här valutan ännu. Be Kustom aktivera den, eller erbjud ett annat betalsätt på den här marknaden."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

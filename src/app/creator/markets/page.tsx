@@ -20,6 +20,7 @@ import { useApiError } from '@/lib/useApiError';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useMarkets } from '@/lib/useMarkets';
 import { runPaymentCheck, type MarketView } from '@/lib/markets.api';
+import { paymentMethodsSummaryKey, providerUsedInMarket, readPaymentMethods } from '@/lib/marketPaymentMethods';
 
 export default function CreatorMarketsPage() {
   const t = useTranslations('creator.markets');
@@ -98,6 +99,11 @@ export default function CreatorMarketsPage() {
           {markets.map((m) => {
             const primary = m.domains.find((d) => d.is_primary && d.status === 'ACTIVE') ?? m.domains.find((d) => d.is_primary);
             const check = m.payment_check;
+            // M157: badge + "not used" provider lines when the market restricts its methods.
+            const methods = readPaymentMethods(m.payment_methods);
+            const summaryKey = paymentMethodsSummaryKey(methods);
+            const stripeUsed = providerUsedInMarket('stripe', methods);
+            const kustomUsed = providerUsedInMarket('kustom', methods);
             return (
               <Card key={m.id} {...linkRow(`/creator/markets/${m.id}`)} className="cursor-pointer shadow-none transition hover:border-zinc-300">
                 <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3 space-y-0">
@@ -114,6 +120,11 @@ export default function CreatorMarketsPage() {
                       <Badge variant="outline" className="text-[10px] font-mono">{m.currency}</Badge>
                       {m.indexing === 'NEVER' && (
                         <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">{t('noindexBadge')}</Badge>
+                      )}
+                      {summaryKey && (
+                        <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-700 border-teal-200">
+                          {t(`paymentMethods.summary.${summaryKey}`)}
+                        </Badge>
                       )}
                       {m.is_x_default && (
                         <Badge variant="outline" className="text-[10px] font-mono bg-violet-50 text-violet-700 border-violet-200" dir="ltr">{t('xDefaultBadge')}</Badge>
@@ -163,14 +174,18 @@ export default function CreatorMarketsPage() {
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                     <div className="space-y-1">
                       <p className="flex items-center gap-1.5">
-                        <ProviderDot state={check?.stripe ?? 'unknown'} />
+                        <ProviderDot state={check?.stripe ?? 'unknown'} muted={!stripeUsed} />
                         <span className="font-medium">{t('check.stripe.label')}</span>
-                        <span className="text-muted-foreground">{check ? stripeCheckMessage(t, check, m.currency) : t('check.never')}</span>
+                        <span className="text-muted-foreground">
+                          {!stripeUsed ? t('check.notUsedInMarket') : check ? stripeCheckMessage(t, check, m.currency) : t('check.never')}
+                        </span>
                       </p>
                       <p className="flex items-center gap-1.5">
-                        <ProviderDot state={check?.kustom ?? 'unknown'} />
+                        <ProviderDot state={check?.kustom ?? 'unknown'} muted={!kustomUsed} />
                         <span className="font-medium">{t('check.kustom.label')}</span>
-                        <span className="text-muted-foreground">{check ? kustomCheckMessage(t, check) : t('check.never')}</span>
+                        <span className="text-muted-foreground">
+                          {!kustomUsed ? t('check.notUsedInMarket') : check ? kustomCheckMessage(t, check) : t('check.never')}
+                        </span>
                       </p>
                     </div>
                     <Button variant="ghost" size="sm" disabled={!!checking} onClick={() => handleRecheck(m)}>

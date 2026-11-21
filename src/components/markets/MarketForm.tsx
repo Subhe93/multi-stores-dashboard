@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { CountryMultiSelect } from '@/components/common/CountryMultiSelect';
 import { PriceRuleEditor } from '@/components/markets/PriceRuleEditor';
 import { LOCALE_PATHS_CARD_ID, LocalePathsEditor } from '@/components/markets/LocalePathsEditor';
+import { PAYMENT_METHODS_CARD_ID, PaymentMethodsEditor } from '@/components/markets/PaymentMethodsEditor';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -22,7 +23,15 @@ import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
 import { CONTENT_LOCALES, isReviewLocale } from '@/lib/contentLocales';
 import { sameLocalePaths, toLocalePathInput, validateLocalePaths, type LocalePathError } from '@/lib/localePaths';
 import {
+  paymentMethodsInvalidKey,
+  paymentMethodsPayload,
+  readPaymentMethods,
+  validatePaymentMethods,
+  type MarketPaymentMethod,
+} from '@/lib/marketPaymentMethods';
+import {
   createMarket,
+  getStorePaymentMethods,
   updateMarket,
   type MarketIndexing,
   type MarketInput,
@@ -30,6 +39,7 @@ import {
   type MarketLocalePathErrorCode,
   type MarketView,
   type PriceRule,
+  type StorePaymentMethodsView,
 } from '@/lib/markets.api';
 
 // Mirror of the API key rule (CreateMarketDto): 1–16 lowercase letters, digits
@@ -68,6 +78,7 @@ interface MarketFormProps {
 export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveFailed }: MarketFormProps) {
   const t = useTranslations('creator.markets.form');
   const tReview = useTranslations('creator.languageReview');
+  const tErrors = useTranslations('errors');
   const { token } = useAuth();
   const describeError = useApiError();
   // Base currency = the store currency (prices are entered in it).
@@ -90,11 +101,42 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
   const [pathsEnabled, setPathsEnabled] = useState(initialPaths.length > 0);
   // The API's locale_paths error with its row index; cleared on the next edit.
   const [pathServerError, setPathServerError] = useState<LocalePathError | null>(null);
+  // M157 payment methods: kept apart from `form` too (sent only when changed).
+  const initialPaymentMethods = readPaymentMethods(initial?.payment_methods);
+  const [paymentMethods, setPaymentMethods] = useState<MarketPaymentMethod[] | null>(initialPaymentMethods);
+  const [storeMethods, setStoreMethods] = useState<StorePaymentMethodsView | null>(null);
+  const [storeMethodsLoading, setStoreMethodsLoading] = useState(false);
+  const [storeMethodsError, setStoreMethodsError] = useState<string | null>(null);
+  // The API predates M157 (no GET /markets/payment-methods): store mode only.
+  const [paymentMethodsUnsupported, setPaymentMethodsUnsupported] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useTransientFlag();
   const [error, setError] = useState<string | null>(null);
   // Server detail shown under the mapped title (e.g. which countries overlap).
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
+  const loadStoreMethods = useCallback(async () => {
+    if (!token) return;
+    setStoreMethodsLoading(true);
+    setStoreMethodsError(null);
+    try {
+      setStoreMethods(await getStorePaymentMethods(token));
+      setPaymentMethodsUnsupported(false);
+    } catch (err) {
+      // An API without M157 routes the path to GET /markets/:id: 404 MARKET_NOT_FOUND.
+      if (err instanceof ApiError && err.status === 404 && (!err.code || err.code === 'MARKET_NOT_FOUND')) {
+        setPaymentMethodsUnsupported(true);
+      } else {
+        setStoreMethodsError(t('paymentMethods.loadFailed'));
+      }
+    } finally {
+      setStoreMethodsLoading(false);
+    }
+  }, [token, t]);
+  // Once on mount (create and edit); a failure offers a retry.
+  useEffect(() => {
+    void loadStoreMethods();
+  }, [loadStoreMethods]);
 
   const isEdit = !!initial;
   const isDefault = !!initial?.is_default;
@@ -145,6 +187,10 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     initial?.platform_hostname ??
     '';
 
+  const paymentMethodsInvalid = validatePaymentMethods(paymentMethods);
+  const scrollToPaymentMethods = () =>
+    document.getElementById(PAYMENT_METHODS_CARD_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   const changeLocalePaths = (rows: MarketLocalePath[]) => {
     setLocalePaths(rows);
     setPathServerError(null);
@@ -167,6 +213,11 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
       scrollToPaths();
       return;
     }
+    if (paymentMethodsInvalid) {
+      setError(t('paymentMethods.errorSummary'));
+      scrollToPaymentMethods();
+      return;
+    }
     setSaving(true);
     const payload: MarketInput = {
       ...form,
@@ -184,6 +235,9 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     if (!!payload.is_x_default === !!initial?.is_x_default) delete payload.is_x_default;
     // Same for locale_paths: omitted = unchanged; null clears them.
     if (!sameLocalePaths(pathRows, initialPaths)) payload.locale_paths = pathRows.length ? pathRows : null;
+    // Same for payment_methods: omitted = unchanged; null = the store's methods.
+    const methodsPayload = paymentMethodsPayload(paymentMethods, initialPaymentMethods);
+    if (methodsPayload !== undefined) payload.payment_methods = methodsPayload;
     try {
       // The key is locked after creation, so the update omits it.
       const { key, ...editable } = payload;
@@ -195,6 +249,13 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     } catch (err) {
       // Inline, mapped via errors.<code> (MARKET_FX_RATE_MISSING, MARKET_PAYMENT_CHECK_FAILED, …).
       setError(describeError(err));
+      // M157: the INVALID body carries a reason (flat errors.<code>_<REASON> keys).
+      if (err instanceof ApiError && err.code === 'MARKET_PAYMENT_METHODS_INVALID') {
+        const key = paymentMethodsInvalidKey(err.payload?.reason);
+        setError(tErrors.has(key) ? tErrors(key) : describeError(err));
+        scrollToPaymentMethods();
+      }
+      if (err instanceof ApiError && err.code === 'MARKET_PAYMENT_METHODS_NOT_READY') scrollToPaymentMethods();
       if (err instanceof ApiError && err.code === 'MARKET_COUNTRY_OVERLAP' && err.message) setErrorDetail(err.message);
       // locale_paths errors carry the row index: highlight that row.
       if (err instanceof ApiError && err.code?.startsWith('MARKET_LOCALE_PATH_')) {
@@ -324,6 +385,18 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
         countries={form.countries}
         host={primaryHost}
         errors={shownPathErrors}
+      />
+
+      <PaymentMethodsEditor
+        value={paymentMethods}
+        onChange={setPaymentMethods}
+        store={storeMethods}
+        loading={storeMethodsLoading}
+        error={storeMethodsError}
+        onRetry={() => void loadStoreMethods()}
+        unsupported={paymentMethodsUnsupported}
+        invalid={paymentMethodsInvalid}
+        isDefaultMarket={isDefault}
       />
 
       <Card className="shadow-none">

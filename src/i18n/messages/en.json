@@ -4813,6 +4813,44 @@
           "errorCountry": "This country is not part of the market",
           "errorHreflang": "This hreflang code is already used by another URL",
           "errorSummary": "Fix the highlighted language-country URLs before saving."
+        },
+        "paymentMethods": {
+          "title": "Payment methods",
+          "hint": "Choose which of your store's payment methods customers in this market can use.",
+          "modeStore": "Use the store's payment methods",
+          "modeStoreHint": "Customers in this market can use every payment method your store offers: {methods}.",
+          "modeStoreHintUnknown": "Customers in this market can use every payment method your store offers.",
+          "storeNone": "Your store doesn't offer any payment method yet.",
+          "loading": "Loading your payment methods…",
+          "modeCustom": "Choose payment methods for this market",
+          "modeCustomHint": "Only the methods you check are offered in this market. A method your store doesn't offer can't be chosen.",
+          "card": "Card (Stripe)",
+          "kustom": "Kustom",
+          "cod": "Cash on delivery",
+          "unavailable": "Not offered by your store",
+          "stale": "Selected, but your store doesn't offer it right now, so it has no effect. Uncheck it to remove it.",
+          "testMode": "Only a TEST key is connected: no real card payments until a live key is active.",
+          "appliesToNew": "Changes apply to new checkouts. Orders already placed keep their payment method.",
+          "codOnly": "Cash on delivery alone can't take a market live: a live market needs card or Kustom.",
+          "defaultMarketHint": "This is the default market: the choice also applies to your platform address and to every country no other market covers.",
+          "loadFailed": "Your store's payment methods couldn't be loaded.",
+          "retry": "Try again",
+          "unsupported": "Choosing payment methods per market isn't available yet. This market uses the store's payment methods.",
+          "reasons": {
+            "card_not_connected": "Connect a Stripe account or your own Stripe key first.",
+            "kustom_not_configured": "Set up Kustom in Settings first.",
+            "cod_disabled": "Turn on cash on delivery in the store settings first.",
+            "not_independent": "Only independent stores can choose payment methods per market."
+          },
+          "links": {
+            "card": "Stripe settings",
+            "kustom": "Kustom settings",
+            "cod": "Store settings"
+          },
+          "errors": {
+            "empty": "Choose at least one payment method, or use the store's payment methods."
+          },
+          "errorSummary": "Check the payment methods of this market."
         }
       },
       "preview": {
@@ -4912,9 +4950,21 @@
           "currency_mismatch": "Kustom expects {expected} for {country}.",
           "unknown_country": "No Kustom data for {country}. Confirm with Kustom support.",
           "currency_not_supported": "Kustom does not support this currency."
-        }
+        },
+        "notUsedInMarket": "not used in this market"
       },
-      "xDefaultBadge": "x-default"
+      "xDefaultBadge": "x-default",
+      "paymentMethods": {
+        "summary": {
+          "card": "Payment: card only",
+          "kustom": "Payment: Kustom only",
+          "cod": "Payment: cash on delivery only",
+          "cardKustom": "Payment: card + Kustom",
+          "cardCod": "Payment: card + cash on delivery",
+          "kustomCod": "Payment: Kustom + cash on delivery",
+          "all": "Payment: card + Kustom + cash on delivery"
+        }
+      }
     },
     "invoices": {
       "title": "Invoices",
@@ -6352,7 +6402,14 @@
     "MARKET_LOCALE_PATH_MISMATCH": "A language-country URL does not match its language and country",
     "MARKET_LOCALE_PATH_COUNTRY": "A language-country URL uses a country that is not part of the market",
     "MARKET_LOCALE_PATH_DUPLICATE": "Two language-country URLs use the same address or the same language and country",
-    "MARKET_LOCALE_PATH_HREFLANG": "An hreflang code does not match its URL or is used by more than one URL"
+    "MARKET_LOCALE_PATH_HREFLANG": "An hreflang code does not match its URL or is used by more than one URL",
+    "MARKET_PAYMENT_METHODS_INVALID": "The payment methods of this market are not valid.",
+    "MARKET_PAYMENT_METHODS_INVALID_UNKNOWN": "Unknown payment method. Choose card, Kustom or cash on delivery.",
+    "MARKET_PAYMENT_METHODS_INVALID_DUPLICATE": "A payment method is listed twice.",
+    "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Choose at least one payment method, or use the store's payment methods.",
+    "MARKET_PAYMENT_METHODS_NOT_READY": "None of the payment methods chosen for this market can take payments in its currency yet. The market keeps its current settings.",
+    "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "This payment method isn't available in this market.",
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom isn't set up for this currency yet. Ask Kustom to enable it, or offer another payment method in this market."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

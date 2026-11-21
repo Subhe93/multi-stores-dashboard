@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { MarketStatus, PaymentCheck, ProviderCheckState } from '@/lib/markets.api';
 import { OWN_KEY_SETTINGS_HREF } from '@/components/payments/own-key/OwnKeyTestModeHint';
+import { paymentCheckPassesFor, providerUsedInMarket, type MarketPaymentMethod } from '@/lib/marketPaymentMethods';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -23,9 +24,16 @@ export const MARKET_STATUS_CLASS: Record<MarketStatus, string> = {
   DRAFT: 'bg-zinc-50 text-zinc-600 border-zinc-200',
 };
 
-/** True when at least one provider can take payments in the market currency. */
-export function paymentCheckPasses(check: PaymentCheck | null | undefined): boolean {
-  return !!check && (check.stripe === 'ok' || check.kustom === 'ok');
+/**
+ * True when at least one provider the market uses can take payments in the
+ * market currency (mirror of the API paymentCheckPassesFor, M157). Without a
+ * restriction (null) any provider counts, as before.
+ */
+export function paymentCheckPasses(
+  check: PaymentCheck | null | undefined,
+  methods: MarketPaymentMethod[] | null = null,
+): boolean {
+  return paymentCheckPassesFor(check, methods);
 }
 
 /**
@@ -63,8 +71,9 @@ export function kustomCheckMessage(t: Translator, check: PaymentCheck): string {
   return t('check.kustom.unknown');
 }
 
-export function ProviderDot({ state }: { state: ProviderCheckState }) {
-  return <span className={`inline-block size-2 shrink-0 rounded-full ${DOT_CLASS[state]}`} aria-hidden />;
+/** `muted`: the provider is not used in the market (M157): a grey dot instead of its state. */
+export function ProviderDot({ state, muted = false }: { state: ProviderCheckState; muted?: boolean }) {
+  return <span className={`inline-block size-2 shrink-0 rounded-full ${muted ? 'bg-zinc-300' : DOT_CLASS[state]}`} aria-hidden />;
 }
 
 interface PaymentCheckCardProps {
@@ -77,6 +86,8 @@ interface PaymentCheckCardProps {
   onSetStatus: (status: MarketStatus) => void;
   /** Translated reason the last status change was refused (e.g. no activated hostname). */
   statusError?: string | null;
+  /** M157: the market's payment-method restriction; null = the store's methods. */
+  paymentMethods?: MarketPaymentMethod[] | null;
 }
 
 /**
@@ -84,23 +95,35 @@ interface PaymentCheckCardProps {
  * "Set live" stays disabled (with a tooltip) until a provider reports ok; the
  * default market is always LIVE and cannot be set to DRAFT.
  */
-export function PaymentCheckCard({ check, status, isDefault, currency, busy, onRecheck, onSetStatus, statusError }: PaymentCheckCardProps) {
+export function PaymentCheckCard({
+  check,
+  status,
+  isDefault,
+  currency,
+  busy,
+  onRecheck,
+  onSetStatus,
+  statusError,
+  paymentMethods = null,
+}: PaymentCheckCardProps) {
   const t = useTranslations('creator.markets');
   const locale = useLocale();
-  const passes = paymentCheckPasses(check);
+  const passes = paymentCheckPasses(check, paymentMethods);
 
-  const providers: Array<{ key: 'stripe' | 'kustom'; label: string; state: ProviderCheckState; message: string }> = [
+  const providers: Array<{ key: 'stripe' | 'kustom'; label: string; state: ProviderCheckState; message: string; used: boolean }> = [
     {
       key: 'stripe',
       label: t('check.stripe.label'),
       state: check?.stripe ?? 'unknown',
       message: check ? stripeCheckMessage(t, check, currency) : t('check.never'),
+      used: providerUsedInMarket('stripe', paymentMethods),
     },
     {
       key: 'kustom',
       label: t('check.kustom.label'),
       state: check?.kustom ?? 'unknown',
       message: check ? kustomCheckMessage(t, check) : t('check.never'),
+      used: providerUsedInMarket('kustom', paymentMethods),
     },
   ];
 
@@ -114,14 +137,16 @@ export function PaymentCheckCard({ check, status, isDefault, currency, busy, onR
         <div className="space-y-3">
           {providers.map((p) => (
             <div key={p.key} className="flex items-start gap-2.5">
-              <span className="mt-1.5"><ProviderDot state={p.state} /></span>
+              <span className="mt-1.5"><ProviderDot state={p.state} muted={!p.used} /></span>
               <div className="min-w-0 space-y-0.5">
-                <p className="text-sm font-medium">
+                <p className={`text-sm font-medium ${p.used ? '' : 'text-muted-foreground'}`}>
                   {p.label}{' '}
-                  <span className="text-[11px] font-normal text-muted-foreground">({t(`check.state.${p.state}`)})</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    ({p.used ? t(`check.state.${p.state}`) : t('check.notUsedInMarket')})
+                  </span>
                 </p>
-                <p className="text-[11px] text-muted-foreground">{p.message}</p>
-                {p.key === 'stripe' && check?.stripe === 'missing' && check.details?.stripe?.reason_code === 'own_key_test_mode' && (
+                {p.used && <p className="text-[11px] text-muted-foreground">{p.message}</p>}
+                {p.used && p.key === 'stripe' && check?.stripe === 'missing' && check.details?.stripe?.reason_code === 'own_key_test_mode' && (
                   <Link href={OWN_KEY_SETTINGS_HREF} className="text-[11px] font-medium underline underline-offset-2">
                     {t('check.stripe.own_key_test_mode_cta')}
                   </Link>

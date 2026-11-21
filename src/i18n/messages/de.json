@@ -4813,6 +4813,44 @@
           "errorCountry": "Dieses Land gehört nicht zum Markt",
           "errorHreflang": "Dieser hreflang-Code wird bereits von einer anderen URL verwendet",
           "errorSummary": "Korrigiere vor dem Speichern die markierten Sprach-Länder-URLs."
+        },
+        "paymentMethods": {
+          "title": "Zahlungsarten",
+          "hint": "Wähle, welche Zahlungsarten deines Shops Kundinnen und Kunden in diesem Markt nutzen können.",
+          "modeStore": "Zahlungsarten des Shops verwenden",
+          "modeStoreHint": "Kunden in diesem Markt können jede Zahlungsart deines Shops nutzen: {methods}.",
+          "modeStoreHintUnknown": "Kunden in diesem Markt können jede Zahlungsart deines Shops nutzen.",
+          "storeNone": "Dein Shop bietet noch keine Zahlungsart an.",
+          "loading": "Zahlungsarten werden geladen…",
+          "modeCustom": "Zahlungsarten für diesen Markt auswählen",
+          "modeCustomHint": "Nur die angehakten Zahlungsarten werden in diesem Markt angeboten. Eine Zahlungsart, die dein Shop nicht anbietet, kann nicht gewählt werden.",
+          "card": "Karte (Stripe)",
+          "kustom": "Kustom",
+          "cod": "Nachnahme",
+          "unavailable": "Vom Shop nicht angeboten",
+          "stale": "Ausgewählt, aber dein Shop bietet sie derzeit nicht an, daher ohne Wirkung. Entferne den Haken, um sie zu entfernen.",
+          "testMode": "Nur ein TEST-Schlüssel ist verbunden: keine echten Kartenzahlungen, bis ein Live-Schlüssel aktiv ist.",
+          "appliesToNew": "Änderungen gelten für neue Checkouts. Bereits aufgegebene Bestellungen behalten ihre Zahlungsart.",
+          "codOnly": "Nachnahme allein reicht nicht, um einen Markt live zu schalten: ein Live-Markt braucht Karte oder Kustom.",
+          "defaultMarketHint": "Dies ist der Standardmarkt: die Auswahl gilt auch für deine Plattformadresse und für jedes Land, das kein anderer Markt abdeckt.",
+          "loadFailed": "Die Zahlungsarten deines Shops konnten nicht geladen werden.",
+          "retry": "Erneut versuchen",
+          "unsupported": "Zahlungsarten pro Markt sind noch nicht verfügbar. Dieser Markt verwendet die Zahlungsarten des Shops.",
+          "reasons": {
+            "card_not_connected": "Verbinde zuerst ein Stripe-Konto oder deinen eigenen Stripe-Schlüssel.",
+            "kustom_not_configured": "Richte zuerst Kustom in den Einstellungen ein.",
+            "cod_disabled": "Aktiviere zuerst Nachnahme in den Shop-Einstellungen.",
+            "not_independent": "Nur unabhängige Shops können Zahlungsarten pro Markt wählen."
+          },
+          "links": {
+            "card": "Stripe-Einstellungen",
+            "kustom": "Kustom-Einstellungen",
+            "cod": "Shop-Einstellungen"
+          },
+          "errors": {
+            "empty": "Wähle mindestens eine Zahlungsart oder verwende die Zahlungsarten des Shops."
+          },
+          "errorSummary": "Prüfe die Zahlungsarten dieses Markts."
         }
       },
       "preview": {
@@ -4912,9 +4950,21 @@
           "currency_mismatch": "Kustom erwartet {expected} für {country}.",
           "unknown_country": "Keine Kustom-Daten für {country}. Bestätigen Sie dies beim Kustom-Support.",
           "currency_not_supported": "Kustom unterstützt diese Währung nicht."
-        }
+        },
+        "notUsedInMarket": "in diesem Markt nicht verwendet"
       },
-      "xDefaultBadge": "x-default"
+      "xDefaultBadge": "x-default",
+      "paymentMethods": {
+        "summary": {
+          "card": "Zahlung: nur Karte",
+          "kustom": "Zahlung: nur Kustom",
+          "cod": "Zahlung: nur Nachnahme",
+          "cardKustom": "Zahlung: Karte + Kustom",
+          "cardCod": "Zahlung: Karte + Nachnahme",
+          "kustomCod": "Zahlung: Kustom + Nachnahme",
+          "all": "Zahlung: Karte + Kustom + Nachnahme"
+        }
+      }
     },
     "invoices": {
       "title": "Rechnungen",
@@ -6352,7 +6402,14 @@
     "MARKET_LOCALE_PATH_MISMATCH": "Eine Sprach-Länder-URL passt nicht zu ihrer Sprache und ihrem Land",
     "MARKET_LOCALE_PATH_COUNTRY": "Eine Sprach-Länder-URL verwendet ein Land, das nicht zum Markt gehört",
     "MARKET_LOCALE_PATH_DUPLICATE": "Zwei Sprach-Länder-URLs verwenden dieselbe Adresse oder dieselbe Sprache und dasselbe Land",
-    "MARKET_LOCALE_PATH_HREFLANG": "Ein hreflang-Code passt nicht zu seiner URL oder wird von mehr als einer URL verwendet"
+    "MARKET_LOCALE_PATH_HREFLANG": "Ein hreflang-Code passt nicht zu seiner URL oder wird von mehr als einer URL verwendet",
+    "MARKET_PAYMENT_METHODS_INVALID": "Die Zahlungsarten dieses Markts sind ungültig.",
+    "MARKET_PAYMENT_METHODS_INVALID_UNKNOWN": "Unbekannte Zahlungsart. Wähle Karte, Kustom oder Nachnahme.",
+    "MARKET_PAYMENT_METHODS_INVALID_DUPLICATE": "Eine Zahlungsart ist doppelt aufgeführt.",
+    "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Wähle mindestens eine Zahlungsart oder verwende die Zahlungsarten des Shops.",
+    "MARKET_PAYMENT_METHODS_NOT_READY": "Keine der für diesen Markt gewählten Zahlungsarten kann bereits Zahlungen in seiner Währung annehmen. Der Markt behält seine aktuellen Einstellungen.",
+    "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Diese Zahlungsart ist in diesem Markt nicht verfügbar.",
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom ist für diese Währung noch nicht eingerichtet. Bitte Kustom, sie freizuschalten, oder biete in diesem Markt eine andere Zahlungsart an."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",

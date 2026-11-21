@@ -19,6 +19,7 @@ import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useMarkets } from '@/lib/useMarkets';
 import { deleteMarket, runPaymentCheck, setMarketStatus, type MarketStatus, type MarketView } from '@/lib/markets.api';
 import { api } from '@/lib/api';
+import { readPaymentMethods } from '@/lib/marketPaymentMethods';
 
 export default function CreatorMarketDetailPage() {
   const t = useTranslations('creator.markets');
@@ -179,6 +180,7 @@ export default function CreatorMarketDetailPage() {
             onRecheck={handleRecheck}
             onSetStatus={handleSetStatus}
             statusError={statusError}
+            paymentMethods={readPaymentMethods(market.payment_methods)}
           />
           {/* Non-default markets only (preview_url is null for the default one). */}
           <MarketPreviewLink previewUrl={market.preview_url ?? null} />
