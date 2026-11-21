@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { CountryMultiSelect } from '@/components/common/CountryMultiSelect';
 import { PriceRuleEditor } from '@/components/markets/PriceRuleEditor';
+import { LOCALE_PATHS_CARD_ID, LocalePathsEditor } from '@/components/markets/LocalePathsEditor';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { useApiError } from '@/lib/useApiError';
@@ -19,7 +20,17 @@ import { useTransientFlag } from '@/lib/useTransientFlag';
 import { asciiHandle, asciiHandleTyping } from '@/lib/slug';
 import { SUPPORTED_CURRENCY_OPTIONS } from '@/lib/supportedCurrencies';
 import { CONTENT_LOCALES, isReviewLocale } from '@/lib/contentLocales';
-import { createMarket, updateMarket, type MarketIndexing, type MarketInput, type MarketView, type PriceRule } from '@/lib/markets.api';
+import { sameLocalePaths, toLocalePathInput, validateLocalePaths, type LocalePathError } from '@/lib/localePaths';
+import {
+  createMarket,
+  updateMarket,
+  type MarketIndexing,
+  type MarketInput,
+  type MarketLocalePath,
+  type MarketLocalePathErrorCode,
+  type MarketView,
+  type PriceRule,
+} from '@/lib/markets.api';
 
 // Mirror of the API key rule (CreateMarketDto): 1–16 lowercase letters, digits
 // or hyphens, no leading/trailing hyphen.
@@ -73,6 +84,12 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     indexing: initial?.indexing ?? 'AUTO',
     is_x_default: initial?.is_x_default ?? false,
   });
+  // M156 language-country URLs: kept apart from `form` (sent only when changed).
+  const initialPaths = toLocalePathInput(initial?.locale_paths);
+  const [localePaths, setLocalePaths] = useState<MarketLocalePath[]>(initialPaths);
+  const [pathsEnabled, setPathsEnabled] = useState(initialPaths.length > 0);
+  // The API's locale_paths error with its row index; cleared on the next edit.
+  const [pathServerError, setPathServerError] = useState<LocalePathError | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useTransientFlag();
   const [error, setError] = useState<string | null>(null);
@@ -114,11 +131,43 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
   // Otherwise the default market stays the target.
   const xDefaultIndexable = initial?.status === 'LIVE' && mode !== 'NEVER' && hasLiveHost;
 
+  // Validated against the values about to be saved (API rules 3–8); a later
+  // countries/locales change only turns a row inactive, but a row whose
+  // country is not in the form's countries cannot be saved.
+  const pathRows = pathsEnabled ? localePaths : [];
+  const effectiveLocales = form.locales.filter((l) => l !== form.default_locale);
+  const pathErrors = validateLocalePaths(pathRows, { defaultLocale: form.default_locale, countries: form.countries });
+  const shownPathErrors = pathErrors.length ? pathErrors : pathServerError ? [pathServerError] : [];
+
+  const primaryHost =
+    (initial?.domains ?? []).find((d) => d.is_primary && d.status === 'ACTIVE' && !d.redirect_to)?.hostname ??
+    (initial?.is_default ? storeCustomDomain : null) ??
+    initial?.platform_hostname ??
+    '';
+
+  const changeLocalePaths = (rows: MarketLocalePath[]) => {
+    setLocalePaths(rows);
+    setPathServerError(null);
+  };
+  const changePathsEnabled = (on: boolean) => {
+    setPathsEnabled(on);
+    // Off clears the rows: saving then stores null (bare /<locale>/ folders).
+    if (!on) setLocalePaths([]);
+    setPathServerError(null);
+  };
+  const scrollToPaths = () =>
+    document.getElementById(LOCALE_PATHS_CARD_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
   const handleSave = async () => {
     if (!token || !canSave) return;
-    setSaving(true);
     setError(null);
     setErrorDetail(null);
+    if (pathErrors.length) {
+      setError(t('localePaths.errorSummary'));
+      scrollToPaths();
+      return;
+    }
+    setSaving(true);
     const payload: MarketInput = {
       ...form,
       key: form.key.trim().toLowerCase(),
@@ -133,6 +182,8 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
     // Sent only when changed, so saving a stale form never moves the
     // x-default back from a market chosen elsewhere in the meantime.
     if (!!payload.is_x_default === !!initial?.is_x_default) delete payload.is_x_default;
+    // Same for locale_paths: omitted = unchanged; null clears them.
+    if (!sameLocalePaths(pathRows, initialPaths)) payload.locale_paths = pathRows.length ? pathRows : null;
     try {
       // The key is locked after creation, so the update omits it.
       const { key, ...editable } = payload;
@@ -145,6 +196,12 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
       // Inline, mapped via errors.<code> (MARKET_FX_RATE_MISSING, MARKET_PAYMENT_CHECK_FAILED, …).
       setError(describeError(err));
       if (err instanceof ApiError && err.code === 'MARKET_COUNTRY_OVERLAP' && err.message) setErrorDetail(err.message);
+      // locale_paths errors carry the row index: highlight that row.
+      if (err instanceof ApiError && err.code?.startsWith('MARKET_LOCALE_PATH_')) {
+        const index = typeof err.payload?.index === 'number' ? err.payload.index : -1;
+        setPathServerError({ index, code: err.code as MarketLocalePathErrorCode });
+        scrollToPaths();
+      }
       if (isEdit) onSaveFailed?.();
     } finally {
       setSaving(false);
@@ -256,6 +313,18 @@ export function MarketForm({ initial, storeCustomDomain = null, onSaved, onSaveF
           </div>
         </CardContent>
       </Card>
+
+      <LocalePathsEditor
+        enabled={pathsEnabled}
+        onEnabledChange={changePathsEnabled}
+        rows={localePaths}
+        onChange={changeLocalePaths}
+        defaultLocale={form.default_locale}
+        locales={effectiveLocales}
+        countries={form.countries}
+        host={primaryHost}
+        errors={shownPathErrors}
+      />
 
       <Card className="shadow-none">
         <CardHeader className="pb-3">

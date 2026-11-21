@@ -53,6 +53,48 @@ export interface DomainView {
 
 export type MarketIndexing = 'AUTO' | 'ALWAYS' | 'NEVER';
 
+// M156 shared contract (multi-stores-shared/src/types/market.ts). Mirrors:
+// api src/modules/markets/market.types.ts, web src/lib/market.ts — keep in sync.
+
+/**
+ * M156: one language-country URL path of a market. `path` is the first URL
+ * segment: `${locale}-${country.toLowerCase()}` for a country row, `locale`
+ * for a language-only row (country null). The root `/` always serves the
+ * market's default_locale and never appears here.
+ */
+export interface MarketLocalePath {
+  /** /^[a-z]{2}(-[a-z]{2})?$/, e.g. 'de-at' or 'ar'. Unique per market. */
+  path: string;
+  /** ISO 639-1, lower case; never the market's default_locale. */
+  locale: string;
+  /** ISO 3166-1 alpha-2, upper case, in market.countries; null = every country. */
+  country: string | null;
+  /** hreflang codes this URL answers for; first = primary ('de-AT'); each code unique per market. */
+  hreflang: string[];
+}
+
+export type MarketLocalePathInactiveReason =
+  | 'locale_unsupported' // not a storefront locale yet (SUPPORTED_LOCALES)
+  | 'locale_not_enabled' // not in market.locales
+  | 'country_not_in_market';
+
+/** Dashboard view of a stored row. */
+export interface MarketLocalePathView extends MarketLocalePath {
+  active: boolean;
+  /** null when active; otherwise the first failing rule, in the order above. */
+  inactive_reason: MarketLocalePathInactiveReason | null;
+}
+
+/** 400 error codes of locale_paths; the error body also carries the row `index`. */
+export type MarketLocalePathErrorCode =
+  | 'MARKET_LOCALE_PATH_INVALID'
+  | 'MARKET_LOCALE_PATH_LANGUAGE_UNKNOWN'
+  | 'MARKET_LOCALE_PATH_DEFAULT_LOCALE'
+  | 'MARKET_LOCALE_PATH_MISMATCH'
+  | 'MARKET_LOCALE_PATH_COUNTRY'
+  | 'MARKET_LOCALE_PATH_DUPLICATE'
+  | 'MARKET_LOCALE_PATH_HREFLANG';
+
 export interface MarketView {
   id: string;
   key: string;
@@ -87,6 +129,12 @@ export interface MarketView {
    * default market. Ignored by the storefront while the market is not indexable.
    */
   is_x_default: boolean;
+  /**
+   * M156: language-country URL paths (every stored row, with its live status);
+   * [] when unset. Readers still default a missing field to [] (an API
+   * deployed before M156 does not send it).
+   */
+  locale_paths: MarketLocalePathView[];
 }
 
 export interface MarketInput {
@@ -100,6 +148,8 @@ export interface MarketInput {
   indexing?: MarketIndexing;
   /** Sent only when changed: true moves the x-default here, false unsets it. */
   is_x_default?: boolean;
+  /** M156: omitted = unchanged; null or [] = cleared (bare /<locale>/ folders). */
+  locale_paths?: MarketLocalePath[] | null;
 }
 
 export interface DnsTarget {
