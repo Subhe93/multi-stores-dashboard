@@ -45,6 +45,10 @@ import { MAX_PER_ORDER_MAX, MAX_PER_ORDER_MIN, maxPerOrderPayload, maxPerOrderTe
 import { productStockPayload, variantStockSummary } from '@/lib/variantStock';
 import { productRequiresShipping, requiresShippingPayload } from '@/lib/requiresShipping';
 import { EMAIL_NOTE_MAX, emailNotePayload, emailNoteText } from '@/lib/emailNote';
+import {
+  isPrimaryLabelLocale, labelsFromRow, labelsKey, labelsPayload, optionLabelsErrorLocale, optionListFor, type FormOptionLabels,
+} from '@/lib/variantOptionLabels';
+import { OptionLabelsEditor } from './OptionLabelsEditor';
 import { fetchMyStore, pickProductSlug, useStorefrontUrl } from '@/lib/useStorefrontUrl';
 import { CONTENT_LOCALE_CODES, PLATFORM_PRIMARY_LOCALE, isReviewLocale } from '@/lib/contentLocales';
 import { createHtmlCanon, stableJson, useBeforeUnloadWarning, useDirtyTracker } from '@/lib/useDirtyTracker';
@@ -121,6 +125,9 @@ interface ProductTranslationRow {
   short_description?: string | null;
   // P4 E2: owner-only confirmation email note; absent on older API builds.
   email_note?: string | null;
+  // M159: display labels of the variant options in this locale; absent on
+  // older API builds, null when none.
+  variant_option_labels?: unknown;
   slug?: string | null;
   meta_title?: string | null;
   meta_desc?: string | null;
@@ -214,6 +221,10 @@ type LocaleTranslation = {
   // was loaded or edited, like short_description: the API keeps the stored
   // note of a locale whose payload omits it.
   email_note?: string;
+  // M159: display labels of the variant option names / values in this
+  // locale. Undefined until loaded or edited: the API keeps the stored
+  // labels of a locale whose payload omits them.
+  variant_option_labels?: FormOptionLabels;
   // Per-locale SEO (product translation row).
   meta_title?: string;
   meta_desc?: string;
@@ -282,6 +293,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
   // Stored confirmation email note per content locale (P4 E2): emptying a
   // stored note sends null; an empty locale without one sends no key.
   const [savedEmailNotes, setSavedEmailNotes] = useState<Record<string, string>>({});
+  // M159: option labels as stored per locale (decides null = clear on save).
+  const [savedOptionLabels, setSavedOptionLabels] = useState<Record<string, FormOptionLabels>>({});
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('kg');
   // "Physical product" (Shopify): off = no shipping at checkout. The stored
@@ -353,6 +366,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
 
   // ── Helpers ───────────────────────────────────────────────
   const primaryTitle = translations[primaryLocale]?.title || '';
+  // M159: options a display label can be given for (config order first).
+  const optionList = optionListFor(variantOptions, variants);
   const translationPlaceholder = useTranslationPlaceholder();
 
   const setTransField = (locale: string, field: keyof LocaleTranslation, value: string) => {
@@ -521,6 +536,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         if (note !== undefined) loadedNotes[t.locale] = note;
       });
       setSavedEmailNotes(loadedNotes);
+      const loadedLabels: Record<string, FormOptionLabels> = {};
+      (p.translations || []).forEach((t) => {
+        const labels = labelsFromRow(t);
+        if (labels !== undefined) loadedLabels[t.locale] = labels;
+      });
+      setSavedOptionLabels(loadedLabels);
       setTranslations(prev => {
         const next = { ...prev };
         (p.translations || []).forEach((t) => {
@@ -530,6 +551,7 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
             slug: t.slug || '',
             ...('short_description' in t ? { short_description: t.short_description || '' } : {}),
             ...(t.locale in loadedNotes ? { email_note: loadedNotes[t.locale] } : {}),
+            ...(t.locale in loadedLabels ? { variant_option_labels: loadedLabels[t.locale] } : {}),
             meta_title: t.meta_title || '',
             meta_desc: t.meta_desc || '',
           };
@@ -650,11 +672,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         description: richText(tr?.description),
         short_description: richText(tr?.short_description),
         email_note: (tr?.email_note || '').trim(),
+        option_labels: labelsKey(tr?.variant_option_labels, optionList),
         slug: tr?.slug || '',
         meta_title: tr?.meta_title || '',
         meta_desc: tr?.meta_desc || '',
       };
-      if (row.title || row.description || row.short_description || row.email_note || row.slug || row.meta_title || row.meta_desc) trans[locale] = row;
+      if (row.title || row.description || row.short_description || row.email_note || row.option_labels || row.slug || row.meta_title || row.meta_desc) trans[locale] = row;
     }
     return stableJson({
       trans,
@@ -851,6 +874,8 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               : {}),
             // Only when set, or null to clear a stored note (no key otherwise).
             ...emailNotePayload(t.email_note, savedEmailNotes[locale]),
+            // M159: only when loaded or edited, or null to clear stored labels.
+            ...labelsPayload(t.variant_option_labels, savedOptionLabels[locale], optionList, isPrimaryLabelLocale(locale, primaryLocale)),
             slug: locale === primaryLocale ? primarySlug : resolved,
             meta_title: t.meta_title || undefined,
             meta_desc: t.meta_desc || undefined,
@@ -1055,6 +1080,15 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
           }
           return next;
         });
+        setSavedOptionLabels(prev => {
+          const next = { ...prev };
+          for (const [locale, tr] of Object.entries(cleanTranslations)) {
+            if (tr?.variant_option_labels !== undefined && tr.title.trim() && !isPrimaryLabelLocale(locale, primaryLocale)) {
+              next[locale] = tr.variant_option_labels;
+            }
+          }
+          return next;
+        });
         markSaved(savedSnapshot, interactionsAtStart);
         setSaved(t('product.productSaved'));
         setTimeout(() => setSaved(''), 3000);
@@ -1100,6 +1134,14 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         const text = t.has(key) ? t(key, values) : apiError(err);
         setError(text);
         openStoryWithError(index, text);
+      } else if (err instanceof ApiError && err.code && err.code.startsWith('PRODUCT_OPTION_LABELS_')) {
+        // M159: option labels refused; open the language of the first issue
+        // and scroll to the option labels.
+        const text = apiError(err);
+        setError(text);
+        const locale = optionLabelsErrorLocale(err.payload);
+        if (locale && locale !== primaryLocale) setActiveLocale(locale);
+        setTimeout(() => document.getElementById('product-option-labels')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
       } else if (err instanceof ApiError && err.code === 'PRODUCT_GTIN_INVALID') {
         setFieldErrors(p => ({ ...p, gtin: t('product.errGtinInvalid') }));
         setError(t('product.errGtinInvalid'));
@@ -1437,6 +1479,23 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
                   </span>
                 </div>
               </div>
+
+              {/* M159: option names / values in this language (display only;
+                  the primary language holds the canonical names). */}
+              {!isPrimaryLabelLocale(activeLocale, primaryLocale) && optionList.length > 0 && (
+                <OptionLabelsEditor
+                  optionList={optionList}
+                  labels={translations[activeLocale]?.variant_option_labels}
+                  onChange={(next) => setTranslations(prev => ({
+                    ...prev,
+                    [activeLocale]: { ...prev[activeLocale], variant_option_labels: next },
+                  }))}
+                  languageLabel={LOCALE_LABELS[activeLocale] || activeLocale}
+                  hasTitle={!!translations[activeLocale]?.title?.trim()}
+                  isRtl={isRtl}
+                  colorMaps={Object.fromEntries(variantOptions.map(o => [o.name, o.style === 'color' ? o.colorMap : undefined]))}
+                />
+              )}
 
               {/* URL slug per locale (WordPress rules, any script). Leaving it
                   empty for a secondary locale derives it from that locale's
