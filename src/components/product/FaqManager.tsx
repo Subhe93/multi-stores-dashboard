@@ -283,7 +283,7 @@ export default function FaqManager({
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{editIndex !== null ? t('faq.editFaq') : t('faq.addFaq')}</DialogTitle>
           </DialogHeader>

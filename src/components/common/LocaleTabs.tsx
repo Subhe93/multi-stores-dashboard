@@ -121,12 +121,15 @@ export function LocaleTabs({
   const isPill = variant === 'pill';
 
   return (
-    <div className={cn('space-y-2', className)}>
+    // min-w-0 + horizontal scroll: with many languages the tab row never
+    // widens its dialog or card (it used to push the whole dialog content
+    // past the dialog edge).
+    <div className={cn('min-w-0 space-y-2', className)}>
       <div
         role="tablist"
         className={cn(
-          'flex items-center',
-          isPill ? 'w-fit gap-1 rounded-md bg-zinc-100 p-0.5' : 'gap-0 border-b',
+          'flex items-center overflow-x-auto [scrollbar-width:thin]',
+          isPill ? 'w-fit max-w-full gap-1 rounded-md bg-zinc-100 p-0.5' : 'gap-0 border-b',
         )}
       >
         {ordered.map((locale) => {
@@ -142,7 +145,7 @@ export function LocaleTabs({
               onClick={() => onChange(locale)}
               title={isPrimary ? undefined : isFilled ? t('translated') : t('notTranslated')}
               className={cn(
-                'flex items-center gap-1.5 text-xs font-medium transition',
+                'flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium transition',
                 isPill
                   ? cn(
                       'rounded px-2.5 py-1 text-[11px]',
