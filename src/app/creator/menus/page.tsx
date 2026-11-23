@@ -390,6 +390,7 @@ export default function MenusPage() {
                     locales={locales}
                     expanded={expanded}
                     onExpandedChange={setExpanded}
+                    token={token}
                   />
                 </div>
               </CardContent>

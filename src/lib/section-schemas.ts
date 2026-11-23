@@ -55,6 +55,11 @@ export interface FieldDefinition {
   // Page types where the inspector offers this field (the dynamic source
   // fields: PRODUCT_TEMPLATE only). Omitted = every page type.
   pageTypes?: SectionSchema['pageTypes'];
+  // Link fields (`type: 'url'`) only, M165. 'off' = plain URL input (media
+  // URLs); 'prefer' = the field opens in Product mode when empty (picked-
+  // product fields). Omitted = both modes, Custom URL first. Product mode
+  // stores `product:<id>` (grammar: @multi-stores/core/link-ref).
+  productLink?: 'off' | 'prefer';
 }
 
 export interface SectionSchema {
@@ -716,7 +721,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     },
     translatable: ['eyebrow', 'heading', 'subheading', 'cta_text'],
     schema: [
-      { key: 'video_url', type: 'url', label: { en: 'Video URL (mp4)', ar: 'رابط الفيديو (mp4)' } },
+      { key: 'video_url', type: 'url', productLink: 'off', label: { en: 'Video URL (mp4)', ar: 'رابط الفيديو (mp4)' } },
       { key: 'poster_image', type: 'image', label: { en: 'Poster image', ar: 'صورة الغلاف' } },
       { key: 'overlay_opacity', type: 'number', label: { en: 'Overlay darkness (0–1)', ar: 'شفافية الطبقة' }, min: 0, max: 1, defaultValue: 0.35 },
       {
@@ -2968,7 +2973,7 @@ const BASE_SECTION_SCHEMAS: SectionSchema[] = [
     schema: [
       { key: 'heading', type: 'text', label: { en: 'Heading', ar: 'العنوان' } },
       { key: 'subheading', type: 'textarea', label: { en: 'Subheading', ar: 'العنوان الفرعي' } },
-      { key: 'video_url', type: 'url', label: { en: 'Video URL (YouTube, Vimeo, or .mp4)', ar: 'رابط الفيديو (يوتيوب، فيميو، أو .mp4)' } },
+      { key: 'video_url', type: 'url', productLink: 'off', label: { en: 'Video URL (YouTube, Vimeo, or .mp4)', ar: 'رابط الفيديو (يوتيوب، فيميو، أو .mp4)' } },
       { key: 'poster', type: 'image', label: { en: 'Poster image (optional)', ar: 'صورة الغلاف (اختياري)' } },
       {
         key: 'aspect_ratio',

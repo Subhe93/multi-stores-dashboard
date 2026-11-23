@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useSlugField } from '@/lib/useSlugField';
 import { RichTextEditor } from '@/components/common/RichTextEditor';
+import { productLinkPickerEnabled } from '@/lib/productLinkPickerFlag';
 import { legalSlugForKind } from '@/lib/legalPages';
 import { useStoreType } from '@/lib/useStoreType';
 import {
@@ -379,6 +380,8 @@ export default function EditPage() {
                   baseValue: translations[primaryLocale]?.content,
                   primaryPlaceholder: t('editPage.contentPlaceholder'),
                 })}
+                // M165: product links (the API keeps product:<id> hrefs on static pages).
+                productLinks={token && productLinkPickerEnabled() ? { token, contentLocale: activeLocale } : undefined}
               />
             </div>
           </div>

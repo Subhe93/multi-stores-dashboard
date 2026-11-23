@@ -25,6 +25,8 @@ import {
 import { useTranslations } from 'next-intl';
 import { Info } from 'lucide-react';
 import { MenuItemCard } from './MenuItemCard';
+import { menuItemWithProduct } from '@/lib/menuProductLink';
+import { productRefsBatcher } from '@/lib/productRefs';
 import {
   canIndent,
   canOutdent,
@@ -48,6 +50,8 @@ interface StructureProps {
   // Newly added items start expanded so the user sees what landed.
   expanded: Set<string>;
   onExpandedChange: (next: Set<string>) => void;
+  /** Session token: PRODUCT items show their product (M165). */
+  token?: string | null;
 }
 
 export function MenuStructure({
@@ -58,6 +62,7 @@ export function MenuStructure({
   locales,
   expanded,
   onExpandedChange,
+  token,
 }: StructureProps) {
   const t = useTranslations('creator.menus');
   const [activeCid, setActiveCid] = useState<string | null>(null);
@@ -146,6 +151,15 @@ export function MenuStructure({
                       onChange(updateNode(items, cid, (n) => ({ ...n, kind: 'CUSTOM', resource_id: null })))
                     }
                     onRemove={() => onChange(removeNode(items, cid))}
+                    token={token ?? null}
+                    onProduct={(product) =>
+                      onChange(
+                        updateNode(items, cid, (n) => {
+                          const prev = token && n.resource_id ? productRefsBatcher(token).peek(n.resource_id) : undefined;
+                          return menuItemWithProduct(n, product, prev?.state === 'ok' ? prev.product : null, primaryLocale);
+                        }),
+                      )
+                    }
                   />
                 );
               })}

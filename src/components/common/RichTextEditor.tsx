@@ -29,6 +29,8 @@ import {
   FileCode,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { storeLinkIsAllowedUri } from '@/lib/storeLinkTiptap';
+import { LinkDialog } from './LinkDialog';
 
 interface RichTextEditorProps {
   content?: string;
@@ -36,6 +38,12 @@ interface RichTextEditorProps {
   placeholder?: string;
   /** Writing direction of the edited content (follows the content locale, not the UI). */
   dir?: 'ltr' | 'rtl';
+  /**
+   * M165, opt-in: the link button opens a dialog with a Product tab that
+   * stores `product:<id>`. Only for HTML the storefront renders through its
+   * link rewriter (builder rich text, legacy static pages).
+   */
+  productLinks?: { token: string; contentLocale: string };
 }
 
 /** Toolbar icon button. Module-scoped so its identity is stable across renders. */
@@ -73,7 +81,12 @@ const StoreLink = TiptapLink.extend({
       },
     });
   },
-}).configure({ openOnClick: false, HTMLAttributes: { target: null, rel: null, class: null } });
+}).configure({
+  openOnClick: false,
+  HTMLAttributes: { target: null, rel: null, class: null },
+  // Keeps `product:<id>` references on load and paste (M165).
+  isAllowedUri: storeLinkIsAllowedUri,
+});
 
 /** Vertical toolbar divider */
 const Sep = () => <Separator orientation="vertical" className="h-5 mx-0.5" />;
@@ -83,10 +96,12 @@ export function RichTextEditor({
   onChange,
   placeholder,
   dir = 'ltr',
+  productLinks,
 }: RichTextEditorProps) {
   const t = useTranslations('components');
   const resolvedPlaceholder = placeholder ?? t('richTextPlaceholder');
   const [showSource, setShowSource] = useState(false);
+  const [linkDialog, setLinkDialog] = useState<{ href: string } | null>(null);
   const [sourceHtml, setSourceHtml] = useState('');
 
   const editor = useEditor({
@@ -106,13 +121,23 @@ export function RichTextEditor({
     },
   });
 
+  const applyHref = useCallback((href: string) => {
+    if (!editor) return;
+    if (href === '') { editor.chain().focus().extendMarkRange('link').unsetLink().run(); return; }
+    editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+  }, [editor]);
+
   const setLink = useCallback(() => {
     if (!editor) return;
+    if (productLinks) {
+      setLinkDialog({ href: String(editor.getAttributes('link').href ?? '') });
+      return;
+    }
     const url = window.prompt(t('enterUrl'), editor.getAttributes('link').href);
     if (url === null) return;
     if (url === '') { editor.chain().focus().extendMarkRange('link').unsetLink().run(); return; }
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  }, [editor, t]);
+  }, [editor, t, productLinks, setLinkDialog]);
 
   const toggleSource = useCallback(() => {
     if (!editor) return;
@@ -132,6 +157,16 @@ export function RichTextEditor({
 
   return (
     <div className="rounded-md border border-input overflow-hidden">
+      {productLinks && (
+        <LinkDialog
+          open={linkDialog !== null}
+          onOpenChange={(open) => { if (!open) setLinkDialog(null); }}
+          initialHref={linkDialog?.href ?? ''}
+          onApply={applyHref}
+          token={productLinks.token}
+          contentLocale={productLinks.contentLocale}
+        />
+      )}
       <div className="flex items-center gap-0.5 p-1 border-b bg-zinc-50/50 flex-wrap">
         {/* Text formatting */}
         <Btn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title={t('rteBold')}>

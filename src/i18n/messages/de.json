@@ -2371,7 +2371,11 @@
       "deleteConfirmPrefix": "Möchten Sie wirklich löschen:",
       "deleteConfirmSuffix": "?",
       "saveFailed": "Das Menü konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-      "deleteFailed": "Das Menü konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+      "deleteFailed": "Das Menü konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+      "productLinkedHint": "Jede Sprache öffnet dieses Produkt mit ihrem eigenen Link.",
+      "changeProduct": "Produkt ändern",
+      "productMissing": "Dieses Produkt existiert nicht mehr. Der Link verwendet die zuletzt gespeicherte Adresse.",
+      "productNotPublished": "Dieses Produkt ist noch nicht veröffentlicht."
     },
     "themes": {
       "title": "Themes",
@@ -5947,7 +5951,16 @@
     "minimumPriceExclVat": "Mindestpreis: {price}",
     "minimumMarginInclVat": "Mindestmarge (deckt die MwSt.): {amount}",
     "priceBelowMinimumError": "Der Preis muss mindestens {price} betragen: Basispreis des Anbieters plus MwSt.",
-    "marginBelowMinimumError": "Die Marge muss mindestens {amount} betragen, damit der Preis den Basispreis des Anbieters plus MwSt. deckt."
+    "marginBelowMinimumError": "Die Marge muss mindestens {amount} betragen, damit der Preis den Basispreis des Anbieters plus MwSt. deckt.",
+    "linkDialog": {
+      "title": "Link einfügen",
+      "tabUrl": "URL",
+      "tabProduct": "Produkt",
+      "urlLabel": "Linkadresse",
+      "apply": "Übernehmen",
+      "removeLink": "Link entfernen",
+      "cancel": "Abbrechen"
+    }
   },
   "errors": {
     "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
@@ -6871,6 +6884,27 @@
       "columns": "{count, plural, one {# Spalte} other {# Spalten}}",
       "densitySwitch": "Kundschaft kann die Spalten ändern",
       "densitySwitchHint": "Die Wahl wird auf dem jeweiligen Gerät gespeichert."
+    },
+    "linkField": {
+      "modeLabel": "Linktyp",
+      "modeCustom": "Eigene URL",
+      "modeProduct": "Produkt",
+      "searchProducts": "Produkte suchen...",
+      "noProductsFound": "Keine Produkte gefunden",
+      "loading": "Produkte werden geladen...",
+      "loadFailed": "Produkte konnten nicht geladen werden. Bitte erneut versuchen.",
+      "retry": "Erneut versuchen",
+      "change": "Ändern",
+      "remove": "Link entfernen",
+      "cancel": "Abbrechen",
+      "everyLanguageHint": "Wird in jeder Sprache mit dem richtigen Link angezeigt.",
+      "statusDraft": "Entwurf",
+      "statusArchived": "Archiviert",
+      "notPublished": "Nicht veröffentlicht: Besucher werden bis zur Veröffentlichung zur Produktliste geleitet.",
+      "missingTitle": "Dieses Produkt existiert nicht mehr",
+      "missingBody": "Besucher werden zur Produktliste geleitet. Wählen Sie ein anderes Produkt oder eine eigene URL.",
+      "pickAnother": "Anderes Produkt wählen",
+      "useCustom": "Eigene URL verwenden"
     }
   },
   "product": {

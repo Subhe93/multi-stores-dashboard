@@ -131,6 +131,7 @@ export const schema: SectionSchema = {
     {
       key: 'product_url',
       type: 'url',
+      productLink: 'prefer',
       label: L('Product', 'المنتج', 'Ürün', 'Produkt', 'Produit', 'Produkt'),
       description: L(
         'Link to a product (/products/…). Title, photograph and price come from it. On a product template: empty = the product of the page.',

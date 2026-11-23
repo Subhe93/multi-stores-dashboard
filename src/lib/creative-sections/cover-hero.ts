@@ -13,7 +13,7 @@ const L = (en: string, ar: string, tr: string, de: string, fr: string, sv: strin
   en, ar, tr, de, fr, sv,
 });
 
-type Extra = Partial<Pick<FieldDefinition, 'description' | 'required'>>;
+type Extra = Partial<Pick<FieldDefinition, 'description' | 'required' | 'productLink'>>;
 type Option = [value: string, label: LocalizedString];
 
 const text = (key: string, label: LocalizedString, maxLength: number, extra: Extra = {}): FieldDefinition => ({
@@ -133,6 +133,7 @@ export const schema: SectionSchema = {
         'Un lien de produit (/products/…) affiche son titre et son prix actuel dans la légende.',
         'En produktlänk (/products/…) visar titel och aktuellt pris i bildtexten.',
       ),
+      productLink: 'prefer',
     }),
     image('seal_image', L('Seal (symbol on the masthead line)', 'الختم (رمز على خط الترويسة)', 'Mühür (künye çizgisindeki simge)', 'Siegel (Symbol auf der Kopfzeile)', 'Sceau (symbole sur la ligne de titre)', 'Sigill (symbol på redaktionsraden)')),
     select('seal_size', L('Seal size', 'حجم الختم', 'Mühür boyutu', 'Größe des Siegels', 'Taille du sceau', 'Sigillets storlek'), 'md', [

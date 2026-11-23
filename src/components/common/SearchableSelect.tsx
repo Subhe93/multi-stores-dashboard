@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useId, useCallback, type KeyboardEvent } f
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Check } from 'lucide-react';
+import { ChevronsUpDown, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { selectKeyReducer, clampActiveIndex, openingIndex } from './searchableSelectKeys';
 
@@ -14,6 +14,8 @@ interface Option {
   description?: string;
   // Shown but not selectable (e.g. a stored value whose option is gone).
   disabled?: boolean;
+  // Small thumbnail at the start of the row (product picker).
+  imageUrl?: string;
 }
 
 interface SearchableSelectProps {
@@ -24,6 +26,15 @@ interface SearchableSelectProps {
   searchPlaceholder?: string;
   /** Id of the trigger button, for a `<Label htmlFor>`. */
   id?: string;
+  /**
+   * Remote mode: called with the search text on every change; the caller
+   * loads matching `options` and local filtering is skipped.
+   */
+  onSearchChange?: (query: string) => void;
+  /** Shows a spinner row instead of the empty text (remote mode). */
+  loading?: boolean;
+  /** Text of the empty list (default: the generic "no results"). */
+  emptyText?: string;
 }
 
 /**
@@ -39,6 +50,9 @@ export function SearchableSelect({
   placeholder,
   searchPlaceholder,
   id,
+  onSearchChange,
+  loading,
+  emptyText,
 }: SearchableSelectProps) {
   const t = useTranslations('common');
   const placeholderText = placeholder ?? t('select');
@@ -59,12 +73,11 @@ export function SearchableSelect({
   const listId = `${baseId}-listbox`;
   const optionId = (index: number) => `${baseId}-opt-${index}`;
 
+  const remote = typeof onSearchChange === 'function';
   const selected = options.find((o) => o.value === value);
-  const matching = options.filter(
-    (o) =>
-      o.label.toLowerCase().includes(search.toLowerCase()) ||
-      o.description?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const matches = (o: Option, q: string) =>
+    remote || o.label.toLowerCase().includes(q.toLowerCase()) || !!o.description?.toLowerCase().includes(q.toLowerCase());
+  const matching = options.filter((o) => matches(o, search));
   // Large catalogs (the ~2k Google Fonts list) would render thousands of rows
   // at once; the dropdown is search-driven, so showing the first slice and a
   // "refine your search" hint keeps it instant without hiding anything findable.
@@ -78,7 +91,8 @@ export function SearchableSelect({
     setOpen(false);
     setSearch('');
     setActiveIndex(-1);
-  }, []);
+    if (remote) onSearchChange?.('');
+  }, [remote, onSearchChange]);
 
   const openList = () => {
     setActiveIndex(openingIndex(selectedIndex, filtered.length));
@@ -209,12 +223,9 @@ export function SearchableSelect({
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
+                if (remote) onSearchChange?.(e.target.value);
                 // The filtered list changes with the text; recomputed against the next render's length.
-                const next = options.filter(
-                  (o) =>
-                    o.label.toLowerCase().includes(e.target.value.toLowerCase()) ||
-                    o.description?.toLowerCase().includes(e.target.value.toLowerCase()),
-                ).length;
+                const next = options.filter((o) => matches(o, e.target.value)).length;
                 setActiveIndex((i) => clampActiveIndex(i, Math.min(next, DISPLAY_CAP)));
               }}
               onKeyDown={onKeyDown}
@@ -229,8 +240,13 @@ export function SearchableSelect({
             aria-label={placeholderText}
             className="flex-1 min-h-0 overflow-y-auto p-1"
           >
-            {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">{t('noResults')}</p>
+            {loading ? (
+              <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-4" role="status">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden />
+                {t('loading')}
+              </p>
+            ) : filtered.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">{emptyText ?? t('noResults')}</p>
             ) : (
               filtered.map((option, index) => (
                 <div
@@ -255,8 +271,16 @@ export function SearchableSelect({
                       value === option.value ? 'opacity-100' : 'opacity-0',
                     )}
                   />
-                  <div>
-                    <p className="text-sm">{option.label}</p>
+                  {option.imageUrl !== undefined &&
+                    (option.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={option.imageUrl} alt="" className="size-7 shrink-0 rounded object-cover bg-zinc-100" />
+                    ) : (
+                      <span className="size-7 shrink-0 rounded bg-zinc-100" aria-hidden />
+                    ))}
+                  <div className="min-w-0">
+                    {/* Only rows with a thumbnail truncate; other pickers keep wrapping labels. */}
+                    <p className={cn('text-sm', option.imageUrl !== undefined && 'truncate')}>{option.label}</p>
                     {option.description && (
                       <p className="text-[10px] text-muted-foreground">{option.description}</p>
                     )}

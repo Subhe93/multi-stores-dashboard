@@ -20,6 +20,7 @@ const ITEM_FIELDS: FieldDefinition[] = [
   {
     key: 'url',
     type: 'url',
+    productLink: 'prefer',
     label: L('Product link', 'رابط المنتج', 'Ürün bağlantısı', 'Produktlink', 'Lien du produit', 'Produktlänk'),
     description: L(
       'Pick a product: its name, image and price are read live from the store.',

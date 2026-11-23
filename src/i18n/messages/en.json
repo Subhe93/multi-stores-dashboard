@@ -2371,7 +2371,11 @@
       "deleteConfirmPrefix": "Are you sure you want to delete",
       "deleteConfirmSuffix": "?",
       "saveFailed": "Failed to save the menu. Please try again.",
-      "deleteFailed": "Failed to delete the menu. Please try again."
+      "deleteFailed": "Failed to delete the menu. Please try again.",
+      "productLinkedHint": "Each language opens this product with its own link.",
+      "changeProduct": "Change product",
+      "productMissing": "This product no longer exists. The link uses its last saved address.",
+      "productNotPublished": "This product is not published yet."
     },
     "themes": {
       "title": "Themes",
@@ -5947,7 +5951,16 @@
     "minimumPriceExclVat": "Minimum price: {price}",
     "minimumMarginInclVat": "Minimum margin (covers VAT): {amount}",
     "priceBelowMinimumError": "The price must be at least {price}: the provider’s base price plus VAT.",
-    "marginBelowMinimumError": "The margin must be at least {amount} so the price covers the provider’s base price plus VAT."
+    "marginBelowMinimumError": "The margin must be at least {amount} so the price covers the provider’s base price plus VAT.",
+    "linkDialog": {
+      "title": "Insert link",
+      "tabUrl": "URL",
+      "tabProduct": "Product",
+      "urlLabel": "Link address",
+      "apply": "Apply",
+      "removeLink": "Remove link",
+      "cancel": "Cancel"
+    }
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -6871,6 +6884,27 @@
       "columns": "{count, plural, one {# column} other {# columns}}",
       "densitySwitch": "Shoppers can change the columns",
       "densitySwitchHint": "Each shopper’s choice is remembered on their device."
+    },
+    "linkField": {
+      "modeLabel": "Link type",
+      "modeCustom": "Custom URL",
+      "modeProduct": "Product",
+      "searchProducts": "Search products...",
+      "noProductsFound": "No products found",
+      "loading": "Loading products...",
+      "loadFailed": "Products could not be loaded. Try again.",
+      "retry": "Try again",
+      "change": "Change",
+      "remove": "Remove link",
+      "cancel": "Cancel",
+      "everyLanguageHint": "Shown with the right link in every language.",
+      "statusDraft": "Draft",
+      "statusArchived": "Archived",
+      "notPublished": "Not published: visitors are sent to the product list until it is published.",
+      "missingTitle": "This product no longer exists",
+      "missingBody": "Visitors are sent to the product list. Pick another product or use a custom URL.",
+      "pickAnother": "Pick another product",
+      "useCustom": "Use a custom URL"
     }
   },
   "product": {

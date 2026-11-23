@@ -2371,7 +2371,11 @@
       "deleteConfirmPrefix": "Är du säker på att du vill ta bort",
       "deleteConfirmSuffix": "?",
       "saveFailed": "Det gick inte att spara menyn. Försök igen.",
-      "deleteFailed": "Det gick inte att ta bort menyn. Försök igen."
+      "deleteFailed": "Det gick inte att ta bort menyn. Försök igen.",
+      "productLinkedHint": "Varje språk öppnar produkten med sin egen länk.",
+      "changeProduct": "Byt produkt",
+      "productMissing": "Den här produkten finns inte längre. Länken använder den senast sparade adressen.",
+      "productNotPublished": "Den här produkten är inte publicerad än."
     },
     "themes": {
       "title": "Teman",
@@ -5947,7 +5951,16 @@
     "minimumPriceExclVat": "Lägsta pris: {price}",
     "minimumMarginInclVat": "Lägsta marginal (täcker momsen): {amount}",
     "priceBelowMinimumError": "Priset måste vara minst {price}: leverantörens grundpris plus moms.",
-    "marginBelowMinimumError": "Marginalen måste vara minst {amount} så att priset täcker leverantörens grundpris plus moms."
+    "marginBelowMinimumError": "Marginalen måste vara minst {amount} så att priset täcker leverantörens grundpris plus moms.",
+    "linkDialog": {
+      "title": "Infoga länk",
+      "tabUrl": "URL",
+      "tabProduct": "Produkt",
+      "urlLabel": "Länkadress",
+      "apply": "Använd",
+      "removeLink": "Ta bort länken",
+      "cancel": "Avbryt"
+    }
   },
   "errors": {
     "generic": "Något gick fel. Försök igen.",
@@ -6871,6 +6884,27 @@
       "columns": "{count, plural, one {# kolumn} other {# kolumner}}",
       "densitySwitch": "Kunder kan ändra antal kolumner",
       "densitySwitchHint": "Varje kunds val sparas på deras enhet."
+    },
+    "linkField": {
+      "modeLabel": "Länktyp",
+      "modeCustom": "Egen URL",
+      "modeProduct": "Produkt",
+      "searchProducts": "Sök produkter...",
+      "noProductsFound": "Inga produkter hittades",
+      "loading": "Laddar produkter...",
+      "loadFailed": "Produkterna kunde inte laddas. Försök igen.",
+      "retry": "Försök igen",
+      "change": "Ändra",
+      "remove": "Ta bort länken",
+      "cancel": "Avbryt",
+      "everyLanguageHint": "Visas med rätt länk på varje språk.",
+      "statusDraft": "Utkast",
+      "statusArchived": "Arkiverad",
+      "notPublished": "Inte publicerad: besökare skickas till produktlistan tills den publiceras.",
+      "missingTitle": "Den här produkten finns inte längre",
+      "missingBody": "Besökare skickas till produktlistan. Välj en annan produkt eller använd en egen URL.",
+      "pickAnother": "Välj en annan produkt",
+      "useCustom": "Använd en egen URL"
     }
   },
   "product": {

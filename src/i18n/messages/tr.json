@@ -2371,7 +2371,11 @@
       "deleteConfirmPrefix": "Silmek istediğinizden emin misiniz:",
       "deleteConfirmSuffix": "?",
       "saveFailed": "Menü kaydedilemedi. Lütfen tekrar deneyin.",
-      "deleteFailed": "Menü silinemedi. Lütfen tekrar deneyin."
+      "deleteFailed": "Menü silinemedi. Lütfen tekrar deneyin.",
+      "productLinkedHint": "Her dil bu ürünü kendi bağlantısıyla açar.",
+      "changeProduct": "Ürünü değiştir",
+      "productMissing": "Bu ürün artık mevcut değil. Bağlantı son kaydedilen adresini kullanır.",
+      "productNotPublished": "Bu ürün henüz yayımlanmadı."
     },
     "themes": {
       "title": "Temalar",
@@ -5947,7 +5951,16 @@
     "minimumPriceExclVat": "Asgari fiyat: {price}",
     "minimumMarginInclVat": "Asgari kâr marjı (KDV’yi karşılar): {amount}",
     "priceBelowMinimumError": "Fiyat en az {price} olmalıdır: tedarikçinin taban fiyatı artı KDV.",
-    "marginBelowMinimumError": "Fiyatın tedarikçinin taban fiyatını artı KDV’yi karşılaması için kâr marjı en az {amount} olmalıdır."
+    "marginBelowMinimumError": "Fiyatın tedarikçinin taban fiyatını artı KDV’yi karşılaması için kâr marjı en az {amount} olmalıdır.",
+    "linkDialog": {
+      "title": "Bağlantı ekle",
+      "tabUrl": "URL",
+      "tabProduct": "Ürün",
+      "urlLabel": "Bağlantı adresi",
+      "apply": "Uygula",
+      "removeLink": "Bağlantıyı kaldır",
+      "cancel": "İptal"
+    }
   },
   "errors": {
     "generic": "Bir hata oluştu. Lütfen tekrar deneyin.",
@@ -6871,6 +6884,27 @@
       "columns": "{count, plural, one {# sütun} other {# sütun}}",
       "densitySwitch": "Müşteriler sütun sayısını değiştirebilir",
       "densitySwitchHint": "Her müşterinin seçimi kendi cihazında hatırlanır."
+    },
+    "linkField": {
+      "modeLabel": "Bağlantı türü",
+      "modeCustom": "Özel URL",
+      "modeProduct": "Ürün",
+      "searchProducts": "Ürün ara...",
+      "noProductsFound": "Ürün bulunamadı",
+      "loading": "Ürünler yükleniyor...",
+      "loadFailed": "Ürünler yüklenemedi. Tekrar deneyin.",
+      "retry": "Tekrar dene",
+      "change": "Değiştir",
+      "remove": "Bağlantıyı kaldır",
+      "cancel": "İptal",
+      "everyLanguageHint": "Her dilde doğru bağlantıyla gösterilir.",
+      "statusDraft": "Taslak",
+      "statusArchived": "Arşivlendi",
+      "notPublished": "Yayımlanmadı: yayımlanana kadar ziyaretçiler ürün listesine yönlendirilir.",
+      "missingTitle": "Bu ürün artık mevcut değil",
+      "missingBody": "Ziyaretçiler ürün listesine yönlendirilir. Başka bir ürün seçin veya özel bir URL kullanın.",
+      "pickAnother": "Başka ürün seç",
+      "useCustom": "Özel URL kullan"
     }
   },
   "product": {

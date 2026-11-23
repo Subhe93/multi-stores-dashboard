@@ -6,6 +6,7 @@
 // are drawn as vertical lines in the leading gutter so nesting reads at a
 // glance.
 
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslations } from 'next-intl';
@@ -24,6 +25,10 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { SameAsBaseChip, useTranslationPlaceholder } from '@/components/common/LocaleTabs';
 import { labelFor, localeLabel, type MenuItemKind, type TreeItem } from './types';
+import { ProductLinkPicker } from '@/components/builder/fields/ProductLinkPicker';
+import { ProductRefChip } from '@/components/builder/fields/ProductRefChip';
+import { productLinkPickerEnabled } from '@/lib/productLinkPickerFlag';
+import type { ProductRefRow } from '@/lib/productRefsBatch';
 
 export const INDENT_PX = 28;
 
@@ -52,6 +57,9 @@ interface CardProps {
   onNewTab: (checked: boolean) => void;
   onConvertToCustom: () => void;
   onRemove: () => void;
+  /** M165: session token (PRODUCT items show the product chip) and the change handler. */
+  token?: string | null;
+  onProduct?: (product: ProductRefRow) => void;
 }
 
 export function MenuItemCard({
@@ -72,6 +80,8 @@ export function MenuItemCard({
   onNewTab,
   onConvertToCustom,
   onRemove,
+  token,
+  onProduct,
 }: CardProps) {
   const t = useTranslations('creator.menus');
   const tc = useTranslations('common');
@@ -100,6 +110,9 @@ export function MenuItemCard({
   const displayLabel = ownLabel || node.label || t('untitledItem');
   const isCustom = node.kind === 'CUSTOM';
   const showBody = expanded && !dragging;
+  // M165: a PRODUCT item shows its product instead of the read-only url.
+  const productChip = node.kind === 'PRODUCT' && !!node.resource_id && !!token && productLinkPickerEnabled();
+  const [changingProduct, setChangingProduct] = useState(false);
 
   return (
     <div
@@ -212,17 +225,59 @@ export function MenuItemCard({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10.5px] text-zinc-500">{t('url')}</Label>
-                <Input
-                  className={cn('h-8 text-[12.5px] font-mono', !isCustom && 'bg-zinc-50 text-zinc-500')}
-                  value={node.url}
-                  onChange={(e) => onUrl(e.target.value)}
-                  readOnly={!isCustom}
-                  placeholder="/products"
-                />
+                <Label className="text-[10.5px] text-zinc-500">{productChip ? t('kindProduct') : t('url')}</Label>
+                {productChip && token && node.resource_id ? (
+                  changingProduct ? (
+                    <div className="space-y-1">
+                      <ProductLinkPicker
+                        token={token}
+                        contentLocale={activeLocale}
+                        onPick={(p) => {
+                          onProduct?.(p);
+                          setChangingProduct(false);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setChangingProduct(false)}
+                        className="text-[10.5px] font-medium text-zinc-500 hover:text-zinc-800"
+                      >
+                        {tc('cancel')}
+                      </button>
+                    </div>
+                  ) : (
+                    <ProductRefChip
+                      id={node.resource_id}
+                      token={token}
+                      contentLocale={activeLocale}
+                      onChange={onProduct ? () => setChangingProduct(true) : undefined}
+                      missingTitle={t('productMissing')}
+                      notPublishedText={t('productNotPublished')}
+                      missingActions={
+                        onProduct ? (
+                          <button
+                            type="button"
+                            onClick={() => setChangingProduct(true)}
+                            className="rounded-md border border-amber-300 bg-white ps-2 pe-2 py-1 text-[10.5px] font-medium hover:bg-amber-100"
+                          >
+                            {t('changeProduct')}
+                          </button>
+                        ) : undefined
+                      }
+                    />
+                  )
+                ) : (
+                  <Input
+                    className={cn('h-8 text-[12.5px] font-mono', !isCustom && 'bg-zinc-50 text-zinc-500')}
+                    value={node.url}
+                    onChange={(e) => onUrl(e.target.value)}
+                    readOnly={!isCustom}
+                    placeholder="/products"
+                  />
+                )}
                 {!isCustom && (
                   <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <p className="text-[10.5px] text-zinc-400">{t('urlLinkedHint')}</p>
+                    <p className="text-[10.5px] text-zinc-400">{productChip ? t('productLinkedHint') : t('urlLinkedHint')}</p>
                     <button
                       type="button"
                       onClick={onConvertToCustom}

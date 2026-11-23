@@ -31,6 +31,8 @@ import { type FieldDefinition } from '@/lib/section-schemas';
 import { repeaterAtLimit } from '@/lib/repeaterLimit';
 import { useUiLabel } from '../useUiLabel';
 import { ImageSizeField } from './ImageSizeField';
+import { LinkField } from './LinkField';
+import { productLinkPickerEnabled } from '@/lib/productLinkPickerFlag';
 import { cn } from '@/lib/utils';
 
 interface FieldRendererProps {
@@ -99,6 +101,9 @@ export function FieldRenderer({ field, value, onChange, contentLocale, token, ap
             <RichTextEditor
               content={(value as string) ?? ''}
               onChange={(html) => onChange(html)}
+              // M165: the link dialog offers a Product tab (section HTML is
+              // resolved by the storefront link rewriter).
+              productLinks={productLinkPickerEnabled() ? { token, contentLocale } : undefined}
             />
           </div>
         );
@@ -125,13 +130,14 @@ export function FieldRenderer({ field, value, onChange, contentLocale, token, ap
         return <ColorControl value={(value as string) ?? ''} onChange={onChange} />;
 
       case 'url':
+        // M165: Custom URL / Product switch (plain input for media URLs).
         return (
-          <Input
-            type="url"
-            className="h-9 text-[12.5px] font-mono"
-            value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="https://"
+          <LinkField
+            value={value}
+            onChange={(v) => onChange(v)}
+            flag={field.productLink}
+            token={token}
+            contentLocale={contentLocale}
           />
         );
 
