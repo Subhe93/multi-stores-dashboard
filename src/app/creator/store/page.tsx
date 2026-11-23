@@ -39,6 +39,7 @@ import { StoreStatusBadge } from '@/components/creator/StoreStatusBadge';
 import { domainRemovalFallbackHost } from '@/lib/customDomain';
 import { platformHosts } from '@/lib/platformHosts';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { BRAND_NAME_MAX, automaticBrandName, buildSeoConfig, cleanBrandName } from '@/lib/storeBrandName';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,7 +98,8 @@ interface StoreThemeConfig {
   templateId?: string;
   socials?: { instagram?: string; facebook?: string; twitter?: string; tiktok?: string; youtube?: string };
   contact?: { email?: string; phone?: string; whatsapp?: string; address?: string };
-  seo?: { metaTitle?: string; metaDescription?: string };
+  /** `brandName` (M166 F): brand / organization name of the storefront schema; empty = automatic. */
+  seo?: { metaTitle?: string; metaDescription?: string; brandName?: string };
   translations?: Record<string, TranslatableFields>;
 }
 
@@ -451,6 +453,8 @@ export default function CreatorStorePage() {
   >(null);
 
   const [form, setForm] = useState(DEFAULT_FORM);
+  // M166 F: one brand name for every locale (outside the language tabs).
+  const [brandName, setBrandName] = useState('');
 
   // Translation state: { locale: { name, description, metaTitle, metaDescription } }
   const [translations, setTranslations] = useState<Record<string, TranslatableFields>>({ en: { ...EMPTY_TRANSLATABLE } });
@@ -533,6 +537,7 @@ export default function CreatorStorePage() {
 
         setTranslations(merged);
         setActiveLocale(primary);
+        setBrandName(typeof tc.seo?.brandName === 'string' ? tc.seo.brandName : '');
       })
       .catch(() => setStore(null))
       .finally(() => setLoading(false));
@@ -715,10 +720,12 @@ export default function CreatorStorePage() {
             hero: form.hero,
             socials: form.socials,
             contact: form.contact,
-            seo: {
+            // Other seo keys already stored are kept (M166 F).
+            seo: buildSeoConfig(baseThemeConfig.seo, {
               metaTitle: primaryTrans.metaTitle || '',
               metaDescription: primaryTrans.metaDescription || '',
-            },
+              brandName,
+            }),
             translations,
           },
         }),
@@ -1257,6 +1264,24 @@ export default function CreatorStorePage() {
       {/* ── SEO (translatable) ────────────────────────────────── */}
       <Card className="shadow-none">
         <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">{t('myStore.seo')}</CardTitle></CardHeader>
+        {/* Brand name (M166 F): one value for every language, so it sits above the tabs. */}
+        <CardContent className="space-y-1.5 pb-3">
+          <Label htmlFor="store-brand-name" className="text-xs">{t('myStore.brandName')}</Label>
+          <Input
+            id="store-brand-name"
+            dir="auto"
+            className="h-8 text-sm text-start"
+            maxLength={BRAND_NAME_MAX}
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            onBlur={() => setBrandName((v) => cleanBrandName(v))}
+            placeholder={t('myStore.brandNamePlaceholder', {
+              name: automaticBrandName(translations[form.primary_locale]?.name || store?.name),
+            })}
+            aria-describedby="store-brand-name-hint"
+          />
+          <p id="store-brand-name-hint" className="text-xs text-muted-foreground">{t('myStore.brandNameHint')}</p>
+        </CardContent>
         <LanguageTabs />
         <CardContent className="space-y-4 pt-4">
           {activeLocale !== form.primary_locale && <TranslateBanner />}
