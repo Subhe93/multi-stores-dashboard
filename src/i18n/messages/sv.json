@@ -7924,6 +7924,8 @@
       "handlingMax": "Till (arbetsdagar)",
       "returnsTitle": "Returvillkor",
       "returnsEmpty": "Inga returvillkor ännu. Ingenting om returer publiceras.",
+      "personalizedNoReturns": "Personligt utformade produkter kan inte returneras",
+      "personalizedNoReturnsHint": "Produkter där kunden anger ett namn eller en text, laddar upp en bild eller skapar en egen design publiceras som ej returnerbara i stället för med villkoren ovan. Alla andra produkter behåller dem.",
       "addReturn": "Lägg till returvillkor",
       "editReturn": "Redigera returvillkor",
       "removeReturn": "Ta bort returvillkor",

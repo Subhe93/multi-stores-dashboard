@@ -188,7 +188,9 @@ export function MerchantPoliciesCard() {
   };
 
   const removePolicy = (index: number) => {
-    update({ ...form, returns: form.returns.filter((_, i) => i !== index) });
+    const returns = form.returns.filter((_, i) => i !== index);
+    // M172: the exception goes with the last return policy (its box is hidden then).
+    update({ ...form, returns, personalized_no_returns: returns.length > 0 && form.personalized_no_returns });
     setErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([path]) => !path.startsWith('returns'))));
   };
 
@@ -251,6 +253,7 @@ export function MerchantPoliciesCard() {
   const policy = draft?.policy;
   const minId = `${ids}-min`;
   const maxId = `${ids}-max`;
+  const personalizedId = `${ids}-personalized`;
 
   return (
     <Card className="shadow-none">
@@ -397,6 +400,25 @@ export function MerchantPoliciesCard() {
                     );
                   })}
                 </ul>
+              )}
+              {/* M172: only meaningful next to at least one return policy. */}
+              {form.returns.length > 0 && (
+                <label htmlFor={personalizedId} className="flex items-start gap-2 pt-1">
+                  <input
+                    id={personalizedId}
+                    type="checkbox"
+                    className="mt-0.5 rounded accent-primary"
+                    checked={form.personalized_no_returns}
+                    aria-describedby={`${personalizedId}-hint`}
+                    onChange={(e) => update({ ...form, personalized_no_returns: e.target.checked })}
+                  />
+                  <span className="space-y-0.5">
+                    <span className="block text-xs font-medium">{t('personalizedNoReturns')}</span>
+                    <span id={`${personalizedId}-hint`} className="block max-w-2xl text-[11px] text-muted-foreground">
+                      {t('personalizedNoReturnsHint')}
+                    </span>
+                  </span>
+                </label>
               )}
             </section>
 

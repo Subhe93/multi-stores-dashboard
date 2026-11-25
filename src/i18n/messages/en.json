@@ -7924,6 +7924,8 @@
       "handlingMax": "To (business days)",
       "returnsTitle": "Return policies",
       "returnsEmpty": "No return policy yet. Nothing about returns is published.",
+      "personalizedNoReturns": "Personalised products cannot be returned",
+      "personalizedNoReturnsHint": "Products where the customer enters a name or text, uploads an image or creates their own design are published as non-returnable instead of with the policies above. All other products keep them.",
       "addReturn": "Add return policy",
       "editReturn": "Edit return policy",
       "removeReturn": "Remove return policy",

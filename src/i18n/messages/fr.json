@@ -7924,6 +7924,8 @@
       "handlingMax": "À (jours ouvrés)",
       "returnsTitle": "Politiques de retour",
       "returnsEmpty": "Aucune politique de retour pour le moment. Rien n’est publié au sujet des retours.",
+      "personalizedNoReturns": "Les produits personnalisés ne peuvent pas être retournés",
+      "personalizedNoReturnsHint": "Les produits pour lesquels le client saisit un nom ou un texte, téléverse une image ou crée son propre design sont publiés comme non retournables, à la place des politiques ci-dessus. Tous les autres produits les conservent.",
       "addReturn": "Ajouter une politique de retour",
       "editReturn": "Modifier la politique de retour",
       "removeReturn": "Supprimer la politique de retour",

@@ -20,7 +20,7 @@ import {
 } from './merchantPolicies.ts';
 
 const policy = (more = {}) => ({ ...emptyReturnPolicy(), countries: ['SE'], days: '14', ...more });
-const form = (more = {}) => ({ handling_min: '', handling_max: '', returns: [], ...more });
+const form = (more = {}) => ({ handling_min: '', handling_max: '', returns: [], personalized_no_returns: false, ...more });
 
 test('toPoliciesForm: null / garbage is the empty form; a stored value is read back', () => {
   for (const raw of [null, undefined, 'x', 5, [], {}]) assert.deepEqual(toPoliciesForm(raw), EMPTY_POLICIES_FORM);
@@ -40,8 +40,47 @@ test('toPoliciesForm: null / garbage is the empty form; a stored value is read b
         { countries: ['SE', 'NO'], category: 'finite', days: '14', methods: ['mail', 'store'], fees: 'fixed', fee_amount: '49.5' },
         { countries: ['DE'], category: 'none', days: '', methods: [], fees: '', fee_amount: '' },
       ],
+      personalized_no_returns: false,
     },
   );
+});
+
+// ── M172: personalised products exception ──
+
+test('personalized_no_returns: read strictly, and only next to a return policy', () => {
+  const returns = [{ countries: ['SE'], category: 'finite', days: 14 }];
+  assert.equal(toPoliciesForm({ returns, personalized_no_returns: true }).personalized_no_returns, true);
+  for (const value of [false, null, undefined, 'true', 1, {}]) {
+    assert.equal(toPoliciesForm({ returns, personalized_no_returns: value }).personalized_no_returns, false);
+  }
+  assert.equal(toPoliciesForm({ returns }).personalized_no_returns, false);
+  assert.equal(toPoliciesForm({ personalized_no_returns: true }).personalized_no_returns, false);
+  assert.equal(EMPTY_POLICIES_FORM.personalized_no_returns, false);
+});
+
+test('personalized_no_returns: sent as true only with a return policy, as the last key', () => {
+  const on = form({ returns: [policy()], personalized_no_returns: true });
+  const body = toPoliciesBody(on);
+  assert.equal(body.personalized_no_returns, true);
+  assert.deepEqual(Object.keys(body), ['returns', 'personalized_no_returns']);
+  // Off: the body is exactly the pre-M172 one.
+  assert.deepEqual(Object.keys(toPoliciesBody(form({ returns: [policy()] }))), ['returns']);
+  // No return policy left: the flag is not sent, and the form counts as empty.
+  assert.deepEqual(toPoliciesBody(form({ personalized_no_returns: true })), {});
+  assert.deepEqual(toPoliciesBody(form({ handling_min: '1', handling_max: '2', personalized_no_returns: true })), {
+    handling: { min_days: 1, max_days: 2 },
+  });
+  assert.equal(isPoliciesFormEmpty(form({ personalized_no_returns: true })), true);
+});
+
+test('personalized_no_returns: round trip and dirty check', () => {
+  const on = form({ returns: [policy()], personalized_no_returns: true });
+  assert.deepEqual(toPoliciesForm(toPoliciesBody(on)), on);
+  assert.equal(samePoliciesForm(on, toPoliciesForm(toPoliciesBody(on))), true);
+  assert.equal(samePoliciesForm(on, { ...on, personalized_no_returns: false }), false);
+  // Without a return policy the tick changes nothing that is saved.
+  assert.equal(samePoliciesForm(form({ personalized_no_returns: true }), form()), true);
+  assert.deepEqual(policiesFormErrors(on), {});
 });
 
 test('toPoliciesForm never shares the empty list', () => {
@@ -219,7 +258,7 @@ const messages = (locale) =>
 
 const KEYS = [
   'title', 'description', 'notConfigured', 'handlingTitle', 'handlingHint', 'handlingMin', 'handlingMax', 'returnsTitle',
-  'returnsEmpty', 'addReturn', 'editReturn', 'removeReturn', 'removeAll', 'removeAllConfirm', 'countries', 'countriesTaken',
+  'returnsEmpty', 'personalizedNoReturns', 'personalizedNoReturnsHint', 'addReturn', 'editReturn', 'removeReturn', 'removeAll', 'removeAllConfirm', 'countries', 'countriesTaken',
   'category', 'categoryFinite', 'categoryUnlimited', 'categoryNone', 'days', 'methods', 'methodMail', 'methodStore',
   'methodKiosk', 'fees', 'feesUnset', 'feesFree', 'feesCustomer', 'feesFixed', 'feeAmount', 'summaryFinite',
   'summaryUnlimited', 'summaryNone', 'save', 'saved',

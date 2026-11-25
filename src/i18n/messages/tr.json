@@ -7924,6 +7924,8 @@
       "handlingMax": "En çok (iş günü)",
       "returnsTitle": "İade politikaları",
       "returnsEmpty": "Henüz iade politikası yok. İadelerle ilgili hiçbir şey yayınlanmaz.",
+      "personalizedNoReturns": "Kişiselleştirilmiş ürünler iade edilemez",
+      "personalizedNoReturnsHint": "Müşterinin ad veya metin girdiği, görsel yüklediği ya da kendi tasarımını oluşturduğu ürünler, yukarıdaki politikalar yerine iade edilemez olarak yayınlanır. Diğer tüm ürünlerde politikalar geçerli kalır.",
       "addReturn": "İade politikası ekle",
       "editReturn": "İade politikasını düzenle",
       "removeReturn": "İade politikasını kaldır",

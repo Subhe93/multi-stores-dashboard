@@ -7924,6 +7924,8 @@
       "handlingMax": "Bis (Werktage)",
       "returnsTitle": "Rückgaberichtlinien",
       "returnsEmpty": "Noch keine Rückgaberichtlinie. Zu Rückgaben wird nichts veröffentlicht.",
+      "personalizedNoReturns": "Personalisierte Produkte können nicht zurückgegeben werden",
+      "personalizedNoReturnsHint": "Produkte, bei denen der Kunde einen Namen oder Text eingibt, ein Bild hochlädt oder ein eigenes Design erstellt, werden statt mit den Richtlinien oben als nicht rückgabefähig veröffentlicht. Für alle anderen Produkte gelten sie weiter.",
       "addReturn": "Rückgaberichtlinie hinzufügen",
       "editReturn": "Rückgaberichtlinie bearbeiten",
       "removeReturn": "Rückgaberichtlinie entfernen",

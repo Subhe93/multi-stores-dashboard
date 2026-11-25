@@ -34,6 +34,11 @@ export interface MerchantPoliciesForm {
   handling_min: string;
   handling_max: string;
   returns: ReturnPolicyForm[];
+  /**
+   * M172: products the customer personalises (a name, a text, an image) are
+   * published as not returnable. Only sent next to at least one return policy.
+   */
+  personalized_no_returns: boolean;
 }
 
 /** Message keys under `shipping.policies.errors`. */
@@ -52,7 +57,12 @@ export type PolicyErrorKey =
 /** Field path (as the API reports it) to message key. */
 export type PolicyErrors = Record<string, PolicyErrorKey>;
 
-export const EMPTY_POLICIES_FORM: MerchantPoliciesForm = { handling_min: '', handling_max: '', returns: [] };
+export const EMPTY_POLICIES_FORM: MerchantPoliciesForm = {
+  handling_min: '',
+  handling_max: '',
+  returns: [],
+  personalized_no_returns: false,
+};
 
 export function emptyReturnPolicy(): ReturnPolicyForm {
   return { countries: [], category: 'finite', days: '', methods: [], fees: '', fee_amount: '' };
@@ -83,7 +93,13 @@ export function toPoliciesForm(raw: unknown): MerchantPoliciesForm {
       fee_amount: numText(p.fee_amount),
     });
   }
-  return { handling_min: numText(handling.min_days), handling_max: numText(handling.max_days), returns };
+  return {
+    handling_min: numText(handling.min_days),
+    handling_max: numText(handling.max_days),
+    returns,
+    // Strictly `true`, and only with a return policy (as the API stores it).
+    personalized_no_returns: raw.personalized_no_returns === true && returns.length > 0,
+  };
 }
 
 const INT = /^\d{1,4}$/;
@@ -130,6 +146,9 @@ export function toPoliciesBody(form: MerchantPoliciesForm): Record<string, unkno
         }
       : {}),
     ...(form.returns.length ? { returns: form.returns.map(policyBody) } : {}),
+    // M172: the exception says nothing without a return policy, so it is
+    // left out with an empty list (and when it is off).
+    ...(form.personalized_no_returns && form.returns.length ? { personalized_no_returns: true } : {}),
   };
 }
 
