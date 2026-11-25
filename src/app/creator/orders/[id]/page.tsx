@@ -24,6 +24,7 @@ import { OrderTaxExemptBadge, OrderTaxExemptionCard } from '@/components/common/
 import { CustomerTaxExemption } from '@/components/apps/CustomerTaxExemption';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { OrderInvoiceCard } from '@/components/invoices/OrderInvoiceCard';
+import { OrderReviewLinks } from '@/components/orders/OrderReviewLinks';
 import { GroupedOrderFieldValues } from '@/components/apps/personalization/GroupedOrderFieldValues';
 import dynamic from 'next/dynamic';
 import { useApiError } from '@/lib/useApiError';
@@ -266,6 +267,8 @@ export default function CreatorOrderDetailPage() {
   // there are no documents and nothing may be written.
   const { apps } = useStoreApps();
   const invoicesEnabled = isAppEnabled(apps, 'invoices');
+  // Reviews app (M171): buyer review links, only while the app is enabled.
+  const reviewsEnabled = isAppEnabled(apps, 'reviews');
   // Customer exemptions only take effect while reverse charge is on (M2.5).
   const reverseChargeOn =
     isAppEnabled(apps, 'b2b') &&
@@ -908,6 +911,9 @@ export default function CreatorOrderDetailPage() {
           {token && (
             <OrderInvoiceCard orderId={id} token={token} appEnabled={invoicesEnabled} />
           )}
+
+          {/* Reviews app: copyable buyer review links (one per product). */}
+          {token && reviewsEnabled && <OrderReviewLinks key={id} orderId={id} token={token} />}
 
           {/* Address */}
           <Card className="shadow-none">

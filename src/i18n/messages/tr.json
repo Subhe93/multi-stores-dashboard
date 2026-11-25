@@ -364,7 +364,8 @@
     "notifications": "Bildirimler",
     "customers": "Müşteriler",
     "securityLog": "Güvenlik günlüğü",
-    "redirects": "Yönlendirmeler"
+    "redirects": "Yönlendirmeler",
+    "productReviews": "Yorumlar"
   },
   "table": {
     "searchPlaceholder": "Ara...",
@@ -1654,7 +1655,20 @@
       "tabQualityCheck": "Kalite Kontrolü",
       "emptyTitle": "Henüz sipariş yok",
       "emptyHint": "Bir müşteri ödeme yaptığında siparişler burada görünür. Başlamak için ürün ekleyin ve mağazanızı paylaşın.",
-      "emptyCta": "Ürün ekle"
+      "emptyCta": "Ürün ekle",
+      "reviewLinks": {
+        "title": "Yorum bağlantıları",
+        "description": "Bu siparişteki her ürün için kişisel bir bağlantı oluşturup alıcıya gönderin. Bağlantı, yorum formunu oturum açmadan açar.",
+        "buyerOnlyNote": "Yalnızca alıcı içindir. Mağazanın kendi yazdığı yorumlar Google kurallarını ihlal eder ve yıldızlarınızı kaybettirebilir.",
+        "create": "Bağlantıları oluştur",
+        "copy": "Bağlantıyı kopyala",
+        "copied": "Kopyalandı",
+        "copyFailed": "Bağlantı kopyalanamadı. Lütfen tekrar deneyin.",
+        "validUntil": "{date} tarihine kadar geçerli",
+        "notEligible": "Bu sipariş için yorum bağlantısı yok: sipariş ödenmemiş, iptal edilmiş, iade edilmiş, test siparişi veya silinmiş ya da alıcının hesabı etkin değil.",
+        "alreadyReviewed": "Zaten yorumlandı",
+        "none": "Bu siparişte yorumlanabilecek ürün yok."
+      }
     },
     "products": {
       "title": "Ürünler",
@@ -3111,6 +3125,10 @@
         "product_layout": {
           "name": "Ürün sayfası blokları (beta)",
           "description": "Ürün sayfasını tema oluşturucuda satır, sütun ve ızgaralar içinde ayrı bloklardan (galeri, başlık, fiyat, varyantlar, sepete ekle…) oluşturun. Beta: kapatırsanız kaydedilmiş sayfalar çalışmaya devam eder."
+        },
+        "reviews": {
+          "name": "Ürün yorumları",
+          "description": "Doğrulanmış alıcılar satın aldıkları ürünleri puanlar ve yorumlar. Buradan onaylar, yanıtlar ve silersiniz; onaylanan yorumlar ürün sayfasında ve Google sonuçlarında yıldız olarak görünür."
         }
       },
       "b2b": {
@@ -5830,6 +5848,98 @@
     "languageReview": {
       "badge": "İncelemede",
       "hint": "{language} incelemede: metinleri kontrol edilene kadar mağazanın dil seçicisinde gizlidir ve yalnızca {path} adresinden erişilebilir."
+    },
+    "reviews": {
+      "title": "Yorumlar",
+      "subtitle": "Doğrulanmış alıcıların yazdığı yorumlar. Onaylayın, reddedin, yanıtlayın veya silin.",
+      "appOff": "Yorumlar uygulaması kapalı: mağazanızda hiçbir şey gösterilmez ve yeni yorum gelmez. Mevcut yorumları yönetmeye devam edebilirsiniz.",
+      "appOffLink": "Uygulamaları yönet",
+      "tabs": {
+        "pending": "Bekleyen",
+        "approved": "Onaylanan",
+        "rejected": "Reddedilen",
+        "all": "Tümü"
+      },
+      "filters": {
+        "rating": "Puan",
+        "product": "Ürün",
+        "allRatings": "Tüm puanlar",
+        "allProducts": "Tüm ürünler",
+        "stars": "{count, plural, one {# yıldız} other {# yıldız}}",
+        "selectedProduct": "Seçili ürün",
+        "clear": "Filtreleri temizle"
+      },
+      "columns": {
+        "rating": "Puan",
+        "product": "Ürün",
+        "review": "Yorum",
+        "customer": "Müşteri",
+        "source": "Kaynak",
+        "language": "Dil",
+        "date": "Tarih",
+        "status": "Durum"
+      },
+      "source": {
+        "ACCOUNT": "Hesap",
+        "LINK": "Bağlantı"
+      },
+      "verified": "Doğrulanmış satın alma",
+      "replied": "Yanıtlandı",
+      "starsLabel": "5 üzerinden {rating}",
+      "status": {
+        "PENDING": "Bekliyor",
+        "APPROVED": "Onaylandı",
+        "REJECTED": "Reddedildi"
+      },
+      "actions": {
+        "approve": "Onayla",
+        "reject": "Reddet",
+        "delete": "Sil",
+        "reply": "Yanıtla",
+        "saveReply": "Yanıtı kaydet",
+        "removeReply": "Yanıtı kaldır",
+        "view": "Görüntüle"
+      },
+      "confirmDelete": {
+        "title": "Bu yorum silinsin mi?",
+        "text": "Yorum ve yanıtınız kalıcı olarak silinir. Bu işlem geri alınamaz. Bir yorumu yalnızca olumsuz olduğu için silmeyin.",
+        "confirm": "Yorumu sil"
+      },
+      "dialog": {
+        "title": "Yorum",
+        "order": "Sipariş",
+        "customer": "Müşteri",
+        "written": "Yazıldı",
+        "published": "Yayınlandı",
+        "readOnlyHint": "Puan ve metin alıcıya aittir ve düzenlenemez."
+      },
+      "reply": {
+        "label": "Yanıtınız",
+        "placeholder": "Bu yoruma herkese açık bir yanıt yazın…",
+        "counter": "{count} / {max}"
+      },
+      "settings": {
+        "title": "Ayarlar",
+        "autoPublish": "Yorumları otomatik yayınla",
+        "autoPublishHint": "Yeni yorumlar onayınızı beklemeden mağazanızda hemen görünür. Sonradan yine reddedebilir veya silebilirsiniz.",
+        "policyNote": "Yalnızca doğrulanmış alıcılar yorum yazabilir; siz yorum yazamaz veya düzenleyemezsiniz. Google yorumların gerçek olmasını ister: yorumları yalnızca olumsuz oldukları için gizlemeyin."
+      },
+      "empty": {
+        "pending": "Onay bekleyen yorum yok",
+        "approved": "Henüz onaylanmış yorum yok",
+        "rejected": "Reddedilen yorum yok",
+        "all": "Henüz yorum yok",
+        "hint": "Alıcılar, ödenmiş bir siparişten sonra hesaplarından veya gönderdiğiniz yorum bağlantısıyla ürünü yorumlayabilir.",
+        "filtered": "Bu filtrelerle eşleşen yorum yok."
+      },
+      "toasts": {
+        "approved": "Yorum onaylandı.",
+        "rejected": "Yorum reddedildi.",
+        "deleted": "Yorum silindi.",
+        "replySaved": "Yanıt kaydedildi.",
+        "replyRemoved": "Yanıt kaldırıldı.",
+        "settingsSaved": "Ayarlar kaydedildi."
+      }
     }
   },
   "components": {
@@ -6430,7 +6540,12 @@
     "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "En az bir ödeme yöntemi seçin veya mağazanın ödeme yöntemlerini kullanın.",
     "MARKET_PAYMENT_METHODS_NOT_READY": "Bu pazar için seçilen ödeme yöntemlerinin hiçbiri henüz pazarın para biriminde ödeme alamıyor. Pazar mevcut ayarlarını korur.",
     "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Bu ödeme yöntemi bu pazarda kullanılamıyor.",
-    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom bu para birimi için henüz ayarlanmadı. Kustom’dan etkinleştirmesini isteyin veya bu pazarda başka bir ödeme yöntemi sunun."
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom bu para birimi için henüz ayarlanmadı. Kustom’dan etkinleştirmesini isteyin veya bu pazarda başka bir ödeme yöntemi sunun.",
+    "REVIEWS_NOT_ENABLED": "Yorumlar uygulaması kapalı. Önce Uygulamalar sayfasından açın.",
+    "REVIEW_NOT_FOUND": "Bu yorum artık mevcut değil.",
+    "REVIEW_REPLY_INVALID": "Yanıt 1 ile 1000 karakter arasında olmalıdır.",
+    "REVIEW_ORDER_NOT_ELIGIBLE": "Bu yorumun siparişi tamamlanmış, gerçek bir satın alma değil (ödenmemiş, iptal edilmiş, iade edilmiş, test veya silinmiş), bu yüzden yorum yayınlanamaz.",
+    "REVIEW_CHANGED": "Bu yorum siz açtıktan sonra değişti. Karar vermeden önce lütfen yeniden okuyun."
   },
   "builder": {
     "failedToLoadPage": "Sayfa yüklenemedi",

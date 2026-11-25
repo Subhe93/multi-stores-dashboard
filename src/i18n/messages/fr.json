@@ -364,7 +364,8 @@
     "notifications": "Notifications",
     "customers": "Clients",
     "securityLog": "Journal de sécurité",
-    "redirects": "Redirections"
+    "redirects": "Redirections",
+    "productReviews": "Avis"
   },
   "table": {
     "searchPlaceholder": "Rechercher...",
@@ -1654,7 +1655,20 @@
       "tabQualityCheck": "Contrôle qualité",
       "emptyTitle": "Aucune commande pour le moment",
       "emptyHint": "Les commandes apparaîtront ici dès qu’un client passera en caisse. Ajoutez des produits et partagez votre boutique pour commencer.",
-      "emptyCta": "Ajouter un produit"
+      "emptyCta": "Ajouter un produit",
+      "reviewLinks": {
+        "title": "Liens d'avis",
+        "description": "Créez un lien personnel pour chaque produit de cette commande et envoyez-le à l'acheteur. Il ouvre le formulaire d'avis sans connexion.",
+        "buyerOnlyNote": "Réservé à l'acheteur. Les avis rédigés par la boutique elle-même enfreignent les règles de Google et peuvent vous faire perdre vos étoiles.",
+        "create": "Créer les liens",
+        "copy": "Copier le lien",
+        "copied": "Copié",
+        "copyFailed": "Le lien n'a pas pu être copié. Veuillez réessayer.",
+        "validUntil": "Valable jusqu'au {date}",
+        "notEligible": "Pas de lien d'avis pour cette commande : elle est impayée, annulée, remboursée, de test ou supprimée, ou le compte de l'acheteur n'est pas actif.",
+        "alreadyReviewed": "Déjà évalué",
+        "none": "Cette commande ne contient aucun produit pouvant être évalué."
+      }
     },
     "products": {
       "title": "Produits",
@@ -3111,6 +3125,10 @@
         "product_layout": {
           "name": "Blocs de page produit (bêta)",
           "description": "Construisez la page produit à partir de blocs séparés (galerie, titre, prix, variantes, ajout au panier…) dans des rangées, colonnes et grilles du constructeur de thème. Bêta : les pages déjà enregistrées continuent de fonctionner si vous la désactivez."
+        },
+        "reviews": {
+          "name": "Avis produits",
+          "description": "Les acheteurs vérifiés notent et commentent les produits qu'ils ont achetés. Vous approuvez, répondez et supprimez ici ; les avis approuvés apparaissent sur la page produit et sous forme d'étoiles dans les résultats Google."
         }
       },
       "b2b": {
@@ -5830,6 +5848,98 @@
     "languageReview": {
       "badge": "En révision",
       "hint": "{language} est en révision : la langue est masquée du sélecteur de langue de la boutique et accessible uniquement via {path} jusqu’à la vérification de ses textes."
+    },
+    "reviews": {
+      "title": "Avis",
+      "subtitle": "Avis rédigés par des acheteurs vérifiés. Approuvez, refusez, répondez ou supprimez.",
+      "appOff": "L'application Avis est désactivée : rien n'est affiché dans votre boutique et aucun nouvel avis n'arrive. Vous pouvez toujours gérer les avis existants.",
+      "appOffLink": "Gérer les applications",
+      "tabs": {
+        "pending": "En attente",
+        "approved": "Approuvés",
+        "rejected": "Refusés",
+        "all": "Tous"
+      },
+      "filters": {
+        "rating": "Note",
+        "product": "Produit",
+        "allRatings": "Toutes les notes",
+        "allProducts": "Tous les produits",
+        "stars": "{count, plural, one {# étoile} other {# étoiles}}",
+        "selectedProduct": "Produit sélectionné",
+        "clear": "Effacer les filtres"
+      },
+      "columns": {
+        "rating": "Note",
+        "product": "Produit",
+        "review": "Avis",
+        "customer": "Client",
+        "source": "Source",
+        "language": "Langue",
+        "date": "Date",
+        "status": "Statut"
+      },
+      "source": {
+        "ACCOUNT": "Compte",
+        "LINK": "Lien"
+      },
+      "verified": "Achat vérifié",
+      "replied": "Répondu",
+      "starsLabel": "{rating} sur 5",
+      "status": {
+        "PENDING": "En attente",
+        "APPROVED": "Approuvé",
+        "REJECTED": "Refusé"
+      },
+      "actions": {
+        "approve": "Approuver",
+        "reject": "Refuser",
+        "delete": "Supprimer",
+        "reply": "Répondre",
+        "saveReply": "Enregistrer la réponse",
+        "removeReply": "Retirer la réponse",
+        "view": "Voir"
+      },
+      "confirmDelete": {
+        "title": "Supprimer cet avis ?",
+        "text": "L'avis et votre réponse sont supprimés définitivement. Cette action est irréversible. Ne supprimez pas un avis uniquement parce qu'il est négatif.",
+        "confirm": "Supprimer l'avis"
+      },
+      "dialog": {
+        "title": "Avis",
+        "order": "Commande",
+        "customer": "Client",
+        "written": "Rédigé le",
+        "published": "Publié le",
+        "readOnlyHint": "La note et le texte viennent de l'acheteur et ne peuvent pas être modifiés."
+      },
+      "reply": {
+        "label": "Votre réponse",
+        "placeholder": "Rédigez une réponse publique à cet avis…",
+        "counter": "{count} / {max}"
+      },
+      "settings": {
+        "title": "Paramètres",
+        "autoPublish": "Publier les avis automatiquement",
+        "autoPublishHint": "Les nouveaux avis apparaissent aussitôt dans votre boutique, sans attendre votre approbation. Vous pouvez toujours les refuser ou les supprimer ensuite.",
+        "policyNote": "Seuls les acheteurs vérifiés peuvent rédiger un avis, et vous ne pouvez ni écrire ni modifier des avis vous-même. Google exige des avis authentiques : ne masquez pas un avis uniquement parce qu'il est négatif."
+      },
+      "empty": {
+        "pending": "Aucun avis en attente d'approbation",
+        "approved": "Aucun avis approuvé pour le moment",
+        "rejected": "Aucun avis refusé",
+        "all": "Aucun avis pour le moment",
+        "hint": "Les acheteurs peuvent donner leur avis après une commande payée, depuis leur compte ou via un lien d'avis que vous leur envoyez.",
+        "filtered": "Aucun avis ne correspond à ces filtres."
+      },
+      "toasts": {
+        "approved": "Avis approuvé.",
+        "rejected": "Avis refusé.",
+        "deleted": "Avis supprimé.",
+        "replySaved": "Réponse enregistrée.",
+        "replyRemoved": "Réponse retirée.",
+        "settingsSaved": "Paramètres enregistrés."
+      }
     }
   },
   "components": {
@@ -6430,7 +6540,12 @@
     "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Choisissez au moins un moyen de paiement, ou utilisez ceux de la boutique.",
     "MARKET_PAYMENT_METHODS_NOT_READY": "Aucun des moyens de paiement choisis pour ce marché ne peut encore encaisser dans sa devise. Le marché conserve ses paramètres actuels.",
     "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Ce moyen de paiement n'est pas disponible dans ce marché.",
-    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom n'est pas encore configuré pour cette devise. Demandez à Kustom de l'activer, ou proposez un autre moyen de paiement dans ce marché."
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom n'est pas encore configuré pour cette devise. Demandez à Kustom de l'activer, ou proposez un autre moyen de paiement dans ce marché.",
+    "REVIEWS_NOT_ENABLED": "L'application Avis est désactivée. Activez-la d'abord dans Applications.",
+    "REVIEW_NOT_FOUND": "Cet avis n'existe plus.",
+    "REVIEW_REPLY_INVALID": "La réponse doit contenir entre 1 et 1000 caractères.",
+    "REVIEW_ORDER_NOT_ELIGIBLE": "La commande de cet avis n'est pas un achat réel et finalisé (impayée, annulée, remboursée, de test ou supprimée) : l'avis ne peut donc pas être publié.",
+    "REVIEW_CHANGED": "Cet avis a été modifié après son ouverture. Veuillez le relire avant de décider."
   },
   "builder": {
     "failedToLoadPage": "Échec du chargement de la page",

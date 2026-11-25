@@ -17,6 +17,7 @@ import {
   PenLine,
   PenTool,
   Rss,
+  Star,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -40,6 +41,7 @@ const APP_ICONS: Record<StoreAppKey, LucideIcon> = {
   feeds: Rss,
   zoho_mail: AtSign,
   product_layout: LayoutTemplate,
+  reviews: Star,
 };
 
 /**

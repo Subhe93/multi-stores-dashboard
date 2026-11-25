@@ -364,7 +364,8 @@
     "notifications": "Aviseringar",
     "customers": "Kunder",
     "securityLog": "Säkerhetslogg",
-    "redirects": "Omdirigeringar"
+    "redirects": "Omdirigeringar",
+    "productReviews": "Recensioner"
   },
   "table": {
     "searchPlaceholder": "Sök...",
@@ -1654,7 +1655,20 @@
       "tabQualityCheck": "Kvalitetskontroll",
       "emptyTitle": "Inga beställningar ännu",
       "emptyHint": "Beställningar visas här så snart en kund går till kassan. Lägg till produkter och dela din butik för att komma igång.",
-      "emptyCta": "Lägg till en produkt"
+      "emptyCta": "Lägg till en produkt",
+      "reviewLinks": {
+        "title": "Recensionslänkar",
+        "description": "Skapa en personlig länk för varje produkt i ordern och skicka den till köparen. Länken öppnar recensionsformuläret utan inloggning.",
+        "buyerOnlyNote": "Endast för köparen. Recensioner som butiken själv skriver bryter mot Googles regler och kan göra att du förlorar dina stjärnor.",
+        "create": "Skapa länkar",
+        "copy": "Kopiera länk",
+        "copied": "Kopierad",
+        "copyFailed": "Länken kunde inte kopieras. Försök igen.",
+        "validUntil": "Giltig till {date}",
+        "notEligible": "Inga recensionslänkar för den här ordern: den är obetald, avbruten, återbetald, en testorder eller raderad, eller så är köparens konto inte aktivt.",
+        "alreadyReviewed": "Redan recenserad",
+        "none": "Ordern innehåller inga produkter som kan recenseras."
+      }
     },
     "products": {
       "title": "Produkter",
@@ -3111,6 +3125,10 @@
         "product_layout": {
           "name": "Produktsidesblock (beta)",
           "description": "Bygg produktsidan av separata block (galleri, titel, pris, varianter, lägg i varukorg …) i rader, kolumner och rutnät i temabyggaren. Beta: redan sparade sidor fortsätter att fungera om du stänger av den."
+        },
+        "reviews": {
+          "name": "Produktrecensioner",
+          "description": "Verifierade köpare betygsätter och recenserar produkterna de har köpt. Här godkänner, svarar och raderar du; godkända recensioner visas på produktsidan och som stjärnor i Googles sökresultat."
         }
       },
       "b2b": {
@@ -5830,6 +5848,98 @@
     "languageReview": {
       "badge": "Under granskning",
       "hint": "{language} är under granskning: språket är dolt i butikens språkväljare och nås bara via {path} tills texterna har granskats."
+    },
+    "reviews": {
+      "title": "Recensioner",
+      "subtitle": "Recensioner skrivna av verifierade köpare. Godkänn, avvisa, svara eller radera.",
+      "appOff": "Recensionsappen är avstängd: inget visas i butiken och inga nya recensioner kommer in. Du kan fortfarande hantera de befintliga.",
+      "appOffLink": "Hantera appar",
+      "tabs": {
+        "pending": "Väntande",
+        "approved": "Godkända",
+        "rejected": "Avvisade",
+        "all": "Alla"
+      },
+      "filters": {
+        "rating": "Betyg",
+        "product": "Produkt",
+        "allRatings": "Alla betyg",
+        "allProducts": "Alla produkter",
+        "stars": "{count, plural, one {# stjärna} other {# stjärnor}}",
+        "selectedProduct": "Vald produkt",
+        "clear": "Rensa filter"
+      },
+      "columns": {
+        "rating": "Betyg",
+        "product": "Produkt",
+        "review": "Recension",
+        "customer": "Kund",
+        "source": "Källa",
+        "language": "Språk",
+        "date": "Datum",
+        "status": "Status"
+      },
+      "source": {
+        "ACCOUNT": "Konto",
+        "LINK": "Länk"
+      },
+      "verified": "Verifierat köp",
+      "replied": "Besvarad",
+      "starsLabel": "{rating} av 5",
+      "status": {
+        "PENDING": "Väntar",
+        "APPROVED": "Godkänd",
+        "REJECTED": "Avvisad"
+      },
+      "actions": {
+        "approve": "Godkänn",
+        "reject": "Avvisa",
+        "delete": "Radera",
+        "reply": "Svara",
+        "saveReply": "Spara svar",
+        "removeReply": "Ta bort svar",
+        "view": "Visa"
+      },
+      "confirmDelete": {
+        "title": "Radera den här recensionen?",
+        "text": "Recensionen och ditt svar tas bort permanent. Det går inte att ångra. Radera inte en recension bara för att den är negativ.",
+        "confirm": "Radera recension"
+      },
+      "dialog": {
+        "title": "Recension",
+        "order": "Order",
+        "customer": "Kund",
+        "written": "Skriven",
+        "published": "Publicerad",
+        "readOnlyHint": "Betyg och text kommer från köparen och kan inte redigeras."
+      },
+      "reply": {
+        "label": "Ditt svar",
+        "placeholder": "Skriv ett offentligt svar på recensionen…",
+        "counter": "{count} / {max}"
+      },
+      "settings": {
+        "title": "Inställningar",
+        "autoPublish": "Publicera recensioner automatiskt",
+        "autoPublishHint": "Nya recensioner visas direkt i butiken utan att vänta på ditt godkännande. Du kan fortfarande avvisa eller radera dem efteråt.",
+        "policyNote": "Bara verifierade köpare kan skriva en recension, och du kan inte själv skriva eller redigera recensioner. Google kräver att recensioner är äkta: dölj inte recensioner bara för att de är negativa."
+      },
+      "empty": {
+        "pending": "Inga recensioner väntar på godkännande",
+        "approved": "Inga godkända recensioner än",
+        "rejected": "Inga avvisade recensioner",
+        "all": "Inga recensioner än",
+        "hint": "Köpare kan recensera en produkt efter en betald order, från sitt konto eller via en recensionslänk som du skickar.",
+        "filtered": "Inga recensioner matchar filtren."
+      },
+      "toasts": {
+        "approved": "Recensionen godkändes.",
+        "rejected": "Recensionen avvisades.",
+        "deleted": "Recensionen raderades.",
+        "replySaved": "Svaret sparades.",
+        "replyRemoved": "Svaret togs bort.",
+        "settingsSaved": "Inställningarna sparades."
+      }
     }
   },
   "components": {
@@ -6430,7 +6540,12 @@
     "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Välj minst ett betalsätt, eller använd butikens betalsätt.",
     "MARKET_PAYMENT_METHODS_NOT_READY": "Inget av betalsätten som valts för den här marknaden kan ta emot betalningar i dess valuta ännu. Marknaden behåller sina nuvarande inställningar.",
     "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Det här betalsättet är inte tillgängligt på den här marknaden.",
-    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom är inte inställt för den här valutan ännu. Be Kustom aktivera den, eller erbjud ett annat betalsätt på den här marknaden."
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom är inte inställt för den här valutan ännu. Be Kustom aktivera den, eller erbjud ett annat betalsätt på den här marknaden.",
+    "REVIEWS_NOT_ENABLED": "Recensionsappen är avstängd. Slå på den under Appar först.",
+    "REVIEW_NOT_FOUND": "Recensionen finns inte längre.",
+    "REVIEW_REPLY_INVALID": "Svaret måste vara mellan 1 och 1000 tecken.",
+    "REVIEW_ORDER_NOT_ELIGIBLE": "Recensionens order är inte ett genomfört, riktigt köp (obetald, avbruten, återbetald, test eller raderad), så recensionen kan inte publiceras.",
+    "REVIEW_CHANGED": "Recensionen ändrades efter att du öppnade den. Läs den igen innan du bestämmer dig."
   },
   "builder": {
     "failedToLoadPage": "Det gick inte att läsa in sidan",

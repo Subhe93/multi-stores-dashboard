@@ -364,7 +364,8 @@
     "notifications": "Notifications",
     "customers": "Customers",
     "securityLog": "Security log",
-    "redirects": "Redirects"
+    "redirects": "Redirects",
+    "productReviews": "Reviews"
   },
   "table": {
     "searchPlaceholder": "Search...",
@@ -1654,7 +1655,20 @@
       "tabQualityCheck": "Quality check",
       "emptyTitle": "No orders yet",
       "emptyHint": "Orders appear here as soon as a customer checks out. Add products and share your store to get started.",
-      "emptyCta": "Add a product"
+      "emptyCta": "Add a product",
+      "reviewLinks": {
+        "title": "Review links",
+        "description": "Create a personal link for each product of this order and send it to the buyer. It opens the review form without signing in.",
+        "buyerOnlyNote": "For the buyer only. Reviews written by the store itself break Google's rules and can remove your stars.",
+        "create": "Create links",
+        "copy": "Copy link",
+        "copied": "Copied",
+        "copyFailed": "The link could not be copied. Please try again.",
+        "validUntil": "Valid until {date}",
+        "notEligible": "No review links for this order: it is unpaid, cancelled, refunded, a test order or deleted, or the buyer's account is not active.",
+        "alreadyReviewed": "Already reviewed",
+        "none": "This order has no products that can be reviewed."
+      }
     },
     "products": {
       "title": "Products",
@@ -3111,6 +3125,10 @@
         "product_layout": {
           "name": "Product page blocks (beta)",
           "description": "Build the product page from separate blocks (gallery, title, price, variants, add to cart…) inside rows, columns and grids in the theme builder. Beta: pages already saved keep working if you switch it off."
+        },
+        "reviews": {
+          "name": "Product reviews",
+          "description": "Verified buyers rate and review the products they bought. You approve, reply and delete here; approved reviews appear on the product page and as stars in Google results."
         }
       },
       "b2b": {
@@ -5830,6 +5848,98 @@
     "languageReview": {
       "badge": "In review",
       "hint": "{language} is in review: it is hidden from the storefront language switcher and reachable only at {path} until its texts have been checked."
+    },
+    "reviews": {
+      "title": "Reviews",
+      "subtitle": "Reviews written by verified buyers. Approve, reject, reply or delete.",
+      "appOff": "The reviews app is switched off: nothing is shown in your store and no new reviews come in. You can still manage the existing ones.",
+      "appOffLink": "Manage apps",
+      "tabs": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "all": "All"
+      },
+      "filters": {
+        "rating": "Rating",
+        "product": "Product",
+        "allRatings": "All ratings",
+        "allProducts": "All products",
+        "stars": "{count, plural, one {# star} other {# stars}}",
+        "selectedProduct": "Selected product",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "rating": "Rating",
+        "product": "Product",
+        "review": "Review",
+        "customer": "Customer",
+        "source": "Source",
+        "language": "Language",
+        "date": "Date",
+        "status": "Status"
+      },
+      "source": {
+        "ACCOUNT": "Account",
+        "LINK": "Link"
+      },
+      "verified": "Verified purchase",
+      "replied": "Replied",
+      "starsLabel": "{rating} out of 5",
+      "status": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "delete": "Delete",
+        "reply": "Reply",
+        "saveReply": "Save reply",
+        "removeReply": "Remove reply",
+        "view": "View"
+      },
+      "confirmDelete": {
+        "title": "Delete this review?",
+        "text": "The review and your reply are removed for good. This cannot be undone. Do not delete a review only because it is negative.",
+        "confirm": "Delete review"
+      },
+      "dialog": {
+        "title": "Review",
+        "order": "Order",
+        "customer": "Customer",
+        "written": "Written",
+        "published": "Published",
+        "readOnlyHint": "Rating and text come from the buyer and cannot be edited."
+      },
+      "reply": {
+        "label": "Your reply",
+        "placeholder": "Write a public reply to this review…",
+        "counter": "{count} / {max}"
+      },
+      "settings": {
+        "title": "Settings",
+        "autoPublish": "Publish reviews automatically",
+        "autoPublishHint": "New reviews appear in your store at once, without waiting for your approval. You can still reject or delete them afterwards.",
+        "policyNote": "Only verified buyers can write a review, and you cannot write or edit reviews yourself. Google requires reviews to be genuine: do not hide reviews only because they are negative."
+      },
+      "empty": {
+        "pending": "No reviews waiting for approval",
+        "approved": "No approved reviews yet",
+        "rejected": "No rejected reviews",
+        "all": "No reviews yet",
+        "hint": "Buyers can review a product after a paid order, from their account or through a review link you send them.",
+        "filtered": "No reviews match these filters."
+      },
+      "toasts": {
+        "approved": "Review approved.",
+        "rejected": "Review rejected.",
+        "deleted": "Review deleted.",
+        "replySaved": "Reply saved.",
+        "replyRemoved": "Reply removed.",
+        "settingsSaved": "Settings saved."
+      }
     }
   },
   "components": {
@@ -6430,7 +6540,12 @@
     "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Choose at least one payment method, or use the store's payment methods.",
     "MARKET_PAYMENT_METHODS_NOT_READY": "None of the payment methods chosen for this market can take payments in its currency yet. The market keeps its current settings.",
     "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "This payment method isn't available in this market.",
-    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom isn't set up for this currency yet. Ask Kustom to enable it, or offer another payment method in this market."
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom isn't set up for this currency yet. Ask Kustom to enable it, or offer another payment method in this market.",
+    "REVIEWS_NOT_ENABLED": "The reviews app is switched off. Turn it on under Apps first.",
+    "REVIEW_NOT_FOUND": "This review no longer exists.",
+    "REVIEW_REPLY_INVALID": "The reply must be between 1 and 1000 characters.",
+    "REVIEW_ORDER_NOT_ELIGIBLE": "The order of this review is not a completed, real purchase (unpaid, cancelled, refunded, test or deleted), so the review cannot be published.",
+    "REVIEW_CHANGED": "This review changed after you opened it. Please read it again before you decide."
   },
   "builder": {
     "failedToLoadPage": "Failed to load page",

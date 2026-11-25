@@ -5,7 +5,7 @@
 // describes each app so the dashboard can render names, badges and
 // dependency hints without an extra request.
 
-export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer', 'feeds', 'zoho_mail', 'product_layout'] as const;
+export const STORE_APP_KEYS = ['markets', 'b2b', 'invoices', 'importer', 'personalization', 'production', 'designer', 'feeds', 'zoho_mail', 'product_layout', 'reviews'] as const;
 
 export type StoreAppKey = (typeof STORE_APP_KEYS)[number];
 
@@ -94,6 +94,14 @@ export const STORE_APPS: Record<StoreAppKey, StoreAppDefinition> = {
     requiresIndependent: false,
     dependsOn: [],
   },
+  // M171: verified-buyer product reviews, moderated on /creator/reviews.
+  reviews: {
+    key: 'reviews',
+    nameKey: 'creator.apps.items.reviews.name',
+    descriptionKey: 'creator.apps.items.reviews.description',
+    requiresIndependent: false,
+    dependsOn: [],
+  },
 };
 
 // Apps not built yet: kept in the registry (the API still returns them) but
@@ -121,6 +129,8 @@ export const STORE_APP_HREFS: Record<StoreAppKey, string | null> = {
   zoho_mail: '/creator/zoho-mail',
   // No settings page; the containers and blocks appear in the theme builder.
   product_layout: null,
+  // Moderation list plus the auto-publish setting.
+  reviews: '/creator/reviews',
 };
 
 export function isStoreAppKey(value: unknown): value is StoreAppKey {

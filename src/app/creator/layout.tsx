@@ -14,6 +14,8 @@ import { usePlatformName } from '@/lib/usePlatformName';
 import { useStoreType } from '@/lib/useStoreType';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useImporterHistory } from '@/lib/useImporterHistory';
+import { useReviewsPendingCount } from '@/lib/useReviewsPendingCount';
+import { pendingBadge } from '@/lib/reviews';
 import { useTranslations } from 'next-intl';
 import {
   Home,
@@ -36,6 +38,7 @@ import {
   Rss,
   AtSign,
   Users,
+  Star,
 } from 'lucide-react';
 
 export default function CreatorLayout({ children }: { children: React.ReactNode }) {
@@ -76,6 +79,12 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
   // Designer: shown while available or enabled (the page explains how to turn it on).
   const designerVisible =
     isAppEnabled(apps, 'designer') || !!apps?.some((a) => a.key === 'designer' && a.available);
+
+  // Reviews (M171): shown while available or enabled, so existing reviews stay
+  // moderatable after the app is switched off. The badge counts pending reviews.
+  const reviewsVisible =
+    isAppEnabled(apps, 'reviews') || !!apps?.some((a) => a.key === 'reviews' && a.available);
+  const reviewsPending = useReviewsPendingCount(token, reviewsVisible);
 
   // Products section: the parent links to the store's own product list.
   // Marketplace-only entries are hidden for independent stores, which get
@@ -139,6 +148,15 @@ export default function CreatorLayout({ children }: { children: React.ReactNode 
     // Feeds app: Google Merchant / Meta catalog feed URLs and settings.
     ...(feedsEnabled
       ? [{ label: t('feeds'), href: '/creator/feeds', icon: <Rss className="w-4 h-4" /> }]
+      : []),
+    // Reviews app: moderation list; the badge is hidden at 0.
+    ...(reviewsVisible
+      ? [{
+          label: t('productReviews'),
+          href: '/creator/reviews',
+          icon: <Star className="w-4 h-4" />,
+          badge: pendingBadge(reviewsPending),
+        }]
       : []),
     // Zoho Mail app: send the store's emails from its own Zoho mailbox.
     ...(zohoMailEnabled

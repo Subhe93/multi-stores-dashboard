@@ -364,7 +364,8 @@
     "notifications": "Benachrichtigungen",
     "customers": "Kunden",
     "securityLog": "Sicherheitsprotokoll",
-    "redirects": "Weiterleitungen"
+    "redirects": "Weiterleitungen",
+    "productReviews": "Bewertungen"
   },
   "table": {
     "searchPlaceholder": "Suchen...",
@@ -1654,7 +1655,20 @@
       "tabQualityCheck": "Qualitätsprüfung",
       "emptyTitle": "Noch keine Bestellungen",
       "emptyHint": "Bestellungen erscheinen hier, sobald ein Kunde zur Kasse geht. Lege Produkte an und teile deinen Shop, um loszulegen.",
-      "emptyCta": "Produkt anlegen"
+      "emptyCta": "Produkt anlegen",
+      "reviewLinks": {
+        "title": "Bewertungslinks",
+        "description": "Erstellen Sie für jedes Produkt dieser Bestellung einen persönlichen Link und senden Sie ihn dem Käufer. Er öffnet das Bewertungsformular ohne Anmeldung.",
+        "buyerOnlyNote": "Nur für den Käufer. Bewertungen, die der Shop selbst schreibt, verstoßen gegen die Google-Richtlinien und können Ihre Sterne kosten.",
+        "create": "Links erstellen",
+        "copy": "Link kopieren",
+        "copied": "Kopiert",
+        "copyFailed": "Der Link konnte nicht kopiert werden. Bitte versuchen Sie es erneut.",
+        "validUntil": "Gültig bis {date}",
+        "notEligible": "Keine Bewertungslinks für diese Bestellung: Sie ist unbezahlt, storniert, erstattet, eine Testbestellung oder gelöscht, oder das Konto des Käufers ist nicht aktiv.",
+        "alreadyReviewed": "Bereits bewertet",
+        "none": "Diese Bestellung enthält keine Produkte, die bewertet werden können."
+      }
     },
     "products": {
       "title": "Produkte",
@@ -3111,6 +3125,10 @@
         "product_layout": {
           "name": "Produktseiten-Blöcke (Beta)",
           "description": "Baue die Produktseite im Theme-Builder aus einzelnen Blöcken (Galerie, Titel, Preis, Varianten, In den Warenkorb …) in Zeilen, Spalten und Rastern. Beta: Bereits gespeicherte Seiten funktionieren weiter, wenn du sie ausschaltest."
+        },
+        "reviews": {
+          "name": "Produktbewertungen",
+          "description": "Verifizierte Käufer bewerten die Produkte, die sie gekauft haben. Hier geben Sie frei, antworten und löschen; freigegebene Bewertungen erscheinen auf der Produktseite und als Sterne in den Google-Ergebnissen."
         }
       },
       "b2b": {
@@ -5830,6 +5848,98 @@
     "languageReview": {
       "badge": "In Prüfung",
       "hint": "{language} ist in Prüfung: Die Sprache ist in der Sprachauswahl des Shops ausgeblendet und nur unter {path} erreichbar, bis ihre Texte geprüft sind."
+    },
+    "reviews": {
+      "title": "Bewertungen",
+      "subtitle": "Bewertungen verifizierter Käufer. Freigeben, ablehnen, beantworten oder löschen.",
+      "appOff": "Die Bewertungs-App ist ausgeschaltet: Im Shop wird nichts angezeigt und es kommen keine neuen Bewertungen. Bestehende Bewertungen können Sie weiter verwalten.",
+      "appOffLink": "Apps verwalten",
+      "tabs": {
+        "pending": "Ausstehend",
+        "approved": "Freigegeben",
+        "rejected": "Abgelehnt",
+        "all": "Alle"
+      },
+      "filters": {
+        "rating": "Bewertung",
+        "product": "Produkt",
+        "allRatings": "Alle Bewertungen",
+        "allProducts": "Alle Produkte",
+        "stars": "{count, plural, one {# Stern} other {# Sterne}}",
+        "selectedProduct": "Ausgewähltes Produkt",
+        "clear": "Filter zurücksetzen"
+      },
+      "columns": {
+        "rating": "Bewertung",
+        "product": "Produkt",
+        "review": "Text",
+        "customer": "Kunde",
+        "source": "Quelle",
+        "language": "Sprache",
+        "date": "Datum",
+        "status": "Status"
+      },
+      "source": {
+        "ACCOUNT": "Konto",
+        "LINK": "Link"
+      },
+      "verified": "Verifizierter Kauf",
+      "replied": "Beantwortet",
+      "starsLabel": "{rating} von 5",
+      "status": {
+        "PENDING": "Ausstehend",
+        "APPROVED": "Freigegeben",
+        "REJECTED": "Abgelehnt"
+      },
+      "actions": {
+        "approve": "Freigeben",
+        "reject": "Ablehnen",
+        "delete": "Löschen",
+        "reply": "Antworten",
+        "saveReply": "Antwort speichern",
+        "removeReply": "Antwort entfernen",
+        "view": "Ansehen"
+      },
+      "confirmDelete": {
+        "title": "Diese Bewertung löschen?",
+        "text": "Die Bewertung und Ihre Antwort werden endgültig entfernt. Das kann nicht rückgängig gemacht werden. Löschen Sie keine Bewertung nur, weil sie negativ ist.",
+        "confirm": "Bewertung löschen"
+      },
+      "dialog": {
+        "title": "Bewertung",
+        "order": "Bestellung",
+        "customer": "Kunde",
+        "written": "Geschrieben",
+        "published": "Veröffentlicht",
+        "readOnlyHint": "Sterne und Text stammen vom Käufer und können nicht bearbeitet werden."
+      },
+      "reply": {
+        "label": "Ihre Antwort",
+        "placeholder": "Öffentliche Antwort auf diese Bewertung schreiben…",
+        "counter": "{count} / {max}"
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "autoPublish": "Bewertungen automatisch veröffentlichen",
+        "autoPublishHint": "Neue Bewertungen erscheinen sofort im Shop, ohne auf Ihre Freigabe zu warten. Sie können sie danach weiterhin ablehnen oder löschen.",
+        "policyNote": "Nur verifizierte Käufer können eine Bewertung schreiben; Sie selbst können keine Bewertungen schreiben oder bearbeiten. Google verlangt echte Bewertungen: Blenden Sie Bewertungen nicht nur aus, weil sie negativ sind."
+      },
+      "empty": {
+        "pending": "Keine Bewertungen warten auf Freigabe",
+        "approved": "Noch keine freigegebenen Bewertungen",
+        "rejected": "Keine abgelehnten Bewertungen",
+        "all": "Noch keine Bewertungen",
+        "hint": "Käufer können ein Produkt nach einer bezahlten Bestellung bewerten: in ihrem Konto oder über einen Bewertungslink, den Sie ihnen senden.",
+        "filtered": "Keine Bewertungen für diese Filter."
+      },
+      "toasts": {
+        "approved": "Bewertung freigegeben.",
+        "rejected": "Bewertung abgelehnt.",
+        "deleted": "Bewertung gelöscht.",
+        "replySaved": "Antwort gespeichert.",
+        "replyRemoved": "Antwort entfernt.",
+        "settingsSaved": "Einstellungen gespeichert."
+      }
     }
   },
   "components": {
@@ -6430,7 +6540,12 @@
     "MARKET_PAYMENT_METHODS_INVALID_EMPTY": "Wähle mindestens eine Zahlungsart oder verwende die Zahlungsarten des Shops.",
     "MARKET_PAYMENT_METHODS_NOT_READY": "Keine der für diesen Markt gewählten Zahlungsarten kann bereits Zahlungen in seiner Währung annehmen. Der Markt behält seine aktuellen Einstellungen.",
     "MARKET_PAYMENT_METHOD_NOT_ALLOWED": "Diese Zahlungsart ist in diesem Markt nicht verfügbar.",
-    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom ist für diese Währung noch nicht eingerichtet. Bitte Kustom, sie freizuschalten, oder biete in diesem Markt eine andere Zahlungsart an."
+    "KUSTOM_CURRENCY_NOT_ENABLED": "Kustom ist für diese Währung noch nicht eingerichtet. Bitte Kustom, sie freizuschalten, oder biete in diesem Markt eine andere Zahlungsart an.",
+    "REVIEWS_NOT_ENABLED": "Die Bewertungs-App ist ausgeschaltet. Schalten Sie sie zuerst unter Apps ein.",
+    "REVIEW_NOT_FOUND": "Diese Bewertung existiert nicht mehr.",
+    "REVIEW_REPLY_INVALID": "Die Antwort muss zwischen 1 und 1000 Zeichen lang sein.",
+    "REVIEW_ORDER_NOT_ELIGIBLE": "Die Bestellung dieser Bewertung ist kein abgeschlossener, echter Kauf (unbezahlt, storniert, erstattet, Test oder gelöscht), daher kann die Bewertung nicht veröffentlicht werden.",
+    "REVIEW_CHANGED": "Diese Bewertung wurde geändert, nachdem Sie sie geöffnet haben. Bitte lesen Sie sie erneut, bevor Sie entscheiden."
   },
   "builder": {
     "failedToLoadPage": "Seite konnte nicht geladen werden",
