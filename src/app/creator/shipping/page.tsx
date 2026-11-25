@@ -28,6 +28,7 @@ import { useCurrency } from '@/lib/useCurrency';
 import { isAppEnabled, useStoreApps } from '@/lib/useStoreApps';
 import { useMarkets } from '@/lib/useMarkets';
 import { useTranslations } from 'next-intl';
+import { MerchantPoliciesCard } from '@/components/shipping/MerchantPoliciesCard';
 
 type Translator = ReturnType<typeof useTranslations>;
 
@@ -587,6 +588,9 @@ export default function CreatorShipping() {
           );
         })
       )}
+
+      {/* Handling time + return policies for structured data (M170 C) */}
+      <MerchantPoliciesCard />
 
       {/* ── Add Profile Dialog ── */}
       <Dialog open={showAddProfile} onOpenChange={v => { if (!v) { setShowAddProfile(false); setProfileName(''); setFormError(''); } }}>

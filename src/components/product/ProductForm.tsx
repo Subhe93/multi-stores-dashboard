@@ -22,6 +22,8 @@ import { BundlePicker } from '@/components/creator/bundles/BundlePicker';
 import { CollectionTreePicker } from '@/components/creator/categories/CollectionTreePicker';
 import { useImageUpload } from '@/lib/useImageUpload';
 import { ImageGallery } from './ImageGallery';
+import { ImageAltEditor } from './ImageAltEditor';
+import { altTranslationsPayload, altTranslationsSnapshot } from '@/lib/imageAlt';
 import {
   featuredFirst, featuredVideoMissingPoster, shouldSendVideos, videoFromServer, videosKey, videosNeedImage, videosPayload,
   type EditorVideo, type ProductVideoOut,
@@ -113,6 +115,8 @@ interface ProductImage {
   id: string;
   url: string;
   alt_text?: string;
+  /** M170 A: alt text per language other than the store's primary one. */
+  alt_translations?: Record<string, string> | null;
   is_featured?: boolean;
   variant_id?: string | null;
 }
@@ -684,7 +688,12 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       categoryId, productType, customizationType, basePrice, comparePrice, costPrice, sku,
       trackInventory, stockQty, maxPerOrder: maxPerOrder.trim(), weight, weightUnit, requiresShipping, status: statusOverride ?? status,
       attrs: Object.fromEntries(Object.entries(attrValues).filter(([, v]) => v !== '' && v != null)),
-      images: images.map(img => ({ url: img.url, alt: img.alt_text || '', featured: !!img.is_featured })),
+      images: images.map(img => ({
+        url: img.url,
+        alt: img.alt_text || '',
+        alts: altTranslationsSnapshot(img, primaryLocale),
+        featured: !!img.is_featured,
+      })),
       // No row ids: adopting the stored ids after a save is not an edit.
       videos: videos.map(v => ({
         kind: v.kind, url: v.url, poster: v.poster_url || '', alt: v.alt, position: v.position,
@@ -897,7 +906,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
       }));
       const imagesPayload = images.map(img => ({
         url: img.url,
-        alt_text: img.alt_text || undefined,
+        alt_text: (img.alt_text || '').trim() || undefined,
+        // M170 A: always explicit (an object or null), so a cleared text is
+        // cleared; only older clients rely on the API carry-over.
+        alt_translations: altTranslationsPayload(img, primaryLocale),
         is_featured: !!img.is_featured,
       }));
 
@@ -1142,6 +1154,10 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
         const locale = optionLabelsErrorLocale(err.payload);
         if (locale && locale !== primaryLocale) setActiveLocale(locale);
         setTimeout(() => document.getElementById('product-option-labels')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      } else if (err instanceof ApiError && err.code === 'PRODUCT_IMAGE_ALT_INVALID') {
+        // M170 A: an image alt text was refused; show the media card.
+        setError(apiError(err));
+        jumpToMedia();
       } else if (err instanceof ApiError && err.code === 'PRODUCT_GTIN_INVALID') {
         setFieldErrors(p => ({ ...p, gtin: t('product.errGtinInvalid') }));
         setError(t('product.errGtinInvalid'));
@@ -1547,6 +1563,18 @@ export function ProductForm({ mode, productId, backUrl, postCreateUrl }: Product
               videoConfig={mode === 'create' || serverHasVideos ? videoConfig : null}
               token={token}
               mediaError={mediaError}
+            />
+            {/* M170 A: alt text per image and language (hidden without images). */}
+            <ImageAltEditor
+              images={images}
+              onChange={setImages}
+              activeLocale={activeLocale}
+              onLocaleChange={setActiveLocale}
+              locales={allLocales}
+              primaryLocale={primaryLocale}
+              languageLabel={LOCALE_LABELS[activeLocale] || activeLocale}
+              titleFallback={translations[activeLocale]?.title || translations[primaryLocale]?.title || ''}
+              isRtl={isRtl}
             />
           </div>
 

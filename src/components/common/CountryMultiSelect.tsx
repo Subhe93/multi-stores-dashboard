@@ -141,9 +141,16 @@ interface CountryMultiSelectProps {
   value: string[];   // array of ISO codes
   onChange: (codes: string[]) => void;
   placeholder?: string;
+  /**
+   * Codes that cannot be picked here (shown greyed out with `disabledHint`),
+   * e.g. countries already covered by another return policy. A code that is
+   * already selected stays removable. Default: none.
+   */
+  disabledCodes?: readonly string[];
+  disabledHint?: string;
 }
 
-export function CountryMultiSelect({ value, onChange, placeholder }: CountryMultiSelectProps) {
+export function CountryMultiSelect({ value, onChange, placeholder, disabledCodes, disabledHint }: CountryMultiSelectProps) {
   const t = useTranslations('components');
   const resolvedPlaceholder = placeholder ?? t('selectCountries');
   const [open, setOpen] = useState(false);
@@ -183,16 +190,23 @@ export function CountryMultiSelect({ value, onChange, placeholder }: CountryMult
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  const isDisabled = (code: string) => !!disabledCodes?.includes(code) && !value.includes(code);
+
   const toggle = (code: string) => {
     if (value.includes(code)) {
       onChange(value.filter(c => c !== code));
-    } else {
+    } else if (!isDisabled(code)) {
       onChange([...value, code]);
     }
   };
 
+  // Region presets act on the countries that can be picked here.
+  const pickableRegionCodes = (region: string) =>
+    COUNTRIES.filter(c => c.region === region && !isDisabled(c.code)).map(c => c.code);
+
   const selectRegion = (region: string) => {
-    const regionCodes = COUNTRIES.filter(c => c.region === region).map(c => c.code);
+    const regionCodes = pickableRegionCodes(region);
+    if (regionCodes.length === 0) return;
     const allSelected = regionCodes.every(c => value.includes(c));
     if (allSelected) {
       onChange(value.filter(c => !regionCodes.includes(c)));
@@ -262,8 +276,8 @@ export function CountryMultiSelect({ value, onChange, placeholder }: CountryMult
           {!search && (
             <div className="flex flex-wrap gap-1 px-3 py-2 border-b bg-zinc-50/70">
               {REGION_PRESETS.map(rp => {
-                const regionCodes = COUNTRIES.filter(c => c.region === rp.region).map(c => c.code);
-                const allSel = regionCodes.every(c => value.includes(c));
+                const regionCodes = pickableRegionCodes(rp.region);
+                const allSel = regionCodes.length > 0 && regionCodes.every(c => value.includes(c));
                 return (
                   <button
                     key={rp.region}
@@ -295,14 +309,18 @@ export function CountryMultiSelect({ value, onChange, placeholder }: CountryMult
                   </div>
                   {grouped[region].map(c => {
                     const isSelected = value.includes(c.code);
+                    const disabled = isDisabled(c.code);
                     return (
                       <button
                         key={c.code}
                         type="button"
+                        disabled={disabled}
+                        title={disabled ? disabledHint : undefined}
                         onClick={() => toggle(c.code)}
                         className={cn(
                           'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-start transition',
                           isSelected ? 'bg-zinc-100' : 'hover:bg-zinc-50',
+                          disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent',
                         )}
                       >
                         <span className="text-base min-w-6 text-center shrink-0"><CountryFlag code={c.code} /></span>
