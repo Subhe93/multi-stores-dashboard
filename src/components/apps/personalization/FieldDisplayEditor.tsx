@@ -12,6 +12,7 @@ import { ToggleSwitch } from '@/components/common/ToggleSwitch';
 import { resolveMediaUrl } from '@/lib/media';
 import { charCount } from '@/lib/customFields';
 import { isHexColor, type MessageKey, type OptionConfigLike, type PUi } from '@/lib/personalization';
+import { transformFromSelect, transformSelectValue } from '@/lib/textTransform';
 
 /** Per-locale texts of the M4.1 translation columns as edited in the dialog. */
 export interface ExtrasForm {
@@ -130,11 +131,12 @@ export function FieldDisplayEditor({
             <div className="space-y-1.5">
               <Label className="text-xs">{t('transform')}</Label>
               <SearchableSelect
-                value={ui?.transform ?? 'none'}
-                onChange={(v) => set({ transform: v === 'uppercase' ? 'uppercase' : undefined })}
+                value={transformSelectValue(ui?.transform)}
+                onChange={(v) => set({ transform: transformFromSelect(v) })}
                 options={[
                   { value: 'none', label: t('transformNone') },
                   { value: 'uppercase', label: t('transformUppercase') },
+                  { value: 'capitalize', label: t('transformCapitalize') },
                 ]}
               />
             </div>

@@ -7384,6 +7384,7 @@
       "transform": "Groß-/Kleinschreibung",
       "transformNone": "Wie eingegeben",
       "transformUppercase": "GROSSBUCHSTABEN",
+      "transformCapitalize": "Erster Buchstabe groß, Rest klein",
       "counter": "Zeichenzähler",
       "counterOff": "Aus",
       "counterOn": "x / max",

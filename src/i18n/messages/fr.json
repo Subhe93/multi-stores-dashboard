@@ -7384,6 +7384,7 @@
       "transform": "Casse",
       "transformNone": "Telle que saisie",
       "transformUppercase": "MAJUSCULES",
+      "transformCapitalize": "Première lettre en majuscule, le reste en minuscules",
       "counter": "Compteur de caractères",
       "counterOff": "Désactivé",
       "counterOn": "x / max",

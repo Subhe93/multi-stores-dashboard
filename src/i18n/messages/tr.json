@@ -7384,6 +7384,7 @@
       "transform": "Harf durumu",
       "transformNone": "Yazıldığı gibi",
       "transformUppercase": "BÜYÜK HARF",
+      "transformCapitalize": "İlk harf büyük, diğerleri küçük",
       "counter": "Karakter sayacı",
       "counterOff": "Kapalı",
       "counterOn": "x / en fazla",

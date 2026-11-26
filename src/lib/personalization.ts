@@ -75,7 +75,7 @@ export interface PRepeat {
 
 export interface PUi {
   placement?: 'before_variants' | 'after_variants';
-  transform?: 'uppercase' | 'none';
+  transform?: 'uppercase' | 'capitalize' | 'none';
   counter?: boolean | 'linked';
   insert_char?: string;
   limit_to_target?: boolean;
