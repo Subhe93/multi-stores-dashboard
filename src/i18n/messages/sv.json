@@ -2902,6 +2902,8 @@
       "customer": "Kund",
       "shippingAddress": "Leveransadress",
       "noAddress": "Ingen adress angiven",
+      "recipientOtherPerson": "Mottagaren är en annan person",
+      "careOf": "c/o {name}",
       "yourEarnings": "Dina intäkter",
       "creatorCommission": "Din provision från den här beställningen",
       "independentEarningsNote": "Betalas direkt till ditt Stripe-konto — ingen plattformsprovision.",

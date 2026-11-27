@@ -2902,6 +2902,8 @@
       "customer": "العميل",
       "shippingAddress": "عنوان الشحن",
       "noAddress": "لم يتم تقديم عنوان",
+      "recipientOtherPerson": "المستلم شخص آخر",
+      "careOf": "عناية {name}",
       "yourEarnings": "أرباحك",
       "creatorCommission": "عمولتك من هذا الطلب",
       "independentEarningsNote": "تُدفع مباشرة إلى حسابك في سترايب — بدون عمولة للمنصة.",

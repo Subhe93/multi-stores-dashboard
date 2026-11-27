@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { careOfValue, isRecipientDifferent } from '@/lib/orderRecipient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -87,6 +88,10 @@ interface TimelineEntry {
 }
 
 interface OrderDetail {
+  // M175: who bought this order (Kustom billing name); null without one.
+  buyer_name?: string | null;
+  // b2b app: the company the order was placed as (null for a person).
+  company_name?: string | null;
   id: string;
   order_number: string;
   status: string;
@@ -129,9 +134,12 @@ interface OrderDetail {
     last_name?: string | null;
     email?: string | null;
     phone?: string | null;
+    user?: { email?: string | null } | null;
   } | null;
   address?: {
     full_name?: string | null;
+    phone?: string | null;
+    care_of?: string | null;
     line1?: string | null;
     line2?: string | null;
     city?: string | null;
@@ -914,6 +922,9 @@ export default function ProviderOrderDetail() {
             </CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
+              {careOfValue(order.address?.care_of) && (
+                <p>{tb('careOf', { name: careOfValue(order.address?.care_of) })}</p>
+              )}
               <p>{order.address?.line1}</p>
               {order.address?.line2 && <p>{order.address.line2}</p>}
               <p>{order.address?.city}{order.address?.postal_code ? `, ${order.address.postal_code}` : ''}</p>
@@ -922,6 +933,22 @@ export default function ProviderOrderDetail() {
                   <span><CountryFlag code={order.address.country_code} /></span>
                   <span>{countryName(order.address.country_code, uiLocale)}</span>
                 </p>
+              )}
+              {order.address?.phone && (
+                <p><a href={`tel:${order.address.phone}`} dir="ltr" className="inline-block hover:underline">{order.address.phone}</a></p>
+              )}
+              {isRecipientDifferent({
+                needsShipping: orderRequiresShipping(order),
+                recipientName: order.address?.full_name,
+                buyerName: order.buyer_name,
+                buyerFirstName: order.customer?.first_name,
+                buyerLastName: order.customer?.last_name,
+                buyerEmail: order.customer?.user?.email ?? order.customer?.email,
+                companyName: order.company_name,
+              }) && (
+                <Badge variant="outline" className="mt-1.5 text-[11px] bg-amber-50 text-amber-700 border-amber-200">
+                  {tb('recipientOtherPerson')}
+                </Badge>
               )}
             </CardContent>
           </Card>

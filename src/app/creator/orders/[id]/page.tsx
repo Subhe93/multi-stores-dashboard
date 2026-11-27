@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { careOfValue, isRecipientDifferent } from '@/lib/orderRecipient';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SearchableSelect } from '@/components/common/SearchableSelect';
@@ -140,11 +141,14 @@ interface OrderAddress {
   country_code?: string | null;
   full_name?: string | null;
   phone?: string | null;
+  care_of?: string | null;
 }
 
 // OrderB2bSnapshot: the five company columns written by the b2b app;
 // OrderTaxExemptionFields: reverse charge / exemption snapshot (M2.5).
 interface Order extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFields {
+  // M175: who bought this order (Kustom billing name); null without one.
+  buyer_name?: string | null;
   id: string;
   customer_id?: string | null;
   order_number: string;
@@ -925,6 +929,10 @@ export default function CreatorOrderDetailPage() {
             <CardContent className="text-xs space-y-0.5">
               {order.address ? (
                 <>
+                  {order.address.full_name && <p className="font-medium">{order.address.full_name}</p>}
+                  {careOfValue(order.address.care_of) && (
+                    <p>{t('orderDetail.careOf', { name: careOfValue(order.address.care_of) })}</p>
+                  )}
                   <p>{order.address.street ?? order.address.line1 ?? '—'}</p>
                   {(order.address.line2 || order.address.apartment) && (
                     <p>{order.address.line2 ?? order.address.apartment}</p>
@@ -942,6 +950,24 @@ export default function CreatorOrderDetailPage() {
                       return code ? countryName(code, uiLocale) : '—';
                     })()}
                   </p>
+                  {order.address.phone && (
+                    <p>
+                      <a href={`tel:${order.address.phone}`} dir="ltr" className="inline-block hover:underline">{order.address.phone}</a>
+                    </p>
+                  )}
+                  {isRecipientDifferent({
+                    needsShipping,
+                    recipientName: order.address.full_name,
+                    buyerName: order.buyer_name,
+                    buyerFirstName: order.customer?.first_name,
+                    buyerLastName: order.customer?.last_name,
+                    buyerEmail: order.customer?.user?.email ?? order.customer?.email,
+                    companyName: order.company_name,
+                  }) && (
+                    <Badge variant="outline" className="mt-1.5 text-[11px] bg-amber-50 text-amber-700 border-amber-200">
+                      {t('orderDetail.recipientOtherPerson')}
+                    </Badge>
+                  )}
                 </>
               ) : (
                 <p className="text-muted-foreground">{t('orderDetail.noAddress')}</p>

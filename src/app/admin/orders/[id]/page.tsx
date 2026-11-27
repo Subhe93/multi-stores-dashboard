@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { careOfValue, isRecipientDifferent } from '@/lib/orderRecipient';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Clock, Package, ExternalLink } from 'lucide-react';
@@ -81,6 +82,8 @@ interface TimelineEntry {
 // OrderB2bSnapshot: the five company columns written by the b2b app;
 // OrderTaxExemptionFields: reverse charge / exemption snapshot (M2.5).
 interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExemptionFields {
+  // M175: who bought this order (Kustom billing name); null without one.
+  buyer_name?: string | null;
   id: string;
   order_number: string;
   status: string;
@@ -126,6 +129,7 @@ interface AdminOrder extends KustomOrderFields, OrderB2bSnapshot, OrderTaxExempt
   address?: {
     phone?: string | null;
     full_name?: string | null;
+    care_of?: string | null;
     line1?: string | null;
     line2?: string | null;
     city?: string | null;
@@ -477,12 +481,31 @@ export default function OrderDetailPage() {
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{needsShipping ? t('shippingAddress') : tb('billingAddress')}</CardTitle></CardHeader>
             <CardContent className="text-xs space-y-0.5">
               <p className="font-medium">{order.address?.full_name}</p>
+              {careOfValue(order.address?.care_of) && (
+                <p>{tb('careOf', { name: careOfValue(order.address?.care_of) })}</p>
+              )}
               <p>{order.address?.line1}</p>
               {order.address?.line2 && <p>{order.address.line2}</p>}
               <p>{[order.address?.city, order.address?.postal_code].filter(Boolean).join(', ')}</p>
               {/* Country name in the dashboard UI locale, not the bare code. */}
               {(order.address?.country_code ?? order.address?.country) && (
                 <p>{countryName((order.address?.country_code ?? order.address?.country) as string, uiLocale)}</p>
+              )}
+              {order.address?.phone && (
+                <p><a href={`tel:${order.address.phone}`} dir="ltr" className="inline-block hover:underline">{order.address.phone}</a></p>
+              )}
+              {isRecipientDifferent({
+                needsShipping,
+                recipientName: order.address?.full_name,
+                buyerName: order.buyer_name,
+                buyerFirstName: order.customer?.first_name,
+                buyerLastName: order.customer?.last_name,
+                buyerEmail: order.customer?.user?.email,
+                companyName: order.company_name,
+              }) && (
+                <Badge variant="outline" className="mt-1.5 text-[11px] bg-amber-50 text-amber-700 border-amber-200">
+                  {tb('recipientOtherPerson')}
+                </Badge>
               )}
             </CardContent>
           </Card>

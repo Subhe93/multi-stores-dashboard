@@ -2902,6 +2902,8 @@
       "customer": "Customer",
       "shippingAddress": "Shipping Address",
       "noAddress": "No address provided",
+      "recipientOtherPerson": "Recipient is another person",
+      "careOf": "c/o {name}",
       "yourEarnings": "Your Earnings",
       "creatorCommission": "Your commission from this order",
       "independentEarningsNote": "Paid directly to your Stripe account — no platform commission.",

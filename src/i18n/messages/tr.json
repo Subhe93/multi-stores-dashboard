@@ -2902,6 +2902,8 @@
       "customer": "Müşteri",
       "shippingAddress": "Teslimat Adresi",
       "noAddress": "Adres belirtilmedi",
+      "recipientOtherPerson": "Alıcı başka bir kişi",
+      "careOf": "c/o {name}",
       "yourEarnings": "Kazançlarınız",
       "creatorCommission": "Bu siparişten komisyonunuz",
       "independentEarningsNote": "Doğrudan Stripe hesabınıza ödenir — platform komisyonu yoktur.",
